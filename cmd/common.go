@@ -738,11 +738,12 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 	}
 
 	// Detect non-git project for workspace bootstrap.
-	// Only scan when absolutely necessary — CollectFiles walks the entire
-	// project directory and SHA-256 hashes every file, which can take tens
-	// of seconds on large workspaces.
+	// Skip when running inside a hub-connected container — the broker already
+	// has the workspace mounted and CollectFiles would walk and SHA-256 hash
+	// every file in the project directory, which is extremely expensive for
+	// large workspaces.
 	var workspaceFiles []transfer.FileInfo
-	if hubCtx.ProjectPath != "" && !hubCtx.IsGlobal {
+	if hubCtx.ProjectPath != "" && !hubCtx.IsGlobal && !config.IsHubContext() {
 		projectDir := filepath.Dir(hubCtx.ProjectPath) // parent of .scion
 		if _, statErr := os.Stat(projectDir); statErr == nil && !util.IsGitRepoDir(projectDir) {
 			if debugMode {
@@ -761,6 +762,8 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 				workspaceFiles = files
 			}
 		}
+	} else if debugMode && config.IsHubContext() {
+		util.Debugf("[workspace-scan] skipped: running in hub context (broker has workspace access)")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
