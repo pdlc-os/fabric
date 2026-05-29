@@ -46,3 +46,6 @@ npm-debug.log*
 *.swo
 .DS_Store
 Thumbs.db
+
+# local tools
+.antigravitycli/
