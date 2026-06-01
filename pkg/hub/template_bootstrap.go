@@ -16,6 +16,7 @@ package hub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,6 +25,8 @@ import (
 	"github.com/GoogleCloudPlatform/scion/pkg/api"
 	"github.com/GoogleCloudPlatform/scion/pkg/config"
 	"github.com/GoogleCloudPlatform/scion/pkg/config/templateimport"
+	"github.com/GoogleCloudPlatform/scion/pkg/secret"
+	"github.com/GoogleCloudPlatform/scion/pkg/storage"
 	"github.com/GoogleCloudPlatform/scion/pkg/store"
 )
 
@@ -258,6 +261,19 @@ func (s *Server) importTemplatesFromRemote(ctx context.Context, projectID, sourc
 	if err == nil && project != nil && project.GitHubInstallationID != nil {
 		if token, _, mintErr := s.MintGitHubAppTokenForProject(ctx, project); mintErr == nil && token != "" {
 			authToken = token
+		}
+	}
+
+	// Fall back to project GITHUB_TOKEN secret if no App token minted
+	if authToken == "" {
+		if sb := s.GetSecretBackend(); sb != nil {
+			sec, secErr := sb.Get(ctx, "GITHUB_TOKEN", secret.ScopeProject, projectID)
+			if secErr == nil && sec != nil && sec.Value != "" {
+				authToken = sec.Value
+				s.templateLog.Info("using project GITHUB_TOKEN for template import", "projectID", projectID)
+			} else if secErr != nil && !errors.Is(secErr, store.ErrNotFound) {
+				s.templateLog.Warn("Failed to retrieve GITHUB_TOKEN from secret backend", "projectID", projectID, "error", secErr)
+			}
 		}
 	}
 
