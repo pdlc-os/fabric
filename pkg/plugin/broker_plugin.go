@@ -21,7 +21,7 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/broker"
+	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
 	"github.com/GoogleCloudPlatform/scion/pkg/messages"
 	goplugin "github.com/hashicorp/go-plugin"
 )
@@ -321,11 +321,12 @@ func (c *BrokerRPCClient) HealthCheck() (*HealthStatus, error) {
 
 // --- Host-side adapter: wraps BrokerRPCClient as broker.MessageBroker ---
 
-// BrokerPluginAdapter wraps a BrokerRPCClient to satisfy the broker.MessageBroker interface.
-// Subscribe's MessageHandler callback is not forwarded to the plugin — inbound messages
+// BrokerPluginAdapter wraps a BrokerRPCClient to satisfy the eventbus.EventBus interface.
+// Subscribe's EventHandler callback is not forwarded to the plugin — inbound messages
 // arrive via the hub API instead (see broker-plugins.md design doc).
 type BrokerPluginAdapter struct {
 	rpcClient *BrokerRPCClient
+	mu        sync.Mutex
 	subs      map[string]*pluginSubscription
 }
 
@@ -344,7 +345,7 @@ func (a *BrokerPluginAdapter) Publish(ctx context.Context, topic string, msg *me
 // Subscribe tells the plugin to start listening on the external broker for the given pattern.
 // The handler callback is stored locally but not forwarded — inbound delivery happens
 // via the hub API endpoint (POST /api/v1/broker/inbound).
-func (a *BrokerPluginAdapter) Subscribe(pattern string, handler broker.MessageHandler) (broker.Subscription, error) {
+func (a *BrokerPluginAdapter) Subscribe(pattern string, handler eventbus.EventHandler) (eventbus.Subscription, error) {
 	if err := a.rpcClient.Subscribe(pattern); err != nil {
 		return nil, fmt.Errorf("plugin subscribe failed: %w", err)
 	}
@@ -352,7 +353,9 @@ func (a *BrokerPluginAdapter) Subscribe(pattern string, handler broker.MessageHa
 		adapter: a,
 		pattern: pattern,
 	}
+	a.mu.Lock()
 	a.subs[pattern] = sub
+	a.mu.Unlock()
 	return sub, nil
 }
 
@@ -360,18 +363,25 @@ func (a *BrokerPluginAdapter) Close() error {
 	return a.rpcClient.Close()
 }
 
-// pluginSubscription implements broker.Subscription for plugin brokers.
+// unsubscribePattern sends the RPC unsubscribe call and removes the pattern
+// from the adapter's tracking map. Both pluginSubscription and
+// reconnectingSub use this to avoid leaking entries in the subs map.
+func (a *BrokerPluginAdapter) unsubscribePattern(pattern string) error {
+	err := a.rpcClient.Unsubscribe(pattern)
+	a.mu.Lock()
+	delete(a.subs, pattern)
+	a.mu.Unlock()
+	return err
+}
+
+// pluginSubscription implements eventbus.Subscription for plugin brokers.
 type pluginSubscription struct {
 	adapter *BrokerPluginAdapter
 	pattern string
 }
 
 func (s *pluginSubscription) Unsubscribe() error {
-	if err := s.adapter.rpcClient.Unsubscribe(s.pattern); err != nil {
-		return err
-	}
-	delete(s.adapter.subs, s.pattern)
-	return nil
+	return s.adapter.unsubscribePattern(s.pattern)
 }
 
 // --- Reconnecting adapter for self-managed broker plugins ---
@@ -385,7 +395,7 @@ type reconnectingBrokerAdapter struct {
 	logger     *slog.Logger
 	mu         sync.Mutex
 	current    *BrokerPluginAdapter
-	activeSubs map[string]broker.MessageHandler // tracked for re-subscribe after reconnect
+	activeSubs map[string]eventbus.EventHandler // tracked for re-subscribe after reconnect
 	closed     bool
 }
 
@@ -395,7 +405,7 @@ func newReconnectingBrokerAdapter(manager *Manager, name string, initial *Broker
 		name:       name,
 		logger:     logger.With("component", "reconnecting-broker", "plugin", name),
 		current:    initial,
-		activeSubs: make(map[string]broker.MessageHandler),
+		activeSubs: make(map[string]eventbus.EventHandler),
 	}
 }
 
@@ -451,7 +461,7 @@ func (a *reconnectingBrokerAdapter) Publish(ctx context.Context, topic string, m
 	return a.current.Publish(ctx, topic, msg)
 }
 
-func (a *reconnectingBrokerAdapter) Subscribe(pattern string, handler broker.MessageHandler) (broker.Subscription, error) {
+func (a *reconnectingBrokerAdapter) Subscribe(pattern string, handler eventbus.EventHandler) (eventbus.Subscription, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.closed {
@@ -484,7 +494,7 @@ func (a *reconnectingBrokerAdapter) Close() error {
 	return a.current.Close()
 }
 
-// reconnectingSub implements broker.Subscription and tracks unsubscribes in
+// reconnectingSub implements eventbus.Subscription and tracks unsubscribes in
 // the reconnecting adapter's activeSubs map.
 type reconnectingSub struct {
 	adapter *reconnectingBrokerAdapter
@@ -496,7 +506,8 @@ func (s *reconnectingSub) Unsubscribe() error {
 	defer s.adapter.mu.Unlock()
 	delete(s.adapter.activeSubs, s.pattern)
 	// Best-effort unsubscribe on current connection; if it's dead, the
-	// subscription is already gone.
-	_ = s.adapter.current.rpcClient.Unsubscribe(s.pattern)
+	// subscription is already gone. Uses unsubscribePattern to also clean
+	// up the BrokerPluginAdapter's subs map, preventing leaked entries.
+	_ = s.adapter.current.unsubscribePattern(s.pattern)
 	return nil
 }
