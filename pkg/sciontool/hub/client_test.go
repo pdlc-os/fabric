@@ -616,6 +616,12 @@ func TestClient_GetToken(t *testing.T) {
 
 func TestClient_StartTokenRefresh(t *testing.T) {
 	t.Run("refreshes token at scheduled time", func(t *testing.T) {
+		// Isolate the token file to a temp dir. Without this, RefreshToken's
+		// WriteTokenFile would clobber the real ~/.scion/scion-token when the
+		// suite is run inside an agent container (where the scion user exists).
+		cleanup := SetTokenHome(t.TempDir())
+		defer cleanup()
+
 		refreshed := false
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			refreshed = true

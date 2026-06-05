@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
 	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
@@ -856,12 +857,24 @@ func resolveTokenHome() string {
 	return home
 }
 
+// tokenHomeOverridden reports whether SetTokenHome has installed a test
+// override. WriteTokenFile refuses to write under `go test` unless this is set,
+// so a test that forgets SetTokenHome can never clobber a live
+// ~/.scion/scion-token (as happened when the suite was run inside an agent
+// container, where resolveTokenHome finds the real scion user).
+var tokenHomeOverridden bool
+
 // SetTokenHome overrides the token home directory for testing.
 // Returns a cleanup function that restores the original resolver.
 func SetTokenHome(dir string) func() {
 	orig := tokenHomeResolver
+	origOverridden := tokenHomeOverridden
 	tokenHomeResolver = func() string { return dir }
-	return func() { tokenHomeResolver = orig }
+	tokenHomeOverridden = true
+	return func() {
+		tokenHomeResolver = orig
+		tokenHomeOverridden = origOverridden
+	}
 }
 
 // TokenFilePath returns the path to the canonical token file.
@@ -876,6 +889,17 @@ func TokenFilePath() string {
 // Called by sciontool init to seed the initial value and by the refresh
 // loop to persist updated tokens. Written atomically via temp file + rename.
 func WriteTokenFile(token string) error {
+	// Guardrail: under `go test`, refuse to write the real token file unless a
+	// test has explicitly isolated it via SetTokenHome. resolveTokenHome
+	// resolves to the live scion user's home inside agent containers, so a test
+	// that forgets to isolate would silently overwrite a running agent's token
+	// (seen in the wild: a refresh test persisted the literal "refreshed-token",
+	// 401-ing the agent). Fail loudly instead of corrupting live state.
+	if testing.Testing() && !tokenHomeOverridden {
+		panic("scion/hub: WriteTokenFile called during a test without SetTokenHome(); " +
+			"call SetTokenHome(t.TempDir()) so tests never overwrite the real ~/.scion/scion-token")
+	}
+
 	path := TokenFilePath()
 	dir := filepath.Dir(path)
 
