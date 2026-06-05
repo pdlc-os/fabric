@@ -188,6 +188,31 @@ export class ScionPageAgents extends LitElement {
         justify-content: flex-end;
       }
 
+      /* Color-coded hover effects for action buttons (skip disabled) */
+      .action-btn-danger:not([disabled])::part(base):hover {
+        background: var(--scion-action-hover-danger-bg, rgba(239, 68, 68, 0.1));
+        border-color: var(--scion-danger-400, #f87171);
+        color: var(--scion-danger-600, #dc2626);
+      }
+
+      .action-btn-warning:not([disabled])::part(base):hover {
+        background: var(--scion-action-hover-warning-bg, rgba(245, 158, 11, 0.1));
+        border-color: var(--scion-warning-400, #fbbf24);
+        color: var(--scion-warning-600, #d97706);
+      }
+
+      .action-btn-success:not([disabled])::part(base):hover {
+        background: var(--scion-action-hover-success-bg, rgba(34, 197, 94, 0.1));
+        border-color: var(--scion-success-400, #4ade80);
+        color: var(--scion-success-600, #16a34a);
+      }
+
+      .action-btn-primary:not([disabled])::part(base):hover {
+        background: var(--scion-action-hover-primary-bg, rgba(59, 130, 246, 0.1));
+        border-color: var(--scion-primary-400, #60a5fa);
+        color: var(--scion-primary-600, #2563eb);
+      }
+
       .scope-toggle {
         display: inline-flex;
         border: 1px solid var(--scion-border, #e2e8f0);
@@ -812,9 +837,112 @@ export class ScionPageAgents extends LitElement {
     `;
   }
 
-  private renderAgentCard(agent: Agent) {
+  private renderActionButtons(agent: Agent) {
     const isLoading = this.actionLoading[agent.id] || false;
 
+    return html`
+      ${can(agent._capabilities, 'attach') ? html`
+        <sl-tooltip content="Terminal">
+          <span style="display: inline-flex">
+            <sl-button
+              class="action-btn-primary"
+              variant="primary"
+              size="small"
+              href="/agents/${agent.id}/terminal"
+              ?disabled=${!isTerminalAvailable(agent)}
+              aria-label="Terminal"
+            >
+              <sl-icon slot="prefix" name="terminal"></sl-icon>
+            </sl-button>
+          </span>
+        </sl-tooltip>
+      ` : nothing}
+      ${isAgentRunning(agent)
+        ? can(agent._capabilities, 'stop') ? html`
+            ${agent.harnessCapabilities?.resume?.support !== 'no' ? html`
+              <sl-tooltip content="Suspend">
+                <sl-button
+                  class="action-btn-warning"
+                  variant="warning"
+                  size="small"
+                  outline
+                  ?loading=${isLoading}
+                  ?disabled=${isLoading}
+                  @click=${() => this.handleAgentAction(agent.id, 'suspend')}
+                  aria-label="Suspend"
+                >
+                  <sl-icon slot="prefix" name="pause-circle"></sl-icon>
+                </sl-button>
+              </sl-tooltip>
+            ` : nothing}
+            <sl-tooltip content="Stop">
+              <sl-button
+                class="action-btn-danger"
+                variant="danger"
+                size="small"
+                outline
+                ?loading=${isLoading}
+                ?disabled=${isLoading}
+                @click=${() => this.handleAgentAction(agent.id, 'stop')}
+                aria-label="Stop"
+              >
+                <sl-icon slot="prefix" name="stop-circle"></sl-icon>
+              </sl-button>
+            </sl-tooltip>
+          ` : nothing
+        : agent.phase === 'suspended'
+          ? can(agent._capabilities, 'start') ? html`
+              <sl-tooltip content="Resume">
+                <sl-button
+                  class="action-btn-success"
+                  variant="success"
+                  size="small"
+                  outline
+                  ?loading=${isLoading}
+                  ?disabled=${isLoading}
+                  @click=${() => this.handleAgentAction(agent.id, 'resume')}
+                  aria-label="Resume"
+                >
+                  <sl-icon slot="prefix" name="play-circle"></sl-icon>
+                </sl-button>
+              </sl-tooltip>
+            ` : nothing
+          : can(agent._capabilities, 'start') ? html`
+              <sl-tooltip content="Start">
+                <sl-button
+                  class="action-btn-success"
+                  variant="success"
+                  size="small"
+                  outline
+                  ?loading=${isLoading}
+                  ?disabled=${isLoading}
+                  @click=${() => this.handleAgentAction(agent.id, 'start')}
+                  aria-label="Start"
+                >
+                  <sl-icon slot="prefix" name="play-circle"></sl-icon>
+                </sl-button>
+              </sl-tooltip>
+            ` : nothing}
+      ${can(agent._capabilities, 'delete') ? html`
+        <sl-tooltip content="Delete">
+          <sl-button
+            class="action-btn-danger"
+            variant="default"
+            size="small"
+            outline
+            ?loading=${isLoading}
+            ?disabled=${isLoading}
+            @click=${(e: MouseEvent) => this.handleAgentAction(agent.id, 'delete', e)}
+            aria-label="Delete"
+          >
+            <sl-icon slot="prefix" name="trash"></sl-icon>
+          </sl-button>
+        </sl-tooltip>
+      ` : nothing}
+    `;
+  }
+
+  private renderAgentCard(agent: Agent) {
     return html`
       <div class="agent-card">
         <div class="agent-header">
@@ -849,83 +977,7 @@ export class ScionPageAgents extends LitElement {
         ${agent.taskSummary ? html` <div class="agent-task">${agent.taskSummary}</div> ` : ''}
 
         <div class="agent-actions">
-          ${can(agent._capabilities, 'attach') ? html`
-            <sl-button
-              variant="primary"
-              size="small"
-              href="/agents/${agent.id}/terminal"
-              ?disabled=${!isTerminalAvailable(agent)}
-            >
-              <sl-icon slot="prefix" name="terminal"></sl-icon>
-              Terminal
-            </sl-button>
-          ` : nothing}
-          ${isAgentRunning(agent)
-            ? can(agent._capabilities, 'stop') ? html`
-                ${agent.harnessCapabilities?.resume?.support !== 'no' ? html`
-                  <sl-button
-                    variant="warning"
-                    size="small"
-                    outline
-                    ?loading=${isLoading}
-                    ?disabled=${isLoading}
-                    @click=${() => this.handleAgentAction(agent.id, 'suspend')}
-                  >
-                    <sl-icon slot="prefix" name="pause-circle"></sl-icon>
-                    Suspend
-                  </sl-button>
-                ` : nothing}
-                <sl-button
-                  variant="danger"
-                  size="small"
-                  outline
-                  ?loading=${isLoading}
-                  ?disabled=${isLoading}
-                  @click=${() => this.handleAgentAction(agent.id, 'stop')}
-                >
-                  <sl-icon slot="prefix" name="stop-circle"></sl-icon>
-                  Stop
-                </sl-button>
-              ` : nothing
-            : agent.phase === 'suspended'
-              ? can(agent._capabilities, 'start') ? html`
-                  <sl-button
-                    variant="success"
-                    size="small"
-                    outline
-                    ?loading=${isLoading}
-                    ?disabled=${isLoading}
-                    @click=${() => this.handleAgentAction(agent.id, 'resume')}
-                  >
-                    <sl-icon slot="prefix" name="play-circle"></sl-icon>
-                    Resume
-                  </sl-button>
-                ` : nothing
-              : can(agent._capabilities, 'start') ? html`
-                  <sl-button
-                    variant="success"
-                    size="small"
-                    outline
-                    ?loading=${isLoading}
-                    ?disabled=${isLoading}
-                    @click=${() => this.handleAgentAction(agent.id, 'start')}
-                  >
-                    <sl-icon slot="prefix" name="play-circle"></sl-icon>
-                    Start
-                  </sl-button>
-                ` : nothing}
-          ${can(agent._capabilities, 'delete') ? html`
-            <sl-button
-              variant="default"
-              size="small"
-              outline
-              ?loading=${isLoading}
-              ?disabled=${isLoading}
-              @click=${(e: MouseEvent) => this.handleAgentAction(agent.id, 'delete', e)}
-            >
-              <sl-icon slot="prefix" name="trash"></sl-icon>
-            </sl-button>
-          ` : nothing}
+          ${this.renderActionButtons(agent)}
         </div>
       </div>
     `;
@@ -964,8 +1016,6 @@ export class ScionPageAgents extends LitElement {
   }
 
   private renderAgentRow(agent: Agent) {
-    const isLoading = this.actionLoading[agent.id] || false;
-
     return html`
       <tr>
         <td>
@@ -989,78 +1039,7 @@ export class ScionPageAgents extends LitElement {
         </td>
         <td class="actions-cell">
           <span class="table-actions">
-            ${can(agent._capabilities, 'attach') ? html`
-              <sl-button
-                variant="primary"
-                size="small"
-                href="/agents/${agent.id}/terminal"
-                ?disabled=${!isTerminalAvailable(agent)}
-              >
-                <sl-icon slot="prefix" name="terminal"></sl-icon>
-              </sl-button>
-            ` : nothing}
-            ${isAgentRunning(agent)
-              ? can(agent._capabilities, 'stop') ? html`
-                  ${agent.harnessCapabilities?.resume?.support !== 'no' ? html`
-                    <sl-button
-                      variant="warning"
-                      size="small"
-                      outline
-                      ?loading=${isLoading}
-                      ?disabled=${isLoading}
-                      @click=${() => this.handleAgentAction(agent.id, 'suspend')}
-                    >
-                      <sl-icon slot="prefix" name="pause-circle"></sl-icon>
-                    </sl-button>
-                  ` : nothing}
-                  <sl-button
-                    variant="danger"
-                    size="small"
-                    outline
-                    ?loading=${isLoading}
-                    ?disabled=${isLoading}
-                    @click=${() => this.handleAgentAction(agent.id, 'stop')}
-                  >
-                    <sl-icon slot="prefix" name="stop-circle"></sl-icon>
-                  </sl-button>
-                ` : nothing
-              : agent.phase === 'suspended'
-                ? can(agent._capabilities, 'start') ? html`
-                    <sl-button
-                      variant="success"
-                      size="small"
-                      outline
-                      ?loading=${isLoading}
-                      ?disabled=${isLoading}
-                      @click=${() => this.handleAgentAction(agent.id, 'resume')}
-                    >
-                      <sl-icon slot="prefix" name="play-circle"></sl-icon>
-                    </sl-button>
-                  ` : nothing
-                : can(agent._capabilities, 'start') ? html`
-                    <sl-button
-                      variant="success"
-                      size="small"
-                      outline
-                      ?loading=${isLoading}
-                      ?disabled=${isLoading}
-                      @click=${() => this.handleAgentAction(agent.id, 'start')}
-                    >
-                      <sl-icon slot="prefix" name="play-circle"></sl-icon>
-                    </sl-button>
-                  ` : nothing}
-            ${can(agent._capabilities, 'delete') ? html`
-              <sl-button
-                variant="default"
-                size="small"
-                outline
-                ?loading=${isLoading}
-                ?disabled=${isLoading}
-                @click=${(e: MouseEvent) => this.handleAgentAction(agent.id, 'delete', e)}
-              >
-                <sl-icon slot="prefix" name="trash"></sl-icon>
-              </sl-button>
-            ` : nothing}
+            ${this.renderActionButtons(agent)}
           </span>
         </td>
       </tr>
