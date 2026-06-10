@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/GoogleCloudPlatform/scion/pkg/store"
@@ -54,6 +55,24 @@ func (ws *WebServer) handleTestLogin(w http.ResponseWriter, r *http.Request) {
 
 	if ws.store == nil || ws.userTokenSvc == nil {
 		http.Error(w, "hub services not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	// Validate test-login challenge token.
+	// Callers must present a short-lived JWT signed with the hub's user
+	// signing key and scoped to the "scion-test-login" audience.
+	// Per RFC 7235 the auth scheme is case-insensitive; we also tolerate
+	// multiple spaces between scheme and token via strings.Fields.
+	authHeader := r.Header.Get("Authorization")
+	authParts := strings.Fields(authHeader)
+	if len(authParts) != 2 || !strings.EqualFold(authParts[0], "bearer") {
+		http.Error(w, "authorization required: Bearer <test-login-token>", http.StatusUnauthorized)
+		return
+	}
+	challengeToken := authParts[1]
+	if err := ws.userTokenSvc.ValidateTestLoginToken(challengeToken); err != nil {
+		slog.Debug("test-login: invalid challenge token", "error", err)
+		http.Error(w, "invalid test-login token", http.StatusUnauthorized)
 		return
 	}
 
