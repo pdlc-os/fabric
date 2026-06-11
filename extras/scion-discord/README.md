@@ -146,16 +146,18 @@ You can copy and paste the following prompt to have an agent execute this instal
 > 2. Once I provide the Application ID, generate and output my Discord bot server invite link with permissions set to `329101954112`.
 > 3. SSH into the active GCE VM and configure the `/home/scion/.scion/settings.yaml` file:
 >    - Ensure `- discord` is enabled under `server.message_broker.types`.
->    - Add the `plugins.broker.discord` block with the provided token and app-id.
+>    - Add the `server.plugins.broker.discord` block with the provided token and app-id (ensure `plugins` is nested under `server:` and not at the root level).
 >    - Set `db_path` to `/home/scion/.scion/discord.db`.
-> 4. Run `sudo systemctl restart scion-hub` and check the logs via `journalctl` to verify that the message `Discord broker configured` is present.
+> 4. Run `sudo systemctl restart scion-hub` and check the logs via `journalctl` to verify that the message `Discord gateway connected` or `Discord bot ready` is present.
 
 ### 4. Verification Checklist (for the Agent)
 The agent should verify the following to confirm a successful installation:
 - [ ] `which scion-plugin-discord` returns `/usr/local/bin/scion-plugin-discord`.
 - [ ] The SQLite database directory for `db_path` exists and is writable by the `scion` user.
 - [ ] `/home/scion/.scion/settings.yaml` is valid YAML and includes the `discord` broker type.
+- [ ] The `plugins:` block is properly nested under the `server:` block in `/home/scion/.scion/settings.yaml`.
 - [ ] `systemctl is-active scion-hub` returns `active`.
+
 
 ## User Guide
 
