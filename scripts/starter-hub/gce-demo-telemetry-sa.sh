@@ -107,6 +107,7 @@ gcloud services enable \
 if ! gcloud iam service-accounts describe "${SA_EMAIL}" &>/dev/null; then
     echo "Creating service account ${SA_NAME}..."
     gcloud iam service-accounts create "${SA_NAME}" \
+        --project="${PROJECT_ID}" \
         --display-name "Scion Telemetry Writer" \
         --description "Least-privilege SA for agent telemetry export (traces, logs, metrics)"
 

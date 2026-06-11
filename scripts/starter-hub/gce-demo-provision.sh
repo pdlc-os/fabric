@@ -139,6 +139,7 @@ fi
 if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT_EMAIL}" &>/dev/null; then
     echo "Creating service account ${SERVICE_ACCOUNT_NAME}..."
     gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}" \
+        --project="${PROJECT_ID}" \
         --display-name "Scion Demo Service Account"
     
     echo "Waiting for service account to propagate..."
