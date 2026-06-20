@@ -80,10 +80,16 @@ func runHarnessConfigInstall(cmd *cobra.Command, args []string) error {
 
 	name := nameOverride
 	if name == "" {
-		name = deriveHarnessConfigName(source)
+		if hcDir.Config.Name != "" {
+			name = hcDir.Config.Name
+		} else if hcDir.Config.Harness != "" {
+			name = hcDir.Config.Harness
+		} else {
+			name = deriveHarnessConfigName(source)
+		}
 	}
-	if name == "" || name == "." || name == "/" {
-		return fmt.Errorf("could not derive harness-config name from source %q; use --name to specify", source)
+	if name == "" || name == "." || name == ".." || strings.ContainsAny(name, "/\\") {
+		return fmt.Errorf("invalid harness-config name %q; name cannot contain path components or separators", name)
 	}
 
 	hubCtx, err := CheckHubAvailabilityWithOptions(gp, true)

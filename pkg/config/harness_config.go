@@ -72,8 +72,16 @@ func LoadHarnessConfigDir(dirPath string) (*HarnessConfigDir, error) {
 		return nil, fmt.Errorf("failed to parse config.yaml: %w", err)
 	}
 
+	name := filepath.Base(absPath)
+	if entry.Name != "" {
+		if entry.Name == "." || entry.Name == ".." || strings.ContainsAny(entry.Name, "/\\") {
+			return nil, fmt.Errorf("invalid name in config.yaml: %q contains path components or separators", entry.Name)
+		}
+		name = entry.Name
+	}
+
 	return &HarnessConfigDir{
-		Name:   filepath.Base(absPath),
+		Name:   name,
 		Path:   absPath,
 		Config: entry,
 	}, nil
