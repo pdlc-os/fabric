@@ -31,6 +31,7 @@ import (
 	"github.com/GoogleCloudPlatform/scion/pkg/config"
 	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
 	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/GoogleCloudPlatform/scion/pkg/labels"
 	"github.com/GoogleCloudPlatform/scion/pkg/secret"
 	"github.com/GoogleCloudPlatform/scion/pkg/storage"
 	"github.com/GoogleCloudPlatform/scion/pkg/store"
@@ -1608,6 +1609,15 @@ func (s *Server) listProjectAgents(w http.ResponseWriter, r *http.Request, proje
 		IncludeDeleted:  query.Get("includeDeleted") == "true",
 	}
 
+	if labelParams := query["label"]; len(labelParams) > 0 {
+		parsed, err := parseLabelFilters(labelParams)
+		if err != nil {
+			BadRequest(w, err.Error())
+			return
+		}
+		filter.Labels = parsed
+	}
+
 	limit := 50
 	if l := query.Get("limit"); l != "" {
 		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
@@ -1676,6 +1686,10 @@ func (s *Server) createProjectAgent(w http.ResponseWriter, r *http.Request, proj
 	}
 	if req.CleanupMode != "" && req.CleanupMode != "strict" && req.CleanupMode != "force" {
 		ValidationError(w, "cleanupMode must be 'strict' or 'force'", nil)
+		return
+	}
+	if err := labels.Validate(req.Labels); err != nil {
+		ValidationError(w, "Invalid labels: "+err.Error(), nil)
 		return
 	}
 
@@ -1784,6 +1798,10 @@ func (s *Server) updateProjectAgent(w http.ResponseWriter, r *http.Request, proj
 		agent.Name = updates.Name
 	}
 	if updates.Labels != nil {
+		if err := labels.Validate(updates.Labels); err != nil {
+			ValidationError(w, "Invalid labels: "+err.Error(), nil)
+			return
+		}
 		agent.Labels = updates.Labels
 	}
 	if updates.Annotations != nil {
