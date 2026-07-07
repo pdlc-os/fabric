@@ -80,9 +80,11 @@ func StartComponent(component, executable string, args []string, globalDir strin
 	cmd := exec.Command(executable, args...)
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
+	cmd.Stdin = nil          // prevent credential prompts leaking to user's terminal
 	cmd.Dir = globalDir
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
+		Setsid:  true,       // detach from the controlling terminal entirely
 	}
 
 	if err := cmd.Start(); err != nil {
