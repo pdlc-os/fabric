@@ -2,8 +2,9 @@
 .design/
 .scion/
 .gemini/
-*key*
-*secret*
+*.key
+*.pem
+*.secret
 *.env
 
 # Ignore version control (can be large)
