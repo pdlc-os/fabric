@@ -50,7 +50,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/util/logging"
 	"github.com/robfig/cron/v3"
-	"golang.org/x/sync/singleflight"
 )
 
 const (
@@ -678,9 +677,8 @@ type Server struct {
 	imageBuildActive atomic.Bool
 	imagePullActive  atomic.Bool
 
-	imageChecker      *imagecheck.Checker
-	imageManager      imageManager
-	imageStatusFlight singleflight.Group
+	imageChecker *imagecheck.Checker
+	imageManager imageManager
 
 	// Mode 3 (HA) integration support fields.
 	// dbDriver records the database backend ("sqlite" or "postgres") for
