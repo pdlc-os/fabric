@@ -547,13 +547,17 @@ func TestFindTemplateInProjectPath(t *testing.T) {
 	})
 
 	t.Run("falls back to FindTemplate when projectPath is empty", func(t *testing.T) {
-		// With empty projectPath and CWD having no .fabric, should fall back to global
+		// With empty projectPath and CWD having no .fabric, should fall back to global.
+		// Resolution walks up from os.Getwd(), which resolves symlinks (macOS
+		// /var → /private/var), so compare resolved paths.
 		tpl, err := FindTemplateInProjectPath("my-tpl", "")
 		if err != nil {
 			t.Fatalf("FindTemplateInProjectPath failed: %v", err)
 		}
-		if tpl.Path != globalTplDir {
-			t.Errorf("expected path %q, got %q", globalTplDir, tpl.Path)
+		evalGot, _ := filepath.EvalSymlinks(tpl.Path)
+		evalWant, _ := filepath.EvalSymlinks(globalTplDir)
+		if evalGot != evalWant {
+			t.Errorf("expected path %q, got %q", evalWant, evalGot)
 		}
 	})
 

@@ -632,7 +632,7 @@ runtimes:
 
 	getLogsCalled := false
 	rt := &runtime.MockRuntime{
-		NameFunc: func() string { return "docker" },
+		NameFunc: func() string { return "mock" },
 		GetLogsFunc: func(_ context.Context, _ string) (string, error) {
 			getLogsCalled = true
 			return "", fmt.Errorf("should not be called")
@@ -711,7 +711,7 @@ runtimes:
 	// No agent.log on disk — forces fallback to container logs
 	var receivedID string
 	rt := &runtime.MockRuntime{
-		NameFunc: func() string { return "docker" },
+		NameFunc: func() string { return "mock" },
 		GetLogsFunc: func(_ context.Context, id string) (string, error) {
 			receivedID = id
 			return "container log output", nil
@@ -777,8 +777,11 @@ func newTestServerWithEnvCapture() (*Server, *envCapturingManager) {
 
 	mgr := &envCapturingManager{}
 
-	// NameFunc returns "docker" so resolveManagerForOpts matches the settings-resolved runtime.
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	// NameFunc returns "mock" to match ForceRuntime so resolveManagerForOpts
+	// returns the mock manager directly. Relying on settings resolution here
+	// would make the result depend on the host OS default runtime (docker on
+	// Linux, apple container on macOS) and the developer's real config.
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 
 	return New(cfg, mgr, rt), mgr
 }
@@ -786,6 +789,7 @@ func newTestServerWithEnvCapture() (*Server, *envCapturingManager) {
 // TestCreateAgentWithHubCredentials tests that Hub authentication env vars are passed to agent.
 // This verifies the fix from progress-report.md: RuntimeBroker sets FABRIC_HUB_URL, FABRIC_AUTH_TOKEN, FABRIC_AGENT_ID.
 func TestCreateAgentWithHubCredentials(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
 	srv, mgr := newTestServerWithEnvCapture()
 
 	body := `{
@@ -840,6 +844,7 @@ func TestCreateAgentWithHubCredentials(t *testing.T) {
 // TestCreateAgentWithDebugMode tests that FABRIC_DEBUG env var is set when debug mode is enabled.
 // This verifies Fix 4 from progress-report.md: Pass FABRIC_DEBUG env var.
 func TestCreateAgentWithDebugMode(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
 	srv, mgr := newTestServerWithEnvCapture()
 
 	body := `{"name": "debug-agent"}`
@@ -1005,8 +1010,11 @@ func newTestServerWithProvisionCapture() (*Server, *provisionCapturingManager) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &provisionCapturingManager{}
-	// NameFunc returns "docker" so resolveManagerForOpts matches the settings-resolved runtime.
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	// NameFunc returns "mock" to match ForceRuntime so resolveManagerForOpts
+	// returns the mock manager directly. Relying on settings resolution here
+	// would make the result depend on the host OS default runtime (docker on
+	// Linux, apple container on macOS) and the developer's real config.
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 
 	return New(cfg, mgr, rt), mgr
 }
@@ -1535,7 +1543,7 @@ func TestCreateAgentHubManagedProjectSettingsEndpoint(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &envCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	// Set up a hub-managed project directory at the expected path.
@@ -1644,7 +1652,7 @@ func TestCreateAgentContainerHubEndpointOverride(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &envCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		body := `{
@@ -1683,7 +1691,7 @@ func TestCreateAgentContainerHubEndpointOverride(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &envCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		// Create a project directory with settings.yaml containing hub.endpoint
@@ -1753,7 +1761,7 @@ hub:
 		cfg.ForceRuntime = "mock"
 
 		mgr := &envCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		body := `{
@@ -1839,7 +1847,7 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &envCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		// Register a remote hub connection (as would happen via control channel)
@@ -1878,7 +1886,7 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &envCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		srv.hubMu.Lock()
@@ -1936,8 +1944,11 @@ func newTestServerWithGitCloneCapture() (*Server, *gitCloneCapturingManager) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &gitCloneCapturingManager{}
-	// NameFunc returns "docker" so resolveManagerForOpts matches the settings-resolved runtime.
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	// NameFunc returns "mock" to match ForceRuntime so resolveManagerForOpts
+	// returns the mock manager directly. Relying on settings resolution here
+	// would make the result depend on the host OS default runtime (docker on
+	// Linux, apple container on macOS) and the developer's real config.
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 
 	return New(cfg, mgr, rt), mgr
 }
@@ -2411,7 +2422,7 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &provisionCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		// Linked project: projectPath ends in .fabric, settings.yaml is directly there
@@ -2457,7 +2468,7 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		cfg.ForceRuntime = "mock"
 
 		mgr := &provisionCapturingManager{}
-		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+		rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 		srv := New(cfg, mgr, rt)
 
 		// Hub-managed project: projectPath is the workspace parent (~/.fabric.groves/<slug>),
@@ -2508,7 +2519,7 @@ func TestStartAgentBrokerConfigUsedWhenNoProjectSettings(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &provisionCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	// Create a temp project dir with settings.yaml but no hub endpoint
@@ -2551,7 +2562,7 @@ func TestStartAgentResolvedEnvHubEndpointFallback(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &provisionCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	body := `{"resolvedEnv": {"FABRIC_HUB_ENDPOINT": "http://hub.example.com:8080", "FABRIC_GROVE_ID": "grove-1"}}`
@@ -2587,7 +2598,7 @@ func TestStartAgentResolvedEnvHubURLFallback(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &provisionCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	body := `{"resolvedEnv": {"FABRIC_HUB_URL": "http://hub.example.com:9090"}}`
@@ -2626,7 +2637,7 @@ func TestStartAgentResolvedEnvHubEndpointWithContainerOverride(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &provisionCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	// resolvedEnv has localhost endpoint from the hub
@@ -2666,7 +2677,7 @@ func TestCreateAgentPortPreservedAcrossBridge(t *testing.T) {
 	cfg.ForceRuntime = "mock"
 
 	mgr := &envCapturingManager{}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	body := `{
@@ -3004,13 +3015,17 @@ func TestCreateAgentProjectSlugInitializesFabricDir(t *testing.T) {
 		t.Fatal(".fabric directory should exist after InitProject")
 	}
 
-	// Verify ResolveProjectPath now resolves to the .fabric subdirectory
+	// Verify ResolveProjectPath now resolves to the .fabric subdirectory.
+	// ResolveProjectPath returns a symlink-resolved path (macOS /var →
+	// /private/var), so compare resolved forms.
 	resolved, _, err = config.ResolveProjectPath(projectPath)
 	if err != nil {
 		t.Fatalf("ResolveProjectPath failed: %v", err)
 	}
-	if resolved != fabricDir {
-		t.Errorf("after init: expected ResolveProjectPath to resolve to %q, got %q", fabricDir, resolved)
+	evalResolved, _ := filepath.EvalSymlinks(resolved)
+	evalFabricDir, _ := filepath.EvalSymlinks(fabricDir)
+	if evalResolved != evalFabricDir {
+		t.Errorf("after init: expected ResolveProjectPath to resolve to %q, got %q", evalFabricDir, evalResolved)
 	}
 }
 
@@ -3134,7 +3149,7 @@ func TestDeleteAgent_HubManagedProject_NoContainer(t *testing.T) {
 	mgr := &mockManager{
 		agents: []api.AgentInfo{}, // No containers
 	}
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	tmpHome := t.TempDir()
@@ -3225,7 +3240,7 @@ func TestCreateAgentStartFailure_CleansUpFiles(t *testing.T) {
 	cfg.BrokerName = "test-host"
 	mgr := &provisionCapturingManager{}
 	mgr.startErr = fmt.Errorf("auth resolution failed: gemini: auth type \"api-key\" selected but no API key found")
-	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
+	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 	srv := New(cfg, mgr, rt)
 
 	body := fmt.Sprintf(`{
