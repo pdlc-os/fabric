@@ -1183,6 +1183,11 @@ func TestWorktreeWorkspace_RepoRootDerivesToBase(t *testing.T) {
 	}
 
 	base := resolved.HostPath // <projectPath>/workspace — the shared base checkout
+	// git reports symlink-resolved paths (macOS /var → /private/var), so use
+	// the resolved base for the repoRoot/rel comparisons below.
+	if evalBase, err := filepath.EvalSymlinks(base); err == nil {
+		base = evalBase
+	}
 	worktree := provision.WorktreePath(base, "agent-a")
 
 	// Replicate pkg/agent/run.go's repoRoot derivation from the workspace.

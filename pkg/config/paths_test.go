@@ -227,8 +227,14 @@ func TestRequireProjectPath_HubContextFallback(t *testing.T) {
 		t.Fatalf("expected no error in hub context, got: %v", err)
 	}
 
-	// Should return a synthetic .fabric path under CWD
-	expected := filepath.Join(tmpDir, DotFabric)
+	// Should return a synthetic .fabric path under CWD. The CWD is derived
+	// from os.Getwd(), which resolves symlinks (macOS /var → /private/var),
+	// so resolve the expectation the same way.
+	resolvedTmp, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := filepath.Join(resolvedTmp, DotFabric)
 	if got != expected {
 		t.Errorf("RequireProjectPath() = %q, want %q", got, expected)
 	}
@@ -255,7 +261,12 @@ func TestFindProjectRoot_HubContextNoFabric(t *testing.T) {
 		t.Fatal("expected FindProjectRoot to succeed in hub context")
 	}
 
-	expected := filepath.Join(tmpDir, DotFabric)
+	// os.Getwd() resolves symlinks (macOS /var → /private/var); match it.
+	resolvedTmp, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := filepath.Join(resolvedTmp, DotFabric)
 	if got != expected {
 		t.Errorf("FindProjectRoot() = %q, want %q", got, expected)
 	}
@@ -318,7 +329,12 @@ func TestFindProjectRoot_MarkerWithHubFallback(t *testing.T) {
 
 	// External project path doesn't exist on this filesystem, so with hub
 	// context we should fall back to the synthetic workspace .fabric path.
-	expectedPath := filepath.Join(tmpDir, ".fabric")
+	// os.Getwd() resolves symlinks (macOS /var → /private/var); match it.
+	resolvedTmp, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedPath := filepath.Join(resolvedTmp, ".fabric")
 	if got != expectedPath {
 		t.Errorf("FindProjectRoot() = %q, want %q", got, expectedPath)
 	}

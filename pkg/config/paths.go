@@ -113,6 +113,18 @@ func GetProjectDir() (string, error) {
 	return filepath.Join(wd, DotFabric), nil
 }
 
+// samePath reports whether two paths refer to the same directory entry,
+// tolerating symlink differences (e.g. macOS /var → /private/var, which makes
+// symlink-resolved results differ from paths built via $HOME or $TMPDIR).
+func samePath(a, b string) bool {
+	if a == b {
+		return true
+	}
+	ra, errA := filepath.EvalSymlinks(a)
+	rb, errB := filepath.EvalSymlinks(b)
+	return errA == nil && errB == nil && ra == rb
+}
+
 // GetProjectName returns the slugified name of the project.
 func GetProjectName(projectDir string) string {
 	abs, err := filepath.Abs(projectDir)
@@ -122,7 +134,7 @@ func GetProjectName(projectDir string) string {
 
 	parent := filepath.Dir(abs)
 	home, err := os.UserHomeDir()
-	if err == nil && parent == home {
+	if err == nil && samePath(parent, home) {
 		return "global"
 	}
 
@@ -222,7 +234,7 @@ func ResolveProjectPath(path string) (string, bool, error) {
 		if p, ok := FindProjectRoot(); ok {
 			// Check if the found project root is actually the global directory
 			globalDir, _ := GetGlobalDir()
-			if p == globalDir {
+			if samePath(p, globalDir) {
 				return p, true, nil
 			}
 			return p, false, nil
@@ -277,7 +289,7 @@ func ResolveProjectPath(path string) (string, bool, error) {
 		}
 	}
 
-	isGlobal := abs == globalDir
+	isGlobal := samePath(abs, globalDir)
 
 	return abs, isGlobal, nil
 }
@@ -329,7 +341,7 @@ func RequireProjectPath(path string) (string, bool, error) {
 				}
 			}
 		}
-		isGlobal := abs == globalDir
+		isGlobal := samePath(abs, globalDir)
 		return abs, isGlobal, nil
 	}
 
