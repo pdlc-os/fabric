@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // MessageBuffer implements a debounce-style buffer for agent message delivery.

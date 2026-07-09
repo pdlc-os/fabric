@@ -2,15 +2,15 @@
 title: Shell Completions
 ---
 
-Scion provides shell completions for `bash`, `zsh`, `fish`, and `powershell`.
+Fabric provides shell completions for `bash`, `zsh`, `fish`, and `powershell`.
 
 ### Zsh
 
-If you have installed `scion` and want to enable completions:
+If you have installed `fabric` and want to enable completions:
 
 1.  Generate the completion script:
     ```bash
-    scion completion zsh > _scion
+    fabric completion zsh > _fabric
     ```
 2.  Move the file to a directory in your `$fpath`.
 
@@ -23,7 +23,7 @@ If you are using Homebrew, you likely already have a configured site-functions d
     ```
 2.  Move the completion file:
     ```bash
-    sudo mv _scion /usr/local/share/zsh/site-functions/
+    sudo mv _fabric /usr/local/share/zsh/site-functions/
     ```
 3.  Ensure that directory is in your `$fpath` in your `~/.zshrc` (usually added automatically, but verify if completions don't work):
     ```bash
@@ -36,14 +36,14 @@ If you are using Homebrew, you likely already have a configured site-functions d
 
 To load completions for the current session:
 ```bash
-source <(scion completion bash)
+source <(fabric completion bash)
 ```
 
 To load completions for each session, execute once:
 ```bash
 # Linux:
-scion completion bash | sudo tee /etc/bash_completion.d/scion
+fabric completion bash | sudo tee /etc/bash_completion.d/fabric
 
 # macOS:
-scion completion bash | sudo tee /usr/local/etc/bash_completion.d/scion
+fabric completion bash | sudo tee /usr/local/etc/bash_completion.d/fabric
 ```

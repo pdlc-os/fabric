@@ -32,16 +32,16 @@
 <text xml:space="preserve" text-anchor="middle" x="290" y="-443.2" font-family="Times,serif" font-size="14.00">core&#45;base</text>
 <text xml:space="preserve" text-anchor="middle" x="290" y="-432.7" font-family="Times,serif" font-size="14.00">(System dependencies)</text>
 </g>
-<!-- scion&#45;base -->
+<!-- fabric&#45;base -->
 <g id="node2" class="node">
-<title>scion&#45;base</title>
+<title>fabric&#45;base</title>
 <polygon fill="lightblue" stroke="black" points="384.25,-263 195.75,-263 195.75,-227 384.25,-227 384.25,-263"/>
-<text xml:space="preserve" text-anchor="middle" x="290" y="-242.2" font-family="Times,serif" font-size="14.00">scion&#45;base</text>
-<text xml:space="preserve" text-anchor="middle" x="290" y="-231.7" font-family="Times,serif" font-size="14.00">(sciontool, scion user)</text>
+<text xml:space="preserve" text-anchor="middle" x="290" y="-242.2" font-family="Times,serif" font-size="14.00">fabric&#45;base</text>
+<text xml:space="preserve" text-anchor="middle" x="290" y="-231.7" font-family="Times,serif" font-size="14.00">(fabrictool, fabric user)</text>
 </g>
-<!-- core&#45;base&#45;&gt;scion&#45;base -->
+<!-- core&#45;base&#45;&gt;fabric&#45;base -->
 <g id="edge1" class="edge">
-<title>core&#45;base&#45;&gt;scion&#45;base</title>
+<title>core&#45;base&#45;&gt;fabric&#45;base</title>
 <path fill="none" stroke="black" d="M290,-427.69C290,-393.43 290,-316.7 290,-274.75"/>
 <polygon fill="black" stroke="black" points="293.5,-274.93 290,-264.93 286.5,-274.93 293.5,-274.93"/>
 <text xml:space="preserve" text-anchor="middle" x="331.25" y="-337.95" font-family="Times,serif" font-size="14.00">builds upon</text>
@@ -53,9 +53,9 @@
 <text xml:space="preserve" text-anchor="middle" x="98" y="-41.2" font-family="Times,serif" font-size="14.00">Harness Images</text>
 <text xml:space="preserve" text-anchor="middle" x="98" y="-30.7" font-family="Times,serif" font-size="14.00">(from harnesses/&lt;name&gt;/)</text>
 </g>
-<!-- scion&#45;base&#45;&gt;harness_images -->
+<!-- fabric&#45;base&#45;&gt;harness_images -->
 <g id="edge2" class="edge">
-<title>scion&#45;base&#45;&gt;harness_images</title>
+<title>fabric&#45;base&#45;&gt;harness_images</title>
 <path fill="none" stroke="black" d="M273.3,-226.69C239.4,-191.55 162.38,-111.72 122.68,-70.58"/>
 <polygon fill="black" stroke="black" points="125.31,-68.27 115.85,-63.5 120.28,-73.13 125.31,-68.27"/>
 <text xml:space="preserve" text-anchor="middle" x="235.25" y="-135.95" font-family="Times,serif" font-size="14.00">extends for</text>
@@ -65,11 +65,11 @@
 <title>hub</title>
 <polygon fill="lightblue" stroke="black" points="365.5,-62 214.5,-62 214.5,-26 365.5,-26 365.5,-62"/>
 <text xml:space="preserve" text-anchor="middle" x="290" y="-41.2" font-family="Times,serif" font-size="14.00">Hub</text>
-<text xml:space="preserve" text-anchor="middle" x="290" y="-30.7" font-family="Times,serif" font-size="14.00">(Scion hub server)</text>
+<text xml:space="preserve" text-anchor="middle" x="290" y="-30.7" font-family="Times,serif" font-size="14.00">(Fabric hub server)</text>
 </g>
-<!-- scion&#45;base&#45;&gt;hub -->
+<!-- fabric&#45;base&#45;&gt;hub -->
 <g id="edge3" class="edge">
-<title>scion&#45;base&#45;&gt;hub</title>
+<title>fabric&#45;base&#45;&gt;hub</title>
 <path fill="none" stroke="black" d="M290,-226.69C290,-192.43 290,-115.7 290,-73.75"/>
 <polygon fill="black" stroke="black" points="293.5,-73.93 290,-63.93 286.5,-73.93 293.5,-73.93"/>
 <text xml:space="preserve" text-anchor="middle" x="331.25" y="-135.95" font-family="Times,serif" font-size="14.00">extends for</text>
@@ -81,9 +81,9 @@
 <text xml:space="preserve" text-anchor="middle" x="437" y="-41.2" font-family="Times,serif" font-size="14.00">Gemini</text>
 <text xml:space="preserve" text-anchor="middle" x="437" y="-30.7" font-family="Times,serif" font-size="14.00">(Gemini CLI)</text>
 </g>
-<!-- scion&#45;base&#45;&gt;gemini -->
+<!-- fabric&#45;base&#45;&gt;gemini -->
 <g id="edge4" class="edge">
-<title>scion&#45;base&#45;&gt;gemini</title>
+<title>fabric&#45;base&#45;&gt;gemini</title>
 <path fill="none" stroke="black" d="M308.27,-226.52C326.81,-208.25 355.74,-178.25 377,-149.25 395.06,-124.61 412.07,-94.09 423.34,-72.46"/>
 <polygon fill="black" stroke="black" points="426.39,-74.16 427.84,-63.67 420.16,-70.97 426.39,-74.16"/>
 <text xml:space="preserve" text-anchor="middle" x="423.9" y="-135.95" font-family="Times,serif" font-size="14.00">extends for</text>

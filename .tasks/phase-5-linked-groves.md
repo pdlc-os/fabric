@@ -24,7 +24,7 @@ type PathClass struct {
     Exists      bool
     IsDir       bool
     IsGit       bool   // contains a .git dir/file
-    IsManaged   bool   // inside ~/.scion/projects/ or ~/.scion/groves/
+    IsManaged   bool   // inside ~/.fabric/projects/ or ~/.fabric/groves/
     AlreadyLinked bool // already registered as a ProjectProvider LocalPath
 }
 
@@ -59,7 +59,7 @@ In `pkg/hub/system_handlers.go`, add (all wrapped with `requireWorkstation` + `a
 ### `POST /api/v1/system/fs/validate-path`
 - Body: `{ "path": "/abs/path" }`
 - Calls `ClassifyPath`; returns `PathClass` as JSON
-- If `IsManaged: true`, also set `"error": "This path is inside the Scion managed directory and cannot be linked"`
+- If `IsManaged: true`, also set `"error": "This path is inside the Fabric managed directory and cannot be linked"`
 - Frontend uses this for pre-submit validation
 
 ## 5.3 — `project-create.ts` changes
@@ -70,7 +70,7 @@ Add a third project creation mode: **"Add local directory (linked)"**.
 
 UI flow:
 1. Mode selector gains a third tab/radio: "Local directory"
-2. On selecting it, show a directory browser component (`scion-dir-browser`) that calls `GET /system/fs/list` as the user navigates
+2. On selecting it, show a directory browser component (`fabric-dir-browser`) that calls `GET /system/fs/list` as the user navigates
 3. Directory browser features:
    - Current path breadcrumb
    - Entry list (folders only, clicking navigates in; files shown greyed out)
@@ -83,7 +83,7 @@ UI flow:
    - On step (b) failure: show error with "Retry" — don't delete the project (recoverable per D7)
    - `embeddedBrokerID` from `GET /api/v1/system/status` (add a `embeddedBrokerID` field there) or from `GET /api/v1/brokers` filtered to the embedded one
 
-Add `scion-dir-browser` as a new component in `web/src/components/` — a simple Lit element that manages the navigation state and renders the listing.
+Add `fabric-dir-browser` as a new component in `web/src/components/` — a simple Lit element that manages the navigation state and renders the listing.
 
 ## 5.4 — Add `embeddedBrokerID` to system status
 
@@ -95,7 +95,7 @@ In `pkg/hub/system_handlers.go` `handleSystemStatus`:
 
 In `web/src/components/pages/onboarding.ts`, replace the placeholder workspace step:
 - Three cards: "Hub-native project", "Link a git repo", "Add local directory"
-- Clicking "Add local directory" opens the same directory-browser flow from `project-create.ts` (reuse the `scion-dir-browser` component)
+- Clicking "Add local directory" opens the same directory-browser flow from `project-create.ts` (reuse the `fabric-dir-browser` component)
 - On completion, advance to step 6 (Done)
 - "Skip for now" remains available
 

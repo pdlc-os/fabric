@@ -25,11 +25,11 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -315,7 +315,7 @@ func runTemplateShow(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Template: %s\n", tpl.Name)
 		fmt.Printf("Location: %s\n", match.DisplayLocation())
 		fmt.Printf("Path:     %s\n", tpl.Path)
-		fmt.Println("Configuration (scion-agent.json):")
+		fmt.Println("Configuration (fabric-agent.json):")
 
 		encoder := json.NewEncoder(os.Stdout)
 		encoder.SetIndent("", "  ")
@@ -619,8 +619,8 @@ func cloneFromHubTemplate(hubCtx *HubContext, match *TemplateMatch, destName str
 var templatesUpdateDefaultCmd = &cobra.Command{
 	Use:   "update-default",
 	Short: "Update the global default template with the latest from the binary",
-	Long: `Updates the default template in the global project (~/.scion/templates/default)
-with the latest embedded defaults from the scion binary.
+	Long: `Updates the default template in the global project (~/.fabric/templates/default)
+with the latest embedded defaults from the fabric binary.
 
 If the default template already exists, a warning is printed and no changes
 are made. Use --force to overwrite the existing default template.`,
@@ -656,16 +656,16 @@ Use --all to sync all project-scoped local templates to the Hub at once.
 
 Examples:
   # Sync a local template to the Hub (project scope by default)
-  scion templates sync custom-claude
+  fabric templates sync custom-claude
 
   # Sync all project templates to Hub
-  scion templates sync --all
+  fabric templates sync --all
 
   # Sync with global scope
-  scion --global templates sync custom-claude
+  fabric --global templates sync custom-claude
 
   # Sync with a different name on the Hub
-  scion templates sync custom-claude --name my-team-claude`,
+  fabric templates sync custom-claude --name my-team-claude`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runTemplateSync,
 }
@@ -678,13 +678,13 @@ var templatesPushCmd = &cobra.Command{
 
 Examples:
   # Push a local template to the Hub
-  scion templates push custom-claude
+  fabric templates push custom-claude
 
   # Push all project templates to Hub
-  scion templates push --all
+  fabric templates push --all
 
   # Push with global scope
-  scion --global templates push custom-claude`,
+  fabric --global templates push custom-claude`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runTemplateSync,
 }
@@ -716,7 +716,7 @@ func runTemplateSync(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("hub integration is not enabled, use 'scion hub enable' first")
+		return fmt.Errorf("hub integration is not enabled, use 'fabric hub enable' first")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -823,10 +823,10 @@ var templatesPullCmd = &cobra.Command{
 
 Examples:
   # Pull a template from Hub
-  scion template pull custom-claude
+  fabric template pull custom-claude
 
   # Pull to a specific location
-  scion template pull custom-claude --to .scion/templates/custom`,
+  fabric template pull custom-claude --to .fabric/templates/custom`,
 	Args: cobra.ExactArgs(1),
 	RunE: runTemplatePull,
 }
@@ -846,7 +846,7 @@ func runTemplatePull(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("hub integration is not enabled, use 'scion hub enable' first")
+		return fmt.Errorf("hub integration is not enabled, use 'fabric hub enable' first")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -1209,10 +1209,10 @@ out of date, or only present in one location.
 
 Examples:
   # Show sync status for project templates
-  scion templates status
+  fabric templates status
 
   # Show sync status for global templates
-  scion --global templates status`,
+  fabric --global templates status`,
 	RunE: runTemplateStatus,
 }
 
@@ -1229,7 +1229,7 @@ func runTemplateStatus(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("hub integration is not enabled, use 'scion hub enable' first")
+		return fmt.Errorf("hub integration is not enabled, use 'fabric hub enable' first")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -1519,7 +1519,7 @@ func init() {
 
 	importAlias := &cobra.Command{
 		Use:   "import <source>",
-		Short: "Import agent definitions as scion templates",
+		Short: "Import agent definitions as fabric templates",
 		Args:  cobra.ExactArgs(1),
 		RunE:  runTemplateImport,
 	}

@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // SharedDirsSubdir is the subdirectory name under project-configs for shared directories.
@@ -29,24 +29,24 @@ const SharedDirsSubdir = "shared-dirs"
 // for the given project. For non-git projects (where projectDir is already the
 // external project-config path), this is <projectDir>/../shared-dirs/.
 // For git projects with split storage, this is
-// ~/.scion/project-configs/<slug>__<uuid>/shared-dirs/.
+// ~/.fabric/project-configs/<slug>__<uuid>/shared-dirs/.
 func GetSharedDirsBasePath(projectDir string) (string, error) {
 	// Check if this is a git project with split storage (has project-id file)
 	if externalAgentsDir, err := GetGitProjectExternalAgentsDir(projectDir); err == nil && externalAgentsDir != "" {
-		// externalAgentsDir is ~/.scion/project-configs/<slug>__<uuid>/.scion/agents
-		// We want ~/.scion/project-configs/<slug>__<uuid>/shared-dirs
-		// Go up past "agents" and ".scion" to reach the project-config root
+		// externalAgentsDir is ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents
+		// We want ~/.fabric/project-configs/<slug>__<uuid>/shared-dirs
+		// Go up past "agents" and ".fabric" to reach the project-config root
 		projectConfigRoot := filepath.Dir(filepath.Dir(externalAgentsDir))
 		return filepath.Join(projectConfigRoot, SharedDirsSubdir), nil
 	}
 
 	// For non-git projects, projectDir is already resolved to
-	// ~/.scion/project-configs/<slug>__<uuid>/.scion/
+	// ~/.fabric/project-configs/<slug>__<uuid>/.fabric/
 	// Go up one level to get the project-config root, then into shared-dirs
 	parent := filepath.Dir(projectDir)
 	// Verify we're in a project-configs or grove-configs directory structure
 	parentBase := filepath.Base(filepath.Dir(parent))
-	if parentBase == ProjectConfigsDir || parentBase == GroveConfigsDir || filepath.Base(parent) != DotScion {
+	if parentBase == ProjectConfigsDir || parentBase == GroveConfigsDir || filepath.Base(parent) != DotFabric {
 		return filepath.Join(parent, SharedDirsSubdir), nil
 	}
 
@@ -84,9 +84,9 @@ func EnsureSharedDirs(projectDir string, dirs []api.SharedDir) error {
 
 // SharedDirsToVolumeMounts converts shared dir declarations into VolumeMount
 // entries suitable for injection into a RunConfig. Each shared dir becomes a
-// bind mount at either /scion-volumes/<name> or <containerWorkspace>/.scion-volumes/<name>.
+// bind mount at either /fabric-volumes/<name> or <containerWorkspace>/.fabric-volumes/<name>.
 // The containerWorkspace parameter specifies the container-side workspace path
-// (e.g., /workspace or /repo-root/.scion/agents/foo/workspace for git worktrees).
+// (e.g., /workspace or /repo-root/.fabric/agents/foo/workspace for git worktrees).
 func SharedDirsToVolumeMounts(projectDir string, dirs []api.SharedDir, containerWorkspace string) ([]api.VolumeMount, error) {
 	if len(dirs) == 0 {
 		return nil, nil
@@ -103,9 +103,9 @@ func SharedDirsToVolumeMounts(projectDir string, dirs []api.SharedDir, container
 			return nil, fmt.Errorf("failed to resolve path for shared dir %q: %w", d.Name, err)
 		}
 
-		target := fmt.Sprintf("/scion-volumes/%s", d.Name)
+		target := fmt.Sprintf("/fabric-volumes/%s", d.Name)
 		if d.InWorkspace {
-			target = fmt.Sprintf("%s/.scion-volumes/%s", containerWorkspace, d.Name)
+			target = fmt.Sprintf("%s/.fabric-volumes/%s", containerWorkspace, d.Name)
 		}
 
 		mounts = append(mounts, api.VolumeMount{

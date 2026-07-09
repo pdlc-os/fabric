@@ -15,9 +15,9 @@
 package runtime
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // Backward-compatible type aliases for types moved to pkg/provision.

@@ -33,7 +33,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // TestContention_StateVersionCAS races N goroutines to increment a counter on a

@@ -25,12 +25,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // --- 2.1: System Check (Doctor) ---
@@ -367,7 +367,7 @@ func (s *Server) computeOnboardingStatus(ctx context.Context) OnboardingStatus {
 		status.ImageRegistry = vs.ResolveImageRegistry("")
 	}
 	// TODO: use an internal settings API when available (needed for HA/DB-backed settings)
-	if envRegistry := os.Getenv("SCION_IMAGE_REGISTRY"); envRegistry != "" {
+	if envRegistry := os.Getenv("FABRIC_IMAGE_REGISTRY"); envRegistry != "" {
 		status.ImageRegistry = envRegistry
 	}
 
@@ -593,12 +593,12 @@ func (s *Server) handleSystemImagesPull(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 	// TODO: use an internal settings API when available (needed for HA/DB-backed settings)
-	if envRegistry := os.Getenv("SCION_IMAGE_REGISTRY"); envRegistry != "" {
+	if envRegistry := os.Getenv("FABRIC_IMAGE_REGISTRY"); envRegistry != "" {
 		registry = envRegistry
 	}
 	if registry == "" {
 		s.imagePullActive.Store(false)
-		writeError(w, http.StatusUnprocessableEntity, ErrCodeUnprocessable, "image_registry is not configured — run 'scion config set --global image_registry <registry>' or reinstall via Homebrew", nil)
+		writeError(w, http.StatusUnprocessableEntity, ErrCodeUnprocessable, "image_registry is not configured — run 'fabric config set --global image_registry <registry>' or reinstall via Homebrew", nil)
 		return
 	}
 
@@ -658,7 +658,7 @@ type imageBuildLogEvent struct {
 
 func resolveBuildScript() string {
 	var path string
-	if root := os.Getenv("SCION_ROOT"); root != "" {
+	if root := os.Getenv("FABRIC_ROOT"); root != "" {
 		path = filepath.Join(root, "image-build", "scripts", "build-images.sh")
 	} else if exe, err := os.Executable(); err == nil {
 		path = filepath.Join(filepath.Dir(exe), "..", "image-build", "scripts", "build-images.sh")
@@ -762,7 +762,7 @@ func (s *Server) handleSystemImagesBuild(w http.ResponseWriter, r *http.Request)
 		} else {
 			for _, h := range requestedHarnesses {
 				s.events.PublishRaw(subject, map[string]string{
-					"image":  "scion-" + h + ":latest",
+					"image":  "fabric-" + h + ":latest",
 					"status": "done",
 				})
 			}
@@ -930,7 +930,7 @@ func (s *Server) handleFSMkdir(w http.ResponseWriter, r *http.Request) {
 	if managedRoot != "" {
 		cleanManaged := filepath.Clean(managedRoot)
 		if pathHasPrefix(resolved, cleanManaged+string(filepath.Separator)) || pathEqual(resolved, cleanManaged) {
-			ValidationError(w, "cannot create directories inside the Scion managed directory", nil)
+			ValidationError(w, "cannot create directories inside the Fabric managed directory", nil)
 			return
 		}
 	}
@@ -993,7 +993,7 @@ func (s *Server) handleFSValidatePath(w http.ResponseWriter, r *http.Request) {
 	resp := fsValidatePathResponse{PathClass: pc}
 
 	if pc.IsManaged {
-		resp.Error = "This path is inside the Scion managed directory and cannot be linked"
+		resp.Error = "This path is inside the Fabric managed directory and cannot be linked"
 	}
 
 	writeJSON(w, http.StatusOK, resp)

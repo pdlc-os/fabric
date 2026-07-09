@@ -1,11 +1,11 @@
 # Podman Runtime Support
 
 ## Overview
-This document outlines the design for adding Podman as a supported container runtime in Scion. Podman provides a daemonless, rootless alternative to Docker, sharing a largely compatible CLI but offering different architectural benefits, particularly regarding security and process isolation.
+This document outlines the design for adding Podman as a supported container runtime in Fabric. Podman provides a daemonless, rootless alternative to Docker, sharing a largely compatible CLI but offering different architectural benefits, particularly regarding security and process isolation.
 
 ## Motivation
 - **Security**: Podman's rootless mode is a significant advantage for users who cannot or do not want to run a root-level daemon.
-- **Compatibility**: Many developers use Podman as a drop-in replacement for Docker (often aliased). Native support ensures Scion works correctly without relying on aliases.
+- **Compatibility**: Many developers use Podman as a drop-in replacement for Docker (often aliased). Native support ensures Fabric works correctly without relying on aliases.
 - **Ecosystem**: Podman is the default container tool in several Linux distributions (e.g., RHEL, Fedora) and is gaining popularity on macOS via Podman Machine.
 
 ## Implementation Design
@@ -55,28 +55,28 @@ type podmanListOutput struct {
 Parsing is simpler than Docker's since Labels are already a map (no CSV splitting needed) and Names are already an array.
 
 #### Rootless Mode & UID/GID Handling
-Scion's existing UID/GID synchronization mechanism in `sciontool init` (`cmd/sciontool/commands/init.go`) handles bind mount permissions as follows:
+Fabric's existing UID/GID synchronization mechanism in `fabrictool init` (`cmd/fabrictool/commands/init.go`) handles bind mount permissions as follows:
 
-1. The host passes `SCION_HOST_UID` and `SCION_HOST_GID` as environment variables (set in `pkg/runtime/common.go`).
-2. The container starts as root via the `sciontool init` entrypoint.
-3. `setupHostUser()` uses `usermod`/`groupmod` to adjust the `scion` user's UID/GID to match the host user.
-4. The supervisor drops privileges to the adjusted `scion` user via `syscall.Credential`.
+1. The host passes `FABRIC_HOST_UID` and `FABRIC_HOST_GID` as environment variables (set in `pkg/runtime/common.go`).
+2. The container starts as root via the `fabrictool init` entrypoint.
+3. `setupHostUser()` uses `usermod`/`groupmod` to adjust the `fabric` user's UID/GID to match the host user.
+4. The supervisor drops privileges to the adjusted `fabric` user via `syscall.Credential`.
 
-**Rootful Podman**: This flow works identically to Docker — the container starts as real root and `sciontool init` can freely modify users and drop privileges.
+**Rootful Podman**: This flow works identically to Docker — the container starts as real root and `fabrictool init` can freely modify users and drop privileges.
 
 **Rootless Podman**: This is where the key difference lies. In rootless mode:
 - The container runs inside a user namespace where the invoking user is mapped to UID 0 (root) inside the container by default.
 - `usermod`/`groupmod` operate on `/etc/passwd` and `/etc/group` inside the container's filesystem layer, which still works within the user namespace.
 - Bind-mounted files appear owned by the mapped UID. By default, the host user's UID maps to root (UID 0) inside the container.
 
-The default mapping (host UID → container UID 0) allows `sciontool init` to run privileged operations (usermod, chown) and then drop to the remapped scion user. However, there is a fundamental flaw: after remapping the scion user to the host UID (e.g., 1000), container UID 1000 maps to a **subordinate host UID** (e.g., 100999), not to the actual host user. This makes bind-mounted files unreadable by the host user after the container exits.
+The default mapping (host UID → container UID 0) allows `fabrictool init` to run privileged operations (usermod, chown) and then drop to the remapped fabric user. However, there is a fundamental flaw: after remapping the fabric user to the host UID (e.g., 1000), container UID 1000 maps to a **subordinate host UID** (e.g., 100999), not to the actual host user. This makes bind-mounted files unreadable by the host user after the container exits.
 
-**Decision**: Use `--userns=keep-id:uid=1000,gid=1000` to map the host user's UID directly to container UID 1000 (the scion user). This ensures:
+**Decision**: Use `--userns=keep-id:uid=1000,gid=1000` to map the host user's UID directly to container UID 1000 (the fabric user). This ensures:
 1. Bind-mounted files have correct host-user ownership on both sides.
-2. The container process runs as the scion user (UID 1000), so harness config in `/home/scion` is accessible without remapping.
+2. The container process runs as the fabric user (UID 1000), so harness config in `/home/fabric` is accessible without remapping.
 3. Works for any host UID (e.g., 501 on macOS, 1000 on Linux) because the `uid=1000` parameter explicitly maps the host user to container UID 1000.
 
-The trade-off is that `sciontool init` cannot perform privileged operations (usermod, groupmod, chown) since PID 1 is no longer root. This is acceptable because with keep-id mapping, the process is already running as the correct container user — no remapping or privilege drop is needed. `setupHostUser()` detects this case (not root, but running as the scion user) and signals `rootless=true` to the supervisor, which sets HOME/USER/LOGNAME without attempting a credential drop.
+The trade-off is that `fabrictool init` cannot perform privileged operations (usermod, groupmod, chown) since PID 1 is no longer root. This is acceptable because with keep-id mapping, the process is already running as the correct container user — no remapping or privilege drop is needed. `setupHostUser()` detects this case (not root, but running as the fabric user) and signals `rootless=true` to the supervisor, which sets HOME/USER/LOGNAME without attempting a credential drop.
 
 **Decision**: `PodmanRuntime` should detect rootless mode (via `podman info`) and log the mode at **debug** level. This aids troubleshooting without adding noise at normal log levels.
 
@@ -85,7 +85,7 @@ On macOS and Windows, Podman runs inside a Linux virtual machine managed by `pod
 
 Key considerations:
 - **Volume mounts**: The host path must be accessible inside the VM. Podman Machine exposes the user's home directory (and configurable additional paths) via virtiofs. Paths outside these mounts will silently fail or error.
-- **`GetWorkspacePath()`**: Returns the host path to the workspace. Since Scion worktrees are created relative to the project directory (typically under `$HOME`), they should be within the default VM mount. However, this should be validated.
+- **`GetWorkspacePath()`**: Returns the host path to the workspace. Since Fabric worktrees are created relative to the project directory (typically under `$HOME`), they should be within the default VM mount. However, this should be validated.
 - **Socket path**: On macOS, the Podman socket is typically at `$XDG_RUNTIME_DIR/podman/podman.sock` or managed by `podman machine`. The `Host` field on `PodmanRuntime` can point to a custom socket if needed.
 
 **Decision**: Validate that the workspace path is within the user's home directory on macOS when using Podman Machine. Since Podman Machine exposes `$HOME` via virtiofs by default, this covers the common case. If the workspace is outside `$HOME`, emit a clear error explaining the limitation and suggesting the user configure additional Podman Machine mounts.
@@ -109,7 +109,7 @@ Also add "podman" to the known-type fallback check (the condition around line 48
 `NewPodmanRuntime()` should run `podman --version` and parse the major version. If the version is below 4.x, return an `ErrorRuntime` with a message indicating the minimum supported version.
 
 #### Auto-Detection
-The runtime should be specified explicitly in the user's profile configuration. However, during `scion init` bootstrapping (when writing the initial `settings.yaml`), auto-detection determines the default:
+The runtime should be specified explicitly in the user's profile configuration. However, during `fabric init` bootstrapping (when writing the initial `settings.yaml`), auto-detection determines the default:
 
 - **macOS**: Prefer `container` (Apple Virtualization), fall back to `docker`, then `podman`.
 - **Linux**: If both `docker` and `podman` are on `$PATH`, **prefer `podman`**. If only one is available, use it.
@@ -181,7 +181,7 @@ Create `pkg/runtime/podman_test.go` with:
 
 ### Integration Tests
 - Verify end-to-end lifecycle: create, start, attach, exec, logs, stop, delete.
-- Verify bind mount permissions work correctly (UID/GID sync via `sciontool init`).
+- Verify bind mount permissions work correctly (UID/GID sync via `fabrictool init`).
 - Test with both rootful and rootless Podman.
 
 ### Cross-Platform
@@ -200,7 +200,7 @@ If CI runs in a container or restricted environment, rootless Podman may not be 
 | 2 | **Rootless diagnostics** | Detect rootless mode via `podman info` and log at debug level. |
 | 3 | **Podman Machine mount validation** | Validate workspace is within `$HOME` on macOS; error with guidance if not. |
 | 4 | **Code structure** | Independent implementation (duplicate from Docker) for clean separation. |
-| 5 | **Rootless UID/GID strategy** | Use `--userns=keep-id:uid=1000,gid=1000` to map host user to container scion user (UID 1000). `sciontool init` detects the non-root scion user and skips privilege operations. |
+| 5 | **Rootless UID/GID strategy** | Use `--userns=keep-id:uid=1000,gid=1000` to map host user to container fabric user (UID 1000). `fabrictool init` detects the non-root fabric user and skips privilege operations. |
 | 6 | **Image registry compatibility** | Not an issue — harness configs provide fully-qualified image names. |
 | 7 | **Podman version floor** | Podman 4.x+ minimum; check version during detection and error on older versions. |
 
@@ -208,5 +208,5 @@ If CI runs in a container or restricted environment, rootless Podman may not be 
 
 | # | Topic | Decision |
 |---|---|---|
-| 6 | **Image registry compatibility** | Not an issue — harness configs already provide fully-qualified image names (e.g., `docker.io/scion/...`), so Podman's multi-registry search behavior is not a concern. |
+| 6 | **Image registry compatibility** | Not an issue — harness configs already provide fully-qualified image names (e.g., `docker.io/fabric/...`), so Podman's multi-registry search behavior is not a concern. |
 | 7 | **Podman version floor** | Minimum supported version is **Podman 4.x+**. Check the version during runtime detection and emit a clear error if an older version is found. Podman 4.x provides stable rootless mode, machine support, and consistent JSON output formats. |

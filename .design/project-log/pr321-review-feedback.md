@@ -1,7 +1,7 @@
 # PR #321 Review Feedback — Multi-Node Session Fixes
 
 **Date:** 2026-06-06  
-**PR:** GoogleCloudPlatform/scion#321  
+**PR:** pdlc-os/fabric#321  
 **Branch:** postgres/delta-fixes  
 **Commit:** a1e715f
 
@@ -13,7 +13,7 @@ Addressed 3 review comments from Gemini Code Assist on the multi-node session fi
 
 ### 1. HIGH: SharedSigningSecret bypasses storage (pkg/hub/server.go)
 
-**Problem:** When `SharedSigningSecret` is configured, `ensureSigningKey` derives keys deterministically but returns immediately without persisting them to the secret backend. External consumers (e.g., `scion-chat-app`) rely on label-based auto-discovery from GCP Secret Manager to find signing keys.
+**Problem:** When `SharedSigningSecret` is configured, `ensureSigningKey` derives keys deterministically but returns immediately without persisting them to the secret backend. External consumers (e.g., `fabric-chat-app`) rely on label-based auto-discovery from GCP Secret Manager to find signing keys.
 
 **Fix:** After deriving the key, call `syncSigningKeyToBackend()` to persist the derived key to the secret backend. This is a best-effort sync (warning on failure, non-fatal) since the key can always be re-derived. The sync uses the existing `syncSigningKeyToBackend` function which handles both the backend Set and the SQLite backup.
 

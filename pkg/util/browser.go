@@ -43,10 +43,10 @@ func OpenBrowser(url string) error {
 
 // IsHeadlessEnvironment returns true if the current environment lacks a display
 // server, suggesting a headless (no browser) environment.
-// SCION_HEADLESS=1 forces headless mode. macOS always returns false (has a display).
+// FABRIC_HEADLESS=1 forces headless mode. macOS always returns false (has a display).
 // On other platforms, checks for DISPLAY or WAYLAND_DISPLAY environment variables.
 func IsHeadlessEnvironment() bool {
-	if os.Getenv("SCION_HEADLESS") == "1" {
+	if os.Getenv("FABRIC_HEADLESS") == "1" {
 		return true
 	}
 	if runtime.GOOS == "darwin" {

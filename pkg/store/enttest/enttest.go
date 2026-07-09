@@ -14,7 +14,7 @@
 
 // Package enttest provides a single backend-selecting factory for Ent clients
 // used by the store test suites. By default it returns an in-memory SQLite
-// client; built with the `integration` tag and with SCION_TEST_POSTGRES_URL
+// client; built with the `integration` tag and with FABRIC_TEST_POSTGRES_URL
 // set, it returns a Postgres-backed client isolated in its own schema inside a
 // per-package ephemeral database.
 //
@@ -35,8 +35,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
 )
 
 // NewClient returns a fresh, migrated Ent client for the active backend with
@@ -56,7 +56,7 @@ func MainTeardown() { teardown() }
 
 // newSQLiteClient opens an in-memory SQLite-backed Ent client, migrates it, and
 // registers cleanup. It is the default backend and the fallback used by the
-// integration build when SCION_TEST_POSTGRES_URL is unset. MaxOpenConns is
+// integration build when FABRIC_TEST_POSTGRES_URL is unset. MaxOpenConns is
 // pinned to 1 so the shared-cache in-memory database serializes writes, matching
 // production SQLite behavior.
 func newSQLiteClient(t *testing.T) *ent.Client {

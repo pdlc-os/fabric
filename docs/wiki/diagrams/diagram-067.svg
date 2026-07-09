@@ -35,7 +35,7 @@
 <g id="node2" class="node">
 <title>Hub</title>
 <polygon fill="lightblue" stroke="black" points="302.5,-213 219,-213 219,-177 302.5,-177 302.5,-213"/>
-<text xml:space="preserve" text-anchor="middle" x="260.75" y="-186.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="260.75" y="-186.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
 <!-- User&#45;&gt;Hub -->
 <g id="edge1" class="edge">
@@ -74,7 +74,7 @@
 <g id="node4" class="node">
 <title>Agent</title>
 <polygon fill="lightblue" stroke="black" points="143.5,-37 0,-37 0,-1 143.5,-1 143.5,-37"/>
-<text xml:space="preserve" text-anchor="middle" x="71.75" y="-10.95" font-family="Times,serif" font-size="14.00">Agent (sciontool)</text>
+<text xml:space="preserve" text-anchor="middle" x="71.75" y="-10.95" font-family="Times,serif" font-size="14.00">Agent (fabrictool)</text>
 </g>
 <!-- RuntimeBroker&#45;&gt;Agent -->
 <g id="edge3" class="edge">

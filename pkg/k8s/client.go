@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s/api/v1alpha1"
+	"github.com/pdlc-os/fabric/pkg/k8s/api/v1alpha1"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/harness"
 )
 
 func TestStripUnsupportedAppleFlags(t *testing.T) {
@@ -91,8 +91,8 @@ echo "$@"
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		Task:         "hello",
 	}
 
@@ -122,8 +122,8 @@ echo "$@"
 	config := RunConfig{
 		Harness:              &harness.Generic{},
 		Name:                 "test-agent",
-		UnixUsername:         "scion",
-		Image:                "scion-agent:latest",
+		UnixUsername:         "fabric",
+		Image:                "fabric-agent:latest",
 		Task:                 "hello",
 		MetadataInterception: true,
 	}

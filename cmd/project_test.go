@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,13 +35,13 @@ func TestProjectInitNestedDetection(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	t.Run("allows nested project inside project", func(t *testing.T) {
-		// Create temp project with .scion
+		// Create temp project with .fabric
 		tmpHome := t.TempDir()
 		_ = os.Setenv("HOME", tmpHome)
 
 		projectDir := t.TempDir()
-		scionDir := filepath.Join(projectDir, ".scion")
-		require.NoError(t, os.Mkdir(scionDir, 0755))
+		fabricDir := filepath.Join(projectDir, ".fabric")
+		require.NoError(t, os.Mkdir(fabricDir, 0755))
 
 		// Create a subdirectory
 		subDir := filepath.Join(projectDir, "subdir")
@@ -60,19 +60,19 @@ func TestProjectInitNestedDetection(t *testing.T) {
 	})
 
 	t.Run("allows project when only global exists", func(t *testing.T) {
-		// Create a temp HOME with .scion (global project)
+		// Create a temp HOME with .fabric (global project)
 		tmpHome := t.TempDir()
 		_ = os.Setenv("HOME", tmpHome)
 
-		globalScionDir := filepath.Join(tmpHome, ".scion")
-		require.NoError(t, os.Mkdir(globalScionDir, 0755))
+		globalFabricDir := filepath.Join(tmpHome, ".fabric")
+		require.NoError(t, os.Mkdir(globalFabricDir, 0755))
 
 		// Create a project directory UNDER home (like ~/projects/myapp)
 		projectDir := filepath.Join(tmpHome, "projects", "myapp")
 		require.NoError(t, os.MkdirAll(projectDir, 0755))
 		require.NoError(t, os.Chdir(projectDir))
 
-		// The enclosing project check will find ~/.scion
+		// The enclosing project check will find ~/.fabric
 		projectPath, rootDir, found := config.GetEnclosingProjectPath()
 		assert.True(t, found, "should find global project")
 
@@ -95,18 +95,18 @@ func TestProjectInitNestedDetection(t *testing.T) {
 		tmpHome := t.TempDir()
 		_ = os.Setenv("HOME", tmpHome)
 
-		// Create a project with .scion that is NOT the global project
+		// Create a project with .fabric that is NOT the global project
 		projectDir := filepath.Join(tmpHome, "projects", "existing-project")
 		require.NoError(t, os.MkdirAll(projectDir, 0755))
-		scionDir := filepath.Join(projectDir, ".scion")
-		require.NoError(t, os.Mkdir(scionDir, 0755))
+		fabricDir := filepath.Join(projectDir, ".fabric")
+		require.NoError(t, os.Mkdir(fabricDir, 0755))
 
 		// Try to init from a subdirectory — this is now allowed
 		subDir := filepath.Join(projectDir, "packages", "sub-package")
 		require.NoError(t, os.MkdirAll(subDir, 0755))
 		require.NoError(t, os.Chdir(subDir))
 
-		// The enclosing project check will find the project's .scion
+		// The enclosing project check will find the project's .fabric
 		_, _, found := config.GetEnclosingProjectPath()
 		assert.True(t, found, "should find enclosing project")
 

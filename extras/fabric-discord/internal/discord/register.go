@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -86,7 +86,7 @@ func NewRegistrationHandler(store Store, session *discordgo.Session, hubURL, hma
 	}
 }
 
-// HandleRegister handles the /scion register command. It generates a short
+// HandleRegister handles the /fabric register command. It generates a short
 // linking code, registers it with the hub, and sends the user a link button.
 func (h *RegistrationHandler) HandleRegister(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	discordUserID := interactionUserID(i)
@@ -109,8 +109,8 @@ func (h *RegistrationHandler) HandleRegister(s *discordgo.Session, i *discordgo.
 	}
 	if existing != nil {
 		h.followup(s, i, fmt.Sprintf(
-			"You are already registered as **%s**. Use `/scion unregister` first.",
-			existing.ScionEmail,
+			"You are already registered as **%s**. Use `/fabric unregister` first.",
+			existing.FabricEmail,
 		))
 		return
 	}
@@ -160,7 +160,7 @@ func (h *RegistrationHandler) HandleRegister(s *discordgo.Session, i *discordgo.
 
 	// Send follow-up with a URL button.
 	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Content: "To link your Discord and Scion accounts, click the button below and sign in.\n\n(Link expires in 15 minutes.)",
+		Content: "To link your Discord and Fabric accounts, click the button below and sign in.\n\n(Link expires in 15 minutes.)",
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
@@ -181,7 +181,7 @@ func (h *RegistrationHandler) HandleRegister(s *discordgo.Session, i *discordgo.
 	go h.pollForConfirmation(pollCtx, s, i.Interaction, reg)
 }
 
-// HandleUnregister handles the /scion unregister command.
+// HandleUnregister handles the /fabric unregister command.
 func (h *RegistrationHandler) HandleUnregister(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	discordUserID := interactionUserID(i)
 	if discordUserID == "" {
@@ -199,7 +199,7 @@ func (h *RegistrationHandler) HandleUnregister(s *discordgo.Session, i *discordg
 		return
 	}
 	if existing == nil {
-		h.followup(s, i, "You don't have a linked Scion account. Use `/scion register` to link one.")
+		h.followup(s, i, "You don't have a linked Fabric account. Use `/fabric register` to link one.")
 		return
 	}
 
@@ -209,10 +209,10 @@ func (h *RegistrationHandler) HandleUnregister(s *discordgo.Session, i *discordg
 		return
 	}
 
-	h.followup(s, i, "Your Discord account has been unlinked from Scion.")
+	h.followup(s, i, "Your Discord account has been unlinked from Fabric.")
 	h.log.Info("User unregistered",
 		"discord_user_id", discordUserID,
-		"scion_email", existing.ScionEmail,
+		"fabric_email", existing.FabricEmail,
 	)
 }
 
@@ -266,8 +266,8 @@ func (h *RegistrationHandler) completeRegistration(s *discordgo.Session, interac
 	mapping := &DiscordUserMapping{
 		DiscordUserID:   reg.DiscordUserID,
 		DiscordUsername: reg.DiscordUsername,
-		ScionUserID:     statusResp.User.ID,
-		ScionEmail:      statusResp.User.Email,
+		FabricUserID:     statusResp.User.ID,
+		FabricEmail:      statusResp.User.Email,
 		LinkedAt:        time.Now(),
 	}
 
@@ -293,8 +293,8 @@ func (h *RegistrationHandler) completeRegistration(s *discordgo.Session, interac
 
 	h.log.Info("User registered via hub linking",
 		"discord_user_id", reg.DiscordUserID,
-		"scion_email", statusResp.User.Email,
-		"scion_user_id", statusResp.User.ID,
+		"fabric_email", statusResp.User.Email,
+		"fabric_user_id", statusResp.User.ID,
 	)
 }
 

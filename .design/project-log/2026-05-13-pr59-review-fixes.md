@@ -1,7 +1,7 @@
 # PR #59 Review Feedback Fixes
 
 **Date:** 2026-05-13
-**PR:** #59 (scion/fix-issue-36) - Rename idle state to working
+**PR:** #59 (fabric/fix-issue-36) - Rename idle state to working
 **Commit:** a1602edb
 
 ## Summary
@@ -30,4 +30,4 @@ The reviewer suggested adding a test for `COMPLETED` mapping. This test already 
 
 - `go build ./...` - passed
 - `go test ./pkg/store/...` - passed
-- `go test ./extras/scion-a2a-bridge/internal/bridge/...` - passed
+- `go test ./extras/fabric-a2a-bridge/internal/bridge/...` - passed

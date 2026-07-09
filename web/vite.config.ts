@@ -32,7 +32,7 @@ function mockApiPlugin(): Plugin {
                     res.statusCode = 200;
                     res.end(JSON.stringify({
                         id: 'dev-user',
-                        email: 'dev@scion.local',
+                        email: 'dev@fabric.local',
                         displayName: 'Dev User',
                     }));
                     return;

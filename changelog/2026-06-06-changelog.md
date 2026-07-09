@@ -7,8 +7,8 @@ This release focuses on significantly improving authentication resilience, speci
 
 ## 🚀 Features
 * **Authentication Resilience and Recovery:**
-    * **Diagnostic Tools:** Introduced `sciontool doctor`, a new diagnostic command to verify agent health, connectivity, and authentication status from within the container.
-    * **Auth Reset Mechanism:** Added a "Reset Auth" mechanism to repair-inject fresh authentication tokens into running agent containers without requiring a restart. This is accessible via the `scion reset-auth` CLI command and a new button in the Agent detail UI.
+    * **Diagnostic Tools:** Introduced `fabrictool doctor`, a new diagnostic command to verify agent health, connectivity, and authentication status from within the container.
+    * **Auth Reset Mechanism:** Added a "Reset Auth" mechanism to repair-inject fresh authentication tokens into running agent containers without requiring a restart. This is accessible via the `fabric reset-auth` CLI command and a new button in the Agent detail UI.
 * **Project Management:**
     * **Project Rename:** Added support for renaming projects through both the CLI and Hub API.
 * **Agent Progeny Support:**

@@ -1,26 +1,26 @@
 ---
 name: team-creation
 description: >-
-  Create or extend scion agent team templates from a high-level description of roles and workflow.
+  Create or extend fabric agent team templates from a high-level description of roles and workflow.
   Use when the user describes a multi-agent team, panel, crew, pipeline, or any scenario
   requiring coordinated LLM agents with distinct roles. Also use when adding new roles to an
   existing team, modifying workflows, or restructuring agent coordination. Produces ready-to-use
-  template directories in .scion/templates/ by default, or in a custom path if specified.
+  template directories in .fabric/templates/ by default, or in a custom path if specified.
 ---
 
-# Scion Team Creation & Extension Skill
+# Fabric Team Creation & Extension Skill
 
-You create and extend **scion agent templates** — the blueprints that define specialized agent roles. Given a description of a team (roles, responsibilities, workflow), you produce template directories that can be used to start agents with `scion start <name> --type <template>`.
+You create and extend **fabric agent templates** — the blueprints that define specialized agent roles. Given a description of a team (roles, responsibilities, workflow), you produce template directories that can be used to start agents with `fabric start <name> --type <template>`.
 
 When extending an existing team, review the current templates to understand the established patterns, naming, and workflow before making changes.
 
 ## Template Directory Structure
 
-Each template lives in `.scion/templates/<template-name>/` and contains:
+Each template lives in `.fabric/templates/<template-name>/` and contains:
 
 ```
-.scion/templates/<template-name>/
-├── scion-agent.yaml       # REQUIRED: template metadata and config
+.fabric/templates/<template-name>/
+├── fabric-agent.yaml       # REQUIRED: template metadata and config
 ├── agents.md              # REQUIRED: agent behavioral instructions
 ├── system-prompt.md       # REQUIRED: role persona and expertise framing
 └── skills/                # OPTIONAL: harness skills (agentskills.io standard)
@@ -28,7 +28,7 @@ Each template lives in `.scion/templates/<template-name>/` and contains:
         └── SKILL.md
 ```
 
-Custom templates automatically **inherit** from the built-in `default` template, which provides shell configs, git setup, and base scion infrastructure. You do NOT need to create a `home/` directory or duplicate any infrastructure files.
+Custom templates automatically **inherit** from the built-in `default` template, which provides shell configs, git setup, and base fabric infrastructure. You do NOT need to create a `home/` directory or duplicate any infrastructure files.
 
 ### Template Naming
 
@@ -37,7 +37,7 @@ Custom templates automatically **inherit** from the built-in `default` template,
 
 ## Required File Formats
 
-### scion-agent.yaml
+### fabric-agent.yaml
 
 Every template MUST have this file. Minimal valid config:
 
@@ -73,7 +73,7 @@ This file contains the behavioral instructions injected into the agent's context
 
 The primary contents should focus on task and job work describing what the agent should do, how it should behave, and any constraints on its work.
 
-Do **not** include instructions on how to use the scion CLI (starting agents, messaging, `scion look`, etc.) — every agent automatically receives base CLI operating instructions from the platform.
+Do **not** include instructions on how to use the fabric CLI (starting agents, messaging, `fabric look`, etc.) — every agent automatically receives base CLI operating instructions from the platform.
 
 ### system-prompt.md (Optional)
 
@@ -87,7 +87,7 @@ security, and maintainability. You approach code review methodically,
 prioritizing correctness and clarity over style preferences.
 ```
 
-If the role doesn't need a distinct persona, omit this file and remove the `system_prompt` line from `scion-agent.yaml`.
+If the role doesn't need a distinct persona, omit this file and remove the `system_prompt` line from `fabric-agent.yaml`.
 
 This file can contain broad direction around skillsets.
 
@@ -113,7 +113,7 @@ description: >-
 Skill instructions and reference material here.
 ```
 
-During agent provisioning, Scion automatically merges skills from the template into the correct harness-specific location (e.g. `.claude/skills/` for Claude, `.gemini/skills/` for Gemini). The agent's LLM harness discovers and loads these skills at runtime.
+During agent provisioning, Fabric automatically merges skills from the template into the correct harness-specific location (e.g. `.claude/skills/` for Claude, `.gemini/skills/` for Gemini). The agent's LLM harness discovers and loads these skills at runtime.
 
 Use skills to package domain knowledge, tool-usage patterns, or specialized workflows that a role needs. Skills are portable across harnesses and reusable across templates.
 
@@ -177,7 +177,7 @@ If a role needs specialized domain knowledge or tool-usage patterns that would b
 
 ### 5. Validate
 
-- [ ] Every template has `scion-agent.yaml` with `schema_version: "1"`
+- [ ] Every template has `fabric-agent.yaml` with `schema_version: "1"`
 - [ ] Every `agents.md` starts with the status reporting boilerplate
 - [ ] The orchestrator references the correct template names
 - [ ] Template directory names are kebab-case
@@ -190,7 +190,7 @@ When adding to or modifying an existing team:
 
 ### 1. Review Current State
 
-Read the existing templates in `.scion/templates/` to understand:
+Read the existing templates in `.fabric/templates/` to understand:
 - The current roles and their responsibilities
 - The orchestrator's workflow and how it references workers
 - Naming conventions and patterns already established
@@ -212,7 +212,7 @@ Read the existing templates in `.scion/templates/` to understand:
 
 ## Gotchas
 
-- **Don't duplicate CLI usage instructions**. Every agent already receives base scion CLI instructions from the platform.
+- **Don't duplicate CLI usage instructions**. Every agent already receives base fabric CLI instructions from the platform.
 - **Don't create `home/` directories** in custom templates. The default template provides all infrastructure.
-- **Template names = directory names**. The `description` in `scion-agent.yaml` is cosmetic; the `--type` value is the directory name.
-- **Skills are harness-portable**. Write `SKILL.md` content without assuming a specific harness — scion mounts skills into the correct location automatically.
+- **Template names = directory names**. The `description` in `fabric-agent.yaml` is cosmetic; the `--type` value is the directory name.
+- **Skills are harness-portable**. Write `SKILL.md` content without assuming a specific harness — fabric mounts skills into the correct location automatically.

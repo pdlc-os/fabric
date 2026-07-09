@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 type systemIdentityRequest struct {

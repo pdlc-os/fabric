@@ -5,7 +5,7 @@
       "COPILOT_GITHUB_TOKEN"
     ],
     "env_secret_files": {
-      "COPILOT_GITHUB_TOKEN": "$HOME/.scion/harness/secrets/COPILOT_GITHUB_TOKEN"
+      "COPILOT_GITHUB_TOKEN": "$HOME/.fabric/harness/secrets/COPILOT_GITHUB_TOKEN"
     },
     "files": []
   },

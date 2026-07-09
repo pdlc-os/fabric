@@ -2,14 +2,14 @@
 """Antigravity container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. Responsibilities:
+by `fabrictool harness provision --manifest ...`. Responsibilities:
 
   1. Resolve auth from staged candidates (GEMINI_API_KEY or GOOGLE_API_KEY).
   2. Copy staged instructions to GEMINI.md (AGY's native instructions file).
-  3. Generate .agents/hooks.json wiring AGY hook events to sciontool.
+  3. Generate .agents/hooks.json wiring AGY hook events to fabrictool.
   4. Write outputs/env.json and outputs/resolved-auth.json.
 
-Stdlib-only — no external dependencies (beyond the staged scion_harness lib).
+Stdlib-only — no external dependencies (beyond the staged fabric_harness lib).
 """
 
 from __future__ import annotations
@@ -22,10 +22,10 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness
+import fabric_harness
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    f"scion_harness INTERFACE_VERSION {scion_harness.INTERFACE_VERSION} < 2"
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    f"fabric_harness INTERFACE_VERSION {fabric_harness.INTERFACE_VERSION} < 2"
 )
 
 PROVISION_VERSION = "2026-06-25T01:00:00Z"
@@ -41,17 +41,17 @@ AGY_MCP_MAPPING: dict[str, Any] = {
     },
 }
 
-ANTIGRAVITY_AUTH = scion_harness.AuthSpec(
+ANTIGRAVITY_AUTH = fabric_harness.AuthSpec(
     "antigravity",
     [
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "vertex-ai",
             all_of=["AGY_TOKEN", "GOOGLE_CLOUD_PROJECT"],
             any_of=["GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_REGION"],
             env_fallback=True,
             hint="set AGY_TOKEN, GOOGLE_CLOUD_PROJECT, and GOOGLE_CLOUD_LOCATION",
         ),
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "oauth-token",
             any_of=["AGY_TOKEN"],
             env_fallback=True,
@@ -62,7 +62,7 @@ ANTIGRAVITY_AUTH = scion_harness.AuthSpec(
 )
 
 
-def _has_disk_oauth_token(ctx: scion_harness.ProvisionContext) -> bool:
+def _has_disk_oauth_token(ctx: fabric_harness.ProvisionContext) -> bool:
     """Check if a bind-mounted antigravity-oauth-token exists on disk."""
     path = os.path.join(
         ctx.home, ".gemini", "antigravity-cli", "antigravity-oauth-token"
@@ -70,7 +70,7 @@ def _has_disk_oauth_token(ctx: scion_harness.ProvisionContext) -> bool:
     return os.path.isfile(path)
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     ctx.info(
         f"version={PROVISION_VERSION} "
         f"home={ctx.home} uid={os.getuid()} gid={os.getgid()}"
@@ -78,7 +78,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
     # Explicit "none" is valid for antigravity (file-only or no-auth setups).
     if ctx.explicit_type == "none":
-        resolved = scion_harness.ResolvedAuth(method="none")
+        resolved = fabric_harness.ResolvedAuth(method="none")
     else:
         # Disk-path probe: bind-mounted antigravity-oauth-token must count
         # toward token detection even when AGY_TOKEN is not staged as a
@@ -87,14 +87,14 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
         try:
             resolved = ctx.select_auth(ANTIGRAVITY_AUTH)
-        except scion_harness.ProvisionError:
+        except fabric_harness.ProvisionError:
             if ctx.explicit_type:
                 raise
-            resolved = scion_harness.ResolvedAuth(method="none")
+            resolved = fabric_harness.ResolvedAuth(method="none")
 
         if resolved.method == "none" and has_disk_token:
             ctx.info("detected bind-mounted antigravity-oauth-token; using oauth-token auth")
-            resolved = scion_harness.ResolvedAuth(method="oauth-token")
+            resolved = fabric_harness.ResolvedAuth(method="oauth-token")
 
     method = resolved.method
 
@@ -115,11 +115,11 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
             except OSError:
                 pass
         if not token_raw:
-            raise scion_harness.ProvisionError("AGY_TOKEN secret is empty")
+            raise fabric_harness.ProvisionError("AGY_TOKEN secret is empty")
         try:
             token_obj = json.loads(token_raw)
         except json.JSONDecodeError as exc:
-            raise scion_harness.ProvisionError(
+            raise fabric_harness.ProvisionError(
                 f"AGY_TOKEN is not valid JSON: {exc}"
             )
         has_refresh = (
@@ -130,7 +130,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
             )
         )
         if not isinstance(token_obj, dict) or not has_refresh:
-            raise scion_harness.ProvisionError(
+            raise fabric_harness.ProvisionError(
                 "AGY_TOKEN must contain refresh_token"
             )
         has_token = True
@@ -150,12 +150,12 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
     ctx.info(f"method={method}")
 
 
-def _read_agy_token(ctx: scion_harness.ProvisionContext) -> str:
+def _read_agy_token(ctx: fabric_harness.ProvisionContext) -> str:
     """Read AGY_TOKEN from staged secret file (with path expansion) or env."""
     secret_path = ctx.env_secret_files.get("AGY_TOKEN")
     if secret_path:
         try:
-            with open(scion_harness.expand_path(secret_path), "r", encoding="utf-8") as f:
+            with open(fabric_harness.expand_path(secret_path), "r", encoding="utf-8") as f:
                 return f.read().rstrip("\r\n")
         except OSError:
             pass
@@ -166,10 +166,10 @@ def _read_agy_token(ctx: scion_harness.ProvisionContext) -> str:
 
 
 def _generate_hooks_json(home: str) -> None:
-    """Generate .agents/hooks.json wiring AGY events to sciontool."""
+    """Generate .agents/hooks.json wiring AGY events to fabrictool."""
     hook_cmd_template = (
         "jq --arg ev {event} '. + {{\"hook_event_name\": $ev}}' "
-        "| sciontool hook --dialect=antigravity"
+        "| fabrictool hook --dialect=antigravity"
     )
 
     def _simple_hook(event: str) -> list[dict[str, Any]]:
@@ -196,7 +196,7 @@ def _generate_hooks_json(home: str) -> None:
         ]
 
     hooks_data: dict[str, Any] = {
-        "scion-hooks": {
+        "fabric-hooks": {
             "PreInvocation": _simple_hook("PreInvocation"),
             "PostInvocation": _simple_hook("PostInvocation"),
             "PreToolUse": _tool_hook("PreToolUse"),
@@ -211,7 +211,7 @@ def _generate_hooks_json(home: str) -> None:
     try:
         os.makedirs(agents_dir, exist_ok=True)
         hooks_path = os.path.join(agents_dir, "hooks.json")
-        scion_harness.atomic_write_json(hooks_path, hooks_data)
+        fabric_harness.atomic_write_json(hooks_path, hooks_data)
         print(
             f"antigravity provision: generated hooks.json at {hooks_path}",
             file=sys.stderr,
@@ -232,7 +232,7 @@ def _generate_wrapper_script(home: str, has_token: bool, is_enterprise: bool) ->
     dies when the provisioner exits, so we bootstrap inline here.
 
     Token injection always includes an env-var fallback because the
-    provisioner runs before scion-env is sourced — AGY_TOKEN may
+    provisioner runs before fabric-env is sourced — AGY_TOKEN may
     only be available in the child process environment, not during provisioning.
 
     GCP/enterprise settings are also patched here at runtime for the same
@@ -240,7 +240,7 @@ def _generate_wrapper_script(home: str, has_token: bool, is_enterprise: bool) ->
     are only available in the child environment.
     """
     secret_path = os.path.join(
-        home, ".scion", "harness", "secrets", "AGY_TOKEN"
+        home, ".fabric", "harness", "secrets", "AGY_TOKEN"
     )
     oauth_token_path = os.path.join(
         home, ".gemini", "antigravity-cli", "antigravity-oauth-token"
@@ -255,7 +255,7 @@ def _generate_wrapper_script(home: str, has_token: bool, is_enterprise: bool) ->
     # Enterprise marker: provisioner writes this when explicit vertex-ai
     # is selected. The wrapper checks both this file and AGY_USE_GCP env.
     enterprise_marker = os.path.join(
-        home, ".scion", "harness", ".enterprise-mode"
+        home, ".fabric", "harness", ".enterprise-mode"
     )
     if is_enterprise:
         os.makedirs(os.path.dirname(enterprise_marker), exist_ok=True)
@@ -282,7 +282,7 @@ gnome-keyring-daemon --start --components=secrets,pkcs11,ssh > /dev/null 2>&1
 echo "agy-wrapper: keyring initialized (DBUS=$DBUS_SESSION_BUS_ADDRESS)" >&2
 
 # Save DBUS session address so other processes (e.g. capture_auth.py) can use the keyring
-echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" > ~/.scion/harness/.dbus-env
+echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS" > ~/.fabric/harness/.dbus-env
 
 # Inject OAuth token into keyring (staging file, target path, env var fallback)
 if [ -f "{secret_path}" ]; then
@@ -353,7 +353,7 @@ fi
 exec agy --dangerously-skip-permissions "$@"
 """
 
-    wrapper_path = os.path.join(home, ".scion", "harness", "agy-wrapper.sh")
+    wrapper_path = os.path.join(home, ".fabric", "harness", "agy-wrapper.sh")
     os.makedirs(os.path.dirname(wrapper_path), exist_ok=True)
     with open(wrapper_path, "w", encoding="utf-8") as f:
         f.write(script)
@@ -364,10 +364,10 @@ exec agy --dangerously-skip-permissions "$@"
     )
 
 
-def _apply_mcp(ctx: scion_harness.ProvisionContext) -> None:
+def _apply_mcp(ctx: fabric_harness.ProvisionContext) -> None:
     """Apply staged MCP server configuration into AGY's mcp_config.json."""
     try:
-        count = scion_harness.apply_mcp_servers_simple(ctx.bundle_dir, AGY_MCP_MAPPING)
+        count = fabric_harness.apply_mcp_servers_simple(ctx.bundle_dir, AGY_MCP_MAPPING)
     except (ValueError, OSError) as exc:
         ctx.info(f"MCP config error: {exc}")
         return
@@ -433,7 +433,7 @@ def _prestage_onboarding(
         }
         if model:
             settings["model"] = model
-        scion_harness.atomic_write_json(settings_path, settings)
+        fabric_harness.atomic_write_json(settings_path, settings)
 
     # cache/onboarding.json — marks onboarding complete.
     # Always set enterpriseOnboardingComplete=true regardless of auth mode:
@@ -441,7 +441,7 @@ def _prestage_onboarding(
     # enterprise onboarding flow (theme selector, etc.).
     onboarding_path = os.path.join(cache_dir, "onboarding.json")
     if not os.path.isfile(onboarding_path):
-        scion_harness.atomic_write_json(onboarding_path, {
+        fabric_harness.atomic_write_json(onboarding_path, {
             "consumerOnboardingComplete": True,
             "enterpriseOnboardingComplete": True,
             "onboardingComplete": True,
@@ -457,7 +457,7 @@ def _prestage_onboarding(
     project_id = str(uuid.uuid4())
     project_path = os.path.join(projects_dir, project_id + ".json")
     if not any(f.endswith(".json") for f in os.listdir(projects_dir)):
-        scion_harness.atomic_write_json(project_path, {
+        fabric_harness.atomic_write_json(project_path, {
             "id": project_id,
             "name": workspace,
             "projectResources": {
@@ -499,7 +499,7 @@ def _prestage_onboarding(
     ignore_path = os.path.join(gemini_dir, ".geminiignore")
     if not os.path.isfile(ignore_path):
         with open(ignore_path, "w") as f:
-            f.write(".scion/\n")
+            f.write(".fabric/\n")
 
     # Chown everything under ~/.gemini to the agent user so AGY (which runs
     # as that user) can write back to settings.json, onboarding.json, etc.
@@ -546,4 +546,4 @@ def _prestage_onboarding(
 
 
 if __name__ == "__main__":
-    scion_harness.run("antigravity", provision)
+    fabric_harness.run("antigravity", provision)

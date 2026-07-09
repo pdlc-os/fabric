@@ -7,7 +7,7 @@ COPY web/ .
 # npm run build already runs copy:shoelace-icons, vite build, and copy:client
 RUN npm run build
 
-# Stage 2: Build the Scion Hub binary (with embedded web assets)
+# Stage 2: Build the Fabric Hub binary (with embedded web assets)
 FROM golang:1.26.1-alpine AS builder
 WORKDIR /app
 ENV GOWORK=off
@@ -24,7 +24,7 @@ COPY --from=frontend /web/dist/client web/dist/client
 
 # Build a static binary (CGO_ENABLED=0) so it runs on the debian runtime image
 # without musl/glibc mismatch from the Alpine builder.
-RUN CGO_ENABLED=0 go build -o /scion ./cmd/scion/
+RUN CGO_ENABLED=0 go build -o /fabric ./cmd/fabric/
 
 # Stage 3: Create a minimal runtime image
 FROM debian:bookworm-slim
@@ -34,8 +34,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git openssh-client && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from the builder stage
-COPY --from=builder /scion /usr/local/bin/scion
+COPY --from=builder /fabric /usr/local/bin/fabric
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/local/bin/scion"]
+ENTRYPOINT ["/usr/local/bin/fabric"]

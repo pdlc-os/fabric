@@ -26,8 +26,8 @@ import (
 	"time"
 
 	smpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

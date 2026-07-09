@@ -1,23 +1,23 @@
 ---
 title: Philosophy
-description: Thoughts on the philosophy behind Scion.
+description: Thoughts on the philosophy behind Fabric.
 ---
 
-# Scion Philosophy
+# Fabric Philosophy
 
-This document outlines some of the core principles and philosophy that guide the development and operation of Scion.
+This document outlines some of the core principles and philosophy that guide the development and operation of Fabric.
 
 ## Principles
 
 ### Less is More
 
-As stated in the readme, as the frontier models capabilities continue to improve, they will become more capable of taking higher level intent and deciding more complex ways of fulfilling it. This means that the explicit structure of complex harnesses, protocols, etc may matter less than open and flexible substrates for agents to collaborate in. To this end Scion is not attempting to be the full stack solution for multi-agent solutions. It focuses on being a "hypervisor for agents". Multi-agent system components such as agent memory, agent chatrooms, task management can be integrated as orthogonal concerns to be integrated into a solution that uses Scion.
+As stated in the readme, as the frontier models capabilities continue to improve, they will become more capable of taking higher level intent and deciding more complex ways of fulfilling it. This means that the explicit structure of complex harnesses, protocols, etc may matter less than open and flexible substrates for agents to collaborate in. To this end Fabric is not attempting to be the full stack solution for multi-agent solutions. It focuses on being a "hypervisor for agents". Multi-agent system components such as agent memory, agent chatrooms, task management can be integrated as orthogonal concerns to be integrated into a solution that uses Fabric.
 
-Part of this improvement in agents and models is that agents, in the right environment, are getting better at learning as needed. Concretely, in Scion, agents are able to use **Progressive Skills** by using the `scion --help` command to dynamically learn how to use the tool, which demonstrates another step in the evolution from MCP -> SKILLS.md -> `<cli> --help` as a technique.
+Part of this improvement in agents and models is that agents, in the right environment, are getting better at learning as needed. Concretely, in Fabric, agents are able to use **Progressive Skills** by using the `fabric --help` command to dynamically learn how to use the tool, which demonstrates another step in the evolution from MCP -> SKILLS.md -> `<cli> --help` as a technique.
 
 ### Isolation Over Constraints
 
-For agents to be effective, they need to operate with agency. This can come from some balance of giving the agent limitations and rules INSIDE the agent context, or by giving it the go ahead to do everything it can, and then guardrail it OUTSIDE the agent. Scion favors running agents in `--yolo` mode, while isolating them in containers, git worktrees, and on compute nodes subject to network policy at the infrastructure layer.
+For agents to be effective, they need to operate with agency. This can come from some balance of giving the agent limitations and rules INSIDE the agent context, or by giving it the go ahead to do everything it can, and then guardrail it OUTSIDE the agent. Fabric favors running agents in `--yolo` mode, while isolating them in containers, git worktrees, and on compute nodes subject to network policy at the infrastructure layer.
 
 ### Interaction is imperative
 
@@ -25,7 +25,7 @@ Larger complex projects need collaboration. Expecting agents and workflows to pr
 
 ### Diversity results in higher quality
 
-Specialization through system prompts, model vendors, model sizes, harnesses and configurations all bring an ecosystem of strengths and weaknesses. Complex multi-agent solutions should be able to leverage a blend of strengths. Scion attempts to be balanced between agnostic without being reductive.
+Specialization through system prompts, model vendors, model sizes, harnesses and configurations all bring an ecosystem of strengths and weaknesses. Complex multi-agent solutions should be able to leverage a blend of strengths. Fabric attempts to be balanced between agnostic without being reductive.
 
 ### Agents lifecycles are dynamic
 
@@ -33,4 +33,4 @@ The graph of an agent swarm and the tasks it works through is dynamic and not pr
 
 ### Action over pondering
 
-We are in a period of rapid discovery and experimentation. The hypotheses about "How" agents **should** work together vastly outnumbers the projects that have attempted or demonstrated what actually happens in practice. Scion aims to be a testbed to make such experiments simpler and more practical to explore.
+We are in a period of rapid discovery and experimentation. The hypotheses about "How" agents **should** work together vastly outnumbers the projects that have attempted or demonstrated what actually happens in practice. Fabric aims to be a testbed to make such experiments simpler and more practical to explore.

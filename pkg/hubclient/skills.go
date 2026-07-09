@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // SkillService handles skill operations.

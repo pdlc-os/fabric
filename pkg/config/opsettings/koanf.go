@@ -297,7 +297,7 @@ func EnvOverriddenLayer1Keys(envKeys []string) []string {
 	return overridden
 }
 
-// DetectEnvOverrides creates a koanf instance from the SCION_ environment
+// DetectEnvOverrides creates a koanf instance from the FABRIC_ environment
 // variables and returns which Layer-1 keys are overridden by env.
 // The envMapper should be the same mapper used by the main config loader.
 func DetectEnvOverrides(envKoanf *koanf.Koanf) []string {

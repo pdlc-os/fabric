@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // DiscordChannel delivers notifications via a Discord incoming webhook.

@@ -1,6 +1,6 @@
 # Phase 2 Plan: Worktree-Per-Agent Lifecycle
 
-**Branch:** `scion/worktree-phase2` (off upstream `main`, which now contains Phase 1 via #350)
+**Branch:** `fabric/worktree-phase2` (off upstream `main`, which now contains Phase 1 via #350)
 **Tracking:** #158. Builds directly on the merged Phase 1.
 **Status:** scoped per the 2026-06-07 question resolutions (ptone).
 
@@ -39,7 +39,7 @@ gaps. Scope to validation + targeted fixes, not new architecture.
 ### T4 — UI: surface workspace-mode options (Q6)  [developer, web]
 Make the workspace-mode choice obvious at project (and/or agent) creation in the web UI:
 `shared` / `clone-per-agent` (default) / `worktree-per-agent`, with brief helper text. Wire
-to the existing `scion.dev/workspace-mode` label / `CreateProjectRequest.WorkspaceMode`.
+to the existing `fabric.dev/workspace-mode` label / `CreateProjectRequest.WorkspaceMode`.
 
 ## Out of scope (deferred per resolutions)
 Base last-agent teardown, orphan-base sweep, GC-on-teardown (Q2/Q3); K8s node-local worktree

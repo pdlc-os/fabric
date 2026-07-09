@@ -36,8 +36,8 @@ import { TemplateFileEditorDataSource } from '../shared/file-editor.js';
 import type { FileEditorDataSource } from '../shared/file-editor.js';
 import '../shared/hash-display.js';
 
-@customElement('scion-page-template-detail')
-export class ScionPageTemplateDetail extends LitElement {
+@customElement('fabric-page-template-detail')
+export class FabricPageTemplateDetail extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -248,8 +248,8 @@ export class ScionPageTemplateDetail extends LitElement {
 
   private refreshFileBrowser(): void {
     const browser = this.shadowRoot?.querySelector(
-      'scion-file-browser'
-    ) as import('../shared/file-browser.js').ScionFileBrowser | null;
+      'fabric-file-browser'
+    ) as import('../shared/file-browser.js').FabricFileBrowser | null;
     browser?.loadFiles();
   }
 
@@ -301,7 +301,7 @@ export class ScionPageTemplateDetail extends LitElement {
           <span>Scope: ${t.scope}</span>
           <span>Status: ${t.status}</span>
           ${t.contentHash
-            ? html`<span class="hash-meta">Hash: <scion-hash-display .hash=${t.contentHash} max-width="14ch"></scion-hash-display></span>`
+            ? html`<span class="hash-meta">Hash: <fabric-hash-display .hash=${t.contentHash} max-width="14ch"></fabric-hash-display></span>`
             : ''}
         </div>
       </div>
@@ -324,23 +324,23 @@ export class ScionPageTemplateDetail extends LitElement {
                   Back to files
                 </sl-button>
               </div>
-              <scion-file-editor
+              <fabric-file-editor
                 .filePath=${this.editingFilePath || ''}
                 .dataSource=${this.fileEditorDataSource}
                 ?readonly=${!isEditable}
                 ?initialPreview=${this.editorInitialPreview}
                 @file-saved=${this.handleFileSaved}
                 @editor-closed=${this.handleEditorClosed}
-              ></scion-file-editor>
+              ></fabric-file-editor>
             `
           : html`
-              <scion-file-browser
+              <fabric-file-browser
                 .dataSource=${this.fileBrowserDataSource}
                 ?editable=${isEditable}
                 @file-edit-requested=${this.handleFileEditRequested}
                 @file-preview-requested=${this.handleFilePreviewRequested}
                 @file-create-requested=${this.handleFileCreateRequested}
-              ></scion-file-browser>
+              ></fabric-file-browser>
             `}
       </div>
     `;

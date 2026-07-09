@@ -20,9 +20,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // stubUserLookup returns a fixed ChatUserInfo.

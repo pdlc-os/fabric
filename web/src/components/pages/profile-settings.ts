@@ -26,10 +26,10 @@ import { customElement, state } from 'lit/decorators.js';
 
 import '../shared/subscription-manager.js';
 
-const STORAGE_KEY = 'scion-push-notifications';
+const STORAGE_KEY = 'fabric-push-notifications';
 
-@customElement('scion-page-profile-settings')
-export class ScionPageProfileSettings extends LitElement {
+@customElement('fabric-page-profile-settings')
+export class FabricPageProfileSettings extends LitElement {
   @state()
   private _pushEnabled = false;
 
@@ -52,19 +52,19 @@ export class ScionPageProfileSettings extends LitElement {
     .page-header-info h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .page-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
 
     .settings-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.75rem;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -73,7 +73,7 @@ export class ScionPageProfileSettings extends LitElement {
     .section-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
       display: flex;
       align-items: center;
@@ -82,7 +82,7 @@ export class ScionPageProfileSettings extends LitElement {
 
     .section-title sl-icon {
       font-size: 1.125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .setting-row {
@@ -99,13 +99,13 @@ export class ScionPageProfileSettings extends LitElement {
     .setting-label {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .setting-description {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
       line-height: 1.5;
     }
@@ -143,9 +143,9 @@ export class ScionPageProfileSettings extends LitElement {
     }
 
     .status-default {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .status-unsupported {
@@ -272,13 +272,13 @@ export class ScionPageProfileSettings extends LitElement {
         ${this._renderPermissionStatus()}
       </div>
 
-      <scion-subscription-manager compact></scion-subscription-manager>
+      <fabric-subscription-manager compact></fabric-subscription-manager>
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-profile-settings': ScionPageProfileSettings;
+    'fabric-page-profile-settings': FabricPageProfileSettings;
   }
 }

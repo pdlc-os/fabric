@@ -1,4 +1,4 @@
-BINARY  := scion-chat-app
+BINARY  := fabric-chat-app
 GO      := go
 GOFLAGS ?=
 
@@ -6,7 +6,7 @@ GOFLAGS ?=
 
 ## build: Compile the chat app binary.
 build:
-	$(GO) build $(GOFLAGS) -o $(BINARY) ./cmd/scion-chat-app/
+	$(GO) build $(GOFLAGS) -o $(BINARY) ./cmd/fabric-chat-app/
 
 ## install: Build and install the chat app on a provisioned Hub VM.
 ##   Installs the binary, systemd unit, config file, and patches the
@@ -14,7 +14,7 @@ build:
 ##
 ##   Prerequisites:
 ##     1. Hub provisioned via scripts/starter-hub/
-##     2. /home/scion/.scion/chat-app.env populated (see chat-app.env.sample)
+##     2. /home/fabric/.fabric/chat-app.env populated (see chat-app.env.sample)
 install: build
 	./install.sh
 

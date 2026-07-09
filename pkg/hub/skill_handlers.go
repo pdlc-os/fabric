@@ -28,10 +28,10 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // CreateSkillRequest is the request body for creating a skill.
@@ -1303,8 +1303,8 @@ func (s *Server) handleSkillsResolve(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Federation: non-scion registry → proxy to external
-		if uri.Registry != "scion" && uri.Registry != "" {
+		// Federation: non-fabric registry → proxy to external
+		if uri.Registry != "fabric" && uri.Registry != "" {
 			fedResolved, resolveErr := s.federateResolve(ctx, uri.Registry, skillRef)
 			if resolveErr != nil {
 				resolveErrors = append(resolveErrors, *resolveErr)

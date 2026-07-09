@@ -49,7 +49,7 @@ var ValidExecUserName = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 // double-quoted expansion in the outer wrapper. The inner shell
 // then parses cmd as a normal command line: leading env-var
 // assignments work (e.g. "TERM=xterm-256color tmux attach-session
-// -t scion"), shell metacharacters are interpreted by the inner
+// -t fabric"), shell metacharacters are interpreted by the inner
 // shell, and $VAR references resolve against that inner shell's
 // environment.
 func ExecAsUserCmd(user, cmd string) []string {

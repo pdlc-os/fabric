@@ -18,9 +18,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // --- ValidateNotExportRoot tests ---
@@ -43,7 +43,7 @@ func TestValidateNotExportRoot_Valid(t *testing.T) {
 		},
 		{
 			name:     "local backend empty hostBase",
-			hostPath: "/home/user/.scion.projects/my-project",
+			hostPath: "/home/user/.fabric.projects/my-project",
 			hostBase: "",
 		},
 	}
@@ -127,23 +127,23 @@ func TestNFSSharedDirsToVolumeMounts_Basic(t *testing.T) {
 		t.Fatalf("len(mounts) = %d, want 2", len(mounts))
 	}
 
-	// data → /scion-volumes/data
+	// data → /fabric-volumes/data
 	if mounts[0].Source != "/mnt/nfs/ws1/projects/proj1/shared-dirs/data" {
 		t.Errorf("mounts[0].Source = %q, want NFS path", mounts[0].Source)
 	}
-	if mounts[0].Target != "/scion-volumes/data" {
-		t.Errorf("mounts[0].Target = %q, want /scion-volumes/data", mounts[0].Target)
+	if mounts[0].Target != "/fabric-volumes/data" {
+		t.Errorf("mounts[0].Target = %q, want /fabric-volumes/data", mounts[0].Target)
 	}
 	if mounts[0].ReadOnly {
 		t.Error("mounts[0].ReadOnly should be false")
 	}
 
-	// cache → /workspace/.scion-volumes/cache (InWorkspace=true)
+	// cache → /workspace/.fabric-volumes/cache (InWorkspace=true)
 	if mounts[1].Source != "/mnt/nfs/ws1/projects/proj1/shared-dirs/cache" {
 		t.Errorf("mounts[1].Source = %q, want NFS path", mounts[1].Source)
 	}
-	if mounts[1].Target != "/workspace/.scion-volumes/cache" {
-		t.Errorf("mounts[1].Target = %q, want /workspace/.scion-volumes/cache", mounts[1].Target)
+	if mounts[1].Target != "/workspace/.fabric-volumes/cache" {
+		t.Errorf("mounts[1].Target = %q, want /workspace/.fabric-volumes/cache", mounts[1].Target)
 	}
 	if !mounts[1].ReadOnly {
 		t.Error("mounts[1].ReadOnly should be true")
@@ -206,7 +206,7 @@ func TestNFSRealize_IsolationGuard(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 	b := NewNFSBackend(nfsCfg)
@@ -246,7 +246,7 @@ func TestNFSResolveRealize_EndToEnd(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -301,7 +301,7 @@ func TestNFSResolveRealize_EndToEnd(t *testing.T) {
 
 func TestLocalResolveRealize_Unchanged(t *testing.T) {
 	backend := NewLocalBackend()
-	projectPath := "/home/scion/.scion.projects/my-project"
+	projectPath := "/home/fabric/.fabric.projects/my-project"
 
 	resolved, err := backend.Resolve(ResolveInput{
 		ProjectDir: projectPath,
@@ -345,7 +345,7 @@ func TestLocalSharedDirs_Unchanged(t *testing.T) {
 	// This test just ensures local path is still exposed for backward compat.
 	backend := NewLocalBackend()
 	resolved, err := backend.Resolve(ResolveInput{
-		ProjectDir:     "/home/scion/.scion.projects/my-project",
+		ProjectDir:     "/home/fabric/.fabric.projects/my-project",
 		ProjectID:      "proj1",
 		Mode:           store.SharingModeSharedPlain,
 		SharedDirNames: []string{"logs"},

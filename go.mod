@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/scion
+module github.com/pdlc-os/fabric
 
 go 1.26.1
 

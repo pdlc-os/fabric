@@ -6,7 +6,7 @@ This release focuses on refining the Kubernetes (K8s) runtime integration, harde
 * **Kubernetes (K8s) Runtime Refinements:**
     * **Native PTY Support:** Switched to the K8s Go client API for `exec` and `attach`, replacing reliance on the `kubectl` binary and improving terminal stability.
     * **Autopilot Compatibility:** Added auto-detection for GKE Autopilot clusters to apply correct scheduling tolerances and default resource requests.
-    * **Enhanced Security:** Agents now run as the `scion` user within K8s pods instead of `root`, following principle of least privilege.
+    * **Enhanced Security:** Agents now run as the `fabric` user within K8s pods instead of `root`, following principle of least privilege.
 * **Web UI & UX Enhancements:**
     * **Persistent Filters:** The "My Groves/Agents" filter toggle is now persisted in `localStorage`, maintaining your view across sessions.
     * **Identity & Navigation:** Added grove links to the agent list and improved the display of git remote URLs during grove creation.

@@ -1,38 +1,38 @@
-# Design: Improved Tmux Footer for Scion Agents
+# Design: Improved Tmux Footer for Fabric Agents
 
 ## Overview
-Improve the Scion tmux status bar to provide better context about the running agent, including the template name, agent name, and broker name.
+Improve the Fabric tmux status bar to provide better context about the running agent, including the template name, agent name, and broker name.
 
 ## Current State
 The default tmux status bar shows:
-- Left: `[scion]` (Session name)
+- Left: `[fabric]` (Session name)
 - Middle: `0:cmd*` (Window index and name)
 - Right: `"pane title" HH:MM DD-Mon-YY`
 
 Example:
-`[scion] 0:[tmux]* "✳ Claude Code" 14:42 07-Feb-26`
+`[fabric] 0:[tmux]* "✳ Claude Code" 14:42 07-Feb-26`
 
 ## Proposed Changes
 
 ### 1. Environment Variables
 Inject the following environment variables into the agent container's environment:
-- `SCION_AGENT_NAME`: The name of the agent (e.g., `my-agent`).
-- `SCION_TEMPLATE_NAME`: The name of the template used (e.g., `gemini-code`).
-- `SCION_BROKER_NAME`: The name of the broker executing the agent (e.g., `local-docker` or `local`).
+- `FABRIC_AGENT_NAME`: The name of the agent (e.g., `my-agent`).
+- `FABRIC_TEMPLATE_NAME`: The name of the template used (e.g., `gemini-code`).
+- `FABRIC_BROKER_NAME`: The name of the broker executing the agent (e.g., `local-docker` or `local`).
 
 ### 2. Tmux Configuration
 Update `pkg/config/embeds/common/.tmux.conf` to customize the status bar.
 
 #### Status Left
-Keep it simple or refine to match Scion branding.
+Keep it simple or refine to match Fabric branding.
 ```tmux
-set -g status-left "[scion] "
+set -g status-left "[fabric] "
 ```
 
 #### Status Right
 Include the new environment variables with subtle color differences for better readability.
 ```tmux
-set -g status-right "#[fg=colour244]#(echo $SCION_TEMPLATE_NAME) #[fg=colour136]/ #[fg=colour166]#(echo $SCION_AGENT_NAME) #[fg=colour136](#(echo $SCION_BROKER_NAME)) #[fg=colour136]%H:%M %d-%b-%y"
+set -g status-right "#[fg=colour244]#(echo $FABRIC_TEMPLATE_NAME) #[fg=colour136]/ #[fg=colour166]#(echo $FABRIC_AGENT_NAME) #[fg=colour136](#(echo $FABRIC_BROKER_NAME)) #[fg=colour136]%H:%M %d-%b-%y"
 ```
 
 **Note**: Environment variables in tmux status bars must be accessed via shell commands using `#(echo $VAR)`. The `#{...}` syntax is for tmux internal format variables, not shell environment variables.
@@ -41,10 +41,10 @@ set -g status-right "#[fg=colour244]#(echo $SCION_TEMPLATE_NAME) #[fg=colour136]
 
 ### Phase 1: Environment Injection
 - **pkg/agent/run.go**:
-    - Update `Start` to include `SCION_AGENT_NAME` and `SCION_TEMPLATE_NAME` in the environment.
-    - Default `SCION_BROKER_NAME` to `local` if not provided.
+    - Update `Start` to include `FABRIC_AGENT_NAME` and `FABRIC_TEMPLATE_NAME` in the environment.
+    - Default `FABRIC_BROKER_NAME` to `local` if not provided.
 - **pkg/runtimebroker/handlers.go**:
-    - Update `createAgent` to inject `SCION_BROKER_NAME` from server configuration into the environment.
+    - Update `createAgent` to inject `FABRIC_BROKER_NAME` from server configuration into the environment.
 
 ### Phase 2: Configuration Update
 - **pkg/config/embeds/common/.tmux.conf**:
@@ -61,4 +61,4 @@ Since the agent is running within a tmux session, automated verification of the 
 If names are too long, they might be truncated or push the clock off-screen. We should consider a maximum width or smart truncation if necessary.
 
 Example with values:
-`[scion] gemini-code / my-agent (local) 14:42 07-Feb-26`
+`[fabric] gemini-code / my-agent (local) 14:42 07-Feb-26`

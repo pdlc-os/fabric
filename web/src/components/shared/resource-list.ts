@@ -42,8 +42,8 @@ interface ResourceItem {
   imageStatus?: string;
 }
 
-@customElement('scion-resource-list')
-export class ScionResourceList extends LitElement {
+@customElement('fabric-resource-list')
+export class FabricResourceList extends LitElement {
   /** Which resource type to list. */
   @property({ type: String })
   kind: ResourceKind = 'template';
@@ -107,13 +107,13 @@ export class ScionResourceList extends LitElement {
       display: flex;
       align-items: center;
       gap: 0;
-      background: var(--scion-bg-subtle, #f8fafc);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .resource-row:hover {
-      border-color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
     }
 
     .resource-item {
@@ -129,7 +129,7 @@ export class ScionResourceList extends LitElement {
     }
 
     .resource-item > sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.125rem;
       flex-shrink: 0;
     }
@@ -142,12 +142,12 @@ export class ScionResourceList extends LitElement {
     .resource-name {
       font-weight: 600;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .resource-meta {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.125rem;
     }
 
@@ -155,9 +155,9 @@ export class ScionResourceList extends LitElement {
       font-size: 0.6875rem;
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       white-space: nowrap;
     }
 
@@ -201,7 +201,7 @@ export class ScionResourceList extends LitElement {
     .empty {
       text-align: center;
       padding: 2rem 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -216,7 +216,7 @@ export class ScionResourceList extends LitElement {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
       background: var(--sl-color-danger-50, #fef2f2);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .dialog-error {
@@ -251,19 +251,19 @@ export class ScionResourceList extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.625rem 0.75rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       cursor: pointer;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
     }
 
     .global-picker-item:hover {
-      border-color: var(--scion-primary, #3b82f6);
-      background: var(--scion-bg-subtle, #f8fafc);
+      border-color: var(--fabric-primary, #3b82f6);
+      background: var(--fabric-bg-subtle, #f8fafc);
     }
 
     .global-picker-item sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1rem;
       flex-shrink: 0;
     }
@@ -276,12 +276,12 @@ export class ScionResourceList extends LitElement {
     .global-picker-name {
       font-weight: 600;
       font-size: 0.8125rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .global-picker-desc {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.125rem;
     }
   `;
@@ -748,6 +748,6 @@ export class ScionResourceList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-resource-list': ScionResourceList;
+    'fabric-resource-list': FabricResourceList;
   }
 }

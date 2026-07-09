@@ -24,17 +24,17 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // seedTestHarnessConfig creates a minimal harness-config directory for testing.
-// Creates <scionDir>/harness-configs/<name>/config.yaml with the given harness type.
-func seedTestHarnessConfig(t *testing.T, scionDir, name, harnessType string) {
+// Creates <fabricDir>/harness-configs/<name>/config.yaml with the given harness type.
+func seedTestHarnessConfig(t *testing.T, fabricDir, name, harnessType string) {
 	t.Helper()
-	hcDir := filepath.Join(scionDir, "harness-configs", name)
+	hcDir := filepath.Join(fabricDir, "harness-configs", name)
 	_ = os.MkdirAll(hcDir, 0755)
 	configYAML := "harness: " + harnessType + "\nimage: test-image:latest\n"
 	if harnessType == "claude" {
@@ -58,12 +58,12 @@ func TestProvisionAgentEnvMerging(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config for test-harness
-	seedTestHarnessConfig(t, globalScionDir, "test-harness", "test-harness")
+	seedTestHarnessConfig(t, globalFabricDir, "test-harness", "test-harness")
 
 	// Create an agnostic template (no harness field, uses default_harness_config)
 	tplDir := filepath.Join(globalTemplatesDir, "test-tpl")
@@ -75,7 +75,7 @@ func TestProvisionAgentEnvMerging(t *testing.T) {
 			"OVERRIDE_VAR": "tpl-override"
 		}
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	// Global settings with harness_configs
 	globalSettings := `schema_version: "1"
@@ -86,12 +86,12 @@ harness_configs:
       GLOBAL_VAR: global-val
       OVERRIDE_VAR: global-override
 `
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644)
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644)
 
 	// Project settings
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 	projectSettings := `schema_version: "1"
 profiles:
   test-profile:
@@ -100,11 +100,11 @@ profiles:
       PROJECT_VAR: project-val
       OVERRIDE_VAR: project-override
 `
-	_ = os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(projectSettings), 0644)
+	_ = os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(projectSettings), 0644)
 
 	// Provision agent
 	agentName := "test-agent"
-	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "test-tpl", "", "", projectScionDir, "test-profile", "", "", "")
+	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "test-tpl", "", "", projectFabricDir, "test-profile", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -125,9 +125,9 @@ profiles:
 		}
 	}
 
-	// Verify it was persisted to scion-agent.json
-	agentScionJSON := filepath.Join(projectScionDir, "agents", agentName, "scion-agent.json")
-	data, err := os.ReadFile(agentScionJSON)
+	// Verify it was persisted to fabric-agent.json
+	agentFabricJSON := filepath.Join(projectFabricDir, "agents", agentName, "fabric-agent.json")
+	data, err := os.ReadFile(agentFabricJSON)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,8 +166,8 @@ func TestProvisionGeminiAgentSettings(t *testing.T) {
 
 	// Initialize a mock project
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := config.InitProject(projectScionDir, getTestHarnesses()); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := config.InitProject(projectFabricDir, getTestHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
@@ -178,7 +178,7 @@ func TestProvisionGeminiAgentSettings(t *testing.T) {
 
 	// Provision a claude agent using the "default" agnostic template
 	agentName := "gemini-agent"
-	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectScionDir, "", "", "", "")
+	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -224,8 +224,8 @@ func TestProvisionWritesTaskToPromptMd(t *testing.T) {
 	}
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := config.InitProject(projectScionDir, getTestHarnesses()); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := config.InitProject(projectFabricDir, getTestHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
@@ -235,14 +235,14 @@ func TestProvisionWritesTaskToPromptMd(t *testing.T) {
 	mgr := NewManager(rt)
 
 	// Resolve the actual project directory (may be external for non-git projects)
-	resolvedProjectDir, _ := config.GetResolvedProjectDir(projectScionDir)
+	resolvedProjectDir, _ := config.GetResolvedProjectDir(projectFabricDir)
 
 	t.Run("with task", func(t *testing.T) {
 		opts := api.StartOptions{
 			Name:        "agent-with-task",
 			Task:        "implement feature X",
 			Template:    "default",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 		}
 
 		_, err := mgr.Provision(context.Background(), opts)
@@ -264,7 +264,7 @@ func TestProvisionWritesTaskToPromptMd(t *testing.T) {
 		opts := api.StartOptions{
 			Name:        "agent-no-task",
 			Template:    "default",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 		}
 
 		_, err := mgr.Provision(context.Background(), opts)
@@ -303,8 +303,8 @@ func TestProvisionAgentNonGitWorkspace(t *testing.T) {
 
 	// Project-local directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := config.InitProject(projectScionDir, getTestHarnesses()); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := config.InitProject(projectFabricDir, getTestHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
@@ -316,7 +316,7 @@ func TestProvisionAgentNonGitWorkspace(t *testing.T) {
 	evalProjectDir, _ := filepath.EvalSymlinks(projectDir)
 
 	agentName := "test-agent"
-	home, ws, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "", projectScionDir, "", "", "", "")
+	home, ws, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -348,7 +348,7 @@ func TestProvisionAgentNonGitWorkspace(t *testing.T) {
 	if err := config.InitGlobal(getTestHarnesses()); err != nil {
 		t.Fatalf("InitGlobal failed: %v", err)
 	}
-	globalScionDir, _ := config.GetGlobalDir()
+	globalFabricDir, _ := config.GetGlobalDir()
 
 	// Change into a subdirectory to act as CWD
 	cwd := filepath.Join(tmpDir, "some-dir")
@@ -358,7 +358,7 @@ func TestProvisionAgentNonGitWorkspace(t *testing.T) {
 	}
 	evalCWD, _ := filepath.EvalSymlinks(cwd)
 
-	_, ws, cfg, err = ProvisionAgent(context.Background(), "global-agent", "default", "", "", globalScionDir, "", "", "", "")
+	_, ws, cfg, err = ProvisionAgent(context.Background(), "global-agent", "default", "", "", globalFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed for global project: %v", err)
 	}
@@ -395,24 +395,24 @@ func TestProvisionAgentWorkspaceFlag(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config and agnostic template
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "claude")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{"default_harness_config": "claude"}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
 	_ = os.MkdirAll(projectDir, 0755)
 
-	// Mock .scion
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	// Mock .fabric
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte("agents/"), 0644)
 
 	customWorkspace := filepath.Join(tmpDir, "custom-workspace")
@@ -421,7 +421,7 @@ func TestProvisionAgentWorkspaceFlag(t *testing.T) {
 
 	// 1. Test valid --workspace in non-git
 	agentName := "workspace-agent"
-	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "claude", "", "", projectScionDir, "", "", "", customWorkspace)
+	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "claude", "", "", projectFabricDir, "", "", "", customWorkspace)
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -449,7 +449,7 @@ func TestProvisionAgentWorkspaceFlag(t *testing.T) {
 	absRelativeWorkspace, _ := filepath.Abs(filepath.Join(tmpDir, relativeWorkspace))
 	evalAbsRelativeWorkspace, _ := filepath.EvalSymlinks(absRelativeWorkspace)
 
-	_, _, cfg, err = ProvisionAgent(context.Background(), "rel-agent", "claude", "", "", projectScionDir, "", "", "", relativeWorkspace)
+	_, _, cfg, err = ProvisionAgent(context.Background(), "rel-agent", "claude", "", "", projectFabricDir, "", "", "", relativeWorkspace)
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -471,12 +471,12 @@ func TestProvisionAgentWorkspaceFlag(t *testing.T) {
 	// 3. Test --workspace succeeds in git repo
 	gitDir := filepath.Join(tmpDir, "git-project")
 	_ = os.MkdirAll(filepath.Join(gitDir, ".git"), 0755)
-	gitScionDir := filepath.Join(gitDir, ".scion")
-	_ = os.MkdirAll(gitScionDir, 0755)
+	gitFabricDir := filepath.Join(gitDir, ".fabric")
+	_ = os.MkdirAll(gitFabricDir, 0755)
 	_ = os.WriteFile(filepath.Join(gitDir, ".gitignore"), []byte("agents/"), 0644)
 
 	var ws string
-	_, ws, cfg, err = ProvisionAgent(context.Background(), "git-agent", "claude", "", "", gitScionDir, "", "", "", customWorkspace)
+	_, ws, cfg, err = ProvisionAgent(context.Background(), "git-agent", "claude", "", "", gitFabricDir, "", "", "", customWorkspace)
 	if err != nil {
 		t.Fatalf("expected no error when using --workspace in a git repository, got: %v", err)
 	}
@@ -512,12 +512,12 @@ func TestProvisionAgentYAMLTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config for claude
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	// Create an agnostic template with YAML config
 	tplDir := filepath.Join(globalTemplatesDir, "yaml-test-tpl")
@@ -528,17 +528,17 @@ env:
   GOOGLE_CLOUD_PROJECT: my-project
 auth_selectedType: vertex-ai
 `
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(tplConfigYAML), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(tplConfigYAML), 0644)
 
 	// Project settings (minimal)
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte("agents/"), 0644)
 
 	// Provision agent
 	agentName := "yaml-agent"
-	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "yaml-test-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "yaml-test-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -557,9 +557,9 @@ auth_selectedType: vertex-ai
 		t.Errorf("expected auth_selectedType = 'vertex-ai', got %q", cfg.AuthSelectedType)
 	}
 
-	// Verify it was persisted to scion-agent.json
-	agentScionJSON := filepath.Join(projectScionDir, "agents", agentName, "scion-agent.json")
-	data, err := os.ReadFile(agentScionJSON)
+	// Verify it was persisted to fabric-agent.json
+	agentFabricJSON := filepath.Join(projectFabricDir, "agents", agentName, "fabric-agent.json")
+	data, err := os.ReadFile(agentFabricJSON)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -582,7 +582,7 @@ func TestProvisionAgentUsesProjectTemplate(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Move to tmpDir — this is NOT the project's directory,
-	// simulating a broker process whose CWD doesn't contain .scion.
+	// simulating a broker process whose CWD doesn't contain .fabric.
 	oldWd, _ := os.Getwd()
 	_ = os.Chdir(tmpDir)
 	defer func() { _ = os.Chdir(oldWd) }()
@@ -593,29 +593,29 @@ func TestProvisionAgentUsesProjectTemplate(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	// Create global harness-configs
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	seedTestHarnessConfig(t, globalScionDir, "grove-harness", "grove-harness")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	seedTestHarnessConfig(t, globalFabricDir, "grove-harness", "grove-harness")
 
 	// Create a global agnostic template
-	globalTplDir := filepath.Join(globalScionDir, "templates", "my-tpl")
+	globalTplDir := filepath.Join(globalFabricDir, "templates", "my-tpl")
 	_ = os.MkdirAll(globalTplDir, 0755)
-	_ = os.WriteFile(filepath.Join(globalTplDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(globalTplDir, "fabric-agent.json"), []byte(`{
 		"default_harness_config": "grove-harness",
 		"env": {"SOURCE": "global"}
 	}`), 0644)
 
 	// Create a project with its own version of the same template
 	projectDir := filepath.Join(tmpDir, "project")
-	projectPath := filepath.Join(projectDir, ".scion")
+	projectPath := filepath.Join(projectDir, ".fabric")
 	projectTplDir := filepath.Join(projectPath, "templates", "my-tpl")
 	_ = os.MkdirAll(projectTplDir, 0755)
-	_ = os.WriteFile(filepath.Join(projectTplDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(projectTplDir, "fabric-agent.json"), []byte(`{
 		"default_harness_config": "grove-harness",
 		"env": {"SOURCE": "project"}
 	}`), 0644)
 
 	// Provision agent using projectPath — the project template should be used
-	// even though CWD has no .scion directory.
+	// even though CWD has no .fabric directory.
 	agentName := "project-tpl-agent"
 	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "my-tpl", "", "", projectPath, "", "", "", "")
 	if err != nil {
@@ -643,8 +643,8 @@ func TestProvisionAgentInvalidYAMLTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a template with invalid YAML config (commas in map entries)
@@ -655,17 +655,17 @@ env:
   "KEY1": "value1",
   "KEY2": "value2"
 `
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(invalidYAML), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(invalidYAML), 0644)
 
 	// Project settings
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte("agents/"), 0644)
 
 	// Provision agent - should fail with an error
 	agentName := "invalid-yaml-agent"
-	_, _, _, err := ProvisionAgent(context.Background(), agentName, "invalid-yaml-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(context.Background(), agentName, "invalid-yaml-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error for invalid YAML template, got nil")
 	}
@@ -687,12 +687,12 @@ func TestProvisionAgent_WritesServicesFile(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config for claude
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	t.Run("services written when defined", func(t *testing.T) {
 		// Create an agnostic template with services defined in YAML
@@ -709,30 +709,30 @@ services:
     command: ["npx", "chrome-mcp"]
     restart: on-failure
 `
-		_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(tplConfigYAML), 0644)
+		_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(tplConfigYAML), 0644)
 
 		projectDir := filepath.Join(tmpDir, "project-svc")
-		projectScionDir := filepath.Join(projectDir, ".scion")
-		_ = os.MkdirAll(projectScionDir, 0755)
+		projectFabricDir := filepath.Join(projectDir, ".fabric")
+		_ = os.MkdirAll(projectFabricDir, 0755)
 
 		agentName := "svc-agent"
-		agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "svc-tpl", "", "", projectScionDir, "", "", "", "")
+		agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "svc-tpl", "", "", projectFabricDir, "", "", "", "")
 		if err != nil {
 			t.Fatalf("ProvisionAgent failed: %v", err)
 		}
 
-		servicesFile := filepath.Join(agentHome, ".scion", "scion-services.yaml")
+		servicesFile := filepath.Join(agentHome, ".fabric", "fabric-services.yaml")
 		data, err := os.ReadFile(servicesFile)
 		if err != nil {
-			t.Fatalf("expected scion-services.yaml to exist, got error: %v", err)
+			t.Fatalf("expected fabric-services.yaml to exist, got error: %v", err)
 		}
 
 		content := string(data)
 		if !strings.Contains(content, "xvfb") {
-			t.Errorf("scion-services.yaml should contain 'xvfb', got: %s", content)
+			t.Errorf("fabric-services.yaml should contain 'xvfb', got: %s", content)
 		}
 		if !strings.Contains(content, "chrome-mcp") {
-			t.Errorf("scion-services.yaml should contain 'chrome-mcp', got: %s", content)
+			t.Errorf("fabric-services.yaml should contain 'chrome-mcp', got: %s", content)
 		}
 	})
 
@@ -740,21 +740,21 @@ services:
 		tplDir := filepath.Join(globalTemplatesDir, "no-svc-tpl")
 		_ = os.MkdirAll(tplDir, 0755)
 		tplConfig := `{"default_harness_config": "claude"}`
-		_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+		_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 		projectDir := filepath.Join(tmpDir, "project-nosvc")
-		projectScionDir := filepath.Join(projectDir, ".scion")
-		_ = os.MkdirAll(projectScionDir, 0755)
+		projectFabricDir := filepath.Join(projectDir, ".fabric")
+		_ = os.MkdirAll(projectFabricDir, 0755)
 
 		agentName := "no-svc-agent"
-		agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "no-svc-tpl", "", "", projectScionDir, "", "", "", "")
+		agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "no-svc-tpl", "", "", projectFabricDir, "", "", "", "")
 		if err != nil {
 			t.Fatalf("ProvisionAgent failed: %v", err)
 		}
 
-		servicesFile := filepath.Join(agentHome, ".scion", "scion-services.yaml")
+		servicesFile := filepath.Join(agentHome, ".fabric", "fabric-services.yaml")
 		if _, err := os.Stat(servicesFile); !os.IsNotExist(err) {
-			t.Errorf("expected scion-services.yaml to NOT exist when no services defined")
+			t.Errorf("expected fabric-services.yaml to NOT exist when no services defined")
 		}
 	})
 }
@@ -770,18 +770,18 @@ func TestProvisionAgent_CopiesSkillsDir(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config for claude
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	// Create a template with a skills/ directory containing a skill
 	tplDir := filepath.Join(globalTemplatesDir, "skills-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{"default_harness_config": "claude"}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	// Create skills in the template
 	skillDir := filepath.Join(tplDir, "skills", "my-skill")
@@ -790,11 +790,11 @@ func TestProvisionAgent_CopiesSkillsDir(t *testing.T) {
 
 	// Project settings
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	agentName := "skills-agent"
-	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "skills-tpl", "", "", projectScionDir, "", "", "", "")
+	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "skills-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -821,12 +821,12 @@ func TestProvisionAgent_SkillsAreTemplateOnly(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
 
 	// Create a harness-config for claude with its own skills (should be ignored)
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "claude")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "claude")
 	_ = os.MkdirAll(hcDir, 0755)
 	configYAML := "harness: claude\nimage: test-image:latest\nskills_dir: .claude/skills\ninstructions_file: .claude/CLAUDE.md\n"
 	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte(configYAML), 0644)
@@ -839,18 +839,18 @@ func TestProvisionAgent_SkillsAreTemplateOnly(t *testing.T) {
 	tplDir := filepath.Join(globalTemplatesDir, "overlay-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{"default_harness_config": "claude"}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	tplSkillDir := filepath.Join(tplDir, "skills", "tpl-skill")
 	_ = os.MkdirAll(tplSkillDir, 0755)
 	_ = os.WriteFile(filepath.Join(tplSkillDir, "SKILL.md"), []byte("# Template Skill"), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	agentName := "overlay-agent"
-	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "overlay-tpl", "", "", projectScionDir, "", "", "", "")
+	agentHome, _, _, err := ProvisionAgent(context.Background(), agentName, "overlay-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -870,7 +870,7 @@ func TestProvisionAgent_SkillsAreTemplateOnly(t *testing.T) {
 
 // TestProvisionAgentGitClone_ClearsStaleWorktreeWorkspace verifies that when
 // git clone mode is active, a workspace directory containing a stale worktree
-// (.git file) from a previous local-mode run is cleared so sciontool can
+// (.git file) from a previous local-mode run is cleared so fabrictool can
 // perform a fresh clone.
 func TestProvisionAgentGitClone_ClearsStaleWorktreeWorkspace(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -883,20 +883,20 @@ func TestProvisionAgentGitClone_ClearsStaleWorktreeWorkspace(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Pre-populate the workspace with stale worktree content: a .git FILE
 	// (not directory) plus some code files — simulating a previous local run.
-	agentsDir := filepath.Join(projectDir, ".scion", "agents")
+	agentsDir := filepath.Join(projectDir, ".fabric", "agents")
 	staleWorkspace := filepath.Join(agentsDir, "clone-agent", "workspace")
 	_ = os.MkdirAll(staleWorkspace, 0755)
 	_ = os.WriteFile(filepath.Join(staleWorkspace, ".git"), []byte("gitdir: ../../../.git/worktrees/clone-agent\n"), 0644)
@@ -910,7 +910,7 @@ func TestProvisionAgentGitClone_ClearsStaleWorktreeWorkspace(t *testing.T) {
 	}
 	ctx := api.ContextWithGitClone(context.Background(), gitClone)
 
-	_, wsPath, _, err := ProvisionAgent(ctx, "clone-agent", "claude", "", "", projectScionDir, "", "", "", "")
+	_, wsPath, _, err := ProvisionAgent(ctx, "clone-agent", "claude", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -946,19 +946,19 @@ func TestProvisionAgentGitClone_PreservesExistingClone(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Pre-populate the workspace with a real git clone: .git as a DIRECTORY.
-	agentsDir := filepath.Join(projectDir, ".scion", "agents")
+	agentsDir := filepath.Join(projectDir, ".fabric", "agents")
 	existingClone := filepath.Join(agentsDir, "restart-agent", "workspace")
 	_ = os.MkdirAll(existingClone, 0755)
 	_ = os.MkdirAll(filepath.Join(existingClone, ".git"), 0755) // real clone marker
@@ -971,7 +971,7 @@ func TestProvisionAgentGitClone_PreservesExistingClone(t *testing.T) {
 	}
 	ctx := api.ContextWithGitClone(context.Background(), gitClone)
 
-	_, wsPath, _, err := ProvisionAgent(ctx, "restart-agent", "claude", "", "", projectScionDir, "", "", "", "")
+	_, wsPath, _, err := ProvisionAgent(ctx, "restart-agent", "claude", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -987,7 +987,7 @@ func TestProvisionAgentGitClone_PreservesExistingClone(t *testing.T) {
 
 // TestGetAgentGitClone_ClearsExistingWorkspace verifies that when GetAgent
 // finds an existing agent directory (with config file) and git clone mode is
-// active, the workspace is cleared so sciontool can perform a fresh clone.
+// active, the workspace is cleared so fabrictool can perform a fresh clone.
 // This covers the scenario where a hub-deleted agent's local directory remains
 // and a new agent with the same name is created via hub dispatch.
 func TestGetAgentGitClone_ClearsExistingWorkspace(t *testing.T) {
@@ -1001,26 +1001,26 @@ func TestGetAgentGitClone_ClearsExistingWorkspace(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Create a fully provisioned agent directory with config file and
 	// a populated workspace — simulating a leftover from a previous agent.
-	agentDir := filepath.Join(projectScionDir, "agents", "reused-agent")
+	agentDir := filepath.Join(projectFabricDir, "agents", "reused-agent")
 	agentWorkspace := filepath.Join(agentDir, "workspace")
 	agentHome := filepath.Join(agentDir, "home")
 	_ = os.MkdirAll(agentWorkspace, 0755)
 	_ = os.MkdirAll(agentHome, 0755)
 	// Write a config file so GetAgent treats this as an existing agent.
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"),
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"),
 		[]byte(`{"harness":"claude","default_harness_config":"claude"}`), 0644)
 	// Populate workspace with stale clone content.
 	_ = os.WriteFile(filepath.Join(agentWorkspace, ".git"),
@@ -1035,12 +1035,12 @@ func TestGetAgentGitClone_ClearsExistingWorkspace(t *testing.T) {
 	}
 	ctx := api.ContextWithGitClone(context.Background(), gitClone)
 
-	_, _, wsPath, _, err := GetAgent(ctx, "reused-agent", "claude", "", "", projectScionDir, "", "", "", "")
+	_, _, wsPath, _, err := GetAgent(ctx, "reused-agent", "claude", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
 
-	// The workspace should now be empty — ready for sciontool to clone into.
+	// The workspace should now be empty — ready for fabrictool to clone into.
 	entries, err := os.ReadDir(wsPath)
 	if err != nil {
 		t.Fatalf("workspace dir should exist: %v", err)
@@ -1055,7 +1055,7 @@ func TestGetAgentGitClone_ClearsExistingWorkspace(t *testing.T) {
 }
 
 // TestProvisionAgent_SharedWorkspaceRelocatesAgentState verifies that when
-// SharedWorkspace context is set, the agent's prompt.md and scion-agent.json
+// SharedWorkspace context is set, the agent's prompt.md and fabric-agent.json
 // land at the external project-configs path rather than inside the project tree.
 // This is the structural fix from .design/hub-shared-workspace-isolation.md
 // — sibling agents must not see each other's state via /workspace.
@@ -1070,18 +1070,18 @@ func TestProvisionAgent_SharedWorkspaceRelocatesAgentState(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
-	// Project dir with .scion as a directory plus project-id (split storage).
+	// Project dir with .fabric as a directory plus project-id (split storage).
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	if err := config.WriteProjectID(projectScionDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	if err := config.WriteProjectID(projectFabricDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
 		t.Fatalf("WriteProjectID failed: %v", err)
 	}
 
@@ -1096,7 +1096,7 @@ func TestProvisionAgent_SharedWorkspaceRelocatesAgentState(t *testing.T) {
 		Name:            "shared-agent",
 		Task:            "do the thing",
 		Template:        "claude",
-		ProjectPath:     projectScionDir,
+		ProjectPath:     projectFabricDir,
 		Workspace:       sharedWorkspace,
 		SharedWorkspace: true,
 	}
@@ -1104,13 +1104,13 @@ func TestProvisionAgent_SharedWorkspaceRelocatesAgentState(t *testing.T) {
 		t.Fatalf("Provision failed: %v", err)
 	}
 
-	// External per-agent dir must contain prompt.md and scion-agent.json.
-	extAgentDir := filepath.Join(tmpDir, ".scion", "project-configs", "project__550e8400", ".scion", "agents", "shared-agent")
+	// External per-agent dir must contain prompt.md and fabric-agent.json.
+	extAgentDir := filepath.Join(tmpDir, ".fabric", "project-configs", "project__550e8400", ".fabric", "agents", "shared-agent")
 	if _, err := os.Stat(filepath.Join(extAgentDir, "prompt.md")); err != nil {
 		t.Errorf("expected prompt.md at external path %s: %v", extAgentDir, err)
 	}
-	if _, err := os.Stat(filepath.Join(extAgentDir, "scion-agent.json")); err != nil {
-		t.Errorf("expected scion-agent.json at external path %s: %v", extAgentDir, err)
+	if _, err := os.Stat(filepath.Join(extAgentDir, "fabric-agent.json")); err != nil {
+		t.Errorf("expected fabric-agent.json at external path %s: %v", extAgentDir, err)
 	}
 	taskBytes, err := os.ReadFile(filepath.Join(extAgentDir, "prompt.md"))
 	if err == nil && string(taskBytes) != "do the thing" {
@@ -1120,14 +1120,14 @@ func TestProvisionAgent_SharedWorkspaceRelocatesAgentState(t *testing.T) {
 	// In-project agent dir must NOT exist for shared-workspace agents — that
 	// is the whole point of the isolation. (Empty-but-present would also
 	// leak the agent name to siblings.)
-	inProjectAgentDir := filepath.Join(projectScionDir, "agents", "shared-agent")
+	inProjectAgentDir := filepath.Join(projectFabricDir, "agents", "shared-agent")
 	if _, err := os.Stat(inProjectAgentDir); err == nil {
 		t.Errorf("expected no in-project agent dir at %s, but it exists", inProjectAgentDir)
 	}
 }
 
 // TestProvisionAgent_SharedWorkspaceMigratesLegacyState verifies that an
-// agent provisioned under the old layout (prompt.md / scion-agent.json
+// agent provisioned under the old layout (prompt.md / fabric-agent.json
 // in-project) gets its state moved to the external path on next provision.
 func TestProvisionAgent_SharedWorkspaceMigratesLegacyState(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -1140,30 +1140,30 @@ func TestProvisionAgent_SharedWorkspaceMigratesLegacyState(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	if err := config.WriteProjectID(projectScionDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	if err := config.WriteProjectID(projectFabricDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
 		t.Fatalf("WriteProjectID failed: %v", err)
 	}
 
 	// Seed legacy in-project state from a pre-isolation provisioning.
-	legacyDir := filepath.Join(projectScionDir, "agents", "legacy-agent")
+	legacyDir := filepath.Join(projectFabricDir, "agents", "legacy-agent")
 	if err := os.MkdirAll(legacyDir, 0755); err != nil {
 		t.Fatalf("mkdir legacyDir: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(legacyDir, "prompt.md"), []byte("old task"), 0644); err != nil {
 		t.Fatalf("write legacy prompt.md: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(legacyDir, "scion-agent.json"), []byte(`{"harness":"claude"}`), 0644); err != nil {
-		t.Fatalf("write legacy scion-agent.json: %v", err)
+	if err := os.WriteFile(filepath.Join(legacyDir, "fabric-agent.json"), []byte(`{"harness":"claude"}`), 0644); err != nil {
+		t.Fatalf("write legacy fabric-agent.json: %v", err)
 	}
 
 	sharedWorkspace := filepath.Join(tmpDir, "shared-ws")
@@ -1175,7 +1175,7 @@ func TestProvisionAgent_SharedWorkspaceMigratesLegacyState(t *testing.T) {
 	opts := api.StartOptions{
 		Name:            "legacy-agent",
 		Template:        "claude",
-		ProjectPath:     projectScionDir,
+		ProjectPath:     projectFabricDir,
 		Workspace:       sharedWorkspace,
 		SharedWorkspace: true,
 	}
@@ -1187,12 +1187,12 @@ func TestProvisionAgent_SharedWorkspaceMigratesLegacyState(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(legacyDir, "prompt.md")); err == nil {
 		t.Errorf("legacy in-project prompt.md still exists after migration")
 	}
-	if _, err := os.Stat(filepath.Join(legacyDir, "scion-agent.json")); err == nil {
-		t.Errorf("legacy in-project scion-agent.json still exists after migration")
+	if _, err := os.Stat(filepath.Join(legacyDir, "fabric-agent.json")); err == nil {
+		t.Errorf("legacy in-project fabric-agent.json still exists after migration")
 	}
 
 	// External path must contain the migrated content.
-	extAgentDir := filepath.Join(tmpDir, ".scion", "project-configs", "project__550e8400", ".scion", "agents", "legacy-agent")
+	extAgentDir := filepath.Join(tmpDir, ".fabric", "project-configs", "project__550e8400", ".fabric", "agents", "legacy-agent")
 	data, err := os.ReadFile(filepath.Join(extAgentDir, "prompt.md"))
 	if err != nil {
 		t.Fatalf("expected prompt.md at external path: %v", err)
@@ -1216,16 +1216,16 @@ func TestProvisionAgent_SharedWorkspaceCredentialHelper(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Create a shared workspace directory (simulates a pre-cloned git repo)
 	sharedWorkspace := filepath.Join(tmpDir, "shared-ws")
@@ -1234,7 +1234,7 @@ func TestProvisionAgent_SharedWorkspaceCredentialHelper(t *testing.T) {
 	// Set SharedWorkspace context
 	ctx := api.ContextWithSharedWorkspace(context.Background())
 
-	home, _, _, err := ProvisionAgent(ctx, "shared-agent", "claude", "", "", projectScionDir, "", "", "", sharedWorkspace)
+	home, _, _, err := ProvisionAgent(ctx, "shared-agent", "claude", "", "", projectFabricDir, "", "", "", sharedWorkspace)
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -1272,22 +1272,22 @@ func TestProvisionAgent_SharedWorkspaceNoCredentialWithoutFlag(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
-	tplDir := filepath.Join(globalScionDir, "templates", "claude")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
+	tplDir := filepath.Join(globalFabricDir, "templates", "claude")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"claude"}`), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	customWorkspace := filepath.Join(tmpDir, "custom-ws")
 	_ = os.MkdirAll(customWorkspace, 0755)
 
 	// No SharedWorkspace context — plain workspace mount
-	home, _, _, err := ProvisionAgent(context.Background(), "plain-agent", "claude", "", "", projectScionDir, "", "", "", customWorkspace)
+	home, _, _, err := ProvisionAgent(context.Background(), "plain-agent", "claude", "", "", projectFabricDir, "", "", "", customWorkspace)
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -1310,7 +1310,7 @@ func TestProvisionAgent_SharedWorkspaceNoCredentialWithoutFlag(t *testing.T) {
 // managed workspace directory has been removed (e.g., by git worktree prune),
 // GetAgent recreates the worktree instead of returning an empty workspace path.
 func TestGetAgent_RecreatesMissingWorktree(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1337,22 +1337,22 @@ func TestGetAgent_RecreatesMissingWorktree(t *testing.T) {
 		}
 	}
 
-	// Set up .scion directory structure with templates
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(scionDir, "templates"), 0755)
+	// Set up .fabric directory structure with templates
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(fabricDir, "templates"), 0755)
 
-	// Set up global scion with a harness config
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	// Set up global fabric with a harness config
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
 
 	agentName := "ws-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	agentWorkspace := filepath.Join(agentDir, "workspace")
-	agentHome := config.GetAgentHomePath(scionDir, agentName)
+	agentHome := config.GetAgentHomePath(fabricDir, agentName)
 	_ = os.MkdirAll(agentDir, 0755)
 	_ = os.MkdirAll(agentHome, 0755)
 
@@ -1362,7 +1362,7 @@ func TestGetAgent_RecreatesMissingWorktree(t *testing.T) {
 	}
 
 	// Write agent config (so GetAgent treats this as an existing agent)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"),
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"),
 		[]byte(`{"harness":"generic","default_harness_config":"generic"}`), 0644)
 
 	// Write agent-info.json to home
@@ -1387,7 +1387,7 @@ func TestGetAgent_RecreatesMissingWorktree(t *testing.T) {
 	}
 
 	// Call GetAgent — it should recreate the worktree
-	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", scionDir, "", "", "", "")
+	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", fabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
@@ -1413,7 +1413,7 @@ func TestGetAgent_RecreatesMissingWorktree(t *testing.T) {
 // volume, so GetAgent returns an empty managed workspace path (mirroring a
 // shared-workspace agent) rather than silently editing a phantom worktree branch.
 func TestGetAgent_ExplicitWorkspaceSkipsWorktreeRecovery(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1440,32 +1440,32 @@ func TestGetAgent_ExplicitWorkspaceSkipsWorktreeRecovery(t *testing.T) {
 		}
 	}
 
-	// Set up .scion structure + global default template harness config.
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(scionDir, "templates"), 0755)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	// Set up .fabric structure + global default template harness config.
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(fabricDir, "templates"), 0755)
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
 
 	agentName := "explicit-ws-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	agentWorkspace := filepath.Join(agentDir, "workspace")
-	agentHome := config.GetAgentHomePath(scionDir, agentName)
+	agentHome := config.GetAgentHomePath(fabricDir, agentName)
 	_ = os.MkdirAll(agentDir, 0755)
 	_ = os.MkdirAll(agentHome, 0755)
 
 	// Persist an EXISTING explicit-workspace agent: config carries the flag, and
 	// (as for a real explicit agent) there is no managed worktree on disk.
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"),
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"),
 		[]byte(`{"harness":"generic","default_harness_config":"generic","explicit_workspace":true}`), 0644)
 	_ = os.WriteFile(filepath.Join(agentHome, "agent-info.json"),
 		[]byte(`{"name":"explicit-ws-agent","template":"default"}`), 0644)
 
 	// Resume: GetAgent must NOT recreate a managed worktree for an explicit agent.
-	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", scionDir, "", "", "", "")
+	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", fabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
@@ -1484,7 +1484,7 @@ func TestGetAgent_ExplicitWorkspaceSkipsWorktreeRecovery(t *testing.T) {
 // the stale directory check, so GetAgent would create a worktree then
 // immediately delete it along with the stale agent directory.
 func TestGetAgent_StaleDirectoryCreatesWorkspace(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1511,33 +1511,33 @@ func TestGetAgent_StaleDirectoryCreatesWorkspace(t *testing.T) {
 		}
 	}
 
-	// Set up .scion directory structure with templates
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(scionDir, "templates"), 0755)
+	// Set up .fabric directory structure with templates
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(fabricDir, "templates"), 0755)
 
-	// Set up global scion with a harness config
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	// Set up global fabric with a harness config
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
 
-	// .scion/agents/ must be gitignored for provisioning to succeed
-	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".scion/agents/\n"), 0644)
+	// .fabric/agents/ must be gitignored for provisioning to succeed
+	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".fabric/agents/\n"), 0644)
 
 	agentName := "stale-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 
 	// Create the agent directory WITHOUT a config file (simulates a failed
-	// previous provisioning that wrote the directory but not scion-agent.json).
+	// previous provisioning that wrote the directory but not fabric-agent.json).
 	_ = os.MkdirAll(agentDir, 0755)
 	// Also create a workspace subdirectory to simulate partial state
 	_ = os.MkdirAll(filepath.Join(agentDir, "workspace"), 0755)
 
 	// Call GetAgent — it should detect the stale directory, remove it,
 	// and re-provision successfully with a workspace worktree.
-	_, _, wsPath, cfg, err := GetAgent(context.Background(), agentName, "", "", "", scionDir, "", "", "", "")
+	_, _, wsPath, cfg, err := GetAgent(context.Background(), agentName, "", "", "", fabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
@@ -1565,7 +1565,7 @@ func TestGetAgent_StaleDirectoryCreatesWorkspace(t *testing.T) {
 // new agents — creating the worktree prematurely, which then caused the stale
 // directory check or ProvisionAgent to fail.
 func TestGetAgent_BrandNewAgentCreatesWorkspace(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1592,31 +1592,31 @@ func TestGetAgent_BrandNewAgentCreatesWorkspace(t *testing.T) {
 		}
 	}
 
-	// Set up .scion directory structure with templates
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(scionDir, "templates"), 0755)
+	// Set up .fabric directory structure with templates
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(fabricDir, "templates"), 0755)
 
-	// Set up global scion with a harness config
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	// Set up global fabric with a harness config
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
 
-	// .scion/agents/ must be gitignored for provisioning to succeed
-	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".scion/agents/\n"), 0644)
+	// .fabric/agents/ must be gitignored for provisioning to succeed
+	_ = os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".fabric/agents/\n"), 0644)
 
 	agentName := "brand-new-agent"
 
 	// No agent directory exists at all — this is a brand new agent.
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	if _, err := os.Stat(agentDir); !os.IsNotExist(err) {
 		t.Fatalf("expected agent dir to not exist before test")
 	}
 
 	// Call GetAgent — it should provision from scratch with a workspace worktree.
-	_, _, wsPath, cfg, err := GetAgent(context.Background(), agentName, "", "", "", scionDir, "", "", "", "")
+	_, _, wsPath, cfg, err := GetAgent(context.Background(), agentName, "", "", "", fabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
@@ -1650,32 +1650,32 @@ func TestGetAgent_MissingWorkspaceNonGit(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	// Set up global scion
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(filepath.Join(globalScionDir, "templates"), 0755)
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	// Set up global fabric
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(filepath.Join(globalFabricDir, "templates"), 0755)
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config":"generic"}`), 0644)
 
 	// Non-git project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(scionDir, 0755)
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(fabricDir, 0755)
 
 	agentName := "nongit-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
-	agentHome := config.GetAgentHomePath(scionDir, agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
+	agentHome := config.GetAgentHomePath(fabricDir, agentName)
 	_ = os.MkdirAll(agentDir, 0755)
 	_ = os.MkdirAll(agentHome, 0755)
 
 	// Write agent config (existing agent, no workspace dir)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"),
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"),
 		[]byte(`{"harness":"generic","default_harness_config":"generic"}`), 0644)
 	_ = os.WriteFile(filepath.Join(agentHome, "agent-info.json"),
 		[]byte(`{"name":"nongit-agent","template":"default"}`), 0644)
 
-	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", scionDir, "", "", "", "")
+	_, _, wsPath, _, err := GetAgent(context.Background(), agentName, "", "", "", fabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("GetAgent failed: %v", err)
 	}
@@ -1697,10 +1697,10 @@ func TestProvisionAgent_SkillsWithMockResolver(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	// Create template with skills references
 	tplDir := filepath.Join(globalTemplatesDir, "skill-ref-tpl")
@@ -1708,14 +1708,14 @@ func TestProvisionAgent_SkillsWithMockResolver(t *testing.T) {
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/test-skill@1.0"}
+			{"uri": "skill://fabric/core/test-skill@1.0"}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Set up mock resolver via context
 	skillContent := []byte("# Test Skill\nDescription here.")
@@ -1725,7 +1725,7 @@ func TestProvisionAgent_SkillsWithMockResolver(t *testing.T) {
 		resolved: []ResolvedSkill{
 			{
 				Name:    "test-skill",
-				URI:     "skill://scion/core/test-skill@1.0",
+				URI:     "skill://fabric/core/test-skill@1.0",
 				Version: "1.0.0",
 				Hash:    "", // Skip bundle hash verification for integration test
 				Files:   []ResolvedFile{},
@@ -1738,13 +1738,13 @@ func TestProvisionAgent_SkillsWithMockResolver(t *testing.T) {
 	_ = contentHash
 
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	agentHome, _, _, err := ProvisionAgent(ctx, "skill-ref-agent", "skill-ref-tpl", "", "", projectScionDir, "", "", "", "")
+	agentHome, _, _, err := ProvisionAgent(ctx, "skill-ref-agent", "skill-ref-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
 
 	// Verify resolution record was written
-	recordPath := filepath.Join(agentHome, ".scion", "resolved-skills.json")
+	recordPath := filepath.Join(agentHome, ".fabric", "resolved-skills.json")
 	data, err := os.ReadFile(recordPath)
 	if err != nil {
 		t.Fatalf("expected resolved-skills.json at %s, got error: %v", recordPath, err)
@@ -1768,35 +1768,35 @@ func TestProvisionAgent_RequiredSkillsNoResolver(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "required-skill-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/scion@^1.0"},
-			{"uri": "skill://scion/core/team-creation@^1.0"}
+			{"uri": "skill://fabric/core/fabric@^1.0"},
+			{"uri": "skill://fabric/core/team-creation@^1.0"}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// No resolver on context → should fail for required skills
-	_, _, _, err := ProvisionAgent(context.Background(), "no-resolver-agent", "required-skill-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(context.Background(), "no-resolver-agent", "required-skill-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected provisioning to fail with required skills and no resolver")
 	}
 	if !strings.Contains(err.Error(), "no skill resolver available") {
 		t.Errorf("error should mention no resolver, got: %v", err)
 	}
-	if !strings.Contains(err.Error(), "skill://scion/core/scion@^1.0") {
+	if !strings.Contains(err.Error(), "skill://fabric/core/fabric@^1.0") {
 		t.Errorf("error should list the required skill URIs, got: %v", err)
 	}
 }
@@ -1812,27 +1812,27 @@ func TestProvisionAgent_OptionalSkillsNoResolver(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "optional-skill-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/optional-skill@latest", "optional": true}
+			{"uri": "skill://fabric/core/optional-skill@latest", "optional": true}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// No resolver on context → should succeed for optional-only skills
-	_, _, _, err := ProvisionAgent(context.Background(), "optional-agent", "optional-skill-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(context.Background(), "optional-agent", "optional-skill-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("expected provisioning to succeed with optional-only skills and no resolver, got: %v", err)
 	}
@@ -1849,34 +1849,34 @@ func TestProvisionAgent_SkillsYAMLParsing(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	// Test YAML skills parsing with hyphenated keys
 	tplDir := filepath.Join(globalTemplatesDir, "yaml-skills-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `default_harness_config: claude
 skills:
-  - uri: "skill://scion/core/scion@^1.0"
+  - uri: "skill://fabric/core/fabric@^1.0"
   - uri: "skill://project/custom@latest"
     as: my-custom
     optional: true
 `
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// This should fail because there's no resolver for the required skill
-	_, _, _, err := ProvisionAgent(context.Background(), "yaml-skills-agent", "yaml-skills-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(context.Background(), "yaml-skills-agent", "yaml-skills-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error for required skill with no resolver")
 	}
 	// Verify the error mentions the correct URI from YAML
-	if !strings.Contains(err.Error(), "skill://scion/core/scion@^1.0") {
+	if !strings.Contains(err.Error(), "skill://fabric/core/fabric@^1.0") {
 		t.Errorf("error should list the YAML-parsed skill URI, got: %v", err)
 	}
 	// The optional skill should not appear in the error
@@ -1896,31 +1896,31 @@ func TestProvisionAgent_SkillsResolverError(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "resolver-err-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
-		"skills": [{"uri": "skill://scion/core/scion@^1.0"}]
+		"skills": [{"uri": "skill://fabric/core/fabric@^1.0"}]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Resolver that returns a per-skill error for a required skill
 	resolver := &mockResolver{
 		errors: []ResolveError{
-			{URI: "skill://scion/core/scion@^1.0", Code: "not_found", Message: "skill not found in registry"},
+			{URI: "skill://fabric/core/fabric@^1.0", Code: "not_found", Message: "skill not found in registry"},
 		},
 	}
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	_, _, _, err := ProvisionAgent(ctx, "resolver-err-agent", "resolver-err-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(ctx, "resolver-err-agent", "resolver-err-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error for required skill resolution failure")
 	}
@@ -1940,34 +1940,34 @@ func TestProvisionAgent_RequiredSkillOmittedFromResolverResponse(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "omitted-required-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/skill-a@1.0"},
-			{"uri": "skill://scion/core/skill-b@1.0"}
+			{"uri": "skill://fabric/core/skill-a@1.0"},
+			{"uri": "skill://fabric/core/skill-b@1.0"}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Resolver returns only skill-a, silently omitting skill-b
 	resolver := &mockResolver{
 		resolved: []ResolvedSkill{
-			{Name: "skill-a", URI: "skill://scion/core/skill-a@1.0", Version: "1.0.0"},
+			{Name: "skill-a", URI: "skill://fabric/core/skill-a@1.0", Version: "1.0.0"},
 		},
 	}
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	_, _, _, err := ProvisionAgent(ctx, "omitted-agent", "omitted-required-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(ctx, "omitted-agent", "omitted-required-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error when required skill is missing from resolver response")
 	}
@@ -1990,34 +1990,34 @@ func TestProvisionAgent_OptionalSkillOmittedFromResolverResponse(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "omitted-optional-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/skill-a@1.0"},
-			{"uri": "skill://scion/core/skill-b@1.0", "optional": true}
+			{"uri": "skill://fabric/core/skill-a@1.0"},
+			{"uri": "skill://fabric/core/skill-b@1.0", "optional": true}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Resolver returns only skill-a; optional skill-b is omitted entirely
 	resolver := &mockResolver{
 		resolved: []ResolvedSkill{
-			{Name: "skill-a", URI: "skill://scion/core/skill-a@1.0", Version: "1.0.0"},
+			{Name: "skill-a", URI: "skill://fabric/core/skill-a@1.0", Version: "1.0.0"},
 		},
 	}
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	_, _, _, err := ProvisionAgent(ctx, "omitted-opt-agent", "omitted-optional-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(ctx, "omitted-opt-agent", "omitted-optional-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("expected provisioning to succeed when only optional skill is omitted, got: %v", err)
 	}
@@ -2034,34 +2034,34 @@ func TestProvisionAgent_UnrequestedSkillFromResolver(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "extra-skill-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/skill-a@1.0"}
+			{"uri": "skill://fabric/core/skill-a@1.0"}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Resolver returns the requested skill plus an unrequested extra one
 	resolver := &mockResolver{
 		resolved: []ResolvedSkill{
-			{Name: "skill-a", URI: "skill://scion/core/skill-a@1.0", Version: "1.0.0"},
+			{Name: "skill-a", URI: "skill://fabric/core/skill-a@1.0", Version: "1.0.0"},
 			{Name: "evil-skill", URI: "skill://evil/injected@1.0", Version: "1.0.0"},
 		},
 	}
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	_, _, _, err := ProvisionAgent(ctx, "extra-skill-agent", "extra-skill-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(ctx, "extra-skill-agent", "extra-skill-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error when resolver returns unrequested skill")
 	}
@@ -2084,34 +2084,34 @@ func TestProvisionAgent_DuplicateResolvedSkill(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	_ = os.MkdirAll(globalTemplatesDir, 0755)
-	seedTestHarnessConfig(t, globalScionDir, "claude", "claude")
+	seedTestHarnessConfig(t, globalFabricDir, "claude", "claude")
 
 	tplDir := filepath.Join(globalTemplatesDir, "dup-skill-tpl")
 	_ = os.MkdirAll(tplDir, 0755)
 	tplConfig := `{
 		"default_harness_config": "claude",
 		"skills": [
-			{"uri": "skill://scion/core/skill-a@1.0"}
+			{"uri": "skill://fabric/core/skill-a@1.0"}
 		]
 	}`
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Resolver returns the same skill twice
 	resolver := &mockResolver{
 		resolved: []ResolvedSkill{
-			{Name: "skill-a", URI: "skill://scion/core/skill-a@1.0", Version: "1.0.0"},
-			{Name: "skill-a", URI: "skill://scion/core/skill-a@1.0", Version: "1.0.0"},
+			{Name: "skill-a", URI: "skill://fabric/core/skill-a@1.0", Version: "1.0.0"},
+			{Name: "skill-a", URI: "skill://fabric/core/skill-a@1.0", Version: "1.0.0"},
 		},
 	}
 	ctx := ContextWithSkillResolver(context.Background(), resolver)
-	_, _, _, err := ProvisionAgent(ctx, "dup-skill-agent", "dup-skill-tpl", "", "", projectScionDir, "", "", "", "")
+	_, _, _, err := ProvisionAgent(ctx, "dup-skill-agent", "dup-skill-tpl", "", "", projectFabricDir, "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error when resolver returns duplicate skill")
 	}
@@ -2215,7 +2215,7 @@ func createTestSkill(t *testing.T, baseDir, name, content string) {
 func setupWorkspaceSkillsTest(t *testing.T) (string, string, string, string) {
 	t.Helper()
 	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, ".scion")
+	projectDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatalf("failed to create project dir: %v", err)
 	}
@@ -2310,7 +2310,7 @@ func TestInjectWorkspaceSkills_HarnessWithSkillsDir(t *testing.T) {
 	})
 
 	t.Run("no workspace skills dir is graceful", func(t *testing.T) {
-		noSkillsProject := filepath.Join(t.TempDir(), ".scion")
+		noSkillsProject := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(noSkillsProject, 0755); err != nil {
 			t.Fatalf("failed to create dir: %v", err)
 		}
@@ -2373,7 +2373,7 @@ func TestInjectWorkspaceSkills_HarnessWithSkillsDir(t *testing.T) {
 func TestInjectWorkspaceSkills_FallbackComposition(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	projectDir := filepath.Join(tmpDir, ".scion")
+	projectDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatalf("failed to create project dir: %v", err)
 	}
@@ -2420,7 +2420,7 @@ func TestInjectWorkspaceSkills_FallbackComposition(t *testing.T) {
 
 	t.Run("skill without SKILL.md is skipped in fallback", func(t *testing.T) {
 		isolatedDir := t.TempDir()
-		isolatedProject := filepath.Join(isolatedDir, ".scion")
+		isolatedProject := filepath.Join(isolatedDir, ".fabric")
 		if err := os.MkdirAll(isolatedProject, 0755); err != nil {
 			t.Fatalf("failed to create dir: %v", err)
 		}
@@ -2562,10 +2562,10 @@ func TestInjectPlatformSkills(t *testing.T) {
 		skillsDir := ".claude/commands"
 
 		skillsFS := fstest.MapFS{
-			"scion/SKILL.md": &fstest.MapFile{
-				Data: []byte("---\nname: scion\n---\n\n# Scion\n"),
+			"fabric/SKILL.md": &fstest.MapFile{
+				Data: []byte("---\nname: fabric\n---\n\n# Fabric\n"),
 			},
-			"scion/scripts/start-agent.sh": &fstest.MapFile{
+			"fabric/scripts/start-agent.sh": &fstest.MapFile{
 				Data: []byte("#!/bin/bash\necho start"),
 			},
 		}
@@ -2575,7 +2575,7 @@ func TestInjectPlatformSkills(t *testing.T) {
 			t.Fatalf("injectPlatformSkills failed: %v", err)
 		}
 
-		dest := filepath.Join(agentHome, skillsDir, "scion", "scripts", "start-agent.sh")
+		dest := filepath.Join(agentHome, skillsDir, "fabric", "scripts", "start-agent.sh")
 		data, err := os.ReadFile(dest)
 		if err != nil {
 			t.Fatalf("expected script to be copied, got error: %v", err)

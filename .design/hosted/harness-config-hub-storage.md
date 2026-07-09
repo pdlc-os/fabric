@@ -5,19 +5,19 @@
 
 ## 1. Overview
 
-This document specifies the design for storing harness-configs in the Scion Hub, enabling Hub-only agent creation workflows where the Runtime Broker does not have local harness-config directories. The design intentionally mirrors the existing hosted template machinery to maximize code reuse.
+This document specifies the design for storing harness-configs in the Fabric Hub, enabling Hub-only agent creation workflows where the Runtime Broker does not have local harness-config directories. The design intentionally mirrors the existing hosted template machinery to maximize code reuse.
 
 ### 1.1. Current Harness-Config System (Solo Mode)
 
 In solo mode, harness-configs are:
-- **Directories on disk** at `~/.scion/harness-configs/<name>/` (global) or `.scion/harness-configs/<name>/` (grove-level), or within templates at `<template>/harness-configs/<name>/`
+- **Directories on disk** at `~/.fabric/harness-configs/<name>/` (global) or `.fabric/harness-configs/<name>/` (grove-level), or within templates at `<template>/harness-configs/<name>/`
 - **Composed of two parts**: a `config.yaml` (metadata: harness type, image, user, model, args, env, volumes) and a `home/` directory (harness-specific files like `.claude.json`, `settings.json`, `.bashrc`)
 - **Resolved by precedence**: template-level > grove-level > global
 - **Used at agent creation**: the `home/` directory forms the base layer of an agent's home, overlaid with template files
 
 ### 1.2. Problem Statement
 
-In the hosted architecture, a Runtime Broker may not have local harness-config directories. When the Hub dispatches a `create_agent` command, the Broker needs access to the harness-config's `config.yaml` metadata and `home/` files. Currently, harness-configs are resolved locally on the machine running `scion create`, which doesn't work when:
+In the hosted architecture, a Runtime Broker may not have local harness-config directories. When the Hub dispatches a `create_agent` command, the Broker needs access to the harness-config's `config.yaml` metadata and `home/` files. Currently, harness-configs are resolved locally on the machine running `fabric create`, which doesn't work when:
 1. Agent creation is initiated through the Hub web UI or API (no local CLI context)
 2. The Runtime Broker is a remote/ephemeral node without pre-seeded harness-configs
 3. Templates reference a named harness-config that only exists on the user's machine
@@ -29,7 +29,7 @@ A harness-config and a template are structurally almost identical from a storage
 | Aspect | Template | Harness-Config |
 |--------|----------|----------------|
 | On-disk shape | Directory with config + files | Directory with `config.yaml` + `home/` |
-| Metadata file | `scion-agent.yaml` | `config.yaml` |
+| Metadata file | `fabric-agent.yaml` | `config.yaml` |
 | File payload | `home/`, optional workspace files | `home/` files |
 | Scoping | global, grove, user | global, grove (+ template-level locally) |
 | Content tracking | SHA-256 content hash | Same mechanism applicable |
@@ -83,7 +83,7 @@ The cache structure (content-hash-based directories, LRU eviction, index file) w
 
 ### 3.1. Data Model (`pkg/store/models.go`)
 
-A new `HarnessConfig` struct is needed. It is deliberately simpler than `Template` — harness-configs don't have inheritance, `scion-agent.yaml`, or workspace files:
+A new `HarnessConfig` struct is needed. It is deliberately simpler than `Template` — harness-configs don't have inheritance, `fabric-agent.yaml`, or workspace files:
 
 ```go
 type HarnessConfig struct {
@@ -275,19 +275,19 @@ These are structurally identical to their template counterparts.
 
 | Command | Change |
 |---------|--------|
-| `scion harness-config list` | Add `--hub` flag to list Hub-stored harness-configs alongside local ones |
-| `scion harness-config reset` | No change (local-only operation) |
-| `scion create --harness-config` | When Hub is enabled, resolve harness-config from Hub if not found locally |
+| `fabric harness-config list` | Add `--hub` flag to list Hub-stored harness-configs alongside local ones |
+| `fabric harness-config reset` | No change (local-only operation) |
+| `fabric create --harness-config` | When Hub is enabled, resolve harness-config from Hub if not found locally |
 
 ### 5.2. New Commands
 
 | Command | Description | Hub Only |
 |---------|-------------|----------|
-| `scion harness-config sync <name>` | Create or update harness-config in Hub from local directory (upsert, delta upload) | Yes |
-| `scion harness-config push <name>` | Alias for `sync` | Yes |
-| `scion harness-config pull <name>` | Download harness-config from Hub to local directory | Yes |
-| `scion harness-config show <name>` | Show harness-config details (local + Hub) | No |
-| `scion harness-config delete <name>` | Delete harness-config (local, Hub, or both) | No |
+| `fabric harness-config sync <name>` | Create or update harness-config in Hub from local directory (upsert, delta upload) | Yes |
+| `fabric harness-config push <name>` | Alias for `sync` | Yes |
+| `fabric harness-config pull <name>` | Download harness-config from Hub to local directory | Yes |
+| `fabric harness-config show <name>` | Show harness-config details (local + Hub) | No |
+| `fabric harness-config delete <name>` | Delete harness-config (local, Hub, or both) | No |
 
 ### 5.3. Implementation Approach
 
@@ -307,7 +307,7 @@ These can be added to `cmd/harness_config.go` by extending the existing command 
 Parallel to templates, under a `/harness-configs` prefix:
 
 ```
-gs://scion-hub-{env}/
+gs://fabric-hub-{env}/
 ├── templates/
 │   └── ...                          (existing)
 └── harness-configs/
@@ -374,8 +374,8 @@ The `create_agent` dispatch payload includes both template and harness-config re
       "storageUri": "gs://bucket/harness-configs/...",
       "config": {
         "harness": "claude",
-        "image": "scion-claude:latest",
-        "user": "scion",
+        "image": "fabric-claude:latest",
+        "user": "fabric",
         "model": "sonnet-4"
       }
     }

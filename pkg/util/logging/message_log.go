@@ -23,7 +23,7 @@ import (
 )
 
 // Cloud Logging log ID for the dedicated message log.
-const MessageLogID = "scion-messages"
+const MessageLogID = "fabric-messages"
 
 // Standard attribute keys for message log entries.
 const (
@@ -39,14 +39,14 @@ const (
 type MessageLoggerConfig struct {
 	CloudClient *gcplog.Client // Shared GCP client (nil if not enabled)
 	CircuitOpen func() bool    // Returns true when circuit breaker is open (nil = never open)
-	Component   string         // "scion-server", "scion-hub", "scion-broker"
+	Component   string         // "fabric-server", "fabric-hub", "fabric-broker"
 	UseGCP      bool           // Format output as GCP-compatible JSON
 	Level       slog.Level
 }
 
 // NewMessageLogger creates a dedicated logger for message audit logging.
 // When Cloud Logging is enabled, messages are written to a separate
-// "scion-messages" log with sender, recipient, and type promoted to GCP labels.
+// "fabric-messages" log with sender, recipient, and type promoted to GCP labels.
 // Returns the logger, a cleanup function, and any error.
 func NewMessageLogger(cfg MessageLoggerConfig) (*slog.Logger, func(), error) {
 	var handlers []slog.Handler

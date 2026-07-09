@@ -15,7 +15,7 @@ This release focuses on refining the Chat App user experience, introducing a hig
 * **Hub Performance:** Eliminated Single-Page Application (SPA) lag caused by an SQLite single-connection bottleneck.
 * **Security & Permissions:** 
     * Fixed a leak where metadata sidecar iptables rules could affect the host namespace.
-    * Corrected file ownership and permissions for `scion-token` and `agent-info.json` to ensure they are readable by the appropriate service users.
+    * Corrected file ownership and permissions for `fabric-token` and `agent-info.json` to ensure they are readable by the appropriate service users.
 * **Cloud Build Robustness:** Fixed several Cloud Build template issues, including variable declaration mismatches and Docker auth configuration overwriting during registry verification.
 * **Agent & Harness Reliability:**
     * Enabled the container-script provisioner for Opencode by default.

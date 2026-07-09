@@ -101,7 +101,7 @@ func TestShoelaceIconServing_NotSPAFallback(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode,
 		"missing shoelace icon should return 404, not SPA shell")
-	assert.NotContains(t, string(body), "scion-app",
+	assert.NotContains(t, string(body), "fabric-app",
 		"response should not contain the SPA shell HTML")
 	assert.NotContains(t, string(body), "<!DOCTYPE html",
 		"response should not contain HTML")

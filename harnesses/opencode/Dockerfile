@@ -16,14 +16,14 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-RUN mkdir -p /home/scion/.local/share/opencode && \
-  chown -R scion:scion /home/scion/.local
+RUN mkdir -p /home/fabric/.local/share/opencode && \
+  chown -R fabric:fabric /home/fabric/.local
 
 # Install OpenCode
 # RUN curl -fsSL https://opencode.ai/install | bash
 RUN npm install -g opencode-ai \
   && npm cache clean --force
 # Ensure opencode is in PATH
-# ENV PATH="/home/scion/.opencode/bin:${PATH}"
+# ENV PATH="/home/fabric/.opencode/bin:${PATH}"
 
 CMD ["opencode"]

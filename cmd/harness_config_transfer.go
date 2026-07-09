@@ -20,8 +20,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // verifyHarnessConfigArtifactHash checks the SHA-256 hash of downloaded

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // nfsBackend resolves workspace and shared-dir paths onto an NFS-backed

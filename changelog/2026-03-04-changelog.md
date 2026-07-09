@@ -11,7 +11,7 @@ This period focuses on the foundational implementation of the unified harness au
 * **Default Notification Triggers:** Expanded the notification system to include `stalled` and `error` as default trigger states, improving proactive monitoring of agent health.
 
 ## 🐛 Fixes
-* **Workspace Permissions:** Hardened the workspace provisioning flow by ensuring `git clone` operations run as the `scion` user when the broker is executing as root.
+* **Workspace Permissions:** Hardened the workspace provisioning flow by ensuring `git clone` operations run as the `fabric` user when the broker is executing as root.
 * **UI Navigation & UX:** Fixed back-link routing for agent creation and detail pages to consistently return users to the parent grove. Improved terminal accessibility by disabling the terminal button for offline agents.
 * **Config & Environment Propagation:** Resolved issues with `harnessConfig` propagation during the environment-gathering finalization flow and refined Hub endpoint bridging to only target `localhost` endpoints.
 * **Server Reliability:** Applied default `StalledThreshold` values for agent health monitoring and improved status badge readability.

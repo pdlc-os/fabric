@@ -2,11 +2,11 @@
 
 **Status:** Approved
 **Date:** 2026-03-18
-**Related:** [auth-overview](.design/hosted/auth/auth-overview.md), [server-auth-setup](.design/hosted/auth/server-auth-setup.md), [sciontool-auth](.design/hosted/auth/sciontool-auth.md)
+**Related:** [auth-overview](.design/hosted/auth/auth-overview.md), [server-auth-setup](.design/hosted/auth/server-auth-setup.md), [fabrictool-auth](.design/hosted/auth/fabrictool-auth.md)
 
 ## Problem Statement
 
-Scion needs a mechanism for headless, non-interactive authentication in CI/CD pipelines and automation scenarios. While the existing `SCION_HUB_TOKEN` environment variable already supports bearer tokens, there is no user-facing way to create scoped, expirable tokens suitable for production automation. The existing API key system (`sk_live_*`) provides a foundation but lacks grove-scoping and action-level granularity.
+Fabric needs a mechanism for headless, non-interactive authentication in CI/CD pipelines and automation scenarios. While the existing `FABRIC_HUB_TOKEN` environment variable already supports bearer tokens, there is no user-facing way to create scoped, expirable tokens suitable for production automation. The existing API key system (`sk_live_*`) provides a foundation but lacks grove-scoping and action-level granularity.
 
 Users need to:
 - Create tokens scoped to a specific grove with limited action permissions
@@ -23,11 +23,11 @@ Users need to:
 | User JWT | Hub-signed JWT | 15 min (web) / 30 days (CLI) | Full user access | Interactive sessions |
 | Agent JWT | Hub-signed JWT with claims | 10 hours | `grove_id` + `AgentTokenScope` list | Agent-to-Hub communication |
 | API Key | `sk_live_<base64>` | Configurable expiry | `[]string` scopes (unstructured) | Programmatic access (partially implemented, **never used — to be removed**) |
-| Dev Token | `scion_dev_<hex>` | None | Full dev-user access | Local development |
+| Dev Token | `fabric_dev_<hex>` | None | Full dev-user access | Local development |
 
 ### Existing Infrastructure
 
-- **`SCION_HUB_TOKEN`**: Environment variable already consumed by CLI/hubclient for bearer auth
+- **`FABRIC_HUB_TOKEN`**: Environment variable already consumed by CLI/hubclient for bearer auth
 - **`APIKeyService`** (`pkg/hub/apikey.go`): Full CRUD, SHA-256 hashed storage, revocation, expiry — **to be removed** (never used)
 - **`APIKeyStore`** (`pkg/store/store.go`): SQLite-backed persistence for API keys — **to be removed** (never used)
 - **`UnifiedAuthMiddleware`** (`pkg/hub/auth.go`): Already dispatches on token type/prefix
@@ -60,10 +60,10 @@ User Access Tokens are opaque bearer tokens that carry grove-scoped, action-limi
 #### Token Format
 
 ```
-scion_pat_<base64url-encoded-random-32-bytes>
+fabric_pat_<base64url-encoded-random-32-bytes>
 ```
 
-- **Prefix `scion_pat_`**: Distinguishes from API keys (`sk_live_`), dev tokens (`scion_dev_`), and JWTs. `pat` = Personal Access Token.
+- **Prefix `fabric_pat_`**: Distinguishes from API keys (`sk_live_`), dev tokens (`fabric_dev_`), and JWTs. `pat` = Personal Access Token.
 - **Body**: 32 bytes of cryptographic randomness, base64url-encoded (43 chars).
 - **Full length**: ~53 characters.
 
@@ -120,13 +120,13 @@ Scopes are validated at token creation time against a known allowlist. Unknown s
 ```
 Client (CI/CD)
     │
-    │  Authorization: Bearer scion_pat_<token>
+    │  Authorization: Bearer fabric_pat_<token>
     │  ─── or ───
-    │  SCION_HUB_TOKEN=scion_pat_<token>
+    │  FABRIC_HUB_TOKEN=fabric_pat_<token>
     ▼
 UnifiedAuthMiddleware
     │
-    ├─ Detect prefix "scion_pat_"
+    ├─ Detect prefix "fabric_pat_"
     ├─ SHA-256 hash the token
     ├─ Look up hash in user_access_tokens table
     ├─ Check: not revoked, not expired
@@ -175,11 +175,11 @@ All endpoints require user authentication (interactive session or existing valid
 
 ```json
 {
-  "token": "scion_pat_abc123...",
+  "token": "fabric_pat_abc123...",
   "accessToken": {
     "id": "uuid",
     "name": "ci-deploy-token",
-    "prefix": "scion_pat_abc1...",
+    "prefix": "fabric_pat_abc1...",
     "groveId": "grove-uuid-here",
     "scopes": ["agent:dispatch", "agent:read", "agent:stop"],
     "expiresAt": "2026-06-18T00:00:00Z",
@@ -193,31 +193,31 @@ The plaintext `token` value is shown **only once** in the create response.
 ### CLI Commands
 
 ```
-scion hub token create --grove <grove> --name <name> --scopes <scope,...> [--expires <duration|date>]
-scion hub token list [--grove <grove>]
-scion hub token revoke <token-id>
-scion hub token delete <token-id>
+fabric hub token create --grove <grove> --name <name> --scopes <scope,...> [--expires <duration|date>]
+fabric hub token list [--grove <grove>]
+fabric hub token revoke <token-id>
+fabric hub token delete <token-id>
 ```
 
 #### Examples
 
 ```bash
 # Create a token for CI that can dispatch and monitor agents, expires in 90 days
-scion hub token create \
+fabric hub token create \
   --grove my-project \
   --name "github-actions" \
   --scopes agent:dispatch,agent:read,agent:stop \
   --expires 90d
 
 # List tokens
-scion hub token list
+fabric hub token list
 
 # Revoke a token
-scion hub token revoke tok_abc123
+fabric hub token revoke tok_abc123
 
 # Use the token in CI
-export SCION_HUB_TOKEN=scion_pat_...
-scion hub agent dispatch --grove my-project --template default --task "Run tests"
+export FABRIC_HUB_TOKEN=fabric_pat_...
+fabric hub agent dispatch --grove my-project --template default --task "Run tests"
 ```
 
 ### Web UI
@@ -225,7 +225,7 @@ scion hub agent dispatch --grove my-project --template default --task "Run tests
 Add a **"Access Tokens"** page to the profile section:
 
 - **Route**: `/profile/tokens`
-- **Navigation**: Add "Access Tokens" entry to `scion-profile-nav` under the Configuration section
+- **Navigation**: Add "Access Tokens" entry to `fabric-profile-nav` under the Configuration section
 - **Components**:
   - Token list table: name, prefix, grove, scopes, created, last used, expires, revoke button
   - Create token dialog: name input, grove selector, scope checkboxes, expiry date picker
@@ -247,8 +247,8 @@ Add a **"Access Tokens"** page to the profile section:
    - `DeleteToken(ctx, userID, tokenID)` → error
    - Enforce limit of **50 tokens per user**
    - Enforce maximum expiry of **1 year**, default to **90 days** if not specified
-6. ✅ Extend `UnifiedAuthMiddleware` to detect `scion_pat_` prefix and validate via the new service
-7. ✅ **Enforce UAT-creates-UAT prevention at the handler level**: Reject requests authenticated with `scion_pat_*` tokens on the `/api/v1/auth/tokens` creation endpoint
+6. ✅ Extend `UnifiedAuthMiddleware` to detect `fabric_pat_` prefix and validate via the new service
+7. ✅ **Enforce UAT-creates-UAT prevention at the handler level**: Reject requests authenticated with `fabric_pat_*` tokens on the `/api/v1/auth/tokens` creation endpoint
 8. ✅ Introduce `ScopedUserIdentity` that wraps `UserIdentity` with grove/scope restrictions
 9. ✅ Augment `AuthzService.CheckAccess` to enforce grove + scope constraints when identity is scoped
 10. ✅ **Add auth-type to request logging**: Include the authentication method (JWT, UAT, dev-token) in standard request log entries
@@ -256,7 +256,7 @@ Add a **"Access Tokens"** page to the profile section:
 
 #### Phase 2: CLI Commands ✅
 
-1. ✅ Add `cmd/hub_token.go` with `scion hub token {create,list,revoke,delete}` subcommands
+1. ✅ Add `cmd/hub_token.go` with `fabric hub token {create,list,revoke,delete}` subcommands
 2. ✅ Add hubclient `TokenService` interface and implementation in `pkg/hubclient/tokens.go`
 3. ✅ Register `Tokens()` on the `Client` interface in `pkg/hubclient/client.go`
 
@@ -345,6 +345,6 @@ Add a **"Access Tokens"** page to the profile section:
 
 5. **Audit logging**: Include the auth-type (JWT, UAT, dev-token) in standard request log entries. No separate audit trail for now; `lastUsed` timestamp is updated on each use.
 
-6. **UAT-creates-UAT prevention**: Enforced at the middleware level. Requests authenticated with `scion_pat_*` tokens are rejected on the token creation endpoint.
+6. **UAT-creates-UAT prevention**: Enforced at the middleware level. Requests authenticated with `fabric_pat_*` tokens are rejected on the token creation endpoint.
 
 7. **Scope granularity evolution**: Scopes remain coarse capability gates. The policy engine handles fine-grained decisions within those gates. Scopes can evolve as the authorization system matures.

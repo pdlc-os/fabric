@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestReadyCheck_TCP(t *testing.T) {

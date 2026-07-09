@@ -29,7 +29,7 @@ The `git_remote` field is defined with a **unique constraint** at the database l
   GitRemote string `json:"gitRemote,omitempty"` // Normalized git remote URL (unique)
   ```
 
-The field is optional and nillable because global groves (e.g. the user's home `~/.scion`) have no git remote.
+The field is optional and nillable because global groves (e.g. the user's home `~/.fabric`) have no git remote.
 
 ### 1.2 Normalization
 
@@ -86,7 +86,7 @@ If no existing grove is found, a new one is created with the normalized git remo
 2. Local `grove_id` from settings
 3. **Git remote lookup via Hub API** — calls `List(ctx, &ListGrovesOptions{GitRemote: normalized})` and uses the first match
 
-If no git origin is found, the error message directs the user to `scion hub link`.
+If no git origin is found, the error message directs the user to `fabric hub link`.
 
 ### 2.4 Listing/Filtering
 
@@ -122,7 +122,7 @@ When only `config.Workspace` is set (no repo root):
 **K8s-specific logic** — `pkg/runtime/k8s_runtime.go:75-91`:
 
 - If `config.Workspace` is empty, scans volumes for a `/workspace` target mount
-- Persists workspace path in pod annotations (`scion.workspace`)
+- Persists workspace path in pod annotations (`fabric.workspace`)
 - No git worktree mounting — workspace is an opaque directory
 
 **Proposed git clone approach** — `.design/kubernetes/scm.md`:

@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // mockRuntimeBrokerService implements hubclient.RuntimeBrokerService for testing.
@@ -90,7 +90,7 @@ type heartbeatMockManager struct {
 	err    error
 }
 
-func (m *heartbeatMockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *heartbeatMockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	return nil, nil
 }
 

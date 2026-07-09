@@ -65,7 +65,7 @@ type Options struct {
 // These match the patterns used by the hub's WebDAV endpoint.
 var DefaultExcludePatterns = []string{
 	".git/**",
-	".scion/**",
+	".fabric/**",
 	"node_modules/**",
 	"*.env",
 }

@@ -37,7 +37,7 @@
 <title>Image Hierarchy</title>
 <polygon fill="lightblue" stroke="black" points="308.5,-440 0,-440 0,-404 308.5,-404 308.5,-440"/>
 <text xml:space="preserve" text-anchor="middle" x="154.25" y="-419.2" font-family="Times,serif" font-size="14.00">Image Hierarchy</text>
-<text xml:space="preserve" text-anchor="middle" x="154.25" y="-408.7" font-family="Times,serif" font-size="14.00">(core&#45;base, scion&#45;base, hub, harnesses)</text>
+<text xml:space="preserve" text-anchor="middle" x="154.25" y="-408.7" font-family="Times,serif" font-size="14.00">(core&#45;base, fabric&#45;base, hub, harnesses)</text>
 </g>
 <!-- build&#45;images.sh Orchestrator&#45;&gt;Image Hierarchy -->
 <g id="edge1" class="edge">

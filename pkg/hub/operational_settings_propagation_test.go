@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // --- fake EventPublisher for propagation tests ---
@@ -188,8 +188,8 @@ func TestSubscription_TriggersRefreshAndApply(t *testing.T) {
 func TestSubscription_MaintenanceApplied_WithoutEnvOverride(t *testing.T) {
 	// When a maintenance row change propagates, it should apply to MaintenanceState
 	// on nodes that do NOT have the env override set.
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	fakeStore := newFakeHubSettingStore()
 	fakeEP := newFakeEventPublisher()
@@ -241,10 +241,10 @@ func TestSubscription_MaintenanceApplied_WithoutEnvOverride(t *testing.T) {
 }
 
 func TestSubscription_MaintenanceNotOverridden_WhenEnvSet(t *testing.T) {
-	// When SCION_SERVER_ADMIN_MODE env is set, propagated maintenance changes
+	// When FABRIC_SERVER_ADMIN_MODE env is set, propagated maintenance changes
 	// should not override the env setting.
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "true")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "env-break-glass")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "true")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "env-break-glass")
 
 	fakeStore := newFakeHubSettingStore()
 	fakeEP := newFakeEventPublisher()
@@ -379,8 +379,8 @@ func TestIdempotency_DoubleApply(t *testing.T) {
 		maintenance: NewMaintenanceState(false, ""),
 	}
 
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	snap := Layer1Snapshot{
 		AdminEmails:        []string{"admin@test.com"},
@@ -490,8 +490,8 @@ func TestSelfApply_WritingNodeAppliesSynchronously(t *testing.T) {
 }
 
 func TestSelfApply_MaintenanceAppliedSynchronously(t *testing.T) {
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	fakeStore := newFakeHubSettingStore()
 	fakeEP := newFakeEventPublisher()

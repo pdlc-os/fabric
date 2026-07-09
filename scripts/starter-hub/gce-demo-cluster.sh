@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# scripts/starter-hub/gce-demo-cluster.sh - Create or delete a GKE Autopilot cluster for Scion Demo
+# scripts/starter-hub/gce-demo-cluster.sh - Create or delete a GKE Autopilot cluster for Fabric Demo
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/hub-config.sh"
 
 function delete_resources() {
-    echo "=== Deleting Scion Demo Cluster ==="
+    echo "=== Deleting Fabric Demo Cluster ==="
     
     if gcloud container clusters describe "${CLUSTER_NAME}" --region "${REGION}" --project "${PROJECT_ID}" &>/dev/null; then
         echo "Deleting cluster ${CLUSTER_NAME}..."
@@ -38,7 +38,7 @@ if [[ "${1:-}" == "delete" ]]; then
     exit 0
 fi
 
-echo "=== Scion Demo Cluster Provisioning ==="
+echo "=== Fabric Demo Cluster Provisioning ==="
 echo "Project: ${PROJECT_ID}"
 echo "Cluster: ${CLUSTER_NAME}"
 echo "Region:  ${REGION}"
@@ -54,7 +54,7 @@ if ! gcloud container clusters describe "${CLUSTER_NAME}" --region "${REGION}" -
         --region "${REGION}" \
         --project "${PROJECT_ID}" \
         --release-channel "regular" \
-        --labels=env=${HUB_NAME},project=scion,type=scion-hub-cluster
+        --labels=env=${HUB_NAME},project=fabric,type=fabric-hub-cluster
 else
     echo "Cluster '${CLUSTER_NAME}' already exists."
 fi

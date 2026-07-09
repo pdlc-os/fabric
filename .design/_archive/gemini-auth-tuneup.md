@@ -18,17 +18,17 @@ vertex-ai
 
 We should allow each of these values for the key "auth_selectedType" in the following places:
 
-the scion settings file under the harness (as a direct key), and provider.(under a gemini harness_overrides)
+the fabric settings file under the harness (as a direct key), and provider.(under a gemini harness_overrides)
 
-in the scion-agent.json in a "geminini {}" section
+in the fabric-agent.json in a "geminini {}" section
 
-The scion-agent.json value should be filled in upon agent instantiation/creation from a scion settings.json value if present.
+The fabric-agent.json value should be filled in upon agent instantiation/creation from a fabric settings.json value if present.
 
 ### on agent creation
 
 When the agent is created, the value should also be added to the correct place in /home/.gemini/settings.json (the CLI settings file)
 
-Based on this value, the following env keys and volume mounts should also be added (be sure to append to existing, do not just replace) to the scion-agent.json file when the agent is created:
+Based on this value, the following env keys and volume mounts should also be added (be sure to append to existing, do not just replace) to the fabric-agent.json file when the agent is created:
 
 ### gemini-api-key
 

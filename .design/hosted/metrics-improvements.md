@@ -8,9 +8,9 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
 
 
   1. How the Correlation Works
-  OpenTelemetry achieves this correlation by sharing the trace_id and span_id between the two signals. In the scion-agent codebase, we already have the
+  OpenTelemetry achieves this correlation by sharing the trace_id and span_id between the two signals. In the fabric-agent codebase, we already have the
   building blocks:
-   - Spans are created in pkg/sciontool/hooks/handlers/telemetry.go.
+   - Spans are created in pkg/fabrictool/hooks/handlers/telemetry.go.
    - Logs would be emitted using slog.InfoContext(ctx, ...), where ctx contains the active span.
    - The OTel Log Bridge (which we've already started implementing in pkg/util/logging/otel.go) automatically extracts those IDs and attaches them to the log
      records before sending them to the cloud.
@@ -23,7 +23,7 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
      backends often truncate), but it’s perfect for a log message.
 
 
-  3. Practical Benefits for Scion
+  3. Practical Benefits for Fabric
   If we added correlated logs to the hooks:
    * GCP Console Integration: When viewing a trace waterfall for an agent session, you could click on a tool_call span and immediately see only the logs
      associated with that specific execution.
@@ -48,12 +48,12 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
   Honeycomb.
 
 
-  Here is how that would be implemented within the current Scion architecture:
+  Here is how that would be implemented within the current Fabric architecture:
 
 
-  1. Extending the Pipeline (Sciontool)
-  Currently, the Pipeline in sciontool is primarily a Trace Forwarder. To support counters, we would:
-   * Add a Metric Receiver: Implement the OTLP MetricServiceServer in pkg/sciontool/telemetry/receiver.go to listen for metrics from harnesses that support
+  1. Extending the Pipeline (Fabrictool)
+  Currently, the Pipeline in fabrictool is primarily a Trace Forwarder. To support counters, we would:
+   * Add a Metric Receiver: Implement the OTLP MetricServiceServer in pkg/fabrictool/telemetry/receiver.go to listen for metrics from harnesses that support
      OTel naturally (like Codex or OpenCode).
    * Add a Metric Exporter: Update exporter.go to forward these metric protos to the cloud endpoint using the OTLP Metric protocol.
    * Instrumentation (Harness Logic): For harnesses that don't emit OTel metrics natively (like Gemini CLI), the TelemetryHandler would use the OTel Metrics
@@ -61,10 +61,10 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
 
 
   2. Dimension/Label Injection (Resource Attributes)
-  To achieve the "complex aggregations" you mentioned, we would decorate these metrics with a consistent set of labels at the sciontool level:
-   * `scion.harness`: (e.g., gemini, claude, codex)
-   * `scion.agent_id`: For correlating metrics back to a specific agent.
-   * `scion.grove_id`: For aggregating usage by project or group.
+  To achieve the "complex aggregations" you mentioned, we would decorate these metrics with a consistent set of labels at the fabrictool level:
+   * `fabric.harness`: (e.g., gemini, claude, codex)
+   * `fabric.agent_id`: For correlating metrics back to a specific agent.
+   * `fabric.grove_id`: For aggregating usage by project or group.
    * `model`: The specific model name (e.g., gemini-2.0-flash).
    * `status`: (e.g., success, error) for reliability tracking.
 
@@ -93,11 +93,11 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
   4. Implementation Path
   To move from the current trace-only pipeline to a full observability suite:
    1. Refactor `telemetry.Pipeline` to be multi-signal (Traces + Metrics).
-   2. Initialize a MeterProvider in sciontool (similar to how the TracerProvider is handled).
+   2. Initialize a MeterProvider in fabrictool (similar to how the TracerProvider is handled).
    3. Update `TelemetryHandler.Handle()` to emit metrics in addition to spans when a session or model turn ends.
 
 
-  This would transform Scion from a simple agent orchestrator into a platform that provides deep, actionable operational intelligence.
+  This would transform Fabric from a simple agent orchestrator into a platform that provides deep, actionable operational intelligence.
 
 
   ## raw otel data-writer
@@ -106,4 +106,4 @@ Your observation about correlating logs and spans is excellent. Emitting logs fo
 
   ## generic template enablement
 
-  While we have a large range of harness specific env vars, and a number of scion specific telemetry settings, we will want to have a set of defaults (mostly on) that can be gated with a simple higher level 'enableTelemetry' type setting in scion-config
+  While we have a large range of harness specific env vars, and a number of fabric specific telemetry settings, we will want to have a set of defaults (mostly on) that can be gated with a simple higher level 'enableTelemetry' type setting in fabric-config

@@ -21,12 +21,12 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/notification"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/notificationsubscription"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent/notification"
+	"github.com/pdlc-os/fabric/pkg/ent/notificationsubscription"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // CompositeStore is a fully Ent-backed implementation of store.Store. Every

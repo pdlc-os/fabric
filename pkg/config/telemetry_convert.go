@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // ConvertV1TelemetryToAPI converts settings-level telemetry config (V1TelemetryConfig)
@@ -104,7 +104,7 @@ func ConvertV1TelemetryToAPI(v1 *V1TelemetryConfig) *api.TelemetryConfig {
 // TelemetryConfigToEnv converts a resolved api.TelemetryConfig into a map of
 // environment variables suitable for injection into an agent container. Only
 // non-nil/non-zero fields are emitted. The env var names match the constants
-// in pkg/sciontool/telemetry/config.go and the design doc §10.3.
+// in pkg/fabrictool/telemetry/config.go and the design doc §10.3.
 func TelemetryConfigToEnv(cfg *api.TelemetryConfig) map[string]string {
 	if cfg == nil {
 		return nil
@@ -113,90 +113,90 @@ func TelemetryConfigToEnv(cfg *api.TelemetryConfig) map[string]string {
 	env := make(map[string]string)
 
 	if cfg.Enabled != nil {
-		env["SCION_TELEMETRY_ENABLED"] = strconv.FormatBool(*cfg.Enabled)
+		env["FABRIC_TELEMETRY_ENABLED"] = strconv.FormatBool(*cfg.Enabled)
 	}
 
 	// Cloud config
 	if cfg.Cloud != nil {
 		if cfg.Cloud.Enabled != nil {
-			env["SCION_TELEMETRY_CLOUD_ENABLED"] = strconv.FormatBool(*cfg.Cloud.Enabled)
+			env["FABRIC_TELEMETRY_CLOUD_ENABLED"] = strconv.FormatBool(*cfg.Cloud.Enabled)
 		}
 		if cfg.Cloud.Endpoint != "" {
-			env["SCION_OTEL_ENDPOINT"] = cfg.Cloud.Endpoint
+			env["FABRIC_OTEL_ENDPOINT"] = cfg.Cloud.Endpoint
 		}
 		if cfg.Cloud.Protocol != "" {
-			env["SCION_OTEL_PROTOCOL"] = cfg.Cloud.Protocol
+			env["FABRIC_OTEL_PROTOCOL"] = cfg.Cloud.Protocol
 		}
 		if cfg.Cloud.Headers != nil {
 			if data, err := json.Marshal(cfg.Cloud.Headers); err == nil {
-				env["SCION_OTEL_HEADERS"] = string(data)
+				env["FABRIC_OTEL_HEADERS"] = string(data)
 			}
 		}
 		if cfg.Cloud.TLS != nil && cfg.Cloud.TLS.InsecureSkipVerify != nil {
-			env["SCION_OTEL_INSECURE"] = strconv.FormatBool(*cfg.Cloud.TLS.InsecureSkipVerify)
+			env["FABRIC_OTEL_INSECURE"] = strconv.FormatBool(*cfg.Cloud.TLS.InsecureSkipVerify)
 		}
 		if cfg.Cloud.TLS != nil && cfg.Cloud.TLS.CAFile != "" {
-			env["SCION_OTEL_CA_FILE"] = cfg.Cloud.TLS.CAFile
+			env["FABRIC_OTEL_CA_FILE"] = cfg.Cloud.TLS.CAFile
 		}
 		if cfg.Cloud.Batch != nil {
 			if cfg.Cloud.Batch.MaxSize > 0 {
-				env["SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE"] = strconv.Itoa(cfg.Cloud.Batch.MaxSize)
+				env["FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE"] = strconv.Itoa(cfg.Cloud.Batch.MaxSize)
 			}
 			if cfg.Cloud.Batch.Timeout != "" {
-				env["SCION_TELEMETRY_CLOUD_BATCH_TIMEOUT"] = cfg.Cloud.Batch.Timeout
+				env["FABRIC_TELEMETRY_CLOUD_BATCH_TIMEOUT"] = cfg.Cloud.Batch.Timeout
 			}
 		}
 		if cfg.Cloud.Provider != "" {
-			env["SCION_TELEMETRY_CLOUD_PROVIDER"] = cfg.Cloud.Provider
+			env["FABRIC_TELEMETRY_CLOUD_PROVIDER"] = cfg.Cloud.Provider
 		}
 	}
 
 	// Hub config
 	if cfg.Hub != nil {
 		if cfg.Hub.Enabled != nil {
-			env["SCION_TELEMETRY_HUB_ENABLED"] = strconv.FormatBool(*cfg.Hub.Enabled)
+			env["FABRIC_TELEMETRY_HUB_ENABLED"] = strconv.FormatBool(*cfg.Hub.Enabled)
 		}
 		if cfg.Hub.ReportInterval != "" {
-			env["SCION_TELEMETRY_HUB_REPORT_INTERVAL"] = cfg.Hub.ReportInterval
+			env["FABRIC_TELEMETRY_HUB_REPORT_INTERVAL"] = cfg.Hub.ReportInterval
 		}
 	}
 
 	// Local config
 	if cfg.Local != nil {
 		if cfg.Local.Enabled != nil {
-			env["SCION_TELEMETRY_LOCAL_ENABLED"] = strconv.FormatBool(*cfg.Local.Enabled)
-			env["SCION_TELEMETRY_DEBUG"] = strconv.FormatBool(*cfg.Local.Enabled)
+			env["FABRIC_TELEMETRY_LOCAL_ENABLED"] = strconv.FormatBool(*cfg.Local.Enabled)
+			env["FABRIC_TELEMETRY_DEBUG"] = strconv.FormatBool(*cfg.Local.Enabled)
 		}
 		if cfg.Local.File != "" {
-			env["SCION_TELEMETRY_LOCAL_FILE"] = cfg.Local.File
+			env["FABRIC_TELEMETRY_LOCAL_FILE"] = cfg.Local.File
 		}
 		if cfg.Local.Console != nil {
-			env["SCION_TELEMETRY_LOCAL_CONSOLE"] = strconv.FormatBool(*cfg.Local.Console)
+			env["FABRIC_TELEMETRY_LOCAL_CONSOLE"] = strconv.FormatBool(*cfg.Local.Console)
 		}
 	}
 
 	// Filter config
 	if cfg.Filter != nil {
 		if cfg.Filter.Enabled != nil {
-			env["SCION_TELEMETRY_FILTER_ENABLED"] = strconv.FormatBool(*cfg.Filter.Enabled)
+			env["FABRIC_TELEMETRY_FILTER_ENABLED"] = strconv.FormatBool(*cfg.Filter.Enabled)
 		}
 		if cfg.Filter.RespectDebugMode != nil {
-			env["SCION_TELEMETRY_FILTER_RESPECT_DEBUG_MODE"] = strconv.FormatBool(*cfg.Filter.RespectDebugMode)
+			env["FABRIC_TELEMETRY_FILTER_RESPECT_DEBUG_MODE"] = strconv.FormatBool(*cfg.Filter.RespectDebugMode)
 		}
 		if cfg.Filter.Events != nil {
 			if len(cfg.Filter.Events.Include) > 0 {
-				env["SCION_TELEMETRY_FILTER_INCLUDE"] = strings.Join(cfg.Filter.Events.Include, ",")
+				env["FABRIC_TELEMETRY_FILTER_INCLUDE"] = strings.Join(cfg.Filter.Events.Include, ",")
 			}
 			if len(cfg.Filter.Events.Exclude) > 0 {
-				env["SCION_TELEMETRY_FILTER_EXCLUDE"] = strings.Join(cfg.Filter.Events.Exclude, ",")
+				env["FABRIC_TELEMETRY_FILTER_EXCLUDE"] = strings.Join(cfg.Filter.Events.Exclude, ",")
 			}
 		}
 		if cfg.Filter.Attributes != nil {
 			if len(cfg.Filter.Attributes.Redact) > 0 {
-				env["SCION_TELEMETRY_REDACT"] = strings.Join(cfg.Filter.Attributes.Redact, ",")
+				env["FABRIC_TELEMETRY_REDACT"] = strings.Join(cfg.Filter.Attributes.Redact, ",")
 			}
 			if len(cfg.Filter.Attributes.Hash) > 0 {
-				env["SCION_TELEMETRY_HASH"] = strings.Join(cfg.Filter.Attributes.Hash, ",")
+				env["FABRIC_TELEMETRY_HASH"] = strings.Join(cfg.Filter.Attributes.Hash, ",")
 			}
 		}
 	}

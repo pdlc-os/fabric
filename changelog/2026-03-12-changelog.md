@@ -5,12 +5,12 @@ This release focuses on enhancing persistent storage and system observability. I
 ## 🚀 Features
 * **Grove Shared Directories (Phase 1 & 2):** Introduced a persistent, mutable storage layer shared between agents within a single grove.
     * Added support for both local filesystem storage and Kubernetes PersistentVolumeClaims (PVCs) with grove-scoped lifecycle management.
-    * New CLI commands added: `scion shared-dir list`, `create`, `remove`, and `info` for managing shared volumes.
-    * Shared volumes can be mounted at standard paths (`/scion-volumes/<name>`) or within the workspace (`/workspace/.scion-volumes/<name>`) (consolidated from commits 838b1b9, a8d50f8, 8b860c0).
+    * New CLI commands added: `fabric shared-dir list`, `create`, `remove`, and `info` for managing shared volumes.
+    * Shared volumes can be mounted at standard paths (`/fabric-volumes/<name>`) or within the workspace (`/workspace/.fabric-volumes/<name>`) (consolidated from commits 838b1b9, a8d50f8, 8b860c0).
 * **Enhanced Telemetry & Metrics Pipeline:** Major overhaul of the metrics pipeline for improved observability and aggregation.
-    * Enriched OTel resource attributes with `scion.harness`, `scion.model`, `scion.broker`, and `grove_id`.
+    * Enriched OTel resource attributes with `fabric.harness`, `fabric.model`, `fabric.broker`, and `grove_id`.
     * Expanded Codex-specific telemetry to capture tool usage, tool input/output, and detailed token counts (input, output, cached).
-    * Injected `SCION_HARNESS` and `SCION_MODEL` environment variables into agent containers to enable harness-aware telemetry (consolidated from commit 8246a76).
+    * Injected `FABRIC_HARNESS` and `FABRIC_MODEL` environment variables into agent containers to enable harness-aware telemetry (consolidated from commit 8246a76).
 
 ## 🐛 Fixes
 * **Metrics & Telemetry Reliability:**

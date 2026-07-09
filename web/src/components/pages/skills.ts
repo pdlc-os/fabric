@@ -34,8 +34,8 @@ import '../shared/view-toggle.js';
 type SkillSortField = 'name' | 'updated' | 'created';
 type SortDir = 'asc' | 'desc';
 
-@customElement('scion-page-skills')
-export class ScionPageSkills extends LitElement {
+@customElement('fabric-page-skills')
+export class FabricPageSkills extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -55,11 +55,11 @@ export class ScionPageSkills extends LitElement {
     listPageStyles,
     css`
       .skill-card {
-        background: var(--scion-surface, #ffffff);
-        border: 1px solid var(--scion-border, #e2e8f0);
-        border-radius: var(--scion-radius-lg, 0.75rem);
+        background: var(--fabric-surface, #ffffff);
+        border: 1px solid var(--fabric-border, #e2e8f0);
+        border-radius: var(--fabric-radius-lg, 0.75rem);
         padding: 1.5rem;
-        transition: all var(--scion-transition-fast, 150ms ease);
+        transition: all var(--fabric-transition-fast, 150ms ease);
         cursor: pointer;
         text-decoration: none;
         color: inherit;
@@ -67,8 +67,8 @@ export class ScionPageSkills extends LitElement {
       }
 
       .skill-card:hover {
-        border-color: var(--scion-primary, #3b82f6);
-        box-shadow: var(--scion-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+        border-color: var(--fabric-primary, #3b82f6);
+        box-shadow: var(--fabric-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
         transform: translateY(-2px);
       }
 
@@ -81,7 +81,7 @@ export class ScionPageSkills extends LitElement {
 
       .skill-meta {
         font-size: 0.813rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         display: flex;
         gap: 0.75rem;
         margin-top: 0.25rem;
@@ -89,7 +89,7 @@ export class ScionPageSkills extends LitElement {
 
       .skill-description {
         font-size: 0.875rem;
-        color: var(--scion-text, #1e293b);
+        color: var(--fabric-text, #1e293b);
         margin-top: 0.75rem;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -109,18 +109,18 @@ export class ScionPageSkills extends LitElement {
         display: inline-block;
         font-size: 0.6875rem;
         padding: 0.125rem 0.5rem;
-        background: var(--scion-bg-subtle, #f1f5f9);
-        border: 1px solid var(--scion-border, #e2e8f0);
+        background: var(--fabric-bg-subtle, #f1f5f9);
+        border: 1px solid var(--fabric-border, #e2e8f0);
         border-radius: 9999px;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
       }
 
       .skill-footer {
         font-size: 0.75rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         margin-top: 0.75rem;
         padding-top: 0.75rem;
-        border-top: 1px solid var(--scion-border, #e2e8f0);
+        border-top: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       .scope-badge {
@@ -130,8 +130,8 @@ export class ScionPageSkills extends LitElement {
         border-radius: 9999px;
         font-size: 0.6875rem;
         font-weight: 500;
-        background: var(--scion-bg-subtle, #f1f5f9);
-        color: var(--scion-text-muted, #64748b);
+        background: var(--fabric-bg-subtle, #f1f5f9);
+        color: var(--fabric-text-muted, #64748b);
       }
 
       .visibility-badge {
@@ -149,8 +149,8 @@ export class ScionPageSkills extends LitElement {
       }
 
       .visibility-badge.private {
-        background: var(--scion-bg-subtle, #f1f5f9);
-        color: var(--scion-text-muted, #64748b);
+        background: var(--fabric-bg-subtle, #f1f5f9);
+        color: var(--fabric-text-muted, #64748b);
       }
 
       .filter-bar {
@@ -171,7 +171,7 @@ export class ScionPageSkills extends LitElement {
       }
 
       th.sortable:hover {
-        color: var(--scion-text, #1e293b);
+        color: var(--fabric-text, #1e293b);
       }
 
       .sort-indicator {
@@ -199,12 +199,12 @@ export class ScionPageSkills extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
 
-    const stored = localStorage.getItem('scion-view-skills') as ViewMode | null;
+    const stored = localStorage.getItem('fabric-view-skills') as ViewMode | null;
     if (stored === 'grid' || stored === 'list') {
       this.viewMode = stored;
     }
 
-    const storedSort = localStorage.getItem('scion-sort-skills');
+    const storedSort = localStorage.getItem('fabric-sort-skills');
     if (storedSort) {
       try {
         const parsed = JSON.parse(storedSort);
@@ -321,7 +321,7 @@ export class ScionPageSkills extends LitElement {
       this.sortField = field;
       this.sortDir = field === 'name' ? 'asc' : 'desc';
     }
-    localStorage.setItem('scion-sort-skills', JSON.stringify({ field: this.sortField, dir: this.sortDir }));
+    localStorage.setItem('fabric-sort-skills', JSON.stringify({ field: this.sortField, dir: this.sortDir }));
   }
 
   private sortIndicator(field: SkillSortField): string {
@@ -333,11 +333,11 @@ export class ScionPageSkills extends LitElement {
       <div class="header">
         <h1>Skills</h1>
         <div class="header-actions">
-          <scion-view-toggle
+          <fabric-view-toggle
             .view=${this.viewMode}
-            storageKey="scion-view-skills"
+            storageKey="fabric-view-skills"
             @view-change=${this.onViewChange}
-          ></scion-view-toggle>
+          ></fabric-view-toggle>
           ${can(this.scopeCapabilities, 'create') ? html`
             <a href="/skills/new" style="text-decoration: none;">
               <sl-button variant="primary" size="small">
@@ -550,6 +550,6 @@ export class ScionPageSkills extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-skills': ScionPageSkills;
+    'fabric-page-skills': FabricPageSkills;
   }
 }

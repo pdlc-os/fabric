@@ -24,10 +24,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // mockAgentManager implements agent.Manager for testing workspace handlers.
@@ -35,7 +35,7 @@ type mockAgentManager struct {
 	agents []api.AgentInfo
 }
 
-func (m *mockAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *mockAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	return nil, nil
 }
 

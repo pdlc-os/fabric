@@ -25,21 +25,21 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1160)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-1160 1160,-1160 1160,4 -4,4"/>
-<!-- ScionApp -->
+<!-- FabricApp -->
 <g id="node1" class="node">
-<title>ScionApp</title>
+<title>FabricApp</title>
 <polygon fill="lightblue" stroke="black" points="645.5,-1070 389.5,-1070 389.5,-1034 645.5,-1034 645.5,-1070"/>
-<text xml:space="preserve" text-anchor="middle" x="517.5" y="-1043.95" font-family="Times,serif" font-size="14.00">{ScionApp | Top&#45;level container}</text>
+<text xml:space="preserve" text-anchor="middle" x="517.5" y="-1043.95" font-family="Times,serif" font-size="14.00">{FabricApp | Top&#45;level container}</text>
 </g>
 <!-- SharedComponents -->
 <g id="node2" class="node">
 <title>SharedComponents</title>
 <polygon fill="lightblue" stroke="black" points="661,-122 0,-122 0,-86 661,-86 661,-122"/>
-<text xml:space="preserve" text-anchor="middle" x="330.5" y="-95.95" font-family="Times,serif" font-size="14.00">{Shared Components | (e.g., ScionNav, ScionHeader, ScionDebugPanel, ScionJsonBrowser)}</text>
+<text xml:space="preserve" text-anchor="middle" x="330.5" y="-95.95" font-family="Times,serif" font-size="14.00">{Shared Components | (e.g., FabricNav, FabricHeader, FabricDebugPanel, FabricJsonBrowser)}</text>
 </g>
-<!-- ScionApp&#45;&gt;SharedComponents -->
+<!-- FabricApp&#45;&gt;SharedComponents -->
 <g id="edge1" class="edge">
-<title>ScionApp&#45;&gt;SharedComponents</title>
+<title>FabricApp&#45;&gt;SharedComponents</title>
 <path fill="none" stroke="black" d="M508.21,-1033.9C476.88,-975.16 375.03,-775.31 339.5,-596 305.28,-423.3 320.41,-209.73 327.54,-133.6"/>
 <polygon fill="black" stroke="black" points="331.02,-133.99 328.5,-123.7 324.05,-133.31 331.02,-133.99"/>
 <text xml:space="preserve" text-anchor="middle" x="354.5" y="-569.95" font-family="Times,serif" font-size="14.00">uses</text>
@@ -48,11 +48,11 @@
 <g id="node3" class="node">
 <title>ProfileShell</title>
 <polygon fill="lightblue" stroke="black" points="656.75,-596 378.25,-596 378.25,-560 656.75,-560 656.75,-596"/>
-<text xml:space="preserve" text-anchor="middle" x="517.5" y="-569.95" font-family="Times,serif" font-size="14.00">{Profile Shell | ScionProfileShell}</text>
+<text xml:space="preserve" text-anchor="middle" x="517.5" y="-569.95" font-family="Times,serif" font-size="14.00">{Profile Shell | FabricProfileShell}</text>
 </g>
-<!-- ScionApp&#45;&gt;ProfileShell -->
+<!-- FabricApp&#45;&gt;ProfileShell -->
 <g id="edge2" class="edge">
-<title>ScionApp&#45;&gt;ProfileShell</title>
+<title>FabricApp&#45;&gt;ProfileShell</title>
 <path fill="none" stroke="black" d="M517.5,-1033.64C517.5,-962.87 517.5,-695.69 517.5,-607.47"/>
 <polygon fill="black" stroke="black" points="521,-607.53 517.5,-597.53 514,-607.53 521,-607.53"/>
 <text xml:space="preserve" text-anchor="middle" x="547.5" y="-806.95" font-family="Times,serif" font-size="14.00">contains</text>
@@ -61,11 +61,11 @@
 <g id="node4" class="node">
 <title>PageComponents</title>
 <polygon fill="lightblue" stroke="black" points="1156,-596 675,-596 675,-560 1156,-560 1156,-596"/>
-<text xml:space="preserve" text-anchor="middle" x="915.5" y="-569.95" font-family="Times,serif" font-size="14.00">{Page Components | (e.g., ScionPageAgents, ScionPageProjects)}</text>
+<text xml:space="preserve" text-anchor="middle" x="915.5" y="-569.95" font-family="Times,serif" font-size="14.00">{Page Components | (e.g., FabricPageAgents, FabricPageProjects)}</text>
 </g>
-<!-- ScionApp&#45;&gt;PageComponents -->
+<!-- FabricApp&#45;&gt;PageComponents -->
 <g id="edge3" class="edge">
-<title>ScionApp&#45;&gt;PageComponents</title>
+<title>FabricApp&#45;&gt;PageComponents</title>
 <path fill="none" stroke="black" d="M532.14,-1033.64C592.43,-962.14 821.73,-690.2 893.73,-604.81"/>
 <polygon fill="black" stroke="black" points="896.4,-607.08 900.17,-597.18 891.05,-602.56 896.4,-607.08"/>
 <text xml:space="preserve" text-anchor="middle" x="746.5" y="-806.95" font-family="Times,serif" font-size="14.00">contains</text>
@@ -81,7 +81,7 @@
 <g id="node5" class="node">
 <title>ProfileNav</title>
 <polygon fill="lightblue" stroke="black" points="927.75,-122 679.25,-122 679.25,-86 927.75,-86 927.75,-122"/>
-<text xml:space="preserve" text-anchor="middle" x="803.5" y="-95.95" font-family="Times,serif" font-size="14.00">{Profile Nav | ScionProfileNav}</text>
+<text xml:space="preserve" text-anchor="middle" x="803.5" y="-95.95" font-family="Times,serif" font-size="14.00">{Profile Nav | FabricProfileNav}</text>
 </g>
 <!-- ProfileShell&#45;&gt;ProfileNav -->
 <g id="edge4" class="edge">

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/storage"
 )
 
 // ValidationReport is the result of validating a single resource's storage.

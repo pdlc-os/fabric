@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-const instrumentationScope = "github.com/GoogleCloudPlatform/scion/pkg/hub"
+const instrumentationScope = "github.com/pdlc-os/fabric/pkg/hub"
 
 // OTelMetricsRecorder implements MetricsRecorder using OTel instruments for
 // Cloud Monitoring export. It embeds a BrokerAuthMetrics for the /api/metrics
@@ -54,57 +54,57 @@ func NewOTelMetricsRecorder(mp metric.MeterProvider) (*OTelMetricsRecorder, erro
 
 	var err error
 
-	if r.authAttempts, err = m.Int64Counter("scion.hub.auth.attempts",
+	if r.authAttempts, err = m.Int64Counter("fabric.hub.auth.attempts",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating auth.attempts counter: %w", err)
 	}
-	if r.authSuccesses, err = m.Int64Counter("scion.hub.auth.successes",
+	if r.authSuccesses, err = m.Int64Counter("fabric.hub.auth.successes",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating auth.successes counter: %w", err)
 	}
-	if r.authFailures, err = m.Int64Counter("scion.hub.auth.failures",
+	if r.authFailures, err = m.Int64Counter("fabric.hub.auth.failures",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating auth.failures counter: %w", err)
 	}
-	if r.authDuration, err = m.Float64Histogram("scion.hub.auth.duration",
+	if r.authDuration, err = m.Float64Histogram("fabric.hub.auth.duration",
 		metric.WithUnit("ms"),
 	); err != nil {
 		return nil, fmt.Errorf("creating auth.duration histogram: %w", err)
 	}
-	if r.registrations, err = m.Int64Counter("scion.hub.registration.count",
+	if r.registrations, err = m.Int64Counter("fabric.hub.registration.count",
 		metric.WithUnit("{registration}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating registration.count counter: %w", err)
 	}
-	if r.joins, err = m.Int64Counter("scion.hub.join.attempts",
+	if r.joins, err = m.Int64Counter("fabric.hub.join.attempts",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating join.attempts counter: %w", err)
 	}
-	if r.joinFailures, err = m.Int64Counter("scion.hub.join.failures",
+	if r.joinFailures, err = m.Int64Counter("fabric.hub.join.failures",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating join.failures counter: %w", err)
 	}
-	if r.rotations, err = m.Int64Counter("scion.hub.rotation.count",
+	if r.rotations, err = m.Int64Counter("fabric.hub.rotation.count",
 		metric.WithUnit("{rotation}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating rotation.count counter: %w", err)
 	}
-	if r.dispatchAttempts, err = m.Int64Counter("scion.hub.dispatch.attempts",
+	if r.dispatchAttempts, err = m.Int64Counter("fabric.hub.dispatch.attempts",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating dispatch.attempts counter: %w", err)
 	}
-	if r.dispatchFailures, err = m.Int64Counter("scion.hub.dispatch.failures",
+	if r.dispatchFailures, err = m.Int64Counter("fabric.hub.dispatch.failures",
 		metric.WithUnit("{attempt}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating dispatch.failures counter: %w", err)
 	}
-	if r.connectedBrokers, err = m.Int64Gauge("scion.hub.brokers.connected",
+	if r.connectedBrokers, err = m.Int64Gauge("fabric.hub.brokers.connected",
 		metric.WithUnit("{broker}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating brokers.connected gauge: %w", err)

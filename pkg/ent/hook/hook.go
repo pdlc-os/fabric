@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent"
 )
 
 // The AccessPolicyFunc type is an adapter to allow the use of ordinary

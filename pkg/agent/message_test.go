@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 func TestMessage(t *testing.T) {
@@ -35,7 +35,7 @@ func TestMessage(t *testing.T) {
 					ContainerID:     "agent-1",
 					Name:            "test-agent",
 					ContainerStatus: "Up 2 minutes",
-					Labels:          map[string]string{"scion.name": "test-agent"},
+					Labels:          map[string]string{"fabric.name": "test-agent"},
 				},
 			}, nil
 		},
@@ -63,12 +63,12 @@ func TestMessage(t *testing.T) {
 	}
 
 	expectedCmds := []string{
-		"tmux send-keys -t scion:0 C-c",
+		"tmux send-keys -t fabric:0 C-c",
 		"tmux set-buffer -- hello world",
-		"tmux paste-buffer -t scion:0 -p",
-		"tmux send-keys -t scion:0 Enter",
-		"tmux send-keys -t scion:0 Enter",
-		"tmux send-keys -t scion:0 Enter",
+		"tmux paste-buffer -t fabric:0 -p",
+		"tmux send-keys -t fabric:0 Enter",
+		"tmux send-keys -t fabric:0 Enter",
+		"tmux send-keys -t fabric:0 Enter",
 	}
 
 	if len(capturedCmd) != len(expectedCmds) {
@@ -92,13 +92,13 @@ func TestBroadcast(t *testing.T) {
 					ContainerID:     "agent-1",
 					Name:            "test-agent-1",
 					ContainerStatus: "Up 2 minutes",
-					Labels:          map[string]string{"scion.name": "test-agent-1"},
+					Labels:          map[string]string{"fabric.name": "test-agent-1"},
 				},
 				{
 					ContainerID:     "agent-2",
 					Name:            "test-agent-2",
 					ContainerStatus: "Up 1 minute",
-					Labels:          map[string]string{"scion.name": "test-agent-2"},
+					Labels:          map[string]string{"fabric.name": "test-agent-2"},
 				},
 			}, nil
 		},
@@ -111,7 +111,7 @@ func TestBroadcast(t *testing.T) {
 		mu.Lock()
 		capturedCalls = append(capturedCalls, fmt.Sprintf("%s: %s", id, strings.Join(cmd, " ")))
 		// Signal done for each bare Enter keypress (two trailing Enters per agent delivery).
-		// Bare Enter: ["tmux", "send-keys", "-t", "scion:0", "Enter"] → len 5.
+		// Bare Enter: ["tmux", "send-keys", "-t", "fabric:0", "Enter"] → len 5.
 		if len(cmd) == 5 && cmd[0] == "tmux" && cmd[1] == "send-keys" && cmd[4] == "Enter" {
 			done <- struct{}{}
 		}
@@ -154,15 +154,15 @@ func TestBroadcast(t *testing.T) {
 
 	expectedCalls := []string{
 		"agent-1: tmux set-buffer -- hello",
-		"agent-1: tmux paste-buffer -t scion:0 -p",
-		"agent-1: tmux send-keys -t scion:0 Enter",
-		"agent-1: tmux send-keys -t scion:0 Enter",
-		"agent-1: tmux send-keys -t scion:0 Enter",
+		"agent-1: tmux paste-buffer -t fabric:0 -p",
+		"agent-1: tmux send-keys -t fabric:0 Enter",
+		"agent-1: tmux send-keys -t fabric:0 Enter",
+		"agent-1: tmux send-keys -t fabric:0 Enter",
 		"agent-2: tmux set-buffer -- hello",
-		"agent-2: tmux paste-buffer -t scion:0 -p",
-		"agent-2: tmux send-keys -t scion:0 Enter",
-		"agent-2: tmux send-keys -t scion:0 Enter",
-		"agent-2: tmux send-keys -t scion:0 Enter",
+		"agent-2: tmux paste-buffer -t fabric:0 -p",
+		"agent-2: tmux send-keys -t fabric:0 Enter",
+		"agent-2: tmux send-keys -t fabric:0 Enter",
+		"agent-2: tmux send-keys -t fabric:0 Enter",
 	}
 
 	if len(capturedCalls) != len(expectedCalls) {
@@ -193,7 +193,7 @@ func TestMessageRaw(t *testing.T) {
 					ContainerID:     "agent-1",
 					Name:            "test-agent",
 					ContainerStatus: "Up 2 minutes",
-					Labels:          map[string]string{"scion.name": "test-agent"},
+					Labels:          map[string]string{"fabric.name": "test-agent"},
 				},
 			}, nil
 		},
@@ -221,7 +221,7 @@ func TestMessageRaw(t *testing.T) {
 
 	// Raw should produce exactly one send-keys command with no trailing Enter
 	expectedCmds := []string{
-		"tmux send-keys -t scion:0 -- Escape",
+		"tmux send-keys -t fabric:0 -- Escape",
 	}
 
 	if len(capturedCmd) != len(expectedCmds) {

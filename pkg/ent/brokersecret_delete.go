@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/brokersecret"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/brokersecret"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // BrokerSecretDelete is the builder for deleting a BrokerSecret entity.

@@ -254,8 +254,8 @@ func TestUserMappingCRUD(t *testing.T) {
 		mapping := &DiscordUserMapping{
 			DiscordUserID:   "456789012345678901",
 			DiscordUsername: "alice",
-			ScionUserID:     "user-123",
-			ScionEmail:      "alice@example.com",
+			FabricUserID:     "user-123",
+			FabricEmail:      "alice@example.com",
 			LinkedAt:        time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
 		}
 		require.NoError(t, store.CreateUserMapping(ctx, mapping))
@@ -265,8 +265,8 @@ func TestUserMappingCRUD(t *testing.T) {
 		require.NotNil(t, got)
 		assert.Equal(t, "456789012345678901", got.DiscordUserID)
 		assert.Equal(t, "alice", got.DiscordUsername)
-		assert.Equal(t, "user-123", got.ScionUserID)
-		assert.Equal(t, "alice@example.com", got.ScionEmail)
+		assert.Equal(t, "user-123", got.FabricUserID)
+		assert.Equal(t, "alice@example.com", got.FabricEmail)
 	})
 
 	t.Run("GetNotFound", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestUserMappingCRUD(t *testing.T) {
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			ScionEmail:    "alice@example.com",
+			FabricEmail:    "alice@example.com",
 			LinkedAt:      time.Now().UTC(),
 		}))
 
@@ -298,22 +298,22 @@ func TestUserMappingCRUD(t *testing.T) {
 		assert.Nil(t, got)
 	})
 
-	t.Run("GetByScionUserID", func(t *testing.T) {
+	t.Run("GetByFabricUserID", func(t *testing.T) {
 		store := newTestStore(t)
 		ctx := context.Background()
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			ScionUserID:   "user-123",
+			FabricUserID:   "user-123",
 			LinkedAt:      time.Now().UTC(),
 		}))
 
-		got, err := store.GetUserMappingByScionUserID(ctx, "user-123")
+		got, err := store.GetUserMappingByFabricUserID(ctx, "user-123")
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.Equal(t, "456", got.DiscordUserID)
 
-		got, err = store.GetUserMappingByScionUserID(ctx, "nonexistent")
+		got, err = store.GetUserMappingByFabricUserID(ctx, "nonexistent")
 		require.NoError(t, err)
 		assert.Nil(t, got)
 	})
@@ -325,14 +325,14 @@ func TestUserMappingCRUD(t *testing.T) {
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID:   "456",
 			DiscordUsername: "alice",
-			ScionEmail:      "alice@old.com",
+			FabricEmail:      "alice@old.com",
 			LinkedAt:        time.Now().UTC(),
 		}))
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID:   "456",
 			DiscordUsername: "alice_new",
-			ScionEmail:      "alice@new.com",
+			FabricEmail:      "alice@new.com",
 			LinkedAt:        time.Now().UTC(),
 		}))
 
@@ -340,7 +340,7 @@ func TestUserMappingCRUD(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.Equal(t, "alice_new", got.DiscordUsername)
-		assert.Equal(t, "alice@new.com", got.ScionEmail)
+		assert.Equal(t, "alice@new.com", got.FabricEmail)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
@@ -349,7 +349,7 @@ func TestUserMappingCRUD(t *testing.T) {
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			ScionEmail:    "alice@example.com",
+			FabricEmail:    "alice@example.com",
 			LinkedAt:      time.Now().UTC(),
 		}))
 

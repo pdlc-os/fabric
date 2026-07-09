@@ -1,15 +1,15 @@
 ---
 title: Architecture Deep Dive
-description: Internal component interactions of the Scion platform.
+description: Internal component interactions of the Fabric platform.
 ---
 
 :::caution[Draft]
-This document is a **draft**, current as of **2026-02-11**. The Scion project is in pre-release/alpha and the architecture described here is subject to change.
+This document is a **draft**, current as of **2026-02-11**. The Fabric project is in pre-release/alpha and the architecture described here is subject to change.
 :::
 
 ## Overview
 
-Scion is a container-based orchestration platform for managing concurrent LLM-based code agents. It operates in two distinct modes:
+Fabric is a container-based orchestration platform for managing concurrent LLM-based code agents. It operates in two distinct modes:
 
 - **Solo Mode** &mdash; A local-only, zero-config experience where the CLI manages agents directly via a local container runtime.
 - **Hosted Mode** &mdash; A distributed architecture where a centralized **Hub** coordinates state and dispatches work to one or more **Runtime Brokers** that execute agents on remote or local compute.
@@ -23,7 +23,7 @@ Both modes share the same core abstractions (Projects, Agents, Templates, Harnes
 ```d2
 direction: right
 solo: Solo Mode {
-  cli: scion CLI
+  cli: fabric CLI
   manager: Agent Manager
   runtime: Container Runtime {
     tooltip: Docker / Apple / K8s
@@ -36,8 +36,8 @@ solo: Solo Mode {
 }
 
 hosted: Hosted Mode {
-  cli: scion CLI
-  hub: Scion Hub {
+  cli: fabric CLI
+  hub: Fabric Hub {
     tooltip: API + Store
   }
   web: Web Dashboard
@@ -61,15 +61,15 @@ hosted: Hosted Mode {
 
 ### Project
 
-A **Project** is the top-level grouping construct for agents. In Solo mode it is represented by a `.scion` directory on the filesystem; in Hosted mode it is a database record identified by its git remote URL.
+A **Project** is the top-level grouping construct for agents. In Solo mode it is represented by a `.fabric` directory on the filesystem; in Hosted mode it is a database record identified by its git remote URL.
 
 **Resolution order (Solo):**
 1. Explicit `--project` flag
-2. Project-level `.scion` directory (walking up from cwd)
-3. Global `~/.scion` directory
+2. Project-level `.fabric` directory (walking up from cwd)
+3. Global `~/.fabric` directory
 
 **Key properties:**
-- **Name**: Slugified from the parent directory containing `.scion`.
+- **Name**: Slugified from the parent directory containing `.fabric`.
 - **Git remote** (Hosted): Normalized remote URL used as a unique identifier for cross-broker project identity.
 - **Default Runtime Broker** (Hosted): The broker used when creating agents without an explicit target.
 
@@ -100,9 +100,9 @@ Agent identity varies by mode:
 Templates are configuration blueprints for agents. They define:
 
 - A `home/` directory tree to copy into the agent's home.
-- A `scion-agent.json` (or `.yaml`) file specifying harness type, environment variables, volumes, command arguments, model overrides, container image, and resource requirements.
+- A `fabric-agent.json` (or `.yaml`) file specifying harness type, environment variables, volumes, command arguments, model overrides, container image, and resource requirements.
 
-**Template chain**: Templates support inheritance via a `base` field. When resolving a template, Scion walks the chain and merges configurations bottom-up (base first, then overrides).
+**Template chain**: Templates support inheritance via a `base` field. When resolving a template, Fabric walks the chain and merges configurations bottom-up (base first, then overrides).
 
 **Scopes (Hosted):** Templates can be scoped as `global`, `project`, or `user`, with visibility controls (`private`, `project`, `public`).
 
@@ -184,7 +184,7 @@ The Go codebase is organized into the following packages:
 
 ```
 pkg/
-├── api/             # Shared types: AgentInfo, ScionConfig, Harness, AuthConfig, etc.
+├── api/             # Shared types: AgentInfo, FabricConfig, Harness, AuthConfig, etc.
 ├── agent/           # Agent lifecycle: Manager interface, provisioning, run, delete
 ├── agentcache/      # In-memory agent state caching
 ├── config/          # Settings, template resolution, path management, embeds
@@ -207,7 +207,7 @@ pkg/
 ├── credentials/     # Host credential discovery
 ├── daemon/          # Background daemon support
 ├── gcp/             # GCP-specific utilities
-├── sciontool/       # Internal CLI status tool (used by agents)
+├── fabrictool/       # Internal CLI status tool (used by agents)
 ├── util/            # Shared utilities (git, env expansion, file ops)
 └── version/         # Build version info
 ```
@@ -257,10 +257,10 @@ Hub and Runtime Broker servers have their own entry points but reuse the same `a
 ### Solo Mode
 
 ```
-scion start <name> --task "..." [--template claude] [--profile docker-local]
+fabric start <name> --task "..." [--template claude] [--profile docker-local]
 ```
 
-1. **Project resolution**: `config.GetResolvedProjectDir()` locates the `.scion` directory.
+1. **Project resolution**: `config.GetResolvedProjectDir()` locates the `.fabric` directory.
 2. **Settings loading**: `config.LoadSettings()` reads `settings.yaml` from the project, merging with environment variable overrides.
 3. **Provisioning** (`agent.ProvisionAgent`):
    a. Creates `agents/<name>/home/` and `agents/<name>/workspace/` directories.
@@ -268,19 +268,19 @@ scion start <name> --task "..." [--template claude] [--profile docker-local]
    c. Merges configuration: `template base → template → settings (harness/profile) → agent overrides`.
    d. Creates a git worktree at `agents/<name>/workspace/` on a new branch (slugified agent name).
    e. Runs harness-specific provisioning (`harness.Provision()`).
-   f. Writes `scion-agent.json` and `agent-info.json`.
+   f. Writes `fabric-agent.json` and `agent-info.json`.
 4. **Image resolution**: Resolves the container image from settings/template/CLI override. Pulls if not present.
 5. **Container launch** (`runtime.Run`):
    a. Builds container run arguments (volumes, env vars, labels, resource limits).
    b. Mounts the agent home at `/home/<user>` and workspace at `/workspace`.
-   c. If tmux is enabled, wraps the harness command in a tmux session named `scion`.
+   c. If tmux is enabled, wraps the harness command in a tmux session named `fabric`.
    d. Launches the container in detached mode.
 6. **Status update**: Writes `agent-info.json` with status `running`.
 
 ### Hosted Mode
 
 ```
-scion start <name> --task "..." --hub
+fabric start <name> --task "..." --hub
 ```
 
 1. **Hub sync**: The CLI registers/syncs the project with the Hub if not already registered.
@@ -336,7 +336,7 @@ The Hub supports multiple authentication methods:
 | **Dev Auth** | Development shortcut using a static token |
 | **JWT (User)** | Issued after login; used for API calls |
 | **JWT (Agent)** | Scoped tokens issued to agents for Hub API access from within containers |
-| **UAT** | User access token — programmatic access with `scion_pat_` prefixed tokens |
+| **UAT** | User access token — programmatic access with `fabric_pat_` prefixed tokens |
 | **HMAC** | Runtime Broker authentication using shared secrets |
 
 ### Persistence (Store)
@@ -402,7 +402,7 @@ The control channel uses a custom WebSocket protocol (`pkg/wsprotocol`) with the
 1. Admin creates a broker record in the Hub: `POST /api/v1/runtime-brokers`.
 2. Hub generates a short-lived **join token**: `POST /api/v1/brokers/join`.
 3. Broker uses the join token to obtain HMAC credentials: `POST /api/v1/brokers/join` (with token).
-4. Broker stores credentials locally (`~/.scion/broker-credentials.json`).
+4. Broker stores credentials locally (`~/.fabric/broker-credentials.json`).
 5. Broker authenticates subsequent requests using HMAC-SHA256 signatures.
 
 ---
@@ -413,7 +413,7 @@ Configuration is managed by `pkg/config` and uses a layered resolution strategy.
 
 ### Settings File
 
-Located at `.scion/settings.yaml` (YAML preferred) or `.scion/settings.json` (JSONC). Key sections:
+Located at `.fabric/settings.yaml` (YAML preferred) or `.fabric/settings.json` (JSONC). Key sections:
 
 ```yaml
 active_profile: docker-local
@@ -429,13 +429,13 @@ runtimes:
     host: ""          # Remote Docker host (optional)
     tmux: true
   kubernetes:
-    namespace: scion-agents
+    namespace: fabric-agents
     sync: tar
 
 harnesses:
   claude:
     image: claude-code-sandbox:latest
-    user: scion
+    user: fabric
   gemini:
     image: gemini-cli-sandbox:latest
     user: gemini
@@ -455,19 +455,19 @@ profiles:
 Configuration values are resolved in this order (highest priority wins):
 
 1. **CLI flags** (e.g., `--image`, `--profile`)
-2. **Agent-level** `scion-agent.json` (per-agent overrides)
+2. **Agent-level** `fabric-agent.json` (per-agent overrides)
 3. **Template chain** (merged bottom-up from base to leaf)
 4. **Settings file** (profile → harness → runtime)
-5. **Environment variables** (`SCION_` prefix for settings overrides; `$VAR` substitution in values)
+5. **Environment variables** (`FABRIC_` prefix for settings overrides; `$VAR` substitution in values)
 6. **Embedded defaults** (`pkg/config/embeds/default_settings.yaml`)
 
 ### Workspace Strategy
 
-Scion uses **git worktrees** for workspace isolation:
+Fabric uses **git worktrees** for workspace isolation:
 
 1. When an agent starts in a git repository, a worktree is created at `agents/<name>/workspace/` on a new branch.
 2. The branch name defaults to the slugified agent name.
-3. If a branch already exists and has a worktree, Scion reuses it (with a warning).
+3. If a branch already exists and has a worktree, Fabric reuses it (with a warning).
 4. On deletion, the worktree and optionally the branch are cleaned up.
 5. For non-git projects or explicit `--workspace` paths, the directory is bind-mounted directly.
 
@@ -480,7 +480,7 @@ The web dashboard (`web/`) provides a visual interface for Hosted mode operation
 | Layer | Technology | Location |
 | :--- | :--- | :--- |
 | Client SPA | Lit + TypeScript + Vite | `web/src/client/` |
-| Server | Go (consolidated into the `scion` binary) | `pkg/hub/web.go` |
+| Server | Go (consolidated into the `fabric` binary) | `pkg/hub/web.go` |
 
 The server layer (enabled via `--enable-web`) provides:
 - Static asset serving and SPA shell rendering.
@@ -522,7 +522,7 @@ In Hosted mode, credentials can also be:
 
 ### Project Security
 
-When a project lives inside a git repository, Scion **requires** that `agents/` is listed in `.gitignore` to prevent accidental credential or state leakage:
+When a project lives inside a git repository, Fabric **requires** that `agents/` is listed in `.gitignore` to prevent accidental credential or state leakage:
 
 ```
 security error: '<path>/agents/' must be in .gitignore when using a project-local project
@@ -534,7 +534,7 @@ security error: '<path>/agents/' must be in .gitignore when using a project-loca
 User -> Hub API: OAuth/DevAuth -> JWT (User Token)
 Agent -> Hub API: JWT (Agent Token, scoped)
 Broker -> Hub API: HMAC-SHA256 Signed Request
-CLI -> Hub API: UAT (scion_pat_...)
+CLI -> Hub API: UAT (fabric_pat_...)
 ```
 
 ---
@@ -572,7 +572,7 @@ Agents write status to a file inside the container (e.g., `/home/<user>/.gemini-
 | `STARTING` | Container is initializing |
 | `THINKING` | LLM is processing |
 | `EXECUTING` | Agent is running a tool/command |
-| `WAITING_FOR_INPUT` | Human-in-the-loop required (`scion attach`) |
+| `WAITING_FOR_INPUT` | Human-in-the-loop required (`fabric attach`) |
 | `COMPLETED` | Task finished |
 | `ERROR` | Unrecoverable failure |
 
@@ -609,4 +609,4 @@ Agent records in the Hub use a `StateVersion` field for optimistic concurrency c
 
 ### Filesystem as Source of Truth (Solo)
 
-In Solo mode, the filesystem (`agents/<name>/scion-agent.json`, `agent-info.json`) is the only source of truth. There is no local database. This keeps Solo mode truly zero-config.
+In Solo mode, the filesystem (`agents/<name>/fabric-agent.json`, `agent-info.json`) is the only source of truth. There is no local database. This keeps Solo mode truly zero-config.

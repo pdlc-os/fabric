@@ -37,8 +37,8 @@ type DiscoveredPlugin struct {
 // DiscoverPlugins finds all available plugins from settings configuration and
 // filesystem scanning. Discovery order:
 //  1. Explicit path in settings
-//  2. Scan ~/.scion/plugins/<type>/ directory
-//  3. Search $PATH for scion-plugin-<name> (lower priority)
+//  2. Scan ~/.fabric/plugins/<type>/ directory
+//  3. Search $PATH for fabric-plugin-<name> (lower priority)
 func DiscoverPlugins(cfg PluginsConfig, pluginsDir string, logger *slog.Logger) []DiscoveredPlugin {
 	var discovered []DiscoveredPlugin
 
@@ -104,7 +104,7 @@ func resolvePluginPath(name, pluginType, explicitPath, pluginsDir string, logger
 		logger.Warn("Explicit plugin path not found", "path", explicitPath, "name", name)
 	}
 
-	// 2. Scan ~/.scion/plugins/<type>/ directory
+	// 2. Scan ~/.fabric/plugins/<type>/ directory
 	typeDir := filepath.Join(pluginsDir, pluginType)
 	candidate := filepath.Join(typeDir, binaryName)
 	if _, err := os.Stat(candidate); err == nil {
@@ -170,13 +170,13 @@ func scanPluginDir(dir, pluginType string, logger *slog.Logger) []DiscoveredPlug
 	return discovered
 }
 
-// DefaultPluginsDir returns the default plugins directory path (~/.scion/plugins).
+// DefaultPluginsDir returns the default plugins directory path (~/.fabric/plugins).
 func DefaultPluginsDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
-	return filepath.Join(home, ".scion", "plugins"), nil
+	return filepath.Join(home, ".fabric", "plugins"), nil
 }
 
 // expandPath expands ~ to the user's home directory.

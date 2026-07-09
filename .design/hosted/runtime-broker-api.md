@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-The **Runtime Broker API** is the control plane interface exposed by a Scion Runtime Broker (e.g., a Kubernetes cluster or a dedicated Docker server). It allows the **Scion Hub** to remotely manage the lifecycle of agents, workspaces, and executions.
+The **Runtime Broker API** is the control plane interface exposed by a Fabric Runtime Broker (e.g., a Kubernetes cluster or a dedicated Docker server). It allows the **Fabric Hub** to remotely manage the lifecycle of agents, workspaces, and executions.
 
 This API effectively exposes the `pkg/agent.Manager` interface over a network boundary, adding authentication, multi-tenancy context, and streaming capabilities for PTY access.
 
@@ -62,10 +62,10 @@ Runtime Broker authentication uses **HMAC-based request signing** as the primary
 
 | Header | Format | Description |
 |--------|--------|-------------|
-| `X-Scion-Broker-ID` | UUID or slug | Unique identifier for the Runtime Broker |
-| `X-Scion-Timestamp` | RFC 3339 | Request timestamp (e.g., `2025-01-30T12:00:00Z`) |
-| `X-Scion-Nonce` | Base64 (16 bytes) | Random nonce for replay prevention |
-| `X-Scion-Signature` | Base64 (32 bytes) | HMAC-SHA256 signature |
+| `X-Fabric-Broker-ID` | UUID or slug | Unique identifier for the Runtime Broker |
+| `X-Fabric-Timestamp` | RFC 3339 | Request timestamp (e.g., `2025-01-30T12:00:00Z`) |
+| `X-Fabric-Nonce` | Base64 (16 bytes) | Random nonce for replay prevention |
+| `X-Fabric-Signature` | Base64 (32 bytes) | HMAC-SHA256 signature |
 
 The shared secret is established during broker registration (see [Runtime Broker Auth](auth/runtime-broker-auth.md) Section 3).
 
@@ -248,8 +248,8 @@ POST /api/v1/agents
   "userId": "user-abc",
   "config": {
     "template": "claude",
-    "image": "scion-claude:latest",
-    "homeDir": "/home/scion",
+    "image": "fabric-claude:latest",
+    "homeDir": "/home/fabric",
     "workspace": "/workspace",
     "repoRoot": "/repo",
     "env": ["FOO=bar", "BAZ=qux"],
@@ -267,7 +267,7 @@ POST /api/v1/agents
     "task": "Fix the authentication bug",
     "commandArgs": ["--resume"],
     "kubernetes": {
-      "namespace": "scion",
+      "namespace": "fabric",
       "resources": {
         "requests": {"cpu": "1", "memory": "2Gi"},
         "limits": {"cpu": "2", "memory": "4Gi"}
@@ -279,7 +279,7 @@ POST /api/v1/agents
     "LOG_LEVEL": "debug",
     "PROJECT_ID": "my-project"
   },
-  "hubEndpoint": "https://hub.scion.dev",
+  "hubEndpoint": "https://hub.fabric.dev",
   "agentToken": "eyJ..."
 }
 ```
@@ -313,7 +313,7 @@ GET /api/v1/agents/{agentId}
   "containerStatus": "Up 2 hours",
 
   "config": {
-    "image": "scion-claude:latest",
+    "image": "fabric-claude:latest",
     "template": "claude",
     "harness": "claude",
     "resources": {"cpu": "1", "memory": "2Gi"}
@@ -438,7 +438,7 @@ Upgrade: websocket
 |-----------|------|-------------|
 | `streamId` | string | Hub-assigned stream ID (for multiplexing) |
 
-**Subprotocol:** `scion-pty-v1`
+**Subprotocol:** `fabric-pty-v1`
 
 **Message Format:**
 ```json
@@ -632,7 +632,7 @@ All errors return a standardized JSON body:
 
 | API Concept | Go Type (`pkg/api`) |
 |-------------|---------------------|
-| Agent Config | `StartOptions` / `ScionConfig` |
+| Agent Config | `StartOptions` / `FabricConfig` |
 | Agent Details | `AgentInfo` |
 | Resources | `K8sResources` |
 | Volume Mount | `VolumeMount` |

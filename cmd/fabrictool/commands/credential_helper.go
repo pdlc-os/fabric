@@ -22,8 +22,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // credentialHelperCmd implements a git credential helper that returns fresh
@@ -34,7 +34,7 @@ import (
 //
 // Usage in git config:
 //
-//	git config credential.helper '!sciontool credential-helper'
+//	git config credential.helper '!fabrictool credential-helper'
 var credentialHelperCmd = &cobra.Command{
 	Use:    "credential-helper",
 	Short:  "Git credential helper for GitHub App tokens",

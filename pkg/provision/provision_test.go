@@ -26,8 +26,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -280,7 +280,7 @@ func TestAcquireProvisionLock_ContextCancellation(t *testing.T) {
 // --- WorktreePerAgent: creates worktree on shared checkout ---
 
 func TestProvision_WorktreePerAgent(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -350,7 +350,7 @@ func TestProvision_WorktreePerAgent(t *testing.T) {
 // --- WorktreePerAgent: second agent gets independent worktree ---
 
 func TestProvision_WorktreePerAgent_TwoAgents(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -425,7 +425,7 @@ func TestProvision_WorktreePerAgent_TwoAgents(t *testing.T) {
 // --- Two projects sharing a parent dir: independent sentinels ---
 
 func TestProvision_WorktreePerAgent_TwoProjects(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepoA := initBareGitRepo(t)
 	bareRepoB := initBareGitRepo(t)
@@ -503,7 +503,7 @@ func TestProvision_WorktreePerAgent_TwoProjects(t *testing.T) {
 // --- Concurrent same-project provisioning ---
 
 func TestProvision_WorktreePerAgent_ConcurrentSameProject(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -557,7 +557,7 @@ func TestProvision_WorktreePerAgent_ConcurrentSameProject(t *testing.T) {
 // --- Full clone depth for worktree mode ---
 
 func TestProvision_WorktreePerAgent_FullCloneDepth(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -602,7 +602,7 @@ func TestWorktreePath(t *testing.T) {
 // --- Create-or-Attach + Sharer Registration ---
 
 func TestProvision_WorktreePerAgent_CreateAndJoin(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -658,7 +658,7 @@ func TestProvision_WorktreePerAgent_CreateAndJoin(t *testing.T) {
 }
 
 func TestProvision_WorktreePerAgent_UniqueBranches_SoleSharers(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 
@@ -709,7 +709,7 @@ func TestProvision_WorktreePerAgent_UniqueBranches_SoleSharers(t *testing.T) {
 }
 
 func TestProvision_WorktreePerAgent_ExistingRegistration_Idempotent(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	locker := newTestLocker()
 	bareRepo := initBareGitRepo(t)
 

@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This document analyzes the three systems that capture and surface harness activity in Scion: the **hook-based event system**, the **message broker integration**, and the **Agent Control Protocol (ACP)**. It identifies the root cause of thinking/reasoning content leaking into chat, documents data loss points in the message pipeline, and proposes an architecture for clean chat integration with content-type filtering.
+This document analyzes the three systems that capture and surface harness activity in Fabric: the **hook-based event system**, the **message broker integration**, and the **Agent Control Protocol (ACP)**. It identifies the root cause of thinking/reasoning content leaking into chat, documents data loss points in the message pipeline, and proposes an architecture for clean chat integration with content-type filtering.
 
 ---
 
@@ -13,7 +13,7 @@ This document analyzes the three systems that capture and surface harness activi
 
 ### Overview
 
-The hook system is the low-level mechanism for capturing harness events inside agent containers and updating agent state in the Hub. It operates as a **unidirectional pipe**: the harness fires lifecycle events → `sciontool hook` normalizes them → handlers dispatch state updates, log entries, telemetry, and outbound messages.
+The hook system is the low-level mechanism for capturing harness events inside agent containers and updating agent state in the Hub. It operates as a **unidirectional pipe**: the harness fires lifecycle events → `fabrictool hook` normalizes them → handlers dispatch state updates, log entries, telemetry, and outbound messages.
 
 ### Hook Configuration
 
@@ -30,7 +30,7 @@ Hooks are configured in the harness's embedded `settings.json`. For Claude Code 
 | `PostToolUse` | After a tool executes |
 | `Notification` (matcher: `ToolPermission`) | Tool permission requested |
 
-All hooks invoke the same command: `sciontool hook --dialect=claude`, receiving the hook payload as JSON via stdin.
+All hooks invoke the same command: `fabrictool hook --dialect=claude`, receiving the hook payload as JSON via stdin.
 
 ### Event Normalization Pipeline
 
@@ -38,19 +38,19 @@ All hooks invoke the same command: `sciontool hook --dialect=claude`, receiving 
 Claude Code fires hook event
     │
     ▼
-JSON payload via stdin to: sciontool hook --dialect=claude
+JSON payload via stdin to: fabrictool hook --dialect=claude
     │
     ▼
-HarnessProcessor.ProcessFromStdin()          [pkg/sciontool/hooks/harness.go]
+HarnessProcessor.ProcessFromStdin()          [pkg/fabrictool/hooks/harness.go]
     │
     ▼
-ClaudeDialect.Parse(data)                    [pkg/sciontool/hooks/dialects/claude.go]
+ClaudeDialect.Parse(data)                    [pkg/fabrictool/hooks/dialects/claude.go]
     │   Maps raw event names → normalized names
     │   Extracts: prompt, tool_name, message, tokens, session_id, etc.
     │   For Stop/SubagentStop: extracts AssistantText (see below)
     │
     ▼
-Normalized hooks.Event struct                [pkg/sciontool/hooks/types.go]
+Normalized hooks.Event struct                [pkg/fabrictool/hooks/types.go]
     │
     ▼
 Handler chain (called sequentially):
@@ -64,7 +64,7 @@ Handler chain (called sequentially):
 
 ### Normalized Event Types
 
-The dialect parser maps harness-specific event names to a normalized vocabulary (`pkg/sciontool/hooks/types.go`):
+The dialect parser maps harness-specific event names to a normalized vocabulary (`pkg/fabrictool/hooks/types.go`):
 
 | Normalized Event | Claude Raw Name | Gemini Raw Name |
 |---|---|---|
@@ -108,7 +108,7 @@ type EventData struct {
 
 **This is the critical mechanism for the thinking/reasoning content leak.**
 
-On `agent-end` events (Stop only — SubagentStop now normalizes to `subagent-end` and is excluded), the Claude dialect extracts the assistant's final response text from two sources (`pkg/sciontool/hooks/dialects/claude.go:110-118`):
+On `agent-end` events (Stop only — SubagentStop now normalizes to `subagent-end` and is excluded), the Claude dialect extracts the assistant's final response text from two sources (`pkg/fabrictool/hooks/dialects/claude.go:110-118`):
 
 #### Source 1: `last_assistant_message` field (preferred)
 
@@ -153,7 +153,7 @@ The `last_assistant_message` path (the preferred, non-racy path) receives a **fl
 
 ### Handler Data Flow: HubHandler
 
-The HubHandler (`pkg/sciontool/hooks/handlers/hub.go`) is the bridge between hook events and the Hub API. Key behaviors:
+The HubHandler (`pkg/fabrictool/hooks/handlers/hub.go`) is the bridge between hook events and the Hub API. Key behaviors:
 
 | Event | Hub Action | Details |
 |---|---|---|
@@ -162,7 +162,7 @@ The HubHandler (`pkg/sciontool/hooks/handlers/hub.go`) is the bridge between hoo
 | `model-start` | `UpdateStatus(thinking)` | Respects sticky states |
 | `tool-start` | `UpdateStatus(executing)` | Reports tool name; detects `AskUserQuestion`/`ExitPlanMode` as `waiting_for_input` |
 | `agent-end` | **`SendOutboundMessage(AssistantText)`** + `UpdateStatus(idle)` | **Main agent only — this forwards thinking content** |
-| `subagent-end` | *(no action)* | Excluded — subagent turns do not affect scion agent state |
+| `subagent-end` | *(no action)* | Excluded — subagent turns do not affect fabric agent state |
 | `session-end` | `ReportState(stopped)` | Terminal state |
 | `notification` | `UpdateStatus(waiting_for_input)` | Tool permission requests |
 
@@ -192,7 +192,7 @@ Note: the message type is `assistant-reply`, which is **outside the validated ty
 | Session ID | ✅ | ❌ | ❌ | ❌ |
 | Token Tracking | ✅ | ✅ | ❌ | ✅ (OTLP) |
 
-Key observation: Only the Claude dialect extracts `AssistantText`. The Gemini dialect (`pkg/sciontool/hooks/dialects/gemini.go`) does not implement assistant text extraction at all — it has no equivalent of the `last_assistant_message` / `transcript_path` logic. This means the thinking leak is **Claude-specific**.
+Key observation: Only the Claude dialect extracts `AssistantText`. The Gemini dialect (`pkg/fabrictool/hooks/dialects/gemini.go`) does not implement assistant text extraction at all — it has no equivalent of the `last_assistant_message` / `transcript_path` logic. This means the thinking leak is **Claude-specific**.
 
 ---
 
@@ -210,10 +210,10 @@ Broker Interface
 
 Topic hierarchy:
 ```
-scion.grove.<groveID>.agent.<agentSlug>.messages   — agent-targeted
-scion.grove.<groveID>.user.<userID>.messages        — user-targeted
-scion.grove.<groveID>.broadcast                     — grove broadcast
-scion.global.broadcast                              — global broadcast
+fabric.grove.<groveID>.agent.<agentSlug>.messages   — agent-targeted
+fabric.grove.<groveID>.user.<userID>.messages        — user-targeted
+fabric.grove.<groveID>.broadcast                     — grove broadcast
+fabric.global.broadcast                              — global broadcast
 ```
 
 ### Data Flow: Hook → Hub → Broker → Chat
@@ -221,7 +221,7 @@ scion.global.broadcast                              — global broadcast
 ```
 Hook Layer (inside agent container):
 ┌──────────────────────────────────────────────────┐
-│ sciontool hook → HubHandler.Handle()             │
+│ fabrictool hook → HubHandler.Handle()             │
 │ • SendOutboundMessage(AssistantText)             │
 │ • POST /api/v1/agents/{id}/outbound-message      │
 └─────────────────────┬────────────────────────────┘
@@ -240,7 +240,7 @@ Hub Layer (handleAgentOutboundMessage):
 │        └── channelRegistry.Dispatch() → Slack    │
 └─────────────────────┬────────────────────────────┘
                       │ Broker publishes to topic:
-                      │ scion.grove.<id>.user.<id>.messages
+                      │ fabric.grove.<id>.user.<id>.messages
                       ▼
 Broker Plugin:
 ┌──────────────────────────────────────────────────┐
@@ -461,14 +461,14 @@ Extend `StructuredMessage` with a `ContentType` field that classifies the conten
 
 | Mode | Who Sees What | Use Case |
 |---|---|---|
-| **Normal** | Only explicit `scion message` output | Chat users who want signal, not noise |
+| **Normal** | Only explicit `fabric message` output | Chat users who want signal, not noise |
 | **Verbose** | Explicit messages + assistant replies (no thinking) | Power users who want to follow agent work |
 | **Full fidelity** | Everything including thinking | ACP remote interface, debugging |
 
 ### Current State vs. Desired State
 
-**Current**: All `assistant-reply` messages (including thinking content) flow through the same pipeline as explicit `scion message` commands. The chat app cannot distinguish between:
-- A deliberate message from the agent (`sciontool status ask_user "question"`)
+**Current**: All `assistant-reply` messages (including thinking content) flow through the same pipeline as explicit `fabric message` commands. The chat app cannot distinguish between:
+- A deliberate message from the agent (`fabrictool status ask_user "question"`)
 - An automatic assistant reply dump from a hook (thinking + response text)
 - A status notification (COMPLETED, WAITING_FOR_INPUT)
 
@@ -515,7 +515,7 @@ type StructuredMessage struct {
 #### 3. Hub Filtering by Mode
 
 The Hub's outbound message handler should tag messages with visibility:
-- Explicit `scion message` → visibility: `normal`
+- Explicit `fabric message` → visibility: `normal`
 - `ask_user` messages → visibility: `normal`
 - Hook-generated `assistant-reply` → visibility: `verbose`
 
@@ -555,13 +555,13 @@ This gives the mobile client full control over what to display, enabling feature
 | File | Purpose |
 |---|---|
 | `pkg/harness/claude/embeds/settings.json` | Hook event definitions for Claude |
-| `cmd/sciontool/commands/hook.go` | Hook command entry point |
-| `pkg/sciontool/hooks/types.go` | Event and EventData structures |
-| `pkg/sciontool/hooks/harness.go` | HarnessProcessor pipeline |
-| `pkg/sciontool/hooks/dialects/claude.go` | Claude event parser; **AssistantText extraction** |
-| `pkg/sciontool/hooks/dialects/gemini.go` | Gemini event parser (no AssistantText) |
-| `pkg/sciontool/hooks/handlers/hub.go` | **Forwards AssistantText to Hub as outbound message** |
-| `pkg/sciontool/hooks/handlers/status.go` | Local agent-info.json writer |
+| `cmd/fabrictool/commands/hook.go` | Hook command entry point |
+| `pkg/fabrictool/hooks/types.go` | Event and EventData structures |
+| `pkg/fabrictool/hooks/harness.go` | HarnessProcessor pipeline |
+| `pkg/fabrictool/hooks/dialects/claude.go` | Claude event parser; **AssistantText extraction** |
+| `pkg/fabrictool/hooks/dialects/gemini.go` | Gemini event parser (no AssistantText) |
+| `pkg/fabrictool/hooks/handlers/hub.go` | **Forwards AssistantText to Hub as outbound message** |
+| `pkg/fabrictool/hooks/handlers/status.go` | Local agent-info.json writer |
 
 ### Message Broker
 | File | Purpose |
@@ -572,12 +572,12 @@ This gives the mobile client full control over what to display, enabling feature
 | `pkg/hub/handlers.go:1927` | `handleAgentOutboundMessage` — Hub endpoint |
 | `pkg/hub/events.go` | Internal event publishing (SSE) |
 | `pkg/messages/types.go` | StructuredMessage definition |
-| `pkg/sciontool/hub/client.go` | Sciontool HTTP client for Hub |
+| `pkg/fabrictool/hub/client.go` | Fabrictool HTTP client for Hub |
 
 ### Chat App
 | File | Purpose |
 |---|---|
-| `extras/scion-chat-app/internal/chatapp/notifications.go` | **Chat app message consumer** |
+| `extras/fabric-chat-app/internal/chatapp/notifications.go` | **Chat app message consumer** |
 
 ### ACP / Control Channel
 | File | Purpose |
@@ -613,11 +613,11 @@ This gives the mobile client full control over what to display, enabling feature
 
 ### 2026-05-06 — Separate SubagentStop from main agent state
 
-**Problem**: `SubagentStop` events were normalized to the same `agent-end` event as main-agent `Stop`, causing subagent turn completions to drive scion agent state changes (idle status updates, outbound assistant-reply messages, turn count increments in limits tracking). Only the main agent loop should drive the scion agent's externally-visible state.
+**Problem**: `SubagentStop` events were normalized to the same `agent-end` event as main-agent `Stop`, causing subagent turn completions to drive fabric agent state changes (idle status updates, outbound assistant-reply messages, turn count increments in limits tracking). Only the main agent loop should drive the fabric agent's externally-visible state.
 
 **Changes**:
-- Added `EventSubagentEnd = "subagent-end"` normalized event constant (`pkg/sciontool/hooks/types.go`)
-- Split `normalizeEventName()` in the Claude dialect: `Stop` → `agent-end`, `SubagentStop` → `subagent-end` (`pkg/sciontool/hooks/dialects/claude.go`)
+- Added `EventSubagentEnd = "subagent-end"` normalized event constant (`pkg/fabrictool/hooks/types.go`)
+- Split `normalizeEventName()` in the Claude dialect: `Stop` → `agent-end`, `SubagentStop` → `subagent-end` (`pkg/fabrictool/hooks/dialects/claude.go`)
 - AssistantText extraction (from `last_assistant_message` or `transcript_path`) now only runs for `agent-end`, skipping `subagent-end`
 - No handler changes required — all handlers (StatusHandler, HubHandler, LimitsHandler, TelemetryHandler, LoggingHandler) match on explicit `EventAgentEnd`; the new `EventSubagentEnd` falls to their `default` case (no-op)
 

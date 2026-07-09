@@ -23,9 +23,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/opsettings"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/opsettings"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 // newTestDBServer creates a test Server configured in postgres mode with a
@@ -694,8 +694,8 @@ func TestPutMaintenanceDB_PersistsAndApplies(t *testing.T) {
 	srv, fakeStore, ops := newTestDBServer(t)
 
 	// Ensure env vars don't interfere.
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "")
-	t.Setenv("SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "")
+	t.Setenv("FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	// Wire ops server for self-apply.
 	ops.server = srv
@@ -772,7 +772,7 @@ func TestMaintenanceDB_EnvOverrideStillWins(t *testing.T) {
 	_, _ = ops.Refresh(context.Background())
 
 	// But env says on.
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "true")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "true")
 
 	// Apply snapshot with env override.
 	snap := ops.Snapshot()
@@ -993,8 +993,8 @@ func TestPutServerConfigDB_ConcurrentRace(t *testing.T) {
 
 func TestMaintenanceDB_ConcurrentRace(t *testing.T) {
 	srv, _, ops := newTestDBServer(t)
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "")
-	t.Setenv("SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "")
+	t.Setenv("FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 	ops.server = srv
 
 	var wg sync.WaitGroup
@@ -1437,8 +1437,8 @@ func TestPutServerConfigDB_ExplicitEmptyPublicURL_ClearsField(t *testing.T) {
 func TestPutMaintenanceDB_ExplicitEmptyMessage_ClearsMessage(t *testing.T) {
 	// N7: Explicitly sending message: "" should clear the maintenance message.
 	srv, fakeStore, ops := newTestDBServer(t)
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "")
-	t.Setenv("SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "")
+	t.Setenv("FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 	ops.server = srv
 
 	// Seed with existing message.
@@ -1472,8 +1472,8 @@ func TestPutMaintenanceDB_ExplicitEmptyMessage_ClearsMessage(t *testing.T) {
 func TestPutMaintenanceDB_OmittedMessage_PreservesExisting(t *testing.T) {
 	// N7: Omitting the message field should preserve the existing message.
 	srv, fakeStore, ops := newTestDBServer(t)
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "")
-	t.Setenv("SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "")
+	t.Setenv("FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 	ops.server = srv
 
 	// Seed with existing message.

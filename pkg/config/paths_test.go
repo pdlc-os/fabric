@@ -43,9 +43,9 @@ func TestGetProjectName(t *testing.T) {
 		path string
 		want string
 	}{
-		{filepath.Join(tmpDir, "My Project", ".scion"), "my-project"},
-		{filepath.Join(tmpDir, "simple", ".scion"), "simple"},
-		{filepath.Join(tmpDir, "CamelCase", ".scion"), "camelcase"},
+		{filepath.Join(tmpDir, "My Project", ".fabric"), "my-project"},
+		{filepath.Join(tmpDir, "simple", ".fabric"), "simple"},
+		{filepath.Join(tmpDir, "CamelCase", ".fabric"), "camelcase"},
 	}
 
 	for _, tt := range tests {
@@ -75,7 +75,7 @@ func TestGetResolvedProjectDir(t *testing.T) {
 	}{
 		{"home", globalDir},
 		{"global", globalDir},
-		// tmpHome contains a .scion dir (globalDir), so it should resolve to that
+		// tmpHome contains a .fabric dir (globalDir), so it should resolve to that
 		{tmpHome, globalDir},
 	}
 
@@ -97,12 +97,12 @@ func TestGetResolvedProjectDir(t *testing.T) {
 
 func TestGetResolvedProjectDir_WalkUp(t *testing.T) {
 	// Create structure:
-	// /tmp/project/.scion
+	// /tmp/project/.fabric
 	// /tmp/project/subdir/deep
 
 	tmpProject := t.TempDir()
-	scionDir := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,7 +114,7 @@ func TestGetResolvedProjectDir_WalkUp(t *testing.T) {
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 
-	// Set HOME to a clean temp dir so we don't fall back to real global .scion
+	// Set HOME to a clean temp dir so we don't fall back to real global .fabric
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpHome)
@@ -124,17 +124,17 @@ func TestGetResolvedProjectDir_WalkUp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Expect to find the .scion dir in the parent
+	// Expect to find the .fabric dir in the parent
 	got, err := GetResolvedProjectDir("")
 	if err != nil {
 		t.Fatalf("GetResolvedProjectDir failed: %v", err)
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalScion, _ := filepath.EvalSymlinks(scionDir)
+	evalFabric, _ := filepath.EvalSymlinks(fabricDir)
 
-	if evalGot != evalScion {
-		t.Errorf("Expected %q, got %q", evalScion, evalGot)
+	if evalGot != evalFabric {
+		t.Errorf("Expected %q, got %q", evalFabric, evalGot)
 	}
 }
 
@@ -172,7 +172,7 @@ func TestRequireProjectPath_ExplicitGlobal(t *testing.T) {
 }
 
 func TestRequireProjectPath_NoProjectError(t *testing.T) {
-	// Create a clean temp dir with no .scion
+	// Create a clean temp dir with no .fabric
 	tmpDir := t.TempDir()
 
 	origWd, _ := os.Getwd()
@@ -185,10 +185,10 @@ func TestRequireProjectPath_NoProjectError(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Ensure no hub context
-	t.Setenv("SCION_HUB_ENDPOINT", "")
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", "")
-	t.Setenv("SCION_PROJECT_ID", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", "")
+	t.Setenv("FABRIC_PROJECT_ID", "")
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatal(err)
@@ -207,7 +207,7 @@ func TestRequireProjectPath_NoProjectError(t *testing.T) {
 }
 
 func TestRequireProjectPath_HubContextFallback(t *testing.T) {
-	// When SCION_HUB_ENDPOINT is set and no .scion exists,
+	// When FABRIC_HUB_ENDPOINT is set and no .fabric exists,
 	// RequireProjectPath should succeed (hub context fallback).
 	tmpDir := t.TempDir()
 
@@ -216,7 +216,7 @@ func TestRequireProjectPath_HubContextFallback(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.example.com")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.example.com")
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatal(err)
@@ -227,15 +227,15 @@ func TestRequireProjectPath_HubContextFallback(t *testing.T) {
 		t.Fatalf("expected no error in hub context, got: %v", err)
 	}
 
-	// Should return a synthetic .scion path under CWD
-	expected := filepath.Join(tmpDir, DotScion)
+	// Should return a synthetic .fabric path under CWD
+	expected := filepath.Join(tmpDir, DotFabric)
 	if got != expected {
 		t.Errorf("RequireProjectPath() = %q, want %q", got, expected)
 	}
 }
 
-func TestFindProjectRoot_HubContextNoScion(t *testing.T) {
-	// When SCION_HUB_ENDPOINT is set and no .scion exists anywhere,
+func TestFindProjectRoot_HubContextNoFabric(t *testing.T) {
+	// When FABRIC_HUB_ENDPOINT is set and no .fabric exists anywhere,
 	// FindProjectRoot should return a synthetic path.
 	tmpDir := t.TempDir()
 
@@ -244,7 +244,7 @@ func TestFindProjectRoot_HubContextNoScion(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.example.com")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.example.com")
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatal(err)
@@ -255,15 +255,15 @@ func TestFindProjectRoot_HubContextNoScion(t *testing.T) {
 		t.Fatal("expected FindProjectRoot to succeed in hub context")
 	}
 
-	expected := filepath.Join(tmpDir, DotScion)
+	expected := filepath.Join(tmpDir, DotFabric)
 	if got != expected {
 		t.Errorf("FindProjectRoot() = %q, want %q", got, expected)
 	}
 }
 
-func TestFindProjectRoot_HubContextNoScion_Disabled(t *testing.T) {
+func TestFindProjectRoot_HubContextNoFabric_Disabled(t *testing.T) {
 	// Without any hub env vars, FindProjectRoot should still fail
-	// when no .scion exists.
+	// when no .fabric exists.
 	tmpDir := t.TempDir()
 
 	origWd, _ := os.Getwd()
@@ -271,10 +271,10 @@ func TestFindProjectRoot_HubContextNoScion_Disabled(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", "")
-	t.Setenv("SCION_PROJECT_ID", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", "")
+	t.Setenv("FABRIC_PROJECT_ID", "")
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatal(err)
@@ -287,7 +287,7 @@ func TestFindProjectRoot_HubContextNoScion_Disabled(t *testing.T) {
 }
 
 func TestFindProjectRoot_MarkerWithHubFallback(t *testing.T) {
-	// When a .scion marker file exists but the external project-configs path
+	// When a .fabric marker file exists but the external project-configs path
 	// doesn't, and hub context is available, FindProjectRoot should succeed.
 	tmpDir := t.TempDir()
 
@@ -297,7 +297,7 @@ func TestFindProjectRoot_MarkerWithHubFallback(t *testing.T) {
 	// Set HOME to a dir where project-configs won't exist
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.example.com")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.example.com")
 
 	// Write a valid marker file
 	marker := &ProjectMarker{
@@ -305,7 +305,7 @@ func TestFindProjectRoot_MarkerWithHubFallback(t *testing.T) {
 		ProjectName: "test-project",
 		ProjectSlug: "test-project",
 	}
-	_ = WriteProjectMarker(filepath.Join(tmpDir, ".scion"), marker)
+	_ = WriteProjectMarker(filepath.Join(tmpDir, ".fabric"), marker)
 
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatal(err)
@@ -317,18 +317,18 @@ func TestFindProjectRoot_MarkerWithHubFallback(t *testing.T) {
 	}
 
 	// External project path doesn't exist on this filesystem, so with hub
-	// context we should fall back to the synthetic workspace .scion path.
-	expectedPath := filepath.Join(tmpDir, ".scion")
+	// context we should fall back to the synthetic workspace .fabric path.
+	expectedPath := filepath.Join(tmpDir, ".fabric")
 	if got != expectedPath {
 		t.Errorf("FindProjectRoot() = %q, want %q", got, expectedPath)
 	}
 }
 
 func TestRequireProjectPath_ProjectExists(t *testing.T) {
-	// Create a project with .scion
+	// Create a project with .fabric
 	tmpProject := t.TempDir()
-	scionDir := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -355,15 +355,15 @@ func TestRequireProjectPath_ProjectExists(t *testing.T) {
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalScion, _ := filepath.EvalSymlinks(scionDir)
-	if evalGot != evalScion {
-		t.Errorf("expected %q, got %q", evalScion, evalGot)
+	evalFabric, _ := filepath.EvalSymlinks(fabricDir)
+	if evalGot != evalFabric {
+		t.Errorf("expected %q, got %q", evalFabric, evalGot)
 	}
 }
 
 func TestResolveProjectPath_ExplicitProjectRoot(t *testing.T) {
-	// When passing a project root (not ending in .scion) that contains a .scion dir,
-	// ResolveProjectPath should resolve to the .scion subdirectory.
+	// When passing a project root (not ending in .fabric) that contains a .fabric dir,
+	// ResolveProjectPath should resolve to the .fabric subdirectory.
 	// This is the -g / --project flag use case.
 
 	tmpHome := t.TempDir()
@@ -371,21 +371,21 @@ func TestResolveProjectPath_ExplicitProjectRoot(t *testing.T) {
 	_ = os.Setenv("HOME", tmpHome)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	// Create a project with .scion
+	// Create a project with .fabric
 	tmpProject := t.TempDir()
-	projectScion := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(projectScion, 0755); err != nil {
+	projectFabric := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(projectFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	// Pass the project root (without .scion) as explicit path
+	// Pass the project root (without .fabric) as explicit path
 	got, isGlobal, err := ResolveProjectPath(tmpProject)
 	if err != nil {
 		t.Fatalf("ResolveProjectPath(%q) error: %v", tmpProject, err)
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalExpected, _ := filepath.EvalSymlinks(projectScion)
+	evalExpected, _ := filepath.EvalSymlinks(projectFabric)
 
 	if evalGot != evalExpected {
 		t.Errorf("ResolveProjectPath(%q) = %q, want %q", tmpProject, evalGot, evalExpected)
@@ -395,8 +395,8 @@ func TestResolveProjectPath_ExplicitProjectRoot(t *testing.T) {
 	}
 }
 
-func TestResolveProjectPath_ExplicitDotScionPath(t *testing.T) {
-	// When passing a path already ending in .scion, it should be used as-is.
+func TestResolveProjectPath_ExplicitDotFabricPath(t *testing.T) {
+	// When passing a path already ending in .fabric, it should be used as-is.
 
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
@@ -404,26 +404,26 @@ func TestResolveProjectPath_ExplicitDotScionPath(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	tmpProject := t.TempDir()
-	projectScion := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(projectScion, 0755); err != nil {
+	projectFabric := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(projectFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	got, _, err := ResolveProjectPath(projectScion)
+	got, _, err := ResolveProjectPath(projectFabric)
 	if err != nil {
-		t.Fatalf("ResolveProjectPath(%q) error: %v", projectScion, err)
+		t.Fatalf("ResolveProjectPath(%q) error: %v", projectFabric, err)
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalExpected, _ := filepath.EvalSymlinks(projectScion)
+	evalExpected, _ := filepath.EvalSymlinks(projectFabric)
 
 	if evalGot != evalExpected {
-		t.Errorf("ResolveProjectPath(%q) = %q, want %q", projectScion, evalGot, evalExpected)
+		t.Errorf("ResolveProjectPath(%q) = %q, want %q", projectFabric, evalGot, evalExpected)
 	}
 }
 
-func TestResolveProjectPath_ExplicitPathNoDotScion(t *testing.T) {
-	// When passing a path that doesn't contain a .scion dir, it should be returned as-is.
+func TestResolveProjectPath_ExplicitPathNoDotFabric(t *testing.T) {
+	// When passing a path that doesn't contain a .fabric dir, it should be returned as-is.
 
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
@@ -446,7 +446,7 @@ func TestResolveProjectPath_ExplicitPathNoDotScion(t *testing.T) {
 }
 
 func TestRequireProjectPath_ExplicitProjectRoot(t *testing.T) {
-	// RequireProjectPath should also resolve project root to .scion subdirectory.
+	// RequireProjectPath should also resolve project root to .fabric subdirectory.
 
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
@@ -454,8 +454,8 @@ func TestRequireProjectPath_ExplicitProjectRoot(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	tmpProject := t.TempDir()
-	projectScion := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(projectScion, 0755); err != nil {
+	projectFabric := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(projectFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -465,7 +465,7 @@ func TestRequireProjectPath_ExplicitProjectRoot(t *testing.T) {
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalExpected, _ := filepath.EvalSymlinks(projectScion)
+	evalExpected, _ := filepath.EvalSymlinks(projectFabric)
 
 	if evalGot != evalExpected {
 		t.Errorf("RequireProjectPath(%q) = %q, want %q", tmpProject, evalGot, evalExpected)
@@ -476,10 +476,10 @@ func TestRequireProjectPath_ExplicitProjectRoot(t *testing.T) {
 }
 
 func TestResolveProjectPath_GlobalViaWalkUp(t *testing.T) {
-	// Test that when FindProjectRoot walks up and finds ~/.scion,
+	// Test that when FindProjectRoot walks up and finds ~/.fabric,
 	// it is correctly identified as the global project (isGlobal=true)
 
-	// Create a temp home with .scion
+	// Create a temp home with .fabric
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpHome)
@@ -503,7 +503,7 @@ func TestResolveProjectPath_GlobalViaWalkUp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// ResolveProjectPath should walk up and find ~/.scion,
+	// ResolveProjectPath should walk up and find ~/.fabric,
 	// and recognize it as the global project
 	got, isGlobal, err := ResolveProjectPath("")
 	if err != nil {
@@ -529,10 +529,10 @@ func TestResolveProjectPath_ProjectNotGlobal(t *testing.T) {
 	_ = os.Setenv("HOME", tmpHome)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	// Create a project with .scion outside of home
+	// Create a project with .fabric outside of home
 	tmpProject := t.TempDir()
-	projectScion := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(projectScion, 0755); err != nil {
+	projectFabric := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(projectFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -549,7 +549,7 @@ func TestResolveProjectPath_ProjectNotGlobal(t *testing.T) {
 	}
 
 	evalGot, _ := filepath.EvalSymlinks(got)
-	evalProject, _ := filepath.EvalSymlinks(projectScion)
+	evalProject, _ := filepath.EvalSymlinks(projectFabric)
 
 	if evalGot != evalProject {
 		t.Errorf("expected path %q, got %q", evalProject, evalGot)

@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // AuthConfig holds authentication configuration.
@@ -73,10 +73,10 @@ const (
 
 // UnifiedAuthMiddleware creates middleware that handles all authentication types.
 // It processes tokens in priority order:
-// 1. Agent tokens (X-Scion-Agent-Token or agent JWT in Bearer)
-// 2. Broker HMAC auth (X-Scion-Broker-ID header) - passed through to BrokerAuthMiddleware
-// 3. Development tokens (scion_dev_* prefix)
-// 4. User access tokens (scion_pat_* prefix)
+// 1. Agent tokens (X-Fabric-Agent-Token or agent JWT in Bearer)
+// 2. Broker HMAC auth (X-Fabric-Broker-ID header) - passed through to BrokerAuthMiddleware
+// 3. Development tokens (fabric_dev_* prefix)
+// 4. User access tokens (fabric_pat_* prefix)
 // 5. User JWTs
 // 6. Trusted proxy headers
 func UnifiedAuthMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
@@ -118,7 +118,7 @@ func UnifiedAuthMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Step 1: Try agent token (X-Scion-Agent-Token header or agent JWT)
+			// Step 1: Try agent token (X-Fabric-Agent-Token header or agent JWT)
 			if token := extractAgentToken(r); token != "" {
 				if cfg.AgentTokenSvc != nil {
 					if claims, err := cfg.AgentTokenSvc.ValidateAgentToken(token); err == nil {
@@ -130,7 +130,7 @@ func UnifiedAuthMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
 						}
 						next.ServeHTTP(w, r.WithContext(ctx))
 						return
-					} else if r.Header.Get("X-Scion-Agent-Token") != "" {
+					} else if r.Header.Get("X-Fabric-Agent-Token") != "" {
 						// Agent token header was present but invalid
 						writeError(w, http.StatusUnauthorized, ErrCodeUnauthorized,
 							"invalid agent token: "+err.Error(), nil)
@@ -140,9 +140,9 @@ func UnifiedAuthMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
 				// Bearer token wasn't an agent token, continue to user auth
 			}
 
-			// Step 2: Check for broker HMAC authentication (X-Scion-Broker-ID header)
+			// Step 2: Check for broker HMAC authentication (X-Fabric-Broker-ID header)
 			// If present, pass through to BrokerAuthMiddleware which runs next
-			if brokerID := r.Header.Get("X-Scion-Broker-ID"); brokerID != "" {
+			if brokerID := r.Header.Get("X-Fabric-Broker-ID"); brokerID != "" {
 				if cfg.Debug {
 					log.Debug("Broker auth headers present, deferring to BrokerAuthMiddleware", "brokerID", brokerID)
 				}
@@ -308,11 +308,11 @@ func detectTokenType(token string) tokenType {
 	switch {
 	case strings.HasPrefix(token, apiclient.DevTokenPrefix):
 		return tokenTypeDev
-	case strings.HasPrefix(token, "scion_pat_"):
+	case strings.HasPrefix(token, "fabric_pat_"):
 		return tokenTypeUAT
 	case looksLikeJWT(token):
 		// Could be user or agent JWT - need to inspect claims
-		// For now, assume user token (agent tokens use X-Scion-Agent-Token)
+		// For now, assume user token (agent tokens use X-Fabric-Agent-Token)
 		return tokenTypeUser
 	default:
 		return tokenTypeUnknown

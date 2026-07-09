@@ -1,17 +1,17 @@
 ---
 title: Interactive Sessions with Tmux
-description: Learn how to use and customize the built-in tmux session management in Scion.
+description: Learn how to use and customize the built-in tmux session management in Fabric.
 ---
 
-Scion uses [tmux](https://github.com/tmux/tmux), a terminal multiplexer, as the default and mandatory shell wrapper for all agent sessions. This ensures that every interactive session is persistent, collaborative, and consistent across all runtimes (Docker, Apple Virtualization, Kubernetes, etc.).
+Fabric uses [tmux](https://github.com/tmux/tmux), a terminal multiplexer, as the default and mandatory shell wrapper for all agent sessions. This ensures that every interactive session is persistent, collaborative, and consistent across all runtimes (Docker, Apple Virtualization, Kubernetes, etc.).
 
 ## Why Tmux?
 
-Tmux is automatically started inside every Scion agent. This provides several critical features:
+Tmux is automatically started inside every Fabric agent. This provides several critical features:
 
 1.  **Session Persistence**: You can detach from an agent session without stopping the underlying process. If your terminal connection drops, the agent keeps working.
-2.  **Reliable Attachment**: `scion attach <agent-name>` always connects you to the same persistent shell session.
-3.  **Live Collaboration**: Multiple users can run `scion attach` for the same agent simultaneously. Everyone sees the same screen and can type together, creating a built-in pair-programming environment.
+2.  **Reliable Attachment**: `fabric attach <agent-name>` always connects you to the same persistent shell session.
+3.  **Live Collaboration**: Multiple users can run `fabric attach` for the same agent simultaneously. Everyone sees the same screen and can type together, creating a built-in pair-programming environment.
 
 ## Basic Operations
 
@@ -28,7 +28,7 @@ When you are attached to an agent, you interact with `tmux` using a **prefix key
 
 ## Web Terminal Interactivity
 
-The Scion Web Dashboard provides a built-in terminal interface for agents that fully supports Tmux. This Web Terminal includes:
+The Fabric Web Dashboard provides a built-in terminal interface for agents that fully supports Tmux. This Web Terminal includes:
 - **Toolbar Integration**: Visual buttons to easily send common Tmux sequences like detach, split panes, or enter scroll mode.
 - **Window Toggles**: Redesigned, wider toolbar controls for managing tmux windows seamlessly switch between the agent session and a standard shell window. These controls use direct tmux key bindings for maximum reliability.
 - **Mouse & Text Selection Together**: Tmux mouse mode stays enabled for scroll wheel and pane interactions. To select text in the browser without disabling mouse mode, hold `Shift` while dragging. On macOS, `Option`-drag also works. 
@@ -45,13 +45,13 @@ Each agent's `tmux` behavior is controlled by a `.tmux.conf` file in its home di
 ### Changing Settings for New Agents
 
 To change the default `tmux` configuration for all **new** agents in a project, modify the template file:
-`.scion/templates/default/home/.tmux.conf`
+`.fabric/templates/default/home/.tmux.conf`
 
 ### Solving Nested Sessions (Google Cloud Shell)
 
-If you are running Scion inside another `tmux` session (such as in **Google Cloud Shell** or your own local `tmux`), the default `Ctrl-b` prefix will be intercepted by your "outer" session.
+If you are running Fabric inside another `tmux` session (such as in **Google Cloud Shell** or your own local `tmux`), the default `Ctrl-b` prefix will be intercepted by your "outer" session.
 
-To use a different prefix (like `Ctrl-a`) for your Scion agents, add the following to your `.tmux.conf` template:
+To use a different prefix (like `Ctrl-a`) for your Fabric agents, add the following to your `.tmux.conf` template:
 
 ```tmux
 # Set prefix to Ctrl-a
@@ -60,7 +60,7 @@ unbind C-b
 bind C-a send-prefix
 ```
 
-After updating the template, any new agents you create will use `Ctrl-a` as their prefix, allowing you to use `Ctrl-b` for your host session and `Ctrl-a` for the Scion agent session.
+After updating the template, any new agents you create will use `Ctrl-a` as their prefix, allowing you to use `Ctrl-b` for your host session and `Ctrl-a` for the Fabric agent session.
 
 ## Configuration Reference
 

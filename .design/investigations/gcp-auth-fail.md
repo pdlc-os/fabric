@@ -20,9 +20,9 @@ real    0m30.010s
 ```
 
 Key observations:
-- The response body `"token generation failed"` matches the exact error string in `pkg/sciontool/metadata/server.go:411`, not anything the real GCE metadata server would return.
-- The 30-second delay matches the HTTP client timeout in the scion metadata server (`server.go:139`).
-- The response includes `Metadata-Flavor: Google` header, which the scion metadata server also sets.
+- The response body `"token generation failed"` matches the exact error string in `pkg/fabrictool/metadata/server.go:411`, not anything the real GCE metadata server would return.
+- The 30-second delay matches the HTTP client timeout in the fabric metadata server (`server.go:139`).
+- The response includes `Metadata-Flavor: Google` header, which the fabric metadata server also sets.
 - The symptom appeared after the hub had been running successfully for many hours with ~20 agents.
 
 ## Hypothesis 1: iptables REDIRECT leak from host-networked containers
@@ -31,7 +31,7 @@ Key observations:
 
 When the hub runs on localhost, `ResolveDockerNetworking()` (`pkg/runtime/common.go:538`) returns `"host"`, causing agent containers to run with `--network=host`. In host network mode, the container shares the host's network namespace.
 
-The scion metadata sidecar (inside each container) adds an iptables rule to the nat OUTPUT chain:
+The fabric metadata sidecar (inside each container) adds an iptables rule to the nat OUTPUT chain:
 
 ```
 iptables -t nat -A OUTPUT -d 169.254.169.254 -p tcp --dport 80 -j REDIRECT --to-port 18380
@@ -41,8 +41,8 @@ This rule has **no UID-based exclusion** (`iptables.go:35-43`). In host network 
 
 This creates a circular dependency:
 1. Hub's GCP SDK (ADC) tries `169.254.169.254` to refresh its token
-2. iptables redirects to `localhost:18380` (agent's scion metadata sidecar)
-3. Scion metadata sidecar calls Hub API `/api/v1/agent/gcp-token`
+2. iptables redirects to `localhost:18380` (agent's fabric metadata sidecar)
+3. Fabric metadata sidecar calls Hub API `/api/v1/agent/gcp-token`
 4. Hub calls GCP IAM `GenerateAccessToken` which needs ADC credentials
 5. ADC tries `169.254.169.254` again → intercepted → circular timeout
 
@@ -95,11 +95,11 @@ With 20 agents, each potentially making concurrent token requests, this could pr
 
 ### Fix 1: Skip iptables in host network mode
 
-The `SCION_NETWORK_MODE` env var is already set to `"host"` in the container (`run.go:661`). The metadata server should check it:
+The `FABRIC_NETWORK_MODE` env var is already set to `"host"` in the container (`run.go:661`). The metadata server should check it:
 
 ```go
 // In configureMetadataInterception:
-if os.Getenv("SCION_NETWORK_MODE") == "host" {
+if os.Getenv("FABRIC_NETWORK_MODE") == "host" {
     log.Info("Skipping iptables metadata interception: host network mode " +
         "(GCE_METADATA_HOST env var provides interception)")
     return
@@ -116,13 +116,13 @@ Use the already-declared `fetchMu`/`fetchInFlight`/`fetchDone` fields so that co
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `pkg/sciontool/metadata/server.go` | 387-417 | `handleToken` — cache check + fetch, no singleflight |
-| `pkg/sciontool/metadata/server.go` | 448-486 | `fetchAccessToken` — HTTP call to Hub |
-| `pkg/sciontool/metadata/server.go` | 104-106 | Unused singleflight fields |
-| `pkg/sciontool/metadata/server.go` | 534-564 | `proactiveRefreshLoop` |
-| `pkg/sciontool/metadata/iptables.go` | 31-52 | `setupIPTablesRedirect` — no UID filter |
+| `pkg/fabrictool/metadata/server.go` | 387-417 | `handleToken` — cache check + fetch, no singleflight |
+| `pkg/fabrictool/metadata/server.go` | 448-486 | `fetchAccessToken` — HTTP call to Hub |
+| `pkg/fabrictool/metadata/server.go` | 104-106 | Unused singleflight fields |
+| `pkg/fabrictool/metadata/server.go` | 534-564 | `proactiveRefreshLoop` |
+| `pkg/fabrictool/metadata/iptables.go` | 31-52 | `setupIPTablesRedirect` — no UID filter |
 | `pkg/runtime/common.go` | 538-573 | `ResolveDockerNetworking` — returns "host" for localhost hub |
-| `pkg/agent/run.go` | 655-661 | Sets `SCION_NETWORK_MODE` and `--network=host` |
+| `pkg/agent/run.go` | 655-661 | Sets `FABRIC_NETWORK_MODE` and `--network=host` |
 | `pkg/runtimebroker/start_context.go` | 293-304 | Sets `GCE_METADATA_HOST` env var |
 | `pkg/hub/gcp_token_iam.go` | 41-55 | `NewIAMTokenGenerator` — uses ADC + metadata server |
 | `pkg/hub/gcp_ratelimit.go` | 22-92 | Per-agent rate limiter (1/sec, burst 10) |

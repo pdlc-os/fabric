@@ -1,6 +1,6 @@
 # Agent Poker: Texas Hold'em
 
-A demonstration of multi-agent collaboration using Scion. Multiple LLM agents play a game of Texas Hold'em poker, coordinated through shared state and group messaging.
+A demonstration of multi-agent collaboration using Fabric. Multiple LLM agents play a game of Texas Hold'em poker, coordinated through shared state and group messaging.
 
 ## Overview
 
@@ -13,7 +13,7 @@ This example uses three agent templates:
 ## How It Works
 
 ### Communication
-All game communication happens via **group (broadcast) messages** through the scion CLI. Players announce their actions (fold, call, raise) publicly. The dealer announces game state transitions (flop, turn, river, showdown).
+All game communication happens via **group (broadcast) messages** through the fabric CLI. Players announce their actions (fold, call, raise) publicly. The dealer announces game state transitions (flop, turn, river, showdown).
 
 The dealer sends **direct messages** to the auditor with private information (each player's hole cards) so the auditor can independently verify fair play.
 
@@ -32,17 +32,17 @@ The dealer has a Python script (`deck.py`) that manages a standard 52-card deck 
 
 ```bash
 # Initialize a grove for the poker game
-scion init poker-night
+fabric init poker-night
 
 # Import the templates
-scion templates import --all https://github.com/GoogleCloudPlatform/scion/tree/main/examples/agent-poker/templates
+fabric templates import --all https://github.com/pdlc-os/fabric/tree/main/examples/agent-poker/templates
 
 # Create the dealer agent from template
-scion create dealer --template poker-dealer
+fabric create dealer --template poker-dealer
 
 # The dealer's initial prompt should specify how many players to create.
 # Example:
-scion message dealer "Start a 4-player Texas Hold'em game"
+fabric message dealer "Start a 4-player Texas Hold'em game"
 ```
 
 The dealer will then:

@@ -21,12 +21,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -128,13 +128,13 @@ func stopAllAgents() error {
 	mgr := agent.NewManager(rt)
 
 	filters := map[string]string{
-		"scion.agent": "true",
+		"fabric.agent": "true",
 	}
 
 	projectDir, _ := config.GetResolvedProjectDir(projectPath)
 	if projectDir != "" {
-		filters["scion.project_path"] = projectDir
-		filters["scion.project"] = config.GetProjectName(projectDir)
+		filters["fabric.project_path"] = projectDir
+		filters["fabric.project"] = config.GetProjectName(projectDir)
 	}
 
 	agents, err := mgr.List(context.Background(), filters)
@@ -152,7 +152,7 @@ func stopAllAgents() error {
 			continue
 		}
 
-		agentName := a.Labels["scion.name"]
+		agentName := a.Labels["fabric.name"]
 		if agentName == "" {
 			continue
 		}

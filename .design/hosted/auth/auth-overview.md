@@ -1,21 +1,21 @@
-# Scion Authentication Overview
+# Fabric Authentication Overview
 
 ## Status
 **Proposed**
 
 ## 1. Overview
 
-This document specifies the authentication mechanisms for Scion's hosted mode. Authentication establishes user identity across multiple client types while maintaining security and usability.
+This document specifies the authentication mechanisms for Fabric's hosted mode. Authentication establishes user identity across multiple client types while maintaining security and usability.
 
 ### Authentication Contexts
 
 | Context | Client Type | Auth Method | Token Storage |
 |---------|-------------|-------------|---------------|
 | Web Dashboard | Browser | OAuth + Session Cookie | HTTP-only cookie |
-| CLI (Hub Commands) | Terminal | OAuth + Device Flow | Local file (`~/.scion/credentials.json`) |
-| Agent (sciontool) | Container | Hub-issued JWT | Environment Variable (`SCION_HUB_TOKEN`) |
+| CLI (Hub Commands) | Terminal | OAuth + Device Flow | Local file (`~/.fabric/credentials.json`) |
+| Agent (fabrictool) | Container | Hub-issued JWT | Environment Variable (`FABRIC_HUB_TOKEN`) |
 | API Direct | Programmatic | API Key or JWT | Client-managed |
-| **Development** | Any | Dev Token (Bearer) | Local file (`~/.scion/dev-token`) |
+| **Development** | Any | Dev Token (Bearer) | Local file (`~/.fabric/dev-token`) |
 
 ### Goals
 
@@ -89,7 +89,7 @@ type TokenClaims struct {
 
 - [Web Authentication](web-auth.md) - OAuth flows for web dashboard
 - [CLI Authentication](cli-auth.md) - Terminal-based authentication
-- [Agent Authentication](sciontool-auth.md) - Agent-to-Hub secure communication
+- [Agent Authentication](fabrictool-auth.md) - Agent-to-Hub secure communication
 - [Server Authentication](server-auth-design.md) - Hub server-side auth handling
 - [Server Auth Setup](server-auth-setup.md) - API keys, dev auth, and security
 - [Runtime Broker Auth](runtime-broker-auth.md) - Broker registration and HMAC-based authentication

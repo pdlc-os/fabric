@@ -84,8 +84,8 @@ runcmd:
       apt-get install -y nodejs
     fi
 
-  # Setup scion user and directories (optional, but good practice)
-  - id scion &>/dev/null || useradd -m -s /bin/bash scion
-  - getent group docker &>/dev/null && usermod -aG docker scion || true
+  # Setup fabric user and directories (optional, but good practice)
+  - id fabric &>/dev/null || useradd -m -s /bin/bash fabric
+  - getent group docker &>/dev/null && usermod -aG docker fabric || true
 
-final_message: "Scion Demo Server Provisioning Complete"
+final_message: "Fabric Demo Server Provisioning Complete"

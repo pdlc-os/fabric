@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 const defaultMaintenanceMessage = "System offline for maintenance"
@@ -301,7 +301,7 @@ func maintenancePageHTML(message string) string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scion - Maintenance</title>
+    <title>Fabric - Maintenance</title>
     <style>
         :root {
             --bg: #f8fafc;
@@ -385,7 +385,7 @@ func maintenancePageHTML(message string) string {
         <span class="icon" role="img" aria-label="maintenance">&#128295;</span>
         <h1>Under Maintenance</h1>
         <p class="message">%s</p>
-        <span class="badge">scion</span>
+        <span class="badge">fabric</span>
     </div>
 </body>
 </html>`, escaped)

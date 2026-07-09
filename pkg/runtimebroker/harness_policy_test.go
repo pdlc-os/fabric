@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func TestEvaluateHarnessConfigPolicy(t *testing.T) {

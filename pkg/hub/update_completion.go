@@ -23,8 +23,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/integrationupdate"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/ent/integrationupdate"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 const (

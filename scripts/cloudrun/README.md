@@ -1,4 +1,4 @@
-# Scion Hub Cloud Run HA Deployment
+# Fabric Hub Cloud Run HA Deployment
 
 This directory deploys the production Cloud Run shape described in
 `.design/hub-cloudrun-deployment.md`: a horizontally scalable Hub/Web service
@@ -13,7 +13,7 @@ material and are not configured by `deploy.sh`.
 ```text
 User / agent / CLI
   -> Cloud Run native IAP
-  -> scion server --enable-hub --enable-web --enable-runtime-broker
+  -> fabric server --enable-hub --enable-web --enable-runtime-broker
   -> Cloud SQL Postgres, GCS, Cloud Run Instances, Filestore
 ```
 
@@ -42,49 +42,49 @@ Set these environment variables before running `deploy.sh`:
 
 | Variable | Description |
 | --- | --- |
-| `SCION_PROJECT` | GCP project ID. Defaults to `deploy-demo-test`. |
-| `SCION_REGION` | GCP region. Defaults to `us-central1`. |
-| `SCION_SERVICE` | Cloud Run service name. Defaults to `scion-hub`. |
-| `SCION_CLOUDSQL_INSTANCE` | Cloud SQL instance name, not the full connection name. |
-| `SCION_DATABASE_NAME` | Postgres database name. Defaults to `scionhub`. |
-| `SCION_DATABASE_USER` | Postgres user. Defaults to `scion`. |
-| `SCION_DATABASE_PASSWORD` | Postgres password, used to render the DSN. |
-| `SCION_DATABASE_PASSWORD_SECRET` | Alternative to `SCION_DATABASE_PASSWORD`; reads the latest Secret Manager version. |
-| `SCION_DATABASE_URL` | Alternative full Postgres DSN. Use this to bypass DSN assembly. |
-| `SCION_GCS_BUCKET` | GCS bucket for Hub storage. |
-| `SCION_RUNTIME_NETWORK` | VPC network for Cloud Run Instances. |
-| `SCION_RUNTIME_SUBNETWORK` | VPC subnetwork for Cloud Run Instances. |
-| `SCION_FILESTORE_IP` | Filestore/NFS server IP. |
-| `SCION_FILESTORE_EXPORT` | Filestore/NFS export path, for example `/scion-workspaces`. |
+| `FABRIC_PROJECT` | GCP project ID. Defaults to `deploy-demo-test`. |
+| `FABRIC_REGION` | GCP region. Defaults to `us-central1`. |
+| `FABRIC_SERVICE` | Cloud Run service name. Defaults to `fabric-hub`. |
+| `FABRIC_CLOUDSQL_INSTANCE` | Cloud SQL instance name, not the full connection name. |
+| `FABRIC_DATABASE_NAME` | Postgres database name. Defaults to `fabrichub`. |
+| `FABRIC_DATABASE_USER` | Postgres user. Defaults to `fabric`. |
+| `FABRIC_DATABASE_PASSWORD` | Postgres password, used to render the DSN. |
+| `FABRIC_DATABASE_PASSWORD_SECRET` | Alternative to `FABRIC_DATABASE_PASSWORD`; reads the latest Secret Manager version. |
+| `FABRIC_DATABASE_URL` | Alternative full Postgres DSN. Use this to bypass DSN assembly. |
+| `FABRIC_GCS_BUCKET` | GCS bucket for Hub storage. |
+| `FABRIC_RUNTIME_NETWORK` | VPC network for Cloud Run Instances. |
+| `FABRIC_RUNTIME_SUBNETWORK` | VPC subnetwork for Cloud Run Instances. |
+| `FABRIC_FILESTORE_IP` | Filestore/NFS server IP. |
+| `FABRIC_FILESTORE_EXPORT` | Filestore/NFS export path, for example `/fabric-workspaces`. |
 
 Useful optional variables:
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `SCION_MIN_INSTANCES` | `2` | Production HA minimum Cloud Run instances. |
-| `SCION_MAX_INSTANCES` | `10` | Cloud Run max instances; size this against the DB connection budget. |
-| `SCION_DB_MAX_OPEN_CONNS` | `10` | Per-replica Postgres max open connections. |
-| `SCION_DB_MAX_IDLE_CONNS` | `5` | Per-replica Postgres idle connections. |
-| `SCION_PUBLIC_URL` | discovered after first deploy | Public Hub URL injected into settings. |
-| `SCION_BROKER_ID` | `cloudrun-instances` | Stable logical broker ID shared by all replicas. |
-| `SCION_BROKER_NAME` | `Cloud Run Instances` | Display name for the logical broker. |
-| `SCION_SESSION_SECRET` | generated | Shared cookie/JWT signing secret stored in Secret Manager. |
-| `SCION_IAP_CLIENT_ID` / `SCION_IAP_CLIENT_SECRET` | unset | Optional custom OAuth client for IAP. |
+| `FABRIC_MIN_INSTANCES` | `2` | Production HA minimum Cloud Run instances. |
+| `FABRIC_MAX_INSTANCES` | `10` | Cloud Run max instances; size this against the DB connection budget. |
+| `FABRIC_DB_MAX_OPEN_CONNS` | `10` | Per-replica Postgres max open connections. |
+| `FABRIC_DB_MAX_IDLE_CONNS` | `5` | Per-replica Postgres idle connections. |
+| `FABRIC_PUBLIC_URL` | discovered after first deploy | Public Hub URL injected into settings. |
+| `FABRIC_BROKER_ID` | `cloudrun-instances` | Stable logical broker ID shared by all replicas. |
+| `FABRIC_BROKER_NAME` | `Cloud Run Instances` | Display name for the logical broker. |
+| `FABRIC_SESSION_SECRET` | generated | Shared cookie/JWT signing secret stored in Secret Manager. |
+| `FABRIC_IAP_CLIENT_ID` / `FABRIC_IAP_CLIENT_SECRET` | unset | Optional custom OAuth client for IAP. |
 
 ## Deploy
 
 ```bash
-export SCION_PROJECT=deploy-demo-test
-export SCION_REGION=us-central1
-export SCION_CLOUDSQL_INSTANCE=scion-hub-postgres
-export SCION_DATABASE_NAME=scionhub
-export SCION_DATABASE_USER=scion
-export SCION_DATABASE_PASSWORD_SECRET=scion-hub-db-password
-export SCION_GCS_BUCKET=scion-hub-artifacts
-export SCION_RUNTIME_NETWORK=projects/deploy-demo-test/global/networks/scion
-export SCION_RUNTIME_SUBNETWORK=projects/deploy-demo-test/regions/us-central1/subnetworks/scion
-export SCION_FILESTORE_IP=10.0.0.2
-export SCION_FILESTORE_EXPORT=/scion-workspaces
+export FABRIC_PROJECT=deploy-demo-test
+export FABRIC_REGION=us-central1
+export FABRIC_CLOUDSQL_INSTANCE=fabric-hub-postgres
+export FABRIC_DATABASE_NAME=fabrichub
+export FABRIC_DATABASE_USER=fabric
+export FABRIC_DATABASE_PASSWORD_SECRET=fabric-hub-db-password
+export FABRIC_GCS_BUCKET=fabric-hub-artifacts
+export FABRIC_RUNTIME_NETWORK=projects/deploy-demo-test/global/networks/fabric
+export FABRIC_RUNTIME_SUBNETWORK=projects/deploy-demo-test/regions/us-central1/subnetworks/fabric
+export FABRIC_FILESTORE_IP=10.0.0.2
+export FABRIC_FILESTORE_EXPORT=/fabric-workspaces
 
 ./scripts/cloudrun/deploy.sh
 ```
@@ -97,7 +97,7 @@ Redeploy an already-pushed image:
 
 On a first deployment, the script may deploy twice. The first pass lets Cloud
 Run allocate the service URL; the second pass updates the settings secret with
-that URL unless `SCION_PUBLIC_URL` was provided.
+that URL unless `FABRIC_PUBLIC_URL` was provided.
 
 ## What the Script Does
 
@@ -117,11 +117,11 @@ that URL unless `SCION_PUBLIC_URL` was provided.
 ## Verification
 
 ```bash
-URL=$(gcloud run services describe scion-hub \
+URL=$(gcloud run services describe fabric-hub \
   --region us-central1 --project deploy-demo-test \
   --format="value(status.url)")
 
-gcloud run services describe scion-hub \
+gcloud run services describe fabric-hub \
   --region us-central1 --project deploy-demo-test \
   --format="value(metadata.annotations.run.googleapis.com/iap-enabled)"
 
@@ -136,7 +136,7 @@ gcloud iap web add-iam-policy-binding \
   --project=deploy-demo-test \
   --region=us-central1 \
   --resource-type=cloud-run \
-  --service=scion-hub \
+  --service=fabric-hub \
   --member=user:EMAIL \
   --role=roles/iap.httpsResourceAccessor
 ```

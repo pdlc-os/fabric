@@ -30,8 +30,8 @@ type Harness interface {
 	HasSystemPrompt(agentHome string) bool
 
 	// Provision performs harness-specific setup during agent creation.
-	// This is called after templates are copied and scion-agent.json is written.
-	// agentDir is the directory containing scion-agent.json (which may differ
+	// This is called after templates are copied and fabric-agent.json is written.
+	// agentDir is the directory containing fabric-agent.json (which may differ
 	// from filepath.Dir(agentHome) when split storage is active).
 	Provision(ctx context.Context, agentName, agentDir, agentHome, agentWorkspace string) error
 
@@ -85,7 +85,7 @@ type TelemetrySettingsApplier interface {
 }
 
 // MCPSettingsApplier is an optional interface that harnesses can implement to
-// stage or apply universal MCP server config (defined once in scion-agent.yaml's
+// stage or apply universal MCP server config (defined once in fabric-agent.yaml's
 // mcp_servers block) into the harness's native MCP configuration. Container-script
 // harnesses stage inputs/mcp-servers.json for the in-container provision.py to
 // translate; built-in harnesses without script provisioners do not implement

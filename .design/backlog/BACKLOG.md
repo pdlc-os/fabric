@@ -1,4 +1,4 @@
-# Project Backlog — Scion
+# Project Backlog — Fabric
 
 **Maintained by:** TPM
 **Last updated:** (initial generation)
@@ -21,8 +21,8 @@
 
 | ID | Feature | Spec | Priority | Status | Owner | Branch | Dependencies | Feedback |
 |----|---------|------|----------|--------|-------|--------|--------------|----------|
-| F-0001 | Fix K8s attach pod name resolution | — | P0 | done | Direct | main | — | Pod name used bare agent name (`hello`) instead of grove-prefixed pod name (`sciontest--hello`), causing GKE Warden rejection. Fixed in `pkg/runtime/k8s_runtime.go:1725` by setting `podName = agent.ContainerID` after lookup. |
-| F-0002 | Fix K8s attach su password prompt | — | P0 | done | Direct | main | F-0001 | `su - scion` prompts for password when container already runs as `scion` user (GKE Autopilot sets `runAsUser: 1000`, `allowPrivilegeEscalation: false`). Fixed in `pkg/runtime/k8s_runtime.go:1747-1751` with runtime `whoami` check to skip `su` when already the target user. |
+| F-0001 | Fix K8s attach pod name resolution | — | P0 | done | Direct | main | — | Pod name used bare agent name (`hello`) instead of grove-prefixed pod name (`fabrictest--hello`), causing GKE Warden rejection. Fixed in `pkg/runtime/k8s_runtime.go:1725` by setting `podName = agent.ContainerID` after lookup. |
+| F-0002 | Fix K8s attach su password prompt | — | P0 | done | Direct | main | F-0001 | `su - fabric` prompts for password when container already runs as `fabric` user (GKE Autopilot sets `runAsUser: 1000`, `allowPrivilegeEscalation: false`). Fixed in `pkg/runtime/k8s_runtime.go:1747-1751` with runtime `whoami` check to skip `su` when already the target user. |
 
 ---
 

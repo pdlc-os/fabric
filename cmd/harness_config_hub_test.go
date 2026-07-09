@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,7 +59,7 @@ func newMockHubServerForLocalStorageHarnessConfig(t *testing.T, uploadedPaths *[
 				"uploadUrls": []map[string]interface{}{
 					{
 						"path":   "config.yaml",
-						"url":    "file:///home/scion/.scion/storage/harness-configs/global/codex/config.yaml",
+						"url":    "file:///home/fabric/.fabric/storage/harness-configs/global/codex/config.yaml",
 						"method": "PUT",
 					},
 				},
@@ -108,7 +108,7 @@ func newMockHubServerForLocalStorageHarnessConfig(t *testing.T, uploadedPaths *[
 					{
 						"path": "config.yaml",
 						"hash": configYAMLHashCodex,
-						"url":  "file:///home/scion/.scion/storage/harness-configs/global/codex/config.yaml",
+						"url":  "file:///home/fabric/.fabric/storage/harness-configs/global/codex/config.yaml",
 					},
 				},
 			})

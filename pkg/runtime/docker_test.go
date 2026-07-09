@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/harness"
 )
 
 func TestDockerRuntime_Run_NoInitFlag(t *testing.T) {
@@ -43,8 +43,8 @@ echo "$@"
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		Task:         "hello",
 	}
 
@@ -53,7 +53,7 @@ echo "$@"
 		t.Fatalf("runtime.Run failed: %v", err)
 	}
 
-	// sciontool handles PID 1 responsibilities, so --init should NOT be present
+	// fabrictool handles PID 1 responsibilities, so --init should NOT be present
 	if strings.Contains(out, "--init") {
 		t.Errorf("expected '--init' to be absent in output, got %q", out)
 	}
@@ -84,7 +84,7 @@ echo "$@"
 		t.Fatalf("runtime.Exec failed: %v", err)
 	}
 
-	if !strings.Contains(out, "--user scion") {
-		t.Errorf("expected '--user scion' in exec output, got %q", out)
+	if !strings.Contains(out, "--user fabric") {
+		t.Errorf("expected '--user fabric' in exec output, got %q", out)
 	}
 }

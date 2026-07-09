@@ -19,10 +19,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	entenvvar "github.com/GoogleCloudPlatform/scion/pkg/ent/envvar"
-	entsecret "github.com/GoogleCloudPlatform/scion/pkg/ent/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	entenvvar "github.com/pdlc-os/fabric/pkg/ent/envvar"
+	entsecret "github.com/pdlc-os/fabric/pkg/ent/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // SecretStore implements store.SecretStore and store.EnvVarStore using Ent ORM.

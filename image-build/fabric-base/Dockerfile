@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Scion Base Image - Adds sciontool and scion user on top of core-base
+# Fabric Base Image - Adds fabrictool and fabric user on top of core-base
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS base
 
-# Builder stage for sciontool compilation
+# Builder stage for fabrictool compilation
 FROM base AS builder
 USER root
 WORKDIR /src
@@ -32,7 +32,7 @@ ARG BUILD_TIME
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source and build scion and sciontool
+# Copy source and build fabric and fabrictool
 COPY cmd/ ./cmd/
 COPY harnesses/ ./harnesses/
 COPY pkg/ ./pkg/
@@ -43,64 +43,64 @@ COPY web/*.go ./web/
 # VCS stamping is disabled since .git is not in the build context;
 # commit info is passed explicitly via the GIT_COMMIT build arg
 RUN BUILD_TIME="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" && \
-    SCION_PKG="github.com/GoogleCloudPlatform/scion/pkg/version" && \
-    SCIONTOOL_PKG="github.com/GoogleCloudPlatform/scion/cmd/sciontool/commands" && \
-    SCION_LDFLAGS="-s -w -X ${SCION_PKG}.BuildTime=${BUILD_TIME}" && \
-    SCIONTOOL_LDFLAGS="-s -w -X ${SCIONTOOL_PKG}.BuildTime=${BUILD_TIME}" && \
+    FABRIC_PKG="github.com/pdlc-os/fabric/pkg/version" && \
+    FABRICTOOL_PKG="github.com/pdlc-os/fabric/cmd/fabrictool/commands" && \
+    FABRIC_LDFLAGS="-s -w -X ${FABRIC_PKG}.BuildTime=${BUILD_TIME}" && \
+    FABRICTOOL_LDFLAGS="-s -w -X ${FABRICTOOL_PKG}.BuildTime=${BUILD_TIME}" && \
     if [ -n "${GIT_COMMIT}" ]; then \
-        SCION_LDFLAGS="${SCION_LDFLAGS} -X ${SCION_PKG}.Commit=${GIT_COMMIT}"; \
-        SCIONTOOL_LDFLAGS="${SCIONTOOL_LDFLAGS} -X ${SCIONTOOL_PKG}.Commit=${GIT_COMMIT}"; \
+        FABRIC_LDFLAGS="${FABRIC_LDFLAGS} -X ${FABRIC_PKG}.Commit=${GIT_COMMIT}"; \
+        FABRICTOOL_LDFLAGS="${FABRICTOOL_LDFLAGS} -X ${FABRICTOOL_PKG}.Commit=${GIT_COMMIT}"; \
     fi && \
-    go build -buildvcs=false -tags no_embed_web -ldflags="${SCION_LDFLAGS}" -o /usr/local/bin/scion ./cmd/scion/ && \
-    go build -buildvcs=false -tags no_embed_web -ldflags="${SCIONTOOL_LDFLAGS}" -o /usr/local/bin/sciontool ./cmd/sciontool/
+    go build -buildvcs=false -tags no_embed_web -ldflags="${FABRIC_LDFLAGS}" -o /usr/local/bin/fabric ./cmd/fabric/ && \
+    go build -buildvcs=false -tags no_embed_web -ldflags="${FABRICTOOL_LDFLAGS}" -o /usr/local/bin/fabrictool ./cmd/fabrictool/
 
 # Final stage
 FROM base
 USER root
 
-# Copy scion and sciontool from builder
-COPY --from=builder /usr/local/bin/scion /usr/local/bin/scion
-COPY --from=builder /usr/local/bin/sciontool /usr/local/bin/sciontool
+# Copy fabric and fabrictool from builder
+COPY --from=builder /usr/local/bin/fabric /usr/local/bin/fabric
+COPY --from=builder /usr/local/bin/fabrictool /usr/local/bin/fabrictool
 
 # Set up gh CLI wrapper for GitHub App token injection.
 # Move the real gh binary aside and install a shell wrapper that delegates
-# through sciontool gh-wrapper, which reads the latest token from the
+# through fabrictool gh-wrapper, which reads the latest token from the
 # refreshable token file before exec-ing the real binary.
 RUN if [ -f /usr/bin/gh ]; then \
       mv /usr/bin/gh /usr/bin/gh.real && \
-      printf '#!/bin/sh\nexec sciontool gh-wrapper "$@"\n' > /usr/bin/gh && \
+      printf '#!/bin/sh\nexec fabrictool gh-wrapper "$@"\n' > /usr/bin/gh && \
       chmod +x /usr/bin/gh; \
     fi
 
 # Create dev-override bin directory at highest PATH priority.
-# When SCION_DEV_BINARIES is set, this directory is bind-mounted with
+# When FABRIC_DEV_BINARIES is set, this directory is bind-mounted with
 # locally-built binaries, allowing rapid iteration without image rebuilds.
-RUN mkdir -p /opt/scion/bin
-ENV PATH="/opt/scion/bin:${PATH}"
+RUN mkdir -p /opt/fabric/bin
+ENV PATH="/opt/fabric/bin:${PATH}"
 
-# Create scion user with passwordless sudo
-RUN useradd -m -s /bin/zsh -u 1000 scion && \
-    echo "scion ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/scion && \
-    chmod 0440 /etc/sudoers.d/scion
+# Create fabric user with passwordless sudo
+RUN useradd -m -s /bin/zsh -u 1000 fabric && \
+    echo "fabric ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/fabric && \
+    chmod 0440 /etc/sudoers.d/fabric
 
-# Precreate shared Scion home state so mounted file secrets and runtime
+# Precreate shared Fabric home state so mounted file secrets and runtime
 # config writes do not force root-owned parent directories at startup.
-RUN mkdir -p /home/scion/.scion && \
-    chown -R scion:scion /home/scion
+RUN mkdir -p /home/fabric/.fabric && \
+    chown -R fabric:fabric /home/fabric
 
 # Set ownership for npm global directory
 # TODO: Consider making npm-global world read-write (chmod) instead of chown
-# to scion. This would decouple it from the scion UID and avoid any ownership
+# to fabric. This would decouple it from the fabric UID and avoid any ownership
 # concerns when the UID is remapped at container start.
-RUN chown -R scion:scion /usr/local/share/npm-global
+RUN chown -R fabric:fabric /usr/local/share/npm-global
 
-# Note: Container starts as root to allow sciontool init to adjust
-# the scion user's UID/GID to match the host user for proper file
+# Note: Container starts as root to allow fabrictool init to adjust
+# the fabric user's UID/GID to match the host user for proper file
 # permissions on mounted volumes. The child process drops privileges.
 
-# Set sciontool as the container entrypoint (PID 1)
+# Set fabrictool as the container entrypoint (PID 1)
 # The -- separator ensures everything after it is treated as the child command
-ENTRYPOINT ["sciontool", "init", "--"]
+ENTRYPOINT ["fabrictool", "init", "--"]
 
 # Default command (can be overridden at runtime)
 CMD ["bash"]

@@ -27,14 +27,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/imagecheck"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hub/imagecheck"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 var ErrTmuxBinaryNotFound = errors.New("tmux binary not found")
@@ -70,15 +70,15 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	// this comes from env injected by the hub dispatcher.
 	projectID := ""
 	if opts.Env != nil {
-		projectID = opts.Env["SCION_PROJECT_ID"]
+		projectID = opts.Env["FABRIC_PROJECT_ID"]
 		if projectID == "" {
-			projectID = opts.Env["SCION_GROVE_ID"]
+			projectID = opts.Env["FABRIC_GROVE_ID"]
 		}
 	}
 
 	// 0. Check if container already exists (scoped to this project)
 	slug := api.Slugify(opts.Name)
-	agents, err := m.Runtime.List(ctx, map[string]string{"scion.name": slug})
+	agents, err := m.Runtime.List(ctx, map[string]string{"fabric.name": slug})
 	if err == nil {
 		for _, a := range agents {
 			// Skip agents from a different project
@@ -112,7 +112,7 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	if opts.Resume {
 		agentDir := config.ResolveAgentDir(projectDir, opts.Name)
 		if _, err := os.Stat(agentDir); os.IsNotExist(err) {
-			return nil, fmt.Errorf("cannot resume agent '%s': agent does not exist. Use 'scion start' to create a new agent", opts.Name)
+			return nil, fmt.Errorf("cannot resume agent '%s': agent does not exist. Use 'fabric start' to create a new agent", opts.Name)
 		}
 	}
 
@@ -130,26 +130,26 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	// (which carries volumes, env, image, etc. from templates/harness configs)
 	// with any --harness-auth override. Without this merge, custom volumes
 	// from hub-dispatched agents are silently dropped.
-	var startInlineConfig *api.ScionConfig
+	var startInlineConfig *api.FabricConfig
 	if opts.InlineConfig != nil {
 		startInlineConfig = opts.InlineConfig
 	}
 	if opts.HarnessAuth != "" {
 		if startInlineConfig == nil {
-			startInlineConfig = &api.ScionConfig{}
+			startInlineConfig = &api.FabricConfig{}
 		}
 		startInlineConfig.AuthSelectedType = opts.HarnessAuth
 	}
 
 	util.Debugf("Start: calling GetAgent name=%s template=%q image=%q harnessConfig=%q projectPath=%q profile=%q",
 		opts.Name, opts.Template, opts.Image, opts.HarnessConfig, opts.ProjectPath, opts.Profile)
-	agentDir, agentHome, agentWorkspace, finalScionCfg, err := GetAgent(ctx, opts.Name, opts.Template, opts.Image, opts.HarnessConfig, opts.ProjectPath, opts.Profile, "", opts.Branch, opts.Workspace, startInlineConfig)
+	agentDir, agentHome, agentWorkspace, finalFabricCfg, err := GetAgent(ctx, opts.Name, opts.Template, opts.Image, opts.HarnessConfig, opts.ProjectPath, opts.Profile, "", opts.Branch, opts.Workspace, startInlineConfig)
 	if err != nil {
 		return nil, err
 	}
-	if finalScionCfg != nil {
+	if finalFabricCfg != nil {
 		util.Debugf("Start: GetAgent returned config: harness=%q harnessConfig=%q defaultHarnessConfig=%q image=%q",
-			finalScionCfg.Harness, finalScionCfg.HarnessConfig, finalScionCfg.DefaultHarnessConfig, finalScionCfg.Image)
+			finalFabricCfg.Harness, finalFabricCfg.HarnessConfig, finalFabricCfg.DefaultHarnessConfig, finalFabricCfg.Image)
 	} else {
 		util.Debugf("Start: GetAgent returned nil config")
 	}
@@ -186,17 +186,17 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	}
 
 	harnessName := ""
-	if finalScionCfg != nil {
-		harnessName = finalScionCfg.Harness
+	if finalFabricCfg != nil {
+		harnessName = finalFabricCfg.Harness
 	}
 
 	// Resolve harness config name using the unified resolution chain.
-	// finalScionCfg acts as both stored config (resume) and template config.
+	// finalFabricCfg acts as both stored config (resume) and template config.
 	harnessConfigName := ""
 	if hcRes, err := config.ResolveHarnessConfigName(config.HarnessConfigInputs{
 		CLIFlag:      opts.HarnessConfig,
-		StoredConfig: finalScionCfg,
-		TemplateCfg:  finalScionCfg,
+		StoredConfig: finalFabricCfg,
+		TemplateCfg:  finalFabricCfg,
 		Settings:     settings,
 		ProfileName:  opts.Profile,
 	}); err == nil {
@@ -222,7 +222,7 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 		var templatePaths []string
 		// Prefer opts.Template when it is an absolute path (e.g. hydrated
 		// template cache path from the broker). The display name stored in
-		// finalScionCfg.Info.Template (e.g. "web-dev") may not resolve in
+		// finalFabricCfg.Info.Template (e.g. "web-dev") may not resolve in
 		// the project, but the original opts.Template path points to the
 		// actual template directory containing harness-configs/.
 		templateName := ""
@@ -230,8 +230,8 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 			templateName = opts.Template
 		}
 		if templateName == "" {
-			if finalScionCfg != nil && finalScionCfg.Info != nil {
-				templateName = finalScionCfg.Info.Template
+			if finalFabricCfg != nil && finalFabricCfg.Info != nil {
+				templateName = finalFabricCfg.Info.Template
 			}
 		}
 		if templateName == "" {
@@ -279,7 +279,7 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 		if profileName == "" {
 			profileName = settings.ActiveProfile
 		}
-		// Merge settings-level telemetry config into finalScionCfg so that
+		// Merge settings-level telemetry config into finalFabricCfg so that
 		// cloud export configuration (endpoint, protocol, batch, etc.) and
 		// the TelemetryEnabled flag are available at start time. This mirrors
 		// the merge in ProvisionAgent.
@@ -291,25 +291,25 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 					}
 					return ""
 				}())
-			settingsCfg := &api.ScionConfig{
+			settingsCfg := &api.FabricConfig{
 				Telemetry: config.ConvertV1TelemetryToAPI(settings.Telemetry),
 			}
-			finalScionCfg = config.MergeScionConfig(settingsCfg, finalScionCfg)
+			finalFabricCfg = config.MergeFabricConfig(settingsCfg, finalFabricCfg)
 		} else {
 			util.Debugf("Start: settings.Telemetry is nil, skipping telemetry merge")
 		}
 	}
 
-	// Apply User from ScionConfig (higher priority than harness-config/settings)
-	if finalScionCfg != nil && finalScionCfg.User != "" {
-		unixUsername = finalScionCfg.User
-		util.Debugf("user resolution: from ScionConfig user=%s", unixUsername)
+	// Apply User from FabricConfig (higher priority than harness-config/settings)
+	if finalFabricCfg != nil && finalFabricCfg.User != "" {
+		unixUsername = finalFabricCfg.User
+		util.Debugf("user resolution: from FabricConfig user=%s", unixUsername)
 	}
 
 	var warnings []string
 
-	if finalScionCfg != nil && finalScionCfg.Image != "" {
-		resolvedImage = finalScionCfg.Image
+	if finalFabricCfg != nil && finalFabricCfg.Image != "" {
+		resolvedImage = finalFabricCfg.Image
 		util.Debugf("image resolution: from agent/template config image=%s", resolvedImage)
 	}
 
@@ -345,8 +345,8 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	}
 
 	if resolvedImage == "" {
-		util.Debugf("image resolution FAILED: harnessConfigName=%q, finalScionCfg.Image=%q, opts.Image=%q, projectDir=%s",
-			harnessConfigName, finalScionCfg.Image, opts.Image, projectDir)
+		util.Debugf("image resolution FAILED: harnessConfigName=%q, finalFabricCfg.Image=%q, opts.Image=%q, projectDir=%s",
+			harnessConfigName, finalFabricCfg.Image, opts.Image, projectDir)
 		return nil, fmt.Errorf("no container image resolved for agent %q. Set 'image' in the harness-config config.yaml, specify --image, or configure a harness-config in settings", opts.Name)
 	}
 
@@ -363,8 +363,8 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 		var resolveTemplatePaths []string
 		if opts.Template != "" {
 			tplName := opts.Template
-			if !filepath.IsAbs(tplName) && finalScionCfg != nil && finalScionCfg.Info != nil && finalScionCfg.Info.Template != "" {
-				tplName = finalScionCfg.Info.Template
+			if !filepath.IsAbs(tplName) && finalFabricCfg != nil && finalFabricCfg.Info != nil && finalFabricCfg.Info.Template != "" {
+				tplName = finalFabricCfg.Info.Template
 			}
 			if chain, err := config.GetTemplateChainInProject(tplName, opts.ProjectPath); err == nil {
 				for _, tpl := range chain {
@@ -556,8 +556,8 @@ authDone:
 	// 4. Launch container
 	detached := true
 
-	if finalScionCfg != nil {
-		detached = finalScionCfg.IsDetached()
+	if finalFabricCfg != nil {
+		detached = finalFabricCfg.IsDetached()
 	}
 
 	if opts.Detached != nil {
@@ -572,8 +572,8 @@ authDone:
 	}
 
 	template := ""
-	if finalScionCfg != nil && finalScionCfg.Info != nil {
-		template = finalScionCfg.Info.Template
+	if finalFabricCfg != nil && finalFabricCfg.Info != nil {
+		template = finalFabricCfg.Info.Template
 	}
 	// Prefer human-friendly template slug over cache path or UUID
 	if opts.TemplateName != "" {
@@ -583,34 +583,34 @@ authDone:
 	if opts.Env == nil {
 		opts.Env = make(map[string]string)
 	}
-	opts.Env["SCION_AGENT_NAME"] = opts.Name
-	opts.Env["SCION_GROVE"] = projectName
-	opts.Env["SCION_PROJECT"] = projectName
+	opts.Env["FABRIC_AGENT_NAME"] = opts.Name
+	opts.Env["FABRIC_GROVE"] = projectName
+	opts.Env["FABRIC_PROJECT"] = projectName
 	if template != "" {
-		opts.Env["SCION_TEMPLATE_NAME"] = template
+		opts.Env["FABRIC_TEMPLATE_NAME"] = template
 	} else {
-		opts.Env["SCION_TEMPLATE_NAME"] = "custom"
+		opts.Env["FABRIC_TEMPLATE_NAME"] = "custom"
 	}
 	// Full template reference (cache path, URI, or name) for debugging
 	if opts.Template != "" {
-		opts.Env["SCION_TEMPLATE"] = opts.Template
+		opts.Env["FABRIC_TEMPLATE"] = opts.Template
 	}
-	if _, ok := opts.Env["SCION_BROKER_NAME"]; !ok {
-		opts.Env["SCION_BROKER_NAME"] = "local"
+	if _, ok := opts.Env["FABRIC_BROKER_NAME"]; !ok {
+		opts.Env["FABRIC_BROKER_NAME"] = "local"
 	}
 	// Inject harness and model identifiers for telemetry labeling.
-	if _, ok := opts.Env["SCION_HARNESS"]; !ok && harnessName != "" {
-		opts.Env["SCION_HARNESS"] = harnessName
+	if _, ok := opts.Env["FABRIC_HARNESS"]; !ok && harnessName != "" {
+		opts.Env["FABRIC_HARNESS"] = harnessName
 	}
-	if _, ok := opts.Env["SCION_MODEL"]; !ok && finalScionCfg != nil && finalScionCfg.Model != "" {
-		opts.Env["SCION_MODEL"] = finalScionCfg.Model
+	if _, ok := opts.Env["FABRIC_MODEL"]; !ok && finalFabricCfg != nil && finalFabricCfg.Model != "" {
+		opts.Env["FABRIC_MODEL"] = finalFabricCfg.Model
 	}
-	if _, ok := opts.Env["SCION_CREATOR"]; !ok {
+	if _, ok := opts.Env["FABRIC_CREATOR"]; !ok {
 		if u, err := user.Current(); err == nil {
-			opts.Env["SCION_CREATOR"] = u.Username
+			opts.Env["FABRIC_CREATOR"] = u.Username
 		}
 	}
-	opts.Env["SCION_CLI_MODE"] = "agent"
+	opts.Env["FABRIC_CLI_MODE"] = "agent"
 
 	// Determine whether hub is explicitly disabled in project settings.
 	// When disabled, we suppress hub env var injection from agent config
@@ -618,74 +618,74 @@ authDone:
 	// which may come from an authoritative source like the runtime broker).
 	hubDisabled := settings != nil && settings.IsHubExplicitlyDisabled()
 
-	// Inject agent limit env vars from scion config
-	if finalScionCfg != nil {
-		if finalScionCfg.MaxTurns > 0 {
-			opts.Env["SCION_MAX_TURNS"] = strconv.Itoa(finalScionCfg.MaxTurns)
+	// Inject agent limit env vars from fabric config
+	if finalFabricCfg != nil {
+		if finalFabricCfg.MaxTurns > 0 {
+			opts.Env["FABRIC_MAX_TURNS"] = strconv.Itoa(finalFabricCfg.MaxTurns)
 		}
-		if finalScionCfg.MaxModelCalls > 0 {
-			opts.Env["SCION_MAX_MODEL_CALLS"] = strconv.Itoa(finalScionCfg.MaxModelCalls)
+		if finalFabricCfg.MaxModelCalls > 0 {
+			opts.Env["FABRIC_MAX_MODEL_CALLS"] = strconv.Itoa(finalFabricCfg.MaxModelCalls)
 		}
-		if finalScionCfg.MaxDuration != "" {
-			opts.Env["SCION_MAX_DURATION"] = finalScionCfg.MaxDuration
+		if finalFabricCfg.MaxDuration != "" {
+			opts.Env["FABRIC_MAX_DURATION"] = finalFabricCfg.MaxDuration
 		}
 		// Agent-level hub endpoint takes highest priority, overriding
 		// project settings and server config values passed via opts.Env.
-		if !hubDisabled && finalScionCfg.Hub != nil && finalScionCfg.Hub.Endpoint != "" {
-			opts.Env["SCION_HUB_ENDPOINT"] = finalScionCfg.Hub.Endpoint
-			opts.Env["SCION_HUB_URL"] = finalScionCfg.Hub.Endpoint
+		if !hubDisabled && finalFabricCfg.Hub != nil && finalFabricCfg.Hub.Endpoint != "" {
+			opts.Env["FABRIC_HUB_ENDPOINT"] = finalFabricCfg.Hub.Endpoint
+			opts.Env["FABRIC_HUB_URL"] = finalFabricCfg.Hub.Endpoint
 		}
 	}
 
 	// If hub endpoint not yet set from agent config or caller's opts.Env,
 	// check project settings so locally-started agents in hub-connected
 	// projects also get hub connectivity.
-	if _, hubSet := opts.Env["SCION_HUB_ENDPOINT"]; !hubSet {
+	if _, hubSet := opts.Env["FABRIC_HUB_ENDPOINT"]; !hubSet {
 		if projectSettings, err := config.LoadSettings(projectDir); err == nil {
 			if projectSettings.IsHubEnabled() {
 				if ep := projectSettings.GetHubEndpoint(); ep != "" {
-					opts.Env["SCION_HUB_ENDPOINT"] = ep
-					opts.Env["SCION_HUB_URL"] = ep
+					opts.Env["FABRIC_HUB_ENDPOINT"] = ep
+					opts.Env["FABRIC_HUB_URL"] = ep
 				}
 			}
 		}
 	}
 	// If hub endpoint is now set but no auth token, resolve dev auth token
-	// from the host filesystem (env vars or ~/.scion/dev-token file).
-	if _, ok := opts.Env["SCION_HUB_ENDPOINT"]; ok {
-		if _, tokenSet := opts.Env["SCION_AUTH_TOKEN"]; !tokenSet {
+	// from the host filesystem (env vars or ~/.fabric/dev-token file).
+	if _, ok := opts.Env["FABRIC_HUB_ENDPOINT"]; ok {
+		if _, tokenSet := opts.Env["FABRIC_AUTH_TOKEN"]; !tokenSet {
 			if token := apiclient.ResolveDevToken(); token != "" {
-				opts.Env["SCION_AUTH_TOKEN"] = token
+				opts.Env["FABRIC_AUTH_TOKEN"] = token
 			}
 		}
 	}
 
-	// Explicit SCION_HUB_ENDPOINT in scion config env section takes
+	// Explicit FABRIC_HUB_ENDPOINT in fabric config env section takes
 	// final priority. This allows templates to specify a container-
 	// accessible endpoint (e.g. http://host.docker.internal:8080)
 	// that differs from the host-level hub endpoint.
-	if !hubDisabled && finalScionCfg != nil && finalScionCfg.Env != nil {
-		if ep, ok := finalScionCfg.Env["SCION_HUB_ENDPOINT"]; ok && ep != "" {
+	if !hubDisabled && finalFabricCfg != nil && finalFabricCfg.Env != nil {
+		if ep, ok := finalFabricCfg.Env["FABRIC_HUB_ENDPOINT"]; ok && ep != "" {
 			expandedEp, _ := util.ExpandEnv(ep)
 			if expandedEp != "" {
-				opts.Env["SCION_HUB_ENDPOINT"] = expandedEp
-				opts.Env["SCION_HUB_URL"] = expandedEp
+				opts.Env["FABRIC_HUB_ENDPOINT"] = expandedEp
+				opts.Env["FABRIC_HUB_URL"] = expandedEp
 			}
 		}
 	}
 
 	// When hub is explicitly disabled, strip hub env vars from both
-	// opts.Env and the scion config env section to prevent leakage
-	// through buildAgentEnv (which processes scionCfg.Env independently).
+	// opts.Env and the fabric config env section to prevent leakage
+	// through buildAgentEnv (which processes fabricCfg.Env independently).
 	// In broker mode, never strip hub env vars — the broker handler is
 	// authoritative about hub connectivity and the project settings on the
 	// broker host may not accurately reflect the hub-connected state.
 	if hubDisabled && !opts.BrokerMode {
-		delete(opts.Env, "SCION_HUB_ENDPOINT")
-		delete(opts.Env, "SCION_HUB_URL")
-		if finalScionCfg != nil && finalScionCfg.Env != nil {
-			delete(finalScionCfg.Env, "SCION_HUB_ENDPOINT")
-			delete(finalScionCfg.Env, "SCION_HUB_URL")
+		delete(opts.Env, "FABRIC_HUB_ENDPOINT")
+		delete(opts.Env, "FABRIC_HUB_URL")
+		if finalFabricCfg != nil && finalFabricCfg.Env != nil {
+			delete(finalFabricCfg.Env, "FABRIC_HUB_ENDPOINT")
+			delete(finalFabricCfg.Env, "FABRIC_HUB_URL")
 		}
 	}
 
@@ -693,12 +693,12 @@ authDone:
 	// directory so that all processes inside the container read from the file
 	// rather than relying on an environment variable that goes stale after
 	// token refresh.
-	if token, ok := opts.Env["SCION_AUTH_TOKEN"]; ok && token != "" {
-		scionDir := filepath.Join(agentHome, ".scion")
-		if err := os.MkdirAll(scionDir, 0700); err != nil {
-			util.Debugf("Start: failed to create .scion dir for token file: %v", err)
+	if token, ok := opts.Env["FABRIC_AUTH_TOKEN"]; ok && token != "" {
+		fabricDir := filepath.Join(agentHome, ".fabric")
+		if err := os.MkdirAll(fabricDir, 0700); err != nil {
+			util.Debugf("Start: failed to create .fabric dir for token file: %v", err)
 		} else {
-			tokenPath := filepath.Join(scionDir, "scion-token")
+			tokenPath := filepath.Join(fabricDir, "fabric-token")
 			tmp := tokenPath + ".tmp"
 			if err := os.WriteFile(tmp, []byte(token), 0600); err != nil {
 				util.Debugf("Start: failed to write token file: %v", err)
@@ -709,7 +709,7 @@ authDone:
 				util.Debugf("Start: wrote agent token to %s", tokenPath)
 			}
 		}
-		delete(opts.Env, "SCION_AUTH_TOKEN")
+		delete(opts.Env, "FABRIC_AUTH_TOKEN")
 	}
 
 	// Resolve host networking: when the hub endpoint is localhost or was
@@ -718,19 +718,19 @@ authDone:
 	// bridge hostnames back to localhost in opts.Env.
 	networkMode := runtime.ResolveHostNetworking(m.Runtime.Name(), opts.Env)
 	if networkMode != "" {
-		opts.Env["SCION_NETWORK_MODE"] = networkMode
+		opts.Env["FABRIC_NETWORK_MODE"] = networkMode
 	}
 
-	// Persist harness auth override to scion-agent.json so sciontool inside the container sees it.
+	// Persist harness auth override to fabric-agent.json so fabrictool inside the container sees it.
 	// The actual auth resolution override is applied earlier in the auth gathering block.
 	if opts.HarnessAuth != "" {
-		if finalScionCfg == nil {
-			finalScionCfg = &api.ScionConfig{}
+		if finalFabricCfg == nil {
+			finalFabricCfg = &api.FabricConfig{}
 		}
-		finalScionCfg.AuthSelectedType = opts.HarnessAuth
-		cfgData, marshalErr := json.MarshalIndent(finalScionCfg, "", "  ")
+		finalFabricCfg.AuthSelectedType = opts.HarnessAuth
+		cfgData, marshalErr := json.MarshalIndent(finalFabricCfg, "", "  ")
 		if marshalErr == nil {
-			configPath := filepath.Join(agentDir, "scion-agent.json")
+			configPath := filepath.Join(agentDir, "fabric-agent.json")
 			if writeErr := os.WriteFile(configPath, cfgData, 0644); writeErr != nil {
 				return nil, fmt.Errorf("failed to write agent config %s: %w", configPath, writeErr)
 			}
@@ -741,13 +741,13 @@ authDone:
 	// This has highest priority, overriding settings, templates, and harness configs.
 	if opts.TelemetryOverride != nil {
 		util.Debugf("Start: applying TelemetryOverride=%v", *opts.TelemetryOverride)
-		if finalScionCfg == nil {
-			finalScionCfg = &api.ScionConfig{}
+		if finalFabricCfg == nil {
+			finalFabricCfg = &api.FabricConfig{}
 		}
-		if finalScionCfg.Telemetry == nil {
-			finalScionCfg.Telemetry = &api.TelemetryConfig{}
+		if finalFabricCfg.Telemetry == nil {
+			finalFabricCfg.Telemetry = &api.TelemetryConfig{}
 		}
-		finalScionCfg.Telemetry.Enabled = opts.TelemetryOverride
+		finalFabricCfg.Telemetry.Enabled = opts.TelemetryOverride
 	} else {
 		util.Debugf("Start: no TelemetryOverride set")
 	}
@@ -755,8 +755,8 @@ authDone:
 	// Allow harnesses to reconcile native telemetry config files with the
 	// effective telemetry settings before container launch.
 	var effectiveTelemetry *api.TelemetryConfig
-	if finalScionCfg != nil {
-		effectiveTelemetry = finalScionCfg.Telemetry
+	if finalFabricCfg != nil {
+		effectiveTelemetry = finalFabricCfg.Telemetry
 	}
 	if telemetryApplier, ok := h.(api.TelemetrySettingsApplier); ok {
 		if err := telemetryApplier.ApplyTelemetrySettings(agentHome, effectiveTelemetry, opts.Env); err != nil {
@@ -767,17 +767,17 @@ authDone:
 	// Stage universal mcp_servers map for the harness's container-side
 	// provisioner. Built-in Go harnesses do not implement MCPSettingsApplier
 	// and continue to use any inline MCP config in their home/ files.
-	if mcpApplier, ok := h.(api.MCPSettingsApplier); ok && finalScionCfg != nil && len(finalScionCfg.MCPServers) > 0 {
-		if err := mcpApplier.ApplyMCPSettings(agentHome, finalScionCfg.MCPServers); err != nil {
+	if mcpApplier, ok := h.(api.MCPSettingsApplier); ok && finalFabricCfg != nil && len(finalFabricCfg.MCPServers) > 0 {
+		if err := mcpApplier.ApplyMCPSettings(agentHome, finalFabricCfg.MCPServers); err != nil {
 			return nil, fmt.Errorf("failed to apply mcp settings: %w", err)
 		}
-		util.Debugf("mcp: staged %d server(s) for harness=%q", len(finalScionCfg.MCPServers), harnessName)
+		util.Debugf("mcp: staged %d server(s) for harness=%q", len(finalFabricCfg.MCPServers), harnessName)
 	}
 
-	// Inject telemetry config as env vars for sciontool.
+	// Inject telemetry config as env vars for fabrictool.
 	// Only set vars not already present (respecting explicit overrides).
-	if finalScionCfg != nil && finalScionCfg.Telemetry != nil {
-		telemetryEnv := config.TelemetryConfigToEnv(finalScionCfg.Telemetry)
+	if finalFabricCfg != nil && finalFabricCfg.Telemetry != nil {
+		telemetryEnv := config.TelemetryConfigToEnv(finalFabricCfg.Telemetry)
 		util.Debugf("Start: injecting %d telemetry env vars", len(telemetryEnv))
 		for k, v := range telemetryEnv {
 			if _, exists := opts.Env[k]; !exists {
@@ -786,7 +786,7 @@ authDone:
 		}
 	}
 
-	agentEnv, envWarnings, missingEnvKeys := buildAgentEnv(finalScionCfg, opts.Env)
+	agentEnv, envWarnings, missingEnvKeys := buildAgentEnv(finalFabricCfg, opts.Env)
 	if len(missingEnvKeys) > 0 {
 		sort.Strings(missingEnvKeys)
 		if opts.BrokerMode {
@@ -805,8 +805,8 @@ authDone:
 	// Determine the effective workspace path. If agentWorkspace is empty but we have
 	// a volume mounted to /workspace (e.g., shared worktree case), use that source path.
 	effectiveWorkspace := agentWorkspace
-	if effectiveWorkspace == "" && finalScionCfg != nil {
-		effectiveWorkspace = extractWorkspaceFromVolumes(finalScionCfg.Volumes)
+	if effectiveWorkspace == "" && finalFabricCfg != nil {
+		effectiveWorkspace = extractWorkspaceFromVolumes(finalFabricCfg.Volumes)
 	}
 
 	// Validate that the workspace directory exists before attempting to mount it.
@@ -821,17 +821,17 @@ authDone:
 
 	// On resume/restart opts.Workspace is empty, so re-derive the explicit intent
 	// from the persisted config to keep the explicit workspace plain-mounted.
-	explicitWorkspace := opts.Workspace != "" || (finalScionCfg != nil && finalScionCfg.ExplicitWorkspace)
+	explicitWorkspace := opts.Workspace != "" || (finalFabricCfg != nil && finalFabricCfg.ExplicitWorkspace)
 	repoRoot := detectRepoRoot(explicitWorkspace, effectiveWorkspace, projectDir)
 
 	// Telemetry defaults to enabled when not explicitly set to false.
-	telemetryEnabled := finalScionCfg != nil && finalScionCfg.Telemetry != nil &&
-		(finalScionCfg.Telemetry.Enabled == nil || *finalScionCfg.Telemetry.Enabled)
+	telemetryEnabled := finalFabricCfg != nil && finalFabricCfg.Telemetry != nil &&
+		(finalFabricCfg.Telemetry.Enabled == nil || *finalFabricCfg.Telemetry.Enabled)
 	util.Debugf("Start: telemetryEnabled=%v (hasCfg=%v, hasTelem=%v, cloud=%v)",
 		telemetryEnabled,
-		finalScionCfg != nil,
-		finalScionCfg != nil && finalScionCfg.Telemetry != nil,
-		finalScionCfg != nil && finalScionCfg.Telemetry != nil && finalScionCfg.Telemetry.Cloud != nil)
+		finalFabricCfg != nil,
+		finalFabricCfg != nil && finalFabricCfg.Telemetry != nil,
+		finalFabricCfg != nil && finalFabricCfg.Telemetry != nil && finalFabricCfg.Telemetry.Cloud != nil)
 
 	// Compute the container-side workspace path for volume mount targets.
 	containerWorkspace := runtime.ResolveContainerWorkspace(repoRoot, effectiveWorkspace, opts.GitClone)
@@ -853,8 +853,8 @@ authDone:
 			util.Debugf("Start: failed to resolve shared dir volumes: %v", err)
 		} else {
 			sharedDirVolumes = sdVolumes
-			// Add SCION_VOLUMES env var for discoverability
-			opts.Env["SCION_VOLUMES"] = "/scion-volumes"
+			// Add FABRIC_VOLUMES env var for discoverability
+			opts.Env["FABRIC_VOLUMES"] = "/fabric-volumes"
 		}
 	}
 
@@ -874,22 +874,22 @@ authDone:
 		TelemetryEnabled:   telemetryEnabled,
 		Task: func() string {
 			// When task_flag is set, task is delivered via CommandArgs instead
-			if finalScionCfg != nil && finalScionCfg.TaskFlag != "" {
+			if finalFabricCfg != nil && finalFabricCfg.TaskFlag != "" {
 				return ""
 			}
 			return task
 		}(),
 		CommandArgs: func() []string {
 			var args []string
-			if finalScionCfg != nil {
-				args = finalScionCfg.CommandArgs
-				if finalScionCfg.Model != "" {
+			if finalFabricCfg != nil {
+				args = finalFabricCfg.CommandArgs
+				if finalFabricCfg.Model != "" {
 					// Prepend model flag so it appears before user args but is passed in baseArgs
-					args = append([]string{"--model", finalScionCfg.Model}, args...)
+					args = append([]string{"--model", finalFabricCfg.Model}, args...)
 				}
 				// If task_flag is configured, append task as a flag value
-				if finalScionCfg.TaskFlag != "" && task != "" {
-					args = append(args, finalScionCfg.TaskFlag, task)
+				if finalFabricCfg.TaskFlag != "" && task != "" {
+					args = append(args, finalFabricCfg.TaskFlag, task)
 				}
 			}
 			return args
@@ -898,14 +898,14 @@ authDone:
 		ResolvedSecrets: opts.ResolvedSecrets,
 		Volumes: func() []api.VolumeMount {
 			var volumes []api.VolumeMount
-			if finalScionCfg != nil {
+			if finalFabricCfg != nil {
 				// If we extracted effectiveWorkspace from a /workspace volume mount,
 				// filter it out to avoid a duplicate mount (the buildCommonRunArgs
 				// will handle the workspace mount properly with worktree support).
 				if effectiveWorkspace != "" && effectiveWorkspace != agentWorkspace {
-					volumes = filterWorkspaceVolume(finalScionCfg.Volumes)
+					volumes = filterWorkspaceVolume(finalFabricCfg.Volumes)
 				} else {
-					volumes = finalScionCfg.Volumes
+					volumes = finalFabricCfg.Volumes
 				}
 			}
 			// Append shared directory volumes
@@ -913,14 +913,14 @@ authDone:
 			return volumes
 		}(),
 		Resources: func() *api.ResourceSpec {
-			if finalScionCfg != nil {
-				return finalScionCfg.Resources
+			if finalFabricCfg != nil {
+				return finalFabricCfg.Resources
 			}
 			return nil
 		}(),
 		Kubernetes: func() *api.KubernetesConfig {
-			if finalScionCfg != nil {
-				return finalScionCfg.Kubernetes
+			if finalFabricCfg != nil {
+				return finalFabricCfg.Kubernetes
 			}
 			return nil
 		}(),
@@ -948,11 +948,11 @@ authDone:
 		NetworkMode:          networkMode,
 		Labels: func() map[string]string {
 			l := map[string]string{
-				"scion.agent":          "true",
-				"scion.name":           api.Slugify(opts.Name),
-				"scion.template":       template,
-				"scion.harness_config": harnessConfigName,
-				"scion.harness_auth":   opts.HarnessAuth,
+				"fabric.agent":          "true",
+				"fabric.name":           api.Slugify(opts.Name),
+				"fabric.template":       template,
+				"fabric.harness_config": harnessConfigName,
+				"fabric.harness_auth":   opts.HarnessAuth,
 			}
 			for k, v := range projectcompat.ProjectNameLabels(projectName, true) {
 				l[k] = v
@@ -988,7 +988,7 @@ authDone:
 	}
 
 	// Fetch fresh info and verify the container is actually running
-	allAgents, err := m.Runtime.List(ctx, map[string]string{"scion.name": slug})
+	allAgents, err := m.Runtime.List(ctx, map[string]string{"fabric.name": slug})
 	if err == nil {
 		for _, a := range allAgents {
 			if a.ContainerID == id || strings.EqualFold(a.Name, opts.Name) {
@@ -1111,13 +1111,13 @@ func containerName(projectName, agentName string) string {
 	return agentName
 }
 
-func buildAgentEnv(scionCfg *api.ScionConfig, extraEnv map[string]string) ([]string, []string, []string) {
+func buildAgentEnv(fabricCfg *api.FabricConfig, extraEnv map[string]string) ([]string, []string, []string) {
 	combined := make(map[string]string)
 	var warnings []string
 	var missingKeys []string
 
-	if scionCfg != nil && scionCfg.Env != nil {
-		for k, v := range scionCfg.Env {
+	if fabricCfg != nil && fabricCfg.Env != nil {
+		for k, v := range fabricCfg.Env {
 			// Support variable substitution in keys and values
 			expandedKey, _ := util.ExpandEnv(k)
 			expandedValue, warned := util.ExpandEnv(v)
@@ -1318,7 +1318,7 @@ func authFileKind(name, target string) string {
 // configuration that requires iptables interception (assign or block mode).
 func hasMetadataInterception(env []string) bool {
 	for _, e := range env {
-		if strings.HasPrefix(e, "SCION_METADATA_MODE=assign") || strings.HasPrefix(e, "SCION_METADATA_MODE=block") {
+		if strings.HasPrefix(e, "FABRIC_METADATA_MODE=assign") || strings.HasPrefix(e, "FABRIC_METADATA_MODE=block") {
 			return true
 		}
 	}

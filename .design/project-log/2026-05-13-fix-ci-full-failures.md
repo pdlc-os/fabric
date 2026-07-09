@@ -1,8 +1,8 @@
 # Fix CI Full Failures
 
 **Date:** 2026-05-13
-**Branch:** scion/fix-broken-tests
-**PR:** https://github.com/ptone/scion/pull/67
+**Branch:** fabric/fix-broken-tests
+**PR:** https://github.com/ptone/fabric/pull/67
 
 ## Summary
 

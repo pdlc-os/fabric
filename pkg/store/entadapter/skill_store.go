@@ -22,10 +22,10 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	entskill "github.com/GoogleCloudPlatform/scion/pkg/ent/skill"
-	entskillversion "github.com/GoogleCloudPlatform/scion/pkg/ent/skillversion"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	entskill "github.com/pdlc-os/fabric/pkg/ent/skill"
+	entskillversion "github.com/pdlc-os/fabric/pkg/ent/skillversion"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/Masterminds/semver/v3"
 )
 

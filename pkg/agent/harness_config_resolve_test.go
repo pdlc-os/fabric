@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // TestResolveHarnessConfigDir_PrefersContextPath verifies that a Hub-hydrated
@@ -30,7 +30,7 @@ import (
 func TestResolveHarnessConfigDir_PrefersContextPath(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "config.yaml"),
-		[]byte("harness: claude\nimage: scion-claude:latest\nuser: scion\n"), 0644); err != nil {
+		[]byte("harness: claude\nimage: fabric-claude:latest\nuser: fabric\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,8 +48,8 @@ func TestResolveHarnessConfigDir_PrefersContextPath(t *testing.T) {
 	if hcDir.Config.Harness != "claude" {
 		t.Errorf("expected harness 'claude', got %q", hcDir.Config.Harness)
 	}
-	if hcDir.Config.Image != "scion-claude:latest" {
-		t.Errorf("expected image 'scion-claude:latest', got %q", hcDir.Config.Image)
+	if hcDir.Config.Image != "fabric-claude:latest" {
+		t.Errorf("expected image 'fabric-claude:latest', got %q", hcDir.Config.Image)
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // AgentInfo holds an agent's slug and current activity state.
@@ -36,7 +36,7 @@ func (p ProjectOption) DisplayName() string {
 	return p.ID
 }
 
-// HubClient provides access to the Scion hub API for project and agent listing.
+// HubClient provides access to the Fabric hub API for project and agent listing.
 type HubClient interface {
 	ListProjects(ctx context.Context) ([]ProjectOption, error)
 	ListProjectsFresh(ctx context.Context) ([]ProjectOption, error)
@@ -52,7 +52,7 @@ type httpHubClient struct {
 	httpClient *http.Client
 }
 
-// NewHTTPHubClient creates a new HubClient that calls the Scion Hub API.
+// NewHTTPHubClient creates a new HubClient that calls the Fabric Hub API.
 func NewHTTPHubClient(hubURL, hmacKey, brokerID string) HubClient {
 	return &httpHubClient{
 		hubURL:     hubURL,

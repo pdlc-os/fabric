@@ -25,7 +25,7 @@ if [ -z "$payload" ]; then
   exit 0
 fi
 
-if ! command -v sciontool >/dev/null 2>&1; then
+if ! command -v fabrictool >/dev/null 2>&1; then
   exit 0
 fi
 
@@ -60,7 +60,7 @@ if [ -z "$event" ]; then
 fi
 
 if [ "$event" = "agent-turn-complete" ]; then
-  autoc="${SCION_CODEX_NOTIFY_AUTO_COMPLETE-true}"
+  autoc="${FABRIC_CODEX_NOTIFY_AUTO_COMPLETE-true}"
   if [ "$autoc" = "false" ] || [ "$autoc" = "0" ] || [ "$autoc" = "no" ]; then
     exit 0
   fi
@@ -73,12 +73,12 @@ if [ "$event" = "agent-turn-complete" ]; then
     title="Codex turn completed"
   fi
 
-  sciontool status task_completed "$title" >/dev/null 2>&1 || true
+  fabrictool status task_completed "$title" >/dev/null 2>&1 || true
   exit 0
 fi
 
 case "$event" in
   UserPromptSubmit|PreToolUse|PostToolUse|Stop|SubagentStop|SessionStart|SessionEnd)
-    printf '%s' "$payload" | sciontool hook --dialect=codex >/dev/null 2>&1 || true
+    printf '%s' "$payload" | fabrictool hook --dialect=codex >/dev/null 2>&1 || true
     ;;
 esac

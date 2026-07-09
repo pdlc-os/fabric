@@ -17,7 +17,7 @@
 /**
  * Profile Access Tokens page
  *
- * Thin wrapper around the shared <scion-token-list> component,
+ * Thin wrapper around the shared <fabric-token-list> component,
  * providing the page header and description. When the hub has a
  * GitHub App configured and the current user owns projects that have
  * an active GitHub App installation, a link to manage the GitHub App
@@ -37,8 +37,8 @@ interface GitHubAppInfo {
   installation_url?: string;
 }
 
-@customElement('scion-page-profile-tokens')
-export class ScionPageProfileTokens extends LitElement {
+@customElement('fabric-page-profile-tokens')
+export class FabricPageProfileTokens extends LitElement {
   @state()
   private githubAppLink: string | null = null;
 
@@ -58,12 +58,12 @@ export class ScionPageProfileTokens extends LitElement {
     .page-header-info h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .page-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
@@ -74,22 +74,22 @@ export class ScionPageProfileTokens extends LitElement {
       gap: 0.75rem;
       padding: 0.75rem 1rem;
       margin-bottom: 1.5rem;
-      background: var(--scion-bg-subtle, #f8fafc);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .github-app-card sl-icon {
       font-size: 1.25rem;
       flex-shrink: 0;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .github-app-card span {
       flex: 1;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
   `;
 
@@ -151,13 +151,13 @@ private async checkGitHubApp(): Promise<void> {
           `
         : nothing}
 
-      <scion-token-list></scion-token-list>
+      <fabric-token-list></fabric-token-list>
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-profile-tokens': ScionPageProfileTokens;
+    'fabric-page-profile-tokens': FabricPageProfileTokens;
   }
 }

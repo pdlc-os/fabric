@@ -2,7 +2,7 @@
 
 **Date**: 2026-05-14
 **Type**: Bug fix
-**Scope**: `extras/scion-telegram/internal/telegram/`
+**Scope**: `extras/fabric-telegram/internal/telegram/`
 
 ## Problem
 

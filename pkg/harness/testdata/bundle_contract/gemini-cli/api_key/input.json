@@ -5,7 +5,7 @@
       "GEMINI_API_KEY"
     ],
     "env_secret_files": {
-      "GEMINI_API_KEY": "$HOME/.scion/harness/secrets/GEMINI_API_KEY"
+      "GEMINI_API_KEY": "$HOME/.fabric/harness/secrets/GEMINI_API_KEY"
     },
     "files": []
   },

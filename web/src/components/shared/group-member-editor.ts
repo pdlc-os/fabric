@@ -30,8 +30,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { GroupMember, AdminGroup } from '../../shared/types.js';
 import { apiFetch, extractApiError } from '../../client/api.js';
 
-@customElement('scion-group-member-editor')
-export class ScionGroupMemberEditor extends LitElement {
+@customElement('fabric-group-member-editor')
+export class FabricGroupMemberEditor extends LitElement {
   /** The group ID to manage members for */
   @property() groupId = '';
 
@@ -80,9 +80,9 @@ export class ScionGroupMemberEditor extends LitElement {
 
     /* Section layout (compact mode) */
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -98,12 +98,12 @@ export class ScionGroupMemberEditor extends LitElement {
     .section-header-info h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .section-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
@@ -119,22 +119,22 @@ export class ScionGroupMemberEditor extends LitElement {
     .list-header h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .member-count {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-left: 0.5rem;
       font-weight: 400;
     }
 
     /* Table */
     .table-container {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
 
@@ -155,16 +155,16 @@ export class ScionGroupMemberEditor extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
 
@@ -173,7 +173,7 @@ export class ScionGroupMemberEditor extends LitElement {
     }
 
     tr:hover td {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     /* Member identity */
@@ -191,8 +191,8 @@ export class ScionGroupMemberEditor extends LitElement {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .member-icon.user {
@@ -230,11 +230,11 @@ export class ScionGroupMemberEditor extends LitElement {
 
     .member-detail {
       font-size: 0.6875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .member-detail .member-id {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
     }
 
     /* Role badge */
@@ -248,8 +248,8 @@ export class ScionGroupMemberEditor extends LitElement {
     }
 
     .role-badge.member {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .role-badge.admin {
@@ -264,7 +264,7 @@ export class ScionGroupMemberEditor extends LitElement {
 
     .meta-text {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .actions-cell {
@@ -275,9 +275,9 @@ export class ScionGroupMemberEditor extends LitElement {
     .empty-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .compact .empty-state {
@@ -287,7 +287,7 @@ export class ScionGroupMemberEditor extends LitElement {
 
     .empty-state > sl-icon {
       font-size: 3rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 0.75rem;
     }
@@ -295,12 +295,12 @@ export class ScionGroupMemberEditor extends LitElement {
     .empty-state h3 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.25rem 0;
       font-size: 0.875rem;
     }
@@ -311,7 +311,7 @@ export class ScionGroupMemberEditor extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       gap: 0.75rem;
     }
 
@@ -320,7 +320,7 @@ export class ScionGroupMemberEditor extends LitElement {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
       background: var(--sl-color-danger-50, #fef2f2);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -339,15 +339,15 @@ export class ScionGroupMemberEditor extends LitElement {
       font-size: 0.875rem;
       padding: 0.5rem 0.75rem;
       background: var(--sl-color-danger-50, #fef2f2);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .dialog-hint {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     /* User search autocomplete */
@@ -361,9 +361,9 @@ export class ScionGroupMemberEditor extends LitElement {
       left: 0;
       right: 0;
       z-index: 1000;
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       max-height: 200px;
       overflow-y: auto;
@@ -375,7 +375,7 @@ export class ScionGroupMemberEditor extends LitElement {
       flex-direction: column;
       padding: 0.5rem 0.75rem;
       cursor: pointer;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .user-search-option:last-child {
@@ -384,18 +384,18 @@ export class ScionGroupMemberEditor extends LitElement {
 
     .user-search-option:hover,
     .user-search-option.focused {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .user-search-option .user-name {
       font-weight: 500;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .user-search-option .user-email {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .user-search-empty,
@@ -403,7 +403,7 @@ export class ScionGroupMemberEditor extends LitElement {
       padding: 0.75rem;
       text-align: center;
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     @media (max-width: 768px) {
@@ -961,6 +961,6 @@ export class ScionGroupMemberEditor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-group-member-editor': ScionGroupMemberEditor;
+    'fabric-group-member-editor': FabricGroupMemberEditor;
   }
 }

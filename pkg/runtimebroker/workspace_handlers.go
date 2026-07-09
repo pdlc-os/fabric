@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // ============================================================================
@@ -285,7 +285,7 @@ func (s *Server) handleWorkspaceApply(w http.ResponseWriter, r *http.Request) {
 // then falls back to the known worktree location pattern.
 func (s *Server) getAgentWorkspacePath(ctx context.Context, agentID string) (string, error) {
 	// First, try to find the agent in the manager
-	agents, err := s.manager.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := s.manager.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err != nil {
 		return "", fmt.Errorf("failed to list agents: %w", err)
 	}
@@ -319,13 +319,13 @@ func (s *Server) getAgentWorkspacePath(ctx context.Context, agentID string) (str
 	}
 
 	// Fall back to worktree location pattern
-	// Worktrees are typically at: {parent}/.scion_worktrees/{project}/{agent}
+	// Worktrees are typically at: {parent}/.fabric_worktrees/{project}/{agent}
 	if projectPath != "" && agentName != "" {
 		// Get project's parent directory
 		projectParent := filepath.Dir(projectPath)
 		projectName := filepath.Base(projectParent)
 
-		worktreePath := filepath.Join(projectParent, ".scion_worktrees", projectName, agentName)
+		worktreePath := filepath.Join(projectParent, ".fabric_worktrees", projectName, agentName)
 		if _, statErr := os.Stat(worktreePath); statErr == nil {
 			return worktreePath, nil
 		}

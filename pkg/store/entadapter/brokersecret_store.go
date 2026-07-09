@@ -18,10 +18,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/brokerjointoken"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/brokersecret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/brokerjointoken"
+	"github.com/pdlc-os/fabric/pkg/ent/brokersecret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // BrokerSecretStore implements store.BrokerSecretStore using Ent ORM. It backs

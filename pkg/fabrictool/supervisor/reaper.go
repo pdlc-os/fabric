@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package supervisor
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // snapshotProcessNames reads process names from /proc for all current

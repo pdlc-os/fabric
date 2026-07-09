@@ -1,9 +1,9 @@
 ---
 title: Proxy Auth (Google IAP)
-description: Deploying the Scion Hub behind Google IAP with transport auth for agents.
+description: Deploying the Fabric Hub behind Google IAP with transport auth for agents.
 ---
 
-This guide covers deploying a Scion Hub behind **Google Cloud Identity-Aware Proxy (IAP)**, using IAP for human authentication and hub-minted OIDC tokens for agent transport auth.
+This guide covers deploying a Fabric Hub behind **Google Cloud Identity-Aware Proxy (IAP)**, using IAP for human authentication and hub-minted OIDC tokens for agent transport auth.
 
 ## Authentication modes
 
@@ -34,8 +34,8 @@ The unsigned convenience headers `X-Goog-Authenticated-User-Email` and `X-Goog-A
 
 The proxy authenticator runs **after** higher-priority app-layer credentials:
 
-1. Agent token (`X-Scion-Agent-Token` / agent JWT)
-2. Broker HMAC (`X-Scion-Broker-ID`)
+1. Agent token (`X-Fabric-Agent-Token` / agent JWT)
+2. Broker HMAC (`X-Fabric-Broker-ID`)
 3. Bearer token (dev token / UAT / user JWT)
 4. **Proxy authenticator** (IAP assertion) — runs only when no app-layer credential matched
 
@@ -124,12 +124,12 @@ When the Hub is behind IAP (or a Cloud Run invoker-only service), agents need a 
 | Layer | Header | Purpose |
 |-------|--------|---------|
 | **Outer (transport)** | `Authorization: Bearer <Google OIDC ID token>` | Satisfies the platform guard (IAP or Cloud Run invoker IAM check). |
-| **Inner (app)** | `X-Scion-Agent-Token: <scion JWT>` | Existing Hub agent authentication. Carried as a custom header so it never collides with the outer `Authorization`. |
+| **Inner (app)** | `X-Fabric-Agent-Token: <fabric JWT>` | Existing Hub agent authentication. Carried as a custom header so it never collides with the outer `Authorization`. |
 
 ### How it works
 
 1. **Cold start (dispatch)**: The Hub mints an initial Google OIDC ID token (impersonating a dedicated transport service account) and includes it in the agent's dispatch payload as environment variables.
-2. **Steady-state refresh**: The agent piggybacks on its existing scion-token refresh cycle. The refresh response includes a `tokens[]` array with both the new scion access token and a fresh OIDC transport token. The agent applies each token to the appropriate layer.
+2. **Steady-state refresh**: The agent piggybacks on its existing fabric-token refresh cycle. The refresh response includes a `tokens[]` array with both the new fabric access token and a fresh OIDC transport token. The agent applies each token to the appropriate layer.
 3. **Background ticker**: The agent-side client drives refresh on the shortest-lived token (transport tokens have a 5-minute refresh margin vs. the ~1h Google ID token TTL).
 
 ### Dispatch environment variables
@@ -138,9 +138,9 @@ When transport auth is configured, the Hub injects these environment variables i
 
 | Variable | Description |
 |----------|-------------|
-| `SCION_TRANSPORT_TOKEN` | Initial Google OIDC ID token for the transport layer. |
-| `SCION_TRANSPORT_AUDIENCE` | Audience the transport token was minted for (IAP client ID or hub URL). |
-| `SCION_TRANSPORT_TOKEN_EXPIRY` | Token expiry in RFC 3339 format. |
+| `FABRIC_TRANSPORT_TOKEN` | Initial Google OIDC ID token for the transport layer. |
+| `FABRIC_TRANSPORT_AUDIENCE` | Audience the transport token was minted for (IAP client ID or hub URL). |
+| `FABRIC_TRANSPORT_TOKEN_EXPIRY` | Token expiry in RFC 3339 format. |
 
 ### Refresh response: `tokens[]` array
 
@@ -153,7 +153,7 @@ The agent token refresh endpoint (`POST /api/v1/agents/{id}/token/refresh`) retu
   "tokens": [
     {
       "layer": "app",
-      "type": "scion_access",
+      "type": "fabric_access",
       "value": "...",
       "expiresIn": 900
     },
@@ -172,10 +172,10 @@ The `transport` entry is only present when `auth.transport` is configured on the
 
 ### Agent-side token source selection
 
-The agent (`pkg/sciontool/hub`) selects an OIDC token source automatically:
+The agent (`pkg/fabrictool/hub`) selects an OIDC token source automatically:
 
-1. **`SCION_TRANSPORT_TOKEN` env var set** → **Injected mode**: uses the hub-provided token from dispatch, refreshed via `tokens[]` on subsequent refresh calls.
-2. **Running on GCP (metadata server available)** → **Metadata mode**: fetches OIDC from the GCE metadata server using the ambient SA identity (the PR #307 pattern). Audience is set via `SCION_HUB_OIDC_AUDIENCE` or defaults to the hub URL.
+1. **`FABRIC_TRANSPORT_TOKEN` env var set** → **Injected mode**: uses the hub-provided token from dispatch, refreshed via `tokens[]` on subsequent refresh calls.
+2. **Running on GCP (metadata server available)** → **Metadata mode**: fetches OIDC from the GCE metadata server using the ambient SA identity (the PR #307 pattern). Audience is set via `FABRIC_HUB_OIDC_AUDIENCE` or defaults to the hub URL.
 3. **Neither** → No OIDC transport (agent uses plain HTTP).
 
 Injected mode (option 1) is the recommended path for IAP deployments — it decouples agent transport auth from the agent's own GCP identity.
@@ -199,7 +199,7 @@ server:
 
       # Dedicated service account for transport-layer auth.
       # The hub's runtime SA impersonates this SA to mint OIDC ID tokens.
-      platform_auth_sa: "scion-transport@my-project.iam.gserviceaccount.com"
+      platform_auth_sa: "fabric-transport@my-project.iam.gserviceaccount.com"
 ```
 
 #### What audience to set
@@ -272,12 +272,12 @@ Note the **signed header JWT audience** (found in Console → Security → IAP �
 
 ```bash
 # Create a dedicated SA for transport auth
-gcloud iam service-accounts create scion-transport \
-  --display-name="Scion Transport Auth"
+gcloud iam service-accounts create fabric-transport \
+  --display-name="Fabric Transport Auth"
 
 # Grant the Hub's runtime SA permission to impersonate the transport SA
 gcloud iam service-accounts add-iam-policy-binding \
-  scion-transport@PROJECT_ID.iam.gserviceaccount.com \
+  fabric-transport@PROJECT_ID.iam.gserviceaccount.com \
   --member="serviceAccount:HUB_RUNTIME_SA@PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountTokenCreator"
 ```
@@ -290,14 +290,14 @@ For **IAP**:
 gcloud iap web add-iam-policy-binding \
   --resource-type=backend-services \
   --service=YOUR_BACKEND_SERVICE_NAME \
-  --member="serviceAccount:scion-transport@PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:fabric-transport@PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/iap.httpsResourceAccessor"
 ```
 
 For **Cloud Run invoker**:
 ```bash
 gcloud run services add-iam-policy-binding YOUR_SERVICE_NAME \
-  --member="serviceAccount:scion-transport@PROJECT_ID.iam.gserviceaccount.com" \
+  --member="serviceAccount:fabric-transport@PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/run.invoker" \
   --region=YOUR_REGION
 ```
@@ -323,7 +323,7 @@ server:
     transport:
       mode: iap
       oidc_audience: "1234567890.apps.googleusercontent.com"
-      platform_auth_sa: "scion-transport@my-project.iam.gserviceaccount.com"
+      platform_auth_sa: "fabric-transport@my-project.iam.gserviceaccount.com"
     user_access_mode: domain_restricted
     authorized_domains:
       - example.com

@@ -95,17 +95,17 @@ func TestGenerateProjectIDForDir_NoGitRepo(t *testing.T) {
 
 func TestIsInsideProject(t *testing.T) {
 	// Unset Hub context to avoid synthetic project root detection
-	for _, e := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_URL", "SCION_GROVE_ID", "SCION_PROJECT_ID"} {
+	for _, e := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL", "FABRIC_GROVE_ID", "FABRIC_PROJECT_ID"} {
 		if val, ok := os.LookupEnv(e); ok {
 			_ = os.Unsetenv(e)
 			defer func() { _ = os.Setenv(e, val) }()
 		}
 	}
 
-	// Create a directory with .scion
+	// Create a directory with .fabric
 	tmpProject := t.TempDir()
-	scionDir := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -149,10 +149,10 @@ func TestIsInsideProject(t *testing.T) {
 }
 
 func TestGetEnclosingProjectPath(t *testing.T) {
-	// Create a directory with .scion
+	// Create a directory with .fabric
 	tmpProject := t.TempDir()
-	scionDir := filepath.Join(tmpProject, ".scion")
-	if err := os.Mkdir(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpProject, ".fabric")
+	if err := os.Mkdir(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -182,9 +182,9 @@ func TestGetEnclosingProjectPath(t *testing.T) {
 	}
 
 	evalProjectPath, _ := filepath.EvalSymlinks(projectPath)
-	evalScionDir, _ := filepath.EvalSymlinks(scionDir)
-	if evalProjectPath != evalScionDir {
-		t.Errorf("expected projectPath=%q, got %q", evalScionDir, evalProjectPath)
+	evalFabricDir, _ := filepath.EvalSymlinks(fabricDir)
+	if evalProjectPath != evalFabricDir {
+		t.Errorf("expected projectPath=%q, got %q", evalFabricDir, evalProjectPath)
 	}
 
 	evalRootDir, _ := filepath.EvalSymlinks(rootDir)
@@ -195,7 +195,7 @@ func TestGetEnclosingProjectPath(t *testing.T) {
 }
 
 func TestGetEnclosingProjectPath_NotFound(t *testing.T) {
-	// Create a directory without .scion
+	// Create a directory without .fabric
 	tmpDir := t.TempDir()
 
 	origWd, _ := os.Getwd()
@@ -225,7 +225,7 @@ func TestSeedAgnosticTemplate(t *testing.T) {
 	}
 
 	// Verify all expected files exist (including home/ directory files)
-	expectedFiles := []string{"scion-agent.yaml", "agents.md", "system-prompt.md", "home/.tmux.conf", "home/.zshrc"}
+	expectedFiles := []string{"fabric-agent.yaml", "agents.md", "system-prompt.md", "home/.tmux.conf", "home/.zshrc"}
 	for _, f := range expectedFiles {
 		path := filepath.Join(targetDir, f)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -233,9 +233,9 @@ func TestSeedAgnosticTemplate(t *testing.T) {
 		}
 	}
 
-	// Verify scion-agent.yaml has no harness field and no default_harness_config
+	// Verify fabric-agent.yaml has no harness field and no default_harness_config
 	// (default_harness_config should be set at the settings level, not in the template)
-	data, err := os.ReadFile(filepath.Join(targetDir, "scion-agent.yaml"))
+	data, err := os.ReadFile(filepath.Join(targetDir, "fabric-agent.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,7 +328,7 @@ func TestInitProject_EmptyTemplatesDir(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Use explicit targetDir to avoid CWD-based resolution issues
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 
 	if err := InitProject(projectDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
@@ -358,7 +358,7 @@ func TestInitProject_NoHarnessConfigs(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 
 	if err := InitProject(projectDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
@@ -401,7 +401,7 @@ func TestInitMachine_SeedsAll(t *testing.T) {
 
 	// Verify default agnostic template was created (including home/ files)
 	defaultTplDir := filepath.Join(globalDir, "templates", "default")
-	expectedFiles := []string{"scion-agent.yaml", "agents.md", "system-prompt.md", "home/.tmux.conf", "home/.zshrc"}
+	expectedFiles := []string{"fabric-agent.yaml", "agents.md", "system-prompt.md", "home/.tmux.conf", "home/.zshrc"}
 	for _, f := range expectedFiles {
 		path := filepath.Join(defaultTplDir, f)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -549,7 +549,7 @@ func TestInitProject_FailsWithNoRuntime(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 	err := InitProject(projectDir, GetMockHarnesses())
 	if err == nil {
 		t.Fatal("expected InitProject to fail when no container runtime is available")
@@ -601,7 +601,7 @@ func TestInitProject_UsesDetectedRuntime(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 	if err := InitProject(projectDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
@@ -647,23 +647,23 @@ func TestInitMachine_RestoresDeletedFiles(t *testing.T) {
 	globalDir := filepath.Join(tmpDir, GlobalDir)
 	defaultTplDir := filepath.Join(globalDir, "templates", "default")
 
-	// Use scion-agent.yaml to test restore — it's guaranteed to have content.
+	// Use fabric-agent.yaml to test restore — it's guaranteed to have content.
 	// (agents.md is intentionally empty since its content moved to workspace skills.)
-	targetPath := filepath.Join(defaultTplDir, "scion-agent.yaml")
+	targetPath := filepath.Join(defaultTplDir, "fabric-agent.yaml")
 	originalContent, err := os.ReadFile(targetPath)
 	if err != nil {
-		t.Fatalf("failed to read scion-agent.yaml: %v", err)
+		t.Fatalf("failed to read fabric-agent.yaml: %v", err)
 	}
 	if len(originalContent) == 0 {
-		t.Fatal("expected scion-agent.yaml to have content")
+		t.Fatal("expected fabric-agent.yaml to have content")
 	}
 
 	// Delete the file
 	if err := os.Remove(targetPath); err != nil {
-		t.Fatalf("failed to delete scion-agent.yaml: %v", err)
+		t.Fatalf("failed to delete fabric-agent.yaml: %v", err)
 	}
 	if _, err := os.Stat(targetPath); !os.IsNotExist(err) {
-		t.Fatal("expected scion-agent.yaml to be deleted")
+		t.Fatal("expected fabric-agent.yaml to be deleted")
 	}
 
 	// Re-run init — should restore the deleted file
@@ -673,10 +673,10 @@ func TestInitMachine_RestoresDeletedFiles(t *testing.T) {
 
 	restoredContent, err := os.ReadFile(targetPath)
 	if err != nil {
-		t.Fatalf("scion-agent.yaml was not restored after re-init: %v", err)
+		t.Fatalf("fabric-agent.yaml was not restored after re-init: %v", err)
 	}
 	if string(restoredContent) != string(originalContent) {
-		t.Error("restored scion-agent.yaml content does not match original embedded content")
+		t.Error("restored fabric-agent.yaml content does not match original embedded content")
 	}
 }
 

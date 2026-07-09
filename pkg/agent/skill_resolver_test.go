@@ -24,8 +24,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // mockResolver implements SkillResolver for testing.
@@ -65,10 +65,10 @@ func TestResolvedSkill_DestName(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"scion", "", "scion", false},
-		{"scion", "my-scion", "my-scion", false},
-		{"scion", "INVALID", "", true},
-		{"scion", "-bad-", "", true},
+		{"fabric", "", "fabric", false},
+		{"fabric", "my-fabric", "my-fabric", false},
+		{"fabric", "INVALID", "", true},
+		{"fabric", "-bad-", "", true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name+"/"+tc.as, func(t *testing.T) {
@@ -141,7 +141,7 @@ func TestInstallResolvedSkills_Success(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "test-skill",
-			URI:     "skill://scion/core/test-skill@1.0",
+			URI:     "skill://fabric/core/test-skill@1.0",
 			Version: "1.0.0",
 			Hash:    bundleHash,
 			Files: []ResolvedFile{
@@ -202,7 +202,7 @@ func TestInstallResolvedSkills_HashMismatch(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "bad-hash",
-			URI:     "skill://scion/core/bad-hash@1.0",
+			URI:     "skill://fabric/core/bad-hash@1.0",
 			Version: "1.0.0",
 			Hash:    "sha256:bundlehash",
 			Files: []ResolvedFile{
@@ -248,7 +248,7 @@ func TestInstallResolvedSkills_PathTraversal(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "evil-skill",
-			URI:     "skill://scion/core/evil-skill@1.0",
+			URI:     "skill://fabric/core/evil-skill@1.0",
 			Version: "1.0.0",
 			Files: []ResolvedFile{
 				{
@@ -272,13 +272,13 @@ func TestInstallResolvedSkills_PathTraversal(t *testing.T) {
 func TestInstallResolvedSkills_DuplicateDestination(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
-			Name: "scion",
-			URI:  "skill://scion/core/scion@^1.0",
+			Name: "fabric",
+			URI:  "skill://fabric/core/fabric@^1.0",
 		},
 		{
 			Name: "custom",
 			URI:  "skill://project/custom@latest",
-			As:   "scion", // same dest name
+			As:   "fabric", // same dest name
 		},
 	}
 
@@ -370,10 +370,10 @@ func TestDownloadSkillFile_CrossHostRedirect(t *testing.T) {
 func TestMockResolver(t *testing.T) {
 	resolver := &mockResolver{
 		resolved: []ResolvedSkill{
-			{Name: "test", URI: "skill://scion/core/test@1.0", Version: "1.0.0"},
+			{Name: "test", URI: "skill://fabric/core/test@1.0", Version: "1.0.0"},
 		},
 		errors: []ResolveError{
-			{URI: "skill://scion/core/missing@1.0", Code: "not_found", Message: "skill not found"},
+			{URI: "skill://fabric/core/missing@1.0", Code: "not_found", Message: "skill not found"},
 		},
 	}
 
@@ -401,9 +401,9 @@ func TestMockResolver_Error(t *testing.T) {
 
 func TestCollectRequiredSkillURIs(t *testing.T) {
 	refs := []api.SkillReference{
-		{URI: "skill://scion/core/scion@^1.0"},
-		{URI: "skill://scion/core/optional@latest", Optional: true},
-		{URI: "skill://scion/core/required@1.0"},
+		{URI: "skill://fabric/core/fabric@^1.0"},
+		{URI: "skill://fabric/core/optional@latest", Optional: true},
+		{URI: "skill://fabric/core/required@1.0"},
 	}
 	got := collectRequiredSkillURIs(refs)
 	if len(got) != 2 {
@@ -413,11 +413,11 @@ func TestCollectRequiredSkillURIs(t *testing.T) {
 
 func TestFindRefByURI(t *testing.T) {
 	refs := []api.SkillReference{
-		{URI: "skill://scion/core/scion@^1.0"},
-		{URI: "skill://scion/core/other@latest", Optional: true},
+		{URI: "skill://fabric/core/fabric@^1.0"},
+		{URI: "skill://fabric/core/other@latest", Optional: true},
 	}
 
-	got := findRefByURI(refs, "skill://scion/core/other@latest")
+	got := findRefByURI(refs, "skill://fabric/core/other@latest")
 	if got == nil {
 		t.Fatal("expected to find ref")
 	}
@@ -425,7 +425,7 @@ func TestFindRefByURI(t *testing.T) {
 		t.Error("expected found ref to be optional")
 	}
 
-	got = findRefByURI(refs, "skill://scion/core/missing@1.0")
+	got = findRefByURI(refs, "skill://fabric/core/missing@1.0")
 	if got != nil {
 		t.Error("expected nil for missing URI")
 	}
@@ -433,14 +433,14 @@ func TestFindRefByURI(t *testing.T) {
 
 func TestWriteResolutionRecord(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, ".scion", "resolved-skills.json")
+	path := filepath.Join(dir, ".fabric", "resolved-skills.json")
 
 	record := &SkillResolutionRecord{
 		ResolvedAt: "2026-06-11T00:00:00Z",
 		Resolver:   "mock",
 		Skills: []SkillResolutionEntry{
 			{
-				URI:             "skill://scion/core/test@1.0",
+				URI:             "skill://fabric/core/test@1.0",
 				Name:            "test",
 				ResolvedVersion: "1.0.0",
 				ContentHash:     "sha256:abc123",
@@ -481,7 +481,7 @@ func TestInstallResolvedSkills_WithAsRename(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "original-name",
-			URI:     "skill://scion/core/original-name@1.0",
+			URI:     "skill://fabric/core/original-name@1.0",
 			As:      "custom-name",
 			Version: "1.0.0",
 			Hash:    bundleHash,
@@ -542,7 +542,7 @@ func TestInstallResolvedSkills_NestedFiles(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "nested-skill",
-			URI:     "skill://scion/core/nested-skill@1.0",
+			URI:     "skill://fabric/core/nested-skill@1.0",
 			Version: "1.0.0",
 			Hash:    bundleHash,
 			Files: []ResolvedFile{
@@ -587,7 +587,7 @@ func TestInstallResolvedSkills_BundleHashMismatch(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "bundle-mismatch",
-			URI:     "skill://scion/core/bundle-mismatch@1.0",
+			URI:     "skill://fabric/core/bundle-mismatch@1.0",
 			Version: "1.0.0",
 			Hash:    wrongBundleHash,
 			Files: []ResolvedFile{
@@ -668,7 +668,7 @@ func TestInstallResolvedSkills_OverridesExistingLocalSkill(t *testing.T) {
 	skills := []ResolvedSkill{
 		{
 			Name:    "my-skill",
-			URI:     "skill://scion/core/my-skill@1.0",
+			URI:     "skill://fabric/core/my-skill@1.0",
 			Version: "1.0.0",
 			Hash:    bundleHash,
 			Files: []ResolvedFile{

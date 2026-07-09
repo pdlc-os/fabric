@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 )
 

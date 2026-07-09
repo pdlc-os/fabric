@@ -24,13 +24,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const (
-	adminSignalChannel = "scion_integration_admin"
+	adminSignalChannel = "fabric_integration_admin"
 )
 
 // AdminSignal is the JSON payload published via NOTIFY on the admin signal channel.

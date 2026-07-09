@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
 )
 
 // waitForAgentReady polls the agent store until the agent's Activity field

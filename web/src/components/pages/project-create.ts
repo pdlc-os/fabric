@@ -40,8 +40,8 @@ interface ValidatePathResponse {
   error?: string;
 }
 
-@customElement('scion-page-project-create')
-export class ScionPageProjectCreate extends LitElement {
+@customElement('fabric-page-project-create')
+export class FabricPageProjectCreate extends LitElement {
   @state()
   private submitting = false;
 
@@ -200,14 +200,14 @@ export class ScionPageProjectCreate extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .page-header {
@@ -217,7 +217,7 @@ export class ScionPageProjectCreate extends LitElement {
     .page-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
       display: flex;
       align-items: center;
@@ -225,20 +225,20 @@ export class ScionPageProjectCreate extends LitElement {
     }
 
     .page-header h1 sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .page-header p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
       font-size: 0.875rem;
     }
 
     .form-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       max-width: 640px;
     }
@@ -251,13 +251,13 @@ export class ScionPageProjectCreate extends LitElement {
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
 
     .form-field .hint {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
@@ -269,11 +269,11 @@ export class ScionPageProjectCreate extends LitElement {
 
     .workspace-mode-note {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.5rem;
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .form-actions {
@@ -281,13 +281,13 @@ export class ScionPageProjectCreate extends LitElement {
       gap: 0.75rem;
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .error-banner {
       background: var(--sl-color-danger-50, #fef2f2);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.25rem;
       display: flex;
@@ -305,7 +305,7 @@ export class ScionPageProjectCreate extends LitElement {
     .info-banner {
       background: var(--sl-color-primary-50, #eff6ff);
       border: 1px solid var(--sl-color-primary-200, #bfdbfe);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.25rem;
       display: flex;
@@ -325,11 +325,11 @@ export class ScionPageProjectCreate extends LitElement {
       align-items: center;
       gap: 0.5rem;
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 1.25rem;
       padding: 0.625rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .github-app-hint sl-icon {
@@ -338,7 +338,7 @@ export class ScionPageProjectCreate extends LitElement {
     }
 
     .github-app-hint a {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: none;
       white-space: nowrap;
     }
@@ -349,7 +349,7 @@ export class ScionPageProjectCreate extends LitElement {
 
     .exists-dialog-body {
       font-size: 0.925rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .path-input-row {
@@ -370,7 +370,7 @@ export class ScionPageProjectCreate extends LitElement {
       font-size: 0.8125rem;
       margin-top: 0.375rem;
       padding: 0.5rem 0.75rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .validation-result.valid {
@@ -532,15 +532,15 @@ export class ScionPageProjectCreate extends LitElement {
         cloneUrl = `https://${cloneUrl}.git`;
         body.gitRemote = trimmedUrl;
         const labels: Record<string, string> = {
-          'scion.dev/default-branch': this.branch.trim() || 'main',
-          'scion.dev/clone-url': cloneUrl,
-          'scion.dev/source-url': trimmedUrl,
+          'fabric.dev/default-branch': this.branch.trim() || 'main',
+          'fabric.dev/clone-url': cloneUrl,
+          'fabric.dev/source-url': trimmedUrl,
         };
         if (this.gitWorkspaceMode === 'shared') {
-          labels['scion.dev/workspace-mode'] = 'shared';
+          labels['fabric.dev/workspace-mode'] = 'shared';
           body.workspaceMode = 'shared';
         } else if (this.gitWorkspaceMode === 'worktree-per-agent') {
-          labels['scion.dev/workspace-mode'] = 'worktree-per-agent';
+          labels['fabric.dev/workspace-mode'] = 'worktree-per-agent';
           body.workspaceMode = 'worktree-per-agent';
         }
         body.labels = labels;
@@ -884,9 +884,9 @@ export class ScionPageProjectCreate extends LitElement {
         @sl-after-hide=${() => { this.browseDialogOpen = false; }}
         style="--width: 36rem;"
       >
-        <scion-dir-browser
+        <fabric-dir-browser
           @path-selected=${(e: CustomEvent<{ path: string }>) => this.onDirBrowserPathSelected(e)}
-        ></scion-dir-browser>
+        ></fabric-dir-browser>
       </sl-dialog>
 
       <sl-dialog
@@ -915,6 +915,6 @@ export class ScionPageProjectCreate extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-project-create': ScionPageProjectCreate;
+    'fabric-page-project-create': FabricPageProjectCreate;
   }
 }

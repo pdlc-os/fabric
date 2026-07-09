@@ -27,8 +27,8 @@ import type { User } from '../../shared/types.js';
 import './notification-tray.js';
 import './inbox-tray.js';
 
-@customElement('scion-header')
-export class ScionHeader extends LitElement {
+@customElement('fabric-header')
+export class FabricHeader extends LitElement {
   /**
    * Current authenticated user
    */
@@ -61,10 +61,10 @@ export class ScionHeader extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: var(--scion-header-height, 60px);
+      height: var(--fabric-header-height, 60px);
       padding: 0 1.5rem;
-      background: var(--scion-surface, #ffffff);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .header-left {
@@ -80,11 +80,11 @@ export class ScionHeader extends LitElement {
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .mobile-menu-btn:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     @media (max-width: 768px) {
@@ -96,7 +96,7 @@ export class ScionHeader extends LitElement {
     .page-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -130,7 +130,7 @@ export class ScionHeader extends LitElement {
       gap: 0.5rem;
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: white;
       text-decoration: none;
       font-size: 0.875rem;
@@ -139,7 +139,7 @@ export class ScionHeader extends LitElement {
     }
 
     .sign-in-link:hover {
-      background: var(--scion-primary-hover, #2563eb);
+      background: var(--fabric-primary-hover, #2563eb);
     }
 
     .user-buttons {
@@ -154,20 +154,20 @@ export class ScionHeader extends LitElement {
       gap: 0.5rem;
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text, #1e293b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text, #1e293b);
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 500;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       transition:
         background 0.15s ease,
         border-color 0.15s ease;
     }
 
     .profile-link:hover {
-      background: var(--scion-border, #e2e8f0);
-      border-color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-border, #e2e8f0);
+      border-color: var(--fabric-text-muted, #64748b);
     }
 
     .sign-out-button {
@@ -177,10 +177,10 @@ export class ScionHeader extends LitElement {
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
       background: transparent;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       font-weight: 500;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       cursor: pointer;
       transition:
         background 0.15s ease,
@@ -189,9 +189,9 @@ export class ScionHeader extends LitElement {
     }
 
     .sign-out-button:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text, #1e293b);
-      border-color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text, #1e293b);
+      border-color: var(--fabric-text-muted, #64748b);
     }
 
     .theme-switch {
@@ -202,19 +202,19 @@ export class ScionHeader extends LitElement {
 
     .theme-switch sl-icon {
       font-size: 0.9rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       transition: color 0.2s ease;
     }
 
     .theme-switch sl-icon.active-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .toggle-track {
       position: relative;
       width: 36px;
       height: 20px;
-      background: var(--scion-border, #e2e8f0);
+      background: var(--fabric-border, #e2e8f0);
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.2s ease;
@@ -223,11 +223,11 @@ export class ScionHeader extends LitElement {
     }
 
     .toggle-track:hover {
-      background: var(--scion-text-muted, #94a3b8);
+      background: var(--fabric-text-muted, #94a3b8);
     }
 
     .toggle-track.dark {
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
     }
 
     .toggle-knob {
@@ -266,8 +266,8 @@ export class ScionHeader extends LitElement {
 
       <div class="header-right">
         <div class="header-actions">
-          <scion-inbox-tray .user=${this.user}></scion-inbox-tray>
-          <scion-notification-tray .user=${this.user}></scion-notification-tray>
+          <fabric-inbox-tray .user=${this.user}></fabric-inbox-tray>
+          <fabric-notification-tray .user=${this.user}></fabric-notification-tray>
           <sl-tooltip content="Help">
             <sl-icon-button name="question-circle" label="Help"></sl-icon-button>
           </sl-tooltip>
@@ -315,7 +315,7 @@ export class ScionHeader extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    const saved = localStorage.getItem('scion-theme');
+    const saved = localStorage.getItem('fabric-theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     this.isDark = saved ? saved === 'dark' : prefersDark;
 
@@ -344,7 +344,7 @@ export class ScionHeader extends LitElement {
       root.classList.remove('sl-theme-dark');
     }
 
-    localStorage.setItem('scion-theme', newTheme);
+    localStorage.setItem('fabric-theme', newTheme);
 
     this.dispatchEvent(
       new CustomEvent('theme-change', {
@@ -396,6 +396,6 @@ export class ScionHeader extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-header': ScionHeader;
+    'fabric-header': FabricHeader;
   }
 }

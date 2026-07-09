@@ -17,7 +17,7 @@ package grpcbroker
 import (
 	"log/slog"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 // NewAdapterFromEntry creates a GRPCBrokerClient from a PluginEntry.

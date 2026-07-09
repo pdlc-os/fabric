@@ -125,11 +125,11 @@ func TestManagerLoadOne_SelfManaged_NoBinaryNeeded(t *testing.T) {
 func TestHostCallbacksForwarder_BeforeSet(t *testing.T) {
 	fwd := &HostCallbacksForwarder{}
 
-	err := fwd.RequestSubscription("scion.grove.test.>")
+	err := fwd.RequestSubscription("fabric.grove.test.>")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not yet available")
 
-	err = fwd.CancelSubscription("scion.grove.test.>")
+	err = fwd.CancelSubscription("fabric.grove.test.>")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not yet available")
 }
@@ -144,13 +144,13 @@ func TestHostCallbacksForwarder_AfterSet(t *testing.T) {
 	}
 	fwd.Set(mock)
 
-	err := fwd.RequestSubscription("scion.grove.prod.>")
+	err := fwd.RequestSubscription("fabric.grove.prod.>")
 	assert.NoError(t, err)
-	assert.Equal(t, "scion.grove.prod.>", requestedPattern)
+	assert.Equal(t, "fabric.grove.prod.>", requestedPattern)
 
-	err = fwd.CancelSubscription("scion.grove.prod.>")
+	err = fwd.CancelSubscription("fabric.grove.prod.>")
 	assert.NoError(t, err)
-	assert.Equal(t, "scion.grove.prod.>", cancelledPattern)
+	assert.Equal(t, "fabric.grove.prod.>", cancelledPattern)
 }
 
 func TestManagerSetBrokerHostCallbacks(t *testing.T) {

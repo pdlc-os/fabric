@@ -25,22 +25,22 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 491)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-491 491,-491 491,4 -4,4"/>
-<!-- ScionHub -->
+<!-- FabricHub -->
 <g id="node1" class="node">
-<title>ScionHub</title>
+<title>FabricHub</title>
 <polygon fill="lightblue" stroke="black" points="273.25,-474 189.75,-474 189.75,-438 273.25,-438 273.25,-474"/>
-<text xml:space="preserve" text-anchor="middle" x="231.5" y="-447.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="231.5" y="-447.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- ScionBrokerLog -->
+<!-- FabricBrokerLog -->
 <g id="node2" class="node">
-<title>ScionBrokerLog</title>
+<title>FabricBrokerLog</title>
 <polygon fill="lightblue" stroke="black" points="299.5,-332 163.5,-332 163.5,-296 299.5,-296 299.5,-332"/>
-<text xml:space="preserve" text-anchor="middle" x="231.5" y="-311.2" font-family="Times,serif" font-size="14.00">scion&#45;broker&#45;log</text>
+<text xml:space="preserve" text-anchor="middle" x="231.5" y="-311.2" font-family="Times,serif" font-size="14.00">fabric&#45;broker&#45;log</text>
 <text xml:space="preserve" text-anchor="middle" x="231.5" y="-300.7" font-family="Times,serif" font-size="14.00">(Plugin)</text>
 </g>
-<!-- ScionHub&#45;&gt;ScionBrokerLog -->
+<!-- FabricHub&#45;&gt;FabricBrokerLog -->
 <g id="edge1" class="edge">
-<title>ScionHub&#45;&gt;ScionBrokerLog</title>
+<title>FabricHub&#45;&gt;FabricBrokerLog</title>
 <path fill="none" stroke="black" d="M231.5,-437.55C231.5,-414.05 231.5,-371.94 231.5,-343.73"/>
 <polygon fill="black" stroke="black" points="235,-343.74 231.5,-333.74 228,-343.74 235,-343.74"/>
 <text xml:space="preserve" text-anchor="middle" x="287.75" y="-376.95" font-family="Times,serif" font-size="14.00">RPC (go&#45;plugin)</text>
@@ -52,9 +52,9 @@
 <text xml:space="preserve" text-anchor="middle" x="105.5" y="-28.2" font-family="Times,serif" font-size="14.00">messages.StructuredMessage</text>
 <text xml:space="preserve" text-anchor="middle" x="105.5" y="-17.7" font-family="Times,serif" font-size="14.00">(Data)</text>
 </g>
-<!-- ScionBrokerLog&#45;&gt;StructuredMessage -->
+<!-- FabricBrokerLog&#45;&gt;StructuredMessage -->
 <g id="edge2" class="edge">
-<title>ScionBrokerLog&#45;&gt;StructuredMessage</title>
+<title>FabricBrokerLog&#45;&gt;StructuredMessage</title>
 <path fill="none" stroke="black" d="M200.81,-295.68C168.31,-275.38 118.9,-238.4 98,-191 79.24,-148.43 88.39,-93.1 96.86,-60.2"/>
 <polygon fill="black" stroke="black" points="100.22,-61.18 99.5,-50.61 93.47,-59.32 100.22,-61.18"/>
 <text xml:space="preserve" text-anchor="middle" x="131.75" y="-164.95" font-family="Times,serif" font-size="14.00">Processes</text>
@@ -66,9 +66,9 @@
 <text xml:space="preserve" text-anchor="middle" x="231.5" y="-170.2" font-family="Times,serif" font-size="14.00">Stdout/Stderr</text>
 <text xml:space="preserve" text-anchor="middle" x="231.5" y="-159.7" font-family="Times,serif" font-size="14.00">(Logs)</text>
 </g>
-<!-- ScionBrokerLog&#45;&gt;StdoutStderr -->
+<!-- FabricBrokerLog&#45;&gt;StdoutStderr -->
 <g id="edge3" class="edge">
-<title>ScionBrokerLog&#45;&gt;StdoutStderr</title>
+<title>FabricBrokerLog&#45;&gt;StdoutStderr</title>
 <path fill="none" stroke="black" d="M231.5,-295.68C231.5,-272.35 231.5,-230.53 231.5,-202.53"/>
 <polygon fill="black" stroke="black" points="235,-202.62 231.5,-192.62 228,-202.62 235,-202.62"/>
 <text xml:space="preserve" text-anchor="middle" x="257.75" y="-235.95" font-family="Times,serif" font-size="14.00">Outputs</text>
@@ -78,11 +78,11 @@
 <title>OtherBrokerPlugin</title>
 <polygon fill="lightblue" stroke="black" points="487,-191 306,-191 306,-155 487,-155 487,-191"/>
 <text xml:space="preserve" text-anchor="middle" x="396.5" y="-170.2" font-family="Times,serif" font-size="14.00">Other Broker Plugin</text>
-<text xml:space="preserve" text-anchor="middle" x="396.5" y="-159.7" font-family="Times,serif" font-size="14.00">(e.g., scion&#45;chat&#45;app)</text>
+<text xml:space="preserve" text-anchor="middle" x="396.5" y="-159.7" font-family="Times,serif" font-size="14.00">(e.g., fabric&#45;chat&#45;app)</text>
 </g>
-<!-- ScionBrokerLog&#45;&gt;OtherBrokerPlugin -->
+<!-- FabricBrokerLog&#45;&gt;OtherBrokerPlugin -->
 <g id="edge4" class="edge">
-<title>ScionBrokerLog&#45;&gt;OtherBrokerPlugin</title>
+<title>FabricBrokerLog&#45;&gt;OtherBrokerPlugin</title>
 <path fill="none" stroke="black" d="M252.06,-295.68C281.04,-271.26 334.05,-226.61 367.16,-198.71"/>
 <polygon fill="black" stroke="black" points="369.39,-201.42 374.78,-192.3 364.88,-196.06 369.39,-201.42"/>
 <text xml:space="preserve" text-anchor="middle" x="390.2" y="-235.95" font-family="Times,serif" font-size="14.00">Forwards (optional)</text>

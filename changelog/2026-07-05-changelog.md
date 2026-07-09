@@ -10,7 +10,7 @@ The largest single commit in recent history landed: Phase 5 HA (Mode 3) support 
   - **Transactional NOTIFY** for admin signals, cross-integration ID leakage guards, `updated_by` tracking
   - **PostgresConfigProvider** for HA config persistence replacing YAML-only storage
   - Multi-stage Dockerfile and comprehensive standalone deployment documentation (#608)
-* **[Agent]:** Platform skills embedded in binary via `go:embed` and injected into all agents at provisioning time — `scion`, `scion-cli-operations`, `scion-messaging`, `agent-status-signals`, `team-creation`, and `git-sandbox` (conditional on `isGit=true`). Runs after template skills but before workspace skills (#610).
+* **[Agent]:** Platform skills embedded in binary via `go:embed` and injected into all agents at provisioning time — `fabric`, `fabric-cli-operations`, `fabric-messaging`, `agent-status-signals`, `team-creation`, and `git-sandbox` (conditional on `isGit=true`). Runs after template skills but before workspace skills (#610).
 
 ## 🐛 Fixes
 * **[Hub]:** Check hub-scoped env vars in `hasAnyKey` credential check — child agents whose owner is a parent agent (not a human user) can now find credentials at hub scope (#611).

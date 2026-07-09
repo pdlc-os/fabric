@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsclient"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/wsclient"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +60,7 @@ If the agent was started with tmux support, this will attach to the tmux session
 		found := false
 		if projectDir != "" {
 			agentDir := filepath.Join(projectDir, "agents", agentName)
-			if _, err := os.Stat(filepath.Join(agentDir, "scion-agent.json")); err == nil {
+			if _, err := os.Stat(filepath.Join(agentDir, "fabric-agent.json")); err == nil {
 				found = true
 			}
 		}
@@ -71,7 +71,7 @@ If the agent was started with tmux support, this will attach to the tmux session
 				globalDir, _ := config.GetGlobalDir()
 				if globalDir != "" && globalDir != projectDir {
 					globalAgentDir := filepath.Join(globalDir, "agents", agentName)
-					if _, err := os.Stat(filepath.Join(globalAgentDir, "scion-agent.json")); err == nil {
+					if _, err := os.Stat(filepath.Join(globalAgentDir, "fabric-agent.json")); err == nil {
 						found = true
 						targetProjectPath = globalDir
 						projectName = "global"
@@ -89,7 +89,7 @@ If the agent was started with tmux support, this will attach to the tmux session
 
 		// Use project-scoped lookup to find the exact container,
 		// preventing cross-project collision when agents share a name.
-		filter := map[string]string{"scion.name": agentName, "scion.project": projectName}
+		filter := map[string]string{"fabric.name": agentName, "fabric.project": projectName}
 		agents, listErr := rt.List(context.Background(), filter)
 		attachID := agentName
 		if listErr == nil && len(agents) > 0 {
@@ -134,7 +134,7 @@ func attachViaHub(hubCtx *HubContext, agentName string) error {
 	}
 
 	if strings.HasPrefix(agent.Runtime, "managed:") {
-		return fmt.Errorf("attach is not supported for managed agents — use scion message and scion look")
+		return fmt.Errorf("attach is not supported for managed agents — use fabric message and fabric look")
 	}
 
 	// Check agent lifecycle status - the agent must be running to attach.
@@ -148,14 +148,14 @@ func attachViaHub(hubCtx *HubContext, agentName string) error {
 		if agent.ContainerStatus != "" {
 			statusInfo += fmt.Sprintf(", container: %s", agent.ContainerStatus)
 		}
-		return fmt.Errorf("agent '%s' is not running (phase: %s)\n\nStart the agent first with: scion start %s",
+		return fmt.Errorf("agent '%s' is not running (phase: %s)\n\nStart the agent first with: fabric start %s",
 			agentName, statusInfo, agentName)
 	}
 
 	// Get access token for WebSocket authentication
 	token := getHubAccessToken(hubCtx.Endpoint)
 	if token == "" {
-		return fmt.Errorf("no access token found for Hub\n\nPlease login first: scion hub auth login")
+		return fmt.Errorf("no access token found for Hub\n\nPlease login first: fabric hub auth login")
 	}
 
 	fmt.Printf("Attaching to agent '%s' via Hub...\n", agentName)

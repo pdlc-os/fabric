@@ -48,7 +48,7 @@ func Get() string {
 		commit = commit[:8]
 	}
 
-	return fmt.Sprintf("scion %s (commit %s)", ver, commit)
+	return fmt.Sprintf("fabric %s (commit %s)", ver, commit)
 }
 
 // GetBuildTime returns the build time, applying fallbacks if the ldflags

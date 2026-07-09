@@ -6,11 +6,11 @@
 
 ## Problem
 
-The workspace path fallback from `~/.scion/projects/{slug}` to `~/.scion/groves/{slug}` only checked `os.IsNotExist()`. If the `projects/` directory existed but was empty (or only contained infrastructure directories like `shared-dirs/` and `.scion/`), the fallback never triggered and the real workspace content in `groves/` was shadowed.
+The workspace path fallback from `~/.fabric/projects/{slug}` to `~/.fabric/groves/{slug}` only checked `os.IsNotExist()`. If the `projects/` directory existed but was empty (or only contained infrastructure directories like `shared-dirs/` and `.fabric/`), the fallback never triggered and the real workspace content in `groves/` was shadowed.
 
 ## Solution
 
-Replaced all `os.IsNotExist`-based fallback checks with a content-aware `hasWorkspaceContent()` function that reads directory entries and returns `true` only if the directory contains files beyond the known infrastructure directories (`shared-dirs`, `.scion`).
+Replaced all `os.IsNotExist`-based fallback checks with a content-aware `hasWorkspaceContent()` function that reads directory entries and returns `true` only if the directory contains files beyond the known infrastructure directories (`shared-dirs`, `.fabric`).
 
 ### Changes
 
@@ -23,7 +23,7 @@ Replaced all `os.IsNotExist`-based fallback checks with a content-aware `hasWork
    - `handleStartAgent` workspace directory resolution (line ~601)
    - `deleteGrove` path resolution (line ~2283)
 
-4. **`pkg/hub/handlers_grove_test.go`** — Added `TestHubManagedGrovePath_EmptyProjectsFallsBackToGroves` which creates a `projects/` dir with only `shared-dirs/` and `.scion/`, a `groves/` dir with real content, and verifies the fallback returns the groves path.
+4. **`pkg/hub/handlers_grove_test.go`** — Added `TestHubManagedGrovePath_EmptyProjectsFallsBackToGroves` which creates a `projects/` dir with only `shared-dirs/` and `.fabric/`, a `groves/` dir with real content, and verifies the fallback returns the groves path.
 
 ### Design Decisions
 

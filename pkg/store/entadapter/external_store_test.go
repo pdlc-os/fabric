@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -166,7 +166,7 @@ func TestExternalStore_UserAccessToken(t *testing.T) {
 		ID:        uuid.NewString(),
 		UserID:    userID,
 		Name:      "ci-token",
-		Prefix:    "scion_pat_abc",
+		Prefix:    "fabric_pat_abc",
 		KeyHash:   "hash-1",
 		ProjectID: projectID,
 		Scopes:    []string{"project:read", "agent:list"},

@@ -101,7 +101,7 @@ func MakeWritableRecursive(path string) error {
 //
 // Symlink removal uses removeSymlinkSafe which avoids triggering macOS
 // autofs timeouts on dangling symlinks pointing to container-internal
-// paths (e.g. /home/scion/...).
+// paths (e.g. /home/fabric/...).
 func RemoveAllSafe(root string) error {
 	Debugf("RemoveAllSafe: starting removal of %s", root)
 	start := time.Now()
@@ -212,7 +212,7 @@ func RemoveAllSafe(root string) error {
 // removeSymlinkSafe removes a symlink without triggering macOS autofs.
 //
 // On macOS, calling unlink() on a symlink whose target is under an autofs
-// mount (e.g. /home/scion/...) can trigger the automounter, causing a
+// mount (e.g. /home/fabric/...) can trigger the automounter, causing a
 // multi-second timeout while macOS tries to resolve the nonexistent
 // container-internal path.
 //

@@ -30,8 +30,8 @@ import { customElement, property } from 'lit/decorators.js';
 import type { Project } from '../../shared/types.js';
 import { isSharedWorkspace, isWorktreeWorkspace } from '../../shared/types.js';
 
-@customElement('scion-git-remote-display')
-export class ScionGitRemoteDisplay extends LitElement {
+@customElement('fabric-git-remote-display')
+export class FabricGitRemoteDisplay extends LitElement {
   @property({ type: Object })
   project: Project | null = null;
 
@@ -54,11 +54,11 @@ export class ScionGitRemoteDisplay extends LitElement {
     a {
       color: inherit;
       text-decoration: none;
-      transition: color var(--scion-transition-fast, 150ms ease);
+      transition: color var(--fabric-transition-fast, 150ms ease);
     }
 
     a:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: underline;
     }
 
@@ -93,7 +93,7 @@ export class ScionGitRemoteDisplay extends LitElement {
       return html`${project.projectType === 'linked' ? 'Linked project' : 'Hub-managed workspace'}`;
     }
 
-    const ghLink = ScionGitRemoteDisplay.gitHubLink(project.gitRemote);
+    const ghLink = FabricGitRemoteDisplay.gitHubLink(project.gitRemote);
     const urlContent = ghLink
       ? html`<a href="${ghLink.url}" target="_blank" rel="noopener noreferrer" @click=${this.handleLinkClick}>${ghLink.display}</a>`
       : project.gitRemote;
@@ -116,6 +116,6 @@ export class ScionGitRemoteDisplay extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-git-remote-display': ScionGitRemoteDisplay;
+    'fabric-git-remote-display': FabricGitRemoteDisplay;
   }
 }

@@ -19,7 +19,7 @@ This release introduces a new 3D agent activity visualizer, implements a more ro
 
 ## 🐛 Fixes
 * **Message Delivery:** Improved reliability of message delivery to terminal sessions using `tmux` bracketed paste and the `send-keys -l` (literal) flag.
-* **Log Hygiene:** Resolved several issues causing duplicate message logging in `scion-server` and `scion-messages` and reduced log noise from notification dispatchers.
+* **Log Hygiene:** Resolved several issues causing duplicate message logging in `fabric-server` and `fabric-messages` and reduced log noise from notification dispatchers.
 * **API Stability:** The message dispatcher now returns a `503 Service Unavailable` with a `Retry-After` header when it or the broker is not ready, improving client-side error handling.
 * **Component Fixes:**
     * Fixed agent instruction resolution logic across the new template inheritance chain.

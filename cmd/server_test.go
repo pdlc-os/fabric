@@ -21,10 +21,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -125,13 +125,13 @@ func TestRegisterGlobalGroveAndBroker_DedupCaseInsensitive(t *testing.T) {
 	settings := &config.Settings{}
 
 	// Register broker with lowercase name
-	effectiveID, err := registerGlobalProjectAndBroker(ctx, s, tid("broker-1"), "scion-demo", "http://localhost:9800", nil, true, settings)
+	effectiveID, err := registerGlobalProjectAndBroker(ctx, s, tid("broker-1"), "fabric-demo", "http://localhost:9800", nil, true, settings)
 	require.NoError(t, err)
 	assert.Equal(t, tid("broker-1"), effectiveID)
 
 	// Register with different ID and mixed-case name
 	// GetRuntimeBrokerByName uses LOWER() for case-insensitive match
-	effectiveID, err = registerGlobalProjectAndBroker(ctx, s, tid("broker-2"), "Scion-Demo", "http://localhost:9800", nil, true, settings)
+	effectiveID, err = registerGlobalProjectAndBroker(ctx, s, tid("broker-2"), "Fabric-Demo", "http://localhost:9800", nil, true, settings)
 	require.NoError(t, err)
 	assert.Equal(t, tid("broker-1"), effectiveID, "should match case-insensitively")
 }

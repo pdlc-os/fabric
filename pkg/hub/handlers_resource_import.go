@@ -21,9 +21,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ImportTemplatesRequest is the request body for direct template import.
@@ -84,7 +84,7 @@ func (s *Server) handleProjectImportTemplates(w http.ResponseWriter, r *http.Req
 
 	if req.SourceURL == "" && req.WorkspacePath == "" {
 		// Default workspace path when neither is provided
-		req.WorkspacePath = "/.scion/templates"
+		req.WorkspacePath = "/.fabric/templates"
 	}
 
 	// Verify project exists
@@ -184,7 +184,7 @@ func (s *Server) handleProjectImportHarnessConfigs(w http.ResponseWriter, r *htt
 	}
 
 	if req.SourceURL == "" && req.WorkspacePath == "" {
-		req.WorkspacePath = "/.scion/harness-configs"
+		req.WorkspacePath = "/.fabric/harness-configs"
 	}
 
 	project, err := s.store.GetProject(ctx, projectID)

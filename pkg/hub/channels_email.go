@@ -20,7 +20,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // EmailChannel delivers notifications via SMTP email.
@@ -73,9 +73,9 @@ func (e *EmailChannel) Validate() error {
 }
 
 func (e *EmailChannel) Deliver(_ context.Context, msg *messages.StructuredMessage) error {
-	subject := fmt.Sprintf("[Scion] %s", msg.Type)
+	subject := fmt.Sprintf("[Fabric] %s", msg.Type)
 	if msg.Sender != "" {
-		subject = fmt.Sprintf("[Scion] %s from %s", msg.Type, msg.Sender)
+		subject = fmt.Sprintf("[Fabric] %s from %s", msg.Type, msg.Sender)
 	}
 
 	recipients := strings.Split(e.to, ",")

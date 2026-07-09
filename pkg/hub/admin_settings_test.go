@@ -20,7 +20,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func TestHandleAdminServerConfig_NonAdmin(t *testing.T) {

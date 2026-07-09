@@ -24,8 +24,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // newLifecycleTestBridge creates a Bridge with a real SQLite store for lifecycle tests.
@@ -111,7 +111,7 @@ func TestContentMessageDoesNotCompleteTask(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 
@@ -172,7 +172,7 @@ func TestContentMessagePreservesInputRequiredState(t *testing.T) {
 	}
 	defer cleanup()
 
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// Transition to input-required via state-change.
 	stateMsg := &messages.StructuredMessage{
@@ -253,7 +253,7 @@ func TestContentMessageBroadcastsWorkingNonFinal(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 
@@ -314,7 +314,7 @@ func TestMultipleContentMessagesKeepTaskAlive(t *testing.T) {
 			Type:      messages.TypeAssistantReply,
 			Metadata:  map[string]string{"a2aTaskId": taskID},
 		}
-		if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", msg); err != nil {
+		if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", msg); err != nil {
 			t.Fatalf("HandleBrokerMessage[%d]: %v", i, err)
 		}
 	}
@@ -380,7 +380,7 @@ func TestStateChangeCompletedAfterContentClosesTask(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage(content): %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -395,7 +395,7 @@ func TestStateChangeCompletedAfterContentClosesTask(t *testing.T) {
 		Type:      messages.TypeStateChange,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", completedMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", completedMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage(completed): %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -456,7 +456,7 @@ func TestStateChangeInputRequiredKeepsTaskAlive(t *testing.T) {
 		Type:      messages.TypeStateChange,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", inputMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", inputMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -510,7 +510,7 @@ func TestStateChangeFailedClosesTask(t *testing.T) {
 		Type:      messages.TypeStateChange,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", failMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", failMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -572,7 +572,7 @@ func TestBlockingSendMessageReturnsWorking(t *testing.T) {
 
 	select {
 	case response := <-responseCh:
-		msg, artifacts := TranslateScionToA2A(response)
+		msg, artifacts := TranslateFabricToA2A(response)
 		result := &TaskResult{
 			ID:        taskID,
 			ContextID: "ctx-1",
@@ -666,7 +666,7 @@ func TestFullMultiTurnLifecycle(t *testing.T) {
 	}
 	defer cleanup()
 
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// Step 1: Agent sends content (progress update) — task stays alive.
 	sendContent := func(text string) {
@@ -801,7 +801,7 @@ func TestSlugFallbackContentDoesNotCloseTask(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		// No a2aTaskId in metadata.
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -897,7 +897,7 @@ func TestContentMessageDoesNotIncrementCompletedMetric(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -916,7 +916,7 @@ func TestContentAfterCompletedIsIgnored(t *testing.T) {
 	b, store := newLifecycleTestBridge(t)
 	taskID := "content-after-complete-1"
 	seedLifecycleTask(t, b, store, taskID, "proj1", "agent-a")
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// First complete the task via state-change.
 	completedMsg := &messages.StructuredMessage{
@@ -971,7 +971,7 @@ func TestDoubleCompletedIsIdempotent(t *testing.T) {
 	b, store := newLifecycleTestBridge(t)
 	taskID := "double-complete-1"
 	seedLifecycleTask(t, b, store, taskID, "proj1", "agent-a")
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	for i := 0; i < 2; i++ {
 		msg := &messages.StructuredMessage{
@@ -1008,7 +1008,7 @@ func TestNonBlockingSendKeepsTaskAlive(t *testing.T) {
 	b, store := newLifecycleTestBridge(t)
 	taskID := "nonblock-alive-1"
 	seedLifecycleTask(t, b, store, taskID, "proj1", "agent-a")
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// Send content message to a task registered the non-blocking way.
 	contentMsg := &messages.StructuredMessage{
@@ -1043,7 +1043,7 @@ func TestStateChangeWorkingDoesNotCloseTask(t *testing.T) {
 	b, store := newLifecycleTestBridge(t)
 	taskID := "working-nonterminal-1"
 	seedLifecycleTask(t, b, store, taskID, "proj1", "agent-a")
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// WORKING state-change is non-terminal.
 	workingMsg := &messages.StructuredMessage{
@@ -1079,7 +1079,7 @@ func TestMultipleAgentTasksContentDoesNotClose(t *testing.T) {
 	taskID2 := "multi-agent-task-2"
 	seedLifecycleTask(t, b, store, taskID1, "proj1", "agent-a")
 	seedLifecycleTask(t, b, store, taskID2, "proj1", "agent-a")
-	topic := "scion.project.proj1.user.test-user.messages"
+	topic := "fabric.project.proj1.user.test-user.messages"
 
 	// Send content without a2aTaskId — slug fallback should hit both tasks.
 	contentMsg := &messages.StructuredMessage{
@@ -1180,7 +1180,7 @@ func TestStateChangeTerminalityTableDriven(t *testing.T) {
 				Type:      messages.TypeStateChange,
 				Metadata:  map[string]string{"a2aTaskId": taskID},
 			}
-			if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", msg); err != nil {
+			if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", msg); err != nil {
 				t.Fatalf("HandleBrokerMessage: %v", err)
 			}
 			time.Sleep(100 * time.Millisecond)
@@ -1243,7 +1243,7 @@ func TestTerminalStateClosesStreamChannel(t *testing.T) {
 		Type:      messages.TypeStateChange,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", completedMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", completedMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 
@@ -1297,7 +1297,7 @@ func TestTerminalStateFailedClosesStreamChannel(t *testing.T) {
 		Type:      messages.TypeStateChange,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", failMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", failMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 
@@ -1421,7 +1421,7 @@ func TestContentMessageRefreshesTimestamp(t *testing.T) {
 		Type:      messages.TypeAssistantReply,
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
-	if err := b.HandleBrokerMessage(context.Background(), "scion.project.proj1.user.test-user.messages", contentMsg); err != nil {
+	if err := b.HandleBrokerMessage(context.Background(), "fabric.project.proj1.user.test-user.messages", contentMsg); err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}
 	time.Sleep(100 * time.Millisecond)

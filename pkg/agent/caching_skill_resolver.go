@@ -17,9 +17,9 @@ package agent
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/templatecache"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/templatecache"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // CachingSkillResolver wraps a SkillResolver with content-hash caching.

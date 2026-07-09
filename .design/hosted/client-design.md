@@ -1,4 +1,4 @@
-# Scion API Client Libraries Design
+# Fabric API Client Libraries Design
 
 ## Status
 **Proposed**
@@ -9,7 +9,7 @@ This document specifies the design for Go client libraries that provide programm
 
 1. **In the CLI** to interact with the Hub for hosted mode operations
 2. **Within the Hub** to communicate with remote Runtime Brokers (Direct HTTP mode)
-3. **By external consumers** who want to build integrations with the Scion hosted platform
+3. **By external consumers** who want to build integrations with the Fabric hosted platform
 
 Since external use is a design goal, these clients are implemented as public packages with stable, documented interfaces.
 
@@ -176,7 +176,7 @@ type HostTokenAuth struct {
 }
 
 func (a *HostTokenAuth) ApplyAuth(req *http.Request) error {
-    req.Header.Set("X-Scion-Broker-Token", a.Token)
+    req.Header.Set("X-Fabric-Broker-Token", a.Token)
     return nil
 }
 
@@ -188,7 +188,7 @@ type AgentTokenAuth struct {
 }
 
 func (a *AgentTokenAuth) ApplyAuth(req *http.Request) error {
-    req.Header.Set("X-Scion-Agent-Token", a.Token)
+    req.Header.Set("X-Fabric-Agent-Token", a.Token)
     return nil
 }
 
@@ -304,8 +304,8 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/store"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/store"
 )
 
 // Client is the interface for the Hub API client.
@@ -383,7 +383,7 @@ import (
     "net/http"
     "time"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // Option configures a Hub client.
@@ -441,7 +441,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // AgentService handles agent operations.
@@ -552,7 +552,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // GroveService handles grove operations.
@@ -664,7 +664,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // RuntimeBrokerService handles runtime broker operations.
@@ -753,7 +753,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // TemplateService handles template operations.
@@ -824,7 +824,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // UserService handles user operations.
@@ -860,7 +860,7 @@ package hubclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // EnvService handles environment variable operations.
@@ -1280,8 +1280,8 @@ package brokerclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/runtimebroker"
 )
 
 // Client is the interface for the Runtime Broker API client.
@@ -1328,7 +1328,7 @@ import (
     "net/http"
     "time"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // Option configures a Runtime Broker client.
@@ -1379,8 +1379,8 @@ package brokerclient
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/runtimebroker"
 )
 
 // AgentService handles agent operations on a runtime broker.
@@ -1509,8 +1509,8 @@ import (
     "errors"
     "fmt"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func example(ctx context.Context, client hubclient.Client) {
@@ -1590,7 +1590,7 @@ import (
     "log"
     "time"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func main() {
@@ -1598,7 +1598,7 @@ func main() {
 
     // Create client with bearer token
     client, err := hubclient.New(
-        "https://hub.scion.dev",
+        "https://hub.fabric.dev",
         hubclient.WithBearerToken("your-token"),
         hubclient.WithTimeout(30*time.Second),
     )
@@ -1653,14 +1653,14 @@ import (
     "fmt"
     "log"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func main() {
     ctx := context.Background()
 
     client, _ := hubclient.New(
-        "https://hub.scion.dev",
+        "https://hub.fabric.dev",
         hubclient.WithAPIKey("api-key"),
     )
 
@@ -1668,7 +1668,7 @@ func main() {
     resp, err := client.Groves().Register(ctx, &hubclient.RegisterGroveRequest{
         Name:      "my-project",
         GitRemote: "git@github.com:myorg/my-project.git",
-        Path:      "/Users/dev/projects/my-project/.scion",
+        Path:      "/Users/dev/projects/my-project/.fabric",
         Broker: &hubclient.BrokerInfo{
             Name:    "Dev Laptop",
             Version: "1.2.3",
@@ -1708,8 +1708,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/brokerclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
+    "github.com/pdlc-os/fabric/pkg/brokerclient"
+    "github.com/pdlc-os/fabric/pkg/runtimebroker"
 )
 
 // This example shows how the Hub would dispatch an agent creation
@@ -1750,7 +1750,7 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/brokerclient"
+    "github.com/pdlc-os/fabric/pkg/brokerclient"
     "golang.org/x/term"
 )
 
@@ -1759,7 +1759,7 @@ func main() {
     defer cancel()
 
     client, err := brokerclient.New(
-        "https://broker.scion.dev:9800",
+        "https://broker.fabric.dev:9800",
         brokerclient.WithBearerToken("broker-token"),
     )
     if err != nil {
@@ -1813,8 +1813,8 @@ import (
     "context"
     "fmt"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func listAllAgents(ctx context.Context, client hubclient.Client, groveID string) ([]hubclient.Agent, error) {
@@ -1862,7 +1862,7 @@ import (
     "context"
     "testing"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // MockAgentService implements hubclient.AgentService for testing.
@@ -1911,7 +1911,7 @@ import (
     "net/http/httptest"
     "testing"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func TestGetAgent(t *testing.T) {

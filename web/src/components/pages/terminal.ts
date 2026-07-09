@@ -56,8 +56,8 @@ type PTYMessage = PTYDataMessage | PTYResizeMessage;
 /** Which tmux window is active */
 type TmuxWindow = 'agent' | 'shell';
 
-@customElement('scion-page-terminal')
-export class ScionPageTerminal extends LitElement {
+@customElement('fabric-page-terminal')
+export class FabricPageTerminal extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -790,7 +790,7 @@ export class ScionPageTerminal extends LitElement {
     this.captureAuthLoading = true;
     this.captureAuthConflicts = null;
     try {
-      const command = ['python3', '/home/scion/.scion/harness/capture_auth.py'];
+      const command = ['python3', '/home/fabric/.fabric/harness/capture_auth.py'];
       if (force) command.push('--force');
 
       const response = await apiFetch(`/api/v1/agents/${this.agent.id}/exec`, {
@@ -814,7 +814,7 @@ export class ScionPageTerminal extends LitElement {
         alert(`No credentials found yet.\n\nAuthenticate first (e.g., run 'agy' inside the container), then try again.\n\n${result.output}`);
       } else {
         const conflicts: string[] = [];
-        for (const m of result.output.matchAll(ScionPageTerminal.SECRET_CONFLICT_RE)) {
+        for (const m of result.output.matchAll(FabricPageTerminal.SECRET_CONFLICT_RE)) {
           conflicts.push(m[1]);
         }
         if (conflicts.length > 0) {
@@ -966,10 +966,10 @@ export class ScionPageTerminal extends LitElement {
               </button>
             `
           : ''}
-        <scion-status-badge
+        <fabric-status-badge
           status=${this.agentDisplayStatus as StatusType}
           size="small"
-        ></scion-status-badge>
+        ></fabric-status-badge>
         <div class="status-indicator">
           <span class="status-dot ${this.connected ? 'connected' : ''}"></span>
           ${this.connected ? 'Connected' : 'Disconnected'}
@@ -1006,6 +1006,6 @@ export class ScionPageTerminal extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-terminal': ScionPageTerminal;
+    'fabric-page-terminal': FabricPageTerminal;
   }
 }

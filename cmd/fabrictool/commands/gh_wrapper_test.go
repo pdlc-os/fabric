@@ -31,7 +31,7 @@ func TestFindRealGh_PrefersRealSuffix(t *testing.T) {
 
 	// Create both files
 	require.NoError(t, os.WriteFile(ghRealPath, []byte("real binary"), 0755))
-	require.NoError(t, os.WriteFile(ghPath, []byte("#!/bin/sh\nexec sciontool gh-wrapper"), 0755))
+	require.NoError(t, os.WriteFile(ghPath, []byte("#!/bin/sh\nexec fabrictool gh-wrapper"), 0755))
 
 	// findRealGh uses hardcoded paths, so we test the path ordering logic
 	// by verifying the paths array order
@@ -48,17 +48,17 @@ func TestFindRealGh_PrefersRealSuffix(t *testing.T) {
 }
 
 func TestRunGhWrapper_SkipsInjectionForUserToken(t *testing.T) {
-	// When SCION_USER_GITHUB_TOKEN=true, the wrapper should NOT set GH_TOKEN
+	// When FABRIC_USER_GITHUB_TOKEN=true, the wrapper should NOT set GH_TOKEN
 	// from the token file, letting the user's GITHUB_TOKEN be used instead.
 
 	// Save and restore env vars
-	for _, key := range []string{"SCION_GITHUB_APP_ENABLED", "SCION_USER_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"} {
+	for _, key := range []string{"FABRIC_GITHUB_APP_ENABLED", "FABRIC_USER_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"} {
 		orig := os.Getenv(key)
 		t.Cleanup(func() { _ = os.Setenv(key, orig) })
 	}
 
-	_ = os.Setenv("SCION_GITHUB_APP_ENABLED", "true")
-	_ = os.Setenv("SCION_USER_GITHUB_TOKEN", "true")
+	_ = os.Setenv("FABRIC_GITHUB_APP_ENABLED", "true")
+	_ = os.Setenv("FABRIC_USER_GITHUB_TOKEN", "true")
 	_ = os.Setenv("GITHUB_TOKEN", "ghp_user_pat")
 	_ = os.Unsetenv("GH_TOKEN")
 

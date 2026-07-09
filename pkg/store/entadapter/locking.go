@@ -23,7 +23,7 @@ import (
 
 	"entgo.io/ent/dialect"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // advisoryLockTimeout bounds the two short, non-blocking database operations the

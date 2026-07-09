@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// scion-broker-repl is the reference message broker plugin for scion.
+// fabric-broker-repl is the reference message broker plugin for fabric.
 // It can run as:
-//   - A go-plugin subprocess (when launched by the scion plugin manager)
+//   - A go-plugin subprocess (when launched by the fabric plugin manager)
 //   - A standalone REPL for manual message send/receive during development
 //
-// Plugin mode is auto-detected via the SCION_PLUGIN magic cookie environment variable.
+// Plugin mode is auto-detected via the FABRIC_PLUGIN magic cookie environment variable.
 //
 // REPL usage:
 //
-//	scion-broker-repl --hub-url http://localhost:8080
-//	repl> sub scion.grove.mygrove.agent.*.messages
-//	repl> pub scion.grove.mygrove.agent.alice.messages hello world
-//	repl> unsub scion.grove.mygrove.agent.*.messages
+//	fabric-broker-repl --hub-url http://localhost:8080
+//	repl> sub fabric.grove.mygrove.agent.*.messages
+//	repl> pub fabric.grove.mygrove.agent.alice.messages hello world
+//	repl> unsub fabric.grove.mygrove.agent.*.messages
 //	repl> quit
 package main
 
@@ -35,9 +35,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin/refbroker"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/plugin/refbroker"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -98,7 +98,7 @@ func runREPL() {
 		os.Exit(1)
 	}
 
-	fmt.Println("scion-broker-repl (reference message broker)")
+	fmt.Println("fabric-broker-repl (reference message broker)")
 	fmt.Println("Commands: sub <pattern>, unsub <pattern>, pub <topic> <message>, quit")
 	fmt.Println()
 

@@ -26,8 +26,8 @@ import (
 
 // EnvVar is the environment variable used to pass serialized
 // file and variable secrets from the broker to the container. The value is
-// a base64-encoded JSON blob decoded by sciontool init.
-const EnvVar = "SCION_STAGED_SECRETS"
+// a base64-encoded JSON blob decoded by fabrictool init.
+const EnvVar = "FABRIC_STAGED_SECRETS"
 
 // FileSecret describes a single file-type secret in the staged blob.
 type FileSecret struct {
@@ -36,15 +36,15 @@ type FileSecret struct {
 	Value  string `json:"value"`  // base64-encoded file content
 }
 
-// Staged is the top-level structure serialized into SCION_STAGED_SECRETS.
+// Staged is the top-level structure serialized into FABRIC_STAGED_SECRETS.
 type Staged struct {
 	FileSecrets     []FileSecret      `json:"file_secrets,omitempty"`
 	VariableSecrets map[string]string `json:"variable_secrets,omitempty"`
 }
 
-// Decode decodes the SCION_STAGED_SECRETS env var value
+// Decode decodes the FABRIC_STAGED_SECRETS env var value
 // (base64 → JSON) and returns the structured secrets. This is called
-// inside the container by sciontool init.
+// inside the container by fabrictool init.
 func Decode(encoded string) (*Staged, error) {
 	jsonData, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
@@ -59,16 +59,16 @@ func Decode(encoded string) (*Staged, error) {
 
 // Write writes decoded staged secrets to the filesystem inside
 // the container. File secrets are written to their target paths with 0600
-// permissions. Variable secrets are written to <homeDir>/.scion/secrets.json.
+// permissions. Variable secrets are written to <homeDir>/.fabric/secrets.json.
 func Write(homeDir string, staged *Staged) error {
 	var uid, gid int
 	if os.Getuid() == 0 {
-		if uidStr := os.Getenv("SCION_HOST_UID"); uidStr != "" {
+		if uidStr := os.Getenv("FABRIC_HOST_UID"); uidStr != "" {
 			if id, err := strconv.Atoi(uidStr); err == nil {
 				uid = id
 			}
 		}
-		if gidStr := os.Getenv("SCION_HOST_GID"); gidStr != "" {
+		if gidStr := os.Getenv("FABRIC_HOST_GID"); gidStr != "" {
 			if id, err := strconv.Atoi(gidStr); err == nil {
 				gid = id
 			}
@@ -97,18 +97,18 @@ func Write(homeDir string, staged *Staged) error {
 	}
 
 	if len(staged.VariableSecrets) > 0 {
-		scionDir := filepath.Join(homeDir, ".scion")
-		if err := os.MkdirAll(scionDir, 0700); err != nil {
-			return fmt.Errorf("failed to create .scion directory: %w", err)
+		fabricDir := filepath.Join(homeDir, ".fabric")
+		if err := os.MkdirAll(fabricDir, 0700); err != nil {
+			return fmt.Errorf("failed to create .fabric directory: %w", err)
 		}
 		if uid > 0 || gid > 0 {
-			_ = os.Chown(scionDir, uid, gid)
+			_ = os.Chown(fabricDir, uid, gid)
 		}
 		data, err := json.Marshal(staged.VariableSecrets)
 		if err != nil {
 			return fmt.Errorf("failed to marshal secrets.json: %w", err)
 		}
-		secretsPath := filepath.Join(scionDir, "secrets.json")
+		secretsPath := filepath.Join(fabricDir, "secrets.json")
 		if err := os.WriteFile(secretsPath, data, 0600); err != nil {
 			return fmt.Errorf("failed to write secrets.json: %w", err)
 		}

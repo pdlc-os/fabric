@@ -19,7 +19,7 @@ package hub
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func TestComparePermissions(t *testing.T) {

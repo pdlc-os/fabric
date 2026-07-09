@@ -16,30 +16,30 @@
 # hack/cleanup.sh - Cleanup agents and specific template folder
 
 REPO_ROOT=$(pwd)
-TEST_DIR="${REPO_ROOT}/../qa-scion"
+TEST_DIR="${REPO_ROOT}/../qa-fabric"
 
 echo "=== Cleaning up agents ==="
 
-# Stop all agents started by scion
-# Use the scion on path
-if command -v scion &> /dev/null; then
+# Stop all agents started by fabric
+# Use the fabric on path
+if command -v fabric &> /dev/null; then
     # We need to be in a grove context or use -g
-    AGENTS=$(scion -g "${TEST_DIR}/.scion" list | tail -n +2 | awk '{print $1}')
+    AGENTS=$(fabric -g "${TEST_DIR}/.fabric" list | tail -n +2 | awk '{print $1}')
     for agent in $AGENTS; do
         if [ -n "$agent" ]; then
-            scion -g "${TEST_DIR}/.scion" rm "$agent"
+            fabric -g "${TEST_DIR}/.fabric" rm "$agent"
         fi
     done
 fi
 
-echo "=== Cleaning up specific scion directories ==="
-if [ -d "${TEST_DIR}/.scion" ]; then
+echo "=== Cleaning up specific fabric directories ==="
+if [ -d "${TEST_DIR}/.fabric" ]; then
     # Only remove agents, default templates, and settings
-    rm -rf "${TEST_DIR}/.scion/agents"
-    rm -rf "${TEST_DIR}/.scion/templates/claude"
-    rm -rf "${TEST_DIR}/.scion/templates/gemini"
-    rm -f "${TEST_DIR}/.scion/settings.json"
-    echo "Removed .scion/agents, templates, and settings.json"
+    rm -rf "${TEST_DIR}/.fabric/agents"
+    rm -rf "${TEST_DIR}/.fabric/templates/claude"
+    rm -rf "${TEST_DIR}/.fabric/templates/gemini"
+    rm -f "${TEST_DIR}/.fabric/settings.json"
+    echo "Removed .fabric/agents, templates, and settings.json"
 fi
 
 echo "=== Cleanup Complete ==="

@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -129,7 +129,7 @@ func TestNormalizeHarnessConfigSourceURL(t *testing.T) {
 func createTestHarnessConfig(t *testing.T, dir string) {
 	t.Helper()
 	require.NoError(t, os.MkdirAll(dir, 0755))
-	configYAML := []byte("harness: claude\nimage: test:latest\nuser: scion\n")
+	configYAML := []byte("harness: claude\nimage: test:latest\nuser: fabric\n")
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "config.yaml"), configYAML, 0644))
 	homeDir := filepath.Join(dir, "home")
 	require.NoError(t, os.MkdirAll(homeDir, 0755))
@@ -146,7 +146,7 @@ func TestInstallLocally(t *testing.T) {
 	srcDir := filepath.Join(tmpDir, "source", "test-hc")
 	createTestHarnessConfig(t, srcDir)
 
-	destDir := filepath.Join(tmpDir, ".scion", "harness-configs", "test-hc")
+	destDir := filepath.Join(tmpDir, ".fabric", "harness-configs", "test-hc")
 
 	err := installLocally("test-hc", srcDir, "", false, "claude")
 	require.NoError(t, err)
@@ -192,7 +192,7 @@ func TestInstallLocally_GroveScope(t *testing.T) {
 	srcDir := filepath.Join(tmpDir, "source", "test-hc")
 	createTestHarnessConfig(t, srcDir)
 
-	projectPath := filepath.Join(tmpDir, "my-project", ".scion")
+	projectPath := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectPath, 0755))
 
 	err := installLocally("test-hc", srcDir, projectPath, false, "claude")

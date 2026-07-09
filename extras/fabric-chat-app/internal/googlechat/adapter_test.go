@@ -19,7 +19,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/chatapp"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/chatapp"
 )
 
 func jsonNumber(s string) json.Number {
@@ -113,8 +113,8 @@ func TestNormalizeEvent_UserEmail(t *testing.T) {
 func TestNormalizeEvent_CommandIDMapping(t *testing.T) {
 	adapter := NewAdapter(Config{
 		CommandIDMap: map[string]string{
-			"1": "scion",
-			"2": "scionAdmin",
+			"1": "fabric",
+			"2": "fabricAdmin",
 		},
 	}, nil, nil, slog.Default())
 
@@ -124,19 +124,19 @@ func TestNormalizeEvent_CommandIDMapping(t *testing.T) {
 		wantCommand string
 	}{
 		{
-			name:        "command ID 1 maps to scion",
+			name:        "command ID 1 maps to fabric",
 			commandID:   "1",
-			wantCommand: "scion",
+			wantCommand: "fabric",
 		},
 		{
-			name:        "command ID 2 maps to scionAdmin",
+			name:        "command ID 2 maps to fabricAdmin",
 			commandID:   "2",
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 		},
 		{
-			name:        "unknown command ID falls back to scion",
+			name:        "unknown command ID falls back to fabric",
 			commandID:   "99",
-			wantCommand: "scion",
+			wantCommand: "fabric",
 		},
 	}
 
@@ -178,13 +178,13 @@ func TestNormalizeEvent_CommandNameFromText(t *testing.T) {
 						Space:              &rawSpace{Name: "spaces/s"},
 						AppCommandMetadata: &rawAppCommandMetadata{AppCommandId: jsonNumber("99")},
 						Message: &rawMessage{
-							Text:         "/scionAdmin list",
+							Text:         "/fabricAdmin list",
 							ArgumentText: "list",
 						},
 					},
 				},
 			},
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 		},
 		{
 			name: "messagePayload resolves command name from message text",
@@ -194,17 +194,17 @@ func TestNormalizeEvent_CommandNameFromText(t *testing.T) {
 					MessagePayload: &rawMessagePayload{
 						Space: &rawSpace{Name: "spaces/s"},
 						Message: &rawMessage{
-							Text:         "/scionAdmin help",
+							Text:         "/fabricAdmin help",
 							ArgumentText: "help",
 							SlashCommand: &rawSlashCommand{CommandId: jsonNumber("42")},
 						},
 					},
 				},
 			},
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 		},
 		{
-			name: "appCommandPayload with no message falls back to scion",
+			name: "appCommandPayload with no message falls back to fabric",
 			raw: rawEvent{
 				Chat: &rawChatPayload{
 					User: &rawUser{Name: "users/1", Email: "u@e.com"},
@@ -214,7 +214,7 @@ func TestNormalizeEvent_CommandNameFromText(t *testing.T) {
 					},
 				},
 			},
-			wantCommand: "scion",
+			wantCommand: "fabric",
 		},
 		{
 			name: "appCommandPayload slashCommand fallback resolves from text",
@@ -224,14 +224,14 @@ func TestNormalizeEvent_CommandNameFromText(t *testing.T) {
 					AppCommandPayload: &rawAppCommandPayload{
 						Space: &rawSpace{Name: "spaces/s"},
 						Message: &rawMessage{
-							Text:         "/scionAdmin info",
+							Text:         "/fabricAdmin info",
 							ArgumentText: "info",
 							SlashCommand: &rawSlashCommand{CommandId: jsonNumber("77")},
 						},
 					},
 				},
 			},
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 		},
 	}
 
@@ -251,8 +251,8 @@ func TestNormalizeEvent_CommandNameFromText(t *testing.T) {
 func TestNormalizeEvent_SlashCommandInMessage(t *testing.T) {
 	adapter := NewAdapter(Config{
 		CommandIDMap: map[string]string{
-			"1": "scion",
-			"2": "scionAdmin",
+			"1": "fabric",
+			"2": "fabricAdmin",
 		},
 	}, nil, nil, slog.Default())
 
@@ -278,7 +278,7 @@ func TestNormalizeEvent_SlashCommandInMessage(t *testing.T) {
 				},
 			},
 			wantType:    chatapp.EventCommand,
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 			wantArgs:    "help",
 		},
 		{
@@ -311,7 +311,7 @@ func TestNormalizeEvent_SlashCommandInMessage(t *testing.T) {
 				},
 			},
 			wantType:    chatapp.EventCommand,
-			wantCommand: "scionAdmin",
+			wantCommand: "fabricAdmin",
 			wantArgs:    "info",
 		},
 	}

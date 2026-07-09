@@ -1,6 +1,6 @@
 # Design Documents
 
-Technical design specifications and architectural decisions for Scion.
+Technical design specifications and architectural decisions for Fabric.
 
 ## Structure
 

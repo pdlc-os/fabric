@@ -67,17 +67,17 @@ func TestHandleAskSuccess(t *testing.T) {
 		// Verify args contain --prompt with the query
 		found := false
 		for i, a := range args {
-			if a == "--prompt" && i+1 < len(args) && args[i+1] == "what is scion?" {
+			if a == "--prompt" && i+1 < len(args) && args[i+1] == "what is fabric?" {
 				found = true
 			}
 		}
 		if !found {
-			t.Errorf("expected --prompt 'what is scion?' in args: %v", args)
+			t.Errorf("expected --prompt 'what is fabric?' in args: %v", args)
 		}
-		return "Scion is a \x1b[1mcontainer orchestration\x1b[0m platform.", nil
+		return "Fabric is a \x1b[1mcontainer orchestration\x1b[0m platform.", nil
 	})
 
-	body := `{"query": "what is scion?"}`
+	body := `{"query": "what is fabric?"}`
 	req := httptest.NewRequest(http.MethodPost, "/ask", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -275,16 +275,16 @@ func TestCORSPreflightOptions(t *testing.T) {
 func TestGetRepoDirDefaults(t *testing.T) {
 	t.Setenv("DOCS_AGENT_WORKSPACE", "")
 	t.Setenv("DOCS_AGENT_REPO_DIR", "")
-	if got := getRepoDir(); got != "/workspace/scion" {
-		t.Errorf("expected /workspace/scion, got %s", got)
+	if got := getRepoDir(); got != "/workspace/fabric" {
+		t.Errorf("expected /workspace/fabric, got %s", got)
 	}
 }
 
 func TestGetRepoDirFromWorkspace(t *testing.T) {
 	t.Setenv("DOCS_AGENT_WORKSPACE", "/home/me/projects")
 	t.Setenv("DOCS_AGENT_REPO_DIR", "")
-	if got := getRepoDir(); got != "/home/me/projects/scion" {
-		t.Errorf("expected /home/me/projects/scion, got %s", got)
+	if got := getRepoDir(); got != "/home/me/projects/fabric" {
+		t.Errorf("expected /home/me/projects/fabric, got %s", got)
 	}
 }
 

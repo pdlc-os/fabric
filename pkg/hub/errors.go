@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hub provides the Scion Hub API server.
+// Package hub provides the Fabric Hub API server.
 package hub
 
 import (
@@ -23,8 +23,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // APIError represents a standardized error response.

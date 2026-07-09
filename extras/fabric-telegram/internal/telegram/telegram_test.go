@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -196,7 +196,7 @@ func TestConfigure_WithChatRoutes(t *testing.T) {
 	b := New(slog.Default())
 	defer b.Close()
 
-	routes := `{"123": "scion.project.p1.agent.coder.messages", "-456": "scion.project.p1.broadcast"}`
+	routes := `{"123": "fabric.project.p1.agent.coder.messages", "-456": "fabric.project.p1.broadcast"}`
 
 	err := b.Configure(map[string]string{
 		"bot_token":    "test-token",
@@ -205,9 +205,9 @@ func TestConfigure_WithChatRoutes(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, "scion.project.p1.agent.coder.messages", b.chatRoutes[123])
-	assert.Equal(t, "scion.project.p1.broadcast", b.chatRoutes[-456])
-	assert.Contains(t, b.topicChats["scion.project.p1.agent.coder.messages"], int64(123))
+	assert.Equal(t, "fabric.project.p1.agent.coder.messages", b.chatRoutes[123])
+	assert.Equal(t, "fabric.project.p1.broadcast", b.chatRoutes[-456])
+	assert.Contains(t, b.topicChats["fabric.project.p1.agent.coder.messages"], int64(123))
 }
 
 func TestConfigure_WithOutboundRoutes(t *testing.T) {
@@ -218,15 +218,15 @@ func TestConfigure_WithOutboundRoutes(t *testing.T) {
 	err := b.Configure(map[string]string{
 		"bot_token":       "test-token",
 		"api_base_url":    tgSrv.srv.URL,
-		"chat_routes":     `{"-100": "scion.project.p1.agent.coder.messages"}`,
-		"outbound_routes": `{"scion.project.p1.user.*.messages": "-100"}`,
+		"chat_routes":     `{"-100": "fabric.project.p1.agent.coder.messages"}`,
+		"outbound_routes": `{"fabric.project.p1.user.*.messages": "-100"}`,
 	})
 	require.NoError(t, err)
 
 	// chat_routes populates both chatRoutes and topicChats
-	assert.Equal(t, "scion.project.p1.agent.coder.messages", b.chatRoutes[-100])
+	assert.Equal(t, "fabric.project.p1.agent.coder.messages", b.chatRoutes[-100])
 	// outbound_routes adds to topicChats only
-	assert.Contains(t, b.topicChats["scion.project.p1.user.*.messages"], int64(-100))
+	assert.Contains(t, b.topicChats["fabric.project.p1.user.*.messages"], int64(-100))
 }
 
 func TestConfigure_InvalidOutboundRoutes(t *testing.T) {
@@ -251,12 +251,12 @@ func TestPublishViaOutboundRoute(t *testing.T) {
 	err := b.Configure(map[string]string{
 		"bot_token":       "test-token",
 		"api_base_url":    tgSrv.srv.URL,
-		"outbound_routes": `{"scion.project.p1.user.*.messages": "789"}`,
+		"outbound_routes": `{"fabric.project.p1.user.*.messages": "789"}`,
 	})
 	require.NoError(t, err)
 
 	msg := messages.NewInstruction("agent:coder", "user:alice", "reply to user")
-	err = b.Publish(context.Background(), "scion.project.p1.user.alice.messages", msg)
+	err = b.Publish(context.Background(), "fabric.project.p1.user.alice.messages", msg)
 	require.NoError(t, err)
 
 	sent := tgSrv.getSentMessages()
@@ -270,11 +270,11 @@ func TestPublishToChat(t *testing.T) {
 	b := newTestBroker(t, tgSrv)
 
 	// Add a chat route
-	b.chatRoutes[789] = "scion.project.p1.agent.coder.messages"
-	b.topicChats["scion.project.p1.agent.coder.messages"] = []int64{789}
+	b.chatRoutes[789] = "fabric.project.p1.agent.coder.messages"
+	b.topicChats["fabric.project.p1.agent.coder.messages"] = []int64{789}
 
 	msg := messages.NewInstruction("user:alice", "agent:coder", "hello")
-	err := b.Publish(context.Background(), "scion.project.p1.agent.coder.messages", msg)
+	err := b.Publish(context.Background(), "fabric.project.p1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	sent := tgSrv.getSentMessages()
@@ -360,7 +360,7 @@ func TestPublishNoRoute(t *testing.T) {
 	b := newTestBroker(t, tgSrv)
 
 	msg := messages.NewInstruction("user:alice", "agent:coder", "no route")
-	err := b.Publish(context.Background(), "scion.project.unknown.agent.coder.messages", msg)
+	err := b.Publish(context.Background(), "fabric.project.unknown.agent.coder.messages", msg)
 	require.NoError(t, err) // should not error, just drop
 
 	sent := tgSrv.getSentMessages()
@@ -389,11 +389,11 @@ func TestPublishPatternMatch(t *testing.T) {
 	b := newTestBroker(t, tgSrv)
 
 	// Configure a wildcard route pattern
-	b.chatRoutes[789] = "scion.project.p1.agent.*.messages"
-	b.topicChats["scion.project.p1.agent.*.messages"] = []int64{789}
+	b.chatRoutes[789] = "fabric.project.p1.agent.*.messages"
+	b.topicChats["fabric.project.p1.agent.*.messages"] = []int64{789}
 
 	msg := messages.NewInstruction("user:alice", "agent:coder", "pattern match")
-	err := b.Publish(context.Background(), "scion.project.p1.agent.coder.messages", msg)
+	err := b.Publish(context.Background(), "fabric.project.p1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	sent := tgSrv.getSentMessages()
@@ -422,17 +422,17 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	tgSrv := newFakeTelegramServer(t)
 	b := newTestBroker(t, tgSrv)
 
-	require.NoError(t, b.Subscribe("scion.project.p1.agent.*.messages"))
+	require.NoError(t, b.Subscribe("fabric.project.p1.agent.*.messages"))
 
 	b.mu.RLock()
-	assert.True(t, b.subs["scion.project.p1.agent.*.messages"])
+	assert.True(t, b.subs["fabric.project.p1.agent.*.messages"])
 	assert.NotNil(t, b.pollCancel, "polling should be started")
 	b.mu.RUnlock()
 
-	require.NoError(t, b.Unsubscribe("scion.project.p1.agent.*.messages"))
+	require.NoError(t, b.Unsubscribe("fabric.project.p1.agent.*.messages"))
 
 	b.mu.RLock()
-	assert.False(t, b.subs["scion.project.p1.agent.*.messages"])
+	assert.False(t, b.subs["fabric.project.p1.agent.*.messages"])
 	b.mu.RUnlock()
 }
 
@@ -594,7 +594,7 @@ func TestInboundDelivery(t *testing.T) {
 
 	// Set up a chat route
 	b.mu.Lock()
-	b.chatRoutes[789] = "scion.project.p1.agent.coder.messages"
+	b.chatRoutes[789] = "fabric.project.p1.agent.coder.messages"
 	b.mu.Unlock()
 
 	var deliveredTopic string
@@ -623,7 +623,7 @@ func TestInboundDelivery(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.project.p1.>"))
+	require.NoError(t, b.Subscribe("fabric.project.p1.>"))
 
 	select {
 	case <-done:
@@ -631,7 +631,7 @@ func TestInboundDelivery(t *testing.T) {
 		t.Fatal("timed out waiting for inbound delivery")
 	}
 
-	assert.Equal(t, "scion.project.p1.agent.coder.messages", deliveredTopic)
+	assert.Equal(t, "fabric.project.p1.agent.coder.messages", deliveredTopic)
 	assert.Equal(t, "hello agent", deliveredMsg.Msg)
 	assert.Equal(t, "telegram:alice", deliveredMsg.Sender)
 	assert.Equal(t, "456", deliveredMsg.SenderID)
@@ -671,7 +671,7 @@ func TestInboundDelivery_DefaultTopic(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.>"))
+	require.NoError(t, b.Subscribe("fabric.>"))
 
 	select {
 	case <-done:
@@ -679,7 +679,7 @@ func TestInboundDelivery_DefaultTopic(t *testing.T) {
 		t.Fatal("timed out waiting for inbound delivery")
 	}
 
-	assert.Equal(t, "scion.telegram.chat.789.messages", deliveredTopic)
+	assert.Equal(t, "fabric.telegram.chat.789.messages", deliveredTopic)
 }
 
 func TestHubAPIDelivery(t *testing.T) {
@@ -689,7 +689,7 @@ func TestHubAPIDelivery(t *testing.T) {
 	hubSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/api/v1/broker/inbound", r.URL.Path)
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
-		assert.Equal(t, "test-telegram", r.Header.Get("X-Scion-Plugin-Name"))
+		assert.Equal(t, "test-telegram", r.Header.Get("X-Fabric-Plugin-Name"))
 
 		body, _ := io.ReadAll(r.Body)
 		var p inboundPayload
@@ -730,7 +730,7 @@ func TestHubAPIDelivery(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.>"))
+	require.NoError(t, b.Subscribe("fabric.>"))
 
 	require.Eventually(t, func() bool {
 		mu.Lock()
@@ -786,7 +786,7 @@ func TestInboundDelivery_UserMapping(t *testing.T) {
 	require.NoError(t, err)
 
 	b.mu.Lock()
-	b.chatRoutes[789] = "scion.project.p1.agent.coder.messages"
+	b.chatRoutes[789] = "fabric.project.p1.agent.coder.messages"
 	b.mu.Unlock()
 
 	var deliveredMsg *messages.StructuredMessage
@@ -812,7 +812,7 @@ func TestInboundDelivery_UserMapping(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.project.p1.>"))
+	require.NoError(t, b.Subscribe("fabric.project.p1.>"))
 
 	select {
 	case <-done:
@@ -860,7 +860,7 @@ func TestInboundDelivery_UserMappingNoMatch(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.>"))
+	require.NoError(t, b.Subscribe("fabric.>"))
 
 	select {
 	case <-done:
@@ -876,10 +876,10 @@ func TestRecipientFromTopic(t *testing.T) {
 		topic string
 		want  string
 	}{
-		{"scion.project.p1.agent.coder.messages", "agent:coder"},
-		{"scion.project.p1.user.alice.messages", "user:alice"},
-		{"scion.project.p1.broadcast", "broker:topic"},
-		{"scion.telegram.chat.123.messages", "broker:topic"},
+		{"fabric.project.p1.agent.coder.messages", "agent:coder"},
+		{"fabric.project.p1.user.alice.messages", "user:alice"},
+		{"fabric.project.p1.broadcast", "broker:topic"},
+		{"fabric.telegram.chat.123.messages", "broker:topic"},
 	}
 
 	for _, tt := range tests {
@@ -1045,8 +1045,8 @@ func TestSubjectMatchesPattern(t *testing.T) {
 		{"foo.>", "foo.bar", true},
 		{"foo.>", "foo.bar.baz", true},
 		{"foo.>", "foo", false},
-		{"scion.project.*.agent.*.messages", "scion.project.p1.agent.coder.messages", true},
-		{"scion.project.*.agent.*.messages", "scion.project.p1.broadcast", false},
+		{"fabric.project.*.agent.*.messages", "fabric.project.p1.agent.coder.messages", true},
+		{"fabric.project.*.agent.*.messages", "fabric.project.p1.broadcast", false},
 	}
 
 	for _, tt := range tests {
@@ -1131,7 +1131,7 @@ func TestDeliverInbound_ReturnsHubError(t *testing.T) {
 		}
 
 		msg := messages.NewInstruction("user:alice", "agent:coder", "hello")
-		he := b.deliverInbound("scion.project.p1.agent.coder.messages", msg)
+		he := b.deliverInbound("fabric.project.p1.agent.coder.messages", msg)
 		require.NotNil(t, he)
 		assert.Equal(t, 404, he.StatusCode)
 		assert.Equal(t, "agent_not_found", he.Code)
@@ -1150,7 +1150,7 @@ func TestDeliverInbound_ReturnsHubError(t *testing.T) {
 		}
 
 		msg := messages.NewInstruction("user:alice", "agent:coder", "hello")
-		he := b.deliverInbound("scion.project.p1.agent.coder.messages", msg)
+		he := b.deliverInbound("fabric.project.p1.agent.coder.messages", msg)
 		assert.Nil(t, he)
 	})
 }
@@ -1176,8 +1176,8 @@ func TestInboundDelivery_ErrorFeedback(t *testing.T) {
 	// Configure hub URL to point to the rejecting hub
 	b.mu.Lock()
 	b.hubURL = hubSrv.URL
-	b.chatRoutes[789] = "scion.project.p1.agent.deleted-agent.messages"
-	b.topicChats["scion.project.p1.agent.deleted-agent.messages"] = []int64{789}
+	b.chatRoutes[789] = "fabric.project.p1.agent.deleted-agent.messages"
+	b.topicChats["fabric.project.p1.agent.deleted-agent.messages"] = []int64{789}
 	b.InboundHandler = nil // Force HTTP delivery path
 	b.mu.Unlock()
 
@@ -1195,7 +1195,7 @@ func TestInboundDelivery_ErrorFeedback(t *testing.T) {
 		},
 	})
 
-	require.NoError(t, b.Subscribe("scion.project.p1.>"))
+	require.NoError(t, b.Subscribe("fabric.project.p1.>"))
 
 	// Wait for the error feedback message to be sent to the Telegram chat
 	require.Eventually(t, func() bool {

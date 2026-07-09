@@ -19,8 +19,8 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -69,9 +69,9 @@ var sharedDirListCmd = &cobra.Command{
 			if info.ReadOnly {
 				mode = "read-only"
 			}
-			mount := fmt.Sprintf("/scion-volumes/%s", info.Name)
+			mount := fmt.Sprintf("/fabric-volumes/%s", info.Name)
 			if info.InWorkspace {
-				mount = fmt.Sprintf("/workspace/.scion-volumes/%s", info.Name)
+				mount = fmt.Sprintf("/workspace/.fabric-volumes/%s", info.Name)
 			}
 			provisioned := "no"
 			if info.Exists {
@@ -258,9 +258,9 @@ var sharedDirInfoCmd = &cobra.Command{
 			fmt.Println("Mode:         read-write")
 		}
 		if info.InWorkspace {
-			fmt.Printf("Mount:        /workspace/.scion-volumes/%s\n", info.Name)
+			fmt.Printf("Mount:        /workspace/.fabric-volumes/%s\n", info.Name)
 		} else {
-			fmt.Printf("Mount:        /scion-volumes/%s\n", info.Name)
+			fmt.Printf("Mount:        /fabric-volumes/%s\n", info.Name)
 		}
 		fmt.Printf("Host path:    %s\n", info.HostPath)
 		if info.Exists {
@@ -281,5 +281,5 @@ func init() {
 	sharedDirCmd.AddCommand(sharedDirInfoCmd)
 
 	sharedDirCreateCmd.Flags().Bool("read-only", false, "Mount as read-only for agents")
-	sharedDirCreateCmd.Flags().Bool("in-workspace", false, "Mount inside the workspace tree instead of /scion-volumes")
+	sharedDirCreateCmd.Flags().Bool("in-workspace", false, "Mount inside the workspace tree instead of /fabric-volumes")
 }

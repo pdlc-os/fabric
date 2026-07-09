@@ -21,11 +21,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/auth"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/hub/auth"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -63,16 +63,16 @@ func (e multipleHubAuthProvidersConfiguredError) Error() string {
 var hubAuthCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Manage Hub authentication",
-	Long: `Manage authentication with a Scion Hub.
+	Long: `Manage authentication with a Fabric Hub.
 
-Commands for logging in and logging out. Use 'scion hub status' to check authentication status.`,
+Commands for logging in and logging out. Use 'fabric hub status' to check authentication status.`,
 }
 
 // hubAuthLoginCmd authenticates with the Hub
 var hubAuthLoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Authenticate with Hub server",
-	Long: `Authenticate with a Scion Hub server using browser-based OAuth.
+	Long: `Authenticate with a Fabric Hub server using browser-based OAuth.
 
 This command will:
 1. Start a local callback server
@@ -85,10 +85,10 @@ the device authorization flow is used instead. This displays a URL and code
 that you can enter on any device with a browser.
 
 Example:
-  scion hub auth login
-  scion hub auth login --hub-url https://hub.example.com
-  scion hub auth login --no-browser
-  scion hub auth login --provider github`,
+  fabric hub auth login
+  fabric hub auth login --hub-url https://hub.example.com
+  fabric hub auth login --no-browser
+  fabric hub auth login --provider github`,
 	RunE: runHubAuthLogin,
 }
 
@@ -266,7 +266,7 @@ func runHubAuthLogout(cmd *cobra.Command, args []string) error {
 // getDefaultHubURL returns the default Hub URL from settings or environment.
 func getDefaultHubURL() string {
 	// Check environment first
-	if env := os.Getenv("SCION_HUB_ENDPOINT"); env != "" {
+	if env := os.Getenv("FABRIC_HUB_ENDPOINT"); env != "" {
 		return env
 	}
 

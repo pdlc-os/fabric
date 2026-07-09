@@ -174,8 +174,8 @@ func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleWellKnownAgentCard(w http.ResponseWriter, r *http.Request) {
 	registry := map[string]interface{}{
-		"name":        "scion-a2a-bridge",
-		"description": "Scion A2A Protocol Bridge — exposes Scion agents as A2A endpoints",
+		"name":        "fabric-a2a-bridge",
+		"description": "Fabric A2A Protocol Bridge — exposes Fabric agents as A2A endpoints",
 		"url":         s.config.Bridge.ExternalURL,
 		"version":     "1.0.0",
 		"capabilities": map[string]bool{

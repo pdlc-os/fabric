@@ -29,7 +29,7 @@ The Go server is configured via environment variables and CLI flags.
 
 ### Set Provider Credentials
 
-Create or update your `~/.scion/hub.env` file with provider credentials:
+Create or update your `~/.fabric/hub.env` file with provider credentials:
 
 ```bash
 GOOGLE_CLIENT_ID=your-client-id
@@ -42,17 +42,17 @@ SESSION_SECRET=a-long-random-string
 Or export them directly:
 
 ```bash
-export SCION_SERVER_AUTH_GOOGLE_CLIENTID="your-client-id"
-export SCION_SERVER_AUTH_GOOGLE_CLIENTSECRET="your-client-secret"
-export SCION_SERVER_AUTH_GITHUB_CLIENTID="your-client-id"
-export SCION_SERVER_AUTH_GITHUB_CLIENTSECRET="your-client-secret"
+export FABRIC_SERVER_AUTH_GOOGLE_CLIENTID="your-client-id"
+export FABRIC_SERVER_AUTH_GOOGLE_CLIENTSECRET="your-client-secret"
+export FABRIC_SERVER_AUTH_GITHUB_CLIENTID="your-client-id"
+export FABRIC_SERVER_AUTH_GITHUB_CLIENTSECRET="your-client-secret"
 ```
 
 ### Optional: Authorized Domains
 To restrict login to specific email domains:
 
 ```bash
-export SCION_SERVER_AUTH_AUTHORIZEDDOMAINS="example.com,mycompany.org"
+export FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS="example.com,mycompany.org"
 ```
 
 ## 3. Running the Server
@@ -60,14 +60,14 @@ export SCION_SERVER_AUTH_AUTHORIZEDDOMAINS="example.com,mycompany.org"
 Start the Go server with the web UI and hub enabled:
 
 ```bash
-scion server start --enable-web --enable-hub --web-port 8080 --session-secret "your-secret"
+fabric server start --enable-web --enable-hub --web-port 8080 --session-secret "your-secret"
 ```
 
 Or with environment variables from hub.env:
 
 ```bash
-source ~/.scion/hub.env
-scion server start --enable-web --enable-hub --web-port 8080 --session-secret "$SESSION_SECRET"
+source ~/.fabric/hub.env
+fabric server start --enable-web --enable-hub --web-port 8080 --session-secret "$SESSION_SECRET"
 ```
 
 ## 4. Testing the Flow
@@ -76,7 +76,7 @@ scion server start --enable-web --enable-hub --web-port 8080 --session-secret "$
 2. Since you're not authenticated, you should be redirected to the login page (`/login`).
 3. Click the button for your chosen provider (e.g., "Sign in with Google").
 4. Complete the OAuth flow in the provider's pop-up/redirect.
-5. If successful, you will be redirected back to the Scion dashboard.
+5. If successful, you will be redirected back to the Fabric dashboard.
 
 ### Troubleshooting
 

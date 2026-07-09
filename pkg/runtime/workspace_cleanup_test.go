@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func testNFSCleanupConfig(t *testing.T) (*config.V1NFSConfig, string) {
@@ -29,7 +29,7 @@ func testNFSCleanupConfig(t *testing.T) (*config.V1NFSConfig, string) {
 		MountRoot:   mountRoot,
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 	return cfg, mountRoot
@@ -53,7 +53,7 @@ func createProjectSubtree(t *testing.T, mountRoot, shareID, projectID string) st
 	if err := os.WriteFile(filepath.Join(wsPath, "test.txt"), []byte("hello"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(projectPath, ".scion-provisioned"), []byte("test"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectPath, ".fabric-provisioned"), []byte("test"), 0644); err != nil {
 		t.Fatal(err)
 	}
 

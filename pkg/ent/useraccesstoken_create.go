@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/useraccesstoken"
+	"github.com/pdlc-os/fabric/pkg/ent/useraccesstoken"
 	"github.com/google/uuid"
 )
 

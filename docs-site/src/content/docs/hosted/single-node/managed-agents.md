@@ -16,7 +16,7 @@ infrastructure of all, but the HA Admin guide links to this same page.
 
 A **managed agent** is an agent whose lifecycle is managed directly by the Hub through a cloud
 provider's agent API, **bypassing the Runtime Broker and container layer entirely**. Instead of
-Scion provisioning a container, mounting a workspace, and running a harness (Claude Code, Gemini
+Fabric provisioning a container, mounting a workspace, and running a harness (Claude Code, Gemini
 CLI, …) inside it, the model, tools, sandbox, and orchestration loop all run server-side in the
 cloud service.
 
@@ -24,7 +24,7 @@ The first supported backend is **Google Managed Agents** (the Gemini API at
 `generativelanguage.googleapis.com`), with the Antigravity agent as the base agent.
 
 Managed agents implement the same `Manager` interface and agent-label system as containerized
-agents, so `scion start`, `scion message`, `scion stop`, `scion list`, and friends work the same
+agents, so `fabric start`, `fabric message`, `fabric stop`, `fabric list`, and friends work the same
 way. What changes is that a managed agent has:
 
 - **No container** — nothing is provisioned on a runtime broker.
@@ -32,8 +32,8 @@ way. What changes is that a managed agent has:
   tasks). Repo-aware workflows (workspace sync, worktree branching) are a future addition.
 - **No broker involvement** — API calls go directly from the Hub to the cloud provider.
 
-See the [Glossary](/scion/glossary/) for the canonical definition and how it relates to the
-[Runtime Broker](/scion/hosted/ha/runtime-broker/) taxonomy.
+See the [Glossary](/fabric/glossary/) for the canonical definition and how it relates to the
+[Runtime Broker](/fabric/hosted/ha/runtime-broker/) taxonomy.
 
 ## When to use a managed agent
 
@@ -53,15 +53,15 @@ Choose a **containerized (brokered) agent** when:
 The choice between a managed agent and a brokered agent is a **deployment-time decision
 controlled by a broker profile**, not a property of the agent template. The same template can run
 on a container runtime or on a managed service depending on the profile you select at
-`scion start` time.
+`fabric start` time.
 
 ## Enabling the backend (admin)
 
-Managed agent backend configuration — provider, base agent, and API key — lives in **Scion
+Managed agent backend configuration — provider, base agent, and API key — lives in **Fabric
 settings on the Hub**, not in templates. Add a `managed_agents` section:
 
 ```yaml
-# In the Hub's settings (e.g. ~/.scion/settings.yaml), not template YAML
+# In the Hub's settings (e.g. ~/.fabric/settings.yaml), not template YAML
 managed_agents:
   google:
     api_key: "<key>"                         # Or resolved from Hub secrets
@@ -84,7 +84,7 @@ The execution mode is chosen with the `--profile` flag at agent creation. Use th
 `managed-agents` profile to route the agent to the Google Managed Agents backend:
 
 ```bash
-scion start my-researcher --profile managed-agents "Summarize the latest RFCs on X"
+fabric start my-researcher --profile managed-agents "Summarize the latest RFCs on X"
 ```
 
 When the profile is `managed-agents`, the Hub bypasses broker dispatch entirely and manages the
@@ -95,23 +95,23 @@ The following commands work with managed agents:
 
 | Command | Behavior |
 |---------|----------|
-| `scion start` / `scion create` | Create (and start) a managed agent. |
-| `scion message <name> "…"` | Send a message — begins a new interaction with the cloud agent. |
-| `scion look <name>` | View the agent's status and latest output (step types and token usage). |
-| `scion stop <name>` | Cancel the running interaction. |
-| `scion delete <name>` | Delete the agent and its cloud-side resources. |
-| `scion list` | List agents; managed agents show a `managed:google` runtime. |
-| `scion logs <name>` | Read logs from the cloud provider (GCP Cloud Logging), not local files. |
+| `fabric start` / `fabric create` | Create (and start) a managed agent. |
+| `fabric message <name> "…"` | Send a message — begins a new interaction with the cloud agent. |
+| `fabric look <name>` | View the agent's status and latest output (step types and token usage). |
+| `fabric stop <name>` | Cancel the running interaction. |
+| `fabric delete <name>` | Delete the agent and its cloud-side resources. |
+| `fabric list` | List agents; managed agents show a `managed:google` runtime. |
+| `fabric logs <name>` | Read logs from the cloud provider (GCP Cloud Logging), not local files. |
 
 ## Limitations
 
 Because there is no container, some container-oriented operations are not available for managed
 agents and return a clear error:
 
-- **`scion attach`** — not supported (there is no tmux session). Use `scion message` and
-  `scion look` instead.
-- **`scion suspend`** — not supported; use `scion stop` instead.
-- **`scion message --raw`** — not supported (raw tmux key delivery has no meaning without a
+- **`fabric attach`** — not supported (there is no tmux session). Use `fabric message` and
+  `fabric look` instead.
+- **`fabric suspend`** — not supported; use `fabric stop` instead.
+- **`fabric message --raw`** — not supported (raw tmux key delivery has no meaning without a
   container).
 - **Workspace mounting** — no local workspace or file sync in v1; managed agents target
   repo-less tasks.
@@ -129,7 +129,7 @@ so the CLI can reconnect across restarts, but no container or broker is involved
 
 ## See also
 
-- [Runtime Brokers & Profiles](/scion/hosted/ha/runtime-broker/) — the broker layer that managed
+- [Runtime Brokers & Profiles](/fabric/hosted/ha/runtime-broker/) — the broker layer that managed
   agents bypass, and how profiles are defined.
-- [Glossary: Managed Agent](/scion/glossary/) — the canonical definition.
-- [Choosing a Mode](/scion/choosing-a-mode/) — where hosted deployments fit.
+- [Glossary: Managed Agent](/fabric/glossary/) — the canonical definition.
+- [Choosing a Mode](/fabric/choosing-a-mode/) — where hosted deployments fit.

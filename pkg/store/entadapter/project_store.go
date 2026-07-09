@@ -21,15 +21,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/project"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/projectcontributor"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/projectsyncstate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/runtimebroker"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/project"
+	"github.com/pdlc-os/fabric/pkg/ent/projectcontributor"
+	"github.com/pdlc-os/fabric/pkg/ent/projectsyncstate"
+	"github.com/pdlc-os/fabric/pkg/ent/runtimebroker"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 
@@ -507,9 +507,9 @@ func (s *ProjectStore) populateProjectComputed(ctx context.Context, p *store.Pro
 		if c.Status == store.BrokerStatusOnline {
 			onlineContrib++
 		}
-		// A contributor with a local path outside ~/.scion/projects/ indicates a
+		// A contributor with a local path outside ~/.fabric/projects/ indicates a
 		// pre-existing local project that was linked to the hub.
-		if c.LocalPath != "" && !strings.Contains(c.LocalPath, "/.scion/projects/") {
+		if c.LocalPath != "" && !strings.Contains(c.LocalPath, "/.fabric/projects/") {
 			linked = true
 		}
 	}

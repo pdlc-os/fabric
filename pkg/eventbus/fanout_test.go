@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // stubEventBus is a minimal EventBus for testing fan-out behavior.

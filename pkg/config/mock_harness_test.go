@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 type MockHarness struct {
@@ -55,7 +55,7 @@ func (m *MockHarness) InjectAgentInstructions(agentHome string, content []byte) 
 	return os.WriteFile(target, content, 0644)
 }
 func (m *MockHarness) InjectSystemPrompt(agentHome string, content []byte) error {
-	target := filepath.Join(agentHome, ".scion", "system_prompt.md")
+	target := filepath.Join(agentHome, ".fabric", "system_prompt.md")
 	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 		return err
 	}

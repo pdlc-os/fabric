@@ -8,12 +8,12 @@
 Add a "Logs" tab to the agent detail page that queries Google Cloud Logging for
 structured log entries associated with a specific agent. Logs are loaded
 on-demand (not on page load), support manual refresh and live streaming, and
-render as expandable structured-JSON rows. A `scion logs` CLI implementation
+render as expandable structured-JSON rows. A `fabric logs` CLI implementation
 is also provided for hub-connected agents, including `--follow` support.
 
 ## Problem / Current State
 
-- `scion logs` only reads local filesystem logs (`agents/<name>/home/agent.log`).
+- `fabric logs` only reads local filesystem logs (`agents/<name>/home/agent.log`).
   Hub mode returns: `"logs command is not yet supported when using Hub integration"`.
 - The web agent detail page has no log visibility — operators must SSH into
   brokers or use the GCP Console to view Cloud Logging.
@@ -21,7 +21,7 @@ is also provided for hub-connected agents, including `--follow` support.
   (`pkg/util/logging/cloud_handler.go`) with `agent_id` and `grove_id`
   promoted to Cloud Logging labels, making per-agent filtering efficient.
 - Agent-side logs (harness output, tool execution) flow to Cloud Logging via
-  the sciontool exporter, written to a `scion-agents` log. These also carry
+  the fabrictool exporter, written to a `fabric-agents` log. These also carry
   the `agent_id` label, enabling unified querying across all log sources.
 
 ## Design
@@ -51,7 +51,7 @@ GET /api/v1/agents/{agentId}/logs?tail=100&since=<RFC3339>&until=<RFC3339>&sever
       "timestamp": "2026-03-07T10:15:32.123456Z",
       "severity": "INFO",
       "message": "Agent started processing task",
-      "labels": { "agent_id": "abc123", "grove_id": "my-grove", "component": "scion-broker" },
+      "labels": { "agent_id": "abc123", "grove_id": "my-grove", "component": "fabric-broker" },
       "resource": { "type": "gce_instance", "labels": { ... } },
       "jsonPayload": { "subsystem": "harness.claude", "duration_ms": 142, ... },
       "insertId": "abc123xyz",
@@ -157,8 +157,8 @@ AND severity >= {severity}
 
 The query matches across **all logs** in the project with the `agent_id` label —
 it is not scoped to a specific log ID. This ensures both hub-side logs (from
-`CloudHandler`) and agent-side logs (from the sciontool exporter's
-`scion-agents` log) are returned in a unified view.
+`CloudHandler`) and agent-side logs (from the fabrictool exporter's
+`fabric-agents` log) are returned in a unified view.
 
 The `labels.agent_id` filter leverages the label promotion already done by
 `CloudHandler` and `GCPHandler` — this is the most efficient query path.
@@ -187,8 +187,8 @@ The `LogQueryService` is initialized only when Cloud Logging is available:
 
 | Env Var                    | Purpose                          | Required |
 |----------------------------|----------------------------------|----------|
-| `SCION_GCP_PROJECT_ID`     | GCP project for log queries      | Yes (or `GOOGLE_CLOUD_PROJECT`) |
-| `SCION_CLOUD_LOGGING`      | Enables Cloud Logging features   | No (log query can work independently) |
+| `FABRIC_GCP_PROJECT_ID`     | GCP project for log queries      | Yes (or `GOOGLE_CLOUD_PROJECT`) |
+| `FABRIC_CLOUD_LOGGING`      | Enables Cloud Logging features   | No (log query can work independently) |
 
 Uses Application Default Credentials (ADC), consistent with the existing
 `CloudHandler` pattern. The `logadmin.Client` needs the
@@ -280,7 +280,7 @@ disclosure:
 │   │ v labels:                                                   │   │
 │   │     agent_id: "abc123"                                      │   │
 │   │     grove_id: "my-grove"                                    │   │
-│   │     component: "scion-hub"                                  │   │
+│   │     component: "fabric-hub"                                  │   │
 │   │ v jsonPayload:                                              │   │
 │   │     subsystem: "hub.dispatch"                               │   │
 │   │     error: "connection refused"                             │   │
@@ -299,7 +299,7 @@ key-value pairs, with objects/arrays collapsed by default and expandable on
 click. Each level is indented. Primitive values use syntax coloring (strings in
 green, numbers in blue, booleans in purple, null in gray).
 
-This should be implemented as a reusable `<scion-json-browser>` component since
+This should be implemented as a reusable `<fabric-json-browser>` component since
 structured data browsing may be useful elsewhere (e.g., notification payloads,
 agent metadata).
 
@@ -311,7 +311,7 @@ agent metadata).
 - Refresh fetches with `since` set to the newest entry's timestamp, merges results
 - Streaming appends prepend to the buffer in real-time
 
-### 4. CLI — `scion logs` Hub Support
+### 4. CLI — `fabric logs` Hub Support
 
 #### 4.1 Basic Implementation
 
@@ -409,9 +409,9 @@ type CloudLogEntry struct {
 | **Broker-proxied file read** | Simple; works offline | Requires broker connectivity; file access patterns vary |
 
 **Decision:** Cloud Logging is the primary source for hub-connected agents. Both
-hub-side logs (via `CloudHandler`) and agent-side logs (via sciontool exporter)
+hub-side logs (via `CloudHandler`) and agent-side logs (via fabrictool exporter)
 carry the `agent_id` label, enabling a unified query across all log sources. The
-existing local `scion logs` (filesystem read) is preserved as fallback for
+existing local `fabric logs` (filesystem read) is preserved as fallback for
 non-hub/local-only usage.
 
 #### 5.2 Streaming: SSE vs WebSocket vs Polling
@@ -446,9 +446,9 @@ contract to the client remains identical.
 | **`react-json-view` or similar** | Feature-rich | React dependency; doesn't fit Lit ecosystem |
 | **`<pre>` with JSON.stringify** | Trivial | Poor UX; no progressive disclosure |
 
-**Decision:** Custom `<scion-json-browser>` Lit component with recursive
+**Decision:** Custom `<fabric-json-browser>` Lit component with recursive
 expansion. Keeps the stack consistent and allows tailored UX (e.g., highlighting
-known scion fields like `agent_id`, `grove_id`).
+known fabric fields like `agent_id`, `grove_id`).
 
 ### 6. Implementation Plan
 
@@ -480,7 +480,7 @@ known scion fields like `agent_id`, `grove_id`).
 3. ✅ Implement log fetch and buffer management with lazy loading
 4. ✅ Build compact log row rendering
 5. ✅ Add refresh button and loading states
-6. ✅ Build `<scion-json-browser>` component
+6. ✅ Build `<fabric-json-browser>` component
 7. ✅ Wire expanded row view
 8. ✅ Add stream toggle with SSE connection lifecycle
 9. ✅ Disable refresh button during streaming
@@ -489,10 +489,10 @@ known scion fields like `agent_id`, `grove_id`).
 - `AgentWithCapabilities` response includes `cloudLogging: true` when the hub's
   `LogQueryService` is initialized, allowing the frontend to conditionally render
   the Logs tab.
-- The `<scion-agent-log-viewer>` component handles all log viewing logic: fetch,
+- The `<fabric-agent-log-viewer>` component handles all log viewing logic: fetch,
   buffer management (Map keyed by insertId, capped at 2000), SSE streaming, and
   lazy loading (triggered on first tab activation via `sl-tab-show` event).
-- The `<scion-json-browser>` component provides recursive expandable key-value
+- The `<fabric-json-browser>` component provides recursive expandable key-value
   rendering with syntax coloring for primitive types. Built as a reusable Lit
   component in `web/src/components/shared/json-browser.ts`.
 - Log rows show timestamp (HH:mm:ss.SSS), severity badge (color-coded), subsystem
@@ -529,13 +529,13 @@ known scion fields like `agent_id`, `grove_id`).
 Resolved from review feedback:
 
 1. **Log scope:** All cloud logs related to the agent are in scope. Agent-side
-   logs flow to Cloud Logging via the sciontool exporter, so querying all logs
+   logs flow to Cloud Logging via the fabrictool exporter, so querying all logs
    with a matching `agent_id` label provides a unified view of both hub-side
    and agent-side activity.
 
 2. **Log ID scoping:** Queries are **not** scoped to a specific log ID. All
    logs in the project with a matching `agent_id` label are returned, ensuring
-   entries from both `scion-server` and `scion-agents` logs are included.
+   entries from both `fabric-server` and `fabric-agents` logs are included.
 
 3. **Authorization:** Grove-level read access. Any user who can view the agent
    detail page can view its logs. The hub API enforces this check. Hub itself

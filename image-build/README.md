@@ -1,8 +1,8 @@
 # Image Build
 
-Dockerfiles and build configurations for Scion container images.
+Dockerfiles and build configurations for Fabric container images.
 
-`image-build/` is focused on Scion-owned base and server images. Harness-specific
+`image-build/` is focused on Fabric-owned base and server images. Harness-specific
 images are recipes attached to Harness-config bundles under `harnesses/<name>/`.
 The build scripts can still build those harness images for a workstation or a
 private registry, but the catalog is the source of truth for their Dockerfiles.
@@ -11,12 +11,12 @@ private registry, but the catalog is the source of truth for their Dockerfiles.
 
 ```
 core-base          System dependencies (Go, Node, Python)
-  └── scion-base   Adds sciontool binary and scion user
+  └── fabric-base   Adds fabrictool binary and fabric user
         ├── harness images  Optional recipes from harnesses/<name>/
-        └── hub             Scion hub server
+        └── hub             Fabric hub server
 ```
 
-`core-base/`, `scion-base/`, and `hub/` live under `image-build/`. Harness images
+`core-base/`, `fabric-base/`, and `hub/` live under `image-build/`. Harness images
 build from self-contained bundles under `harnesses/<name>/` when that bundle has
 a `Dockerfile` and `cloudbuild.yaml`. See
 [`harnesses/README.md`](../harnesses/README.md).
@@ -52,10 +52,10 @@ The orchestrator owns target sequencing, tag computation, and BASE_IMAGE threadi
 | Target | What gets built | Notes |
 |---|---|---|
 | `core-base` | `core-base` | Foundation tools layer. |
-| `scion-base` | `scion-base` | Adds sciontool. Uses existing `core-base:<tag>`. |
-| `harnesses` | All catalog harness images with `harnesses/<name>/Dockerfile` | Uses existing `scion-base:<tag>`. Builds recipes from the root Harness-config catalog. |
-| `hub` | `scion-hub` | Hub server image. Uses existing `scion-base:<tag>`. |
-| `common` (default) | `scion-base` + catalog harnesses + hub | Skips `core-base`. Most common rebuild. |
+| `fabric-base` | `fabric-base` | Adds fabrictool. Uses existing `core-base:<tag>`. |
+| `harnesses` | All catalog harness images with `harnesses/<name>/Dockerfile` | Uses existing `fabric-base:<tag>`. Builds recipes from the root Harness-config catalog. |
+| `hub` | `fabric-hub` | Hub server image. Uses existing `fabric-base:<tag>`. |
+| `common` (default) | `fabric-base` + catalog harnesses + hub | Skips `core-base`. Most common rebuild. |
 | `all` | Full DAG | Rebuilds everything from `core-base`. |
 
 ### Tagging
@@ -67,8 +67,8 @@ When two steps in the same run depend on each other, the orchestrator threads `B
 ### Quick Start: Build Your Own Images
 
 ```bash
-# Build locally without ever pushing — bare tags (scion-base:latest,
-# scion-claude:latest, etc.)
+# Build locally without ever pushing — bare tags (fabric-base:latest,
+# fabric-claude:latest, etc.)
 # land in your local engine's image store. Default builder: local-docker.
 image-build/scripts/build-images.sh --target all
 
@@ -80,13 +80,13 @@ image-build/scripts/build-images.sh --registry ghcr.io/myorg --push
 
 # Submit to Cloud Build (--registry is required here)
 image-build/scripts/build-images.sh --builder cloud-build \
-  --registry us-central1-docker.pkg.dev/myproj/scion --target all
+  --registry us-central1-docker.pkg.dev/myproj/fabric --target all
 
 # Preview what would run, without executing
 image-build/scripts/build-images.sh --target all --platform all --dry-run
 
-# Configure scion to use the images you built (only when pushing to a registry)
-scion config set image_registry ghcr.io/myorg
+# Configure fabric to use the images you built (only when pushing to a registry)
+fabric config set image_registry ghcr.io/myorg
 ```
 
 `--registry` is optional for local builds without `--push`; it's required when `--push` is set or when using `--builder cloud-build`.
@@ -107,9 +107,9 @@ The legacy `trigger-cloudbuild.sh` script still works as a deprecation shim and 
 ### Quick Start: GitHub Actions (GHCR)
 
 1. Fork the repo.
-2. Go to **Actions** > **Build Scion Images** > **Run workflow**.
+2. Go to **Actions** > **Build Fabric Images** > **Run workflow**.
 3. Enter `ghcr.io/<your-username>` as the registry.
-4. Run `scion config set image_registry ghcr.io/<your-username>`.
+4. Run `fabric config set image_registry ghcr.io/<your-username>`.
 
 The workflow shells out to `build-images.sh --builder local-docker`. It is also available as a reusable workflow via `workflow_call` for use in downstream repos.
 
@@ -122,7 +122,7 @@ The `cloud-build` builder maps each `--target` to a static YAML file:
 | `all` | `cloudbuild.yaml` |
 | `common` | `cloudbuild-common.yaml` |
 | `core-base` | `cloudbuild-core-base.yaml` |
-| `scion-base` | `cloudbuild-scion-base.yaml` |
+| `fabric-base` | `cloudbuild-fabric-base.yaml` |
 | `harnesses` | `cloudbuild-harnesses.yaml` |
 | `hub` | `cloudbuild-hub.yaml` |
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 package commands
 
@@ -28,7 +28,7 @@ func TestVersionCommandExecution(t *testing.T) {
 	require.NoError(t, err)
 
 	output := buf.String()
-	assert.Contains(t, output, "sciontool version")
+	assert.Contains(t, output, "fabrictool version")
 	assert.Contains(t, output, "Commit:")
 	assert.Contains(t, output, "Build Time:")
 }
@@ -57,7 +57,7 @@ func TestGetVersionString(t *testing.T) {
 			commit:    "abc1234567890",
 			buildTime: "2025-01-01T00:00:00Z",
 			wantContains: []string{
-				"sciontool version 1.0.0",
+				"fabrictool version 1.0.0",
 				"Commit: abc1234",
 				"Build Time: 2025-01-01T00:00:00Z",
 			},
@@ -68,7 +68,7 @@ func TestGetVersionString(t *testing.T) {
 			commit:    "",
 			buildTime: "",
 			wantContains: []string{
-				"sciontool version",
+				"fabrictool version",
 				"Commit:",
 				"Build Time:",
 			},

@@ -11,23 +11,23 @@ This guide provides step-by-step instructions for manually testing the Hub API i
 ## 1. Build and Start the Server
 
 ```bash
-# Build the scion binary
-go build -buildvcs=false -o scion .
+# Build the fabric binary
+go build -buildvcs=false -o fabric .
 
 # Start the Hub API server in standalone mode (default: port 9810, SQLite database)
-./scion server start --enable-hub
+./fabric server start --enable-hub
 
 # Or in combined mode with the web frontend (Hub API served on port 8080)
-./scion server start --enable-hub --enable-web --dev-auth
+./fabric server start --enable-hub --enable-web --dev-auth
 
 # Or with custom settings (standalone mode)
-./scion server start --enable-hub --port 8080 --db ./test-hub.db
+./fabric server start --enable-hub --port 8080 --db ./test-hub.db
 ```
 
 You should see output like (standalone mode):
 ```
 2025/01/25 10:00:00 Starting Hub API server on 0.0.0.0:9810
-2025/01/25 10:00:00 Database: sqlite (/home/user/.scion/hub.db)
+2025/01/25 10:00:00 Database: sqlite (/home/user/.fabric/hub.db)
 2025/01/25 10:00:00 Hub API server starting on 0.0.0.0:9810
 ```
 
@@ -438,7 +438,7 @@ To stop the server, press `Ctrl+C`. The server handles graceful shutdown.
 
 To reset the database:
 ```bash
-rm ~/.scion/hub.db
+rm ~/.fabric/hub.db
 # Or if using custom path
 rm ./test-hub.db
 ```
@@ -452,7 +452,7 @@ lsof -i :9810
 lsof -i :8080
 
 # Use a different port (standalone mode)
-./scion server start --enable-hub --port 9811
+./fabric server start --enable-hub --port 9811
 ```
 
 ### Database Locked
@@ -461,6 +461,6 @@ If you see "database is locked" errors, ensure only one server instance is runni
 ### Permission Denied
 Ensure the database directory is writable:
 ```bash
-mkdir -p ~/.scion
-chmod 755 ~/.scion
+mkdir -p ~/.fabric
+chmod 755 ~/.fabric
 ```

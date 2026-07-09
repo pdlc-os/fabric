@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -238,7 +238,7 @@ func TestMintGCPServiceAccount_Success(t *testing.T) {
 	assert.True(t, sa.Managed)
 	assert.True(t, sa.Verified)
 	assert.Contains(t, sa.Email, "@test-hub-project.iam.gserviceaccount.com")
-	assert.Contains(t, sa.Email, "scion-")
+	assert.Contains(t, sa.Email, "fabric-")
 	assert.Equal(t, "test-hub-project", sa.ProjectID)
 	assert.Len(t, mock.createdSAs, 1)
 }
@@ -258,9 +258,9 @@ func TestMintGCPServiceAccount_CustomAccountID(t *testing.T) {
 	var sa store.GCPServiceAccount
 	require.NoError(t, json.NewDecoder(rec.Body).Decode(&sa))
 	assert.True(t, sa.Managed)
-	assert.Equal(t, "scion-my-pipeline@test-hub-project.iam.gserviceaccount.com", sa.Email)
+	assert.Equal(t, "fabric-my-pipeline@test-hub-project.iam.gserviceaccount.com", sa.Email)
 	assert.Equal(t, "My Pipeline SA", sa.DisplayName)
-	assert.Equal(t, "scion-my-pipeline", mock.createdSAs[0])
+	assert.Equal(t, "fabric-my-pipeline", mock.createdSAs[0])
 }
 
 func TestMintGCPServiceAccount_AccountIDTooLong(t *testing.T) {

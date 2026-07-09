@@ -3,7 +3,7 @@
 **Date:** 2026-06-03  
 **Agent:** qa-agent-2  
 **Binary:** commit 1eaecd95 (N1-7 wired reconciler + vers=3 default)  
-**VMs:** scion-integration, scion-integration2 (us-central1-a, deploy-demo-test)  
+**VMs:** fabric-integration, fabric-integration2 (us-central1-a, deploy-demo-test)  
 
 ## Summary
 
@@ -16,13 +16,13 @@ and the Postgres advisory lock mechanism prevents provisioning races.
 ## Per-Step Results
 
 ### Step 1: Build WIRED binary — PASS
-- Built from isolated temp clone at `/tmp/nm1b-build/scion-build`
+- Built from isolated temp clone at `/tmp/nm1b-build/fabric-build`
 - Confirmed `git rev-parse HEAD` = 1eaecd95
 - Binary version output: `Commit: 1eaecd95, Build Time: 2026-06-03T02:07:34Z`
 
 ### Step 2: Deploy to both VMs — PASS
 - Baseline captured: both VMs running commit 9a998934
-- Backup created: `/usr/local/bin/scion.bak-nm1b`
+- Backup created: `/usr/local/bin/fabric.bak-nm1b`
 - New binary installed, version confirmed on both VMs
 
 ### Step 3: Configure backend=nfs — PASS (with lesson learned)
@@ -38,18 +38,18 @@ and the Postgres advisory lock mechanism prevents provisioning races.
 
 ```
 INFO "NFS mount reconciler initialized" shares=1 mountRoot="/mnt/nfs"
-INFO "Reconciling NFS share" shareID="demo" target="/mnt/nfs/demo" server="10.45.255.170" export="/scion_share"
-INFO "Mounting NFS share" source="10.45.255.170:/scion_share" target="/mnt/nfs/demo" options="vers=3,hard,nconnect=4,_netdev"
+INFO "Reconciling NFS share" shareID="demo" target="/mnt/nfs/demo" server="10.45.255.170" export="/fabric_share"
+INFO "Mounting NFS share" source="10.45.255.170:/fabric_share" target="/mnt/nfs/demo" options="vers=3,hard,nconnect=4,_netdev"
 INFO "NFS share mounted" shareID="demo" target="/mnt/nfs/demo"
 INFO "NFS mounts reconciled at startup" status="healthy"
 ```
 
-- Mount verified: `10.45.255.170:/scion_share on /mnt/nfs/demo type nfs (rw,relatime,vers=3,...,nconnect=4,...)`
+- Mount verified: `10.45.255.170:/fabric_share on /mnt/nfs/demo type nfs (rw,relatime,vers=3,...,nconnect=4,...)`
 - **vers=3 default confirmed** — mount_options was empty in config, code defaulted to `vers=3,hard,nconnect=4,_netdev`
 - /healthz: `{"checks":{"docker":"available","nfs_mounts":"healthy"}}` on both VMs
 
 **Finding: CAP_SYS_ADMIN insufficient for mount.nfs**
-- The broker service runs as user `scion` (uid=1002). `AmbientCapabilities=CAP_SYS_ADMIN`
+- The broker service runs as user `fabric` (uid=1002). `AmbientCapabilities=CAP_SYS_ADMIN`
   was applied (confirmed in `/proc/<pid>/status` CapEff=0x200000), BUT `mount.nfs` is a
   setuid binary that checks `uid==0`, not capabilities.
 - **Workaround for NM1b:** Ran service as `User=root` via systemd override.
@@ -87,10 +87,10 @@ INFO "NFS mounts reconciled at startup" status="healthy"
 ### Step 6: Restore baseline — PASS
 - NFS config removed from settings.yaml on both VMs
 - NFS unmounted on both VMs
-- Systemd overrides removed (User=scion restored)
+- Systemd overrides removed (User=fabric restored)
 - Services restarted and healthy
 - Binary left at 1eaecd95 (integration tip, backward-compatible)
-- Backup at `/usr/local/bin/scion.bak-nm1b` (commit 9a998934)
+- Backup at `/usr/local/bin/fabric.bak-nm1b` (commit 9a998934)
 
 ## Final VM State
 - **Binary:** 1eaecd95 (WIRED, left in place — backward compatible)

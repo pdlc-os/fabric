@@ -1,8 +1,8 @@
-# scion ignore
-.scion/
+# fabric ignore
+.fabric/
 # binaries
-/scion
-scion-agent
+/fabric
+fabric-agent
 
 # secrets
 TEST_GEMINI_KEY

@@ -24,7 +24,7 @@
  * dynamically without page reload.
  *
  * Prerequisites:
- *   - scion server running: scion server start --enable-hub --enable-web
+ *   - fabric server running: fabric server start --enable-hub --enable-web
  *       --enable-runtime-broker --dev-auth --web-assets-dir ./web/dist/client
  *   - Web assets built: cd web && npm run build
  *   - A project and broker-provider link must already exist (see setup below)
@@ -66,7 +66,7 @@ async function run() {
     const text = msg.text();
     if (
       text.includes('[SSE') ||
-      text.includes('Scion') ||
+      text.includes('Fabric') ||
       text.includes('agent') ||
       text.includes('update')
     ) {

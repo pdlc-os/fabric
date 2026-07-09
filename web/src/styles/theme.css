@@ -15,10 +15,10 @@
  */
 
 /**
- * Scion Theme Configuration
+ * Fabric Theme Configuration
  *
  * Integrates with Shoelace and provides light/dark mode support.
- * CSS custom properties follow the --scion- prefix convention.
+ * CSS custom properties follow the --fabric- prefix convention.
  */
 
 /* ==========================================================================
@@ -33,252 +33,252 @@
      ------------------------------------------------------------------------- */
 
   /* Primary - Blue */
-  --scion-primary-50: #eff6ff;
-  --scion-primary-100: #dbeafe;
-  --scion-primary-200: #bfdbfe;
-  --scion-primary-300: #93c5fd;
-  --scion-primary-400: #60a5fa;
-  --scion-primary-500: #3b82f6;
-  --scion-primary-600: #2563eb;
-  --scion-primary-700: #1d4ed8;
-  --scion-primary-800: #1e40af;
-  --scion-primary-900: #1e3a8a;
+  --fabric-primary-50: #eff6ff;
+  --fabric-primary-100: #dbeafe;
+  --fabric-primary-200: #bfdbfe;
+  --fabric-primary-300: #93c5fd;
+  --fabric-primary-400: #60a5fa;
+  --fabric-primary-500: #3b82f6;
+  --fabric-primary-600: #2563eb;
+  --fabric-primary-700: #1d4ed8;
+  --fabric-primary-800: #1e40af;
+  --fabric-primary-900: #1e3a8a;
 
   /* Success - Green */
-  --scion-success-50: #f0fdf4;
-  --scion-success-100: #dcfce7;
-  --scion-success-200: #bbf7d0;
-  --scion-success-300: #86efac;
-  --scion-success-400: #4ade80;
-  --scion-success-500: #22c55e;
-  --scion-success-600: #16a34a;
-  --scion-success-700: #15803d;
-  --scion-success-800: #166534;
-  --scion-success-900: #14532d;
+  --fabric-success-50: #f0fdf4;
+  --fabric-success-100: #dcfce7;
+  --fabric-success-200: #bbf7d0;
+  --fabric-success-300: #86efac;
+  --fabric-success-400: #4ade80;
+  --fabric-success-500: #22c55e;
+  --fabric-success-600: #16a34a;
+  --fabric-success-700: #15803d;
+  --fabric-success-800: #166534;
+  --fabric-success-900: #14532d;
 
   /* Warning - Amber */
-  --scion-warning-50: #fffbeb;
-  --scion-warning-100: #fef3c7;
-  --scion-warning-200: #fde68a;
-  --scion-warning-300: #fcd34d;
-  --scion-warning-400: #fbbf24;
-  --scion-warning-500: #f59e0b;
-  --scion-warning-600: #d97706;
-  --scion-warning-700: #b45309;
-  --scion-warning-800: #92400e;
-  --scion-warning-900: #78350f;
+  --fabric-warning-50: #fffbeb;
+  --fabric-warning-100: #fef3c7;
+  --fabric-warning-200: #fde68a;
+  --fabric-warning-300: #fcd34d;
+  --fabric-warning-400: #fbbf24;
+  --fabric-warning-500: #f59e0b;
+  --fabric-warning-600: #d97706;
+  --fabric-warning-700: #b45309;
+  --fabric-warning-800: #92400e;
+  --fabric-warning-900: #78350f;
 
   /* Danger - Red */
-  --scion-danger-50: #fef2f2;
-  --scion-danger-100: #fee2e2;
-  --scion-danger-200: #fecaca;
-  --scion-danger-300: #fca5a5;
-  --scion-danger-400: #f87171;
-  --scion-danger-500: #ef4444;
-  --scion-danger-600: #dc2626;
-  --scion-danger-700: #b91c1c;
-  --scion-danger-800: #991b1b;
-  --scion-danger-900: #7f1d1d;
+  --fabric-danger-50: #fef2f2;
+  --fabric-danger-100: #fee2e2;
+  --fabric-danger-200: #fecaca;
+  --fabric-danger-300: #fca5a5;
+  --fabric-danger-400: #f87171;
+  --fabric-danger-500: #ef4444;
+  --fabric-danger-600: #dc2626;
+  --fabric-danger-700: #b91c1c;
+  --fabric-danger-800: #991b1b;
+  --fabric-danger-900: #7f1d1d;
 
   /* Neutral - Slate */
-  --scion-neutral-50: #f8fafc;
-  --scion-neutral-100: #f1f5f9;
-  --scion-neutral-200: #e2e8f0;
-  --scion-neutral-300: #cbd5e1;
-  --scion-neutral-400: #94a3b8;
-  --scion-neutral-500: #64748b;
-  --scion-neutral-600: #475569;
-  --scion-neutral-700: #334155;
-  --scion-neutral-800: #1e293b;
-  --scion-neutral-900: #0f172a;
+  --fabric-neutral-50: #f8fafc;
+  --fabric-neutral-100: #f1f5f9;
+  --fabric-neutral-200: #e2e8f0;
+  --fabric-neutral-300: #cbd5e1;
+  --fabric-neutral-400: #94a3b8;
+  --fabric-neutral-500: #64748b;
+  --fabric-neutral-600: #475569;
+  --fabric-neutral-700: #334155;
+  --fabric-neutral-800: #1e293b;
+  --fabric-neutral-900: #0f172a;
 
   /* -------------------------------------------------------------------------
      Semantic Colors (Light Mode)
      ------------------------------------------------------------------------- */
 
   /* Primary brand colors */
-  --scion-primary: var(--scion-primary-500);
-  --scion-primary-hover: var(--scion-primary-600);
-  --scion-primary-active: var(--scion-primary-700);
-  --scion-primary-text: #ffffff;
+  --fabric-primary: var(--fabric-primary-500);
+  --fabric-primary-hover: var(--fabric-primary-600);
+  --fabric-primary-active: var(--fabric-primary-700);
+  --fabric-primary-text: #ffffff;
 
   /* Backgrounds */
-  --scion-bg: var(--scion-neutral-50);
-  --scion-bg-subtle: var(--scion-neutral-100);
-  --scion-surface: #ffffff;
-  --scion-surface-raised: #ffffff;
+  --fabric-bg: var(--fabric-neutral-50);
+  --fabric-bg-subtle: var(--fabric-neutral-100);
+  --fabric-surface: #ffffff;
+  --fabric-surface-raised: #ffffff;
 
   /* Text colors */
-  --scion-text: var(--scion-neutral-800);
-  --scion-text-secondary: var(--scion-neutral-600);
-  --scion-text-muted: var(--scion-neutral-500);
-  --scion-text-disabled: var(--scion-neutral-400);
+  --fabric-text: var(--fabric-neutral-800);
+  --fabric-text-secondary: var(--fabric-neutral-600);
+  --fabric-text-muted: var(--fabric-neutral-500);
+  --fabric-text-disabled: var(--fabric-neutral-400);
 
   /* Borders */
-  --scion-border: var(--scion-neutral-200);
-  --scion-border-hover: var(--scion-neutral-300);
-  --scion-border-active: var(--scion-primary-500);
+  --fabric-border: var(--fabric-neutral-200);
+  --fabric-border-hover: var(--fabric-neutral-300);
+  --fabric-border-active: var(--fabric-primary-500);
 
   /* Status colors */
-  --scion-status-success: var(--scion-success-500);
-  --scion-status-warning: var(--scion-warning-500);
-  --scion-status-danger: var(--scion-danger-500);
-  --scion-status-info: var(--scion-primary-500);
+  --fabric-status-success: var(--fabric-success-500);
+  --fabric-status-warning: var(--fabric-warning-500);
+  --fabric-status-danger: var(--fabric-danger-500);
+  --fabric-status-info: var(--fabric-primary-500);
 
   /* Status badge colors (light mode) */
-  --scion-badge-success-bg: var(--scion-success-100);
-  --scion-badge-success-text: var(--scion-success-800);
-  --scion-badge-warning-bg: var(--scion-warning-100);
-  --scion-badge-warning-text: var(--scion-warning-800);
-  --scion-badge-danger-bg: var(--scion-danger-100);
-  --scion-badge-danger-text: var(--scion-danger-800);
-  --scion-badge-primary-bg: var(--scion-primary-100);
-  --scion-badge-primary-text: var(--scion-primary-800);
-  --scion-badge-neutral-bg: var(--scion-neutral-200);
-  --scion-badge-neutral-text: var(--scion-neutral-800);
+  --fabric-badge-success-bg: var(--fabric-success-100);
+  --fabric-badge-success-text: var(--fabric-success-800);
+  --fabric-badge-warning-bg: var(--fabric-warning-100);
+  --fabric-badge-warning-text: var(--fabric-warning-800);
+  --fabric-badge-danger-bg: var(--fabric-danger-100);
+  --fabric-badge-danger-text: var(--fabric-danger-800);
+  --fabric-badge-primary-bg: var(--fabric-primary-100);
+  --fabric-badge-primary-text: var(--fabric-primary-800);
+  --fabric-badge-neutral-bg: var(--fabric-neutral-200);
+  --fabric-badge-neutral-text: var(--fabric-neutral-800);
 
   /* Shadows */
-  --scion-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --scion-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --scion-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --scion-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --fabric-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --fabric-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --fabric-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --fabric-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* -------------------------------------------------------------------------
      Layout
      ------------------------------------------------------------------------- */
 
-  --scion-sidebar-width: 260px;
-  --scion-sidebar-collapsed-width: 64px;
-  --scion-header-height: 60px;
-  --scion-content-max-width: 1400px;
+  --fabric-sidebar-width: 260px;
+  --fabric-sidebar-collapsed-width: 64px;
+  --fabric-header-height: 60px;
+  --fabric-content-max-width: 1400px;
 
   /* -------------------------------------------------------------------------
      Typography
      ------------------------------------------------------------------------- */
 
-  --scion-font-sans:
+  --fabric-font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
-  --scion-font-mono:
+  --fabric-font-mono:
     'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
 
-  --scion-font-size-xs: 0.75rem;
-  --scion-font-size-sm: 0.875rem;
-  --scion-font-size-base: 1rem;
-  --scion-font-size-lg: 1.125rem;
-  --scion-font-size-xl: 1.25rem;
-  --scion-font-size-2xl: 1.5rem;
-  --scion-font-size-3xl: 2rem;
+  --fabric-font-size-xs: 0.75rem;
+  --fabric-font-size-sm: 0.875rem;
+  --fabric-font-size-base: 1rem;
+  --fabric-font-size-lg: 1.125rem;
+  --fabric-font-size-xl: 1.25rem;
+  --fabric-font-size-2xl: 1.5rem;
+  --fabric-font-size-3xl: 2rem;
 
   /* -------------------------------------------------------------------------
      Border Radius
      ------------------------------------------------------------------------- */
 
-  --scion-radius-sm: 0.25rem;
-  --scion-radius: 0.5rem;
-  --scion-radius-md: 0.5rem;
-  --scion-radius-lg: 0.75rem;
-  --scion-radius-xl: 1rem;
-  --scion-radius-full: 9999px;
+  --fabric-radius-sm: 0.25rem;
+  --fabric-radius: 0.5rem;
+  --fabric-radius-md: 0.5rem;
+  --fabric-radius-lg: 0.75rem;
+  --fabric-radius-xl: 1rem;
+  --fabric-radius-full: 9999px;
 
   /* -------------------------------------------------------------------------
      Spacing
      ------------------------------------------------------------------------- */
 
-  --scion-space-1: 0.25rem;
-  --scion-space-2: 0.5rem;
-  --scion-space-3: 0.75rem;
-  --scion-space-4: 1rem;
-  --scion-space-5: 1.25rem;
-  --scion-space-6: 1.5rem;
-  --scion-space-8: 2rem;
-  --scion-space-10: 2.5rem;
-  --scion-space-12: 3rem;
+  --fabric-space-1: 0.25rem;
+  --fabric-space-2: 0.5rem;
+  --fabric-space-3: 0.75rem;
+  --fabric-space-4: 1rem;
+  --fabric-space-5: 1.25rem;
+  --fabric-space-6: 1.5rem;
+  --fabric-space-8: 2rem;
+  --fabric-space-10: 2.5rem;
+  --fabric-space-12: 3rem;
 
   /* -------------------------------------------------------------------------
      Transitions
      ------------------------------------------------------------------------- */
 
-  --scion-transition-fast: 150ms ease;
-  --scion-transition-normal: 250ms ease;
-  --scion-transition-slow: 350ms ease;
+  --fabric-transition-fast: 150ms ease;
+  --fabric-transition-normal: 250ms ease;
+  --fabric-transition-slow: 350ms ease;
 
   /* -------------------------------------------------------------------------
-     Shoelace Overrides - Map Scion theme to Shoelace variables
+     Shoelace Overrides - Map Fabric theme to Shoelace variables
      ------------------------------------------------------------------------- */
 
   /* Primary colors */
-  --sl-color-primary-50: var(--scion-primary-50);
-  --sl-color-primary-100: var(--scion-primary-100);
-  --sl-color-primary-200: var(--scion-primary-200);
-  --sl-color-primary-300: var(--scion-primary-300);
-  --sl-color-primary-400: var(--scion-primary-400);
-  --sl-color-primary-500: var(--scion-primary-500);
-  --sl-color-primary-600: var(--scion-primary-600);
-  --sl-color-primary-700: var(--scion-primary-700);
-  --sl-color-primary-800: var(--scion-primary-800);
-  --sl-color-primary-900: var(--scion-primary-900);
+  --sl-color-primary-50: var(--fabric-primary-50);
+  --sl-color-primary-100: var(--fabric-primary-100);
+  --sl-color-primary-200: var(--fabric-primary-200);
+  --sl-color-primary-300: var(--fabric-primary-300);
+  --sl-color-primary-400: var(--fabric-primary-400);
+  --sl-color-primary-500: var(--fabric-primary-500);
+  --sl-color-primary-600: var(--fabric-primary-600);
+  --sl-color-primary-700: var(--fabric-primary-700);
+  --sl-color-primary-800: var(--fabric-primary-800);
+  --sl-color-primary-900: var(--fabric-primary-900);
 
   /* Success colors */
-  --sl-color-success-50: var(--scion-success-50);
-  --sl-color-success-100: var(--scion-success-100);
-  --sl-color-success-200: var(--scion-success-200);
-  --sl-color-success-300: var(--scion-success-300);
-  --sl-color-success-400: var(--scion-success-400);
-  --sl-color-success-500: var(--scion-success-500);
-  --sl-color-success-600: var(--scion-success-600);
-  --sl-color-success-700: var(--scion-success-700);
-  --sl-color-success-800: var(--scion-success-800);
-  --sl-color-success-900: var(--scion-success-900);
+  --sl-color-success-50: var(--fabric-success-50);
+  --sl-color-success-100: var(--fabric-success-100);
+  --sl-color-success-200: var(--fabric-success-200);
+  --sl-color-success-300: var(--fabric-success-300);
+  --sl-color-success-400: var(--fabric-success-400);
+  --sl-color-success-500: var(--fabric-success-500);
+  --sl-color-success-600: var(--fabric-success-600);
+  --sl-color-success-700: var(--fabric-success-700);
+  --sl-color-success-800: var(--fabric-success-800);
+  --sl-color-success-900: var(--fabric-success-900);
 
   /* Warning colors */
-  --sl-color-warning-50: var(--scion-warning-50);
-  --sl-color-warning-100: var(--scion-warning-100);
-  --sl-color-warning-200: var(--scion-warning-200);
-  --sl-color-warning-300: var(--scion-warning-300);
-  --sl-color-warning-400: var(--scion-warning-400);
-  --sl-color-warning-500: var(--scion-warning-500);
-  --sl-color-warning-600: var(--scion-warning-600);
-  --sl-color-warning-700: var(--scion-warning-700);
-  --sl-color-warning-800: var(--scion-warning-800);
-  --sl-color-warning-900: var(--scion-warning-900);
+  --sl-color-warning-50: var(--fabric-warning-50);
+  --sl-color-warning-100: var(--fabric-warning-100);
+  --sl-color-warning-200: var(--fabric-warning-200);
+  --sl-color-warning-300: var(--fabric-warning-300);
+  --sl-color-warning-400: var(--fabric-warning-400);
+  --sl-color-warning-500: var(--fabric-warning-500);
+  --sl-color-warning-600: var(--fabric-warning-600);
+  --sl-color-warning-700: var(--fabric-warning-700);
+  --sl-color-warning-800: var(--fabric-warning-800);
+  --sl-color-warning-900: var(--fabric-warning-900);
 
   /* Danger colors */
-  --sl-color-danger-50: var(--scion-danger-50);
-  --sl-color-danger-100: var(--scion-danger-100);
-  --sl-color-danger-200: var(--scion-danger-200);
-  --sl-color-danger-300: var(--scion-danger-300);
-  --sl-color-danger-400: var(--scion-danger-400);
-  --sl-color-danger-500: var(--scion-danger-500);
-  --sl-color-danger-600: var(--scion-danger-600);
-  --sl-color-danger-700: var(--scion-danger-700);
-  --sl-color-danger-800: var(--scion-danger-800);
-  --sl-color-danger-900: var(--scion-danger-900);
+  --sl-color-danger-50: var(--fabric-danger-50);
+  --sl-color-danger-100: var(--fabric-danger-100);
+  --sl-color-danger-200: var(--fabric-danger-200);
+  --sl-color-danger-300: var(--fabric-danger-300);
+  --sl-color-danger-400: var(--fabric-danger-400);
+  --sl-color-danger-500: var(--fabric-danger-500);
+  --sl-color-danger-600: var(--fabric-danger-600);
+  --sl-color-danger-700: var(--fabric-danger-700);
+  --sl-color-danger-800: var(--fabric-danger-800);
+  --sl-color-danger-900: var(--fabric-danger-900);
 
   /* Neutral colors */
-  --sl-color-neutral-50: var(--scion-neutral-50);
-  --sl-color-neutral-100: var(--scion-neutral-100);
-  --sl-color-neutral-200: var(--scion-neutral-200);
-  --sl-color-neutral-300: var(--scion-neutral-300);
-  --sl-color-neutral-400: var(--scion-neutral-400);
-  --sl-color-neutral-500: var(--scion-neutral-500);
-  --sl-color-neutral-600: var(--scion-neutral-600);
-  --sl-color-neutral-700: var(--scion-neutral-700);
-  --sl-color-neutral-800: var(--scion-neutral-800);
-  --sl-color-neutral-900: var(--scion-neutral-900);
-  --sl-color-neutral-950: var(--scion-neutral-900);
-  --sl-color-neutral-1000: var(--scion-neutral-900);
+  --sl-color-neutral-50: var(--fabric-neutral-50);
+  --sl-color-neutral-100: var(--fabric-neutral-100);
+  --sl-color-neutral-200: var(--fabric-neutral-200);
+  --sl-color-neutral-300: var(--fabric-neutral-300);
+  --sl-color-neutral-400: var(--fabric-neutral-400);
+  --sl-color-neutral-500: var(--fabric-neutral-500);
+  --sl-color-neutral-600: var(--fabric-neutral-600);
+  --sl-color-neutral-700: var(--fabric-neutral-700);
+  --sl-color-neutral-800: var(--fabric-neutral-800);
+  --sl-color-neutral-900: var(--fabric-neutral-900);
+  --sl-color-neutral-950: var(--fabric-neutral-900);
+  --sl-color-neutral-1000: var(--fabric-neutral-900);
 
   /* Typography */
-  --sl-font-sans: var(--scion-font-sans);
-  --sl-font-mono: var(--scion-font-mono);
+  --sl-font-sans: var(--fabric-font-sans);
+  --sl-font-mono: var(--fabric-font-mono);
 
   /* Border radius */
-  --sl-border-radius-small: var(--scion-radius-sm);
-  --sl-border-radius-medium: var(--scion-radius);
-  --sl-border-radius-large: var(--scion-radius-lg);
-  --sl-border-radius-x-large: var(--scion-radius-xl);
+  --sl-border-radius-small: var(--fabric-radius-sm);
+  --sl-border-radius-medium: var(--fabric-radius);
+  --sl-border-radius-large: var(--fabric-radius-lg);
+  --sl-border-radius-x-large: var(--fabric-radius-xl);
 }
 
 /* ==========================================================================
@@ -293,56 +293,56 @@
      ------------------------------------------------------------------------- */
 
   /* Primary brand colors - slightly brighter for dark mode */
-  --scion-primary: var(--scion-primary-400);
-  --scion-primary-hover: var(--scion-primary-300);
-  --scion-primary-active: var(--scion-primary-500);
-  --scion-primary-text: var(--scion-neutral-900);
+  --fabric-primary: var(--fabric-primary-400);
+  --fabric-primary-hover: var(--fabric-primary-300);
+  --fabric-primary-active: var(--fabric-primary-500);
+  --fabric-primary-text: var(--fabric-neutral-900);
 
   /* Backgrounds - dark mode */
-  --scion-bg: var(--scion-neutral-900);
-  --scion-bg-subtle: var(--scion-neutral-800);
-  --scion-surface: var(--scion-neutral-800);
-  --scion-surface-raised: var(--scion-neutral-700);
+  --fabric-bg: var(--fabric-neutral-900);
+  --fabric-bg-subtle: var(--fabric-neutral-800);
+  --fabric-surface: var(--fabric-neutral-800);
+  --fabric-surface-raised: var(--fabric-neutral-700);
 
   /* Text colors - light text on dark */
-  --scion-text: var(--scion-neutral-100);
-  --scion-text-secondary: var(--scion-neutral-300);
-  --scion-text-muted: var(--scion-neutral-400);
-  --scion-text-disabled: var(--scion-neutral-500);
+  --fabric-text: var(--fabric-neutral-100);
+  --fabric-text-secondary: var(--fabric-neutral-300);
+  --fabric-text-muted: var(--fabric-neutral-400);
+  --fabric-text-disabled: var(--fabric-neutral-500);
 
   /* Borders - subtle for dark mode */
-  --scion-border: var(--scion-neutral-700);
-  --scion-border-hover: var(--scion-neutral-600);
-  --scion-border-active: var(--scion-primary-400);
+  --fabric-border: var(--fabric-neutral-700);
+  --fabric-border-hover: var(--fabric-neutral-600);
+  --fabric-border-active: var(--fabric-primary-400);
 
   /* Status colors - slightly adjusted for dark mode */
-  --scion-status-success: var(--scion-success-400);
-  --scion-status-warning: var(--scion-warning-400);
-  --scion-status-danger: var(--scion-danger-400);
-  --scion-status-info: var(--scion-primary-400);
+  --fabric-status-success: var(--fabric-success-400);
+  --fabric-status-warning: var(--fabric-warning-400);
+  --fabric-status-danger: var(--fabric-danger-400);
+  --fabric-status-info: var(--fabric-primary-400);
 
   /* Status badge colors (dark mode) */
-  --scion-badge-success-bg: rgba(34, 197, 94, 0.2);
-  --scion-badge-success-text: #86efac;
-  --scion-badge-warning-bg: rgba(245, 158, 11, 0.2);
-  --scion-badge-warning-text: #fcd34d;
-  --scion-badge-danger-bg: rgba(239, 68, 68, 0.2);
-  --scion-badge-danger-text: #fca5a5;
-  --scion-badge-primary-bg: rgba(59, 130, 246, 0.2);
-  --scion-badge-primary-text: #93c5fd;
-  --scion-badge-neutral-bg: rgba(100, 116, 139, 0.2);
-  --scion-badge-neutral-text: #cbd5e1;
+  --fabric-badge-success-bg: rgba(34, 197, 94, 0.2);
+  --fabric-badge-success-text: #86efac;
+  --fabric-badge-warning-bg: rgba(245, 158, 11, 0.2);
+  --fabric-badge-warning-text: #fcd34d;
+  --fabric-badge-danger-bg: rgba(239, 68, 68, 0.2);
+  --fabric-badge-danger-text: #fca5a5;
+  --fabric-badge-primary-bg: rgba(59, 130, 246, 0.2);
+  --fabric-badge-primary-text: #93c5fd;
+  --fabric-badge-neutral-bg: rgba(100, 116, 139, 0.2);
+  --fabric-badge-neutral-text: #cbd5e1;
 
   /* Shadows - stronger opacity for dark mode */
-  --scion-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --scion-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --scion-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --scion-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --fabric-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --fabric-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --fabric-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --fabric-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
 
   /* Shoelace extreme-end neutrals for dark mode.
      neutral-0 is used for input/form backgrounds; neutral-1000 for input text. */
-  --sl-color-neutral-0: var(--scion-neutral-800);
-  --sl-color-neutral-1000: var(--scion-neutral-50);
+  --sl-color-neutral-0: var(--fabric-neutral-800);
+  --sl-color-neutral-1000: var(--fabric-neutral-50);
 }
 
 /* ==========================================================================
@@ -350,49 +350,49 @@
    ========================================================================== */
 
 /* Status colors */
-.scion-status-running {
-  color: var(--scion-status-success);
+.fabric-status-running {
+  color: var(--fabric-status-success);
 }
 
-.scion-status-stopped {
-  color: var(--scion-neutral-500);
+.fabric-status-stopped {
+  color: var(--fabric-neutral-500);
 }
 
-.scion-status-provisioning {
-  color: var(--scion-status-warning);
+.fabric-status-provisioning {
+  color: var(--fabric-status-warning);
 }
 
-.scion-status-error {
-  color: var(--scion-status-danger);
+.fabric-status-error {
+  color: var(--fabric-status-danger);
 }
 
 /* Text utilities */
-.scion-text-muted {
-  color: var(--scion-text-muted);
+.fabric-text-muted {
+  color: var(--fabric-text-muted);
 }
 
-.scion-text-secondary {
-  color: var(--scion-text-secondary);
+.fabric-text-secondary {
+  color: var(--fabric-text-secondary);
 }
 
 /* Surface utilities */
-.scion-surface {
-  background: var(--scion-surface);
-  border: 1px solid var(--scion-border);
-  border-radius: var(--scion-radius);
+.fabric-surface {
+  background: var(--fabric-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius);
 }
 
-.scion-surface-raised {
-  background: var(--scion-surface-raised);
-  border: 1px solid var(--scion-border);
-  border-radius: var(--scion-radius);
-  box-shadow: var(--scion-shadow);
+.fabric-surface-raised {
+  background: var(--fabric-surface-raised);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius);
+  box-shadow: var(--fabric-shadow);
 }
 
 /* Focus ring */
-.scion-focus-ring:focus,
-.scion-focus-ring:focus-visible {
-  outline: 2px solid var(--scion-primary);
+.fabric-focus-ring:focus,
+.fabric-focus-ring:focus-visible {
+  outline: 2px solid var(--fabric-primary);
   outline-offset: 2px;
 }
 
@@ -403,32 +403,32 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     /* Apply dark theme colors when system prefers dark and user hasn't forced light */
-    --scion-primary: var(--scion-primary-400);
-    --scion-primary-hover: var(--scion-primary-300);
-    --scion-bg: var(--scion-neutral-900);
-    --scion-bg-subtle: var(--scion-neutral-800);
-    --scion-surface: var(--scion-neutral-800);
-    --scion-surface-raised: var(--scion-neutral-700);
-    --scion-text: var(--scion-neutral-100);
-    --scion-text-secondary: var(--scion-neutral-300);
-    --scion-text-muted: var(--scion-neutral-400);
-    --scion-border: var(--scion-neutral-700);
-    --scion-border-hover: var(--scion-neutral-600);
+    --fabric-primary: var(--fabric-primary-400);
+    --fabric-primary-hover: var(--fabric-primary-300);
+    --fabric-bg: var(--fabric-neutral-900);
+    --fabric-bg-subtle: var(--fabric-neutral-800);
+    --fabric-surface: var(--fabric-neutral-800);
+    --fabric-surface-raised: var(--fabric-neutral-700);
+    --fabric-text: var(--fabric-neutral-100);
+    --fabric-text-secondary: var(--fabric-neutral-300);
+    --fabric-text-muted: var(--fabric-neutral-400);
+    --fabric-border: var(--fabric-neutral-700);
+    --fabric-border-hover: var(--fabric-neutral-600);
 
     /* Shoelace extreme-end neutrals */
-    --sl-color-neutral-0: var(--scion-neutral-800);
-    --sl-color-neutral-1000: var(--scion-neutral-50);
+    --sl-color-neutral-0: var(--fabric-neutral-800);
+    --sl-color-neutral-1000: var(--fabric-neutral-50);
 
     /* Status badge colors */
-    --scion-badge-success-bg: rgba(34, 197, 94, 0.2);
-    --scion-badge-success-text: #86efac;
-    --scion-badge-warning-bg: rgba(245, 158, 11, 0.2);
-    --scion-badge-warning-text: #fcd34d;
-    --scion-badge-danger-bg: rgba(239, 68, 68, 0.2);
-    --scion-badge-danger-text: #fca5a5;
-    --scion-badge-primary-bg: rgba(59, 130, 246, 0.2);
-    --scion-badge-primary-text: #93c5fd;
-    --scion-badge-neutral-bg: rgba(100, 116, 139, 0.2);
-    --scion-badge-neutral-text: #cbd5e1;
+    --fabric-badge-success-bg: rgba(34, 197, 94, 0.2);
+    --fabric-badge-success-text: #86efac;
+    --fabric-badge-warning-bg: rgba(245, 158, 11, 0.2);
+    --fabric-badge-warning-text: #fcd34d;
+    --fabric-badge-danger-bg: rgba(239, 68, 68, 0.2);
+    --fabric-badge-danger-text: #fca5a5;
+    --fabric-badge-primary-bg: rgba(59, 130, 246, 0.2);
+    --fabric-badge-primary-text: #93c5fd;
+    --fabric-badge-neutral-bg: rgba(100, 116, 139, 0.2);
+    --fabric-badge-neutral-text: #cbd5e1;
   }
 }

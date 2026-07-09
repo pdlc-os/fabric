@@ -28,12 +28,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/storage"
 )
 
 // makeTestCreds creates BrokerCredentials with a base64-encoded secret key.
@@ -447,7 +447,7 @@ func TestResolveHydrator_WithConnectionHeader(t *testing.T) {
 
 	// Verify the hydrator resolves via header
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", nil)
-	req.Header.Set("X-Scion-Hub-Connection", "local")
+	req.Header.Set("X-Fabric-Hub-Connection", "local")
 
 	hydrator := srv.resolveHydrator(req)
 	// In test mode cache is nil, so hydrator is nil -- that's expected
@@ -489,7 +489,7 @@ func TestResolveHydrator_UnknownConnection(t *testing.T) {
 
 	// Request with unknown connection name should fall back
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", nil)
-	req.Header.Set("X-Scion-Hub-Connection", "nonexistent")
+	req.Header.Set("X-Fabric-Hub-Connection", "nonexistent")
 	hydrator := srv.resolveHydrator(req)
 
 	// Should fall back to any available hydrator
@@ -585,7 +585,7 @@ func TestGlobalProjectRejection_WithProjectID_MultiHub(t *testing.T) {
 	body := `{
 		"name": "scoped-agent",
 		"groveId": "my-project",
-		"grovePath": "/some/path/.scion",
+		"grovePath": "/some/path/.fabric",
 		"config": {"template": "claude"}
 	}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", strings.NewReader(body))

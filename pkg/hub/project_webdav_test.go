@@ -29,8 +29,8 @@ func TestIsExcluded(t *testing.T) {
 		// Directory exclusions
 		{"git dir", ".git", true},
 		{"git subpath", ".git/objects/pack", true},
-		{"scion dir", ".scion", true},
-		{"scion subpath", ".scion/config.yaml", true},
+		{"fabric dir", ".fabric", true},
+		{"fabric subpath", ".fabric/config.yaml", true},
 		{"node_modules", "node_modules", true},
 		{"node_modules subpath", "node_modules/lodash/index.js", true},
 
@@ -51,7 +51,7 @@ func TestIsExcluded(t *testing.T) {
 		// Leading slash normalization
 		{"leading slash git", "/.git", true},
 		{"leading slash file", "/main.go", false},
-		{"leading slash scion", "/.scion/config", true},
+		{"leading slash fabric", "/.fabric/config", true},
 	}
 
 	for _, tt := range tests {

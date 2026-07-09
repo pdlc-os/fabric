@@ -33,8 +33,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -80,11 +80,11 @@ func createTestHubManagedProject(t *testing.T, srv *Server, name string) (*store
 
 	t.Cleanup(func() {
 		// Clean up the external project-config directory created by initInRepoProject
-		// (e.g. ~/.scion/project-configs/<slug>__<uuid>/).
-		scionDir := filepath.Join(workspacePath, ".scion")
-		if extAgentsDir, err := config.GetGitProjectExternalAgentsDir(scionDir); err == nil && extAgentsDir != "" {
-			// extAgentsDir is ~/.scion/project-configs/<slug>__<uuid>/.scion/agents
-			// Go up past "agents" and ".scion" to remove the <slug>__<uuid> parent dir
+		// (e.g. ~/.fabric/project-configs/<slug>__<uuid>/).
+		fabricDir := filepath.Join(workspacePath, ".fabric")
+		if extAgentsDir, err := config.GetGitProjectExternalAgentsDir(fabricDir); err == nil && extAgentsDir != "" {
+			// extAgentsDir is ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents
+			// Go up past "agents" and ".fabric" to remove the <slug>__<uuid> parent dir
 			_ = os.RemoveAll(filepath.Dir(filepath.Dir(extAgentsDir)))
 		}
 		_ = os.RemoveAll(workspacePath)
@@ -95,12 +95,12 @@ func createTestHubManagedProject(t *testing.T, srv *Server, name string) (*store
 
 // resolveTestSharedDirPath resolves the project-configs shared dir path for a test
 // hub-managed project. This matches the path that resolveHubProjectSharedDirPath uses
-// in production: it reads the .scion marker to find the project-configs directory.
+// in production: it reads the .fabric marker to find the project-configs directory.
 func resolveTestSharedDirPath(t *testing.T, workspacePath, dirName string) string {
 	t.Helper()
-	scionPath := filepath.Join(workspacePath, config.DotScion)
-	projectDir, _, err := config.ResolveProjectPath(scionPath)
-	require.NoError(t, err, "failed to resolve project path from marker at %s", scionPath)
+	fabricPath := filepath.Join(workspacePath, config.DotFabric)
+	projectDir, _, err := config.ResolveProjectPath(fabricPath)
+	require.NoError(t, err, "failed to resolve project path from marker at %s", fabricPath)
 	sdPath, err := config.GetSharedDirPath(projectDir, dirName)
 	require.NoError(t, err)
 	return sdPath
@@ -135,9 +135,9 @@ func TestProjectWorkspaceList_EmptyWorkspace(t *testing.T) {
 	var resp ProjectWorkspaceListResponse
 	require.NoError(t, json.NewDecoder(rec.Body).Decode(&resp))
 
-	// Only .scion/settings.yaml from project init should be present
+	// Only .fabric/settings.yaml from project init should be present
 	for _, f := range resp.Files {
-		assert.True(t, strings.HasPrefix(f.Path, ".scion/"), "unexpected non-.scion file: %s", f.Path)
+		assert.True(t, strings.HasPrefix(f.Path, ".fabric/"), "unexpected non-.fabric file: %s", f.Path)
 	}
 }
 
@@ -164,12 +164,12 @@ func TestProjectWorkspaceList_WithFiles(t *testing.T) {
 	assert.True(t, paths[filepath.Join("subdir", "nested.txt")])
 }
 
-func TestProjectWorkspaceList_IncludesScionDir(t *testing.T) {
+func TestProjectWorkspaceList_IncludesFabricDir(t *testing.T) {
 	srv, _ := testServer(t)
-	project, workspacePath := createTestHubManagedProject(t, srv, "WS List Scion")
+	project, workspacePath := createTestHubManagedProject(t, srv, "WS List Fabric")
 
 	require.NoError(t, os.WriteFile(filepath.Join(workspacePath, "visible.txt"), []byte("yes"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(workspacePath, ".scion", "extra.txt"), []byte("also visible"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(workspacePath, ".fabric", "extra.txt"), []byte("also visible"), 0644))
 
 	rec := doRequest(t, srv, http.MethodGet, fmt.Sprintf("/api/v1/projects/%s/workspace/files", project.ID), nil)
 	require.Equal(t, http.StatusOK, rec.Code, "body: %s", rec.Body.String())
@@ -182,7 +182,7 @@ func TestProjectWorkspaceList_IncludesScionDir(t *testing.T) {
 		paths[f.Path] = true
 	}
 	assert.True(t, paths["visible.txt"])
-	assert.True(t, paths[filepath.Join(".scion", "extra.txt")])
+	assert.True(t, paths[filepath.Join(".fabric", "extra.txt")])
 }
 
 func TestProjectWorkspaceList_ProjectNotFound(t *testing.T) {
@@ -678,9 +678,9 @@ func TestValidateWorkspaceFilePath(t *testing.T) {
 		{name: "absolute unix", path: "/etc/passwd", wantErr: true, errMsg: "absolute"},
 		{name: "traversal parent", path: "../escape.txt", wantErr: true, errMsg: "traversal"},
 		{name: "traversal mid", path: "foo/../../escape.txt", wantErr: true, errMsg: "traversal"},
-		{name: "scion root", path: ".scion", wantErr: false},
-		{name: "scion file", path: ".scion/settings.yaml", wantErr: false},
-		{name: "scion nested", path: ".scion/agents/test.yaml", wantErr: false},
+		{name: "fabric root", path: ".fabric", wantErr: false},
+		{name: "fabric file", path: ".fabric/settings.yaml", wantErr: false},
+		{name: "fabric nested", path: ".fabric/agents/test.yaml", wantErr: false},
 	}
 
 	for _, tt := range tests {
@@ -706,7 +706,7 @@ func TestProjectWorkspace_UploadListDelete_Integration(t *testing.T) {
 	srv, _ := testServer(t)
 	project, _ := createTestHubManagedProject(t, srv, "WS Integration")
 
-	// Get baseline count (includes .scion files from project init)
+	// Get baseline count (includes .fabric files from project init)
 	rec := doRequest(t, srv, http.MethodGet, fmt.Sprintf("/api/v1/projects/%s/workspace/files", project.ID), nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 	var baseResp ProjectWorkspaceListResponse
@@ -902,17 +902,17 @@ func TestSharedDirFiles_GitProjectWithEmbeddedBroker(t *testing.T) {
 	}
 	require.NoError(t, s.AddProjectProvider(ctx, provider))
 
-	// Initialize a hub workspace so the .scion marker exists for path resolution.
+	// Initialize a hub workspace so the .fabric marker exists for path resolution.
 	// This simulates a shared-workspace project that was cloned by the hub.
 	workspacePath, err := hubManagedProjectPath(project.Slug)
 	require.NoError(t, err)
-	scionDir := filepath.Join(workspacePath, config.DotScion)
-	require.NoError(t, config.InitProject(scionDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}))
+	fabricDir := filepath.Join(workspacePath, config.DotFabric)
+	require.NoError(t, config.InitProject(fabricDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}))
 
 	t.Cleanup(func() {
 		// Clean up the external project-config directory via marker resolution
-		if resolved, rErr := config.ResolveProjectMarker(scionDir); rErr == nil {
-			// resolved is ~/.scion/project-configs/<slug>__<uuid>/.scion/
+		if resolved, rErr := config.ResolveProjectMarker(fabricDir); rErr == nil {
+			// resolved is ~/.fabric/project-configs/<slug>__<uuid>/.fabric/
 			_ = os.RemoveAll(filepath.Dir(resolved))
 		}
 		_ = os.RemoveAll(workspacePath)
@@ -964,14 +964,14 @@ func TestSharedDirFiles_GitProjectMultipleProviders(t *testing.T) {
 		ProjectID: project.ID, BrokerID: remoteBroker.ID, BrokerName: remoteBroker.Name,
 	}))
 
-	// Initialize a hub workspace so the .scion marker exists for path resolution
+	// Initialize a hub workspace so the .fabric marker exists for path resolution
 	workspacePath, err := hubManagedProjectPath(project.Slug)
 	require.NoError(t, err)
-	scionDir := filepath.Join(workspacePath, config.DotScion)
-	require.NoError(t, config.InitProject(scionDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}))
+	fabricDir := filepath.Join(workspacePath, config.DotFabric)
+	require.NoError(t, config.InitProject(fabricDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}))
 
 	t.Cleanup(func() {
-		if resolved, rErr := config.ResolveProjectMarker(scionDir); rErr == nil {
+		if resolved, rErr := config.ResolveProjectMarker(fabricDir); rErr == nil {
 			_ = os.RemoveAll(filepath.Dir(resolved))
 		}
 		_ = os.RemoveAll(workspacePath)
@@ -1014,8 +1014,8 @@ func createTestSharedWorkspaceProject(t *testing.T, srv *Server, name, remote st
 		GitRemote:     remote,
 		WorkspaceMode: "shared",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      sourceDir,
-			"scion.dev/default-branch": "master",
+			"fabric.dev/clone-url":      sourceDir,
+			"fabric.dev/default-branch": "master",
 		},
 	})
 	require.Equal(t, http.StatusCreated, rec.Code, "body: %s", rec.Body.String())
@@ -1027,8 +1027,8 @@ func createTestSharedWorkspaceProject(t *testing.T, srv *Server, name, remote st
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		scionDir := filepath.Join(workspacePath, ".scion")
-		if extAgentsDir, err := config.GetGitProjectExternalAgentsDir(scionDir); err == nil && extAgentsDir != "" {
+		fabricDir := filepath.Join(workspacePath, ".fabric")
+		if extAgentsDir, err := config.GetGitProjectExternalAgentsDir(fabricDir); err == nil && extAgentsDir != "" {
 			_ = os.RemoveAll(filepath.Dir(filepath.Dir(extAgentsDir)))
 		}
 		_ = os.RemoveAll(workspacePath)
@@ -1096,7 +1096,7 @@ func TestProjectWorkspacePull_MethodNotAllowed(t *testing.T) {
 		Slug:      "pull-method-test",
 		GitRemote: "github.com/test/pull-method",
 		Labels: map[string]string{
-			"scion.dev/workspace-mode": "shared",
+			"fabric.dev/workspace-mode": "shared",
 		},
 	}
 	ctx := context.Background()
@@ -1288,7 +1288,7 @@ func TestProjectWorkspaceList_SearchQuery(t *testing.T) {
 	require.NoError(t, json.NewDecoder(rec.Body).Decode(&resp))
 
 	for _, f := range resp.Files {
-		assert.True(t, strings.HasSuffix(f.Path, ".go") || strings.HasPrefix(f.Path, ".scion"),
+		assert.True(t, strings.HasSuffix(f.Path, ".go") || strings.HasPrefix(f.Path, ".fabric"),
 			"unexpected file: %s", f.Path)
 	}
 }

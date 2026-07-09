@@ -2,12 +2,12 @@
 
 **Date:** 2026-06-08
 **Agent:** lh-port-m1
-**Branch:** scion/lifecycle-hooks-port
+**Branch:** fabric/lifecycle-hooks-port
 **Issue:** #35
 
 ## What was done
 
-Ported milestone M1 (data model + store layer) of the configurable agent lifecycle hooks feature from the reference branch `origin/scion/architect-lifecycle-hooks` onto current `main`.
+Ported milestone M1 (data model + store layer) of the configurable agent lifecycle hooks feature from the reference branch `origin/fabric/architect-lifecycle-hooks` onto current `main`.
 
 ### Sub-task A: Ent schemas + regeneration
 - Created `pkg/ent/schema/lifecyclehook.go` — LifecycleHook entity (UUID id, name, scope_type/scope_id, selector/action JSON, trigger enum, execution_identity, enabled, timestamps, state_version for optimistic locking).

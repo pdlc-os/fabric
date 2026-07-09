@@ -21,10 +21,10 @@ Users need the ability to control resource allocation to:
 
 ### Resource Block
 
-A new `resources` field is added to `ScionConfig`:
+A new `resources` field is added to `FabricConfig`:
 
 ```yaml
-# In scion-agent.yaml, settings.yaml profile, or template config
+# In fabric-agent.yaml, settings.yaml profile, or template config
 resources:
   requests:
     memory: "2Gi"
@@ -79,16 +79,16 @@ type ResourceList struct {
 }
 ```
 
-`ScionConfig` gains a new field:
+`FabricConfig` gains a new field:
 
 ```go
-type ScionConfig struct {
+type FabricConfig struct {
     // ... existing fields ...
     Resources  *ResourceSpec     `json:"resources,omitempty" yaml:"resources,omitempty"`
 }
 ```
 
-The existing `K8sResources` struct (with `map[string]string` fields) is retained for backward compatibility in the `KubernetesConfig` block. When both `ScionConfig.Resources` and `KubernetesConfig.Resources` are set, the Kubernetes-specific config takes precedence for Kubernetes deployments (it may include GPU or other extended resources).
+The existing `K8sResources` struct (with `map[string]string` fields) is retained for backward compatibility in the `KubernetesConfig` block. When both `FabricConfig.Resources` and `KubernetesConfig.Resources` are set, the Kubernetes-specific config takes precedence for Kubernetes deployments (it may include GPU or other extended resources).
 
 ### RunConfig Propagation
 
@@ -162,9 +162,9 @@ If `KubernetesConfig.Resources` is also set (the existing `K8sResources` map), t
 
 Resources participate in the existing configuration merge hierarchy:
 
-1. **Template** `scion-agent.yaml` — base defaults per harness type
+1. **Template** `fabric-agent.yaml` — base defaults per harness type
 2. **Settings profile** — environment-specific overrides
-3. **Agent-level** `scion-agent.yaml` — per-agent overrides
+3. **Agent-level** `fabric-agent.yaml` — per-agent overrides
 4. **CLI flags** (future) — ad-hoc override at start time
 
 Merging is field-level: a higher-priority layer setting `limits.memory` overrides only that field, not the entire `resources` block.
@@ -208,7 +208,7 @@ This requires adding a `Resources *api.ResourceSpec` field to `ProfileConfig` an
 For ad-hoc overrides at start time:
 
 ```
-scion start my-agent --memory 8Gi --cpus 4
+fabric start my-agent --memory 8Gi --cpus 4
 ```
 
 These map to `limits.memory` and `limits.cpu` respectively, since they represent the user asking for a specific allocation cap. This is a future enhancement and not required for the initial implementation.
@@ -241,7 +241,7 @@ func ParseCPU(s string) (float64, error) { ... }
 
 ### Phase 1 (This PR)
 1. Add `ResourceSpec` and `ResourceList` types to `pkg/api/types.go`
-2. Add `Resources` field to `ScionConfig` and `RunConfig`
+2. Add `Resources` field to `FabricConfig` and `RunConfig`
 3. Add quantity parsing utilities in `pkg/util/resources.go`
 4. Apply resources in Apple Container runtime (replace hardcoded `2G`)
 5. Apply resources in Docker runtime (`--memory`, `--cpus`)
@@ -251,7 +251,7 @@ func ParseCPU(s string) (float64, error) { ... }
 9. Unit tests for quantity parsing and runtime argument generation
 
 ### Phase 2 (Future)
-- CLI flags (`--memory`, `--cpus`) on `scion start`
+- CLI flags (`--memory`, `--cpus`) on `fabric start`
 - `disk` field support for Apple Container volume sizing
 - Validation warnings (e.g., request > limit, unreasonably small values)
 - Hub API support for resource specs in hosted mode
@@ -261,12 +261,12 @@ func ParseCPU(s string) (float64, error) { ... }
 
 | File | Change |
 |---|---|
-| `pkg/api/types.go` | Add `ResourceSpec`, `ResourceList`; add `Resources` to `ScionConfig` |
+| `pkg/api/types.go` | Add `ResourceSpec`, `ResourceList`; add `Resources` to `FabricConfig` |
 | `pkg/runtime/interface.go` | Add `Resources` to `RunConfig` |
 | `pkg/runtime/apple_container.go` | Use `Resources` for `-m` and `-c` flags, fall back to current defaults |
 | `pkg/runtime/docker.go` | Add `--memory`, `--memory-reservation`, `--cpus` from `Resources` |
 | `pkg/runtime/k8s_runtime.go` | Set `corev1.Container.Resources` in `buildPod()` |
 | `pkg/config/settings.go` | Add `Resources` to `ProfileConfig`, `HarnessOverride`; merge logic |
-| `pkg/agent/run.go` | Pass `Resources` from `ScionConfig` into `RunConfig` |
+| `pkg/agent/run.go` | Pass `Resources` from `FabricConfig` into `RunConfig` |
 | `pkg/util/resources.go` | New file: quantity parsing and formatting utilities |
 | `pkg/util/resources_test.go` | New file: tests for quantity parsing |

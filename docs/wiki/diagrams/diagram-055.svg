@@ -58,7 +58,7 @@
 <g id="node3" class="node">
 <title>SlackBroker</title>
 <polygon fill="lightblue" stroke="black" stroke-width="2" points="445,-293 189,-293 189,-257 445,-257 445,-293"/>
-<text xml:space="preserve" text-anchor="middle" x="317" y="-266.95" font-family="Times,serif" font-size="14.00">SlackBroker (scion&#45;slack plugin)</text>
+<text xml:space="preserve" text-anchor="middle" x="317" y="-266.95" font-family="Times,serif" font-size="14.00">SlackBroker (fabric&#45;slack plugin)</text>
 </g>
 <!-- eventServer&#45;&gt;SlackBroker -->
 <g id="edge4" class="edge">
@@ -87,15 +87,15 @@
 <polygon fill="black" stroke="black" points="33.01,-653.8 38.71,-662.73 39.82,-652.19 33.01,-653.8"/>
 <text xml:space="preserve" text-anchor="middle" x="112" y="-470.95" font-family="Times,serif" font-size="14.00">Publish Messages</text>
 </g>
-<!-- Scion Hub API -->
+<!-- Fabric Hub API -->
 <g id="node4" class="node">
-<title>Scion Hub API</title>
+<title>Fabric Hub API</title>
 <polygon fill="lightblue" stroke="black" stroke-width="2" points="502.75,-63 389.25,-63 389.25,-27 502.75,-27 502.75,-63"/>
-<text xml:space="preserve" text-anchor="middle" x="446" y="-36.95" font-family="Times,serif" font-size="14.00">Scion Hub API</text>
+<text xml:space="preserve" text-anchor="middle" x="446" y="-36.95" font-family="Times,serif" font-size="14.00">Fabric Hub API</text>
 </g>
-<!-- SlackBroker&#45;&gt;Scion Hub API -->
+<!-- SlackBroker&#45;&gt;Fabric Hub API -->
 <g id="edge5" class="edge">
-<title>SlackBroker&#45;&gt;Scion Hub API</title>
+<title>SlackBroker&#45;&gt;Fabric Hub API</title>
 <path fill="none" stroke="black" d="M300.01,-256.38C278.26,-231.6 245.73,-185.45 266.5,-149.5 290.37,-108.18 337.7,-81.9 377.76,-66.15"/>
 <polygon fill="black" stroke="black" points="378.76,-69.52 386.89,-62.72 376.3,-62.97 378.76,-69.52"/>
 <text xml:space="preserve" text-anchor="middle" x="345.25" y="-157.2" font-family="Times,serif" font-size="14.00">List Agents/Projects,</text>
@@ -108,29 +108,29 @@
 <polygon fill="black" stroke="black" points="56.58,-75.22 52.72,-65.36 49.59,-75.48 56.58,-75.22"/>
 <text xml:space="preserve" text-anchor="middle" x="169.75" y="-151.95" font-family="Times,serif" font-size="14.00">Read/Write Config/State</text>
 </g>
-<!-- Scion Agent -->
+<!-- Fabric Agent -->
 <g id="node6" class="node">
-<title>Scion Agent</title>
+<title>Fabric Agent</title>
 <polygon fill="lightblue" stroke="black" stroke-width="2" points="727.25,-701 628.75,-701 628.75,-665 727.25,-665 727.25,-701"/>
-<text xml:space="preserve" text-anchor="middle" x="678" y="-674.95" font-family="Times,serif" font-size="14.00">Scion Agent</text>
+<text xml:space="preserve" text-anchor="middle" x="678" y="-674.95" font-family="Times,serif" font-size="14.00">Fabric Agent</text>
 </g>
-<!-- SlackBroker&#45;&gt;Scion Agent -->
+<!-- SlackBroker&#45;&gt;Fabric Agent -->
 <g id="edge10" class="edge">
-<title>SlackBroker&#45;&gt;Scion Agent</title>
+<title>SlackBroker&#45;&gt;Fabric Agent</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M445.77,-287.14C558.41,-299.87 709.71,-325.25 747,-371.75 815.52,-457.21 736.28,-596.69 697.24,-655.02"/>
 <polygon fill="black" stroke="black" points="694.5,-652.82 691.76,-663.05 700.29,-656.77 694.5,-652.82"/>
 <text xml:space="preserve" text-anchor="middle" x="889.89" y="-470.95" font-family="Times,serif" font-size="14.00">Logical communication (via Hub)</text>
 </g>
-<!-- Scion Hub API&#45;&gt;SlackBroker -->
+<!-- Fabric Hub API&#45;&gt;SlackBroker -->
 <g id="edge6" class="edge">
-<title>Scion Hub API&#45;&gt;SlackBroker</title>
+<title>Fabric Hub API&#45;&gt;SlackBroker</title>
 <path fill="none" stroke="black" d="M446.23,-63.6C445.85,-88.76 442.44,-135.81 424,-170.5 406.9,-202.68 376.18,-230.8 352.03,-249.58"/>
 <polygon fill="black" stroke="black" points="350.21,-246.57 344.35,-255.4 354.43,-252.16 350.21,-246.57"/>
 <text xml:space="preserve" text-anchor="middle" x="499.73" y="-151.95" font-family="Times,serif" font-size="14.00">Agent/Project Data</text>
 </g>
-<!-- Scion Agent&#45;&gt;Scion Hub API -->
+<!-- Fabric Agent&#45;&gt;Fabric Hub API -->
 <g id="edge9" class="edge">
-<title>Scion Agent&#45;&gt;Scion Hub API</title>
+<title>Fabric Agent&#45;&gt;Fabric Hub API</title>
 <path fill="none" stroke="black" d="M678.55,-664.42C679.97,-594.05 677.68,-327.97 571,-149.5 550.89,-115.86 515.73,-88.22 487.81,-69.99"/>
 <polygon fill="black" stroke="black" points="489.87,-67.15 479.55,-64.75 486.12,-73.07 489.87,-67.15"/>
 <text xml:space="preserve" text-anchor="middle" x="728.42" y="-368.95" font-family="Times,serif" font-size="14.00">Register/Communicate</text>

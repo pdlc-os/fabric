@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package log
@@ -39,20 +39,20 @@ func Init() {
 	// but for now let's just allow re-setting slog default to our handler
 
 	if logPath == "" {
-		// Priority 1: Check if /home/scion exists (standard agent home)
-		if _, err := os.Stat("/home/scion"); err == nil {
-			logPath = "/home/scion/agent.log"
+		// Priority 1: Check if /home/fabric exists (standard agent home)
+		if _, err := os.Stat("/home/fabric"); err == nil {
+			logPath = "/home/fabric/agent.log"
 		} else {
 			// Priority 2: Use HOME env var
 			home := os.Getenv("HOME")
 			if home == "" {
-				home = "/home/scion"
+				home = "/home/fabric"
 			}
 			logPath = filepath.Join(home, "agent.log")
 		}
 	}
 
-	if os.Getenv("SCION_DEBUG") != "" {
+	if os.Getenv("FABRIC_DEBUG") != "" {
 		debug = true
 	}
 
@@ -105,7 +105,7 @@ func Error(format string, args ...interface{}) {
 	write("ERROR", "", format, args...)
 }
 
-// Debug logs a debug message if SCION_DEBUG is set.
+// Debug logs a debug message if FABRIC_DEBUG is set.
 func Debug(format string, args ...interface{}) {
 	if !debug {
 		return
@@ -126,11 +126,11 @@ func write(level, tag, format string, args ...interface{}) {
 		tagStr = fmt.Sprintf(" [%s]", tag)
 	}
 
-	// Format for agent.log: timestamp [sciontool] [LEVEL] [TAG] message
-	fileEntry := fmt.Sprintf("%s [sciontool] [%s]%s %s\n", timestamp, level, tagStr, message)
+	// Format for agent.log: timestamp [fabrictool] [LEVEL] [TAG] message
+	fileEntry := fmt.Sprintf("%s [fabrictool] [%s]%s %s\n", timestamp, level, tagStr, message)
 
-	// Format for stderr: [sciontool] LEVEL: [TAG] message
-	stderrEntry := fmt.Sprintf("[sciontool] %s:%s %s\n", level, tagStr, message)
+	// Format for stderr: [fabrictool] LEVEL: [TAG] message
+	stderrEntry := fmt.Sprintf("[fabrictool] %s:%s %s\n", level, tagStr, message)
 
 	// Write to stderr (suppressed in quiet mode for hook/status subcommands)
 	if !quiet.Load() {
@@ -156,10 +156,10 @@ func write(level, tag, format string, args ...interface{}) {
 			if u, err := user.Current(); err == nil {
 				username = u.Username
 			}
-			sysInfo := fmt.Sprintf("UID=%d, GID=%d, USER=%s, HOME=%s, SCION_HOST_UID=%s, SCION_HOST_GID=%s",
-				uid, gid, username, os.Getenv("HOME"), os.Getenv("SCION_HOST_UID"), os.Getenv("SCION_HOST_GID"))
+			sysInfo := fmt.Sprintf("UID=%d, GID=%d, USER=%s, HOME=%s, FABRIC_HOST_UID=%s, FABRIC_HOST_GID=%s",
+				uid, gid, username, os.Getenv("HOME"), os.Getenv("FABRIC_HOST_UID"), os.Getenv("FABRIC_HOST_GID"))
 
-			fallbackMsg := fmt.Sprintf("[sciontool] WARNING: Failed to write to %s: %v. Falling back to /tmp/agent.log and enabling debug mode. %s\n", oldPath, err, sysInfo)
+			fallbackMsg := fmt.Sprintf("[fabrictool] WARNING: Failed to write to %s: %v. Falling back to /tmp/agent.log and enabling debug mode. %s\n", oldPath, err, sysInfo)
 			fmt.Fprint(os.Stderr, fallbackMsg)
 
 			// Retry with new path

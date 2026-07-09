@@ -54,7 +54,7 @@ func setupGitRepo(t *testing.T) string {
 
 func TestGitUtils(t *testing.T) {
 	// Clear container context so worktree tests can create worktrees
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	// Need to be inside the repo for most tests
 	repoDir := setupGitRepo(t)
@@ -291,12 +291,12 @@ func TestGitUtils(t *testing.T) {
 			remote string
 			want   string
 		}{
-			{"https://github.com/GoogleCloudPlatform/scion.git", "github.com/googlecloudplatform/scion"},
-			{"http://github.com/GoogleCloudPlatform/scion.git", "github.com/googlecloudplatform/scion"},
-			{"git@github.com:GoogleCloudPlatform/scion.git", "github.com/googlecloudplatform/scion"},
-			{"github.com/GoogleCloudPlatform/scion.git", "github.com/googlecloudplatform/scion"},
-			{"git@github.com:GoogleCloudPlatform/scion", "github.com/googlecloudplatform/scion"},
-			{"HTTPS://github.com/GoogleCloudPlatform/scion.GIT", "github.com/googlecloudplatform/scion"},
+			{"https://github.com/pdlc-os/fabric.git", "github.com/pdlc-os/fabric"},
+			{"http://github.com/pdlc-os/fabric.git", "github.com/pdlc-os/fabric"},
+			{"git@github.com:pdlc-os/fabric.git", "github.com/pdlc-os/fabric"},
+			{"github.com/pdlc-os/fabric.git", "github.com/pdlc-os/fabric"},
+			{"git@github.com:pdlc-os/fabric", "github.com/pdlc-os/fabric"},
+			{"HTTPS://github.com/pdlc-os/fabric.GIT", "github.com/pdlc-os/fabric"},
 			{"", ""},
 		}
 
@@ -311,7 +311,7 @@ func TestGitUtils(t *testing.T) {
 
 func TestCreateWorktree_FromWorktreeSucceeds(t *testing.T) {
 	// Clear container context so worktree creation is allowed
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	// Creating a worktree from within an existing worktree is a legitimate
 	// operation (git supports it natively via the common git dir). This test
@@ -350,9 +350,9 @@ func TestCreateWorktree_FromWorktreeSucceeds(t *testing.T) {
 }
 
 func TestCreateWorktree_RejectsInsideContainer(t *testing.T) {
-	// When SCION_HOST_UID is set (agent container), worktree creation should
+	// When FABRIC_HOST_UID is set (agent container), worktree creation should
 	// be refused to prevent path-identity mismatches from container mounts.
-	t.Setenv("SCION_HOST_UID", "1000")
+	t.Setenv("FABRIC_HOST_UID", "1000")
 
 	mainRepo := setupGitRepo(t)
 
@@ -361,16 +361,16 @@ func TestCreateWorktree_RejectsInsideContainer(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error creating worktree inside container context")
 	}
-	if !strings.Contains(err.Error(), "SCION_HOST_UID") {
+	if !strings.Contains(err.Error(), "FABRIC_HOST_UID") {
 		t.Errorf("unexpected error: %v", err)
 	}
 }
 
 func TestPruneWorktrees_SkipsInsideContainer(t *testing.T) {
-	// When SCION_HOST_UID is set (agent container), pruning should be a no-op
+	// When FABRIC_HOST_UID is set (agent container), pruning should be a no-op
 	// to prevent destroying sibling worktree metadata that appears stale from
 	// the container's mount layout.
-	t.Setenv("SCION_HOST_UID", "1000")
+	t.Setenv("FABRIC_HOST_UID", "1000")
 
 	// Both prune functions should return nil without running git at all.
 	if err := PruneWorktrees(); err != nil {
@@ -606,8 +606,8 @@ func TestCloneSharedWorkspace(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := strings.TrimSpace(string(output)); got != "Scion" {
-			t.Errorf("expected user.name 'Scion', got %q", got)
+		if got := strings.TrimSpace(string(output)); got != "Fabric" {
+			t.Errorf("expected user.name 'Fabric', got %q", got)
 		}
 
 		cmd = exec.Command("git", "-C", destDir, "config", "user.email")
@@ -615,8 +615,8 @@ func TestCloneSharedWorkspace(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := strings.TrimSpace(string(output)); got != "agent@scion.dev" {
-			t.Errorf("expected user.email 'agent@scion.dev', got %q", got)
+		if got := strings.TrimSpace(string(output)); got != "agent@fabric.dev" {
+			t.Errorf("expected user.email 'agent@fabric.dev', got %q", got)
 		}
 	})
 
@@ -676,8 +676,8 @@ func TestCloneSharedWorkspace(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := strings.TrimSpace(string(output)); got != "Scion" {
-			t.Errorf("expected user.name 'Scion', got %q", got)
+		if got := strings.TrimSpace(string(output)); got != "Fabric" {
+			t.Errorf("expected user.name 'Fabric', got %q", got)
 		}
 	})
 

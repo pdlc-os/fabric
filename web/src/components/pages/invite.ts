@@ -18,7 +18,7 @@
  * Invite Landing Page
  *
  * Handles the invite code redemption flow:
- * 1. User visits /invite?code=scion_inv_xxx
+ * 1. User visits /invite?code=fabric_inv_xxx
  * 2. If not authenticated: shows sign-in prompt, stores code in sessionStorage
  * 3. If authenticated: auto-redeems the code
  * 4. On success: shows welcome message with dashboard link
@@ -28,12 +28,12 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-const INVITE_CODE_KEY = 'scion_invite_code';
+const INVITE_CODE_KEY = 'fabric_invite_code';
 
 type InviteState = 'loading' | 'unauthenticated' | 'redeeming' | 'success' | 'error' | 'no-code';
 
-@customElement('scion-page-invite')
-export class ScionPageInvite extends LitElement {
+@customElement('fabric-page-invite')
+export class FabricPageInvite extends LitElement {
   @state()
   private pageState: InviteState = 'loading';
 
@@ -52,14 +52,14 @@ export class ScionPageInvite extends LitElement {
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--scion-bg, #f8fafc);
-      font-family: var(--scion-font, system-ui, -apple-system, sans-serif);
+      background: var(--fabric-bg, #f8fafc);
+      font-family: var(--fabric-font, system-ui, -apple-system, sans-serif);
     }
 
     .card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 2.5rem;
       max-width: 28rem;
       width: 100%;
@@ -81,18 +81,18 @@ export class ScionPageInvite extends LitElement {
     }
 
     .icon.invite {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.5rem 0;
       line-height: 1.5;
     }
@@ -297,6 +297,6 @@ export class ScionPageInvite extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-invite': ScionPageInvite;
+    'fabric-page-invite': FabricPageInvite;
   }
 }

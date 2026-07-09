@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package apiclient provides shared HTTP client utilities for Scion API clients.
+// Package apiclient provides shared HTTP client utilities for Fabric API clients.
 package apiclient
 
 import (
@@ -85,7 +85,7 @@ func NewTransport(baseURL string, opts ...TransportOption) *Transport {
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		UserAgent:  "scion-client/1.0",
+		UserAgent:  "fabric-client/1.0",
 		MaxRetries: 0,
 		RetryWait:  time.Second,
 	}

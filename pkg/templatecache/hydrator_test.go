@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // mockTemplateService is a mock implementation of hubclient.TemplateService.
@@ -145,7 +145,7 @@ func TestHydrateSuccess(t *testing.T) {
 		requestDownloadURLs: func(ctx context.Context, templateID string) (*hubclient.DownloadResponse, error) {
 			return &hubclient.DownloadResponse{
 				Files: []hubclient.DownloadURLInfo{
-					{Path: "scion-agent.yaml", URL: "file:///tmp/test1", Hash: transfer.HashBytes([]byte("harness: claude\n"))},
+					{Path: "fabric-agent.yaml", URL: "file:///tmp/test1", Hash: transfer.HashBytes([]byte("harness: claude\n"))},
 					{Path: "home/config.txt", URL: "file:///tmp/test2", Hash: transfer.HashBytes([]byte("config data"))},
 				},
 				Expires: time.Now().Add(time.Hour),

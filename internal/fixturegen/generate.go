@@ -25,7 +25,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
 )
 
 // schemaMigrationsTable is the bookkeeping table excluded from coverage — it is

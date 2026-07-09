@@ -20,7 +20,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/managedagent"
+	"github.com/pdlc-os/fabric/pkg/managedagent"
 )
 
 // BackendConfig holds configuration for the Google managed agent backend.

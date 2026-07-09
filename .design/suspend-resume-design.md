@@ -16,8 +16,8 @@ Today, `stop` always means "stop the container" and `resume` always means "resta
 ### Current Behavior
 
 ```
-scion stop <agent>    → container stopped, phase=stopped, local config status="stopped"
-scion resume <agent>  → container restarted with resume=true flag, always attempts to restore harness session
+fabric stop <agent>    → container stopped, phase=stopped, local config status="stopped"
+fabric resume <agent>  → container restarted with resume=true flag, always attempts to restore harness session
 ```
 
 The `resume` command always passes `resume=true` to `RunAgent()`, which sets `opts.Resume = true`. The agent manager then calls `Start()` which:
@@ -151,7 +151,7 @@ Add to `RuntimeBrokerAgentActionMethod` mapping.
 
 ### 4. CLI Command (`cmd/suspend.go`)
 
-New `scion suspend <agent>` command, modeled after `cmd/stop.go`:
+New `fabric suspend <agent>` command, modeled after `cmd/stop.go`:
 - Local mode: stops container, sets phase to `suspended` (not `stopped`)
 - Hub mode: dispatches suspend action to hub
 - Supports `--all` flag to suspend all running agents

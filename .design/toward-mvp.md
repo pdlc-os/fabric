@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-18
 
-This document identifies the remaining major chunks of work to advance Scion toward a minimum viable product for the hosted platform. It is based on a cross-cutting audit of all design documents, milestones, and the actual codebase as of 2026-02-18.
+This document identifies the remaining major chunks of work to advance Fabric toward a minimum viable product for the hosted platform. It is based on a cross-cutting audit of all design documents, milestones, and the actual codebase as of 2026-02-18.
 
 ---
 
@@ -13,13 +13,13 @@ Before outlining what's next, it's worth noting the foundation that's in place. 
 ### CLI-Based Hosted Workflow (End-to-End) ✅
 
 The full agent lifecycle works via the CLI:
-- `scion hub auth login` — authenticate with Hub
-- `scion create` / `scion start` — provision and start agents on remote brokers
-- `scion attach` — interactive PTY via WebSocket through Hub
-- `scion sync to/from` — bidirectional workspace synchronization
-- `scion message` — send messages to running agents (including broadcast)
-- `scion stop` / `scion delete` — lifecycle management
-- `scion template import` — import agent definitions from Claude/Gemini ecosystems
+- `fabric hub auth login` — authenticate with Hub
+- `fabric create` / `fabric start` — provision and start agents on remote brokers
+- `fabric attach` — interactive PTY via WebSocket through Hub
+- `fabric sync to/from` — bidirectional workspace synchronization
+- `fabric message` — send messages to running agents (including broadcast)
+- `fabric stop` / `fabric delete` — lifecycle management
+- `fabric template import` — import agent definitions from Claude/Gemini ecosystems
 
 ### Web Frontend (M1-M7, M9) ✅
 
@@ -57,7 +57,7 @@ The server-side plumbing is done (M7). This chunk is purely client-side:
 - StateManager with view scoping: maps navigation to NATS subjects (`/groves/:id` → `sub=grove.{id}.>`), maintains full in-memory state map, merges deltas from SSE events
 - View-scoped subscription lifecycle: `setScope()` called on navigation, closes/reopens SSE connection with correct subjects
 - Component wiring: grove list, agent list, agent detail pages receive live updates; status badges update without refresh; created/deleted events add/remove items from lists
-- Hydration from SSR data: parse `__SCION_DATA__` into StateManager on page load, SSE deltas applied on top
+- Hydration from SSR data: parse `__FABRIC_DATA__` into StateManager on page load, SSE deltas applied on top
 
 **Key deliverables:**
 - [ ] SSE client class with reconnection and `Last-Event-ID` resume
@@ -72,7 +72,7 @@ The server-side plumbing is done (M7). This chunk is purely client-side:
 
 **Ref:** Frontend M10, M11 (`frontend-milestones.md`), `taskless-refactor.md`
 
-**Why this is second:** The web UI can display and manage existing agents but cannot create new ones. Users must context-switch to the CLI for the most basic operation. The taskless refactor removes an unnecessary gate that blocks interactive-first workflows — currently `scion start` errors if no task is provided unless `--attach` is set.
+**Why this is second:** The web UI can display and manage existing agents but cannot create new ones. Users must context-switch to the CLI for the most basic operation. The taskless refactor removes an unnecessary gate that blocks interactive-first workflows — currently `fabric start` errors if no task is provided unless `--attach` is set.
 
 **Scope:**
 
@@ -84,7 +84,7 @@ Taskless refactor (backend — design doc ready, changes scoped):
 - Update tests
 
 Agent creation wizard (frontend — M10):
-- `<scion-create-agent-dialog>` component
+- `<fabric-create-agent-dialog>` component
 - Template selector (requires minimal M11 template browsing)
 - Configuration form: name, optional task/prompt, branch
 - Form validation, API submission, progress tracking
@@ -254,7 +254,7 @@ This gives users the complete loop — create, monitor, interact, manage — wit
 - `hosted/frontend-milestones.md` — Detailed frontend milestone specs (M1-M16)
 - `hosted/status.md` — Hosted architecture implementation status
 - `hosted/auth/auth-milestones.md` — Authentication implementation phases
-- `taskless-refactor.md` — Design for removing task requirement from `scion start`
+- `taskless-refactor.md` — Design for removing task requirement from `fabric start`
 - `kubernetes/milestones.md` — K8s runtime hardening milestones
 - `agent-services.md` — Sidecar process design (implemented)
 - `template-import.md` — Template import design (Phase 1 implemented)

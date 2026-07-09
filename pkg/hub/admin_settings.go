@@ -20,9 +20,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/version"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
@@ -30,9 +30,9 @@ import (
 // It mirrors the on-disk settings.yaml structure, omitting sensitive fields.
 type ServerConfigResponse struct {
 	// Read-only server build info (not persisted in settings.yaml).
-	ScionVersion   string `json:"scion_version,omitempty"`
-	ScionCommit    string `json:"scion_commit,omitempty"`
-	ScionBuildTime string `json:"scion_build_time,omitempty"`
+	FabricVersion   string `json:"fabric_version,omitempty"`
+	FabricCommit    string `json:"fabric_commit,omitempty"`
+	FabricBuildTime string `json:"fabric_build_time,omitempty"`
 
 	SchemaVersion        string                               `json:"schema_version"`
 	ActiveProfile        string                               `json:"active_profile,omitempty"`
@@ -123,9 +123,9 @@ func (s *Server) handleGetServerConfig(w http.ResponseWriter) {
 		if os.IsNotExist(err) {
 			// Return empty/default response if no settings file exists
 			writeJSON(w, http.StatusOK, ServerConfigResponse{
-				ScionVersion:   version.Short(),
-				ScionCommit:    version.GetCommit(),
-				ScionBuildTime: version.GetBuildTime(),
+				FabricVersion:   version.Short(),
+				FabricCommit:    version.GetCommit(),
+				FabricBuildTime: version.GetBuildTime(),
 				SchemaVersion:  "1",
 			})
 			return
@@ -142,9 +142,9 @@ func (s *Server) handleGetServerConfig(w http.ResponseWriter) {
 
 	// Mask sensitive fields before sending to the client
 	resp := ServerConfigResponse{
-		ScionVersion:         version.Short(),
-		ScionCommit:          version.GetCommit(),
-		ScionBuildTime:       version.GetBuildTime(),
+		FabricVersion:         version.Short(),
+		FabricCommit:          version.GetCommit(),
+		FabricBuildTime:       version.GetBuildTime(),
 		SchemaVersion:        vs.SchemaVersion,
 		ActiveProfile:        vs.ActiveProfile,
 		DefaultTemplate:      vs.DefaultTemplate,

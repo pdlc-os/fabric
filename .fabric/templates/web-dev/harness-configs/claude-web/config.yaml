@@ -13,5 +13,5 @@
 # limitations under the License.
 
 harness: claude
-image: scion-claude:latest
-user: scion
+image: fabric-claude:latest
+user: fabric

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hub provides a client for sciontool to communicate with the Scion Hub.
-// It uses the SCION_AUTH_TOKEN environment variable for authentication.
+// Package hub provides a client for fabrictool to communicate with the Fabric Hub.
+// It uses the FABRIC_AUTH_TOKEN environment variable for authentication.
 package hub
 
 import (
@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
 )
 
 // ErrTokenRefreshUnauthorized indicates the hub rejected the token refresh
@@ -45,39 +45,39 @@ import (
 var ErrTokenRefreshUnauthorized = errors.New("token refresh unauthorized")
 
 const (
-	// TokenFile is the canonical token file name. The SCION_AUTH_TOKEN env var
-	// bootstraps the initial value into the container; sciontool init writes it
+	// TokenFile is the canonical token file name. The FABRIC_AUTH_TOKEN env var
+	// bootstraps the initial value into the container; fabrictool init writes it
 	// here immediately and all consumers read from this file. Token refreshes
 	// update the same file.
-	TokenFile = "scion-token"
+	TokenFile = "fabric-token"
 )
 
 const (
 	// EnvHubEndpoint is the preferred environment variable for the Hub endpoint.
-	EnvHubEndpoint = "SCION_HUB_ENDPOINT"
+	EnvHubEndpoint = "FABRIC_HUB_ENDPOINT"
 	// EnvHubURL is the legacy environment variable for the Hub URL.
-	EnvHubURL = "SCION_HUB_URL"
+	EnvHubURL = "FABRIC_HUB_URL"
 	// EnvHubToken is the environment variable for Hub authentication.
 	// Generic agent-to-hub auth token (JWT or dev token).
-	EnvHubToken = "SCION_AUTH_TOKEN"
+	EnvHubToken = "FABRIC_AUTH_TOKEN"
 	// EnvAgentID is the environment variable for the agent ID.
-	EnvAgentID = "SCION_AGENT_ID"
+	EnvAgentID = "FABRIC_AGENT_ID"
 	// EnvAgentMode is the environment variable for the agent mode.
-	EnvAgentMode = "SCION_AGENT_MODE"
+	EnvAgentMode = "FABRIC_AGENT_MODE"
 
 	// AgentModeHosted indicates the agent is running in hosted mode.
 	AgentModeHosted = "hosted"
 )
 
-// Mode represents the operating mode of the sciontool within a container.
+// Mode represents the operating mode of the fabrictool within a container.
 type Mode int
 
 const (
-	// ModeLocal indicates no hub is configured (SCION_HUB_ENDPOINT not set).
+	// ModeLocal indicates no hub is configured (FABRIC_HUB_ENDPOINT not set).
 	ModeLocal Mode = iota
 	// ModeHubConnected indicates a hub is configured but the agent is not in hosted mode.
 	ModeHubConnected
-	// ModeHosted indicates a hub is configured and SCION_AGENT_MODE=hosted.
+	// ModeHosted indicates a hub is configured and FABRIC_AGENT_MODE=hosted.
 	ModeHosted
 )
 
@@ -150,7 +150,7 @@ type StatusUpdate struct {
 	ExitCode *int `json:"exitCode,omitempty"`
 }
 
-// Client is a Hub API client for sciontool.
+// Client is a Hub API client for fabrictool.
 type Client struct {
 	hubURL         string
 	token          string
@@ -164,14 +164,14 @@ type Client struct {
 }
 
 // NewClient creates a new Hub client from environment variables.
-// Reads SCION_HUB_ENDPOINT first, falling back to SCION_HUB_URL for legacy compat.
-// The token is read from the canonical token file (~/.scion/scion-token), falling
-// back to the SCION_AUTH_TOKEN env var for bootstrap (before init has run).
+// Reads FABRIC_HUB_ENDPOINT first, falling back to FABRIC_HUB_URL for legacy compat.
+// The token is read from the canonical token file (~/.fabric/fabric-token), falling
+// back to the FABRIC_AUTH_TOKEN env var for bootstrap (before init has run).
 // Returns nil if the required environment variables are not set.
 //
 // Defense-in-depth: when running under `go test`, refuses to create a client
 // that would talk to a non-localhost hub. Tests that need a hub client must
-// scrub SCION_* env vars and point at an httptest server (see scrubHubEnv
+// scrub FABRIC_* env vars and point at an httptest server (see scrubHubEnv
 // in hub_test.go). Without this guard, a test that forgets env sandboxing
 // leaks real status updates to the hub under the container's agent identity.
 func NewClient() *Client {
@@ -286,7 +286,7 @@ func (c *Client) UpdateStatus(ctx context.Context, status StatusUpdate) error {
 		}
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Scion-Agent-Token", currentToken)
+		req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 		resp, err := c.client.Do(req)
 		if err != nil {
@@ -374,7 +374,7 @@ type SetSecretResponse struct {
 // The value should already be base64-encoded.
 func (c *Client) SetSecret(ctx context.Context, key, value, secretType, target string, force bool) (*SetSecretResponse, error) {
 	if !c.IsConfigured() {
-		return nil, fmt.Errorf("hub client not configured (is SCION_HUB_ENDPOINT set?)")
+		return nil, fmt.Errorf("hub client not configured (is FABRIC_HUB_ENDPOINT set?)")
 	}
 
 	endpoint := fmt.Sprintf("%s/api/v1/agents/%s/secrets/%s",
@@ -402,7 +402,7 @@ func (c *Client) SetSecret(ctx context.Context, key, value, secretType, target s
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -432,7 +432,7 @@ func (c *Client) SetSecret(ctx context.Context, key, value, secretType, target s
 // Mirrors the hub's RefreshTokenEntry type.
 type RefreshTokenEntry struct {
 	Layer     string `json:"layer"`              // "app" | "transport"
-	Type      string `json:"type"`               // "scion_access" | "scion_refresh" | "google_oidc"
+	Type      string `json:"type"`               // "fabric_access" | "fabric_refresh" | "google_oidc"
 	Value     string `json:"value"`              // the token value
 	ExpiresIn int    `json:"expiresIn"`          // seconds until expiry
 	Audience  string `json:"audience,omitempty"` // only for transport tokens
@@ -469,7 +469,7 @@ func (c *Client) RefreshToken(ctx context.Context) (string, time.Time, error) {
 		return "", time.Time{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -535,7 +535,7 @@ func (c *Client) applyRefreshTokens(tokens []RefreshTokenEntry) {
 				entryExpiry := time.Now().Add(time.Duration(entry.ExpiresIn) * time.Second)
 				c.oidcSource.setToken(entry.Value, entryExpiry)
 			}
-			// app/scion_access is already handled via the legacy token field above
+			// app/fabric_access is already handled via the legacy token field above
 		}
 	}
 }
@@ -575,7 +575,7 @@ type TokenRefreshConfig struct {
 	Timeout time.Duration
 	// ChownUID and ChownGID set ownership on the token file after writing.
 	// When ChownUID > 0, the file is chowned so non-root users (e.g. the
-	// scion container user) can read it. Zero values skip chown.
+	// fabric container user) can read it. Zero values skip chown.
 	ChownUID int
 	ChownGID int
 	// OnRefreshed is called when the token is successfully refreshed.
@@ -776,18 +776,18 @@ func (c *Client) SetToken(token string) {
 // Environment variable and file path constants for GitHub App token refresh.
 const (
 	// EnvGitHubAppEnabled indicates whether GitHub App token refresh is active.
-	EnvGitHubAppEnabled = "SCION_GITHUB_APP_ENABLED"
+	EnvGitHubAppEnabled = "FABRIC_GITHUB_APP_ENABLED"
 	// EnvGitHubTokenExpiry is the ISO 8601 expiry time of the initial GitHub token.
-	EnvGitHubTokenExpiry = "SCION_GITHUB_TOKEN_EXPIRY"
+	EnvGitHubTokenExpiry = "FABRIC_GITHUB_TOKEN_EXPIRY"
 	// EnvGitHubTokenPath is the path to the refreshable GitHub token file.
-	EnvGitHubTokenPath = "SCION_GITHUB_TOKEN_PATH"
+	EnvGitHubTokenPath = "FABRIC_GITHUB_TOKEN_PATH"
 	// DefaultGitHubTokenPath is the default path for the GitHub token file.
 	DefaultGitHubTokenPath = "/tmp/.github-token"
 	// EnvUserGitHubToken is set to "true" when the user has explicitly
 	// provided their own GITHUB_TOKEN alongside a GitHub App installation.
 	// When set, the gh CLI wrapper skips token injection so the user's
 	// token takes precedence.
-	EnvUserGitHubToken = "SCION_USER_GITHUB_TOKEN"
+	EnvUserGitHubToken = "FABRIC_USER_GITHUB_TOKEN"
 )
 
 // GitHubTokenRefreshResponse is the response from the GitHub token refresh endpoint.
@@ -816,7 +816,7 @@ func (c *Client) RefreshGitHubToken(ctx context.Context) (string, time.Time, err
 		return "", time.Time{}, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -856,7 +856,7 @@ type GitHubTokenRefreshConfig struct {
 	TokenPath string
 	// ChownUID and ChownGID set ownership on the token file after writing.
 	// When ChownUID > 0, the file is chowned so non-root users (e.g. the
-	// scion container user) can read it. Zero values skip chown.
+	// fabric container user) can read it. Zero values skip chown.
 	ChownUID int
 	ChownGID int
 	// Timeout is the context timeout for each refresh request.
@@ -1118,20 +1118,20 @@ var (
 )
 
 // resolveTokenHome returns the home directory to use for the token file.
-// Inside agent containers, sciontool init runs as root (HOME=/root) while
-// child processes run as the scion user (HOME=/home/scion). Both must
-// resolve to the same token file path — the scion user's home.
+// Inside agent containers, fabrictool init runs as root (HOME=/root) while
+// child processes run as the fabric user (HOME=/home/fabric). Both must
+// resolve to the same token file path — the fabric user's home.
 // The result is cached because user.Lookup is expensive and the home
 // directory does not change at runtime.
 func resolveTokenHome() string {
 	resolveTokenHomeOnce.Do(func() {
-		if u, err := user.Lookup("scion"); err == nil && u.HomeDir != "" {
+		if u, err := user.Lookup("fabric"); err == nil && u.HomeDir != "" {
 			resolvedTokenHome = u.HomeDir
 			return
 		}
 		resolvedTokenHome = os.Getenv("HOME")
 		if resolvedTokenHome == "" {
-			resolvedTokenHome = "/home/scion"
+			resolvedTokenHome = "/home/fabric"
 		}
 	})
 	return resolvedTokenHome
@@ -1156,8 +1156,8 @@ func SetHubTestSandboxed() func() {
 // tokenHomeOverridden reports whether SetTokenHome has installed a test
 // override. WriteTokenFile refuses to write under `go test` unless this is set,
 // so a test that forgets SetTokenHome can never clobber a live
-// ~/.scion/scion-token (as happened when the suite was run inside an agent
-// container, where resolveTokenHome finds the real scion user).
+// ~/.fabric/fabric-token (as happened when the suite was run inside an agent
+// container, where resolveTokenHome finds the real fabric user).
 var tokenHomeOverridden bool
 
 // SetTokenHome overrides the token home directory for testing.
@@ -1174,26 +1174,26 @@ func SetTokenHome(dir string) func() {
 }
 
 // TokenFilePath returns the path to the canonical token file.
-// In agent containers it always resolves to the scion user's home
-// directory so that root (sciontool init) and scion (child processes)
+// In agent containers it always resolves to the fabric user's home
+// directory so that root (fabrictool init) and fabric (child processes)
 // agree on the same path.
 func TokenFilePath() string {
-	return filepath.Join(tokenHomeResolver(), ".scion", TokenFile)
+	return filepath.Join(tokenHomeResolver(), ".fabric", TokenFile)
 }
 
 // WriteTokenFile writes the agent token to the canonical token file.
-// Called by sciontool init to seed the initial value and by the refresh
+// Called by fabrictool init to seed the initial value and by the refresh
 // loop to persist updated tokens. Written atomically via temp file + rename.
 func WriteTokenFile(token string) error {
 	// Guardrail: under `go test`, refuse to write the real token file unless a
 	// test has explicitly isolated it via SetTokenHome. resolveTokenHome
-	// resolves to the live scion user's home inside agent containers, so a test
+	// resolves to the live fabric user's home inside agent containers, so a test
 	// that forgets to isolate would silently overwrite a running agent's token
 	// (seen in the wild: a refresh test persisted the literal "refreshed-token",
 	// 401-ing the agent). Fail loudly instead of corrupting live state.
 	if testing.Testing() && !tokenHomeOverridden {
-		panic("scion/hub: WriteTokenFile called during a test without SetTokenHome(); " +
-			"call SetTokenHome(t.TempDir()) so tests never overwrite the real ~/.scion/scion-token")
+		panic("fabric/hub: WriteTokenFile called during a test without SetTokenHome(); " +
+			"call SetTokenHome(t.TempDir()) so tests never overwrite the real ~/.fabric/fabric-token")
 	}
 
 	path := TokenFilePath()
@@ -1265,7 +1265,7 @@ func (c *Client) SendOutboundMessage(ctx context.Context, msg OutboundMessage) e
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -1338,7 +1338,7 @@ type GCPAccessTokenResponse struct {
 }
 
 // FetchGCPToken obtains a GCP access token from the Hub's /api/v1/agent/gcp-token
-// endpoint. Uses the hub client's OIDC transport and X-Scion-Agent-Token auth.
+// endpoint. Uses the hub client's OIDC transport and X-Fabric-Agent-Token auth.
 func (c *Client) FetchGCPToken(ctx context.Context, scopes []string) (*GCPAccessTokenResponse, error) {
 	if !c.IsConfigured() {
 		return nil, fmt.Errorf("hub client not configured")
@@ -1360,7 +1360,7 @@ func (c *Client) FetchGCPToken(ctx context.Context, scopes []string) (*GCPAccess
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -1404,7 +1404,7 @@ func (c *Client) FetchGCPIdentityToken(ctx context.Context, audience string) (st
 		return "", fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Agent-Token", currentToken)
+	req.Header.Set("X-Fabric-Agent-Token", currentToken)
 
 	resp, err := c.client.Do(req)
 	if err != nil {

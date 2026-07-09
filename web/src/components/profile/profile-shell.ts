@@ -39,8 +39,8 @@ const PROFILE_TITLES: Record<string, string> = {
   '/profile/tokens': 'Access Tokens',
 };
 
-@customElement('scion-profile-shell')
-export class ScionProfileShell extends LitElement {
+@customElement('fabric-profile-shell')
+export class FabricProfileShell extends LitElement {
   @property({ type: Object })
   user: User | null = null;
 
@@ -58,7 +58,7 @@ export class ScionProfileShell extends LitElement {
       display: flex;
       height: 100vh;
       height: 100dvh;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
     }
 
     .sidebar {
@@ -84,15 +84,15 @@ export class ScionProfileShell extends LitElement {
     }
 
     .mobile-drawer::part(panel) {
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
     }
 
     .mobile-drawer::part(close-button) {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .mobile-drawer::part(close-button):hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .main {
@@ -117,7 +117,7 @@ export class ScionProfileShell extends LitElement {
     }
 
     .content-inner {
-      max-width: var(--scion-content-max-width, 1400px);
+      max-width: var(--fabric-content-max-width, 1400px);
       margin: 0 auto;
       width: 100%;
       flex: 1;
@@ -129,7 +129,7 @@ export class ScionProfileShell extends LitElement {
   override connectedCallback(): void {
     super.connectedCallback();
     try {
-      this._sidebarCollapsed = localStorage.getItem('scion-sidebar-collapsed') === 'true';
+      this._sidebarCollapsed = localStorage.getItem('fabric-sidebar-collapsed') === 'true';
     } catch {
       // localStorage may be unavailable (SecurityError in restricted contexts)
     }
@@ -151,12 +151,12 @@ export class ScionProfileShell extends LitElement {
 
     return html`
       <aside class="sidebar">
-        <scion-profile-nav
+        <fabric-profile-nav
           .user=${this.user}
           .currentPath=${this.currentPath}
           ?collapsed=${this._sidebarCollapsed}
           @sidebar-toggle=${(): void => this.handleSidebarToggle()}
-        ></scion-profile-nav>
+        ></fabric-profile-nav>
       </aside>
 
       <sl-drawer
@@ -165,18 +165,18 @@ export class ScionProfileShell extends LitElement {
         placement="start"
         @sl-hide=${(): void => this.handleDrawerClose()}
       >
-        <scion-profile-nav .user=${this.user} .currentPath=${this.currentPath} .hideCollapse=${true}></scion-profile-nav>
+        <fabric-profile-nav .user=${this.user} .currentPath=${this.currentPath} .hideCollapse=${true}></fabric-profile-nav>
       </sl-drawer>
 
       <main class="main">
-        <scion-header
+        <fabric-header
           .user=${this.user}
           .currentPath=${this.currentPath}
           .pageTitle=${pageTitle}
           ?showMobileMenu=${true}
           @mobile-menu-toggle=${(): void => this.handleMobileMenuToggle()}
           @logout=${(): void => this.handleLogout()}
-        ></scion-header>
+        ></fabric-header>
 
         <div class="content">
           <div class="content-inner">
@@ -185,7 +185,7 @@ export class ScionProfileShell extends LitElement {
         </div>
       </main>
 
-      <scion-debug-panel></scion-debug-panel>
+      <fabric-debug-panel></fabric-debug-panel>
     `;
   }
 
@@ -196,7 +196,7 @@ export class ScionProfileShell extends LitElement {
   private handleSidebarToggle(): void {
     this._sidebarCollapsed = !this._sidebarCollapsed;
     try {
-      localStorage.setItem('scion-sidebar-collapsed', String(this._sidebarCollapsed));
+      localStorage.setItem('fabric-sidebar-collapsed', String(this._sidebarCollapsed));
     } catch {
       // localStorage may be unavailable (SecurityError in restricted contexts)
     }
@@ -226,6 +226,6 @@ export class ScionProfileShell extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-profile-shell': ScionProfileShell;
+    'fabric-profile-shell': FabricProfileShell;
   }
 }

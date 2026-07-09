@@ -1,10 +1,10 @@
-# Design: Scion Agent Hook Processor
+# Design: Fabric Agent Hook Processor
 
 ## Goal
-Implement a default hook processor for Scion agents to provide high-level status visibility and detailed logging. The processor will be written in Python to ensure it is cross-platform (within the container) and easily customizable.
+Implement a default hook processor for Fabric agents to provide high-level status visibility and detailed logging. The processor will be written in Python to ensure it is cross-platform (within the container) and easily customizable.
 
 ## Functionality
-1. **Status Tracking**: Updates the `agent.status` field in the agent's `scion-agent.json` file.
+1. **Status Tracking**: Updates the `agent.status` field in the agent's `fabric-agent.json` file.
 2. **Detailed Logging**: Creates and maintains an `agent.log` file in the agent's home directory (`/home/gemini`), capturing hook events, tool inputs/outputs, and model responses.
 
 ## Architecture
@@ -20,9 +20,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py",
+            "command": "python3 /home/gemini/fabric_hook.py",
             "description": "Update agent status and log session start"
           }
         ]
@@ -33,9 +33,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -45,9 +45,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -57,9 +57,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -69,9 +69,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -81,9 +81,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -93,9 +93,9 @@ The default `settings.json` in the agent template will be updated to include hoo
         "matcher": "ToolPermission",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "python3 /home/gemini/scion_hook.py"
+            "command": "python3 /home/gemini/fabric_hook.py"
           }
         ]
       }
@@ -105,7 +105,7 @@ The default `settings.json` in the agent template will be updated to include hoo
 ```
 
 ### 2. State Mapping
-The hook processor will map Gemini CLI hook events to high-level Scion agent states:
+The hook processor will map Gemini CLI hook events to high-level Fabric agent states:
 
 | Hook Event | Agent State | Description |
 |------------|-------------|-------------|
@@ -119,8 +119,8 @@ The hook processor will map Gemini CLI hook events to high-level Scion agent sta
 
 ### 3. Filesystem Impact
 
-#### `scion-agent.json` Update
-The processor will update the `agent` section of `scion-agent.json`. To prevent file corruption during concurrent access, the processor must use an **atomic write strategy** (write to a temporary file, then rename/move to `scion-agent.json`).
+#### `fabric-agent.json` Update
+The processor will update the `agent` section of `fabric-agent.json`. To prevent file corruption during concurrent access, the processor must use an **atomic write strategy** (write to a temporary file, then rename/move to `fabric-agent.json`).
 
 ```json
 {
@@ -148,28 +148,28 @@ A human-readable log file will be maintained:
 The script will follow these steps:
 1. Read hook input from `stdin`.
 2. Determine the new state based on `hook_event_name`.
-3. Load `scion-agent.json`, update the status, and save.
+3. Load `fabric-agent.json`, update the status, and save.
 4. Append a timestamped entry to `agent.log` with relevant event details (tool name, prompt snippet, etc.).
 5. Exit with 0.
 
 ### 5. Grove Path Tracking
-To enable `scion list --all` to display high-level status for agents across different groves, the `scion` CLI will add a `scion.grove_path` label to the container at startup. This allows the CLI to locate the agent's host-side `scion-agent.json` file regardless of the current working directory.
+To enable `fabric list --all` to display high-level status for agents across different groves, the `fabric` CLI will add a `fabric.grove_path` label to the container at startup. This allows the CLI to locate the agent's host-side `fabric-agent.json` file regardless of the current working directory.
 
 ## Implementation Tasks
 
 ### 1. Update Go Code
 - Update `AgentConfig` struct in `pkg/config/templates.go` to include `Status` field.
 - Update `InitProject` and `InitGlobal` in `pkg/config/init.go` to include the hook processor in the default template and configure `settings.json`.
-- Update `scion start` logic to include the `scion.grove_path` label.
+- Update `fabric start` logic to include the `fabric.grove_path` label.
 
 ### 2. Create Python Script
-- Write `scion_hook.py` and include it in the `default` template.
+- Write `fabric_hook.py` and include it in the `default` template.
 
-### 3. Update `scion list`
+### 3. Update `fabric list`
 - Enhance the `list` command to:
-    1. Read the `scion.grove_path` label from the agent info.
-    2. Locate and read the host-side `scion-agent.json`.
+    1. Read the `fabric.grove_path` label from the agent info.
+    2. Locate and read the host-side `fabric-agent.json`.
     3. Display the high-level `status` in the output table.
 
 ## Observability Enhancement
-With this design, `scion list` can show real-time progress of agents, and users can tail `agent.log` on the host side to see exactly what an agent is doing without attaching to it.
+With this design, `fabric list` can show real-time progress of agents, and users can tail `agent.log` on the host side to see exactly what an agent is doing without attaching to it.

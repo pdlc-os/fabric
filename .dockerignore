@@ -1,6 +1,6 @@
 # Ignore local environment and secrets
 .design/
-.scion/
+.fabric/
 .gemini/
 *.key
 *.pem

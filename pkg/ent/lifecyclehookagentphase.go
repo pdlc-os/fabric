@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/lifecyclehookagentphase"
+	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehookagentphase"
 )
 
 // LifecycleHookAgentPhase is the model entity for the LifecycleHookAgentPhase schema.

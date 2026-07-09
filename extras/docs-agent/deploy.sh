@@ -17,15 +17,15 @@ set -e
 
 PROJECT_ID=${PROJECT_ID:-duet01}
 REGION=${REGION:-us-west1}
-SERVICE_NAME=${SERVICE_NAME:-scion-docs-agent}
+SERVICE_NAME=${SERVICE_NAME:-fabric-docs-agent}
 
-echo "Deploying Scion Docs Agent..."
+echo "Deploying Fabric Docs Agent..."
 echo "Project ID: $PROJECT_ID"
 echo "Region:     $REGION"
 echo "Service:    $SERVICE_NAME"
 
 GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "latest")
-REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/scion-images"
+REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/fabric-images"
 
 gcloud builds submit \
   --async \

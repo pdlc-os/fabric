@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow running as `python -m adk_scion_agent`.
+"""Allow running as `python -m adk_fabric_agent`.
 
 Wraps the real entry point with crash reporting so that import errors
 and early startup failures are written to:
-  1. /proc/1/fd/2 (sciontool's stderr → container logs the user can see)
-  2. agent-info.json (readable by scion's status system)
+  1. /proc/1/fd/2 (fabrictool's stderr → container logs the user can see)
+  2. agent-info.json (readable by fabric's status system)
   3. The process's own stderr (visible in the tmux pane)
 """
 
@@ -28,7 +28,7 @@ import traceback
 
 
 def _log_to_init(message: str) -> None:
-    """Write directly to PID 1 (sciontool) stderr so it appears in container logs."""
+    """Write directly to PID 1 (fabrictool) stderr so it appears in container logs."""
     try:
         with open("/proc/1/fd/2", "w") as f:
             f.write(message + "\n")
@@ -43,7 +43,7 @@ def _report_crash(message: str) -> None:
     _log_to_init(message)
     try:
         info_path = os.path.join(
-            os.environ.get("HOME", "/home/scion"), "agent-info.json"
+            os.environ.get("HOME", "/home/fabric"), "agent-info.json"
         )
         with open(info_path, "w") as f:
             json.dump({"activity": "error", "error": message}, f)
@@ -55,7 +55,7 @@ try:
     from .run import main
 except Exception:
     _report_crash(
-        f"[adk_scion_agent] Failed to import agent modules:\n"
+        f"[adk_fabric_agent] Failed to import agent modules:\n"
         f"{traceback.format_exc()}"
     )
     sys.exit(1)
@@ -64,7 +64,7 @@ try:
     main()
 except Exception:
     _report_crash(
-        f"[adk_scion_agent] Agent crashed:\n"
+        f"[adk_fabric_agent] Agent crashed:\n"
         f"{traceback.format_exc()}"
     )
     sys.exit(1)

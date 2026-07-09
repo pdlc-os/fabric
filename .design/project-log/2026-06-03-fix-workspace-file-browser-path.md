@@ -6,12 +6,12 @@
 
 ## Problem
 
-The Hub UI workspace file browser was showing the wrong directory contents. The `hubManagedProjectPath()` function resolved workspace paths to `~/.scion/projects/<slug>/` instead of `~/.scion/groves/<slug>/`.
+The Hub UI workspace file browser was showing the wrong directory contents. The `hubManagedProjectPath()` function resolved workspace paths to `~/.fabric/projects/<slug>/` instead of `~/.fabric/groves/<slug>/`.
 
 The three relevant directories per project:
-1. `~/.scion/groves/<slug>/` — actual git checkout, mounted as `/workspace` in agents (correct target)
-2. `~/.scion/projects/<slug>/` — project metadata + Telegram plugin downloads (what the UI was showing)
-3. `~/.scion/grove-configs/<slug>__<uuid>/` — agent configs and shared-dirs
+1. `~/.fabric/groves/<slug>/` — actual git checkout, mounted as `/workspace` in agents (correct target)
+2. `~/.fabric/projects/<slug>/` — project metadata + Telegram plugin downloads (what the UI was showing)
+3. `~/.fabric/grove-configs/<slug>__<uuid>/` — agent configs and shared-dirs
 
 ## Root Cause
 
@@ -31,4 +31,4 @@ Reversed the lookup priority in `hubManagedProjectPath()`:
 
 ## Observations
 
-- The `pkg/config` test suite has a pre-existing failure (`TestEnsureHubReady_GlobalFallbackWithHubEnabled`) caused by leaked `SCION_*` environment variables in the container. This is unrelated to this change and passes when those env vars are cleared.
+- The `pkg/config` test suite has a pre-existing failure (`TestEnsureHubReady_GlobalFallbackWithHubEnabled`) caused by leaked `FABRIC_*` environment variables in the container. This is unrelated to this change and passes when those env vars are cleared.

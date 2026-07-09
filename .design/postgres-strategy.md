@@ -2,11 +2,11 @@
 
 Status: **draft / discussion** — strategy and tradeoffs only, not an implementation plan.
 Owner: TBD
-References: [issue #53](https://github.com/GoogleCloudPlatform/scion/issues/53), [PR #179](https://github.com/GoogleCloudPlatform/scion/pull/179) (Ent schema parity, in flight)
+References: [issue #53](https://github.com/pdlc-os/fabric/issues/53), [PR #179](https://github.com/pdlc-os/fabric/pull/179) (Ent schema parity, in flight)
 
 ## 1. Goal
 
-Let the Scion Hub run on either SQLite or PostgreSQL, selectable by config, with the same schema, the same store API, and the same test suite passing against both.
+Let the Fabric Hub run on either SQLite or PostgreSQL, selectable by config, with the same schema, the same store API, and the same test suite passing against both.
 
 The motivation is operational, not feature-driven:
 - SQLite is ideal for solo / single-machine / dev / embedded-broker use. Keep it.
@@ -20,7 +20,7 @@ We are **not** trying to make Postgres mandatory, and we are **not** trying to o
 - We have **two** persistence layers today, not one (see §3). Any strategy that ignores that fact is wrong.
 - The Go SQLite driver in use (`modernc.org/sqlite`) is pure Go. We will not give that up — CGO would regress build/release ergonomics on macOS arm64 and Windows.
 - CI today runs against in-memory SQLite only. Adding Postgres means adding a service container or testcontainers; that is not free.
-- We must keep the current behavior: `scion server` with no config still works out of the box.
+- We must keep the current behavior: `fabric server` with no config still works out of the box.
 
 ## 3. Current state (the part that shapes the options)
 
@@ -130,7 +130,7 @@ The reasoning is structural, not aesthetic:
 
 ### 5.1 Why two releases instead of one big change
 
-All hosted Scion installations today run SQLite on VMs. They have data. They will need to migrate. That fact reframes "safety":
+All hosted Fabric installations today run SQLite on VMs. They have data. They will need to migrate. That fact reframes "safety":
 
 - **Code-path safety** (don't break existing SQLite installations during the port). Two-release sequencing addresses this. Release N is "same backend, new code on top," which can be exercised on hosted VMs without anyone touching Postgres. If something regresses, the rollback target is a known SQLite binary, not "go back to a different ORM."
 - **Data-migration safety** (move SQLite data to Postgres reliably, with a tool you can test in CI). This is what makes Option A *better* than Option C, not worse: at the moment of migration, both endpoints speak the same Ent schema. The migration tool is an entity-by-entity copy through the Ent client — small, reviewable, fixture-testable. Under C the source would still be raw-SQL tables and the destination would be Ent, which is a paradigm shift mid-migration with no shared code to test against.
@@ -208,7 +208,7 @@ Same Ent schema on both sides; only the dialect changes. This is the migration t
 Two viable shapes:
 
 - **In-process on first boot.** Ent's `Schema.Create` is idempotent, but it does not move data between renamed/restructured tables. We add a one-shot upgrade routine: read from the old raw-SQL tables (still present in the file), write into the new Ent-managed tables, drop the old tables. Triggered by a schema-version sentinel.
-- **External CLI.** `scion server migrate --from sqlite-v46 --to ent` run by the operator before upgrading binaries. Safer (operator controls timing, can back up first) but adds an ops step.
+- **External CLI.** `fabric server migrate --from sqlite-v46 --to ent` run by the operator before upgrading binaries. Safer (operator controls timing, can back up first) but adds an ops step.
 
 Recommendation: **in-process upgrade with a mandatory backup hint logged at startup** (`"Detected v46 raw-SQL schema. Backing up to hub.db.bak.<ts> before migration."`). The hub already owns the file; we should own the migration. Operators can opt into manual mode with `--no-auto-migrate`.
 
@@ -228,7 +228,7 @@ for _, ent := range entitiesInDependencyOrder {
 }
 ```
 
-Ships as `scion server migrate --from sqlite://... --to postgres://...`. Run once, manually, by the operator. Key properties to design in:
+Ships as `fabric server migrate --from sqlite://... --to postgres://...`. Run once, manually, by the operator. Key properties to design in:
 
 - **Idempotent.** Re-running on a partially populated destination skips rows that already exist (by primary key). This is what makes restart-after-failure tolerable.
 - **Read-only on source.** Source is opened with `_query_only=1` pragma. Operators can keep the SQLite hub running until they cut over.
@@ -267,7 +267,7 @@ Migration β is also one-way operationally (we don't ship a Postgres→SQLite to
 ## 8. Open questions
 
 1. **Timeline for PR #179.** Is it close to merge or stalled? The strategy hinges on it.
-2. **Hosted-only Postgres, or also offered for local?** If only hosted, we can defer ergonomics like a `scion server --postgres-url=...` flag. If we want local devs to easily try Postgres, we need a `docker compose up` story.
+2. **Hosted-only Postgres, or also offered for local?** If only hosted, we can defer ergonomics like a `fabric server --postgres-url=...` flag. If we want local devs to easily try Postgres, we need a `docker compose up` story.
 3. **Multi-writer requirements.** Does the hub today have any code path where two replicas would actually need to coordinate, or is "one hub process per Postgres" the v1? The latter is much simpler.
 4. **Backup/restore model.** SQLite is "copy the file"; Postgres needs `pg_dump` / WAL-archiving / managed-service backups. Out of scope for this doc but flagging for ops planning.
 5. **Sqlite stores that have no Ent equivalent yet.** PR #179 reportedly adds 20 new schemas. Is there anything in `pkg/store/sqlite/*.go` left uncovered? An audit before declaring Phase 1 complete is warranted.

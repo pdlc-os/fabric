@@ -40,7 +40,7 @@ type TransportTokenMinter interface {
 // Used in both the refresh endpoint response and internally for dispatch payload construction.
 type RefreshTokenEntry struct {
 	Layer     string `json:"layer"`              // "app" | "transport"
-	Type      string `json:"type"`               // "scion_access" | "scion_refresh" | "google_oidc"
+	Type      string `json:"type"`               // "fabric_access" | "fabric_refresh" | "google_oidc"
 	Value     string `json:"value"`              // the token value
 	ExpiresIn int    `json:"expiresIn"`          // seconds until expiry
 	Audience  string `json:"audience,omitempty"` // only for transport tokens

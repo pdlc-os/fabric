@@ -37,7 +37,7 @@ Compute a struct describing the onboarding state of the machine:
 
 ```go
 type OnboardingStatus struct {
-    Initialized    bool   // ~/.scion/settings.yaml exists
+    Initialized    bool   // ~/.fabric/settings.yaml exists
     IdentitySet    bool   // DevAuthConfig has username set (non-default)
     RuntimeOK      bool   // a runtime is detected and reachable
     HarnessesSeeded bool  // at least one harness-config exists

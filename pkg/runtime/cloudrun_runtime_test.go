@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func TestCloudRunRuntime_Name(t *testing.T) {
@@ -33,8 +33,8 @@ func TestCloudRunRuntime_Name(t *testing.T) {
 
 func TestCloudRunRuntime_ExecUser(t *testing.T) {
 	rt := NewCloudRunRuntime(nil)
-	if rt.ExecUser() != "scion" {
-		t.Errorf("ExecUser() = %q, want %q", rt.ExecUser(), "scion")
+	if rt.ExecUser() != "fabric" {
+		t.Errorf("ExecUser() = %q, want %q", rt.ExecUser(), "fabric")
 	}
 }
 
@@ -168,7 +168,7 @@ func TestCloudRunRuntime_Run_BrokerSideProvisioning(t *testing.T) {
 		t.Errorf("workspace directory %q was not created by broker-side provisioning", wsPath)
 	}
 
-	sentinelPath := filepath.Join(mountRoot, "share1", "projects", "proj-123", ".scion-provisioned")
+	sentinelPath := filepath.Join(mountRoot, "share1", "projects", "proj-123", ".fabric-provisioned")
 	if _, err := os.Stat(sentinelPath); os.IsNotExist(err) {
 		t.Errorf("sentinel %q was not written — ProvisionShared did not run", sentinelPath)
 	}
@@ -219,7 +219,7 @@ func TestGetRuntime_CloudRun(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -271,9 +271,9 @@ func TestGetRuntime_CloudRun_DirectProfileName(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_GROVE", "")
+	t.Setenv("FABRIC_GROVE", "")
 
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}

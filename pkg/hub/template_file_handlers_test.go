@@ -29,8 +29,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // contentMockStorage extends mockStorage to also store file content for
@@ -652,12 +652,12 @@ func TestHandleTemplateFileWrite_UpdatesHarness(t *testing.T) {
 	ctx := context.Background()
 
 	tmpl := createTestTemplate(t, s, stor, map[string]string{
-		"scion-agent.yaml": "harness_config: claude\n",
+		"fabric-agent.yaml": "harness_config: claude\n",
 	})
 
-	// Write a new scion-agent.yaml that changes the harness
+	// Write a new fabric-agent.yaml that changes the harness
 	body := `{"content": "default_harness_config: gemini-web\n"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/v1/templates/"+tmpl.ID+"/files/scion-agent.yaml",
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/templates/"+tmpl.ID+"/files/fabric-agent.yaml",
 		strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+testDevToken)
@@ -714,7 +714,7 @@ func TestHandleTemplateFileDelete_ResetsHarness(t *testing.T) {
 	ctx := context.Background()
 
 	tmpl := createTestTemplate(t, s, stor, map[string]string{
-		"scion-agent.yaml": "default_harness_config: gemini-web\n",
+		"fabric-agent.yaml": "default_harness_config: gemini-web\n",
 		"CLAUDE.md":        "# Agent",
 	})
 
@@ -725,7 +725,7 @@ func TestHandleTemplateFileDelete_ResetsHarness(t *testing.T) {
 	}
 
 	// Delete the config file
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/templates/"+tmpl.ID+"/files/scion-agent.yaml", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/templates/"+tmpl.ID+"/files/fabric-agent.yaml", nil)
 	req.Header.Set("Authorization", "Bearer "+testDevToken)
 	w := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(w, req)

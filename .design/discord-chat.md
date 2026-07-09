@@ -1,4 +1,4 @@
-# Discord Chat Provider for Scion Chat App
+# Discord Chat Provider for Fabric Chat App
 
 **Created:** 2026-04-27
 **Status:** Draft
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This design describes the Discord adapter implementation for the `scion-chat-app`. It follows the same pattern as the Google Chat (Phases 1–2) and Slack (Phase 3) adapters: implement the `chatapp.Messenger` interface, normalize Discord events to `ChatEvent`, and render the existing `Card` / `Dialog` / `Widget` model as Discord Embeds and Message Components. All other core infrastructure — the command router, notification relay, identity mapper, broker plugin, and SQLite state layer — is reused without modification.
+This design describes the Discord adapter implementation for the `fabric-chat-app`. It follows the same pattern as the Google Chat (Phases 1–2) and Slack (Phase 3) adapters: implement the `chatapp.Messenger` interface, normalize Discord events to `ChatEvent`, and render the existing `Card` / `Dialog` / `Widget` model as Discord Embeds and Message Components. All other core infrastructure — the command router, notification relay, identity mapper, broker plugin, and SQLite state layer — is reused without modification.
 
 Discord's architecture differs from both Google Chat and Slack in important ways. Events arrive primarily via a persistent WebSocket Gateway connection rather than HTTP webhooks. Slash commands are registered globally via the Discord API rather than configured in a web console. Rich messages use Embeds and Message Components (buttons, select menus) rather than Cards V2 or Block Kit. And per-agent identity requires channel webhooks rather than a per-message scope flag. These differences are significant at the adapter layer but transparent to the shared core.
 
@@ -20,7 +20,7 @@ Discord's architecture differs from both Google Chat and Slack in important ways
 - Use Discord channel webhooks to show per-agent personas (name + avatar)
 - Use Discord Modals for the `Dialog` abstraction (text/textarea fields)
 - Use Discord Threads for notification conversation threading
-- Provide a guild-level dashboard via a `/scion dashboard` command
+- Provide a guild-level dashboard via a `/fabric dashboard` command
 - Integrate with the existing command router, notification relay, and identity mapper without changes to shared code
 
 ### Non-Goals (This Phase)
@@ -30,7 +30,7 @@ Discord's architecture differs from both Google Chat and Slack in important ways
 - Discord Forum channel support (threads-only channels) — regular text channel + thread-per-notification is sufficient for MVP; Forum channels could be revisited as a cleaner organized surface later
 - Discord AutoMod integration
 - Custom Discord Activities (Rich Presence)
-- Sharding for large-scale deployments (>2,500 guilds) — Scion's bot is self-hosted per team, not a public distributed bot
+- Sharding for large-scale deployments (>2,500 guilds) — Fabric's bot is self-hosted per team, not a public distributed bot
 - File/attachment relay to agents
 - OAuth2 user authorization flow for email retrieval
 
@@ -73,7 +73,7 @@ All three adapters can run simultaneously in the same process. A new `Discord Di
 All Discord-specific code lives in a single new package:
 
 ```
-extras/scion-chat-app/
+extras/fabric-chat-app/
 ├── internal/
 │   ├── discord/
 │   │   ├── adapter.go        # DiscordAdapter: Messenger impl, Gateway/HTTP
@@ -99,7 +99,7 @@ The adapter uses the most widely adopted Go Discord library:
 github.com/bwmarrin/discordgo
 ```
 
-This is added to the `extras/scion-chat-app/go.mod` only, keeping the Discord SDK out of the main Scion module's dependency tree (same pattern as the Google Chat and Slack SDKs).
+This is added to the `extras/fabric-chat-app/go.mod` only, keeping the Discord SDK out of the main Fabric module's dependency tree (same pattern as the Google Chat and Slack SDKs).
 
 ---
 
@@ -146,7 +146,7 @@ The Discord bot is created and configured in the [Discord Developer Portal](http
 | `DIRECT_MESSAGES` | No | DM events with the bot |
 | `MESSAGE_CONTENT` | Yes | Read @mention message text (optional, see below) |
 
-> **Note on MESSAGE_CONTENT:** This privileged intent is required only if @mention message routing is enabled (parsing `@Scion tell deploy-agent ...` messages). If the adapter relies solely on slash commands and interactions for all input, this intent is not needed. The adapter supports both modes: slash-command-only (no privileged intents) and slash-command + @mention (requires MESSAGE_CONTENT). The default is slash-command-only.
+> **Note on MESSAGE_CONTENT:** This privileged intent is required only if @mention message routing is enabled (parsing `@Fabric tell deploy-agent ...` messages). If the adapter relies solely on slash commands and interactions for all input, this intent is not needed. The adapter supports both modes: slash-command-only (no privileged intents) and slash-command + @mention (requires MESSAGE_CONTENT). The default is slash-command-only.
 
 ### Bot Token
 
@@ -188,7 +188,7 @@ import (
 
     "github.com/bwmarrin/discordgo"
 
-    "github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/chatapp"
+    "github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/chatapp"
 )
 
 const PlatformName = "discord"
@@ -519,7 +519,7 @@ func (a *Adapter) normalizeSlashCommand(i *discordgo.InteractionCreate) *chatapp
         Platform: PlatformName,
         SpaceID:  i.ChannelID,
         UserID:   interactionUserID(i),
-        Command:  "scion",
+        Command:  "fabric",
         Args:     args,
     }
 
@@ -613,7 +613,7 @@ For commands that require Hub API calls:
 
 ```go
 func (a *Adapter) processSlashCommand(i *discordgo.InteractionCreate) {
-    // 1. Acknowledge with deferred response (shows "Scion is thinking...")
+    // 1. Acknowledge with deferred response (shows "Fabric is thinking...")
     a.session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
@@ -807,7 +807,7 @@ func embedColor(card *chatapp.Card) int {
         "LIMITS_EXCEEDED":   0xE67E22, // Orange
         "DELETED":           0x95A5A6, // Gray
     }
-    // Default: Scion brand color
+    // Default: Fabric brand color
     return 0x1A1A2E
 }
 ```
@@ -1063,7 +1063,7 @@ func extractModalValues(components []discordgo.MessageComponent) map[string]stri
 
 Discord bots have a fixed name and avatar set in the Developer Portal. To achieve per-agent identity (like Slack's `chat:write.customize`), Discord offers **channel webhooks**. A webhook can send messages with a custom `username` and `avatar_url` per execution.
 
-The adapter creates one webhook per channel (named "Scion Agent Relay") and reuses it for all agent messages in that channel. The webhook is created lazily on first use and cached.
+The adapter creates one webhook per channel (named "Fabric Agent Relay") and reuses it for all agent messages in that channel. The webhook is created lazily on first use and cached.
 
 ```go
 // webhooks.go
@@ -1084,7 +1084,7 @@ func (a *Adapter) getOrCreateWebhook(ctx context.Context, channelID string) (*di
     }
 
     for _, wh := range webhooks {
-        if wh.Name == "Scion Agent Relay" && wh.User.ID == a.session.State.User.ID {
+        if wh.Name == "Fabric Agent Relay" && wh.User.ID == a.session.State.User.ID {
             a.webhooksMu.Lock()
             a.webhooks[channelID] = wh
             a.webhooksMu.Unlock()
@@ -1093,7 +1093,7 @@ func (a *Adapter) getOrCreateWebhook(ctx context.Context, channelID string) (*di
     }
 
     // Create new webhook
-    wh, err := a.session.WebhookCreate(channelID, "Scion Agent Relay", "")
+    wh, err := a.session.WebhookCreate(channelID, "Fabric Agent Relay", "")
     if err != nil {
         return nil, fmt.Errorf("creating webhook: %w", err)
     }
@@ -1109,7 +1109,7 @@ func (a *Adapter) getOrCreateWebhook(ctx context.Context, channelID string) (*di
 
 | Message Source | Send Method | Identity Shown |
 |---------------|-------------|----------------|
-| System messages (command responses, help) | Bot API (`ChannelMessageSendComplex`) | Scion bot (fixed name/avatar) |
+| System messages (command responses, help) | Bot API (`ChannelMessageSendComplex`) | Fabric bot (fixed name/avatar) |
 | Agent notifications | Channel webhook (`WebhookExecute`) | Agent slug + RoboHash avatar |
 | Agent-to-user messages | Channel webhook (`WebhookExecute`) | Agent slug + RoboHash avatar |
 
@@ -1216,7 +1216,7 @@ if req.ThreadID != "" {
 }
 ```
 
-The `/scion message --thread <thread-id>` command works with Discord thread IDs (snowflake strings like `1234567890123456789`).
+The `/fabric message --thread <thread-id>` command works with Discord thread IDs (snowflake strings like `1234567890123456789`).
 
 ### Thread Auto-Archive
 
@@ -1243,7 +1243,7 @@ Discord's bot API (`GET /users/{user.id}`) returns username, discriminator, avat
 3. Exchanging an authorization code for an access token
 4. Calling `GET /users/@me` with the access token
 
-This is a heavyweight user interaction that doesn't fit the casual `/scion register` flow.
+This is a heavyweight user interaction that doesn't fit the casual `/fabric register` flow.
 
 ### Registration Strategy
 
@@ -1251,14 +1251,14 @@ For Discord, the registration flow changes:
 
 1. **Auto-register by email: Not available.** The `eventUserLookup` will return an empty email for Discord events. The `ResolveOrAutoRegister()` path will always fall through to the manual registration flow.
 
-2. **Manual registration via device auth: Primary path.** When a Discord user runs `/scion register`, they are guided through the device auth flow (same as the fallback path for Google Chat and Slack):
+2. **Manual registration via device auth: Primary path.** When a Discord user runs `/fabric register`, they are guided through the device auth flow (same as the fallback path for Google Chat and Slack):
    - Bot responds with a device code + verification URL (ephemeral message)
-   - User visits the URL, logs into the Scion Hub, enters the code
+   - User visits the URL, logs into the Fabric Hub, enters the code
    - Mapping is created: Discord user ID ↔ Hub user ID
 
 3. **Explicit email registration: Optional enhancement.** A Discord-specific subcommand could allow users to provide their email directly:
    ```
-   /scion register email:alice@example.com
+   /fabric register email:alice@example.com
    ```
    The adapter would attempt to match this email against Hub users. If a match is found and the email is confirmed through the device auth flow, the mapping is created. This combines the convenience of email matching with the security of device auth verification.
 
@@ -1327,7 +1327,7 @@ const userCacheTTL = 30 * time.Minute // Longer TTL since Discord profiles chang
 
 ### Application Commands
 
-Discord slash commands are registered via the Discord API, not through a web portal configuration. The adapter registers the `/scion` command on startup with subcommands matching the existing command set:
+Discord slash commands are registered via the Discord API, not through a web portal configuration. The adapter registers the `/fabric` command on startup with subcommands matching the existing command set:
 
 ```go
 // commands.go
@@ -1335,8 +1335,8 @@ Discord slash commands are registered via the Discord API, not through a web por
 func (a *Adapter) registerCommands() error {
     commands := []*discordgo.ApplicationCommand{
         {
-            Name:        "scion",
-            Description: "Scion agent management",
+            Name:        "fabric",
+            Description: "Fabric agent management",
             Options: []*discordgo.ApplicationCommandOption{
                 {
                     Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -1467,7 +1467,7 @@ func (a *Adapter) registerCommands() error {
                 {
                     Type:        discordgo.ApplicationCommandOptionSubCommand,
                     Name:        "register",
-                    Description: "Register your Discord account with the Scion Hub",
+                    Description: "Register your Discord account with the Fabric Hub",
                 },
                 {
                     Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -1578,7 +1578,7 @@ func buildArgsFromOptions(options []*discordgo.ApplicationCommandInteractionData
 }
 ```
 
-This means `/scion status my-agent` produces `Args: "status my-agent"`, which the existing `CommandRouter.handleCommand()` parses identically to Google Chat and Slack.
+This means `/fabric status my-agent` produces `Args: "status my-agent"`, which the existing `CommandRouter.handleCommand()` parses identically to Google Chat and Slack.
 
 ### Command Cleanup
 
@@ -1608,7 +1608,7 @@ When the bot is added to or removed from a guild, Discord sends `GUILD_CREATE` a
 ```go
 func (a *Adapter) handleGuildCreate(s *discordgo.Session, g *discordgo.GuildCreate) {
     a.log.Info("joined guild", "guild", g.Name, "id", g.ID)
-    // No automatic space-grove linking — users must explicitly /scion link
+    // No automatic space-grove linking — users must explicitly /fabric link
 }
 
 func (a *Adapter) handleGuildDelete(s *discordgo.Session, g *discordgo.GuildDelete) {
@@ -1626,8 +1626,8 @@ func (a *Adapter) handleGuildDelete(s *discordgo.Session, g *discordgo.GuildDele
 Space-grove linking operates at the channel level (not guild level), consistent with Slack's channel-level linking:
 
 ```
-/scion link production     → Links current channel to "production" grove
-/scion unlink              → Unlinks current channel
+/fabric link production     → Links current channel to "production" grove
+/fabric unlink              → Unlinks current channel
 ```
 
 A guild can have multiple channels linked to different groves (e.g., `#deploy` → production, `#ml-team` → ml-experiments).
@@ -1653,7 +1653,7 @@ func (a *Adapter) hasAdminPermission(guildID, userID string) bool {
 }
 ```
 
-Guild admins can `/scion link` and `/scion broadcast`. Non-admin users can use all other commands based on their Hub permissions (resolved via identity mapping).
+Guild admins can `/fabric link` and `/fabric broadcast`. Non-admin users can use all other commands based on their Hub permissions (resolved via identity mapping).
 
 ---
 
@@ -1679,7 +1679,7 @@ type DiscordConfig struct {
 ### Full Configuration Example
 
 ```yaml
-# scion-chat-app.yaml
+# fabric-chat-app.yaml
 
 hub:
   endpoint: "https://hub.example.com"
@@ -1706,7 +1706,7 @@ platforms:
     guild_id: ""                            # Empty = global commands (production)
 
 state:
-  database: "/var/lib/scion-chat-app/state.db"
+  database: "/var/lib/fabric-chat-app/state.db"
 
 notifications:
   trigger_activities:
@@ -1859,7 +1859,7 @@ The `discordgo` library does not include a test server, but the adapter's event 
 
 ### Phase 4a: Core Discord Adapter
 
-- [ ] Add `github.com/bwmarrin/discordgo` dependency to `extras/scion-chat-app/go.mod`
+- [ ] Add `github.com/bwmarrin/discordgo` dependency to `extras/fabric-chat-app/go.mod`
 - [ ] Add `DiscordConfig` to `PlatformsConfig` in `config.go`
 - [ ] Implement `internal/discord/adapter.go` — `Adapter` struct, Gateway connection, `Start()`/`Stop()`
 - [ ] Implement `internal/discord/events.go` — event normalization for slash commands, messages, interactions
@@ -1901,7 +1901,7 @@ The `discordgo` library does not include a test server, but the adapter's event 
 
 3. **Per-agent identity: Channel webhooks.** Discord bots have fixed identity. Channel webhooks allow custom `username` and `avatar_url` per message, achieving the same effect as Slack's `chat:write.customize`. One webhook per channel is created lazily and cached.
 
-4. **User email: Not available; device auth is the only registration path.** Discord's bot API does not expose user email. Auto-registration by email is not possible, and no OAuth2 workaround will be implemented. Users run `/scion register`, receive a device code and Hub URL, complete the flow in the browser, and the Discord–Hub mapping is created. This is the sole registration path.
+4. **User email: Not available; device auth is the only registration path.** Discord's bot API does not expose user email. Auto-registration by email is not possible, and no OAuth2 workaround will be implemented. Users run `/fabric register`, receive a device code and Hub URL, complete the flow in the browser, and the Discord–Hub mapping is created. This is the sole registration path.
 
 5. **Modal limitations: Two-phase approach.** Discord modals only support text inputs. Select/checkbox dialog fields are rendered as message components (select menus, buttons) outside the modal. For the chat app's current dialog flows, this is not a significant limitation.
 

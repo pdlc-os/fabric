@@ -26,7 +26,7 @@ portion of the membership-based visibility model.
   group detail page or any other usage of the editor.
 
 ### 3. `web/src/components/pages/project-settings.ts`
-- Set `showProjectMembersHint` on the `<scion-group-member-editor>` instance
+- Set `showProjectMembersHint` on the `<fabric-group-member-editor>` instance
 - Updated `sectionDescription` from "create and manage agents" to
   "access this project and its agents" to reflect the new access model
 

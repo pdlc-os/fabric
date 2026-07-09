@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/schedule"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/schedule"
 )
 
 // ScheduleDelete is the builder for deleting a Schedule entity.

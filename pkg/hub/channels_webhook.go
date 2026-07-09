@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // WebhookChannel delivers notifications by POSTing the structured message

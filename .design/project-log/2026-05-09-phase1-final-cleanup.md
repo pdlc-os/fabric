@@ -24,15 +24,15 @@ This cleanup focused on consistency within the codebase while preserving the ext
     - Updated handlers to use `ProjectID` and `ProjectSlug` fields (preserving JSON tags).
 - **cmd**:
     - Renamed internal helper functions like `findGroveByName` -> `findProjectByName`.
-    - Updated `gitCloneWorkspace` to support `SCION_WORKSPACE_PATH` override for easier testing.
+    - Updated `gitCloneWorkspace` to support `FABRIC_WORKSPACE_PATH` override for easier testing.
 - **extras**:
-    - Renamed utility functions in `agent-viz`, `fs-watcher-tool`, and `scion-a2a-bridge`.
+    - Renamed utility functions in `agent-viz`, `fs-watcher-tool`, and `fabric-a2a-bridge`.
 
 ## Verification Results
 - `go build ./...` passes.
 - `go test ./...` passes for all core packages (`pkg/config`, `pkg/agent`, `pkg/hub`, `pkg/runtimebroker`, `pkg/hubsync`, `cmd`).
-- Verified that JSON tags and environment variable names (e.g., `SCION_GROVE_ID`) are preserved where they form part of the API surface.
+- Verified that JSON tags and environment variable names (e.g., `FABRIC_GROVE_ID`) are preserved where they form part of the API surface.
 
 ## Observations
-- Environment pollution (especially `SCION_GROVE_ID` and `SCION_OTEL_ENDPOINT`) in the sandbox container caused several test failures that required explicit unsetting in the tests.
+- Environment pollution (especially `FABRIC_GROVE_ID` and `FABRIC_OTEL_ENDPOINT`) in the sandbox container caused several test failures that required explicit unsetting in the tests.
 - Reverting accidental JSON key renames in tests was necessary to maintain compatibility with unchanged struct tags.

@@ -20,14 +20,14 @@ package. This module provides a lightweight replacement that:
   1. Accepts --input <message> to deliver an initial task to the agent.
   2. Loads the agent from this package.
   3. Uses ADK's InMemoryRunner to execute it.
-  4. Falls through to an interactive input() loop so that scion can deliver
+  4. Falls through to an interactive input() loop so that fabric can deliver
      follow-up messages via tmux send-keys.
 
 Usage (standalone):
-    python -m adk_scion_agent.run --input "write a hello world script"
+    python -m adk_fabric_agent.run --input "write a hello world script"
 
 Usage (container CMD):
-    python -m adk_scion_agent.run
+    python -m adk_fabric_agent.run
 """
 
 import argparse
@@ -42,7 +42,7 @@ from .agent import root_agent
 
 def _trace(msg: str) -> None:
     """Log a startup trace to both the tmux pane and container logs."""
-    line = f"[adk_scion_agent] {msg}"
+    line = f"[adk_fabric_agent] {msg}"
     print(line, file=sys.stderr, flush=True)
     try:
         with open("/proc/1/fd/2", "w") as f:
@@ -54,8 +54,8 @@ def _trace(msg: str) -> None:
 
 _trace("Modules imported successfully")
 
-APP_NAME = "adk_scion_agent"
-USER_ID = "scion_user"
+APP_NAME = "adk_fabric_agent"
+USER_ID = "fabric_user"
 
 
 async def _run(initial_message: str | None) -> None:
@@ -83,7 +83,7 @@ async def _run(initial_message: str | None) -> None:
         print(f"[user]: {initial_message}", flush=True)
         await send(initial_message)
 
-    # Interactive loop — scion delivers follow-up input via tmux send-keys.
+    # Interactive loop — fabric delivers follow-up input via tmux send-keys.
     while True:
         try:
             query = input("[user]: ")
@@ -100,7 +100,7 @@ async def _run(initial_message: str | None) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Run the ADK scion agent with optional initial input."
+        description="Run the ADK fabric agent with optional initial input."
     )
     parser.add_argument(
         "--input",

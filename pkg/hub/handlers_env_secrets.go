@@ -25,10 +25,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 type ListEnvVarsResponse struct {
@@ -596,10 +596,10 @@ func (s *Server) ensureProgenyPolicy(ctx context.Context, meta *secret.SecretMet
 				},
 			},
 			Labels: map[string]string{
-				"scion.dev/managed-by":   "progeny-secret-access",
-				"scion.dev/secret-key":   meta.Name,
-				"scion.dev/secret-id":    meta.ID,
-				"scion.dev/secret-scope": meta.Scope,
+				"fabric.dev/managed-by":   "progeny-secret-access",
+				"fabric.dev/secret-key":   meta.Name,
+				"fabric.dev/secret-id":    meta.ID,
+				"fabric.dev/secret-scope": meta.Scope,
 			},
 			CreatedBy: meta.CreatedBy,
 		}
@@ -1665,12 +1665,12 @@ func (s *Server) addProjectProvider(w http.ResponseWriter, r *http.Request, proj
 		return
 	}
 
-	// For linked projects (local directory), initialize the .scion directory
+	// For linked projects (local directory), initialize the .fabric directory
 	// so agents and templates directories exist before the first agent starts.
 	if cleanPath != "" {
-		scionDir := filepath.Join(cleanPath, ".scion")
-		if err := config.InitProject(scionDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
-			slog.Warn("failed to initialize .scion in linked project",
+		fabricDir := filepath.Join(cleanPath, ".fabric")
+		if err := config.InitProject(fabricDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
+			slog.Warn("failed to initialize .fabric in linked project",
 				"project_id", projectID, "localPath", cleanPath, "error", err.Error())
 		}
 	}

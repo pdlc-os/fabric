@@ -108,7 +108,7 @@ export class StateManager extends EventTarget {
 
   /**
    * Initialize state from server-rendered data.
-   * Called once on page load with the __SCION_DATA__ payload.
+   * Called once on page load with the __FABRIC_DATA__ payload.
    *
    * @param initialData - Agents and/or projects from the prefetched API response.
    * @param scopeCapabilities - Scope-level capabilities from the API response's

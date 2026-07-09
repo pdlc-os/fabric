@@ -87,14 +87,14 @@ func NewStore(path string) *Store {
 }
 
 // DefaultPath returns the default path to the broker credentials file.
-// This is ~/.scion/broker-credentials.json
+// This is ~/.fabric/broker-credentials.json
 func DefaultPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		// Fallback to current directory if home is not available
 		return DefaultFileName
 	}
-	return filepath.Join(home, ".scion", DefaultFileName)
+	return filepath.Join(home, ".fabric", DefaultFileName)
 }
 
 // Path returns the path to the credentials file.

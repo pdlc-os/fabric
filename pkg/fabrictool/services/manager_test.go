@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 func setupTestEnv(t *testing.T) (cleanup func()) {
@@ -250,7 +250,7 @@ func TestManager_LogFiles(t *testing.T) {
 	_ = mgr.Shutdown(shutdownCtx)
 
 	home := os.Getenv("HOME")
-	logDir := filepath.Join(home, ".scion", "services", "logs")
+	logDir := filepath.Join(home, ".fabric", "services", "logs")
 
 	// Check stdout log
 	stdoutData, err := os.ReadFile(filepath.Join(logDir, "echoer.stdout.log"))
@@ -308,7 +308,7 @@ func TestManager_ServiceEnv(t *testing.T) {
 	_ = mgr.Shutdown(shutdownCtx)
 
 	home := os.Getenv("HOME")
-	logDir := filepath.Join(home, ".scion", "services", "logs")
+	logDir := filepath.Join(home, ".fabric", "services", "logs")
 
 	stdoutData, err := os.ReadFile(filepath.Join(logDir, "env-printer.stdout.log"))
 	if err != nil {
@@ -340,7 +340,7 @@ func TestManager_StartOrder(t *testing.T) {
 	// Lifecycle log entries are written synchronously before moving to the
 	// next service, so the ordering is deterministic.
 	home := os.Getenv("HOME")
-	logDir := filepath.Join(home, ".scion", "services", "logs")
+	logDir := filepath.Join(home, ".fabric", "services", "logs")
 
 	for _, name := range []string{"first", "second", "third"} {
 		logFile := filepath.Join(logDir, name+".lifecycle.log")

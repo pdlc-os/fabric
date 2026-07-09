@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package brokerclient provides a Go client for the Scion Runtime Broker API.
+// Package brokerclient provides a Go client for the Fabric Runtime Broker API.
 package brokerclient
 
 import (
@@ -20,8 +20,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/runtimebroker"
 )
 
 // Client is the interface for the Runtime Broker API client.
@@ -129,9 +129,9 @@ func WithDevToken(token string) Option {
 
 // WithAutoDevAuth attempts to load a development token automatically.
 // It checks in order:
-// 1. SCION_DEV_TOKEN environment variable
-// 2. SCION_DEV_TOKEN_FILE environment variable (path to token file)
-// 3. Default token file (~/.scion/dev-token)
+// 1. FABRIC_DEV_TOKEN environment variable
+// 2. FABRIC_DEV_TOKEN_FILE environment variable (path to token file)
+// 3. Default token file (~/.fabric/dev-token)
 // If no token is found, authentication is not configured.
 func WithAutoDevAuth() Option {
 	return func(c *client) {

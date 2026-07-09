@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-30 (decisions folded in 2026-05-31)
 **Status:** Sub-design — detailed plan (W5 of `workstation-onboarding.md`)
-**Author:** Scion Agent (workstation-improvements)
+**Author:** Fabric Agent (workstation-improvements)
 **Parent:** [`.design/workstation-onboarding.md`](./workstation-onboarding.md) §2.5, §5 (W5), §1a (D5/D6/D7)
 
 > **Confirmed decisions (2026-05-31):** **D5** — ship the **server-side directory
@@ -16,7 +16,7 @@
 ## 1. Scope
 
 Surface **linked groves** — local directories that live *outside* the Hub's
-managed path space (`~/.scion/projects/<slug>/`) — as a first-class create flow in
+managed path space (`~/.fabric/projects/<slug>/`) — as a first-class create flow in
 the workstation Web UI.
 
 Everything below the UI already exists:
@@ -29,7 +29,7 @@ Everything below the UI already exists:
   `AddProviderRequest{ BrokerID, LocalPath }` (`pkg/hub/handlers.go:3211-3215`).
 - **WebDAV/file resolution** honors a co-located broker's `LocalPath` directly
   (`pkg/hub/project_webdav.go:136-190`).
-- **CLI precedent** — `scion hub link` ensures the project exists, then adds the
+- **CLI precedent** — `fabric hub link` ensures the project exists, then adds the
   local broker as a provider with `LocalPath: resolvedPath`
   (`cmd/hub.go:2376-2388`, full command `runHubLink` at `cmd/hub.go:2172`).
 
@@ -64,7 +64,7 @@ inline as a pass/warn/fail line (reuse `status-badge.js`, already imported at
 `project-create.ts:27`).
 
 - **Pros:** small surface area; one new endpoint; no recursive filesystem exposure;
-  matches `scion hub link`'s "you are already standing in the directory" mental
+  matches `fabric hub link`'s "you are already standing in the directory" mental
   model; trivially fenceable.
 - **Cons:** user must know/paste the absolute path; no discoverability.
 
@@ -113,7 +113,7 @@ Response: {
   "isDir":      true,
   "readable":   true,
   "isGitRepo":  true,                          // contains .git
-  "alreadyManaged":  false,                     // under ~/.scion/projects (or legacy groves)
+  "alreadyManaged":  false,                     // under ~/.fabric/projects (or legacy groves)
   "alreadyLinked":   false,                     // a provider already points here
   "warnings":   ["Path is a git repository; agents will operate on the working tree."],
   "error":      ""                              // human-readable when valid=false
@@ -133,7 +133,7 @@ for the Option B `fs/list` sibling.
 4. **Not already managed** — reject (or warn) if `resolved` is within the managed
    path space. Compute the managed root the same way the hub does:
    `hubNativeProjectPath()` at `pkg/hub/handlers.go:3736-3752` places projects under
-   `~/.scion/projects/<slug>/` (legacy `~/.scion/groves/<slug>/`). Linking a managed
+   `~/.fabric/projects/<slug>/` (legacy `~/.fabric/groves/<slug>/`). Linking a managed
    directory back in as "linked" is nonsensical and is a hard `valid=false`.
 5. **Not already linked** — scan existing providers for a `LocalPath` whose resolved
    form equals `resolved`; surface as `alreadyLinked` (warn, not hard fail — the user
@@ -152,7 +152,7 @@ for the Option B `fs/list` sibling.
 - **Path-safety helper** — factor the resolve+managed-root logic into
   `pkg/hub/fs_safety.go` (`resolveAndClassifyPath(path string) (...)`) so Option B's
   `fs/list` can reuse it. The managed-root computation should call/share the existing
-  `hubNativeProjectPath` logic rather than re-deriving `~/.scion/projects`.
+  `hubNativeProjectPath` logic rather than re-deriving `~/.fabric/projects`.
 - **Provider scan** — reuse `s.store.GetProjectProviders` (already used at
   `pkg/hub/handlers.go:5373`, `:7969`) across the user's projects, or add a
   store helper `GetProviderByLocalPath` if a full scan proves too coarse. Start with
@@ -319,7 +319,7 @@ In `render()`, add a `${this.mode === 'linked' ? html\`...\` : nothing}` block
   (retained as the source of truth — D5), plus a **"Browse…"** button that opens the
   directory-browser modal;
 - the **directory-browser modal** (new component, e.g.
-  `web/src/components/dialogs/directory-browser.ts`, `scion-directory-browser`): a
+  `web/src/components/dialogs/directory-browser.ts`, `fabric-directory-browser`): a
   breadcrumb + folder list backed by `GET /system/fs/list`, a **"New folder"** button
   backed by `POST /system/fs/mkdir`, and a **Select** action that writes the chosen
   resolved path back into `localPath` and closes the modal (which triggers
@@ -331,7 +331,7 @@ Name/slug/visibility fields below (lines 570-622) stay shared. The git-only Defa
 Branch block (lines 592-607) already keys off `this.mode === 'git'`, so it stays
 hidden for `linked` with no change.
 
-### 5.4 Submit path (two-step, mirroring `scion hub link`)
+### 5.4 Submit path (two-step, mirroring `fabric hub link`)
 
 `handleSubmit` (line 356) currently builds one `POST /api/v1/projects` body. For
 `linked`, follow the CLI's link semantics (`cmd/hub.go:2376-2388`): **create the
@@ -403,7 +403,7 @@ need an embedded-broker shortcut.
 | File | Change |
 | --- | --- |
 | `web/src/components/pages/project-create.ts` | `'linked'` mode: type (line 29), selector option (466-480), state + debounced `onLocalPathInput`, "Browse…" button, conditional render block, two-step `handleSubmit` (356). |
-| `web/src/components/dialogs/directory-browser.ts` *(new)* | `scion-directory-browser`: breadcrumb + folder list over `fs/list`, "New folder" over `fs/mkdir`, Select writes resolved path to `localPath`. |
+| `web/src/components/dialogs/directory-browser.ts` *(new)* | `fabric-directory-browser`: breadcrumb + folder list over `fs/list`, "New folder" over `fs/mkdir`, Select writes resolved path to `localPath`. |
 | brokers/settings client payload | Surface embedded-broker ID/flag for the UI (§6), or echo `brokerId` from validate response. |
 
 **Docs**
@@ -417,7 +417,7 @@ need an embedded-broker shortcut.
 ## 8. Testing
 
 - **Backend unit** — `resolveAndClassifyPath`: nonexistent path, file-not-dir,
-  unreadable dir, managed-path rejection (`~/.scion/projects/...`), symlink that
+  unreadable dir, managed-path rejection (`~/.fabric/projects/...`), symlink that
   escapes into a managed path, git vs non-git, already-linked. Follow existing hub
   handler test style (`pkg/hub/handlers_project_test.go`, which already sets
   `SetEmbeddedBrokerID`, e.g. `:866`).

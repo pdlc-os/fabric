@@ -12,7 +12,7 @@
   "hasCompletedOnboarding": true,
   "lastOnboardingVersion": "2.0.76",
   "projects": {
-    "/repo-root/.scion/agents/ggg/workspace": {
+    "/repo-root/.fabric/agents/ggg/workspace": {
       "allowedTools": [],
       "mcpContextUris": [],
       "mcpServers": {},

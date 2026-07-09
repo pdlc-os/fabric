@@ -1,8 +1,8 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
-// Package telemetry provides OTLP telemetry collection and forwarding for sciontool.
+// Package telemetry provides OTLP telemetry collection and forwarding for fabrictool.
 // It enables agents to collect and forward traces to Google Cloud backend.
 package telemetry
 
@@ -18,38 +18,38 @@ import (
 // Environment variable names for telemetry configuration.
 const (
 	// EnvEnabled controls whether telemetry collection is enabled.
-	EnvEnabled = "SCION_TELEMETRY_ENABLED"
+	EnvEnabled = "FABRIC_TELEMETRY_ENABLED"
 	// EnvCloudEnabled controls whether telemetry is forwarded to cloud backend.
-	EnvCloudEnabled = "SCION_TELEMETRY_CLOUD_ENABLED"
+	EnvCloudEnabled = "FABRIC_TELEMETRY_CLOUD_ENABLED"
 	// EnvEndpoint is the cloud OTLP endpoint (required for cloud forwarding).
-	EnvEndpoint = "SCION_OTEL_ENDPOINT"
+	EnvEndpoint = "FABRIC_OTEL_ENDPOINT"
 	// EnvProtocol is the OTLP protocol to use (grpc or http).
-	EnvProtocol = "SCION_OTEL_PROTOCOL"
+	EnvProtocol = "FABRIC_OTEL_PROTOCOL"
 	// EnvInsecure controls whether TLS verification is skipped.
-	EnvInsecure = "SCION_OTEL_INSECURE"
+	EnvInsecure = "FABRIC_OTEL_INSECURE"
 	// EnvCAFile is the path to a PEM-encoded CA bundle for OTLP TLS.
-	EnvCAFile = "SCION_OTEL_CA_FILE"
+	EnvCAFile = "FABRIC_OTEL_CA_FILE"
 	// EnvGRPCPort is the local gRPC receiver port.
-	EnvGRPCPort = "SCION_OTEL_GRPC_PORT"
+	EnvGRPCPort = "FABRIC_OTEL_GRPC_PORT"
 	// EnvHTTPPort is the local HTTP receiver port.
-	EnvHTTPPort = "SCION_OTEL_HTTP_PORT"
+	EnvHTTPPort = "FABRIC_OTEL_HTTP_PORT"
 	// EnvFilterExclude is a comma-separated list of event types to exclude.
-	EnvFilterExclude = "SCION_TELEMETRY_FILTER_EXCLUDE"
+	EnvFilterExclude = "FABRIC_TELEMETRY_FILTER_EXCLUDE"
 	// EnvFilterInclude is a comma-separated list of event types to include.
-	EnvFilterInclude = "SCION_TELEMETRY_FILTER_INCLUDE"
+	EnvFilterInclude = "FABRIC_TELEMETRY_FILTER_INCLUDE"
 	// EnvProjectID is the GCP project ID for the exporter.
-	EnvProjectID = "SCION_GCP_PROJECT_ID"
+	EnvProjectID = "FABRIC_GCP_PROJECT_ID"
 	// EnvRedactFields is a comma-separated list of fields to redact.
-	EnvRedactFields = "SCION_TELEMETRY_REDACT"
+	EnvRedactFields = "FABRIC_TELEMETRY_REDACT"
 	// EnvHashFields is a comma-separated list of fields to hash.
-	EnvHashFields = "SCION_TELEMETRY_HASH"
+	EnvHashFields = "FABRIC_TELEMETRY_HASH"
 	// EnvGCPCredentials is the path to a GCP service account key file
 	// for authenticating OTLP exports. Injected by the broker runtime.
-	EnvGCPCredentials = "SCION_OTEL_GCP_CREDENTIALS"
+	EnvGCPCredentials = "FABRIC_OTEL_GCP_CREDENTIALS"
 	// EnvCloudProvider identifies the cloud telemetry backend (e.g. "gcp").
-	EnvCloudProvider = "SCION_TELEMETRY_CLOUD_PROVIDER"
+	EnvCloudProvider = "FABRIC_TELEMETRY_CLOUD_PROVIDER"
 	// EnvMetricsDebug enables verbose metrics normalization/export debugging.
-	EnvMetricsDebug = "SCION_TELEMETRY_METRICS_DEBUG"
+	EnvMetricsDebug = "FABRIC_TELEMETRY_METRICS_DEBUG"
 )
 
 // Default configuration values.
@@ -110,9 +110,9 @@ type FilterConfig struct {
 
 // WellKnownGCPCredentialsPath is the conventional path inside agent containers
 // for the GCP telemetry service account key file. The broker writes this file
-// via the secrets system and sets SCION_OTEL_GCP_CREDENTIALS to point to it.
+// via the secrets system and sets FABRIC_OTEL_GCP_CREDENTIALS to point to it.
 // As a fallback, LoadConfig probes this path when the env var is absent.
-const WellKnownGCPCredentialsPath = ".scion/telemetry-gcp-credentials.json"
+const WellKnownGCPCredentialsPath = ".fabric/telemetry-gcp-credentials.json"
 
 // telemetryTestSandboxed reports whether the calling test has explicitly
 // declared that it has sandboxed the telemetry environment. LoadConfig
@@ -157,7 +157,7 @@ func LoadConfig() *Config {
 		MetricsDebug:       parseBoolEnv(EnvMetricsDebug, false),
 	}
 
-	// Fallback: if SCION_OTEL_GCP_CREDENTIALS is not set, probe the
+	// Fallback: if FABRIC_OTEL_GCP_CREDENTIALS is not set, probe the
 	// well-known path where the broker mounts the telemetry SA key file.
 	// This handles cases where the file is present (e.g. mounted via a
 	// volume or template) but the env var was not injected — for example,
@@ -173,7 +173,7 @@ func LoadConfig() *Config {
 	}
 
 	// Auto-detect GCP provider when credentials file is present but provider
-	// is not explicitly set. The presence of SCION_OTEL_GCP_CREDENTIALS is a
+	// is not explicitly set. The presence of FABRIC_OTEL_GCP_CREDENTIALS is a
 	// strong signal that GCP-native export should be used.
 	if cfg.CloudProvider == "" && cfg.GCPCredentialsFile != "" {
 		cfg.CloudProvider = "gcp"

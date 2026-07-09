@@ -5,7 +5,7 @@
       "GOOGLE_CLOUD_PROJECT"
     ],
     "env_secret_files": {
-      "GOOGLE_CLOUD_PROJECT": "$HOME/.scion/harness/secrets/GOOGLE_CLOUD_PROJECT"
+      "GOOGLE_CLOUD_PROJECT": "$HOME/.fabric/harness/secrets/GOOGLE_CLOUD_PROJECT"
     },
     "files": []
   },

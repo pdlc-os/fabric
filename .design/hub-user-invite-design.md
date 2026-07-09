@@ -65,7 +65,7 @@ settings.yaml (server.auth section)
   → isEmailAuthorized() at login time
 ```
 
-Environment variable override: `SCION_SERVER_AUTH_AUTHORIZEDDOMAINS`.
+Environment variable override: `FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS`.
 
 The admin server config API (`PUT /api/v1/admin/server-config`) can update `settings.yaml` and hot-reload some fields. The `authorized_domains` field is **not** currently in the hot-reload path — it requires a server restart. This design proposes storing the allow list in the **database** (not settings.yaml) to enable dynamic updates.
 
@@ -94,7 +94,7 @@ Users are created on first login (find-or-create pattern in auth handlers). The 
 ### 2.4 Existing Token/Code Patterns
 
 The **User Access Token (UAT)** system (`pkg/store/models.go:863`) provides a reference pattern:
-- Opaque token with prefix (`scion_pat_`), 32 bytes of randomness, base64url-encoded.
+- Opaque token with prefix (`fabric_pat_`), 32 bytes of randomness, base64url-encoded.
 - Stored as SHA-256 hash (never exposed after creation).
 - Has expiry, revocation, and last-used tracking.
 - CRUD via store interface + service layer + API handlers.
@@ -112,7 +112,7 @@ Admin pages use LitElement + Shoelace web components with consistent patterns:
 
 ### 2.6 CLI Patterns
 
-Hub commands use Cobra framework under `scion hub`:
+Hub commands use Cobra framework under `fabric hub`:
 - Service-oriented hubclient with typed methods.
 - `--format json` for machine-readable output, plain text default.
 - `--non-interactive` flag for automation.
@@ -139,7 +139,7 @@ server:
     user_access_mode: "open"  # "open" (default) | "domain_restricted" | "invite_only"
 ```
 
-**Environment variable:** `SCION_SERVER_AUTH_USERACCESSMODE`
+**Environment variable:** `FABRIC_SERVER_AUTH_USERACCESSMODE`
 
 #### Semantics
 
@@ -281,10 +281,10 @@ type InviteCode struct {
 #### Code Format
 
 ```
-scion_inv_<base64url-encoded-random-24-bytes>
+fabric_inv_<base64url-encoded-random-24-bytes>
 ```
 
-- **Prefix `scion_inv_`**: Distinguishes from PATs (`scion_pat_`), dev tokens (`scion_dev_`).
+- **Prefix `fabric_inv_`**: Distinguishes from PATs (`fabric_pat_`), dev tokens (`fabric_dev_`).
 - **Body**: 24 bytes of cryptographic randomness, base64url-encoded (32 chars).
 - **Full length**: ~42 characters.
 
@@ -333,7 +333,7 @@ type InviteCodeStore interface {
 The invite link encodes the code in a URL that the hub's web frontend can handle:
 
 ```
-https://<hub-url>/invite?code=scion_inv_<base64url-random>
+https://<hub-url>/invite?code=fabric_inv_<base64url-random>
 ```
 
 The web frontend handles this route by:
@@ -346,17 +346,17 @@ The web frontend handles this route by:
 
 ```
 User clicks invite link
-  → GET /invite?code=scion_inv_xxx
+  → GET /invite?code=fabric_inv_xxx
   → Web frontend checks auth state
   │
   ├─ Not authenticated:
   │    → Store code in sessionStorage
   │    → Redirect to /login
   │    → After OAuth callback, retrieve code from sessionStorage
-  │    → POST /api/v1/auth/invite/redeem { "code": "scion_inv_xxx" }
+  │    → POST /api/v1/auth/invite/redeem { "code": "fabric_inv_xxx" }
   │
   └─ Already authenticated:
-       → POST /api/v1/auth/invite/redeem { "code": "scion_inv_xxx" }
+       → POST /api/v1/auth/invite/redeem { "code": "fabric_inv_xxx" }
        │
        ├─ User email already on allow list → 200 OK (idempotent)
        ├─ Code valid, not expired, not exhausted:
@@ -385,7 +385,7 @@ type InviteRedeemResponse struct {
 
 The redemption endpoint requires authentication (the user must have completed OAuth). The flow:
 
-1. Validate the code format (must start with `scion_inv_`).
+1. Validate the code format (must start with `fabric_inv_`).
 2. Hash the code and look up the invite.
 3. Check expiry, revocation, and use count.
 4. Add the authenticated user's email to the allow list (idempotent — skip if already present).
@@ -465,7 +465,7 @@ POST   /api/v1/auth/invite/redeem            Redeem an invite code
 
 #### Admin Users Page Enhancement
 
-The existing `/admin/users` page (`scion-page-admin-users`) gains a new section or tab for managing the allow list and invites. Two approaches:
+The existing `/admin/users` page (`fabric-page-admin-users`) gains a new section or tab for managing the allow list and invites. Two approaches:
 
 **Option A (Recommended): Extend the existing Admin Users page** with a tabbed interface:
 - **Tab 1: Users** — existing user management table (current functionality).
@@ -507,44 +507,44 @@ New page at `/invite`:
 
 ### 3.8 CLI
 
-New `scion hub` subcommands:
+New `fabric hub` subcommands:
 
 #### Allow List Commands
 
 ```
-scion hub allow-list                      # List allow list entries
-scion hub allow-list add <email>          # Add email to allow list
+fabric hub allow-list                      # List allow list entries
+fabric hub allow-list add <email>          # Add email to allow list
   --note "description"                    # Optional note
-scion hub allow-list remove <email>       # Remove email from allow list
+fabric hub allow-list remove <email>       # Remove email from allow list
   --yes                                   # Skip confirmation
 ```
 
 #### Invite Commands
 
 ```
-scion hub invite create                   # Create a new invite code
+fabric hub invite create                   # Create a new invite code
   --expires 1h                            # Expiration (required, from preset or custom)
   --max-uses 1                            # Max uses (default 1, 0=unlimited)
   --note "For the new contractor"         # Optional note
 
-scion hub invite list                     # List invite codes
+fabric hub invite list                     # List invite codes
   --format json                           # JSON output
 
-scion hub invite revoke <id>              # Revoke an invite code
+fabric hub invite revoke <id>              # Revoke an invite code
   --yes                                   # Skip confirmation
 
-scion hub invite delete <id>              # Delete an invite code
+fabric hub invite delete <id>              # Delete an invite code
   --yes                                   # Skip confirmation
 ```
 
 **Output examples:**
 
 ```
-$ scion hub invite create --expires 1h --note "Onboarding"
+$ fabric hub invite create --expires 1h --note "Onboarding"
 Invite created successfully.
 
-  Code:    scion_inv_dGhpcyBpcyBhIHRlc3QgY29kZQ
-  Link:    https://hub.example.com/invite?code=scion_inv_dGhpcyBpcyBhIHRlc3QgY29kZQ
+  Code:    fabric_inv_dGhpcyBpcyBhIHRlc3QgY29kZQ
+  Link:    https://hub.example.com/invite?code=fabric_inv_dGhpcyBpcyBhIHRlc3QgY29kZQ
   Expires: 2026-05-07 15:30:00 UTC (in 1 hour)
   Max uses: 1 (single-use)
 
@@ -553,10 +553,10 @@ The code will not be shown again.
 ```
 
 ```
-$ scion hub invite list
+$ fabric hub invite list
 ID                                    PREFIX          STATUS    USES    EXPIRES              NOTE
-a1b2c3d4-...                          scion_in...     active    0/1     2026-05-07 15:30 UTC  Onboarding
-e5f6g7h8-...                          scion_in...     expired   3/0     2026-05-06 10:00 UTC  Workshop
+a1b2c3d4-...                          fabric_in...     active    0/1     2026-05-07 15:30 UTC  Onboarding
+e5f6g7h8-...                          fabric_in...     expired   3/0     2026-05-06 10:00 UTC  Workshop
 ```
 
 #### Hub Client Interface
@@ -677,7 +677,7 @@ CREATE INDEX idx_invite_codes_expires ON invite_codes(expires_at);
 3. Implement `isUserAuthorized()` replacing `isEmailAuthorized()` in auth handlers.
 4. Add hot-reload for `user_access_mode` in `reloadSettings()`.
 5. Admin API endpoints: `GET/POST/DELETE /api/v1/admin/allow-list`.
-6. CLI commands: `scion hub allow-list [add|remove|list]`.
+6. CLI commands: `fabric hub allow-list [add|remove|list]`.
 7. Web UI: Allow List tab on Admin Users page.
 8. Access mode selector in Admin Server Config page.
 
@@ -691,7 +691,7 @@ CREATE INDEX idx_invite_codes_expires ON invite_codes(expires_at);
 2. Invite code generation service (following UAT pattern).
 3. Admin API endpoints: `GET/POST/DELETE /api/v1/admin/invites`, `POST .../revoke`.
 4. Invite redemption endpoint: `POST /api/v1/auth/invite/redeem`.
-5. CLI commands: `scion hub invite [create|list|revoke|delete]`.
+5. CLI commands: `fabric hub invite [create|list|revoke|delete]`.
 6. Web UI: Invites tab on Admin Users page.
 7. Invite landing page (`/invite`).
 8. Frontend invite redemption flow (sessionStorage code preservation across OAuth redirect).
@@ -718,7 +718,7 @@ CREATE INDEX idx_invite_codes_expires ON invite_codes(expires_at);
 
 2. **Allow list + domain interaction.** If `authorized_domains: ["example.com"]` and `user_access_mode: "invite_only"`, should an invited user from `gmail.com` be admitted? ~~Current design says no (both gates must pass). This is safer but may surprise admins. **Recommendation:** Keep the composition (both must pass), but show a clear warning in the UI when both are configured.~~ **Resolved:** Both invite-only AND authorized-domains must pass. Users cannot be added to the allow list if their email is outside the authorized domains. The UI shows a clear warning when both are configured.
 
-3. **Invite code for CLI login.** Should CLI login (`scion hub auth login`) support passing an invite code? ~~**Recommendation:** Yes, add `--invite-code` flag to `scion hub auth login` that calls the redemption endpoint after authentication.~~ **Resolved:** Yes, support CLI for invite management. CLI commands provided for allow-list and invite management.
+3. **Invite code for CLI login.** Should CLI login (`fabric hub auth login`) support passing an invite code? ~~**Recommendation:** Yes, add `--invite-code` flag to `fabric hub auth login` that calls the redemption endpoint after authentication.~~ **Resolved:** Yes, support CLI for invite management. CLI commands provided for allow-list and invite management.
 
 4. **Max invite code lifetime.** Should there be a hard ceiling on invite code expiration (e.g., no more than 24 hours)? ~~**Recommendation:** The 24-hour preset is the maximum in the UI, but the API allows custom values up to 7 days. Admin discretion.~~ **Resolved:** Maximum expiration is 5 days. Presets updated accordingly: 5m, 15m, 30m, 1h, 4h, 12h, 24h, 3d, 5d.
 

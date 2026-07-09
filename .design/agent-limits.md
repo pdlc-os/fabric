@@ -13,8 +13,8 @@ Agents need configurable limits on how long they run and how many LLM turns they
 Both settings are already defined in the configuration layer:
 
 - **Schema** (`agent-v1.schema.json`): `max_turns` (integer, min 1) and `max_duration` (string, pattern `^[0-9]+(s|m|h)$`), both gated on `schema_version: "1"`.
-- **Go struct** (`pkg/api/types.go`): `ScionConfig.MaxTurns` and `ScionConfig.MaxDuration` with a `ParseMaxDuration()` helper.
-- **Environment injection** (`pkg/agent/run.go:280-286`): Both are injected into the container as `SCION_MAX_TURNS` and `SCION_MAX_DURATION`.
+- **Go struct** (`pkg/api/types.go`): `FabricConfig.MaxTurns` and `FabricConfig.MaxDuration` with a `ParseMaxDuration()` helper.
+- **Environment injection** (`pkg/agent/run.go:280-286`): Both are injected into the container as `FABRIC_MAX_TURNS` and `FABRIC_MAX_DURATION`.
 
 ### Duration Enforcement (Host-Side, Incomplete)
 
@@ -27,32 +27,32 @@ A rudimentary duration timer exists in `pkg/agent/run.go:542-558`. It spawns a g
 
 ### Turn Enforcement (Not Implemented)
 
-No turn counting or enforcement exists. The session parser (`pkg/sciontool/hooks/session/parser.go`) tracks `TurnCount` for metrics, but this is a post-hoc analysis tool, not a live enforcement mechanism.
+No turn counting or enforcement exists. The session parser (`pkg/fabrictool/hooks/session/parser.go`) tracks `TurnCount` for metrics, but this is a post-hoc analysis tool, not a live enforcement mechanism.
 
 ## 3. Design
 
 ### 3.1. Principle: Enforce Inside the Container
 
-All limit enforcement moves into `sciontool`, which runs as PID 1 inside the container. This is the correct enforcement point because:
+All limit enforcement moves into `fabrictool`, which runs as PID 1 inside the container. This is the correct enforcement point because:
 
-- **sciontool is already the supervisor**: It manages the child process lifecycle, handles signals, and controls container exit. Limit enforcement is a natural extension of this role.
-- **sciontool already receives hook events**: The harness (Claude Code, Gemini CLI) sends events to `sciontool hook` on every turn, tool call, and session event. Turn counting piggybacks on this existing event stream.
-- **sciontool already manages status**: It writes `agent-info.json`, logs to `agent.log`, and reports to the Hub. Limit-exceeded reporting uses the same channels.
+- **fabrictool is already the supervisor**: It manages the child process lifecycle, handles signals, and controls container exit. Limit enforcement is a natural extension of this role.
+- **fabrictool already receives hook events**: The harness (Claude Code, Gemini CLI) sends events to `fabrictool hook` on every turn, tool call, and session event. Turn counting piggybacks on this existing event stream.
+- **fabrictool already manages status**: It writes `agent-info.json`, logs to `agent.log`, and reports to the Hub. Limit-exceeded reporting uses the same channels.
 - **Works everywhere**: Inside the container, enforcement is runtime-agnostic. It works identically on Docker, Kubernetes, and Apple Virtualization.
 
-The existing host-side `startDurationTimer` in `pkg/agent/run.go` should be removed once sciontool enforcement is in place.
+The existing host-side `startDurationTimer` in `pkg/agent/run.go` should be removed once fabrictool enforcement is in place.
 
 ### 3.2. New Agent State: `LIMITS_EXCEEDED`
 
 A new terminal state is added alongside `COMPLETED` and `ERROR`:
 
 ```go
-// In pkg/sciontool/hooks/types.go
+// In pkg/fabrictool/hooks/types.go
 StateLimitsExceeded AgentState = "LIMITS_EXCEEDED"
 ```
 
 ```go
-// In pkg/sciontool/hub/client.go
+// In pkg/fabrictool/hub/client.go
 StatusLimitsExceeded AgentStatus = "limits_exceeded"
 ```
 
@@ -62,7 +62,7 @@ This state is **sticky** (like `COMPLETED`), meaning subsequent events from the 
 
 #### Mechanism
 
-When `sciontool init` starts, it reads `SCION_MAX_DURATION` from the environment and starts an internal timer. When the timer fires:
+When `fabrictool init` starts, it reads `FABRIC_MAX_DURATION` from the environment and starts an internal timer. When the timer fires:
 
 1. Log the event to `agent.log`.
 2. Set agent status to `LIMITS_EXCEEDED` in `agent-info.json`.
@@ -70,7 +70,7 @@ When `sciontool init` starts, it reads `SCION_MAX_DURATION` from the environment
 4. Send `SIGTERM` to the child process group (the harness).
 5. Wait for the configured grace period (same as normal shutdown).
 6. If the child has not exited, send `SIGKILL`.
-7. `sciontool` exits with a **distinct exit code** (see Section 3.5).
+7. `fabrictool` exits with a **distinct exit code** (see Section 3.5).
 
 #### Timer Start Point
 
@@ -78,7 +78,7 @@ The timer starts when the child process (harness) is successfully launched -- af
 
 #### Implementation Location
 
-The duration timer lives in `cmd/sciontool/commands/init.go`, integrated into the existing `runInit` flow. It is implemented as an additional case in the `select` that currently waits on `exitChan`:
+The duration timer lives in `cmd/fabrictool/commands/init.go`, integrated into the existing `runInit` flow. It is implemented as an additional case in the `select` that currently waits on `exitChan`:
 
 ```go
 // Pseudocode for the wait loop in runInit()
@@ -94,7 +94,7 @@ case result := <-exitChan:
     // Normal child exit (existing behavior)
 case <-durationTimer:
     // Max duration exceeded -- initiate limit-exceeded shutdown
-    handleLimitsExceeded("duration", fmt.Sprintf("max_duration of %s exceeded", os.Getenv("SCION_MAX_DURATION")))
+    handleLimitsExceeded("duration", fmt.Sprintf("max_duration of %s exceeded", os.Getenv("FABRIC_MAX_DURATION")))
 }
 ```
 
@@ -115,7 +115,7 @@ All limit counters (turn count, model call count, and duration timer) reset when
 
 #### Mechanism
 
-Turn and model call counting is implemented as a new handler registered in the hook event pipeline. Since `sciontool hook` is invoked as a separate process for each event (it is not a long-running daemon), the counts must be persisted to disk between invocations.
+Turn and model call counting is implemented as a new handler registered in the hook event pipeline. Since `fabrictool hook` is invoked as a separate process for each event (it is not a long-running daemon), the counts must be persisted to disk between invocations.
 
 **Limit state file**: `~/agent-limits.json`
 
@@ -134,17 +134,17 @@ When a count-incrementing event is received and the count meets or exceeds the c
 1. Write a clear log entry to `agent.log`.
 2. Set agent status to `LIMITS_EXCEEDED` in `agent-info.json`.
 3. Report `limits_exceeded` to the Hub (if configured).
-4. Send `SIGTERM` to the harness process by signaling PID 1 (sciontool init).
+4. Send `SIGTERM` to the harness process by signaling PID 1 (fabrictool init).
 
 #### Signaling the Init Process
 
-The `sciontool hook` process needs to tell the init process (PID 1) to begin shutdown. This is done by sending `SIGUSR1` to PID 1. The init process registers a `SIGUSR1` handler that initiates the same limit-exceeded shutdown sequence used for duration limits.
+The `fabrictool hook` process needs to tell the init process (PID 1) to begin shutdown. This is done by sending `SIGUSR1` to PID 1. The init process registers a `SIGUSR1` handler that initiates the same limit-exceeded shutdown sequence used for duration limits.
 
 The reason for using a signal rather than having the hook process directly kill the harness: the init process owns the child lifecycle and the graceful shutdown sequence. The hook process should only request shutdown, not perform it.
 
 ```
 ┌──────────────────┐     SIGUSR1      ┌──────────────────┐
-│  sciontool hook   │ ──────────────▶  │  sciontool init   │
+│  fabrictool hook   │ ──────────────▶  │  fabrictool init   │
 │  (turn counter)   │                  │  (PID 1)          │
 │                   │                  │                    │
 │  Detects limit    │                  │  Receives signal   │
@@ -161,15 +161,15 @@ On `pre-start` or `post-start`, the init process initializes `agent-limits.json`
 
 ### 3.5. Exit Codes
 
-When sciontool exits due to a limit being exceeded, it uses a distinct exit code so that the host-side orchestrator (scion CLI or runtime broker) can distinguish limit-exceeded exits from normal completion or errors:
+When fabrictool exits due to a limit being exceeded, it uses a distinct exit code so that the host-side orchestrator (fabric CLI or runtime broker) can distinguish limit-exceeded exits from normal completion or errors:
 
 | Exit Code | Meaning |
 |-----------|---------|
 | 0         | Normal exit (harness exited successfully) |
-| 1         | Error (harness crashed or sciontool error) |
+| 1         | Error (harness crashed or fabrictool error) |
 | 10        | Limits exceeded (max_turns or max_duration) |
 
-The exit code is propagated through the container runtime and is available to the host via `scion list` or the Hub API.
+The exit code is propagated through the container runtime and is available to the host via `fabric list` or the Hub API.
 
 ### 3.6. Logging
 
@@ -178,13 +178,13 @@ All limit-related events produce structured log entries in `agent.log` using the
 #### When Duration Limit is Hit
 
 ```
-2026-02-22 14:30:00 [sciontool] [INFO] [LIMITS_EXCEEDED] Agent stopped: max_duration of 2h exceeded (started at 2026-02-22 12:30:00)
+2026-02-22 14:30:00 [fabrictool] [INFO] [LIMITS_EXCEEDED] Agent stopped: max_duration of 2h exceeded (started at 2026-02-22 12:30:00)
 ```
 
 #### When Turn Limit is Hit
 
 ```
-2026-02-22 14:30:00 [sciontool] [INFO] [LIMITS_EXCEEDED] Agent stopped: max_turns of 50 exceeded (completed 50 turns)
+2026-02-22 14:30:00 [fabrictool] [INFO] [LIMITS_EXCEEDED] Agent stopped: max_turns of 50 exceeded (completed 50 turns)
 ```
 
 #### When Neither Limit is Configured
@@ -204,7 +204,7 @@ hubClient.UpdateStatus(ctx, hub.StatusUpdate{
 
 This allows the Hub UI and API consumers to display the reason the agent stopped. A new `ReportLimitsExceeded` convenience method is added to the Hub client alongside the existing `ReportError`, `ReportStopped`, etc.
 
-Limit status is also incorporated into the sciontool heartbeat/status update cycle to the Hub. The separate `agent-limits.json` file stores the raw counters locally, but the limit-exceeded status is communicated to the Hub via the standard status update mechanism (same endpoint used by heartbeats and other status changes).
+Limit status is also incorporated into the fabrictool heartbeat/status update cycle to the Hub. The separate `agent-limits.json` file stores the raw counters locally, but the limit-exceeded status is communicated to the Hub via the standard status update mechanism (same endpoint used by heartbeats and other status changes).
 
 ### 3.8. Interaction with Existing States
 
@@ -213,50 +213,50 @@ The `LIMITS_EXCEEDED` state has specific interactions with the status system:
 - **Sticky**: Once set, it cannot be overwritten by normal event-driven updates (same as `COMPLETED`). This prevents the harness's dying events from overwriting the limit status.
 - **Overrides `COMPLETED`**: If a harness happens to report task completion in the same moment a limit fires, `LIMITS_EXCEEDED` takes priority. The limit is the authoritative reason for shutdown.
 - **Does not override `ERROR`**: If the agent is already in an error state, the limit status is not applied. The original error is more important to preserve.
-- **Hub shutdown sequence**: After `LIMITS_EXCEEDED` is set and the child exits, the normal shutdown sequence (`shutting_down` → `stopped`) still runs on the Hub side. The `LIMITS_EXCEEDED` status is preserved in `agent-info.json` for the local `scion list` display.
+- **Hub shutdown sequence**: After `LIMITS_EXCEEDED` is set and the child exits, the normal shutdown sequence (`shutting_down` → `stopped`) still runs on the Hub side. The `LIMITS_EXCEEDED` status is preserved in `agent-info.json` for the local `fabric list` display.
 
 ## 4. Implementation Plan
 
 ### Phase 1: State and Status Infrastructure ✓
 
-1. ✓ Add `StateLimitsExceeded` to `pkg/sciontool/hooks/types.go`.
-2. ✓ Add `StatusLimitsExceeded` to `pkg/sciontool/hub/client.go` with a `ReportLimitsExceeded` method.
+1. ✓ Add `StateLimitsExceeded` to `pkg/fabrictool/hooks/types.go`.
+2. ✓ Add `StatusLimitsExceeded` to `pkg/fabrictool/hub/client.go` with a `ReportLimitsExceeded` method.
 3. ✓ Update `isStickyStatus` in `handlers/status.go` to include `LIMITS_EXCEEDED`.
 4. ✓ Update hub handler's tool-start check to also skip `LIMITS_EXCEEDED` (not just `COMPLETED`).
-5. ✓ Add a `sciontool status limits_exceeded` subcommand (for manual testing and potential future use by custom harnesses).
+5. ✓ Add a `fabrictool status limits_exceeded` subcommand (for manual testing and potential future use by custom harnesses).
 
-### Phase 2: Duration Enforcement in sciontool init
+### Phase 2: Duration Enforcement in fabrictool init
 
-1. In `cmd/sciontool/commands/init.go`, read `SCION_MAX_DURATION` and start a timer after post-start hooks complete.
+1. In `cmd/fabrictool/commands/init.go`, read `FABRIC_MAX_DURATION` and start a timer after post-start hooks complete.
 2. Add `SIGUSR1` handler to `init.go` that triggers the limit-exceeded shutdown path.
 3. Implement `handleLimitsExceeded(limitType, message string)` that performs the status update, logging, Hub reporting, and child termination sequence.
 4. Exit with code 10 on limit-exceeded shutdown.
 
 ### Phase 3: Turn and Model Call Enforcement via Hook Handler
 
-1. Create `pkg/sciontool/hooks/handlers/limits.go` containing a `LimitsHandler` that:
-   - Reads `SCION_MAX_TURNS` and `SCION_MAX_MODEL_CALLS` from the environment on construction.
+1. Create `pkg/fabrictool/hooks/handlers/limits.go` containing a `LimitsHandler` that:
+   - Reads `FABRIC_MAX_TURNS` and `FABRIC_MAX_MODEL_CALLS` from the environment on construction.
    - Maintains turn count and model call count in `~/agent-limits.json`.
    - Increments turn count on `agent-end` events.
    - Increments model call count on `model-end` events.
    - When either limit is reached: updates status, logs, reports to Hub, sends `SIGUSR1` to PID 1.
-2. Register `LimitsHandler` in the hook event pipeline in `cmd/sciontool/commands/hook.go`.
+2. Register `LimitsHandler` in the hook event pipeline in `cmd/fabrictool/commands/hook.go`.
 3. Initialize `agent-limits.json` during `post-start` in `init.go` (counters reset on each start/resume).
 
 ### Phase 4: Remove Host-Side Timer
 
 1. Remove `startDurationTimer` from `pkg/agent/run.go`.
 2. Remove the call site in the `Run` function.
-3. The env var injection (`SCION_MAX_TURNS`, `SCION_MAX_DURATION`) remains -- these are how the configuration reaches sciontool.
+3. The env var injection (`FABRIC_MAX_TURNS`, `FABRIC_MAX_DURATION`) remains -- these are how the configuration reaches fabrictool.
 
 ### Phase 5: Host-Side Status Display
 
-1. Update `scion list` / `scion look` to recognize and display the `LIMITS_EXCEEDED` state clearly (distinct from `COMPLETED` or `ERROR`).
+1. Update `fabric list` / `fabric look` to recognize and display the `LIMITS_EXCEEDED` state clearly (distinct from `COMPLETED` or `ERROR`).
 2. Update the Hub UI (if applicable) to display limit-exceeded agents with appropriate messaging.
 
 ## 5. Configuration Examples
 
-### In scion-agent.yaml (Template)
+### In fabric-agent.yaml (Template)
 
 ```yaml
 schema_version: "1"
@@ -268,7 +268,7 @@ max_duration: "4h"
 ### Per-Agent Override
 
 ```yaml
-# .scion/agents/my-agent/scion-agent.yaml
+# .fabric/agents/my-agent/fabric-agent.yaml
 schema_version: "1"
 max_turns: 25
 max_model_calls: 100
@@ -285,8 +285,8 @@ When none of `max_turns`, `max_model_calls`, or `max_duration` is configured, no
 
 - **LimitsHandler**: Test turn counting, model call counting, file persistence, limit detection, and SIGUSR1 signaling (mock the signal send).
 - **Status updates**: Verify `LIMITS_EXCEEDED` is sticky and interacts correctly with other states.
-- **Duration parsing**: Verify `SCION_MAX_DURATION` env var is parsed correctly for various formats.
-- **Exit codes**: Verify sciontool exits with code 10 on limit-exceeded.
+- **Duration parsing**: Verify `FABRIC_MAX_DURATION` env var is parsed correctly for various formats.
+- **Exit codes**: Verify fabrictool exits with code 10 on limit-exceeded.
 
 ### Integration Tests
 
@@ -299,10 +299,10 @@ When none of `max_turns`, `max_model_calls`, or `max_duration` is configured, no
 
 ### Manual Verification
 
-- `scion start --max-duration 1m <agent>` → agent stops after 1 minute, `scion list` shows `LIMITS_EXCEEDED`.
-- `scion start --max-turns 5 <agent>` → agent stops after 5 turns, `agent.log` contains the limits-exceeded entry.
-- `scion start --max-model-calls 20 <agent>` → agent stops after 20 model API calls.
-- `scion look <agent>` shows the limit-exceeded reason clearly.
+- `fabric start --max-duration 1m <agent>` → agent stops after 1 minute, `fabric list` shows `LIMITS_EXCEEDED`.
+- `fabric start --max-turns 5 <agent>` → agent stops after 5 turns, `agent.log` contains the limits-exceeded entry.
+- `fabric start --max-model-calls 20 <agent>` → agent stops after 20 model API calls.
+- `fabric look <agent>` shows the limit-exceeded reason clearly.
 
 ## 7. Risks and Mitigations
 
@@ -312,7 +312,7 @@ When none of `max_turns`, `max_model_calls`, or `max_duration` is configured, no
 | Race between turn limit and duration limit firing simultaneously | The `handleLimitsExceeded` function is idempotent -- multiple calls result in the same outcome. The first to set `LIMITS_EXCEEDED` wins (sticky status). |
 | `agent-limits.json` gets corrupted | Use atomic writes (write-to-temp + rename), matching the pattern used by `agent-info.json`. |
 | Harness doesn't emit `agent-end` events consistently | The `max_model_calls` limit (counted on `model-end`) provides an independent enforcement mechanism. Both limits should be configured for defense-in-depth. |
-| Removing host-side timer before sciontool enforcement is deployed | Phase 4 (removal) depends on Phase 2 and 3 being deployed first. Both approaches can coexist temporarily -- the host-side timer acts as a fallback. |
+| Removing host-side timer before fabrictool enforcement is deployed | Phase 4 (removal) depends on Phase 2 and 3 being deployed first. Both approaches can coexist temporarily -- the host-side timer acts as a fallback. |
 
 ## 8. Resolved Decisions
 

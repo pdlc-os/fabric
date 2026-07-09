@@ -36,8 +36,8 @@ const hostedUserGuide = {
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://googlecloudplatform.github.io',
-	base: '/scion',
+	site: 'https://pdlc-os.github.io',
+	base: '/fabric',
 	// Preserve old URLs after the mode-axis restructure so inbound links do not 404.
 	redirects: {
 		'/advanced-local/local-governance': '/local/local-governance',
@@ -74,9 +74,9 @@ export default defineConfig({
 		d2(),
 		starlight({
 			plugins: [starlightLinksValidator()],
-			title: 'Scion',
+			title: 'Fabric',
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/GoogleCloudPlatform/scion' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/pdlc-os/fabric' },
 			],
 			sidebar: [
 				{

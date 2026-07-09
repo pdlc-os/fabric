@@ -27,7 +27,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 RUN apt-get update && apt-get install -y --no-install-recommends ripgrep \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install pip (not included in scion-base)
+# Install pip (not included in fabric-base)
 RUN apt-get update && apt-get install -y --no-install-recommends python3-pip \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -38,7 +38,7 @@ RUN if [ -n "${HERMES_VERSION}" ]; then \
       pip install --no-cache-dir --break-system-packages hermes-agent; \
     fi
 
-RUN mkdir -p /home/scion/.hermes /home/scion/.hermes/skills \
-  && chown -R scion:scion /home/scion/.hermes
+RUN mkdir -p /home/fabric/.hermes /home/fabric/.hermes/skills \
+  && chown -R fabric:fabric /home/fabric/.hermes
 
 CMD ["hermes"]

@@ -109,17 +109,17 @@ No major changes required as `Clientset` is already exposed. We might add a help
 
 1.  **Setup:**
     *   Set `GEMINI_API_KEY` in local env.
-    *   Configure `~/.scion/settings.json` or flag to use `kubernetes`.
+    *   Configure `~/.fabric/settings.json` or flag to use `kubernetes`.
 
 2.  **Test Case 1: Environment Propagation**
-    *   Command: `scion run --runtime kubernetes --image alpine:latest --env MY_VAR=hello "echo $MY_VAR"`
+    *   Command: `fabric run --runtime kubernetes --image alpine:latest --env MY_VAR=hello "echo $MY_VAR"`
     *   Expectation: Pod starts, logs contain "hello", Pod terminates with Succeeded.
 
 3.  **Test Case 2: Custom Image**
-    *   Command: `scion run --runtime kubernetes --image python:3.9 "python --version"`
+    *   Command: `fabric run --runtime kubernetes --image python:3.9 "python --version"`
     *   Expectation: Logs show Python 3.9 version.
 
 4.  **Test Case 3: Harness Start (Gemini)**
-    *   Command: `scion start my-agent` (assuming Gemini harness).
+    *   Command: `fabric start my-agent` (assuming Gemini harness).
     *   Action: Inspect Pod YAML.
     *   Expectation: `GEMINI_API_KEY` is present in `spec.containers[0].env`.

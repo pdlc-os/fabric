@@ -34,8 +34,8 @@ func TestUpgradeHarnessConfig_ContainerScriptUnchanged(t *testing.T) {
 
 	// Already on container-script — should be a no-op.
 	configYAML := `harness: opencode
-image: scion-opencode:latest
-user: scion
+image: fabric-opencode:latest
+user: fabric
 provisioner:
   type: container-script
   interface_version: 1

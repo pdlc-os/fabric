@@ -14,6 +14,6 @@
 
 schema_version: "1"
 name: default
-description: "Default scion agent template"
+description: "Default fabric agent template"
 agent_instructions: agents.md
 system_prompt: system-prompt.md

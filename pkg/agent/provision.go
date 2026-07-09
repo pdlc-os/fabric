@@ -27,13 +27,13 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 func DeleteAgentFiles(agentName string, projectPath string, removeBranch bool) (bool, error) {
@@ -48,11 +48,11 @@ func DeleteAgentFiles(agentName string, projectPath string, removeBranch bool) (
 		// Determine repo root for worktree pruning and branch cleanup.
 		// For worktree-per-agent the shared base lives at
 		// <projectRoot>/workspace where projectRoot is the actual project
-		// directory. GetResolvedProjectDir may have appended .scion
+		// directory. GetResolvedProjectDir may have appended .fabric
 		// (e.g. hub-managed projects), so strip that suffix to match the
 		// path the workspace backend used during provisioning.
 		projectRoot := projectDir
-		if filepath.Base(projectDir) == config.DotScion {
+		if filepath.Base(projectDir) == config.DotFabric {
 			projectRoot = filepath.Dir(projectDir)
 		}
 		sharedBase := filepath.Join(projectRoot, "workspace")
@@ -69,7 +69,7 @@ func DeleteAgentFiles(agentName string, projectPath string, removeBranch bool) (
 
 		// Fallback: resolve repo root from projectDir itself. Passing projectDir
 		// (not its parent) is robust for both local projects (where projectDir is
-		// the repo root) and hub-managed projects (where it is the .scion subdir).
+		// the repo root) and hub-managed projects (where it is the .fabric subdir).
 		// MUST match the base used at sharer registration (ProvisionAgent), or the
 		// refcount lookup (FindBranchForAgent/UnregisterSharer) would miss.
 		if repoRoot == "" {
@@ -232,7 +232,7 @@ func DeleteAgentFiles(agentName string, projectPath string, removeBranch bool) (
 
 	// Phase 3: remove the external per-agent state directory (git project split
 	// storage). For worktree-mode agents this contains only home/. For
-	// shared-workspace agents this also contains prompt.md and scion-agent.json
+	// shared-workspace agents this also contains prompt.md and fabric-agent.json
 	// (relocated to keep siblings from seeing them via the shared /workspace
 	// mount — see .design/hub-shared-workspace-isolation.md). RemoveAll on the
 	// dir handles both layouts.
@@ -258,7 +258,7 @@ func DeleteAgentFiles(agentName string, projectPath string, removeBranch bool) (
 	return branchDeleted, nil
 }
 
-// migrateLegacyAgentState moves prompt.md and scion-agent.json from the
+// migrateLegacyAgentState moves prompt.md and fabric-agent.json from the
 // legacy in-project location to the external (shared-workspace) location for
 // agents provisioned before per-agent state was relocated. The legacy
 // directory is removed if it ends up empty (it shouldn't contain anything
@@ -288,7 +288,7 @@ func migrateLegacyAgentState(legacyDir, externalDir string) {
 		}
 	}
 	moveFile("prompt.md")
-	moveFile("scion-agent.json")
+	moveFile("fabric-agent.json")
 	// Remove the legacy dir if empty (best effort; non-empty leftovers like a
 	// stale workspace/ shell are left in place to avoid surprising deletes).
 	_ = os.Remove(legacyDir)
@@ -299,7 +299,7 @@ func migrateLegacyAgentState(legacyDir, externalDir string) {
 // clean up containers before removing the project config directory.
 func StopProjectContainers(ctx context.Context, mgr Manager, projectName string, agentNames []string) []string {
 	containers, err := mgr.List(ctx, map[string]string{
-		"scion.agent":              "true",
+		"fabric.agent":              "true",
 		projectcompat.LabelProject: projectName,
 	})
 	if err != nil {
@@ -314,7 +314,7 @@ func StopProjectContainers(ctx context.Context, mgr Manager, projectName string,
 
 	var stopped []string
 	for _, c := range containers {
-		agentName := c.Labels["scion.name"]
+		agentName := c.Labels["fabric.name"]
 		if agentName == "" {
 			agentName = strings.TrimPrefix(c.Name, "/")
 		}
@@ -333,7 +333,7 @@ func StopProjectContainers(ctx context.Context, mgr Manager, projectName string,
 	return stopped
 }
 
-func (m *AgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *AgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	if opts.BrokerMode {
 		ctx = api.ContextWithBrokerMode(ctx)
 	}
@@ -348,11 +348,11 @@ func (m *AgentManager) Provision(ctx context.Context, opts api.StartOptions) (*a
 	}
 	// Inject harness auth override into inline config so it is applied
 	// before harness Provision() runs (which reads auth_selectedType to
-	// decide which env vars to inject into scion-agent.json).
+	// decide which env vars to inject into fabric-agent.json).
 	inlineCfg := opts.InlineConfig
 	if opts.HarnessAuth != "" {
 		if inlineCfg == nil {
-			inlineCfg = &api.ScionConfig{}
+			inlineCfg = &api.FabricConfig{}
 		}
 		inlineCfg.AuthSelectedType = opts.HarnessAuth
 	}
@@ -364,14 +364,14 @@ func (m *AgentManager) Provision(ctx context.Context, opts api.StartOptions) (*a
 		return cfg, err
 	}
 
-	// Persist harness auth override to the on-disk config (for sciontool).
+	// Persist harness auth override to the on-disk config (for fabrictool).
 	// The auth type was already applied via inlineConfig above, but we
 	// re-write to ensure the final file reflects the override.
 	if opts.HarnessAuth != "" && cfg != nil {
 		cfg.AuthSelectedType = opts.HarnessAuth
 		cfgData, marshalErr := json.MarshalIndent(cfg, "", "  ")
 		if marshalErr == nil {
-			_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), cfgData, 0644)
+			_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), cfgData, 0644)
 		}
 	}
 
@@ -397,7 +397,7 @@ func resolveHarnessConfigDir(ctx context.Context, name, projectPath string, temp
 	return config.FindHarnessConfigDir(name, projectPath, templatePaths...)
 }
 
-func ProvisionAgent(ctx context.Context, agentName string, templateName string, agentImage string, harnessConfig string, projectPath string, profileName string, optionalStatus string, branch string, workspace string, inlineConfig ...*api.ScionConfig) (string, string, *api.ScionConfig, error) {
+func ProvisionAgent(ctx context.Context, agentName string, templateName string, agentImage string, harnessConfig string, projectPath string, profileName string, optionalStatus string, branch string, workspace string, inlineConfig ...*api.FabricConfig) (string, string, *api.FabricConfig, error) {
 	provisionStart := time.Now()
 	// 1. Prepare agent directories
 	projectDir, err := config.GetResolvedProjectDir(projectPath)
@@ -413,7 +413,7 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 
 	projectName := config.GetProjectName(projectDir)
 	isGit := util.IsGitRepoDir(projectDir)
-	if isGit && os.Getenv("SCION_HOST_UID") != "" {
+	if isGit && os.Getenv("FABRIC_HOST_UID") != "" {
 		// Inside an agent container: treat as non-git to prevent worktree
 		// creation. Container worktrees produce path-identity mismatches
 		// because --relative-paths are computed against the container mount
@@ -432,8 +432,8 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 				if !util.IsIgnored(root, agentsPath+"/") {
 					return "", "", nil, fmt.Errorf("security error: '%s/' must be in .gitignore when using a project-local project", agentsPath)
 				}
-				// Note: .scion/agents/ is the security-critical path (checked above).
-				// .scion/ itself is intentionally NOT fully gitignored so that
+				// Note: .fabric/agents/ is the security-critical path (checked above).
+				// .fabric/ itself is intentionally NOT fully gitignored so that
 				// templates/ and other config can be committed.
 			}
 		}
@@ -484,14 +484,14 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 	// Workspace Resolution Logic
 	if gitClone != nil {
 		// Git clone mode: ensure the workspace directory exists and is ready
-		// for sciontool to clone into at container startup.
+		// for fabrictool to clone into at container startup.
 		//
 		// If the directory already exists with a real git clone (.git as a
 		// directory), preserve it — this is a stopped agent being restarted
-		// and sciontool will skip the clone correctly.
+		// and fabrictool will skip the clone correctly.
 		//
 		// If the directory has a .git FILE (worktree pointer from a previous
-		// local-mode run) or other non-clone content, clear it so sciontool
+		// local-mode run) or other non-clone content, clear it so fabrictool
 		// sees an empty workspace and performs a fresh clone.
 		if info, err := os.Stat(agentWorkspace); err == nil && info.IsDir() {
 			gitDir := filepath.Join(agentWorkspace, ".git")
@@ -605,10 +605,10 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 			return "", "", nil, fmt.Errorf("register sharer (create): %w", regErr)
 		}
 
-		// Write a .scion project marker into the worktree so in-container CLI
-		// can discover the project context. Worktrees don't contain .scion
+		// Write a .fabric project marker into the worktree so in-container CLI
+		// can discover the project context. Worktrees don't contain .fabric
 		// (it's gitignored), so without this marker the CLI would report
-		// "not in a scion project" inside the container.
+		// "not in a fabric project" inside the container.
 		if projectID, err := config.ReadProjectID(projectDir); err == nil && projectID != "" {
 			projectSlug := api.Slugify(projectName)
 			if writeErr := config.WriteWorkspaceMarker(agentWorkspace, projectID, projectName, projectSlug); writeErr != nil {
@@ -623,10 +623,10 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		return "", "", nil, fmt.Errorf("failed to load template: %w", err)
 	}
 
-	finalScionCfg := &api.ScionConfig{}
+	finalFabricCfg := &api.FabricConfig{}
 
 	for _, tpl := range chain {
-		// Load scion-agent config from this template and merge it
+		// Load fabric-agent config from this template and merge it
 		tplCfg, err := tpl.LoadConfig()
 		if err != nil {
 			return "", "", nil, fmt.Errorf("failed to load config from template %s: %w", tpl.Name, err)
@@ -637,20 +637,20 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 			return "", "", nil, fmt.Errorf("template %s: %w", tpl.Name, err)
 		}
 
-		finalScionCfg = config.MergeScionConfig(finalScionCfg, tplCfg)
+		finalFabricCfg = config.MergeFabricConfig(finalFabricCfg, tplCfg)
 	}
 
 	// 2a-inline. Merge inline config over template config (if provided)
-	var inlineCfg *api.ScionConfig
+	var inlineCfg *api.FabricConfig
 	if len(inlineConfig) > 0 && inlineConfig[0] != nil {
 		inlineCfg = inlineConfig[0]
-		finalScionCfg = config.MergeScionConfig(finalScionCfg, inlineCfg)
+		finalFabricCfg = config.MergeFabricConfig(finalFabricCfg, inlineCfg)
 	}
 
 	// 2b. Resolve harness-config name (unified resolution chain)
 	hcResolution, err := config.ResolveHarnessConfigName(config.HarnessConfigInputs{
 		CLIFlag:     harnessConfig,
-		TemplateCfg: finalScionCfg,
+		TemplateCfg: finalFabricCfg,
 		Settings:    settings,
 		ProfileName: profileName,
 	})
@@ -670,11 +670,11 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 	}
 	util.Debugf("ProvisionAgent: harness-config loaded from disk: path=%s harness=%q image=%q",
 		hcDir.Path, hcDir.Config.Harness, hcDir.Config.Image)
-	finalScionCfg.Harness = hcDir.Config.Harness
-	finalScionCfg.HarnessConfig = harnessConfigName
+	finalFabricCfg.Harness = hcDir.Config.Harness
+	finalFabricCfg.HarnessConfig = harnessConfigName
 
-	// Merge harness-config scalars into finalScionCfg (harness-config is base, template overrides)
-	hcCfg := &api.ScionConfig{}
+	// Merge harness-config scalars into finalFabricCfg (harness-config is base, template overrides)
+	hcCfg := &api.FabricConfig{}
 	if hcDir.Config.Image != "" {
 		hcCfg.Image = hcDir.Config.Image
 	}
@@ -697,20 +697,20 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		hcCfg.AuthSelectedType = hcDir.Config.AuthSelectedType
 	}
 	// Harness-config is base layer; template config overrides it
-	finalScionCfg = config.MergeScionConfig(hcCfg, finalScionCfg)
+	finalFabricCfg = config.MergeFabricConfig(hcCfg, finalFabricCfg)
 	// Ensure harness and harness_config fields are not overridden by the merge
-	finalScionCfg.Harness = hcDir.Config.Harness
-	finalScionCfg.HarnessConfig = harnessConfigName
+	finalFabricCfg.Harness = hcDir.Config.Harness
+	finalFabricCfg.HarnessConfig = harnessConfigName
 
 	// Warn about deprecated harness-specific fields in template config
-	config.PrintDeprecationWarnings(config.WarnDeprecatedTemplateFields(finalScionCfg))
+	config.PrintDeprecationWarnings(config.WarnDeprecatedTemplateFields(finalFabricCfg))
 
 	// Resolve model size aliases (small/medium/large → concrete model name)
-	if finalScionCfg.Model != "" && hcDir.Config.ModelAliases != nil {
-		resolved := config.ResolveModelAlias(finalScionCfg.Model, hcDir.Config.ModelAliases)
-		if resolved != finalScionCfg.Model {
-			util.Debugf("ProvisionAgent: resolved model alias %q → %q", finalScionCfg.Model, resolved)
-			finalScionCfg.Model = resolved
+	if finalFabricCfg.Model != "" && hcDir.Config.ModelAliases != nil {
+		resolved := config.ResolveModelAlias(finalFabricCfg.Model, hcDir.Config.ModelAliases)
+		if resolved != finalFabricCfg.Model {
+			util.Debugf("ProvisionAgent: resolved model alias %q → %q", finalFabricCfg.Model, resolved)
+			finalFabricCfg.Model = resolved
 		}
 	}
 
@@ -748,7 +748,7 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		return "", "", nil, fmt.Errorf("failed to resolve harness for %q: %w", harnessConfigName, err)
 	}
 	h := resolved.Harness
-	util.Debugf("ProvisionAgent: harness implementation=%s for harness=%q", resolved.Implementation, finalScionCfg.Harness)
+	util.Debugf("ProvisionAgent: harness implementation=%s for harness=%q", resolved.Implementation, finalFabricCfg.Harness)
 	skillsDir := h.SkillsDir()
 	if skillsDir != "" {
 		skillsDest := filepath.Join(agentHome, skillsDir)
@@ -788,11 +788,11 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 
 	// Step 3d: Resolve and install referenced skills from skill bank
 	var resolvedSkillsRecord *SkillResolutionRecord
-	if len(finalScionCfg.Skills) > 0 {
+	if len(finalFabricCfg.Skills) > 0 {
 		resolver := SkillResolverFromContext(ctx)
 		if resolver == nil {
 			// S1: Fail closed for required skills
-			requiredURIs := collectRequiredSkillURIs(finalScionCfg.Skills)
+			requiredURIs := collectRequiredSkillURIs(finalFabricCfg.Skills)
 			if len(requiredURIs) > 0 {
 				return "", "", nil, fmt.Errorf(
 					"skill resolution failed: %d required skill(s) declared but no skill resolver available\n"+
@@ -800,7 +800,7 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 						"  hint: connect to a Hub or mark skills as optional",
 					len(requiredURIs), strings.Join(requiredURIs, ", "))
 			}
-			util.Debugf("provision: %d optional skill(s) declared but no resolver available, skipping", len(finalScionCfg.Skills))
+			util.Debugf("provision: %d optional skill(s) declared but no resolver available, skipping", len(finalFabricCfg.Skills))
 		} else {
 			projectID := ResolveProjectIDFromContext(ctx)
 			if projectID == "" {
@@ -811,15 +811,15 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 				UserID:    ResolveUserIDFromContext(ctx),
 			}
 
-			result, err := resolver.Resolve(ctx, finalScionCfg.Skills, resolveOpts)
+			result, err := resolver.Resolve(ctx, finalFabricCfg.Skills, resolveOpts)
 			if err != nil {
 				return "", "", nil, fmt.Errorf("skill resolution failed: %w", err)
 			}
 
 			// S1 completeness: build requested URI set
-			requestedURIs := make(map[string]*api.SkillReference, len(finalScionCfg.Skills))
-			for i := range finalScionCfg.Skills {
-				requestedURIs[finalScionCfg.Skills[i].URI] = &finalScionCfg.Skills[i]
+			requestedURIs := make(map[string]*api.SkillReference, len(finalFabricCfg.Skills))
+			for i := range finalFabricCfg.Skills {
+				requestedURIs[finalFabricCfg.Skills[i].URI] = &finalFabricCfg.Skills[i]
 			}
 
 			resolvedURIs := make(map[string]bool)
@@ -883,14 +883,14 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 
 	// Write resolution record (S4)
 	if resolvedSkillsRecord != nil {
-		recordPath := filepath.Join(agentHome, ".scion", "resolved-skills.json")
+		recordPath := filepath.Join(agentHome, ".fabric", "resolved-skills.json")
 		if err := writeResolutionRecord(recordPath, resolvedSkillsRecord); err != nil {
 			util.Debugf("provision: failed to write resolution record: %v", err)
 		}
 
 		// Stage resolved-skills.json for container-script harnesses
 		recordData, _ := json.MarshalIndent(resolvedSkillsRecord, "", "  ")
-		inputPath := filepath.Join(agentHome, ".scion", "harness", "inputs", "resolved-skills.json")
+		inputPath := filepath.Join(agentHome, ".fabric", "harness", "inputs", "resolved-skills.json")
 		if info, err := os.Stat(filepath.Dir(inputPath)); err == nil && info.IsDir() {
 			_ = os.WriteFile(inputPath, recordData, 0644)
 		}
@@ -910,25 +910,25 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		// the template config but an agents.md file exists in the template
 		// directory, use it automatically. This prevents a common oversight
 		// where a template author creates the file but forgets to reference it
-		// in scion-agent.yaml.
-		if finalScionCfg.AgentInstructions == "" {
+		// in fabric-agent.yaml.
+		if finalFabricCfg.AgentInstructions == "" {
 			conventionPath := filepath.Join(lastTpl.Path, "agents.md")
 			if _, err := os.Stat(conventionPath); err == nil {
 				util.Debugf("ProvisionAgent: agent_instructions not set in config, auto-detected agents.md in template %s", lastTpl.Path)
-				finalScionCfg.AgentInstructions = "agents.md"
+				finalFabricCfg.AgentInstructions = "agents.md"
 			}
 		}
 
-		if finalScionCfg.AgentInstructions != "" {
+		if finalFabricCfg.AgentInstructions != "" {
 			var content []byte
 			if inlineProvidedAgentInstructions {
 				// Inline config already has resolved content — use it directly
-				content = []byte(finalScionCfg.AgentInstructions)
+				content = []byte(finalFabricCfg.AgentInstructions)
 				util.Debugf("ProvisionAgent: using inline agent_instructions (%d bytes)", len(content))
 			} else {
-				util.Debugf("ProvisionAgent: resolving agent_instructions=%q across template chain (%d templates)", finalScionCfg.AgentInstructions, len(chain))
+				util.Debugf("ProvisionAgent: resolving agent_instructions=%q across template chain (%d templates)", finalFabricCfg.AgentInstructions, len(chain))
 				var err error
-				content, err = config.ResolveContentInChain(chain, finalScionCfg.AgentInstructions)
+				content, err = config.ResolveContentInChain(chain, finalFabricCfg.AgentInstructions)
 				if err != nil {
 					return "", "", nil, fmt.Errorf("failed to resolve agent_instructions: %w", err)
 				}
@@ -958,24 +958,24 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 
 		// Step 5: Inject system prompt
 		// Convention-based auto-detection for system prompt as well.
-		if finalScionCfg.SystemPrompt == "" {
+		if finalFabricCfg.SystemPrompt == "" {
 			conventionPath := filepath.Join(lastTpl.Path, "system-prompt.md")
 			if _, err := os.Stat(conventionPath); err == nil {
 				util.Debugf("ProvisionAgent: system_prompt not set in config, auto-detected system-prompt.md in template %s", lastTpl.Path)
-				finalScionCfg.SystemPrompt = "system-prompt.md"
+				finalFabricCfg.SystemPrompt = "system-prompt.md"
 			}
 		}
 
-		if finalScionCfg.SystemPrompt != "" {
+		if finalFabricCfg.SystemPrompt != "" {
 			var content []byte
 			if inlineProvidedSystemPrompt {
 				// Inline config already has resolved content — use it directly
-				content = []byte(finalScionCfg.SystemPrompt)
+				content = []byte(finalFabricCfg.SystemPrompt)
 				util.Debugf("ProvisionAgent: using inline system_prompt (%d bytes)", len(content))
 			} else {
-				util.Debugf("ProvisionAgent: resolving system_prompt=%q across template chain (%d templates)", finalScionCfg.SystemPrompt, len(chain))
+				util.Debugf("ProvisionAgent: resolving system_prompt=%q across template chain (%d templates)", finalFabricCfg.SystemPrompt, len(chain))
 				var err error
-				content, err = config.ResolveContentInChain(chain, finalScionCfg.SystemPrompt)
+				content, err = config.ResolveContentInChain(chain, finalFabricCfg.SystemPrompt)
 				if err != nil {
 					return "", "", nil, fmt.Errorf("failed to resolve system_prompt: %w", err)
 				}
@@ -989,8 +989,8 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		}
 	} else if inlineCfg != nil {
 		// No template chain, but inline config may have content fields
-		if finalScionCfg.AgentInstructions != "" {
-			content := []byte(finalScionCfg.AgentInstructions)
+		if finalFabricCfg.AgentInstructions != "" {
+			content := []byte(finalFabricCfg.AgentInstructions)
 			if len(wsInjectedContent) > 0 {
 				content = append(content, wsInjectedContent...)
 			}
@@ -1004,8 +1004,8 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 				return "", "", nil, fmt.Errorf("failed to inject workspace skill fallback instructions: %w", err)
 			}
 		}
-		if finalScionCfg.SystemPrompt != "" {
-			content := []byte(finalScionCfg.SystemPrompt)
+		if finalFabricCfg.SystemPrompt != "" {
+			content := []byte(finalFabricCfg.SystemPrompt)
 			util.Debugf("ProvisionAgent: injecting inline system_prompt (%d bytes, no template)", len(content))
 			if err := h.InjectSystemPrompt(agentHome, content); err != nil {
 				return "", "", nil, fmt.Errorf("failed to inject system prompt: %w", err)
@@ -1017,7 +1017,7 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 	if settings != nil {
 		hConfig, err := settings.ResolveHarnessConfig(profileName, harnessConfigName)
 		if err == nil {
-			settingsCfg := &api.ScionConfig{}
+			settingsCfg := &api.FabricConfig{}
 			if hConfig.Env != nil {
 				settingsCfg.Env = hConfig.Env
 			}
@@ -1031,8 +1031,8 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 				settingsCfg.Telemetry = config.ConvertV1TelemetryToAPI(settings.Telemetry)
 			}
 			// Template has highest priority, so it should override settings.
-			// We construct a config with ONLY the settings env, then merge finalScionCfg over it.
-			finalScionCfg = config.MergeScionConfig(settingsCfg, finalScionCfg)
+			// We construct a config with ONLY the settings env, then merge finalFabricCfg over it.
+			finalFabricCfg = config.MergeFabricConfig(settingsCfg, finalFabricCfg)
 		}
 
 		// Merge profile-level resources (lower priority than template/agent-level resources).
@@ -1041,60 +1041,60 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 			effectiveProfile = settings.ActiveProfile
 		}
 		if p, ok := settings.Profiles[effectiveProfile]; ok && p.Resources != nil {
-			if finalScionCfg.Resources == nil {
+			if finalFabricCfg.Resources == nil {
 				cpy := *p.Resources
-				finalScionCfg.Resources = &cpy
+				finalFabricCfg.Resources = &cpy
 			}
-			merged := config.MergeResourceSpec(p.Resources, finalScionCfg.Resources)
-			finalScionCfg.Resources = merged
+			merged := config.MergeResourceSpec(p.Resources, finalFabricCfg.Resources)
+			finalFabricCfg.Resources = merged
 		}
 
 		// Merge harness-override resources on top of everything.
 		if p, ok := settings.Profiles[effectiveProfile]; ok && p.HarnessOverrides != nil {
 			if ho, ok := p.HarnessOverrides[harnessConfigName]; ok && ho.Resources != nil {
-				finalScionCfg.Resources = config.MergeResourceSpec(finalScionCfg.Resources, ho.Resources)
+				finalFabricCfg.Resources = config.MergeResourceSpec(finalFabricCfg.Resources, ho.Resources)
 			}
 		}
 	}
 
 	// Apply default limits from settings (hub global defaults) if not already set
 	// by template or inline config. Priority: agent > template > settings defaults.
-	if settings != nil && finalScionCfg != nil {
-		if finalScionCfg.MaxTurns == 0 && settings.DefaultMaxTurns > 0 {
-			finalScionCfg.MaxTurns = settings.DefaultMaxTurns
+	if settings != nil && finalFabricCfg != nil {
+		if finalFabricCfg.MaxTurns == 0 && settings.DefaultMaxTurns > 0 {
+			finalFabricCfg.MaxTurns = settings.DefaultMaxTurns
 		}
-		if finalScionCfg.MaxModelCalls == 0 && settings.DefaultMaxModelCalls > 0 {
-			finalScionCfg.MaxModelCalls = settings.DefaultMaxModelCalls
+		if finalFabricCfg.MaxModelCalls == 0 && settings.DefaultMaxModelCalls > 0 {
+			finalFabricCfg.MaxModelCalls = settings.DefaultMaxModelCalls
 		}
-		if finalScionCfg.MaxDuration == "" && settings.DefaultMaxDuration != "" {
-			finalScionCfg.MaxDuration = settings.DefaultMaxDuration
+		if finalFabricCfg.MaxDuration == "" && settings.DefaultMaxDuration != "" {
+			finalFabricCfg.MaxDuration = settings.DefaultMaxDuration
 		}
 		if settings.DefaultResources != nil {
-			if finalScionCfg.Resources == nil {
+			if finalFabricCfg.Resources == nil {
 				cpy := *settings.DefaultResources
-				finalScionCfg.Resources = &cpy
+				finalFabricCfg.Resources = &cpy
 			} else {
 				// Merge: settings defaults are lower priority, so use them as base
-				finalScionCfg.Resources = config.MergeResourceSpec(settings.DefaultResources, finalScionCfg.Resources)
+				finalFabricCfg.Resources = config.MergeResourceSpec(settings.DefaultResources, finalFabricCfg.Resources)
 			}
 		}
 	}
 
 	// Mount the resolved workspace if an external source was determined
 	if workspaceSource != "" {
-		finalScionCfg.Volumes = append(finalScionCfg.Volumes, api.VolumeMount{
+		finalFabricCfg.Volumes = append(finalFabricCfg.Volumes, api.VolumeMount{
 			Source:   workspaceSource,
 			Target:   "/workspace",
 			ReadOnly: false,
 		})
 	}
 	if explicitWorkspace {
-		finalScionCfg.ExplicitWorkspace = true
+		finalFabricCfg.ExplicitWorkspace = true
 	}
 
-	// Update agent-specific scion-agent.json
-	if finalScionCfg == nil {
-		finalScionCfg = &api.ScionConfig{}
+	// Update agent-specific fabric-agent.json
+	if finalFabricCfg == nil {
+		finalFabricCfg = &api.FabricConfig{}
 	}
 
 	// Create the Info object which will go into agent-info.json.
@@ -1124,37 +1124,37 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 		info.Image = agentImage
 	}
 
-	agentCfgData, err := json.MarshalIndent(finalScionCfg, "", "  ")
+	agentCfgData, err := json.MarshalIndent(finalFabricCfg, "", "  ")
 	if err != nil {
 		return "", "", nil, fmt.Errorf("failed to marshal agent config: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), agentCfgData, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), agentCfgData, 0644); err != nil {
 		return "", "", nil, fmt.Errorf("failed to write agent config: %w", err)
 	}
 
 	// Now attach Info to the config object for return and for writing agent-info.json
-	finalScionCfg.Info = info
+	finalFabricCfg.Info = info
 
 	// Write agent-info.json to home for container access
-	if finalScionCfg.Info != nil {
-		infoData, err := json.MarshalIndent(finalScionCfg.Info, "", "  ")
+	if finalFabricCfg.Info != nil {
+		infoData, err := json.MarshalIndent(finalFabricCfg.Info, "", "  ")
 		if err == nil {
 			_ = os.WriteFile(filepath.Join(agentHome, "agent-info.json"), infoData, 0644)
 		}
 	}
 
-	// Write scion-services.yaml for sciontool to consume at container startup
-	if len(finalScionCfg.Services) > 0 {
-		scionDir := filepath.Join(agentHome, ".scion")
-		if err := os.MkdirAll(scionDir, 0755); err != nil {
-			return "", "", nil, fmt.Errorf("failed to create agent .scion directory: %w", err)
+	// Write fabric-services.yaml for fabrictool to consume at container startup
+	if len(finalFabricCfg.Services) > 0 {
+		fabricDir := filepath.Join(agentHome, ".fabric")
+		if err := os.MkdirAll(fabricDir, 0755); err != nil {
+			return "", "", nil, fmt.Errorf("failed to create agent .fabric directory: %w", err)
 		}
-		servicesData, err := yaml.Marshal(finalScionCfg.Services)
+		servicesData, err := yaml.Marshal(finalFabricCfg.Services)
 		if err != nil {
 			return "", "", nil, fmt.Errorf("failed to marshal services config: %w", err)
 		}
-		if err := os.WriteFile(filepath.Join(scionDir, "scion-services.yaml"), servicesData, 0644); err != nil {
-			return "", "", nil, fmt.Errorf("failed to write scion-services.yaml: %w", err)
+		if err := os.WriteFile(filepath.Join(fabricDir, "fabric-services.yaml"), servicesData, 0644); err != nil {
+			return "", "", nil, fmt.Errorf("failed to write fabric-services.yaml: %w", err)
 		}
 	}
 
@@ -1162,8 +1162,8 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 	// The credential helper is written to $HOME/.gitconfig so it doesn't
 	// pollute the shared workspace. This pre-configures a basic credential
 	// helper using GITHUB_TOKEN env var. When GitHub App is enabled,
-	// sciontool init's configureSharedWorkspaceGit() will upgrade this to
-	// use `sciontool credential-helper` for on-demand token refresh.
+	// fabrictool init's configureSharedWorkspaceGit() will upgrade this to
+	// use `fabrictool credential-helper` for on-demand token refresh.
 	if api.IsSharedWorkspaceFromContext(ctx) {
 		gitconfigPath := filepath.Join(agentHome, ".gitconfig")
 		credentialSection := "\n[credential]\n\thelper = !f() { echo \"username=oauth2\"; echo \"password=${GITHUB_TOKEN}\"; }; f\n"
@@ -1198,14 +1198,14 @@ func ProvisionAgent(ctx context.Context, agentName string, templateName string, 
 	// Reload config to get harness updates (e.g. Env vars injected by harness)
 	reloadTpl := &config.Template{Path: agentDir}
 	if updatedCfg, err := reloadTpl.LoadConfig(); err == nil {
-		updatedCfg.Info = finalScionCfg.Info // Re-attach info
-		finalScionCfg = updatedCfg
+		updatedCfg.Info = finalFabricCfg.Info // Re-attach info
+		finalFabricCfg = updatedCfg
 	} else {
 		fmt.Fprintf(os.Stderr, "Warning: failed to reload agent config after harness provisioning: %v\n", err)
 	}
 
 	util.Debugf("provision: total ProvisionAgent completed in %s", time.Since(provisionStart))
-	return agentHome, agentWorkspace, finalScionCfg, nil
+	return agentHome, agentWorkspace, finalFabricCfg, nil
 }
 
 // skillFrontmatter holds parsed YAML frontmatter from SKILL.md files.
@@ -1345,9 +1345,9 @@ func injectWorkspaceSkills(
 	injCtx workspaceSkillsInjectionContext,
 	content []byte,
 ) ([]byte, error) {
-	// Workspace skills live at the workspace root, sibling to .scion/
+	// Workspace skills live at the workspace root, sibling to .fabric/
 	workspaceRoot := projectDir
-	if filepath.Base(projectDir) == config.DotScion {
+	if filepath.Base(projectDir) == config.DotFabric {
 		workspaceRoot = filepath.Dir(projectDir)
 	}
 	wsSkillsDir := filepath.Join(workspaceRoot, "skills")
@@ -1570,7 +1570,7 @@ func UpdateAgentDeletedAt(agentName string, projectPath string, deletedAt time.T
 	return os.WriteFile(agentInfoPath, newData, 0644)
 }
 
-func GetAgent(ctx context.Context, agentName string, templateName string, agentImage string, harnessConfig string, projectPath string, profileName string, optionalStatus string, branch string, workspace string, inlineConfig ...*api.ScionConfig) (string, string, string, *api.ScionConfig, error) {
+func GetAgent(ctx context.Context, agentName string, templateName string, agentImage string, harnessConfig string, projectPath string, profileName string, optionalStatus string, branch string, workspace string, inlineConfig ...*api.FabricConfig) (string, string, string, *api.FabricConfig, error) {
 	projectDir, err := config.GetResolvedProjectDir(projectPath)
 	if err != nil {
 		return "", "", "", nil, err
@@ -1589,9 +1589,9 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 
 	// Check for stale/incomplete agent directory (dir exists but no config file).
 	// This can happen when a previous provisioning attempt created the directory
-	// but failed before writing scion-agent.json. Remove it so we re-provision.
+	// but failed before writing fabric-agent.json. Remove it so we re-provision.
 	if _, err := os.Stat(agentDir); err == nil {
-		if configPath := config.GetScionAgentConfigPath(agentDir); configPath == "" {
+		if configPath := config.GetFabricAgentConfigPath(agentDir); configPath == "" {
 			util.Debugf("GetAgent: stale agent directory detected (no config file), removing: %s", agentDir)
 			// chmod to ensure we can remove root-owned files left by containers.
 			_ = filepath.WalkDir(agentDir, func(path string, d fs.DirEntry, err error) error {
@@ -1618,7 +1618,7 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 	// that recovery would CreateWorktree a throwaway managed worktree and the
 	// agent would silently edit that phantom branch instead of the operator's
 	// explicit tree — breaking "edit the real tree in place" on resume.
-	if agentWorkspace != "" && config.ScionAgentConfigExists(agentDir) {
+	if agentWorkspace != "" && config.FabricAgentConfigExists(agentDir) {
 		if persisted, cfgErr := (&config.Template{Path: agentDir}).LoadConfig(); cfgErr != nil {
 			util.Debugf("GetAgent: could not load persisted config to check explicit workspace: %v", cfgErr)
 		} else if persisted.ExplicitWorkspace {
@@ -1632,7 +1632,7 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 	// For new agents or stale directories, ProvisionAgent handles worktree creation.
 	// Skipped for shared-workspace agents (agentWorkspace == "") because they
 	// share the project-wide checkout and have no per-agent worktree.
-	if agentWorkspace != "" && config.GetScionAgentConfigPath(agentDir) != "" {
+	if agentWorkspace != "" && config.GetFabricAgentConfigPath(agentDir) != "" {
 		if _, err := os.Stat(agentWorkspace); os.IsNotExist(err) {
 			if util.IsGitRepoDir(projectDir) {
 				// Recreate the worktree for git-backed workspaces.
@@ -1671,7 +1671,7 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 			templateName = defaultTemplate
 		}
 		util.Debugf("GetAgent: agent dir does not exist, provisioning with template=%q", templateName)
-		var ic *api.ScionConfig
+		var ic *api.FabricConfig
 		if len(inlineConfig) > 0 {
 			ic = inlineConfig[0]
 		}
@@ -1688,9 +1688,9 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 	util.Debugf("GetAgent: agent dir exists, loading existing config from %s", agentDir)
 
 	// When git clone is configured (hub-dispatched create), clear the workspace
-	// so sciontool performs a fresh clone. The agent directory may be left over
+	// so fabrictool performs a fresh clone. The agent directory may be left over
 	// from a previous agent with the same name that was deleted via the hub but
-	// whose local files were not cleaned up. Without this, sciontool sees the
+	// whose local files were not cleaned up. Without this, fabrictool sees the
 	// old clone as "already populated" and skips cloning.
 	if gitClone := api.GitCloneFromContext(ctx); gitClone != nil {
 		if info, err := os.Stat(agentWorkspace); err == nil && info.IsDir() {
@@ -1720,7 +1720,7 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 		}
 	}
 
-	// Load the agent's scion-agent.json from agent root
+	// Load the agent's fabric-agent.json from agent root
 	// This might not contain Info anymore, but might contain other overrides
 	tpl := &config.Template{Path: agentDir}
 	agentCfg, err := tpl.LoadConfig()
@@ -1735,17 +1735,17 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 		return agentDir, agentHome, agentWorkspace, agentCfg, nil
 	}
 
-	mergedCfg := &api.ScionConfig{}
+	mergedCfg := &api.FabricConfig{}
 	for _, tpl := range chain {
 		tplCfg, err := tpl.LoadConfig()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to load config from template %s, skipping: %v\n", tpl.Name, err)
 			continue
 		}
-		mergedCfg = config.MergeScionConfig(mergedCfg, tplCfg)
+		mergedCfg = config.MergeFabricConfig(mergedCfg, tplCfg)
 	}
 
-	finalCfg := config.MergeScionConfig(mergedCfg, agentCfg)
+	finalCfg := config.MergeFabricConfig(mergedCfg, agentCfg)
 
 	// Ensure Info is populated from agent-info.json if available
 	if agentInfo != nil {
@@ -1759,7 +1759,7 @@ func GetAgent(ctx context.Context, agentName string, templateName string, agentI
 }
 
 // isWorkspaceEmptyDir returns true if the directory is empty or contains only
-// provisioning artifacts (e.g. .scion/, .scion-volumes/).
+// provisioning artifacts (e.g. .fabric/, .fabric-volumes/).
 func isWorkspaceEmptyDir(path string) bool {
 	entries, err := os.ReadDir(path)
 	if err != nil {
@@ -1767,7 +1767,7 @@ func isWorkspaceEmptyDir(path string) bool {
 	}
 	for _, e := range entries {
 		switch e.Name() {
-		case ".scion", ".scion-volumes":
+		case ".fabric", ".fabric-volumes":
 			continue
 		default:
 			return false

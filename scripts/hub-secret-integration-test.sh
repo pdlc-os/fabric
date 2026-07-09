@@ -17,7 +17,7 @@
 # Hub Secrets Integration Test Script
 # =====================================
 # This script tests the full hub secret storage feature by exercising the
-# scion CLI commands for setting, getting, listing, and clearing
+# fabric CLI commands for setting, getting, listing, and clearing
 # secrets at user and grove scopes, including type-aware secrets
 # (environment, variable, file) and the hub env --secret redirect.
 #
@@ -28,7 +28,7 @@
 #   ./scripts/hub-secret-integration-test.sh [options]
 #
 # Options:
-#   --skip-build     Skip building the scion binary
+#   --skip-build     Skip building the fabric binary
 #   --skip-cleanup   Don't clean up test artifacts after completion
 #   --verbose        Show verbose output
 #   --help           Show this help message
@@ -46,12 +46,12 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TEST_DIR="/tmp/scion-hub-secret-test-$$"
+TEST_DIR="/tmp/fabric-hub-secret-test-$$"
 HUB_PORT=9821
 SKIP_BUILD=false
 SKIP_CLEANUP=false
 VERBOSE=false
-SCION=""
+FABRIC=""
 SERVER_PID=""
 
 # Test counters
@@ -233,25 +233,25 @@ check_prerequisites() {
     log_success "Required tools available (go, jq)"
 }
 
-build_scion() {
+build_fabric() {
     if [[ "$SKIP_BUILD" == "true" ]]; then
         log_info "Skipping build (--skip-build)"
-        SCION="$TEST_DIR/scion"
+        FABRIC="$TEST_DIR/fabric"
         return
     fi
 
-    log_section "Building Scion Binary"
+    log_section "Building Fabric Binary"
 
     cd "$PROJECT_ROOT"
-    log_info "Building scion from $PROJECT_ROOT..."
+    log_info "Building fabric from $PROJECT_ROOT..."
 
-    if go build -buildvcs=false -o "$TEST_DIR/scion" ./cmd/scion 2>&1; then
-        log_success "Build successful: $TEST_DIR/scion"
+    if go build -buildvcs=false -o "$TEST_DIR/fabric" ./cmd/fabric 2>&1; then
+        log_success "Build successful: $TEST_DIR/fabric"
     else
         log_error "Build failed"
         exit 1
     fi
-    SCION="$TEST_DIR/scion"
+    FABRIC="$TEST_DIR/fabric"
 }
 
 start_hub_server() {
@@ -259,7 +259,7 @@ start_hub_server() {
 
     mkdir -p "$TEST_DIR"
 
-    local cmd=("$SCION" "server" "start" "--foreground" "--production"
+    local cmd=("$FABRIC" "server" "start" "--foreground" "--production"
         "--enable-hub"
         "--dev-auth"
         "--port" "$HUB_PORT"
@@ -291,14 +291,14 @@ start_hub_server() {
 
     # Retrieve dev token
     local token
-    token=$(cat ~/.scion/dev-token 2>/dev/null || echo "")
+    token=$(cat ~/.fabric/dev-token 2>/dev/null || echo "")
     if [[ -z "$token" ]]; then
-        log_error "Dev token not found at ~/.scion/dev-token"
+        log_error "Dev token not found at ~/.fabric/dev-token"
         exit 1
     fi
 
-    export SCION_DEV_TOKEN="$token"
-    export SCION_HUB_ENDPOINT="http://localhost:$HUB_PORT"
+    export FABRIC_DEV_TOKEN="$token"
+    export FABRIC_HUB_ENDPOINT="http://localhost:$HUB_PORT"
 
     log_success "Authentication configured (dev token)"
 }
@@ -314,11 +314,11 @@ setup_test_grove() {
     git init -q .
     git commit --allow-empty -m "init" -q
 
-    $SCION init -y 2>&1 || true
+    $FABRIC init -y 2>&1 || true
     log_success "Grove initialized at $grove_dir"
 
     # Link grove to the Hub
-    if $SCION hub link -y 2>&1; then
+    if $FABRIC hub link -y 2>&1; then
         log_success "Grove linked to Hub"
     else
         log_error "Failed to link grove to Hub"
@@ -326,10 +326,10 @@ setup_test_grove() {
     fi
 
     # Extract the grove ID for later use
-    GROVE_ID=$($SCION config get grove_id 2>/dev/null || "")
+    GROVE_ID=$($FABRIC config get grove_id 2>/dev/null || "")
     if [[ -z "$GROVE_ID" ]]; then
         # Fall back to reading settings.yaml directly
-        GROVE_ID=$(grep 'grove_id:' "$grove_dir/.scion/settings.yaml" 2>/dev/null | awk '{print $2}' || echo "")
+        GROVE_ID=$(grep 'grove_id:' "$grove_dir/.fabric/settings.yaml" 2>/dev/null | awk '{print $2}' || echo "")
     fi
     log_info "Grove ID: ${GROVE_ID:-<not found>}"
 }
@@ -345,66 +345,66 @@ test_phase1_user_scope_crud() {
     assert_output_contains \
         "1.1  List secrets (empty)" \
         "No secrets found" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     # 1.2 Set a secret (default type = environment)
     assert_output_contains \
         "1.2  Set secret (default type)" \
         "Created" \
-        $SCION hub secret set API_KEY sk-test-key-123
+        $FABRIC hub secret set API_KEY sk-test-key-123
 
     # 1.3 Set another secret
     assert_output_contains \
         "1.3  Set another secret" \
         "Created" \
-        $SCION hub secret set DB_PASSWORD supersecret
+        $FABRIC hub secret set DB_PASSWORD supersecret
 
     # 1.4 Get specific secret metadata
     assert_output_contains \
         "1.4  Get secret metadata (key)" \
         "API_KEY" \
-        $SCION hub secret get API_KEY
+        $FABRIC hub secret get API_KEY
 
     # 1.5 Get shows type field
     assert_output_contains \
         "1.5  Get secret shows type" \
         "environment" \
-        $SCION hub secret get API_KEY
+        $FABRIC hub secret get API_KEY
 
     # 1.6 Values are never returned (write-only)
     assert_output_not_contains \
         "1.6  Secret value not in get output" \
         "sk-test-key-123" \
-        $SCION hub secret get API_KEY
+        $FABRIC hub secret get API_KEY
 
     # 1.7 List all secrets
     assert_output_contains \
         "1.7  List all secrets (contains API_KEY)" \
         "API_KEY" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     assert_output_contains \
         "1.7b List all secrets (contains DB_PASSWORD)" \
         "DB_PASSWORD" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     # 1.8 Update an existing secret
     assert_output_contains \
         "1.8  Update existing secret" \
         "Updated" \
-        $SCION hub secret set API_KEY sk-updated-key-456
+        $FABRIC hub secret set API_KEY sk-updated-key-456
 
     # 1.9 Updated value is still not shown
     assert_output_not_contains \
         "1.9  Updated value not returned" \
         "sk-updated-key-456" \
-        $SCION hub secret get API_KEY
+        $FABRIC hub secret get API_KEY
 
     # 1.10 Get secret in JSON format
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
     local json_key=""
-    json_output=$($SCION hub secret get --json API_KEY 2>/dev/null) || true
+    json_output=$($FABRIC hub secret get --json API_KEY 2>/dev/null) || true
     json_key=$(echo "$json_output" | jq -r '.key // empty' 2>/dev/null) || true
     if [[ "$json_key" == "API_KEY" ]]; then
         log_success "1.10 Get secret --json returns key"
@@ -417,7 +417,7 @@ test_phase1_user_scope_crud() {
 
     # 1.11 List secrets in JSON format
     TESTS_RUN=$((TESTS_RUN + 1))
-    json_output=$($SCION hub secret get --json 2>/dev/null) || true
+    json_output=$($FABRIC hub secret get --json 2>/dev/null) || true
     local secret_count=""
     secret_count=$(echo "$json_output" | jq '.secrets | length' 2>/dev/null) || true
     if [[ "$secret_count" -ge 2 ]]; then
@@ -433,18 +433,18 @@ test_phase1_user_scope_crud() {
     assert_output_contains \
         "1.12 Clear secret" \
         "Deleted" \
-        $SCION hub secret clear DB_PASSWORD
+        $FABRIC hub secret clear DB_PASSWORD
 
     # 1.13 Verify cleared secret is gone
     assert_failure \
         "1.13 Verify cleared secret is gone (get should fail)" \
-        $SCION hub secret get DB_PASSWORD
+        $FABRIC hub secret get DB_PASSWORD
 
     # 1.14 Remaining secret still exists
     assert_output_contains \
         "1.14 Remaining secret survives clear" \
         "API_KEY" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     log_info "Phase 1 complete"
 }
@@ -460,42 +460,42 @@ test_phase2_secret_types() {
     assert_output_contains \
         "2.1  Set secret --type environment" \
         "environment" \
-        $SCION hub secret set --type environment ENV_SECRET env_value
+        $FABRIC hub secret set --type environment ENV_SECRET env_value
 
     # 2.2 Set secret with variable type
     assert_output_contains \
         "2.2  Set secret --type variable" \
         "variable" \
-        $SCION hub secret set --type variable VAR_SECRET '{"db":"prod"}'
+        $FABRIC hub secret set --type variable VAR_SECRET '{"db":"prod"}'
 
     # 2.3 Set secret with file type and target
     assert_output_contains \
         "2.3  Set secret --type file --target" \
         "file" \
-        $SCION hub secret set --type file --target /etc/ssl/cert.pem TLS_CERT "cert-content-here"
+        $FABRIC hub secret set --type file --target /etc/ssl/cert.pem TLS_CERT "cert-content-here"
 
     # 2.4 Get variable secret shows correct type
     assert_output_contains \
         "2.4  Get variable secret shows type" \
         "variable" \
-        $SCION hub secret get VAR_SECRET
+        $FABRIC hub secret get VAR_SECRET
 
     # 2.5 Get file secret shows correct type
     assert_output_contains \
         "2.5  Get file secret shows type" \
         "file" \
-        $SCION hub secret get TLS_CERT
+        $FABRIC hub secret get TLS_CERT
 
     # 2.6 Get file secret shows target path
     assert_output_contains \
         "2.6  File secret shows target path" \
         "/etc/ssl/cert.pem" \
-        $SCION hub secret get TLS_CERT
+        $FABRIC hub secret get TLS_CERT
 
     # 2.7 JSON output includes type field
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
-    json_output=$($SCION hub secret get --json VAR_SECRET 2>/dev/null) || true
+    json_output=$($FABRIC hub secret get --json VAR_SECRET 2>/dev/null) || true
     local json_type=""
     json_type=$(echo "$json_output" | jq -r '.type // .secretType // empty' 2>/dev/null) || true
     if [[ "$json_type" == "variable" ]]; then
@@ -511,24 +511,24 @@ test_phase2_secret_types() {
     assert_output_contains \
         "2.8  List output includes TYPE column header" \
         "TYPE" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     # 2.9 Set file secret using @file syntax
     echo "file-secret-content-from-disk" > "$TEST_DIR/test-secret-file.txt"
     assert_output_contains \
         "2.9  Set secret with @file syntax" \
         "file" \
-        $SCION hub secret set FILE_FROM_DISK "@$TEST_DIR/test-secret-file.txt"
+        $FABRIC hub secret set FILE_FROM_DISK "@$TEST_DIR/test-secret-file.txt"
 
     # 2.10 @file syntax defaults type to file
     assert_output_contains \
         "2.10 @file defaults type to file" \
         "file" \
-        $SCION hub secret get FILE_FROM_DISK
+        $FABRIC hub secret get FILE_FROM_DISK
 
     # Clean up type test secrets
     for key in ENV_SECRET VAR_SECRET TLS_CERT FILE_FROM_DISK; do
-        $SCION hub secret clear "$key" 2>/dev/null || true
+        $FABRIC hub secret clear "$key" 2>/dev/null || true
     done
 
     log_info "Phase 2 complete"
@@ -545,69 +545,69 @@ test_phase3_grove_scope() {
     assert_output_contains \
         "3.1  List grove secrets (empty)" \
         "No secrets found" \
-        $SCION hub secret get --grove="$GROVE_ID"
+        $FABRIC hub secret get --grove="$GROVE_ID"
 
     # 3.2 Set a grove-scoped secret
     assert_output_contains \
         "3.2  Set grove-scoped secret" \
         "Created" \
-        $SCION hub secret set --grove="$GROVE_ID" GROVE_SECRET grove_secret_val
+        $FABRIC hub secret set --grove="$GROVE_ID" GROVE_SECRET grove_secret_val
 
     # 3.3 Set a grove-scoped file secret
     assert_output_contains \
         "3.3  Set grove-scoped file secret" \
         "Created" \
-        $SCION hub secret set --grove="$GROVE_ID" --type file --target /app/config.json GROVE_CONFIG '{"env":"prod"}'
+        $FABRIC hub secret set --grove="$GROVE_ID" --type file --target /app/config.json GROVE_CONFIG '{"env":"prod"}'
 
     # 3.4 Get specific grove secret
     assert_output_contains \
         "3.4  Get grove secret metadata" \
         "GROVE_SECRET" \
-        $SCION hub secret get --grove="$GROVE_ID" GROVE_SECRET
+        $FABRIC hub secret get --grove="$GROVE_ID" GROVE_SECRET
 
     # 3.5 List grove secrets
     assert_output_contains \
         "3.5  List grove secrets (contains GROVE_SECRET)" \
         "GROVE_SECRET" \
-        $SCION hub secret get --grove="$GROVE_ID"
+        $FABRIC hub secret get --grove="$GROVE_ID"
 
     assert_output_contains \
         "3.5b List grove secrets (contains GROVE_CONFIG)" \
         "GROVE_CONFIG" \
-        $SCION hub secret get --grove="$GROVE_ID"
+        $FABRIC hub secret get --grove="$GROVE_ID"
 
     # 3.6 Grove and user scopes are independent
     assert_output_not_contains \
         "3.6  User scope does not contain grove secrets" \
         "GROVE_SECRET" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     assert_output_not_contains \
         "3.6b Grove scope does not contain user secrets" \
         "API_KEY" \
-        $SCION hub secret get --grove="$GROVE_ID"
+        $FABRIC hub secret get --grove="$GROVE_ID"
 
     # 3.7 Update grove secret
     assert_output_contains \
         "3.7  Update grove secret" \
         "Updated" \
-        $SCION hub secret set --grove="$GROVE_ID" GROVE_SECRET updated_grove_val
+        $FABRIC hub secret set --grove="$GROVE_ID" GROVE_SECRET updated_grove_val
 
     # 3.8 Clear grove secret
     assert_output_contains \
         "3.8  Clear grove secret" \
         "Deleted" \
-        $SCION hub secret clear --grove="$GROVE_ID" GROVE_CONFIG
+        $FABRIC hub secret clear --grove="$GROVE_ID" GROVE_CONFIG
 
     # 3.9 Verify cleared grove secret is gone
     assert_failure \
         "3.9  Verify cleared grove secret is gone" \
-        $SCION hub secret get --grove="$GROVE_ID" GROVE_CONFIG
+        $FABRIC hub secret get --grove="$GROVE_ID" GROVE_CONFIG
 
     # 3.10 JSON output shows grove scope
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
-    json_output=$($SCION hub secret get --grove="$GROVE_ID" --json GROVE_SECRET 2>/dev/null) || true
+    json_output=$($FABRIC hub secret get --grove="$GROVE_ID" --json GROVE_SECRET 2>/dev/null) || true
     local json_scope=""
     json_scope=$(echo "$json_output" | jq -r '.scope // empty' 2>/dev/null) || true
     if [[ "$json_scope" == "project" ]]; then
@@ -620,7 +620,7 @@ test_phase3_grove_scope() {
     fi
 
     # Clean up grove secrets
-    $SCION hub secret clear --grove="$GROVE_ID" GROVE_SECRET 2>/dev/null || true
+    $FABRIC hub secret clear --grove="$GROVE_ID" GROVE_SECRET 2>/dev/null || true
 
     log_info "Phase 3 complete"
 }
@@ -636,35 +636,35 @@ test_phase4_env_secret_redirect() {
     assert_output_contains \
         "4.1  hub env set --secret creates secret" \
         "(secret)" \
-        $SCION hub env set --secret "ENV_AS_SECRET=secret_via_env"
+        $FABRIC hub env set --secret "ENV_AS_SECRET=secret_via_env"
 
     # 4.2 Value is masked in output
     assert_output_contains \
         "4.2  --secret masks value in output" \
         "********" \
-        $SCION hub env set --secret "ENV_AS_SECRET2=another_secret"
+        $FABRIC hub env set --secret "ENV_AS_SECRET2=another_secret"
 
     # 4.3 Secret value is not shown in env set output
     assert_output_not_contains \
         "4.3  Secret value not in env set output" \
         "secret_via_env" \
-        $SCION hub env set --secret "ENV_AS_SECRET3=hidden_val"
+        $FABRIC hub env set --secret "ENV_AS_SECRET3=hidden_val"
 
     # 4.4 Secret created via env --secret appears in secret list
     assert_output_contains \
         "4.4  Secret via env --secret appears in hub secret get" \
         "ENV_AS_SECRET" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     # 4.5 Secret type is environment (since it came from env --secret)
     assert_output_contains \
         "4.5  Secret via env --secret has type=environment" \
         "environment" \
-        $SCION hub secret get ENV_AS_SECRET
+        $FABRIC hub secret get ENV_AS_SECRET
 
     # Clean up
     for key in ENV_AS_SECRET ENV_AS_SECRET2 ENV_AS_SECRET3; do
-        $SCION hub secret clear "$key" 2>/dev/null || true
+        $FABRIC hub secret clear "$key" 2>/dev/null || true
     done
 
     log_info "Phase 4 complete"
@@ -680,52 +680,52 @@ test_phase5_edge_cases() {
     # 5.1 Empty key rejected
     assert_failure \
         "5.1  Reject empty key" \
-        $SCION hub secret set "" "value"
+        $FABRIC hub secret set "" "value"
 
     # 5.2 Key with spaces rejected
     assert_failure \
         "5.2  Reject key with spaces" \
-        $SCION hub secret set "BAD KEY" "value"
+        $FABRIC hub secret set "BAD KEY" "value"
 
     # 5.3 Key with equals rejected
     assert_failure \
         "5.3  Reject key with equals" \
-        $SCION hub secret set "BAD=KEY" "value"
+        $FABRIC hub secret set "BAD=KEY" "value"
 
     # 5.4 Clear non-existent secret fails
     assert_failure \
         "5.4  Clear non-existent secret fails" \
-        $SCION hub secret clear NON_EXISTENT_SECRET_ZZZZZ
+        $FABRIC hub secret clear NON_EXISTENT_SECRET_ZZZZZ
 
     # 5.5 Cannot use --grove and --broker at the same time
     assert_failure \
         "5.5  Reject --grove and --broker together" \
-        $SCION hub secret get --grove="$GROVE_ID" --broker=fake-broker-id
+        $FABRIC hub secret get --grove="$GROVE_ID" --broker=fake-broker-id
 
     # 5.6 Set and update multiple times
-    $SCION hub secret set MULTI_SECRET "first" > /dev/null 2>&1
-    $SCION hub secret set MULTI_SECRET "second" > /dev/null 2>&1
-    $SCION hub secret set MULTI_SECRET "third" > /dev/null 2>&1
+    $FABRIC hub secret set MULTI_SECRET "first" > /dev/null 2>&1
+    $FABRIC hub secret set MULTI_SECRET "second" > /dev/null 2>&1
+    $FABRIC hub secret set MULTI_SECRET "third" > /dev/null 2>&1
     # Should still exist (latest update wins)
     assert_output_contains \
         "5.6  Multiple updates succeed (secret still exists)" \
         "MULTI_SECRET" \
-        $SCION hub secret get MULTI_SECRET
+        $FABRIC hub secret get MULTI_SECRET
 
     # 5.7 @file with non-existent file fails
     assert_failure \
         "5.7  @file with non-existent file fails" \
-        $SCION hub secret set BAD_FILE "@/tmp/nonexistent-file-zzzzz.txt"
+        $FABRIC hub secret set BAD_FILE "@/tmp/nonexistent-file-zzzzz.txt"
 
     # 5.8 Set with explicit target (env type)
     assert_output_contains \
         "5.8  Set with --target for env type" \
         "Created" \
-        $SCION hub secret set --type environment --target MY_CUSTOM_VAR ALIASED_SECRET "value123"
+        $FABRIC hub secret set --type environment --target MY_CUSTOM_VAR ALIASED_SECRET "value123"
 
     # Clean up
     for key in MULTI_SECRET ALIASED_SECRET; do
-        $SCION hub secret clear "$key" 2>/dev/null || true
+        $FABRIC hub secret clear "$key" 2>/dev/null || true
     done
 
     log_info "Phase 5 complete"
@@ -739,19 +739,19 @@ test_phase6_cleanup() {
     log_section "Phase 6: Cleanup Verification"
 
     # Clear any remaining user-scoped test secrets
-    $SCION hub secret clear API_KEY 2>/dev/null || true
+    $FABRIC hub secret clear API_KEY 2>/dev/null || true
 
     # 6.1 Verify user scope is empty
     assert_output_contains \
         "6.1  User scope empty after cleanup" \
         "No secrets found" \
-        $SCION hub secret get
+        $FABRIC hub secret get
 
     # 6.2 Verify grove scope is empty
     assert_output_contains \
         "6.2  Grove scope empty after cleanup" \
         "No secrets found" \
-        $SCION hub secret get --grove="$GROVE_ID"
+        $FABRIC hub secret get --grove="$GROVE_ID"
 
     log_info "Phase 6 complete"
 }
@@ -761,14 +761,14 @@ test_phase6_cleanup() {
 # ============================================================================
 
 run_all_tests() {
-    log_section "Scion Hub Secret Integration Test Suite"
+    log_section "Fabric Hub Secret Integration Test Suite"
     log_info "Test directory: $TEST_DIR"
     log_info "Project root: $PROJECT_ROOT"
 
     mkdir -p "$TEST_DIR"
 
     check_prerequisites
-    build_scion
+    build_fabric
     start_hub_server
     setup_test_grove
 

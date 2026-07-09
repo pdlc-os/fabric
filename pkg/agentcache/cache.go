@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	// cacheSubdir is the subdirectory within ~/.scion for agent name caches.
+	// cacheSubdir is the subdirectory within ~/.fabric for agent name caches.
 	cacheSubdir = "cache/agent-names"
 )
 
@@ -45,7 +45,7 @@ func getCacheDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".scion", cacheSubdir), nil
+	return filepath.Join(home, ".fabric", cacheSubdir), nil
 }
 
 // GenerateCacheKey creates a unique, filesystem-safe key for a project path.

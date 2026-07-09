@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/lifecyclehook"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehook"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/schema"
 )
 
 // LifecycleHookUpdate is the builder for updating LifecycleHook entities.

@@ -7,7 +7,7 @@
   },
   "env": {
     "HERMES_ACCEPT_HOOKS": "auto",
-    "HERMES_HOME": "/home/scion/.hermes",
+    "HERMES_HOME": "/home/fabric/.hermes",
     "HERMES_QUIET": "1",
     "HERMES_YOLO_MODE": "1"
   }

@@ -13,7 +13,7 @@ Expose a reasonable subset of the server settings schema as grove-level configur
 ## Current State
 
 ### Server Config (Admin)
-The admin server config page edits `~/.scion/settings.yaml` and exposes:
+The admin server config page edits `~/.fabric/settings.yaml` and exposes:
 - Top-level: `active_profile`, `default_template`, `default_harness_config`, `image_registry`, `workspace_path`
 - `server.*` (hub, broker, database, auth, oauth, storage, secrets, logging, notifications)
 - `telemetry.*`
@@ -47,8 +47,8 @@ type GroveSettings struct {
 Settings are resolved with local-first precedence:
 1. Agent/template level (most specific)
 2. Profile level
-3. Grove level (`.scion/settings.yaml` in project)
-4. Global level (`~/.scion/settings.yaml`)
+3. Grove level (`.fabric/settings.yaml` in project)
+4. Global level (`~/.fabric/settings.yaml`)
 5. Embedded defaults
 
 ## Proposed Grove Settings Subset
@@ -60,7 +60,7 @@ These settings are directly useful to grove owners and have clear grove-level se
 #### 1. Default Template
 - **Field:** `default_template`
 - **UI:** Dropdown/select populated from the grove's synced templates
-- **Rationale:** Most common thing a grove owner wants to set. Determines which template is used when `scion start` is run without `--template`.
+- **Rationale:** Most common thing a grove owner wants to set. Determines which template is used when `fabric start` is run without `--template`.
 
 #### 2. Default Harness Config
 - **Field:** `default_harness_config`
@@ -145,21 +145,21 @@ The key addition is `DefaultHarnessConfig` and `TelemetryEnabled`, which are cur
 
 ### Relationship to `settings.yaml` and Agent Provisioning
 
-These grove settings are **not** a parallel mechanism to the existing `settings.yaml` file. Instead, hub-stored grove settings are written back to the grove's `.scion/settings.yaml` on the broker filesystem. During agent provisioning, the broker reads `settings.yaml` as it does today - the hub API is just a remote editing interface for the same file.
+These grove settings are **not** a parallel mechanism to the existing `settings.yaml` file. Instead, hub-stored grove settings are written back to the grove's `.fabric/settings.yaml` on the broker filesystem. During agent provisioning, the broker reads `settings.yaml` as it does today - the hub API is just a remote editing interface for the same file.
 
 The flow is:
 1. User edits grove settings via the hub UI/API
 2. Hub persists the values and notifies the broker (or the broker pulls on next sync)
-3. Broker writes/merges the values into the grove's `.scion/settings.yaml`
-4. Agent provisioning reads `.scion/settings.yaml` as normal - no new code path
+3. Broker writes/merges the values into the grove's `.fabric/settings.yaml`
+4. Agent provisioning reads `.fabric/settings.yaml` as normal - no new code path
 
 This ensures a single source of truth per grove and avoids any divergence between hub-stored metadata and the on-disk settings that the broker actually uses.
 
 ### Hub Storage
 
-For **linked groves**, grove settings live on the broker's filesystem (`.scion/settings.yaml`). The hub stores the values and syncs them to the broker, which owns the file on disk.
+For **linked groves**, grove settings live on the broker's filesystem (`.fabric/settings.yaml`). The hub stores the values and syncs them to the broker, which owns the file on disk.
 
-For **hub-managed groves**, settings live in `~/.scion/groves/<slug>/.scion/settings.yaml` on each provider broker. The hub writes these directly during grove provisioning.
+For **hub-managed groves**, settings live in `~/.fabric/groves/<slug>/.fabric/settings.yaml` on each provider broker. The hub writes these directly during grove provisioning.
 
 ## UI Design
 
@@ -207,7 +207,7 @@ Settings icon  <grove-name> Settings
 ### Phase 1: Tier 1 Settings
 1. Add `DefaultHarnessConfig` and `TelemetryEnabled` to `hubclient.GroveSettings`
 2. Update hub `GET/PUT` grove settings handlers to include the new fields
-3. Ensure hub settings changes are synced back to the broker's `.scion/settings.yaml` (not stored as parallel metadata)
+3. Ensure hub settings changes are synced back to the broker's `.fabric/settings.yaml` (not stored as parallel metadata)
 4. Add "Configuration" section to `grove-settings.ts` with form fields
 5. Populate dropdowns from existing API endpoints (templates, harness configs)
 6. Wire save button to `PUT` endpoint

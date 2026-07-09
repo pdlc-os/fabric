@@ -1,7 +1,7 @@
 # PR #55 Review Feedback Fix
 
 **Date:** 2026-05-12
-**Branch:** scion/fix-issue-45
+**Branch:** fabric/fix-issue-45
 **PR:** #55
 
 ## Changes

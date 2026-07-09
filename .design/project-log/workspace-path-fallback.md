@@ -5,7 +5,7 @@
 
 ## Problem
 
-The grove-to-project rename (V50 SQL migration) renamed database tables and columns but did not include a filesystem migration. On deployed instances, workspace files still reside under `~/.scion/groves/{slug}`, while the code was updated to look under `~/.scion/projects/{slug}`. This caused workspace files to become invisible in the Web UI.
+The grove-to-project rename (V50 SQL migration) renamed database tables and columns but did not include a filesystem migration. On deployed instances, workspace files still reside under `~/.fabric/groves/{slug}`, while the code was updated to look under `~/.fabric/projects/{slug}`. This caused workspace files to become invisible in the Web UI.
 
 ## Solution
 

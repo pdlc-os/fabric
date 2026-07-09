@@ -9,10 +9,10 @@
 
 ## 1. Overview
 
-Scion can import two kinds of file-based resources from a remote URL or a workspace
+Fabric can import two kinds of file-based resources from a remote URL or a workspace
 path into the Hub's database + storage backend:
 
-- **Templates** — full agent definitions (`scion-agent.yaml` + `home/` + optional bundled `harness-configs/`).
+- **Templates** — full agent definitions (`fabric-agent.yaml` + `home/` + optional bundled `harness-configs/`).
 - **Harness-configs** — harness-specific config directories (`config.yaml` + files).
 
 Today this import is exposed **only at the project level** (Project Settings →
@@ -103,7 +103,7 @@ of the same bug (`filepath.Base(templatesDir)` yields e.g. `templates`).
   a static "Importing … from <url>…" message (`project-settings.ts:1921`, `2028`) —
   **no per-resource detail, no streaming**.
 - **Hub Resources** (`web/src/components/pages/settings.ts`, route `/settings`) shows
-  global templates and harness-configs via read-only `<scion-resource-list>` tabs.
+  global templates and harness-configs via read-only `<fabric-resource-list>` tabs.
   **There is no import button at the hub level.**
 - SSE infrastructure exists (`web/src/client/sse-client.ts`) for agent/terminal
   streams but is **not** used for import.
@@ -176,12 +176,12 @@ func (s *Server) importResources(
 - **Discovery** is unified into one `discoverResourceDirs(root, sourceURL, marker)`
   helper that owns BOTH the leaf-vs-parent decision AND per-branch naming (§4.2.1).
   It is the single place that classifies folders by the presence of a **marker file**
-  (`scion-agent.yaml` for templates, `config.yaml` for harness-configs).
+  (`fabric-agent.yaml` for templates, `config.yaml` for harness-configs).
 - **Fetch + auth** is unified into one `fetchRemoteForImport(ctx, projectID, url)`
   that does the GitHub-App-token → `GITHUB_TOKEN`-secret fallback once, for both kinds
   (fixing the harness-config auth gap).
 - **Per-kind differences** stay where they already live: `isResourceDir`
-  (`IsScionTemplate` vs `isHarnessConfigDir`) and `newStore` (`templateStore()` vs
+  (`IsFabricTemplate` vs `isHarnessConfigDir`) and `newStore` (`templateStore()` vs
   `harnessConfigStore(harness)`), both passed in as small closures.
 
 The four public `import*From*` methods collapse to two thin wrappers
@@ -245,7 +245,7 @@ exclusive):
    correct). Fixes the reported bug directly. For the workspace single-resource case,
    use `filepath.Base(absolutePath)` of the *real* directory (not the cache hash).
 2. **Explicit `name:` in the resource config (secondary, optional).** If a
-   `scion-agent.yaml` / `config.yaml` carries an explicit name field, prefer it over
+   `fabric-agent.yaml` / `config.yaml` carries an explicit name field, prefer it over
    the derived name. This makes a resource self-describing regardless of how it was
    fetched. Requires a small schema addition. See Open Question Q2.
 
@@ -284,7 +284,7 @@ available for global import (no project workspace to resolve) — URL only, matc
 **Web UI:** add an "Import" affordance to the Hub Resources tabs
 (`web/src/components/pages/settings.ts`) that reuses the same import form component as
 project settings, with the scope fixed to global and the workspace-mode option hidden.
-Factoring the project-settings import form into a shared `<scion-resource-import>`
+Factoring the project-settings import form into a shared `<fabric-resource-import>`
 component avoids a third copy of the import UI. See Open Question Q5.
 
 ### 4.4 Progress UX
@@ -416,10 +416,10 @@ Layered, each independently shippable:
   §8 Follow-ups for the cross-reference.
 - **Q9 → one level + stream-reported skips.** In the parent case, scan **only the
   immediate children** of the root for the marker file (no recursion); this matches how
-  `.scion/templates` and `.scion/harness-configs` are laid out today. Recursion is a
+  `.fabric/templates` and `.fabric/harness-configs` are laid out today. Recursion is a
   later addition only if a real use case appears. Child folders lacking the marker file
   are **skipped and reported** via the progress stream (a `skipped` event per folder)
-  and in the final summary, e.g. "Imported 3, skipped 2 (no scion-agent.yaml)".
+  and in the final summary, e.g. "Imported 3, skipped 2 (no fabric-agent.yaml)".
 
 ---
 
@@ -433,7 +433,7 @@ Layered, each independently shippable:
 1. **Factoring depth (Q1).** Adopt the shared driver above `ResourceStore`
    (Alternative B in §4.1), or just patch the bug minimally (A) and defer the
    refactor? The task framing ("make sure this is well factored *then* …") suggests B.
-2. **Explicit name field (Q2).** Should a resource's config (`scion-agent.yaml` /
+2. **Explicit name field (Q2).** Should a resource's config (`fabric-agent.yaml` /
    `config.yaml`) be able to declare its own `name`, taking precedence over the
    URL/dir-derived name? Adds self-describing resources but is a (small) schema change.
 3. **Where naming lives (Q3, reframed).** Given leaf-vs-parent detection (§4.2.1), the
@@ -526,7 +526,7 @@ Ordered so each phase is independently shippable and the user-visible fixes land
 
 ### Phase 2 — Hub-level import (backend + UI) — **Status: DONE**
 - Add the hub import endpoint(s) (shape per Q4) with admin authz, URL-only.
-- Factor the project-settings import form into a shared `<scion-resource-import>`
+- Factor the project-settings import form into a shared `<fabric-resource-import>`
   component; mount it in the Hub Resources tabs with scope=global.
 
 **Implementation notes (Phase 2):**
@@ -550,7 +550,7 @@ Ordered so each phase is independently shippable and the user-visible fixes land
   (global) fetch — it skips both the GitHub App token mint and the project
   `GITHUB_TOKEN` secret fallback, which are project-scoped.
 - Web: new shared `web/src/components/shared/resource-import.ts`
-  (`<scion-resource-import>`) renders the mode toggle + source input + button +
+  (`<fabric-resource-import>`) renders the mode toggle + source input + button +
   status, posting to the per-project endpoint (project scope, URL/workspace) or
   the unified endpoint (global scope, URL-only), and emits a `resource-imported`
   event so the host refreshes its list. It replaces the two inline import blocks

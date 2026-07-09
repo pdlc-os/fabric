@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM scion-base:latest
+FROM fabric-base:latest
 
-# Install Amp CLI via npm. scion-base provides node, npm, python3, git, tmux,
-# and sciontool — no additional system packages are needed.
+# Install Amp CLI via npm. fabric-base provides node, npm, python3, git, tmux,
+# and fabrictool — no additional system packages are needed.
 RUN npm install -g @sourcegraph/amp@latest \
     && amp --version
 
-USER scion
+USER fabric
 WORKDIR /workspace

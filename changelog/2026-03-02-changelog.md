@@ -10,8 +10,8 @@ This release focuses on refining the agent lifecycle experience with an overhaul
 
 ## 🐛 Fixes
 * **Container Runtime Compliance:** Fixed an issue where secret volume mounts were incorrectly ordered in container run commands, ensuring reliable mounting across different runtimes.
-* **Agent Identity Reliability:** Resolved bugs preventing the consistent propagation of `SCION_AGENT_ID` during restarts and specific dispatch paths, fixing broken notification subscriptions.
+* **Agent Identity Reliability:** Resolved bugs preventing the consistent propagation of `FABRIC_AGENT_ID` during restarts and specific dispatch paths, fixing broken notification subscriptions.
 * **Linked-Grove Pathing:** Corrected workspace resolution for linked groves without git remotes by ensuring fallback to the provider's local filesystem path.
 * **UI State Resolution:** Fixed a bug where hub agents would occasionally show an "unknown" phase by ensuring the UI correctly reads the unified Phase and Activity fields.
-* **UX Refinements:** Improved the `scion list` output to use human-friendly template names and fixed dynamic label mapping in secret configuration forms.
+* **UX Refinements:** Improved the `fabric list` output to use human-friendly template names and fixed dynamic label mapping in secret configuration forms.
 * **Stability:** Suppressed spurious errors during graceful server shutdown and resolved potential issues with higher-priority environment variable leakage in tests.

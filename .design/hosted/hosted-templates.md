@@ -5,13 +5,13 @@
 
 ## 1. Overview
 
-This document specifies the design for managing agent templates in the hosted Scion architecture. In the hosted model, templates are stored in cloud storage (buckets) and registered with the Hub for discovery, access control, and distribution to Runtime Brokers.
+This document specifies the design for managing agent templates in the hosted Fabric architecture. In the hosted model, templates are stored in cloud storage (buckets) and registered with the Hub for discovery, access control, and distribution to Runtime Brokers.
 
 ### 1.1. Current Template System (Solo Mode)
 
 In solo mode, templates are:
-- **Embedded in binary:** Default templates (claude, gemini, codex, opencode) are compiled into the `scion` binary via `//go:embed`
-- **Seeded on init:** `scion init` copies templates to `.scion/templates/` in the grove
+- **Embedded in binary:** Default templates (claude, gemini, codex, opencode) are compiled into the `fabric` binary via `//go:embed`
+- **Seeded on init:** `fabric init` copies templates to `.fabric/templates/` in the grove
 - **Locally stored:** Each grove maintains its own template copies on the filesystem
 - **Resolved at agent creation:** The Runtime Broker reads template files from disk when starting an agent
 - **URI-based remote templates:** Solo mode already supports referencing templates via URIs to remote locations; this capability remains independent of Hub-based template management
@@ -50,7 +50,7 @@ The Hub maintains a general storage bucket for all cloud storage needs. Template
                                     │            Hub Storage Bucket        │
                                     │  (GCS/S3/Azure Blob)                │
                                     │                                      │
-                                    │  gs://scion-hub-{env}/               │
+                                    │  gs://fabric-hub-{env}/               │
                                     │    └── templates/                    │
                                     │        ├── global/                   │
                                     │        │   └── claude/...           │
@@ -64,7 +64,7 @@ The Hub maintains a general storage bucket for all cloud storage needs. Template
                            │                       │                       │
                            ▼                       │                       ▼
                     ┌─────────────┐                │              ┌─────────────────┐
-                    │   Scion     │                │              │  Runtime Broker   │
+                    │   Fabric     │                │              │  Runtime Broker   │
                     │   Hub       │◄───────────────┘              │                 │
                     │             │                               │  ┌───────────┐  │
                     │  Template   │  1. Register template         │  │  Template │  │
@@ -83,7 +83,7 @@ Template creation uses a two-phase approach: metadata registration followed by f
 ```mermaid
 sequenceDiagram
     participant User as User/CLI
-    participant Hub as Scion Hub
+    participant Hub as Fabric Hub
     participant Bucket as Cloud Bucket
     participant DB as Database
 
@@ -106,7 +106,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Hub as Scion Hub
+    participant Hub as Fabric Hub
     participant Broker as Runtime Broker
     participant Cache as Template Cache
     participant Bucket as Cloud Bucket
@@ -225,7 +225,7 @@ Template files follow a consistent structure in storage:
 ```
 {storageUri}/
 ├── manifest.json          # File manifest with hashes
-├── scion-agent.yaml       # Harness configuration
+├── fabric-agent.yaml       # Harness configuration
 ├── home/
 │   ├── .bashrc           # Shell initialization
 │   ├── .tmux.conf        # Tmux configuration
@@ -248,7 +248,7 @@ The manifest provides content-addressable verification:
   "harness": "claude",
   "files": [
     {
-      "path": "scion-agent.yaml",
+      "path": "fabric-agent.yaml",
       "hash": "sha256:abc123...",
       "size": 256,
       "mode": "0644"
@@ -342,7 +342,7 @@ POST /api/v1/templates
   "template": "Template",
   "uploadUrls": [
     {
-      "path": "scion-agent.yaml",
+      "path": "fabric-agent.yaml",
       "url": "https://storage.googleapis.com/...",
       "expires": "2025-01-24T11:00:00Z"
     }
@@ -364,7 +364,7 @@ POST /api/v1/templates/{templateId}/upload
 ```json
 {
   "files": [
-    {"path": "scion-agent.yaml", "size": 256},
+    {"path": "fabric-agent.yaml", "size": 256},
     {"path": "home/.bashrc", "size": 1024}
   ]
 }
@@ -375,7 +375,7 @@ POST /api/v1/templates/{templateId}/upload
 {
   "uploadUrls": [
     {
-      "path": "scion-agent.yaml",
+      "path": "fabric-agent.yaml",
       "url": "https://storage.googleapis.com/...",
       "expires": "2025-01-24T11:00:00Z"
     }
@@ -399,7 +399,7 @@ POST /api/v1/templates/{templateId}/finalize
   "manifest": {
     "version": "1.0",
     "files": [
-      {"path": "scion-agent.yaml", "hash": "sha256:...", "size": 256, "mode": "0644"}
+      {"path": "fabric-agent.yaml", "hash": "sha256:...", "size": 256, "mode": "0644"}
     ]
   }
 }
@@ -423,7 +423,7 @@ Updates template metadata and/or files. This is an upsert-style operation that c
   "config": {},
   "visibility": "string",
   "files": [                       // Optional: include to update files
-    {"path": "scion-agent.yaml", "size": 256}
+    {"path": "fabric-agent.yaml", "size": 256}
   ]
 }
 ```
@@ -494,7 +494,7 @@ Returns signed URLs for downloading template files.
   "manifestUrl": "string",
   "files": [
     {
-      "path": "scion-agent.yaml",
+      "path": "fabric-agent.yaml",
       "url": "https://storage.googleapis.com/...",
       "size": 256,
       "hash": "sha256:..."
@@ -513,12 +513,12 @@ Returns signed URLs for downloading template files.
 Templates are stored under the `/templates` prefix within the Hub's general storage bucket:
 
 ```
-gs://scion-hub-{env}/
+gs://fabric-hub-{env}/
 └── templates/
     ├── global/
     │   ├── claude/
     │   │   ├── manifest.json
-    │   │   ├── scion-agent.yaml
+    │   │   ├── fabric-agent.yaml
     │   │   └── home/...
     │   └── gemini/
     │       └── ...
@@ -536,7 +536,7 @@ gs://scion-hub-{env}/
 
 | Component | Format | Example |
 |-----------|--------|---------|
-| Bucket | `scion-hub-{env}` | `scion-hub-prod` |
+| Bucket | `fabric-hub-{env}` | `fabric-hub-prod` |
 | Prefix | `templates/` | `templates/` |
 | Scope prefix | `global/`, `groves/{id}/`, `users/{id}/` | `groves/abc123/` |
 | Template name | Slug-safe name | `custom-claude` |
@@ -549,7 +549,7 @@ The Hub uses a single storage bucket for all cloud storage needs. Templates are 
 hub:
   storage:
     provider: "gcs"              # gcs, s3, azure
-    bucket: "scion-hub-prod"
+    bucket: "fabric-hub-prod"
     region: "us-central1"
 ```
 
@@ -584,7 +584,7 @@ Note: Default application credentials from `gcloud auth application-default logi
 
 ### 6.5. Multi-Region Considerations
 
-For globally distributed Runtime Brokers, administrators can configure the storage bucket as a multi-region or dual-region bucket in their cloud provider. Scion interacts with the bucket by name and does not manage replication directly.
+For globally distributed Runtime Brokers, administrators can configure the storage bucket as a multi-region or dual-region bucket in their cloud provider. Fabric interacts with the bucket by name and does not manage replication directly.
 
 ---
 
@@ -596,10 +596,10 @@ Runtime Brokers maintain a local cache of templates to avoid repeated downloads.
 
 **Cache Structure:**
 ```
-~/.scion/cache/templates/
+~/.fabric/cache/templates/
 ├── {contentHash}/
 │   ├── manifest.json
-│   ├── scion-agent.yaml
+│   ├── fabric-agent.yaml
 │   └── home/...
 └── index.json               # Maps templateId → contentHash
 ```
@@ -666,7 +666,7 @@ The Hub resolves templates before dispatching to Runtime Brokers:
       "storageUri": "gs://bucket/templates/groves/xyz/custom-claude/",
       "config": {
         "harness": "claude",
-        "image": "scion-claude:latest"
+        "image": "fabric-claude:latest"
       }
     }
   }
@@ -681,7 +681,7 @@ The Runtime Broker can fetch directly from `storageUri` or request download URLs
 
 ### 8.1. Template Commands
 
-The existing `scion templates` command is extended for Hub support. Both `template` and `templates` work as aliases.
+The existing `fabric templates` command is extended for Hub support. Both `template` and `templates` work as aliases.
 
 **Mode behavior:**
 - When Hub is enabled, all commands interact with the Hub
@@ -689,8 +689,8 @@ The existing `scion templates` command is extended for Hub support. Both `templa
 - Solo mode continues to work with local filesystem templates
 
 ```bash
-scion template <subcommand>
-scion templates <subcommand>   # Alias
+fabric template <subcommand>
+fabric templates <subcommand>   # Alias
 ```
 
 | Subcommand | Description | Hub Only |
@@ -711,28 +711,28 @@ Note: `sync` provides upsert semantics - it creates the template if it doesn't e
 **List templates:**
 ```bash
 # List all accessible templates
-scion template list
+fabric template list
 
 # List grove-scoped templates
-scion template list --scope grove
+fabric template list --scope grove
 
 # List templates for a specific grove
-scion template list --grove grove-xyz
+fabric template list --grove grove-xyz
 
 # List global templates
-scion template list --scope global
+fabric template list --scope global
 ```
 
 **Create/Update template (upsert):**
 ```bash
-# Sync a grove-scoped template from local .scion/templates/custom
-scion template sync custom-claude \
-  --from .scion/templates/custom \
+# Sync a grove-scoped template from local .fabric/templates/custom
+fabric template sync custom-claude \
+  --from .fabric/templates/custom \
   --scope grove \
   --harness claude
 
 # Sync from an existing template as base
-scion template sync my-claude \
+fabric template sync my-claude \
   --base global:claude \
   --scope user
 ```
@@ -740,36 +740,36 @@ scion template sync my-claude \
 **Push local template to Hub:**
 ```bash
 # Push local template changes to Hub
-scion template push custom-claude
+fabric template push custom-claude
 
 # Push from specific local path
-scion template push custom-claude --from .scion/templates/custom
+fabric template push custom-claude --from .fabric/templates/custom
 ```
 
 **Clone:**
 ```bash
 # Clone global template to grove
-scion template clone global:claude my-claude --scope grove
+fabric template clone global:claude my-claude --scope grove
 
 # Clone to different grove
-scion template clone grove:old-project:template new-template --grove new-project
+fabric template clone grove:old-project:template new-template --grove new-project
 ```
 
 **Delete:**
 ```bash
 # Soft delete (archive)
-scion template delete my-template
+fabric template delete my-template
 
 # Hard delete with file removal
-scion template delete my-template --delete-files
+fabric template delete my-template --delete-files
 
 # Force delete even if in use
-scion template delete my-template --force
+fabric template delete my-template --force
 ```
 
 **Rename:**
 ```bash
-scion template rename old-name new-name
+fabric template rename old-name new-name
 ```
 
 ### 8.3. Grove-Specific Shortcuts
@@ -777,10 +777,10 @@ scion template rename old-name new-name
 When inside a grove, scope defaults to grove:
 
 ```bash
-# Inside /path/to/project (with .scion/)
-scion template list                    # Lists grove + global templates
-scion template sync my-template        # Creates/updates in current grove
-scion template delete custom-claude    # Deletes from current grove
+# Inside /path/to/project (with .fabric/)
+fabric template list                    # Lists grove + global templates
+fabric template sync my-template        # Creates/updates in current grove
+fabric template delete custom-claude    # Deletes from current grove
 ```
 
 ---
@@ -793,15 +793,15 @@ When creating an agent, templates are specified by name or ID:
 
 ```bash
 # By name (resolved per scope hierarchy)
-scion create fix-bug --template custom-claude
+fabric create fix-bug --template custom-claude
 
 # Explicit scope
-scion create fix-bug --template global:claude
-scion create fix-bug --template grove:custom-claude
-scion create fix-bug --template user:my-template
+fabric create fix-bug --template global:claude
+fabric create fix-bug --template grove:custom-claude
+fabric create fix-bug --template user:my-template
 
 # By ID (unambiguous)
-scion create fix-bug --template-id template-abc123
+fabric create fix-bug --template-id template-abc123
 ```
 
 ### 9.2. Template Overrides
@@ -809,9 +809,9 @@ scion create fix-bug --template-id template-abc123
 Agent creation can override template defaults:
 
 ```bash
-scion create fix-bug \
+fabric create fix-bug \
   --template custom-claude \
-  --image scion-claude:v2.0 \
+  --image fabric-claude:v2.0 \
   --env LOG_LEVEL=debug \
   --model sonnet
 ```
@@ -924,10 +924,10 @@ Existing local templates can be uploaded to the Hub:
 
 ```bash
 # Upload grove template to Hub
-scion template push claude --from .scion/templates/claude
+fabric template push claude --from .fabric/templates/claude
 
 # Upload all local templates
-scion template push --all
+fabric template push --all
 ```
 
 ### 13.2. Sync Local Cache
@@ -953,7 +953,7 @@ If the Hub is unreachable:
 - The error message directs the user to either:
   - Wait for Hub connectivity to be restored
   - Use `--no-hub` flag for the current command (if applicable)
-  - Run `scion hub disable` to revert to solo mode
+  - Run `fabric hub disable` to revert to solo mode
 
 This explicit behavior ensures users are aware of their operational mode and prevents unexpected behavior from silent fallbacks.
 
@@ -989,11 +989,11 @@ Templates can contain shell scripts (bashrc). Mitigations:
 ### 15.1. Metrics (Future)
 
 ```
-scion_templates_total{scope="global",status="active"} 5
-scion_template_downloads_total{template="claude"} 1000
-scion_template_cache_hits_total 5000
-scion_template_cache_misses_total 500
-scion_template_upload_bytes_total 10485760
+fabric_templates_total{scope="global",status="active"} 5
+fabric_template_downloads_total{template="claude"} 1000
+fabric_template_cache_hits_total 5000
+fabric_template_cache_misses_total 500
+fabric_template_upload_bytes_total 10485760
 ```
 
 ### 15.2. Events (Future)

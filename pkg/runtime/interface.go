@@ -17,8 +17,8 @@ package runtime
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 type RunConfig struct {
@@ -29,7 +29,7 @@ type RunConfig struct {
 	HomeDir              string
 	Workspace            string
 	RepoRoot             string
-	ContainerWorkspace   string // The container-side workspace path (e.g., /workspace or /repo-root/.scion/agents/foo/workspace)
+	ContainerWorkspace   string // The container-side workspace path (e.g., /workspace or /repo-root/.fabric/agents/foo/workspace)
 	Env                  []string
 	ResolvedSecrets      []api.ResolvedSecret
 	Volumes              []api.VolumeMount
@@ -61,7 +61,7 @@ type RunConfig struct {
 	// when NFS (N1-5).
 	WorkspaceBackendName string
 	// NFSUID and NFSGID are the stable, node-independent UID/GID for NFS-backed
-	// workspaces. Advertised as SCION_HOST_UID/GID when WorkspaceBackendName is "nfs"
+	// workspaces. Advertised as FABRIC_HOST_UID/GID when WorkspaceBackendName is "nfs"
 	// instead of os.Getuid()/os.Getgid(). Default 1000:1000 (design §9.1).
 	NFSUID int
 	NFSGID int
@@ -121,8 +121,8 @@ type Runtime interface {
 	// This is used for workspace sync operations.
 	GetWorkspacePath(ctx context.Context, id string) (string, error)
 	// ExecUser returns the container user for exec/attach commands.
-	// All runtimes return "scion" — the tmux session runs under the scion
-	// user after sciontool init sets up the environment.
+	// All runtimes return "fabric" — the tmux session runs under the fabric
+	// user after fabrictool init sets up the environment.
 	ExecUser() string
 }
 
@@ -134,6 +134,6 @@ const (
 	SyncUnspecified SyncDirection = ""
 
 	// LegacyAgentPhaseEnded is the historical terminal phase returned by some
-	// runtime list implementations before Scion standardized on stopped/error.
+	// runtime list implementations before Fabric standardized on stopped/error.
 	LegacyAgentPhaseEnded = "ended"
 )

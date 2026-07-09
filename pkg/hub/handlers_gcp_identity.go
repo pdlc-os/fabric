@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 
@@ -433,7 +433,7 @@ func (s *Server) verifyGCPServiceAccount(w http.ResponseWriter, r *http.Request,
 
 // mintGCPServiceAccountRequest is the request body for POST .../gcp-service-accounts/mint.
 type mintGCPServiceAccountRequest struct {
-	AccountID   string `json:"account_id"`   // Optional custom SA account ID (will be prefixed with scion-)
+	AccountID   string `json:"account_id"`   // Optional custom SA account ID (will be prefixed with fabric-)
 	DisplayName string `json:"display_name"` // Optional display name
 	Description string `json:"description"`  // Optional description
 }
@@ -478,13 +478,13 @@ func projectIDFromServiceAccountEmail(email string) string {
 	return domain[:len(domain)-len(suffix)]
 }
 
-// generateRandomAccountID generates a random SA account ID: scion-{8-hex-chars}.
+// generateRandomAccountID generates a random SA account ID: fabric-{8-hex-chars}.
 func generateRandomAccountID() (string, error) {
 	b := make([]byte, 4)
 	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
-	return "scion-" + hex.EncodeToString(b), nil
+	return "fabric-" + hex.EncodeToString(b), nil
 }
 
 func (s *Server) mintGCPServiceAccount(w http.ResponseWriter, r *http.Request, projectID string) {
@@ -575,9 +575,9 @@ func (s *Server) mintGCPServiceAccount(w http.ResponseWriter, r *http.Request, p
 	// Generate or validate the account ID
 	var accountID string
 	if req.AccountID != "" {
-		// Custom: prefix with scion-, slugify, validate
+		// Custom: prefix with fabric-, slugify, validate
 		slug := slugifyAccountID(req.AccountID)
-		accountID = "scion-" + slug
+		accountID = "fabric-" + slug
 	} else {
 		// Auto-generate
 		accountID, err = generateRandomAccountID()
@@ -602,11 +602,11 @@ func (s *Server) mintGCPServiceAccount(w http.ResponseWriter, r *http.Request, p
 	// Build display name and description
 	displayName := req.DisplayName
 	if displayName == "" {
-		displayName = fmt.Sprintf("Scion agent (%s)", project.Slug)
+		displayName = fmt.Sprintf("Fabric agent (%s)", project.Slug)
 	}
 	description := req.Description
 	if description == "" {
-		description = fmt.Sprintf("Minted by Scion Hub for project %s (ID: %s) by user %s", project.Slug, projectID, user.ID())
+		description = fmt.Sprintf("Minted by Fabric Hub for project %s (ID: %s) by user %s", project.Slug, projectID, user.ID())
 	}
 
 	// Create the SA in GCP

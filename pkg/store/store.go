@@ -221,7 +221,7 @@ type AgentStatusUpdate struct {
 	Heartbeat       bool              `json:"heartbeat,omitempty"`
 	Metadata        map[string]string `json:"metadata,omitempty"`
 
-	// Limits tracking (reported by sciontool)
+	// Limits tracking (reported by fabrictool)
 	CurrentTurns      *int   `json:"currentTurns,omitempty"`
 	CurrentModelCalls *int   `json:"currentModelCalls,omitempty"`
 	StartedAt         string `json:"startedAt,omitempty"`

@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/githubinstallation"
+	"github.com/pdlc-os/fabric/pkg/ent/githubinstallation"
 )
 
 // GithubInstallation is the model entity for the GithubInstallation schema.

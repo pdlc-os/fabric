@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
@@ -181,11 +181,11 @@ func RequireImageRegistry(projectPath, profileName string) error {
 		return nil
 	}
 	return fmt.Errorf("image_registry is not configured.\n\n" +
-		"Scion requires container images to run agents. To get started:\n\n" +
+		"Fabric requires container images to run agents. To get started:\n\n" +
 		"  1. Build your images:  image-build/scripts/build-images.sh --registry <your-registry> --push\n" +
 		"     See image-build/README.md for detailed instructions.\n\n" +
-		"  2. Configure scion:   scion config set --global image_registry <your-registry>\n" +
-		"     Example:           scion config set --global image_registry ghcr.io/myorg")
+		"  2. Configure fabric:   fabric config set --global image_registry <your-registry>\n" +
+		"     Example:           fabric config set --global image_registry ghcr.io/myorg")
 }
 
 // RewriteImageRegistry replaces the registry prefix of a container image reference
@@ -196,7 +196,7 @@ func RewriteImageRegistry(fullImage, newRegistry string) string {
 		return fullImage
 	}
 
-	// Extract the basename (last path component, e.g. "scion-claude:latest")
+	// Extract the basename (last path component, e.g. "fabric-claude:latest")
 	lastSlash := strings.LastIndex(fullImage, "/")
 	var basename string
 	if lastSlash >= 0 {
@@ -207,7 +207,7 @@ func RewriteImageRegistry(fullImage, newRegistry string) string {
 
 	// If the image already has an explicit registry hostname
 	// (first path component contains "." or ":"), don't rewrite it.
-	// A fully qualified reference like ghcr.io/org/scion-foo:v1
+	// A fully qualified reference like ghcr.io/org/fabric-foo:v1
 	// means the author chose that registry deliberately.
 	if firstSlash := strings.Index(fullImage, "/"); firstSlash >= 0 {
 		firstComponent := fullImage[:firstSlash]
@@ -255,7 +255,7 @@ type VersionedSettings struct {
 
 // V1ServerConfig holds server-side configuration in the versioned settings format.
 // This mirrors GlobalConfig but uses snake_case koanf/yaml tags.
-// Only valid at the global level (~/.scion/settings.yaml), never in project-level settings.
+// Only valid at the global level (~/.fabric/settings.yaml), never in project-level settings.
 type V1ServerConfig struct {
 	// Mode selects the server operating mode: "workstation" (default) or "hosted".
 	// When set to "hosted", the server behaves as if --hosted were passed.
@@ -361,7 +361,7 @@ type V1PluginEntry struct {
 	TLSSkipVerify bool `json:"tls_skip_verify,omitempty" yaml:"tls_skip_verify,omitempty" koanf:"tls_skip_verify"`
 }
 
-// V1ServerHubConfig holds the Hub API server settings (when running scion-server).
+// V1ServerHubConfig holds the Hub API server settings (when running fabric-server).
 type V1ServerHubConfig struct {
 	Port         int           `json:"port,omitempty" yaml:"port,omitempty" koanf:"port"`
 	Host         string        `json:"host,omitempty" yaml:"host,omitempty" koanf:"host"`
@@ -521,7 +521,7 @@ type V1NFSConfig struct {
 type V1NFSShare struct {
 	ID     string `json:"id,omitempty" yaml:"id,omitempty" koanf:"id"`                // stable share id → mount dir + (K8s) PV name
 	Server string `json:"server,omitempty" yaml:"server,omitempty" koanf:"server"`    // e.g. 10.0.0.2 or Filestore IP
-	Export string `json:"export,omitempty" yaml:"export,omitempty" koanf:"export"`    // server export path, e.g. /scion-workspaces
+	Export string `json:"export,omitempty" yaml:"export,omitempty" koanf:"export"`    // server export path, e.g. /fabric-workspaces
 	PVName string `json:"pv_name,omitempty" yaml:"pv_name,omitempty" koanf:"pv_name"` // K8s static PV+subPath strategy
 }
 
@@ -617,7 +617,7 @@ type V1CLIConfig struct {
 
 // V1TelemetryConfig holds telemetry/observability settings.
 // Configurable at global or project scope in settings.yaml, and overridable per-template/agent
-// in scion-agent.yaml. See design doc section 10.2 for the full reference.
+// in fabric-agent.yaml. See design doc section 10.2 for the full reference.
 type V1TelemetryConfig struct {
 	Enabled  *bool                    `json:"enabled,omitempty" yaml:"enabled,omitempty" koanf:"enabled"`
 	Cloud    *V1TelemetryCloudConfig  `json:"cloud,omitempty" yaml:"cloud,omitempty" koanf:"cloud"`
@@ -792,7 +792,7 @@ type HarnessNoAuthConfig struct {
 // HarnessMCPConfig is the declarative mapping that lets a harness's
 // container-side provisioner translate the universal mcp_servers map into the
 // harness's native MCP config without bespoke per-harness Python. Used by
-// the scion_harness.apply_mcp_servers_simple helper. Harnesses whose native
+// the fabric_harness.apply_mcp_servers_simple helper. Harnesses whose native
 // format does not fit the simple-merge pattern (e.g. OpenCode) leave this
 // empty and translate themselves in provision.py.
 type HarnessMCPConfig struct {
@@ -844,7 +844,7 @@ type V1ProfileConfig struct {
 // resolveEffectiveProjectPath resolves the effective project path for settings loading.
 // Shared by both LoadSettingsKoanf and LoadVersionedSettings.
 // For git projects with split storage, this redirects to the external config dir
-// so that settings are loaded from ~/.scion/project-configs/<slug>__<uuid>/.scion/.
+// so that settings are loaded from ~/.fabric/project-configs/<slug>__<uuid>/.fabric/.
 func resolveEffectiveProjectPath(projectPath string) string {
 	effectiveProjectPath := projectPath
 	switch effectiveProjectPath {
@@ -864,10 +864,10 @@ func resolveEffectiveProjectPath(projectPath string) string {
 // LoadVersionedSettings loads settings using Koanf into VersionedSettings.
 // Provider priority:
 // 1. Embedded defaults (YAML) with OS-specific runtime adjustment
-// 2. Global settings file (~/.scion/settings.yaml or .json)
-// 3. In-repo project settings file (.scion/settings.yaml or .json)
+// 2. Global settings file (~/.fabric/settings.yaml or .json)
+// 3. In-repo project settings file (.fabric/settings.yaml or .json)
 // 4. External project config settings (for git projects with split storage)
-// 5. Environment variables (SCION_ prefix)
+// 5. Environment variables (FABRIC_ prefix)
 func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 	k := koanf.New(".")
 
@@ -876,7 +876,7 @@ func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 		_ = k.Load(rawbytes.Provider(defaultData), yaml.Parser())
 	}
 
-	// 2. Load global settings (~/.scion/settings.yaml or .json)
+	// 2. Load global settings (~/.fabric/settings.yaml or .json)
 	globalDir, _ := GetGlobalDir()
 	if globalDir != "" {
 		if err := loadSettingsFile(k, globalDir); err != nil {
@@ -884,7 +884,7 @@ func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 		}
 	}
 
-	// 3. Load in-repo project settings (.scion/settings.yaml)
+	// 3. Load in-repo project settings (.fabric/settings.yaml)
 	effectiveProjectPath := resolveEffectiveProjectPath(projectPath)
 	if projectPath != "" && projectPath != globalDir {
 		if err := loadSettingsFile(k, projectPath); err != nil {
@@ -900,11 +900,11 @@ func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 		}
 	}
 
-	// 4. Load environment variables (SCION_ prefix)
-	_ = k.Load(env.Provider("SCION_", ".", versionedEnvKeyMapper), nil)
+	// 4. Load environment variables (FABRIC_ prefix)
+	_ = k.Load(env.Provider("FABRIC_", ".", versionedEnvKeyMapper), nil)
 
 	// For git projects, the project_id is stored in a project-id file inside the
-	// .scion directory rather than in the settings file. Read it here so that
+	// .fabric directory rather than in the settings file. Read it here so that
 	// it overrides any hub.project_id inherited from global settings.
 	if projectPath != "" {
 		globalDir, _ := GetGlobalDir()
@@ -918,7 +918,7 @@ func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 	}
 
 	// Remap hub.project_id to hub.grove_id for backward compatibility with V1 structs.
-	// SCION_HUB_PROJECT_ID maps to hub.project_id via versionedEnvKeyMapper.
+	// FABRIC_HUB_PROJECT_ID maps to hub.project_id via versionedEnvKeyMapper.
 	if k.Exists(projectcompat.ConfigHubProjectIDKey) && !k.Exists(projectcompat.ConfigHubGroveIDKey) {
 		_ = k.Load(confmap.Provider(map[string]interface{}{
 			projectcompat.ConfigHubGroveIDKey: k.String(projectcompat.ConfigHubProjectIDKey),
@@ -939,13 +939,13 @@ func LoadVersionedSettings(projectPath string) (*VersionedSettings, error) {
 	return settings, nil
 }
 
-// versionedEnvKeyMapper maps SCION_* environment variables to versioned settings keys.
+// versionedEnvKeyMapper maps FABRIC_* environment variables to versioned settings keys.
 // All keys are snake_case so no camelCase conversion is needed.
 func versionedEnvKeyMapper(s string) string {
 	if mapped, ok := projectcompat.EnvProjectIDConfigKey(s, false); ok {
 		return mapped
 	}
-	key := strings.ToLower(strings.TrimPrefix(s, "SCION_"))
+	key := strings.ToLower(strings.TrimPrefix(s, "FABRIC_"))
 
 	// Handle nested hub keys (single level: hub.endpoint, hub.grove_id, etc.)
 	if strings.HasPrefix(key, "hub_") {
@@ -965,7 +965,7 @@ func versionedEnvKeyMapper(s string) string {
 		rest := strings.TrimPrefix(key, "telemetry_")
 		return "telemetry." + mapTelemetryEnvKey(rest)
 	}
-	// Handle SCION_OTEL_* → telemetry.cloud.* mappings
+	// Handle FABRIC_OTEL_* → telemetry.cloud.* mappings
 	if strings.HasPrefix(key, "otel_") {
 		return mapOtelEnvKey(strings.TrimPrefix(key, "otel_"))
 	}

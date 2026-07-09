@@ -64,13 +64,13 @@ func NewMultiStore(dir string) *MultiStore {
 }
 
 // DefaultMultiDir returns the default directory for multi-hub credentials.
-// This is ~/.scion/hub-credentials/
+// This is ~/.fabric/hub-credentials/
 func DefaultMultiDir() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return DefaultMultiDirName
 	}
-	return filepath.Join(home, ".scion", DefaultMultiDirName)
+	return filepath.Join(home, ".fabric", DefaultMultiDirName)
 }
 
 // Dir returns the directory path of the store.
@@ -361,7 +361,7 @@ func (s *MultiStore) checkDevAuthLimit(name string) error {
 
 // DeriveHubName derives a filesystem-safe name from a hub endpoint URL.
 // Examples:
-//   - https://hub.scion.dev → hub-scion-dev
+//   - https://hub.fabric.dev → hub-fabric-dev
 //   - http://localhost:8080 → localhost
 //   - http://localhost:9090 → localhost-9090
 func DeriveHubName(endpoint string) string {

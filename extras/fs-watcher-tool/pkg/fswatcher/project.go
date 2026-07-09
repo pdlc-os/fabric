@@ -47,7 +47,7 @@ func NewProjectDiscovery(dockerClient *client.Client, projectID string, debug bo
 func (g *ProjectDiscovery) Discover(ctx context.Context) ([]string, error) {
 	containers, err := g.dockerClient.ContainerList(ctx, container.ListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("label", fmt.Sprintf("scion.grove=%s", g.projectID)),
+			filters.Arg("label", fmt.Sprintf("fabric.grove=%s", g.projectID)),
 		),
 	})
 	if err != nil {
@@ -72,7 +72,7 @@ func (g *ProjectDiscovery) Discover(ctx context.Context) ([]string, error) {
 			}
 			// Look for workspace mounts — the destination is typically /workspace,
 			// but may also be /repo-root (when the full project is bind-mounted)
-			// or a sub-path like /repo-root/.scion/agents/<name>/workspace.
+			// or a sub-path like /repo-root/.fabric/agents/<name>/workspace.
 			if !isWorkspaceMount(mount.Destination) {
 				continue
 			}
@@ -81,7 +81,7 @@ func (g *ProjectDiscovery) Discover(ctx context.Context) ([]string, error) {
 				seen[hostPath] = true
 				dirs = append(dirs, hostPath)
 				if g.debug {
-					agentName := info.Config.Labels["scion.name"]
+					agentName := info.Config.Labels["fabric.name"]
 					log.Printf("[project] discovered watch dir: %s (agent: %s, dest: %s)", hostPath, agentName, mount.Destination)
 				}
 			}
@@ -102,7 +102,7 @@ func (g *ProjectDiscovery) DiscoverForContainer(ctx context.Context, containerID
 	}
 
 	// Check that the container belongs to our project.
-	if projectLabel, ok := info.Config.Labels["scion.grove"]; !ok || projectLabel != g.projectID {
+	if projectLabel, ok := info.Config.Labels["fabric.grove"]; !ok || projectLabel != g.projectID {
 		return "", nil
 	}
 

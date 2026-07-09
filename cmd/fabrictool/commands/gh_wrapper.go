@@ -22,7 +22,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
 )
 
 // ghWrapperCmd wraps the real `gh` CLI binary, injecting a fresh GitHub token
@@ -48,11 +48,11 @@ func init() {
 func runGhWrapper(args []string) int {
 	// If GitHub App is enabled, read the fresh token from the token file.
 	// However, if the user has explicitly set their own GITHUB_TOKEN (flagged
-	// by SCION_USER_GITHUB_TOKEN=true during provisioning), skip injection
+	// by FABRIC_USER_GITHUB_TOKEN=true during provisioning), skip injection
 	// so that gh uses the user's token from the environment instead.
 	if hub.IsGitHubAppEnabled() {
 		if os.Getenv(hub.EnvUserGitHubToken) == "true" {
-			fmt.Fprintf(os.Stderr, "sciontool gh-wrapper: user-provided GITHUB_TOKEN detected; using it instead of GitHub App token\n")
+			fmt.Fprintf(os.Stderr, "fabrictool gh-wrapper: user-provided GITHUB_TOKEN detected; using it instead of GitHub App token\n")
 		} else {
 			tokenPath := hub.GitHubTokenPath()
 			token := hub.ReadGitHubTokenFile(tokenPath)
@@ -65,20 +65,20 @@ func runGhWrapper(args []string) int {
 	// Find the real gh binary (skip ourselves if we're in PATH)
 	ghPath, err := findRealGh()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "sciontool gh-wrapper: %v\n", err)
+		fmt.Fprintf(os.Stderr, "fabrictool gh-wrapper: %v\n", err)
 		return 1
 	}
 
 	// Exec the real gh, replacing this process
 	err = syscall.Exec(ghPath, append([]string{"gh"}, args...), os.Environ())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "sciontool gh-wrapper: failed to exec %s: %v\n", ghPath, err)
+		fmt.Fprintf(os.Stderr, "fabrictool gh-wrapper: failed to exec %s: %v\n", ghPath, err)
 		return 1
 	}
 	return 0
 }
 
-// findRealGh looks for the real `gh` binary, skipping any sciontool-based wrapper.
+// findRealGh looks for the real `gh` binary, skipping any fabrictool-based wrapper.
 func findRealGh() (string, error) {
 	// Look for gh in standard locations. The .real paths are checked first
 	// because the Dockerfile renames the real binary to gh.real and installs
@@ -112,7 +112,7 @@ func findRealGh() (string, error) {
 		return "", fmt.Errorf("gh not found in PATH")
 	}
 	if ghPath == selfPath {
-		return "", fmt.Errorf("only found sciontool gh-wrapper, no real gh binary")
+		return "", fmt.Errorf("only found fabrictool gh-wrapper, no real gh binary")
 	}
 	return ghPath, nil
 }

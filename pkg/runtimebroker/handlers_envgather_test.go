@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // newTestServerWithProjectPath creates a test server with a temporary project path
@@ -33,7 +33,7 @@ func newTestServerWithProjectPath(t *testing.T, settingsYAML string) (*Server, *
 	t.Helper()
 
 	// Isolate HOME so LoadEffectiveSettings does not merge the developer's
-	// personal ~/.scion/settings.yaml (which may declare harness-config
+	// personal ~/.fabric/settings.yaml (which may declare harness-config
 	// auth_selected_type values that would override the test fixture).
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", "")
@@ -46,7 +46,7 @@ func newTestServerWithProjectPath(t *testing.T, settingsYAML string) (*Server, *
 	}
 
 	// Create template directories so FindTemplateInProjectPath can resolve them.
-	// Each template needs a scion-agent.yaml that sets harness_config so that
+	// Each template needs a fabric-agent.yaml that sets harness_config so that
 	// provisioning doesn't fall back to the embedded default (gemini).
 	for _, tpl := range []string{"claude", "gemini", "default"} {
 		tplDir := filepath.Join(projectDir, "templates", tpl)
@@ -54,7 +54,7 @@ func newTestServerWithProjectPath(t *testing.T, settingsYAML string) (*Server, *
 			t.Fatal(err)
 		}
 		cfg := "harness_config: " + tpl + "\n"
-		if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(cfg), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(cfg), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -392,7 +392,7 @@ profiles:
 		if err := os.MkdirAll(tplDir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte("harness_config: claude\n"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte("harness_config: claude\n"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -468,14 +468,14 @@ runtimes:
 		t.Fatal(err)
 	}
 
-	// Create templates with scion-agent.yaml so harness-config resolution
+	// Create templates with fabric-agent.yaml so harness-config resolution
 	// finds a harness_config value instead of falling through to the
 	// embedded default ("gemini") which has no on-disk directory.
 	tplDir := filepath.Join(projectDir, "templates", "claude")
 	if err := os.MkdirAll(tplDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte("harness_config: claude\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte("harness_config: claude\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -527,7 +527,7 @@ func newTestServerWithHarnessConfig(t *testing.T, harnessConfigName, configYAML,
 	t.Helper()
 
 	// Isolate HOME so LoadEffectiveSettings does not merge the developer's
-	// personal ~/.scion/settings.yaml (which may declare harness-config
+	// personal ~/.fabric/settings.yaml (which may declare harness-config
 	// auth_selected_type values that would override the test fixture).
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", "")
@@ -569,7 +569,7 @@ func newTestServerWithHarnessConfig(t *testing.T, harnessConfigName, configYAML,
 func TestEnvGather_SettingsEmptyEnv(t *testing.T) {
 	// Settings declares ANTHROPIC_API_KEY as empty (needs gathering)
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\n",
+		"harness: claude\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -623,7 +623,7 @@ profiles:
 func TestEnvGather_SettingsEmptyEnvVertexAI(t *testing.T) {
 	// Settings declares GOOGLE_CLOUD_PROJECT as empty (needs gathering)
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\nauth_selected_type: vertex-ai\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\nauth_selected_type: vertex-ai\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -675,7 +675,7 @@ profiles:
 func TestEnvGather_SettingsAuthTypeOverride(t *testing.T) {
 	// On-disk config says api-key, but settings profile overrides to auth-file
 	srv, mgr, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\nauth_selected_type: api-key\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\nauth_selected_type: api-key\n",
 		`
 schema_version: "1"
 profiles:
@@ -714,7 +714,7 @@ profiles:
 // can be used and does not require GEMINI_API_KEY.
 func TestEnvGather_FileSecretSatisfiesAuth(t *testing.T) {
 	srv, mgr, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 profiles:
@@ -1396,7 +1396,7 @@ profiles:
 	if err := os.MkdirAll(defaultTplDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(defaultTplDir, "scion-agent.yaml"), []byte("# no harness_config\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(defaultTplDir, "fabric-agent.yaml"), []byte("# no harness_config\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1570,7 +1570,7 @@ profiles:
 // and SecretInfo showing type=file.
 func TestEnvGather_VertexAI_RequiresADCFile(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\nauth_selected_type: vertex-ai\n",
+		"harness: claude\nimage: test-image\nuser: fabric\nauth_selected_type: vertex-ai\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1645,7 +1645,7 @@ profiles:
 // for gcloud-adc.
 func TestEnvGather_VertexAI_ADCSatisfied(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\nauth_selected_type: vertex-ai\n",
+		"harness: claude\nimage: test-image\nuser: fabric\nauth_selected_type: vertex-ai\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1667,7 +1667,7 @@ profiles:
 			"GOOGLE_CLOUD_REGION": "us-central1"
 		},
 		"resolvedSecrets": [
-			{"name": "gcloud-adc", "type": "file", "target": "/home/scion/.config/gcloud/application_default_credentials.json", "value": "{\"type\":\"authorized_user\"}", "source": "user"}
+			{"name": "gcloud-adc", "type": "file", "target": "/home/fabric/.config/gcloud/application_default_credentials.json", "value": "{\"type\":\"authorized_user\"}", "source": "user"}
 		],
 		"config": {"template": "claude", "profile": "default"}
 	}`
@@ -1696,7 +1696,7 @@ profiles:
 func TestEnvGather_AutoDetectVertexAI_FromGACEnvVar(t *testing.T) {
 	// No auth_selected_type set — auto-detect should kick in
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\n",
+		"harness: claude\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1756,7 +1756,7 @@ profiles:
 // of a gcloud-adc file secret.
 func TestEnvGather_VertexAI_ADCSatisfiedByEnvVar(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\nauth_selected_type: vertex-ai\n",
+		"harness: claude\nimage: test-image\nuser: fabric\nauth_selected_type: vertex-ai\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1808,7 +1808,7 @@ profiles:
 // non-admin users who only have GCP credentials.
 func TestEnvGather_AutoDetectVertexAI_FromGCPProject(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\n",
+		"harness: claude\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1868,7 +1868,7 @@ profiles:
 // causing env-gather to require gcloud-adc even though api-key auth was viable.
 func TestEnvGather_AutoDetect_APIKeyWinsOverGCPProject(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1912,7 +1912,7 @@ profiles:
 // api-key priority for the claude harness.
 func TestEnvGather_AutoDetect_ClaudeAPIKeyWinsOverGCPProject(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "claude",
-		"harness: claude\nimage: test-image\nuser: scion\n",
+		"harness: claude\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 harness_configs:
@@ -1959,7 +1959,7 @@ func TestEnvGather_HarnessAuthOverride(t *testing.T) {
 	// Provide an OAuth file secret so auto-detect would normally pick auth-file.
 	// But --harness-auth api-key should override to api-key, requiring GEMINI_API_KEY.
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 profiles:
@@ -2010,12 +2010,12 @@ profiles:
 // overrides auto-detect and requires vertex-ai credentials even when an API key
 // would otherwise be detected as sufficient.
 // TestEnvGather_NoProjectPath_GlobalFallback tests that when projectPath is empty
-// (e.g. hub-only git projects), the broker falls back to the global ~/.scion
+// (e.g. hub-only git projects), the broker falls back to the global ~/.fabric
 // directory for settings resolution, so auth env keys are still detected.
 func TestEnvGather_NoProjectPath_GlobalFallback(t *testing.T) {
-	// Set up a fake HOME with global .scion settings
+	// Set up a fake HOME with global .fabric settings
 	fakeHome := t.TempDir()
-	globalDir := filepath.Join(fakeHome, ".scion")
+	globalDir := filepath.Join(fakeHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -2138,7 +2138,7 @@ profiles:
 
 func TestEnvGather_HarnessAuthOverrideVertexAI(t *testing.T) {
 	srv, _, projectDir := newTestServerWithHarnessConfig(t, "gemini",
-		"harness: gemini\nimage: test-image\nuser: scion\n",
+		"harness: gemini\nimage: test-image\nuser: fabric\n",
 		`
 schema_version: "1"
 profiles:

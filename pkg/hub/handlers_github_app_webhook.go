@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/githubapp"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/hub/githubapp"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // handleGitHubWebhook handles POST /api/v1/webhooks/github.

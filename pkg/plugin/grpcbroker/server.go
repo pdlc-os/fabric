@@ -17,8 +17,8 @@ package grpcbroker
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	brokerv1 "github.com/GoogleCloudPlatform/scion/proto/broker/v1"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

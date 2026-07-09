@@ -116,8 +116,8 @@ function resolveStatusConfig(status: StatusType): StatusConfig {
   return NON_AGENT_STATUS_MAP[status] || { variant: 'neutral', pulse: false };
 }
 
-@customElement('scion-status-badge')
-export class ScionStatusBadge extends LitElement {
+@customElement('fabric-status-badge')
+export class FabricStatusBadge extends LitElement {
   /**
    * The status to display
    */
@@ -201,28 +201,28 @@ export class ScionStatusBadge extends LitElement {
 
     /* Variant colors */
     .badge.success {
-      background: var(--scion-badge-success-bg, #dcfce7);
-      color: var(--scion-badge-success-text, #166534);
+      background: var(--fabric-badge-success-bg, #dcfce7);
+      color: var(--fabric-badge-success-text, #166534);
     }
 
     .badge.warning {
-      background: var(--scion-badge-warning-bg, #fef3c7);
-      color: var(--scion-badge-warning-text, #92400e);
+      background: var(--fabric-badge-warning-bg, #fef3c7);
+      color: var(--fabric-badge-warning-text, #92400e);
     }
 
     .badge.danger {
-      background: var(--scion-badge-danger-bg, #fee2e2);
-      color: var(--scion-badge-danger-text, #991b1b);
+      background: var(--fabric-badge-danger-bg, #fee2e2);
+      color: var(--fabric-badge-danger-text, #991b1b);
     }
 
     .badge.primary {
-      background: var(--scion-badge-primary-bg, #dbeafe);
-      color: var(--scion-badge-primary-text, #1e40af);
+      background: var(--fabric-badge-primary-bg, #dbeafe);
+      color: var(--fabric-badge-primary-text, #1e40af);
     }
 
     .badge.neutral {
-      background: var(--scion-badge-neutral-bg, #e2e8f0);
-      color: var(--scion-badge-neutral-text, #1e293b);
+      background: var(--fabric-badge-neutral-bg, #e2e8f0);
+      color: var(--fabric-badge-neutral-text, #1e293b);
     }
 
     /* Pulse indicator */
@@ -241,18 +241,18 @@ export class ScionStatusBadge extends LitElement {
     }
 
     .pulse.success::before {
-      background: var(--scion-success-500, #22c55e);
-      box-shadow: 0 0 0 0 var(--scion-success-400, #4ade80);
+      background: var(--fabric-success-500, #22c55e);
+      box-shadow: 0 0 0 0 var(--fabric-success-400, #4ade80);
     }
 
     .pulse.warning::before {
-      background: var(--scion-warning-500, #f59e0b);
-      box-shadow: 0 0 0 0 var(--scion-warning-400, #fbbf24);
+      background: var(--fabric-warning-500, #f59e0b);
+      box-shadow: 0 0 0 0 var(--fabric-warning-400, #fbbf24);
     }
 
     .pulse.danger::before {
-      background: var(--scion-danger-500, #ef4444);
-      box-shadow: 0 0 0 0 var(--scion-danger-400, #f87171);
+      background: var(--fabric-danger-500, #ef4444);
+      box-shadow: 0 0 0 0 var(--fabric-danger-400, #f87171);
     }
 
     @keyframes pulse {
@@ -294,6 +294,6 @@ export class ScionStatusBadge extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-status-badge': ScionStatusBadge;
+    'fabric-status-badge': FabricStatusBadge;
   }
 }

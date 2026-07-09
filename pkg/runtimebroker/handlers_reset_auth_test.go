@@ -24,8 +24,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	scionrt "github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	fabricrt "github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // resetAuthAgents returns a single-agent manager fixture used by the
@@ -36,7 +36,7 @@ func resetAuthAgents() *filteringMockManager {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 	}
 	return mgr
@@ -60,7 +60,7 @@ func TestResetAuth_SignalFailureStillReturns200(t *testing.T) {
 	mgr := resetAuthAgents()
 
 	var wroteToken bool
-	rt := &scionrt.MockRuntime{
+	rt := &fabricrt.MockRuntime{
 		NameFunc: func() string { return "docker" },
 		ExecFunc: func(_ context.Context, _ string, cmd []string) (string, error) {
 			if len(cmd) > 0 && cmd[0] == "kill" {
@@ -91,7 +91,7 @@ func TestResetAuth_SignalSuccessReturns200(t *testing.T) {
 	mgr := resetAuthAgents()
 
 	var signaled bool
-	rt := &scionrt.MockRuntime{
+	rt := &fabricrt.MockRuntime{
 		NameFunc: func() string { return "docker" },
 		ExecFunc: func(_ context.Context, _ string, cmd []string) (string, error) {
 			if len(cmd) > 0 && cmd[0] == "kill" {
@@ -116,7 +116,7 @@ func TestResetAuth_SignalSuccessReturns200(t *testing.T) {
 // rejected before any container interaction.
 func TestResetAuth_MissingTokenIsValidationError(t *testing.T) {
 	mgr := resetAuthAgents()
-	rt := &scionrt.MockRuntime{
+	rt := &fabricrt.MockRuntime{
 		NameFunc: func() string { return "docker" },
 		ExecFunc: func(_ context.Context, _ string, _ []string) (string, error) {
 			t.Error("Exec must not be called when token is missing")

@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
 	"github.com/google/uuid"
 )
 

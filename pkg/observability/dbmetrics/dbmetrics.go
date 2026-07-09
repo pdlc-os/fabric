@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 // Package dbmetrics provides Cloud Monitoring scaffolding for the Postgres
@@ -29,22 +29,22 @@ import (
 )
 
 // instrumentationName is the OTel instrumentation scope for this package.
-const instrumentationName = "github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
+const instrumentationName = "github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
 
 // Metric names. Kept as constants so dashboards, alerts, and tests can reference
 // the canonical strings.
 const (
-	MetricPublishToDeliverLatency = "scion.db.notify.publish_to_deliver.duration"
-	MetricNotificationsPublished  = "scion.db.notify.published"
-	MetricNotificationsDelivered  = "scion.db.notify.delivered"
-	MetricNotificationsDropped    = "scion.db.notify.dropped"
-	MetricSubscriberLag           = "scion.db.notify.subscriber.lag"
-	MetricListenerReconnects      = "scion.db.notify.listener.reconnects"
-	MetricPayloadSize             = "scion.db.notify.payload.size"
-	MetricPoolConnectionsActive   = "scion.db.pool.connections.active"
-	MetricPoolConnectionsIdle     = "scion.db.pool.connections.idle"
-	MetricPoolConnectionsWaiting  = "scion.db.pool.connections.waiting"
-	MetricPoolConnectionsMax      = "scion.db.pool.connections.max"
+	MetricPublishToDeliverLatency = "fabric.db.notify.publish_to_deliver.duration"
+	MetricNotificationsPublished  = "fabric.db.notify.published"
+	MetricNotificationsDelivered  = "fabric.db.notify.delivered"
+	MetricNotificationsDropped    = "fabric.db.notify.dropped"
+	MetricSubscriberLag           = "fabric.db.notify.subscriber.lag"
+	MetricListenerReconnects      = "fabric.db.notify.listener.reconnects"
+	MetricPayloadSize             = "fabric.db.notify.payload.size"
+	MetricPoolConnectionsActive   = "fabric.db.pool.connections.active"
+	MetricPoolConnectionsIdle     = "fabric.db.pool.connections.idle"
+	MetricPoolConnectionsWaiting  = "fabric.db.pool.connections.waiting"
+	MetricPoolConnectionsMax      = "fabric.db.pool.connections.max"
 )
 
 // Recorder is the interface callers use to record Postgres LISTEN/NOTIFY and

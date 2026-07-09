@@ -1,4 +1,4 @@
-# GENERATED FILE — DO NOT EDIT. Source: harnesses/scion_harness.py
+# GENERATED FILE — DO NOT EDIT. Source: harnesses/fabric_harness.py
 #!/usr/bin/env python3
 # Copyright 2026 Google LLC
 #
@@ -13,11 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Shared library for scion harness provision.py and capture_auth.py scripts.
+"""Shared library for fabric harness provision.py and capture_auth.py scripts.
 
-Staged into agent_home/.scion/harness/scion_harness.py during
+Staged into agent_home/.fabric/harness/fabric_harness.py during
 ContainerScriptHarness.Provision(). Each harness's provision.py adds the
-bundle dir to sys.path so it can `import scion_harness`.
+bundle dir to sys.path so it can `import fabric_harness`.
 
 Stdlib-only so it works in any container image that ships python3.
 """
@@ -84,13 +84,13 @@ def atomic_write_json(path: str, payload: Any) -> None:
 
 
 def read_manifest(manifest_path: str | None = None) -> dict[str, Any]:
-    """Load the staged manifest.json. Defaults to $HOME/.scion/harness/manifest.json.
+    """Load the staged manifest.json. Defaults to $HOME/.fabric/harness/manifest.json.
 
     Raises FileNotFoundError if missing, ValueError if not a JSON object.
     """
     if not manifest_path:
         home = os.environ.get("HOME") or os.path.expanduser("~")
-        manifest_path = os.path.join(home, ".scion", "harness", "manifest.json")
+        manifest_path = os.path.join(home, ".fabric", "harness", "manifest.json")
     with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
     if not isinstance(manifest, dict):
@@ -235,7 +235,7 @@ def _merge_into_file(path: str, dotted_path: str, entries: dict[str, dict[str, A
 
 def warn(message: str) -> None:
     """Write a warning to stderr in a consistent format."""
-    print(f"scion_harness: {message}", file=sys.stderr)
+    print(f"fabric_harness: {message}", file=sys.stderr)
 
 
 # ===========================================================================
@@ -347,7 +347,7 @@ class ProvisionContext:
 
     @property
     def bundle_dir(self) -> str:
-        raw = self.manifest.get("harness_bundle_dir") or "$HOME/.scion/harness"
+        raw = self.manifest.get("harness_bundle_dir") or "$HOME/.fabric/harness"
         return expand_path(raw)
 
     @property
@@ -669,21 +669,21 @@ class ProvisionContext:
 # Instruction projection (§3.1 layer 5)
 # ---------------------------------------------------------------------------
 
-_MANAGED_BEGIN_STANDARD = "<!-- BEGIN SCION MANAGED -->"
-_MANAGED_END_STANDARD = "<!-- END SCION MANAGED -->"
+_MANAGED_BEGIN_STANDARD = "<!-- BEGIN FABRIC MANAGED -->"
+_MANAGED_END_STANDARD = "<!-- END FABRIC MANAGED -->"
 
 _LEGACY_BEGIN_MARKERS = [
-    "<!-- BEGIN SCION MANAGED CODEX INSTRUCTIONS -->",
-    "<!-- BEGIN SCION MANAGED HERMES INSTRUCTIONS -->",
-    "<!-- SCION_MANAGED_BEGIN -->",
-    "<!-- BEGIN SCION MANAGED -->",
+    "<!-- BEGIN FABRIC MANAGED CODEX INSTRUCTIONS -->",
+    "<!-- BEGIN FABRIC MANAGED HERMES INSTRUCTIONS -->",
+    "<!-- FABRIC_MANAGED_BEGIN -->",
+    "<!-- BEGIN FABRIC MANAGED -->",
 ]
 
 _LEGACY_END_MARKERS = [
-    "<!-- END SCION MANAGED CODEX INSTRUCTIONS -->",
-    "<!-- END SCION MANAGED HERMES INSTRUCTIONS -->",
-    "<!-- SCION_MANAGED_END -->",
-    "<!-- END SCION MANAGED -->",
+    "<!-- END FABRIC MANAGED CODEX INSTRUCTIONS -->",
+    "<!-- END FABRIC MANAGED HERMES INSTRUCTIONS -->",
+    "<!-- FABRIC_MANAGED_END -->",
+    "<!-- END FABRIC MANAGED -->",
 ]
 
 
@@ -696,7 +696,7 @@ def _read_text_if_exists(path: str) -> str:
 
 
 def _strip_managed_block(content: str, harness_name: str = "") -> str:
-    """Strip any scion managed block from content, accepting legacy marker variants."""
+    """Strip any fabric managed block from content, accepting legacy marker variants."""
     start_idx = -1
     begin_marker = ""
     for marker in _LEGACY_BEGIN_MARKERS:
@@ -719,7 +719,7 @@ def _strip_managed_block(content: str, harness_name: str = "") -> str:
             break
 
     if end_idx == -1:
-        prefix = f"{harness_name} provision: " if harness_name else "scion_harness: "
+        prefix = f"{harness_name} provision: " if harness_name else "fabric_harness: "
         print(
             f"{prefix}warning: found {begin_marker} but no matching end marker. "
             "Aborting strip to prevent data loss.",
@@ -750,7 +750,7 @@ def _skill_sections(home: str, skills_dir: str, harness_name: str = "") -> list[
     try:
         entries = sorted(os.listdir(root))
     except OSError as exc:
-        prefix = f"{harness_name} provision" if harness_name else "scion_harness"
+        prefix = f"{harness_name} provision" if harness_name else "fabric_harness"
         print(f"{prefix}: could not list skills dir {root}: {exc}", file=sys.stderr)
         return []
 
@@ -776,9 +776,9 @@ def project_instructions(
     system_prompt_mode: str | None = None,
     skills_dir: str | None = None,
 ) -> None:
-    """Compose staged Scion prompt inputs into a target instruction file.
+    """Compose staged Fabric prompt inputs into a target instruction file.
 
-    Uses managed-block markers to separate Scion-managed content from
+    Uses managed-block markers to separate Fabric-managed content from
     user-authored content in the target file.
     """
     harness_cfg = ctx.harness_config
@@ -987,7 +987,7 @@ def run(harness_name: str, provision_fn: Any) -> None:
     )
     parser.add_argument(
         "--manifest",
-        help="Path to the staged manifest.json (defaults to $HOME/.scion/harness/manifest.json)",
+        help="Path to the staged manifest.json (defaults to $HOME/.fabric/harness/manifest.json)",
         default=None,
     )
     args = parser.parse_args()
@@ -995,7 +995,7 @@ def run(harness_name: str, provision_fn: Any) -> None:
     manifest_path = args.manifest
     if not manifest_path:
         home = os.environ.get("HOME") or os.path.expanduser("~")
-        manifest_path = os.path.join(home, ".scion", "harness", "manifest.json")
+        manifest_path = os.path.join(home, ".fabric", "harness", "manifest.json")
 
     try:
         manifest = load_json(manifest_path)
@@ -1048,7 +1048,7 @@ def capture_auth_main(argv: list[str] | None = None) -> int:
         "--bundle",
         default=os.path.join(
             os.environ.get("HOME") or os.path.expanduser("~"),
-            ".scion", "harness",
+            ".fabric", "harness",
         ),
         help="Path to harness bundle directory",
     )
@@ -1136,7 +1136,7 @@ def _capture_one_cred(entry: dict[str, Any], force: bool) -> tuple[bool, str | N
     if not os.path.isfile(source):
         return False, None
 
-    cmd = ["sciontool", "secret", "set", key, f"@{source}",
+    cmd = ["fabrictool", "secret", "set", key, f"@{source}",
            "--type", secret_type, "--target", target]
     if force:
         cmd.append("--force")
@@ -1144,14 +1144,14 @@ def _capture_one_cred(entry: dict[str, Any], force: bool) -> tuple[bool, str | N
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except FileNotFoundError:
-        return False, "sciontool not found in PATH"
+        return False, "fabrictool not found in PATH"
     except subprocess.TimeoutExpired:
-        return False, f"sciontool timed out for key {key}"
+        return False, f"fabrictool timed out for key {key}"
 
     if result.returncode != 0:
         stderr = result.stderr.strip()
         if "already exists" in stderr.lower():
             return False, "CONFLICT"
-        return False, f"sciontool failed for {key}: {stderr}"
+        return False, f"fabrictool failed for {key}: {stderr}"
 
     return True, None

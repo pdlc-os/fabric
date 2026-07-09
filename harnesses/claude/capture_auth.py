@@ -14,7 +14,7 @@
 # limitations under the License.
 """Capture auth credentials for Claude Code.
 
-Runs the generic config-based capture (scion_harness.capture_auth_main) and
+Runs the generic config-based capture (fabric_harness.capture_auth_main) and
 also attempts Claude-specific sk-ant OAuth token extraction from tmux
 scrollback.
 """
@@ -25,7 +25,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import scion_harness
+import fabric_harness
 
 _TOKEN_PATTERN = re.compile(r"^(sk-ant-oat[A-Za-z0-9._-]+)$")
 
@@ -34,7 +34,7 @@ def _extract_oauth_from_scrollback() -> str | None:
     """Search tmux scrollback for a sk-ant OAuth token."""
     try:
         result = subprocess.run(
-            ["tmux", "capture-pane", "-pS", "-200", "-t", "scion"],
+            ["tmux", "capture-pane", "-pS", "-200", "-t", "fabric"],
             capture_output=True, text=True, timeout=5,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -51,10 +51,10 @@ def _extract_oauth_from_scrollback() -> str | None:
 
 
 def _store_oauth_token(token: str) -> bool:
-    """Store a token as CLAUDE_CODE_OAUTH_TOKEN via sciontool secret set."""
+    """Store a token as CLAUDE_CODE_OAUTH_TOKEN via fabrictool secret set."""
     try:
         result = subprocess.run(
-            ["sciontool", "secret", "set", "CLAUDE_CODE_OAUTH_TOKEN", token],
+            ["fabrictool", "secret", "set", "CLAUDE_CODE_OAUTH_TOKEN", token],
             capture_output=True, text=True, timeout=10,
         )
         if result.returncode == 0:
@@ -68,7 +68,7 @@ def _store_oauth_token(token: str) -> bool:
 
 
 def main() -> int:
-    config_rc = scion_harness.capture_auth_main()
+    config_rc = fabric_harness.capture_auth_main()
 
     token = _extract_oauth_from_scrollback()
     scrollback_ok = _store_oauth_token(token) if token else False

@@ -1,4 +1,4 @@
-# Design: Telegram Bot Plugin v2 for Scion Hub
+# Design: Telegram Bot Plugin v2 for Fabric Hub
 
 **Status**: Draft (updated with owner feedback)
 **Author**: Design Agent
@@ -9,7 +9,7 @@
 ## 1. Problem Statement
 
 The current Telegram plugin (`pkg/plugin/telegram/`) provides basic 1:1 routing
-between a Telegram group chat and a scion agent. Configuration is entirely
+between a Telegram group chat and a fabric agent. Configuration is entirely
 static: chat-to-topic routes are declared in YAML, user identity mapping is a
 flat email form, and there is no interactive UI beyond plain text messages.
 
@@ -90,8 +90,8 @@ plugins:
     telegram:
       config:
         bot_token: "..."
-        chat_routes: '{"123456789": "scion.project.myproj.agent.coder.messages"}'
-        outbound_routes: '{"scion.project.*.user.*.messages": "-5242408331"}'
+        chat_routes: '{"123456789": "fabric.project.myproj.agent.coder.messages"}'
+        outbound_routes: '{"fabric.project.*.user.*.messages": "-5242408331"}'
         user_mappings: '{"98765": "alice@example.com"}'
 ```
 
@@ -102,7 +102,7 @@ plugins:
 Each hub gets its own bot token. This is a 1:1 association, driven by two
 independent constraints:
 
-1. **Scion plugin model**: Plugins are hub-scoped spokes of a FanOutBroker,
+1. **Fabric plugin model**: Plugins are hub-scoped spokes of a FanOutBroker,
    authenticated via that hub's HMAC credentials.
 2. **Telegram API**: Only one consumer can call `getUpdates` (long-polling)
    per bot token. Sharing a token across multiple hub plugin instances would
@@ -135,7 +135,7 @@ for @-mention parsing — see Section 3.2).
 
 #### Design Principles
 
-1. **One group, one project.** A Telegram group links to exactly one scion
+1. **One group, one project.** A Telegram group links to exactly one fabric
    project. This keeps routing unambiguous — every agent @-mention in the group
    resolves to that project's agent namespace. Re-running `/setup` replaces the
    existing link.
@@ -149,7 +149,7 @@ for @-mention parsing — see Section 3.2).
    to the group's default agent) or a direct agent @-mention.
 
 4. **Bot @-mention = default agent.** Mentioning the bot itself
-   (`@ScionHubBot`) routes to the group's default agent. This leverages
+   (`@FabricHubBot`) routes to the group's default agent. This leverages
    Telegram's native autocomplete — bot usernames autocomplete in all clients,
    giving users a frictionless path for the most common interaction.
 
@@ -170,11 +170,11 @@ User types: /setup
 Bot replies: Select a project to link this group to:
   [Project Alpha]  [Project Beta]  [Project Gamma]
 User taps: [Project Alpha]
-Bot replies: Select a default agent (messages to @ScionHubBot go here):
+Bot replies: Select a default agent (messages to @FabricHubBot go here):
   [coder]  [reviewer]  [ops]
 User taps: [coder]
 Bot replies: Project Alpha linked to this group!
-             Default agent: @coder (mention @ScionHubBot to talk to it)
+             Default agent: @coder (mention @FabricHubBot to talk to it)
              Other agents: @reviewer, @ops (mention by name)
              Use @all to message every agent.
 ```
@@ -198,7 +198,7 @@ If the group already has a link, `/setup` shows the current project and offers
 The default agent can be changed without re-linking via `/default`:
 ```
 User types: /default
-Bot replies: Select new default agent for @ScionHubBot:
+Bot replies: Select new default agent for @FabricHubBot:
   [coder] (current)  [reviewer]  [ops]
 ```
 
@@ -208,7 +208,7 @@ When a message arrives in a linked group, the bot resolves the target agent(s)
 via a three-tier mention system:
 
 ```
-"@ScionHubBot deploy the migration"    → routed to DEFAULT agent (e.g., coder)
+"@FabricHubBot deploy the migration"    → routed to DEFAULT agent (e.g., coder)
 "@coder deploy the new migration"      → routed to agent:coder (explicit)
 "@reviewer check PR #42"               → routed to agent:reviewer (explicit)
 "@coder @reviewer sync on the API"     → routed to BOTH agents
@@ -217,7 +217,7 @@ via a three-tier mention system:
 ```
 
 **Tier 1 — Bot @-mention (autocompletes natively):**
-When a user @-mentions the bot itself (e.g., `@ScionHubBot`), the message is
+When a user @-mentions the bot itself (e.g., `@FabricHubBot`), the message is
 routed to the group's configured default agent. This is the primary UX path:
 Telegram natively autocompletes bot usernames in all clients, so users get a
 frictionless, discoverable way to talk to an agent without remembering names.
@@ -233,7 +233,7 @@ The special mention `@all` expands to every agent in the linked project's
 agent list. The message is delivered to each agent independently.
 
 **Combined mentions:** A message can mention both the bot and specific agents:
-`@ScionHubBot @reviewer` routes to both the default agent AND reviewer.
+`@FabricHubBot @reviewer` routes to both the default agent AND reviewer.
 Deduplication ensures the default agent doesn't receive the message twice if
 it's also explicitly named.
 
@@ -294,7 +294,7 @@ If no agent is resolved (no bot mention, no agent mention, no @all), the
 message is silently ignored. This is the key behavioral change from v1.
 
 **Mention autocomplete:** Telegram natively autocompletes bot usernames,
-so `@ScionH...` → `@ScionHubBot` works out of the box. For explicit agent
+so `@FabricH...` → `@FabricHubBot` works out of the box. For explicit agent
 names, users use:
 - `/agents` command to list all available agents with their current status
 - On `/setup` completion, the bot announces all agent names
@@ -368,7 +368,7 @@ directly via `dispatcher.DispatchAgentMessage()` without calling
 // In handleAgentMessage(), after dispatching to the target agent,
 // also publish a copy to the broker for observability:
 if bp := s.getBrokerProxy(); bp != nil {
-    topic := fmt.Sprintf("scion.grove.%s.agent.%s.agent.%s.messages",
+    topic := fmt.Sprintf("fabric.grove.%s.agent.%s.agent.%s.messages",
         projectID, srcAgent.Slug, dstAgent.Slug)
     bp.Publish(ctx, topic, structuredMsg)
 }
@@ -379,7 +379,7 @@ group has `ShowAgentToAgent` enabled:
 
 ```go
 // Agent-to-agent subscription (opt-in):
-"scion.grove.<projectID>.agent.*.agent.*.messages"
+"fabric.grove.<projectID>.agent.*.agent.*.messages"
 ```
 
 This publish is additive — it doesn't change the existing direct dispatch
@@ -660,7 +660,7 @@ Bot calls:     POST /api/v1/identity/link
                 code: "AB3X7K", metadata: {username: "@alice"}}
 Bot replies:
 ┌─────────────────────────────────────┐
-│  Link your scion account            │
+│  Link your fabric account            │
 │                                     │
 │  Click below and log in to confirm: │
 │                                     │
@@ -697,8 +697,8 @@ Bot replies: "Linked! You are alice@example.com"
    type TelegramUserMapping struct {
        TelegramUserID   string
        TelegramUsername string
-       ScionUserID      string
-       ScionEmail       string
+       FabricUserID      string
+       FabricEmail       string
        LinkedAt         time.Time
    }
    ```
@@ -722,7 +722,7 @@ mapping deleted from hub's `external_identities` and local SQLite → confirmed.
 Existing `userMappings` JSON file entries are imported on first startup:
 1. Plugin reads `mappings_file` as before
 2. For each `{telegramUserID: email}` entry, creates a `TelegramUserMapping`
-   in SQLite with the email as `ScionEmail` (ScionUserID left blank — will
+   in SQLite with the email as `FabricEmail` (FabricUserID left blank — will
    be resolved on first message via hub API lookup)
 3. After successful import, renames file to `mappings_file.v1.bak`
 4. Logs deprecation warning
@@ -743,7 +743,7 @@ that is hot-path (needed on every message) and doesn't belong in the hub DB:
 type GroupLink struct {
     ChatID              int64     // Telegram group chat ID
     ChatTitle           string    // Group name (for display)
-    ProjectID           string    // Scion grove/project ID
+    ProjectID           string    // Fabric grove/project ID
     ProjectSlug         string    // Human-readable slug
     DefaultAgent        string    // Agent that receives bot @-mentions (set during /setup)
     LinkedBy            string    // Telegram user ID who ran /setup
@@ -851,7 +851,7 @@ plugins:
 
         # Optional: migration from v1
         v1_mappings_file: "/data/telegram_mappings.json"
-        v1_chat_routes: '{"123456789": "scion.project.myproj.agent.coder.messages"}'
+        v1_chat_routes: '{"123456789": "fabric.project.myproj.agent.coder.messages"}'
 ```
 
 #### Dynamic State (persisted in plugin DB)
@@ -859,7 +859,7 @@ plugins:
 Everything else is dynamic and managed via bot commands:
 - Group → project link (via `/setup`, one project per group)
 - Group settings: agent-to-agent visibility (via `/settings`)
-- User → scion identity mappings (via hub-verified registration)
+- User → fabric identity mappings (via hub-verified registration)
 - Notification preferences (via `/notifications`)
 - Conversation context (automatic, per-user-per-agent, updated on each @-mention)
 - Agent name cache (periodic refresh from hub API, powers @-mention matching)
@@ -878,8 +878,8 @@ These v1 config keys are removed (replaced by dynamic equivalents):
 #### v1 Topics (static)
 
 ```
-scion.project.myproj.agent.coder.messages    # hardcoded per chat_routes
-scion.telegram.chat.{chatID}.messages        # default fallback
+fabric.project.myproj.agent.coder.messages    # hardcoded per chat_routes
+fabric.telegram.chat.{chatID}.messages        # default fallback
 ```
 
 #### v2 Topics (derived from GroupLink + @-mention)
@@ -888,7 +888,7 @@ Inbound topic construction (one topic per mentioned agent):
 
 ```go
 func (b *TelegramBrokerV2) buildInboundTopic(link *GroupLink, agentSlug string) string {
-    return fmt.Sprintf("scion.grove.%s.agent.%s.messages", link.ProjectID, agentSlug)
+    return fmt.Sprintf("fabric.grove.%s.agent.%s.messages", link.ProjectID, agentSlug)
 }
 ```
 
@@ -898,13 +898,13 @@ Outbound subscription patterns:
 // Subscribe to all messages for all linked projects
 func (b *TelegramBrokerV2) subscribeForLinks() {
     for _, link := range b.getAllLinks() {
-        pattern := fmt.Sprintf("scion.grove.%s.>", link.ProjectID)
+        pattern := fmt.Sprintf("fabric.grove.%s.>", link.ProjectID)
         b.hostCallbacks.RequestSubscription(pattern)
     }
 }
 ```
 
-The plugin subscribes to `scion.grove.<projectID>.>` for each linked project,
+The plugin subscribes to `fabric.grove.<projectID>.>` for each linked project,
 receiving all agent messages, broadcasts, and user messages. Filtering by
 notification preferences happens in the plugin's `Publish()` method before
 forwarding to Telegram.
@@ -932,7 +932,7 @@ getUpdates
     │   └─ Free text in group → mention routing
     │       ├─ Look up GroupLink for chat ID (1:1, one project)
     │       ├─ Resolve target agents (3-tier):
-    │       │   ├─ Bot @-mention (@ScionHubBot) → default agent
+    │       │   ├─ Bot @-mention (@FabricHubBot) → default agent
     │       │   ├─ Agent @-mentions (@coder) → named agents
     │       │   ├─ @all → all agents in project
     │       │   └─ Deduplicate (default may overlap with explicit)
@@ -1198,7 +1198,7 @@ func (c *TelegramAPIClient) SetMyCommands(
    **Hub change required**: To support agent-to-agent visibility in Telegram
    groups, `handleAgentMessage()` needs to also publish a copy to the broker
    when the message is between two agents in the same project. Proposed topic:
-   `scion.grove.<projectID>.agent.<src>.agent.<dst>.messages`. This is an
+   `fabric.grove.<projectID>.agent.<src>.agent.<dst>.messages`. This is an
    opt-in publish (not all deployments need it), gated by a config flag or
    by whether any broker plugin has subscribed to agent-to-agent patterns.
    See Section 3.2 (Agent-to-Agent Message Visibility) for the Telegram
@@ -1248,7 +1248,7 @@ Rejected because:
 - Adds Telegram-specific models and endpoints to the hub codebase
 - The hub's existing device auth flow already provides identity verification
 - Plugin-side SQLite (with future Postgres support) is sufficient
-- Consistent with how scion-chat-app manages its own user mappings
+- Consistent with how fabric-chat-app manages its own user mappings
 
 ## 9. Implementation Plan
 
@@ -1397,7 +1397,7 @@ The hub web UI renders a single generic page:
 ┌─────────────────────────────────────┐
 │  Link your Telegram account         │
 │                                     │
-│  Linking @alice to your scion       │
+│  Linking @alice to your fabric       │
 │  account.                           │
 │                                     │
 │  Code: [AB3X7K] (pre-filled)        │
@@ -1424,8 +1424,8 @@ CREATE TABLE pending_platform_links (
     platform_user_id  TEXT NOT NULL,           -- external ID on that platform
     metadata          JSONB,                   -- platform-specific: username, display_name, etc.
     status            TEXT NOT NULL DEFAULT 'pending',  -- "pending" | "confirmed"
-    confirmed_user_id TEXT,                    -- scion user ID (set on verify)
-    confirmed_email   TEXT,                    -- scion email (set on verify)
+    confirmed_user_id TEXT,                    -- fabric user ID (set on verify)
+    confirmed_email   TEXT,                    -- fabric email (set on verify)
     created_at        TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at        TIMESTAMP NOT NULL,      -- created_at + 15 minutes
     UNIQUE (platform, platform_user_id)        -- one pending code per platform user
@@ -1449,8 +1449,8 @@ CREATE TABLE external_identities (
     platform_user_id  TEXT NOT NULL,           -- external platform ID
     metadata          JSONB,                   -- username, display_name, avatar, etc.
     linked_at         TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE (platform, platform_user_id),       -- one scion user per platform identity
-    UNIQUE (user_id, platform)                 -- one platform identity per scion user per platform
+    UNIQUE (platform, platform_user_id),       -- one fabric user per platform identity
+    UNIQUE (user_id, platform)                 -- one platform identity per fabric user per platform
 );
 
 CREATE INDEX idx_ext_id_user ON external_identities (user_id);
@@ -1459,8 +1459,8 @@ CREATE INDEX idx_ext_id_platform ON external_identities (platform, platform_user
 
 **Constraint semantics:**
 - `UNIQUE (platform, platform_user_id)` — a Telegram user can only be linked
-  to one scion user (prevents identity sharing)
-- `UNIQUE (user_id, platform)` — a scion user can only have one Telegram
+  to one fabric user (prevents identity sharing)
+- `UNIQUE (user_id, platform)` — a fabric user can only have one Telegram
   identity (simplifies routing; if multi-account is needed later, drop this)
 
 When `/api/v1/identity/link/verify` succeeds, the service:
@@ -1651,7 +1651,7 @@ platform linking serve different purposes but share structural patterns:
 | **Who redeems** | New user | Existing authenticated user |
 | **Auth required to redeem** | None (code grants access) | User JWT (must already be logged in) |
 | **Persistence** | DB (InviteCodeStore) | DB (PlatformLinkStore) |
-| **Code format** | `scion_inv_` + 24 random bytes | 6-char alphanumeric |
+| **Code format** | `fabric_inv_` + 24 random bytes | 6-char alphanumeric |
 
 They are **peer concepts** — both involve a code-mediated trust bridge between
 an outside context and the hub. However, the semantics are different enough
@@ -1721,7 +1721,7 @@ that sharing implementation would be forced. The recommended approach:
 - If DM chatID (= user's Telegram userID for private chats) is stored as lastChatID, agent replies automatically route to DM
 - Missing: routing of non-command DM messages to the configured agent
 
-**Related:** `scion message --thread-id` flag (exists in CLI) may allow agents to reference a specific conversation thread. Future implementation could use thread IDs to link DM conversations to specific agent sessions, enabling proper conversation continuity across DM ↔ group transitions.
+**Related:** `fabric message --thread-id` flag (exists in CLI) may allow agents to reference a specific conversation thread. Future implementation could use thread IDs to link DM conversations to specific agent sessions, enabling proper conversation continuity across DM ↔ group transitions.
 
 **Open questions:**
 - How does user end a /talk session and return to group routing?

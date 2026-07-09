@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // mockUATStore implements store.UserAccessTokenStore for testing.
@@ -303,7 +303,7 @@ func TestValidateToken(t *testing.T) {
 	})
 
 	t.Run("invalid token", func(t *testing.T) {
-		_, err := svc.ValidateToken(ctx, "scion_pat_invalid_token_value")
+		_, err := svc.ValidateToken(ctx, "fabric_pat_invalid_token_value")
 		if !errors.Is(err, ErrInvalidUAT) {
 			t.Errorf("expected ErrInvalidUAT, got %v", err)
 		}
@@ -462,8 +462,8 @@ func TestScopedUserIdentity(t *testing.T) {
 }
 
 func TestIsUAT(t *testing.T) {
-	if !IsUAT("scion_pat_abc123") {
-		t.Error("expected IsUAT to return true for scion_pat_ prefix")
+	if !IsUAT("fabric_pat_abc123") {
+		t.Error("expected IsUAT to return true for fabric_pat_ prefix")
 	}
 	if IsUAT("sk_live_abc123") {
 		t.Error("expected IsUAT to return false for sk_live_ prefix")

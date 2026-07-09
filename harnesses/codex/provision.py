@@ -15,12 +15,12 @@
 """Codex container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Written inputs/auth-candidates.json with the env-var names + paths to
-    secret-value files under $HOME/.scion/harness/secrets/<NAME>.
+    secret-value files under $HOME/.fabric/harness/secrets/<NAME>.
   * Written inputs/telemetry.json describing the effective TelemetryConfig
     (the same struct ApplyTelemetrySettings receives).
   * Mounted any auth file (e.g. ~/.codex/auth.json) at the declared
@@ -51,25 +51,25 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness  # type: ignore[import-not-found]
+import fabric_harness  # type: ignore[import-not-found]
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    "codex provision.py requires scion_harness INTERFACE_VERSION >= 2; "
-    f"got {scion_harness.INTERFACE_VERSION}"
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    "codex provision.py requires fabric_harness INTERFACE_VERSION >= 2; "
+    f"got {fabric_harness.INTERFACE_VERSION}"
 )
 
 CODEX_AUTH_FILE = "~/.codex/auth.json"
 CODEX_CONFIG_FILE = "~/.codex/config.toml"
 
-AUTH = scion_harness.AuthSpec(
+AUTH = fabric_harness.AuthSpec(
     "codex",
     [
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "api-key",
             any_of=["CODEX_API_KEY", "OPENAI_API_KEY"],
             hint="set CODEX_API_KEY or OPENAI_API_KEY",
         ),
-        scion_harness.file_method(
+        fabric_harness.file_method(
             "auth-file",
             path=CODEX_AUTH_FILE,
             hint=f"provide auth credentials at {CODEX_AUTH_FILE}",
@@ -84,7 +84,7 @@ AUTH = scion_harness.AuthSpec(
 
 def _write_codex_auth_json(api_key: str) -> None:
     """Mirror the compiled ApplyAuthSettings: {"auth_mode": "apikey", ...}."""
-    auth_dir = scion_harness.expand_path("~/.codex")
+    auth_dir = fabric_harness.expand_path("~/.codex")
     os.makedirs(auth_dir, exist_ok=True)
     target = os.path.join(auth_dir, "auth.json")
     payload = {"auth_mode": "apikey", "OPENAI_API_KEY": api_key}
@@ -96,20 +96,20 @@ def _write_codex_auth_json(api_key: str) -> None:
     os.replace(tmp, target)
 
 
-def _write_codex_auth_file(ctx: scion_harness.ProvisionContext) -> None:
+def _write_codex_auth_file(ctx: fabric_harness.ProvisionContext) -> None:
     """Write ~/.codex/auth.json from a staged CODEX_AUTH file secret."""
     auth_content = _read_file_secret(ctx, "CODEX_AUTH")
     if not auth_content:
         return
     if not auth_content.strip():
-        raise scion_harness.ProvisionError("CODEX_AUTH secret is empty")
+        raise fabric_harness.ProvisionError("CODEX_AUTH secret is empty")
     try:
         json.loads(auth_content)
     except json.JSONDecodeError as exc:
-        raise scion_harness.ProvisionError(
+        raise fabric_harness.ProvisionError(
             f"CODEX_AUTH secret is not valid JSON: {exc}"
         ) from exc
-    auth_dir = scion_harness.expand_path("~/.codex")
+    auth_dir = fabric_harness.expand_path("~/.codex")
     os.makedirs(auth_dir, exist_ok=True)
     target = os.path.join(auth_dir, "auth.json")
     tmp = target + ".tmp"
@@ -131,7 +131,7 @@ def _list_contains(items: list[Any], target: str) -> bool:
 
 def _resolve_endpoint(telemetry: dict[str, Any] | None, env: dict[str, str] | None) -> str:
     env = env or {}
-    for key in ("SCION_CODEX_OTEL_ENDPOINT", "SCION_OTEL_ENDPOINT"):
+    for key in ("FABRIC_CODEX_OTEL_ENDPOINT", "FABRIC_OTEL_ENDPOINT"):
         v = (env.get(key) or "").strip()
         if v:
             return v
@@ -144,7 +144,7 @@ def _resolve_endpoint(telemetry: dict[str, Any] | None, env: dict[str, str] | No
 
 def _resolve_protocol(telemetry: dict[str, Any] | None, env: dict[str, str] | None) -> str:
     env = env or {}
-    for key in ("SCION_CODEX_OTEL_PROTOCOL", "SCION_OTEL_PROTOCOL"):
+    for key in ("FABRIC_CODEX_OTEL_PROTOCOL", "FABRIC_OTEL_PROTOCOL"):
         v = (env.get(key) or "").strip()
         if v:
             return v
@@ -157,7 +157,7 @@ def _resolve_protocol(telemetry: dict[str, Any] | None, env: dict[str, str] | No
 
 def _resolve_otel_environment(telemetry: dict[str, Any], env: dict[str, str] | None) -> str:
     env = env or {}
-    for key in ("SCION_CODEX_OTEL_ENVIRONMENT", "SCION_OTEL_ENVIRONMENT", "SCION_SERVER_ENV"):
+    for key in ("FABRIC_CODEX_OTEL_ENVIRONMENT", "FABRIC_OTEL_ENVIRONMENT", "FABRIC_SERVER_ENV"):
         v = (env.get(key) or "").strip()
         if v:
             return v
@@ -212,20 +212,20 @@ def _build_otel_section(telemetry: dict[str, Any], env: dict[str, str] | None) -
     lines = [
         "[otel]",
         "enabled = true",
-        f'environment = "{scion_harness.toml_escape(environment)}"',
+        f'environment = "{fabric_harness.toml_escape(environment)}"',
         f"log_user_prompt = {'true' if log_user_prompt else 'false'}",
         'metrics_exporter = "statsig"',
-        f'exporter."{exporter_key}".endpoint = "{scion_harness.toml_escape(endpoint)}"',
-        f'trace_exporter."{exporter_key}".endpoint = "{scion_harness.toml_escape(endpoint)}"',
+        f'exporter."{exporter_key}".endpoint = "{fabric_harness.toml_escape(endpoint)}"',
+        f'trace_exporter."{exporter_key}".endpoint = "{fabric_harness.toml_escape(endpoint)}"',
     ]
 
     if headers:
-        header_table = scion_harness.toml_inline_table(headers)
+        header_table = fabric_harness.toml_inline_table(headers)
         lines.append(f'exporter."{exporter_key}".headers = {header_table}')
         lines.append(f'trace_exporter."{exporter_key}".headers = {header_table}')
 
     if tls_ca_file:
-        escaped_ca = scion_harness.toml_escape(tls_ca_file)
+        escaped_ca = fabric_harness.toml_escape(tls_ca_file)
         lines.append(f'exporter."{exporter_key}".tls.ca-certificate = "{escaped_ca}"')
         lines.append(f'trace_exporter."{exporter_key}".tls.ca-certificate = "{escaped_ca}"')
 
@@ -233,19 +233,19 @@ def _build_otel_section(telemetry: dict[str, Any], env: dict[str, str] | None) -
 
 
 def _reconcile_codex_toml(telemetry: dict[str, Any] | None, env: dict[str, str] | None) -> None:
-    codex_dir = scion_harness.expand_path("~/.codex")
+    codex_dir = fabric_harness.expand_path("~/.codex")
     os.makedirs(codex_dir, exist_ok=True)
     config_path = os.path.join(codex_dir, "config.toml")
     content = ""
     if os.path.isfile(config_path):
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
-    content = scion_harness.strip_toml_sections(content, lambda h: h == "[otel]")
+    content = fabric_harness.strip_toml_sections(content, lambda h: h == "[otel]")
     if _telemetry_enabled(telemetry):
         section = _build_otel_section(telemetry or {}, env)
         content = content.rstrip("\n\t ") + "\n\n" + section
     content = content.strip() + "\n"
-    scion_harness.atomic_write_text(config_path, content)
+    fabric_harness.atomic_write_text(config_path, content)
 
 
 # --- MCP server emission ---------------------------------------------------
@@ -261,22 +261,22 @@ def _build_mcp_section(name: str, spec: dict[str, Any]) -> str | None:
         if not isinstance(cmd, str) or not cmd:
             print(f"codex provision: mcp server {name!r}: stdio transport missing command", file=sys.stderr)
             return None
-        body.append(f'command = "{scion_harness.toml_escape(cmd)}"')
+        body.append(f'command = "{fabric_harness.toml_escape(cmd)}"')
         args = spec.get("args") or []
         if isinstance(args, list) and args:
-            body.append(f"args = {scion_harness.toml_string_array([str(a) for a in args])}")
+            body.append(f"args = {fabric_harness.toml_string_array([str(a) for a in args])}")
         env = spec.get("env")
         if isinstance(env, dict) and env:
-            body.append(f"env = {scion_harness.toml_inline_table({str(k): str(v) for k, v in env.items()})}")
+            body.append(f"env = {fabric_harness.toml_inline_table({str(k): str(v) for k, v in env.items()})}")
     elif transport in ("sse", "streamable-http"):
         url = spec.get("url")
         if not isinstance(url, str) or not url:
             print(f"codex provision: mcp server {name!r}: {transport} transport missing url", file=sys.stderr)
             return None
-        body.append(f'url = "{scion_harness.toml_escape(url)}"')
+        body.append(f'url = "{fabric_harness.toml_escape(url)}"')
         headers = spec.get("headers")
         if isinstance(headers, dict) and headers:
-            body.append(f"http_headers = {scion_harness.toml_inline_table({str(k): str(v) for k, v in headers.items()})}")
+            body.append(f"http_headers = {fabric_harness.toml_inline_table({str(k): str(v) for k, v in headers.items()})}")
     else:
         print(f"codex provision: mcp server {name!r}: unsupported transport {transport!r}", file=sys.stderr)
         return None
@@ -286,32 +286,32 @@ def _build_mcp_section(name: str, spec: dict[str, Any]) -> str | None:
 
 def _write_mcp_to_config(servers: dict[str, str]) -> None:
     """Write translated MCP server sections into ~/.codex/config.toml."""
-    codex_dir = scion_harness.expand_path("~/.codex")
+    codex_dir = fabric_harness.expand_path("~/.codex")
     os.makedirs(codex_dir, exist_ok=True)
     config_path = os.path.join(codex_dir, "config.toml")
     content = ""
     if os.path.isfile(config_path):
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
-    content = scion_harness.strip_toml_sections(
+    content = fabric_harness.strip_toml_sections(
         content, lambda h: h.startswith("[mcp_servers.")
     )
     sections = list(servers.values())
     appended = "\n".join(sections)
     content = content.rstrip("\n\t ") + "\n\n" + appended
     content = content.strip() + "\n"
-    scion_harness.atomic_write_text(config_path, content)
+    fabric_harness.atomic_write_text(config_path, content)
 
 
 # --- Entry point -----------------------------------------------------------
 
 
-def _read_env_secret(ctx: scion_harness.ProvisionContext, name: str) -> str:
+def _read_env_secret(ctx: fabric_harness.ProvisionContext, name: str) -> str:
     """Read an env secret, expanding $HOME in the staged path."""
     path = ctx.env_secret_files.get(name, "")
     if not path:
         return ""
-    path = scion_harness.expand_path(path)
+    path = fabric_harness.expand_path(path)
     try:
         with open(path, "r", encoding="utf-8") as f:
             return f.read().rstrip("\r\n")
@@ -319,12 +319,12 @@ def _read_env_secret(ctx: scion_harness.ProvisionContext, name: str) -> str:
         return ""
 
 
-def _read_file_secret(ctx: scion_harness.ProvisionContext, name: str) -> str:
+def _read_file_secret(ctx: fabric_harness.ProvisionContext, name: str) -> str:
     """Read a file-type secret, expanding $HOME in the staged path."""
     path = ctx.file_secret_files.get(name, "")
     if not path:
         return ""
-    path = scion_harness.expand_path(path)
+    path = fabric_harness.expand_path(path)
     try:
         with open(path, "r", encoding="utf-8") as f:
             return f.read().rstrip("\r\n")
@@ -332,13 +332,13 @@ def _read_file_secret(ctx: scion_harness.ProvisionContext, name: str) -> str:
         return ""
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     resolved = ctx.select_auth(AUTH)
 
     if resolved.method == "api-key":
         api_key = _read_env_secret(ctx, resolved.env_key)
         if not api_key:
-            raise scion_harness.ProvisionError(
+            raise fabric_harness.ProvisionError(
                 f"chose api-key ({resolved.env_key}) but no secret value "
                 "was staged at the recorded path; check ApplyAuthSettings"
             )
@@ -349,7 +349,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
     harness_cfg = ctx.harness_config
     instructions_file = str(harness_cfg.get("instructions_file") or ".codex/AGENTS.md")
-    scion_harness.project_instructions(ctx, instructions_file)
+    fabric_harness.project_instructions(ctx, instructions_file)
 
     telemetry_payload = ctx.telemetry
     telemetry = telemetry_payload.get("telemetry") if isinstance(telemetry_payload, dict) else None
@@ -366,10 +366,10 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
         extra = {"auth_file_written": True}
     ctx.write_outputs(resolved, env={}, extra=extra)
 
-    scion_harness.apply_mcp_translated(ctx, _build_mcp_section, _write_mcp_to_config)
+    fabric_harness.apply_mcp_translated(ctx, _build_mcp_section, _write_mcp_to_config)
 
     ctx.info(f"method={resolved.method}")
 
 
 if __name__ == "__main__":
-    scion_harness.run("codex", provision)
+    fabric_harness.run("codex", provision)

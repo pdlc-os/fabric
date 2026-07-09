@@ -12,7 +12,7 @@ This guide describes how to manually test the Milestone 1 implementation of the 
     ```bash
     kubectl cluster-info
     ```
-3.  **Built scion**: Ensure you have a recent build of `scion-agent` in your path (or use `go run main.go`).
+3.  **Built fabric**: Ensure you have a recent build of `fabric-agent` in your path (or use `go run main.go`).
 
 ## Configuration
 
@@ -21,27 +21,27 @@ To use the Kubernetes runtime, you can either update your global settings or use
 ### Option A: Global Settings
 Update your global settings to use `kubernetes` as the default runtime:
 ```bash
-scion config set default_runtime kubernetes --global
+fabric config set default_runtime kubernetes --global
 ```
 
 ### Option B: Local Grove Settings
 In your current project directory (grove):
 ```bash
-scion config set default_runtime kubernetes
+fabric config set default_runtime kubernetes
 ```
 
 *(Optional)* Specify a namespace (defaults to `default`):
 ```bash
-scion config set kubernetes.default_namespace scion-test
+fabric config set kubernetes.default_namespace fabric-test
 ```
-If you use a custom namespace, ensure it exists: `kubectl create namespace scion-test`
+If you use a custom namespace, ensure it exists: `kubectl create namespace fabric-test`
 
 ## Testing Lifecycle Operations
 
 ### 1. Start an Agent
 Launch a new agent pod in the cluster. This will sync your current workspace to the pod's `/workspace` directory.
 ```bash
-scion start --name k8s-test
+fabric start --name k8s-test
 ```
 
 **Verify via kubectl:**
@@ -51,16 +51,16 @@ kubectl get pods
 You should see a pod named `k8s-test` (or similar) in the `Pending` then `Running` state.
 
 ### 2. List Agents
-Verify the agent appears in the scion list:
+Verify the agent appears in the fabric list:
 ```bash
-scion list
+fabric list
 ```
 The runtime should be identified as `kubernetes`.
 
 ### 3. Attach to the Agent
 Open an interactive shell inside the agent pod:
 ```bash
-scion attach k8s-test
+fabric attach k8s-test
 ```
 Inside the shell, verify:
 - You are in `/workspace`.
@@ -70,13 +70,13 @@ Inside the shell, verify:
 ### 4. Check Logs
 View the logs of the agent container:
 ```bash
-scion logs k8s-test
+fabric logs k8s-test
 ```
 
 ### 5. Stop/Delete the Agent
 Remove the agent from the cluster:
 ```bash
-scion stop k8s-test
+fabric stop k8s-test
 ```
 
 **Verify via kubectl:**

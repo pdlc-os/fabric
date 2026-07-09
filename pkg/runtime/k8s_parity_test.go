@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic/fake"
@@ -76,7 +76,7 @@ func TestBuildPod_HarnessEnv(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		HomeDir:      "/tmp/home",
 		Harness:      &EnvHarness{},
 	}
@@ -108,7 +108,7 @@ func TestBuildPod_TelemetryEnv(t *testing.T) {
 	config := RunConfig{
 		Name:             "test-agent",
 		Image:            "test:latest",
-		UnixUsername:     "scion",
+		UnixUsername:     "fabric",
 		Harness:          &EnvHarness{},
 		TelemetryEnabled: true,
 	}
@@ -136,7 +136,7 @@ func TestBuildPod_ResolvedAuth_ComposesWithSecrets(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "API_KEY", Type: "environment", Target: "API_KEY", Value: "sk-123", Source: "user"},
 		},
@@ -177,7 +177,7 @@ func TestBuildPod_ResolvedAuth_NoHostPath(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedAuth: &api.ResolvedAuth{
 			Method: "api-key",
 			EnvVars: map[string]string{
@@ -214,8 +214,8 @@ func TestBuildPod_ResolvedAuth_NoHostPath(t *testing.T) {
 	for _, v := range pod.Spec.Volumes {
 		if v.Name == "auth-files" {
 			foundAuthVol = true
-			if v.Secret == nil || v.Secret.SecretName != "scion-auth-test-agent" {
-				t.Errorf("expected Secret volume scion-auth-test-agent, got %+v", v.VolumeSource)
+			if v.Secret == nil || v.Secret.SecretName != "fabric-auth-test-agent" {
+				t.Errorf("expected Secret volume fabric-auth-test-agent, got %+v", v.VolumeSource)
 			}
 		}
 	}
@@ -226,7 +226,7 @@ func TestBuildPod_ResolvedAuth_NoHostPath(t *testing.T) {
 	// Should have volume mount at expanded target path
 	foundMount := false
 	for _, vm := range pod.Spec.Containers[0].VolumeMounts {
-		if vm.Name == "auth-files" && vm.MountPath == "/home/scion/.config/gcloud/adc.json" {
+		if vm.Name == "auth-files" && vm.MountPath == "/home/fabric/.config/gcloud/adc.json" {
 			foundMount = true
 			if vm.SubPath != "auth-file-0" {
 				t.Errorf("expected SubPath auth-file-0, got %s", vm.SubPath)
@@ -234,7 +234,7 @@ func TestBuildPod_ResolvedAuth_NoHostPath(t *testing.T) {
 		}
 	}
 	if !foundMount {
-		t.Error("expected auth-files volume mount at /home/scion/.config/gcloud/adc.json")
+		t.Error("expected auth-files volume mount at /home/fabric/.config/gcloud/adc.json")
 	}
 }
 
@@ -246,7 +246,7 @@ func TestBuildPod_LocalVolumes_Skipped(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Volumes: []api.VolumeMount{
 			{Source: "/host/data", Target: "/data", Type: "local"},
 			{Source: "/host/other", Target: "/other"},
@@ -269,7 +269,7 @@ func TestBuildPod_GCSVolumes_StillWork(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Volumes: []api.VolumeMount{
 			{Type: "gcs", Bucket: "my-bucket", Target: "/mnt/data"},
 		},
@@ -296,7 +296,7 @@ func TestBuildPod_WorkingDir_Default(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, _ := rt.buildPod("default", config)
@@ -312,18 +312,18 @@ func TestBuildPod_GitClone_Annotations(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		GitClone:     &api.GitCloneConfig{URL: "https://github.com/example/repo.git"},
 		Annotations: map[string]string{
-			"scion.git_clone":     "true",
-			"scion.git_clone_url": "https://github.com/example/repo.git",
+			"fabric.git_clone":     "true",
+			"fabric.git_clone_url": "https://github.com/example/repo.git",
 		},
 	}
 
 	pod, _ := rt.buildPod("default", config)
 
-	if pod.Annotations["scion.git_clone"] != "true" {
-		t.Error("expected scion.git_clone annotation")
+	if pod.Annotations["fabric.git_clone"] != "true" {
+		t.Error("expected fabric.git_clone annotation")
 	}
 	if pod.Spec.Containers[0].WorkingDir != "/workspace" {
 		t.Errorf("expected WorkingDir /workspace for gitClone, got %s", pod.Spec.Containers[0].WorkingDir)
@@ -349,7 +349,7 @@ func TestCreateAuthFileSecret(t *testing.T) {
 	files := []api.FileMapping{
 		{SourcePath: credFile, ContainerPath: "~/.config/gcloud/adc.json"},
 	}
-	labels := map[string]string{"scion.name": "test-agent"}
+	labels := map[string]string{"fabric.name": "test-agent"}
 
 	err := rt.createAuthFileSecret(context.Background(), "default", "test-agent", files, labels)
 	if err != nil {
@@ -357,7 +357,7 @@ func TestCreateAuthFileSecret(t *testing.T) {
 	}
 
 	// Verify the secret was created
-	secret, err := clientset.CoreV1().Secrets("default").Get(context.Background(), "scion-auth-test-agent", metav1.GetOptions{})
+	secret, err := clientset.CoreV1().Secrets("default").Get(context.Background(), "fabric-auth-test-agent", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("failed to get auth secret: %v", err)
 	}
@@ -366,22 +366,22 @@ func TestCreateAuthFileSecret(t *testing.T) {
 		t.Errorf("unexpected secret data: %s", string(secret.Data["auth-file-0"]))
 	}
 
-	if secret.Labels["scion.agent"] != "test-agent" {
-		t.Error("expected scion.agent label on auth secret")
+	if secret.Labels["fabric.agent"] != "test-agent" {
+		t.Error("expected fabric.agent label on auth secret")
 	}
 }
 
-// --- K8s exec user context parity (matches Docker/Podman --user scion) ---
+// --- K8s exec user context parity (matches Docker/Podman --user fabric) ---
 
 func TestK8sExec_WrapsCommandWithSu(t *testing.T) {
-	// Verify that Exec wraps commands so they run as the scion user,
-	// matching the --user scion flag used by Docker/Podman runtimes.
+	// Verify that Exec wraps commands so they run as the fabric user,
+	// matching the --user fabric flag used by Docker/Podman runtimes.
 	// The wrapper uses ExecAsUserCmd (sh -c with whoami fallback)
 	// instead of a bare `su -` invocation, so it works on container
 	// images whose /etc/pam.d/su lacks pam_rootok.so. ExecAsUserCmd
 	// passes user/cmd as positional shell arguments, so the joined
 	// shell-quoted cmd appears verbatim as the trailing argv entry.
-	cmd := []string{"tmux", "send-keys", "-t", "scion:0", "hello world", "Enter"}
+	cmd := []string{"tmux", "send-keys", "-t", "fabric:0", "hello world", "Enter"}
 
 	// Simulate the wrapping logic from Exec.
 	quoted := make([]string, len(cmd))
@@ -389,7 +389,7 @@ func TestK8sExec_WrapsCommandWithSu(t *testing.T) {
 		quoted[i] = fmt.Sprintf("'%s'", strings.ReplaceAll(arg, "'", "'\"'\"'"))
 	}
 	joined := strings.Join(quoted, " ")
-	wrapped := ExecAsUserCmd("scion", joined)
+	wrapped := ExecAsUserCmd("fabric", joined)
 
 	if len(wrapped) != 6 || wrapped[0] != "sh" || wrapped[1] != "-c" {
 		t.Fatalf("expected [sh -c <script> <name> <user> <cmd>] wrapper, got: %v", wrapped)
@@ -405,8 +405,8 @@ func TestK8sExec_WrapsCommandWithSu(t *testing.T) {
 	// User and cmd are passed as positional argv ($1, $2 — $0 is
 	// the script-name label) — both must round-trip through the
 	// helper untouched.
-	if wrapped[4] != "scion" {
-		t.Errorf("expected user at wrapped[4] to be \"scion\", got %q", wrapped[4])
+	if wrapped[4] != "fabric" {
+		t.Errorf("expected user at wrapped[4] to be \"fabric\", got %q", wrapped[4])
 	}
 	if wrapped[5] != joined {
 		t.Errorf("expected joined cmd at wrapped[5] verbatim, got %q want %q", wrapped[5], joined)
@@ -434,7 +434,7 @@ func TestK8sExec_QuotesSingleQuotesInArgs(t *testing.T) {
 }
 
 func TestK8sAttach_ResolvesUsernameFromAnnotations(t *testing.T) {
-	// Verify that Attach reads the username from scion.username annotation
+	// Verify that Attach reads the username from fabric.username annotation
 	tests := []struct {
 		name        string
 		annotations map[string]string
@@ -442,26 +442,26 @@ func TestK8sAttach_ResolvesUsernameFromAnnotations(t *testing.T) {
 	}{
 		{
 			name:        "uses annotation username",
-			annotations: map[string]string{"scion.username": "myuser"},
+			annotations: map[string]string{"fabric.username": "myuser"},
 			wantUser:    "myuser",
 		},
 		{
-			name:        "defaults to scion when annotation missing",
+			name:        "defaults to fabric when annotation missing",
 			annotations: map[string]string{},
-			wantUser:    "scion",
+			wantUser:    "fabric",
 		},
 		{
-			name:        "defaults to scion when annotation empty",
-			annotations: map[string]string{"scion.username": ""},
-			wantUser:    "scion",
+			name:        "defaults to fabric when annotation empty",
+			annotations: map[string]string{"fabric.username": ""},
+			wantUser:    "fabric",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Simulate the username resolution logic from Attach
-			username := "scion"
-			if u, ok := tt.annotations["scion.username"]; ok && u != "" {
+			username := "fabric"
+			if u, ok := tt.annotations["fabric.username"]; ok && u != "" {
 				username = u
 			}
 			if username != tt.wantUser {

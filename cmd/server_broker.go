@@ -20,10 +20,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // registerGlobalProjectAndBroker creates the global project and registers this
@@ -46,8 +46,8 @@ func registerGlobalProjectAndBroker(ctx context.Context, s store.Store, brokerID
 			Slug:       GlobalProjectName,
 			Visibility: store.VisibilityPrivate,
 			Labels: map[string]string{
-				"scion.io/system": "true",
-				"scion.io/global": "true",
+				"fabric.io/system": "true",
+				"fabric.io/global": "true",
 			},
 		}
 
@@ -131,7 +131,7 @@ func registerGlobalProjectAndBroker(ctx context.Context, s store.Store, brokerID
 		}
 	}
 
-	// Get the global project path (~/.scion)
+	// Get the global project path (~/.fabric)
 	globalPath, err := config.GetGlobalDir()
 	if err != nil {
 		log.Printf("Warning: failed to get global project path: %v", err)
@@ -143,7 +143,7 @@ func registerGlobalProjectAndBroker(ctx context.Context, s store.Store, brokerID
 		ProjectID:  globalProject.ID,
 		BrokerID:   brokerID,
 		BrokerName: brokerName,
-		LocalPath:  globalPath, // ~/.scion for the global project
+		LocalPath:  globalPath, // ~/.fabric for the global project
 		Status:     store.BrokerStatusOnline,
 		LastSeen:   time.Now(),
 	}

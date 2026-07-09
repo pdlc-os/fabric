@@ -16,7 +16,7 @@
 check_for_update_on_startup = false
 approval_policy = "never"
 
-notify = ["sh", "/home/scion/.codex/scion_notify.sh"]
+notify = ["sh", "/home/fabric/.codex/fabric_notify.sh"]
 
 model = "gpt-5.5"
 model_reasoning_effort = "medium"
@@ -29,36 +29,36 @@ matcher = ""
 
 [[hooks.UserPromptSubmit.hooks]]
 type = "command"
-command = "sh /home/scion/.codex/scion_notify.sh"
+command = "sh /home/fabric/.codex/fabric_notify.sh"
 timeout = 5
-statusMessage = "Updating Scion status"
+statusMessage = "Updating Fabric status"
 
 [[hooks.PreToolUse]]
 matcher = ".*"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = "sh /home/scion/.codex/scion_notify.sh"
+command = "sh /home/fabric/.codex/fabric_notify.sh"
 timeout = 5
-statusMessage = "Updating Scion status"
+statusMessage = "Updating Fabric status"
 
 [[hooks.PostToolUse]]
 matcher = ".*"
 
 [[hooks.PostToolUse.hooks]]
 type = "command"
-command = "sh /home/scion/.codex/scion_notify.sh"
+command = "sh /home/fabric/.codex/fabric_notify.sh"
 timeout = 5
-statusMessage = "Updating Scion status"
+statusMessage = "Updating Fabric status"
 
 [[hooks.Stop]]
 matcher = ""
 
 [[hooks.Stop.hooks]]
 type = "command"
-command = "sh /home/scion/.codex/scion_notify.sh"
+command = "sh /home/fabric/.codex/fabric_notify.sh"
 timeout = 5
-statusMessage = "Updating Scion status"
+statusMessage = "Updating Fabric status"
 
 [notice.model_migrations]
 "gpt-5.1-codex-mini" = "gpt-5.2-codex"
@@ -71,7 +71,7 @@ statusMessage = "Updating Scion status"
 trust_level = "trusted"
 
 [otel]
-# Scion reconciles these values at agent start time when telemetry is enabled.
+# Fabric reconciles these values at agent start time when telemetry is enabled.
 enabled = false
 environment = "production"
 log_user_prompt = false   # redact user prompts unless explicitly enabled

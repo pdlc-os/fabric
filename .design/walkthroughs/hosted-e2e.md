@@ -29,19 +29,19 @@ These scenarios should work with Hub server and Runtime Broker running on differ
 | Component | Status | Key Files |
 |-----------|--------|-----------|
 | **CLI Authentication** | ✅ Complete | `cmd/hub_auth.go` |
-| - OAuth browser-based login | ✅ | `scion hub auth login` |
+| - OAuth browser-based login | ✅ | `fabric hub auth login` |
 | - Dev auth fallback | ✅ | |
 | - Credential storage | ✅ | `pkg/credentials/` |
 | **Template Management** | ✅ Complete | `cmd/templates.go` |
-| - `scion template sync` (create/update in Hub) | ✅ | |
-| - `scion template push` (upload files to GCS) | ✅ | |
-| - `scion template pull` (download from Hub) | ✅ | |
+| - `fabric template sync` (create/update in Hub) | ✅ | |
+| - `fabric template push` (upload files to GCS) | ✅ | |
+| - `fabric template pull` (download from Hub) | ✅ | |
 | - GCS storage via rclone | ✅ | `pkg/gcp/storage.go` |
 | - Signed URL generation | ✅ | `pkg/hub/template_handlers.go` |
 | **Hub Registration** | ✅ Complete | `cmd/hub.go` |
-| - `scion hub register` | ✅ | |
-| - `scion hub deregister` | ✅ | |
-| - `scion hub status` | ✅ | |
+| - `fabric hub register` | ✅ | |
+| - `fabric hub deregister` | ✅ | |
+| - `fabric hub status` | ✅ | |
 | - HMAC-based broker authentication | ✅ | `pkg/hub/hostauth.go`, `pkg/runtimebroker/hostauth.go` |
 | - Bidirectional HMAC (Hub→Broker signing) | ✅ | `pkg/hub/brokerclient.go` |
 | - Secret rotation endpoint | ✅ | `POST /api/v1/brokers/{id}/rotate-secret` |
@@ -110,19 +110,19 @@ All blocking scenarios have been implemented. Workspace sync was the final piece
 **Commands:**
 ```bash
 # Set Hub endpoint
-export SCION_HUB_ENDPOINT=http://hub.example.com:9000
+export FABRIC_HUB_ENDPOINT=http://hub.example.com:9000
 
 # Authenticate via browser OAuth
-scion hub auth login
+fabric hub auth login
 
 # Verify authentication
-scion hub status
+fabric hub status
 ```
 
 **What Happens:**
 1. CLI opens browser for OAuth flow
 2. User authenticates with OAuth provider
-3. Access token stored in `~/.config/scion/credentials/<endpoint-hash>/credentials.json`
+3. Access token stored in `~/.config/fabric/credentials/<endpoint-hash>/credentials.json`
 4. Subsequent commands use stored token
 
 **No Implementation Work Required.**
@@ -136,13 +136,13 @@ scion hub status
 **Commands:**
 ```bash
 # Push local template to Hub (uploads to GCS, registers in Hub)
-scion template sync custom-claude \
-  --from .scion/templates/claude \
+fabric template sync custom-claude \
+  --from .fabric/templates/claude \
   --scope grove \
   --harness claude
 
 # Start agent using the template
-scion start my-agent --type custom-claude "Fix the login bug"
+fabric start my-agent --type custom-claude "Fix the login bug"
 ```
 
 **What Works:**
@@ -156,7 +156,7 @@ scion start my-agent --type custom-claude "Fix the login bug"
 **Configuration Required:**
 
 1. **GCS Bucket Setup:**
-   - Create bucket: `gs://scion-hub-<env>/`
+   - Create bucket: `gs://fabric-hub-<env>/`
    - Configure in Hub settings
 
 2. **Service Account Credentials:**
@@ -169,14 +169,14 @@ scion start my-agent --type custom-claude "Fix the login bug"
    hub:
      storage:
        provider: "gcs"
-       bucket: "scion-hub-dev"
+       bucket: "fabric-hub-dev"
    ```
 
 4. **Runtime Broker Template Cache:**
    ```yaml
    runtimeBroker:
      templateCache:
-       path: "~/.scion/cache/templates"
+       path: "~/.fabric/cache/templates"
        maxSize: "100MB"
    ```
 
@@ -201,7 +201,7 @@ When Hub dispatches to Runtime Broker, it needs the broker endpoint URL. Current
 
 **Commands:**
 ```bash
-scion attach my-agent
+fabric attach my-agent
 # Connects via WebSocket through Hub to Runtime Broker
 ```
 
@@ -209,7 +209,7 @@ scion attach my-agent
 1. CLI calls Hub to get agent details and verify running status
 2. CLI establishes WebSocket connection to Hub at `/api/v1/agents/{id}/pty`
 3. Hub opens PTY stream to Runtime Broker via control channel
-4. Runtime Broker executes `docker exec -i {container} tmux attach-session -t scion`
+4. Runtime Broker executes `docker exec -i {container} tmux attach-session -t fabric`
 5. Bidirectional I/O is relayed: CLI ↔ Hub ↔ Runtime Broker ↔ Container
 
 **Implementation Files:**
@@ -237,16 +237,16 @@ scion attach my-agent
 **CLI Commands:**
 ```bash
 # Sync workspace from remote agent to local
-scion sync from my-agent
+fabric sync from my-agent
 
 # Sync local changes to remote agent
-scion sync to my-agent
+fabric sync to my-agent
 
 # Preview what would be synced (dry-run)
-scion sync from my-agent --dry-run
+fabric sync from my-agent --dry-run
 
 # Exclude patterns from sync
-scion sync to my-agent --exclude "*.log" --exclude "tmp/**"
+fabric sync to my-agent --exclude "*.log" --exclude "tmp/**"
 ```
 
 **What Happens (Sync FROM):**
@@ -296,7 +296,7 @@ This gap is documented and designed in [sync-design.md](sync-design.md) Section 
 
 **Commands:**
 ```bash
-scion stop my-agent
+fabric stop my-agent
 ```
 
 **What Happens:**
@@ -314,9 +314,9 @@ scion stop my-agent
 
 **Commands:**
 ```bash
-scion delete my-agent
+fabric delete my-agent
 # Or
-scion stop my-agent --rm
+fabric stop my-agent --rm
 ```
 
 **What Happens:**
@@ -346,7 +346,7 @@ scion stop my-agent --rm
 1. Add `workspace` prefix to Hub storage
 2. Implement sync trigger on Runtime Broker (on-demand initially)
 3. Add Hub endpoint for workspace sync metadata
-4. Update `scion sync` command for hosted mode
+4. Update `fabric sync` command for hosted mode
 5. Test with rclone
 
 ### Phase 3: PTY Attach (Days 4-6)
@@ -386,7 +386,7 @@ When syncing workspaces, what's the primary direction?
 Where should workspace snapshots be stored?
 
 **Options:**
-- **A. Same bucket as templates:** `gs://scion-hub-{env}/workspaces/{groveId}/{agentId}/`
+- **A. Same bucket as templates:** `gs://fabric-hub-{env}/workspaces/{groveId}/{agentId}/`
 - **B. Separate bucket per grove:** `gs://{groveId}-workspaces/`
 - **C. User-configurable:** Allow different storage backends
 
@@ -408,7 +408,7 @@ How should CLI authenticate WebSocket connections for PTY?
 How does Runtime Broker specify its externally-reachable endpoint?
 
 **Options:**
-- **A. Explicit flag:** `scion server start --endpoint http://myhost:9800`
+- **A. Explicit flag:** `fabric server start --endpoint http://myhost:9800`
 - **B. Auto-detect:** Determine from network interfaces
 - **C. Registration response:** Hub tells broker its observed IP
 
@@ -424,23 +424,23 @@ Run Hub and Runtime Broker as separate processes:
 
 ```bash
 # Terminal 1: Start Hub
-scion server start --enable-hub --hub-port 9000
+fabric server start --enable-hub --hub-port 9000
 
 # Terminal 2: Start Runtime Broker (different port)
-scion server start --enable-runtime-broker --broker-port 9800 \
+fabric server start --enable-runtime-broker --broker-port 9800 \
   --hub-endpoint http://localhost:9000 \
   --endpoint http://localhost:9800
 
 # Terminal 3: CLI operations
-export SCION_HUB_ENDPOINT=http://localhost:9000
-scion hub auth login
-scion hub register
-scion template sync my-template --from .scion/templates/claude --harness claude
-scion start my-agent --type my-template "Hello world"
-scion attach my-agent  # Now works via WebSocket
-scion sync from my-agent  # Will fail until implemented
-scion stop my-agent
-scion delete my-agent
+export FABRIC_HUB_ENDPOINT=http://localhost:9000
+fabric hub auth login
+fabric hub register
+fabric template sync my-template --from .fabric/templates/claude --harness claude
+fabric start my-agent --type my-template "Hello world"
+fabric attach my-agent  # Now works via WebSocket
+fabric sync from my-agent  # Will fail until implemented
+fabric stop my-agent
+fabric delete my-agent
 ```
 
 ### Distributed Setup

@@ -1,15 +1,15 @@
 # Kubernetes Runtime with Agent Sandbox Design
 
 ## Overview
-This document outlines the design for implementing the Kubernetes Runtime for `scion-agent` using the `agent-sandbox` standard (https://github.com/kubernetes-sigs/agent-sandbox). This approach replaces direct Pod management with the use of `SandboxClaim` and `SandboxTemplate` Custom Resources, offering better isolation, lifecycle management, and fleet-wide policy enforcement.
+This document outlines the design for implementing the Kubernetes Runtime for `fabric-agent` using the `agent-sandbox` standard (https://github.com/kubernetes-sigs/agent-sandbox). This approach replaces direct Pod management with the use of `SandboxClaim` and `SandboxTemplate` Custom Resources, offering better isolation, lifecycle management, and fleet-wide policy enforcement.
 
 ## Architecture
 
-The `scion` CLI will act as a client for the `extensions.agents.x-k8s.io` API group. Instead of creating Pods directly, it will request sandboxes via Claims.
+The `fabric` CLI will act as a client for the `extensions.agents.x-k8s.io` API group. Instead of creating Pods directly, it will request sandboxes via Claims.
 
 ```mermaid
 graph TD
-    CLI[Scion CLI] -->|Create| Claim[SandboxClaim]
+    CLI[Fabric CLI] -->|Create| Claim[SandboxClaim]
     Claim -->|References| Template[SandboxTemplate]
     Controller[Sandbox Controller] -->|Reconciles| Claim
     Controller -->|Creates| Sandbox[Sandbox CR]
@@ -22,7 +22,7 @@ graph TD
 ## Core Concepts
 
 ### 1. SandboxTemplate (The "Class")
-Defines the *shape* of the agent environment. This is likely cluster-scoped or managed by platform admins, but `scion` can also generate local dev templates.
+Defines the *shape* of the agent environment. This is likely cluster-scoped or managed by platform admins, but `fabric` can also generate local dev templates.
 *   **PodTemplate**: Base image, resources, security context.
 *   **NetworkPolicy**: Default egress/ingress rules (e.g., allow GitHub, block internal IPs).
 
@@ -39,24 +39,24 @@ The low-level representation of the environment, managing the underlying Pod and
 ### Client Generation
 We need to generate Kubernetes clients for the `agent-sandbox` APIs.
 *   **API Group**: `extensions.agents.x-k8s.io` (Claims/Templates) and `agents.x-k8s.io` (Sandboxes).
-*   **Action**: Update `scion-agent`'s `go.mod` to include the `agent-sandbox` types or use dynamic client for the MVP to avoid deep dependency hell if the sandbox repo is volatile. *Recommendation: Use dynamic client or copy key struct definitions into `pkg/k8s/types` for the MVP.*
+*   **Action**: Update `fabric-agent`'s `go.mod` to include the `agent-sandbox` types or use dynamic client for the MVP to avoid deep dependency hell if the sandbox repo is volatile. *Recommendation: Use dynamic client or copy key struct definitions into `pkg/k8s/types` for the MVP.*
 
 ### Runtime Lifecycle
 
-#### 1. Start (`scion start`)
-1.  **Load Config**: Read `scion-agent.json` or defaults to determine the target `SandboxTemplate` name (default: `default-scion-agent`).
+#### 1. Start (`fabric start`)
+1.  **Load Config**: Read `fabric-agent.json` or defaults to determine the target `SandboxTemplate` name (default: `default-fabric-agent`).
 2.  **Ensure Template**: (Optional) If running in a local dev context (e.g., Kind), check if the template exists. If not, create a default one.
 3.  **Create Claim**:
     ```yaml
     apiVersion: extensions.agents.x-k8s.io/v1alpha1
     kind: SandboxClaim
     metadata:
-      name: scion-<agent-id>
+      name: fabric-<agent-id>
       labels:
-        scion-dev/managed: "true"
+        fabric-dev/managed: "true"
     spec:
       sandboxTemplateRef:
-        name: default-scion-agent
+        name: default-fabric-agent
     ```
 4.  **Wait for Ready**: Watch `SandboxClaim` status until `ConditionReady` is true.
 5.  **Resolve Pod**:
@@ -66,10 +66,10 @@ We need to generate Kubernetes clients for the `agent-sandbox` APIs.
 6.  **Context Sync**:
     *   Execute `tar` stream upload to the resolved Pod.
     *   *Note*: The Pod must have `tar` installed (standard in most distro-less debug images, or use ephemeral container).
-7.  **Persist State**: Update local `.scion/agents/<id>/scion-agent.json` with Claim name and Namespace.
+7.  **Persist State**: Update local `.fabric/agents/<id>/fabric-agent.json` with Claim name and Namespace.
 
-#### 2. Stop (`scion stop`)
-1.  **Delete Claim**: `kubectl delete sandboxclaim scion-<agent-id>`.
+#### 2. Stop (`fabric stop`)
+1.  **Delete Claim**: `kubectl delete sandboxclaim fabric-<agent-id>`.
 2.  The controller cascades deletion to Sandbox -> Pod.
 
 #### 3. Resume/Attach
@@ -81,7 +81,7 @@ We need to generate Kubernetes clients for the `agent-sandbox` APIs.
 
 #### The Identity Problem (Service Accounts)
 Instead of mounting secrets directly, the `SandboxTemplate` should define a `ServiceAccount` that has Workload Identity (GCP) or IRSA (AWS) configured.
-*   **User Config**: The user's `scion-agent.json` can specify a `serviceAccountName` override if the Template allows it (or we create a new Template on the fly).
+*   **User Config**: The user's `fabric-agent.json` can specify a `serviceAccountName` override if the Template allows it (or we create a new Template on the fly).
 
 #### Networking & Discovery
 The Sandbox creates a Headless Service.
@@ -108,5 +108,5 @@ By using `SandboxClaim`, we inherit:
     *   Add `hack/install-sandbox-crds.sh` to the project.
 
 ## Open Questions
-*   **Logs**: `kubectl logs` works on Pods. We need to resolve the Pod name transparently for `scion logs`.
+*   **Logs**: `kubectl logs` works on Pods. We need to resolve the Pod name transparently for `fabric logs`.
 *   **Ephemeral Containers**: If the base image is distroless, we might need ephemeral containers for `tar`/`bash` access during Sync.

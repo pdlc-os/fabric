@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -97,8 +97,8 @@ func TestKubernetesRuntime_Run_Tmux(t *testing.T) {
 
 	// Assertions
 	// Check Command — the pod uses a startup gate pattern:
-	//   Command: ["sh", "-c", "<gate loop that waits for /tmp/.scion-home-ready>"]
-	// The real startup command (sciontool init → tmux) is in the SCION_START_CMD env var.
+	//   Command: ["sh", "-c", "<gate loop that waits for /tmp/.fabric-home-ready>"]
+	// The real startup command (fabrictool init → tmux) is in the FABRIC_START_CMD env var.
 	if len(pod.Spec.Containers) == 0 {
 		t.Fatal("Pod has no containers")
 	}
@@ -110,31 +110,31 @@ func TestKubernetesRuntime_Run_Tmux(t *testing.T) {
 		t.Errorf("Expected gate command to start with 'sh -c', got %v", cmd[:2])
 	}
 	gateScript := cmd[2]
-	if !strings.Contains(gateScript, "/tmp/.scion-home-ready") {
-		t.Errorf("Gate script should poll for /tmp/.scion-home-ready, got: %s", gateScript)
+	if !strings.Contains(gateScript, "/tmp/.fabric-home-ready") {
+		t.Errorf("Gate script should poll for /tmp/.fabric-home-ready, got: %s", gateScript)
 	}
-	if !strings.Contains(gateScript, "sciontool init") {
-		t.Errorf("Gate script should exec sciontool init, got: %s", gateScript)
+	if !strings.Contains(gateScript, "fabrictool init") {
+		t.Errorf("Gate script should exec fabrictool init, got: %s", gateScript)
 	}
-	if !strings.Contains(gateScript, "SCION_START_CMD") {
-		t.Errorf("Gate script should reference SCION_START_CMD env var, got: %s", gateScript)
+	if !strings.Contains(gateScript, "FABRIC_START_CMD") {
+		t.Errorf("Gate script should reference FABRIC_START_CMD env var, got: %s", gateScript)
 	}
 
-	// Check that the real tmux command is in the SCION_START_CMD env var
+	// Check that the real tmux command is in the FABRIC_START_CMD env var
 	var startCmd string
 	for _, env := range pod.Spec.Containers[0].Env {
-		if env.Name == "SCION_START_CMD" {
+		if env.Name == "FABRIC_START_CMD" {
 			startCmd = env.Value
 			break
 		}
 	}
 	if startCmd == "" {
-		t.Fatal("SCION_START_CMD env var not set")
+		t.Fatal("FABRIC_START_CMD env var not set")
 	}
-	if !strings.Contains(startCmd, "tmux new-session -d -s scion -n agent") {
+	if !strings.Contains(startCmd, "tmux new-session -d -s fabric -n agent") {
 		t.Errorf("Expected tmux new-session with agent window, got: %s", startCmd)
 	}
-	if !strings.Contains(startCmd, "new-window -t scion -n shell") {
+	if !strings.Contains(startCmd, "new-window -t fabric -n shell") {
 		t.Errorf("Expected shell window creation, got: %s", startCmd)
 	}
 	if !strings.Contains(startCmd, "/bin/echo") || !strings.Contains(startCmd, "hello") {

@@ -1,7 +1,7 @@
 # Fix Template Link Backward Compatibility
 
 **Date:** 2026-05-13  
-**Branch:** `scion/fix-template-link`  
+**Branch:** `fabric/fix-template-link`  
 **Commit:** b0d8fde
 
 ## Problem

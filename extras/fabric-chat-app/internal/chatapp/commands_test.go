@@ -27,8 +27,8 @@ func newTestRouter(t *testing.T) (*CommandRouter, *fakeMessenger) {
 	return router, fm
 }
 
-// TestHandleEvent_CommandRouting verifies that /scion routes to messaging
-// and /scionAdmin routes to admin command handling.
+// TestHandleEvent_CommandRouting verifies that /fabric routes to messaging
+// and /fabricAdmin routes to admin command handling.
 func TestHandleEvent_CommandRouting(t *testing.T) {
 	router, _ := newTestRouter(t)
 
@@ -39,44 +39,44 @@ func TestHandleEvent_CommandRouting(t *testing.T) {
 		wantContain string
 	}{
 		{
-			name:        "scion with no args shows messaging help",
-			command:     "scion",
+			name:        "fabric with no args shows messaging help",
+			command:     "fabric",
 			args:        "",
 			wantContain: "Message Agents",
 		},
 		{
-			name:        "scion help shows messaging help",
-			command:     "scion",
+			name:        "fabric help shows messaging help",
+			command:     "fabric",
 			args:        "help",
 			wantContain: "Message Agents",
 		},
 		{
-			name:        "scionAdmin with no args shows admin help",
-			command:     "scionAdmin",
+			name:        "fabricAdmin with no args shows admin help",
+			command:     "fabricAdmin",
 			args:        "",
 			wantContain: "Admin Commands",
 		},
 		{
-			name:        "scionAdmin help shows admin help",
-			command:     "scionAdmin",
+			name:        "fabricAdmin help shows admin help",
+			command:     "fabricAdmin",
 			args:        "help",
 			wantContain: "Admin Commands",
 		},
 		{
-			name:        "scionAdmin unknown command",
-			command:     "scionAdmin",
+			name:        "fabricAdmin unknown command",
+			command:     "fabricAdmin",
 			args:        "bogus",
 			wantContain: "Unknown command",
 		},
 		{
-			name:        "scion help with extra args falls through to messaging",
-			command:     "scion",
+			name:        "fabric help with extra args falls through to messaging",
+			command:     "fabric",
 			args:        "help me understand X",
 			wantContain: "not linked",
 		},
 		{
-			name:        "scionAdmin help with extra args returns unknown command",
-			command:     "scionAdmin",
+			name:        "fabricAdmin help with extra args returns unknown command",
+			command:     "fabricAdmin",
 			args:        "help something",
 			wantContain: "Unknown command",
 		},
@@ -106,7 +106,7 @@ func TestHandleEvent_CommandRouting(t *testing.T) {
 	}
 }
 
-// TestCmdStart_RequiresSpaceLink verifies that /scion start now requires a
+// TestCmdStart_RequiresSpaceLink verifies that /fabric start now requires a
 // space link (grove context) before attempting to start an agent.
 func TestCmdStart_RequiresSpaceLink(t *testing.T) {
 	router, _ := newTestRouter(t)
@@ -129,7 +129,7 @@ func TestCmdStart_RequiresSpaceLink(t *testing.T) {
 	}
 }
 
-// TestCmdStop_RequiresSpaceLink verifies that /scion stop now requires a
+// TestCmdStop_RequiresSpaceLink verifies that /fabric stop now requires a
 // space link (grove context) before attempting to stop an agent.
 func TestCmdStop_RequiresSpaceLink(t *testing.T) {
 	router, _ := newTestRouter(t)
@@ -152,7 +152,7 @@ func TestCmdStop_RequiresSpaceLink(t *testing.T) {
 	}
 }
 
-// TestCmdUnsubscribe_RequiresSpaceLink verifies that /scion unsubscribe now
+// TestCmdUnsubscribe_RequiresSpaceLink verifies that /fabric unsubscribe now
 // requires a space link to scope the deletion to the correct grove.
 func TestCmdUnsubscribe_RequiresSpaceLink(t *testing.T) {
 	router, _ := newTestRouter(t)

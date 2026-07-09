@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-# One-time setup for building Scion images with Google Cloud Build.
+# One-time setup for building Fabric images with Google Cloud Build.
 #
 # This script:
 #   1. Enables required GCP APIs (Cloud Build, Artifact Registry).
@@ -28,7 +28,7 @@ set -euo pipefail
 
 PROJECT=""
 LOCATION="us-central1"
-REPO_NAME="scion"
+REPO_NAME="fabric"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --project <project>    GCP project (default: \$GCLOUD_PROJECT or gcloud config)"
       echo "  --location <location>  Artifact Registry location (default: us-central1)"
-      echo "  --repo <repo-name>     Repository name (default: scion)"
+      echo "  --repo <repo-name>     Repository name (default: fabric)"
       exit 0
       ;;
     *) echo "Unknown option: $1"; exit 1 ;;
@@ -63,7 +63,7 @@ fi
 
 REGISTRY="${LOCATION}-docker.pkg.dev/${PROJECT}/${REPO_NAME}"
 
-echo "Setting up Cloud Build for Scion images"
+echo "Setting up Cloud Build for Fabric images"
 echo "  Project:  ${PROJECT}"
 echo "  Location: ${LOCATION}"
 echo "  Repo:     ${REPO_NAME}"
@@ -88,7 +88,7 @@ else
     --repository-format=docker \
     --location="${LOCATION}" \
     --project="${PROJECT}" \
-    --description="Scion container images"
+    --description="Fabric container images"
   echo "    Repository created."
 fi
 
@@ -116,5 +116,5 @@ echo ""
 echo "To build images locally:"
 echo "  image-build/scripts/build-images.sh --registry ${REGISTRY} --push"
 echo ""
-echo "To configure scion to use these images:"
-echo "  scion config set image_registry ${REGISTRY}"
+echo "To configure fabric to use these images:"
+echo "  fabric config set image_registry ${REGISTRY}"

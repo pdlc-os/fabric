@@ -31,13 +31,13 @@ func TestGetAgentNames(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 
 	// Setup temp directory for project
-	tmpDir, err := os.MkdirTemp("", "scion-completion-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-completion-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	projectDir := filepath.Join(tmpDir, ".scion")
+	projectDir := filepath.Join(tmpDir, ".fabric")
 	agentsDir := filepath.Join(projectDir, "agents")
 	err = os.MkdirAll(agentsDir, 0755)
 	if err != nil {
@@ -51,7 +51,7 @@ func TestGetAgentNames(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		f, err := os.Create(filepath.Join(agentDir, "scion-agent.json"))
+		f, err := os.Create(filepath.Join(agentDir, "fabric-agent.json"))
 		if err != nil {
 			t.Fatal(err)
 		}

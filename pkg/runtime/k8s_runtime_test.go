@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -39,8 +39,8 @@ func TestKubernetesRuntime_List(t *testing.T) {
 			Name:      "test-agent",
 			Namespace: "default",
 			Labels: map[string]string{
-				"scion.name":     "test-agent",
-				"scion.template": "test-template",
+				"fabric.name":     "test-agent",
+				"fabric.template": "test-template",
 			},
 		},
 		Status: corev1.PodStatus{
@@ -105,7 +105,7 @@ func TestKubernetesRuntime_List_TerminalPhases(t *testing.T) {
 				Name:      "completed-agent",
 				Namespace: "default",
 				Labels: map[string]string{
-					"scion.name": "completed-agent",
+					"fabric.name": "completed-agent",
 				},
 			},
 			Status: corev1.PodStatus{
@@ -131,7 +131,7 @@ func TestKubernetesRuntime_List_TerminalPhases(t *testing.T) {
 				Name:      "failed-agent",
 				Namespace: "default",
 				Labels: map[string]string{
-					"scion.name": "failed-agent",
+					"fabric.name": "failed-agent",
 				},
 			},
 			Status: corev1.PodStatus{
@@ -194,7 +194,7 @@ func TestKubernetesRuntime_BuildPod_Env(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, _ := r.buildPod("default", config)
@@ -205,28 +205,28 @@ func TestKubernetesRuntime_BuildPod_Env(t *testing.T) {
 	foundUser := false
 	foundLogname := false
 	for _, env := range pod.Spec.Containers[0].Env {
-		if env.Name == "SCION_HOST_UID" {
+		if env.Name == "FABRIC_HOST_UID" {
 			foundUID = true
 		}
-		if env.Name == "SCION_HOST_GID" {
+		if env.Name == "FABRIC_HOST_GID" {
 			foundGID = true
 		}
-		if env.Name == "HOME" && env.Value == "/home/scion" {
+		if env.Name == "HOME" && env.Value == "/home/fabric" {
 			foundHome = true
 		}
-		if env.Name == "USER" && env.Value == "scion" {
+		if env.Name == "USER" && env.Value == "fabric" {
 			foundUser = true
 		}
-		if env.Name == "LOGNAME" && env.Value == "scion" {
+		if env.Name == "LOGNAME" && env.Value == "fabric" {
 			foundLogname = true
 		}
 	}
 
 	if !foundUID {
-		t.Errorf("SCION_HOST_UID not found in pod env")
+		t.Errorf("FABRIC_HOST_UID not found in pod env")
 	}
 	if !foundGID {
-		t.Errorf("SCION_HOST_GID not found in pod env")
+		t.Errorf("FABRIC_HOST_GID not found in pod env")
 	}
 	if !foundHome {
 		t.Errorf("HOME not found in pod env")
@@ -241,20 +241,20 @@ func TestKubernetesRuntime_BuildPod_Env(t *testing.T) {
 
 func TestDefaultKubernetesNamespace(t *testing.T) {
 	t.Run("env overrides default", func(t *testing.T) {
-		t.Setenv("POD_NAMESPACE", "scion")
-		t.Setenv("SCION_K8S_NAMESPACE", "")
-		if got := defaultKubernetesNamespace(); got != "scion" {
-			t.Fatalf("defaultKubernetesNamespace() = %q, want %q", got, "scion")
+		t.Setenv("POD_NAMESPACE", "fabric")
+		t.Setenv("FABRIC_K8S_NAMESPACE", "")
+		if got := defaultKubernetesNamespace(); got != "fabric" {
+			t.Fatalf("defaultKubernetesNamespace() = %q, want %q", got, "fabric")
 		}
 	})
 
 	t.Run("serviceaccount file used when env missing", func(t *testing.T) {
 		t.Setenv("POD_NAMESPACE", "")
-		t.Setenv("SCION_K8S_NAMESPACE", "")
+		t.Setenv("FABRIC_K8S_NAMESPACE", "")
 
 		tmpDir := t.TempDir()
 		nsFile := filepath.Join(tmpDir, "namespace")
-		if err := os.WriteFile(nsFile, []byte("scion-from-file\n"), 0644); err != nil {
+		if err := os.WriteFile(nsFile, []byte("fabric-from-file\n"), 0644); err != nil {
 			t.Fatalf("failed to write temp namespace file: %v", err)
 		}
 
@@ -262,14 +262,14 @@ func TestDefaultKubernetesNamespace(t *testing.T) {
 		serviceAccountNamespacePath = nsFile
 		defer func() { serviceAccountNamespacePath = prev }()
 
-		if got := defaultKubernetesNamespace(); got != "scion-from-file" {
-			t.Fatalf("defaultKubernetesNamespace() = %q, want %q", got, "scion-from-file")
+		if got := defaultKubernetesNamespace(); got != "fabric-from-file" {
+			t.Fatalf("defaultKubernetesNamespace() = %q, want %q", got, "fabric-from-file")
 		}
 	})
 
 	t.Run("default fallback", func(t *testing.T) {
 		t.Setenv("POD_NAMESPACE", "")
-		t.Setenv("SCION_K8S_NAMESPACE", "")
+		t.Setenv("FABRIC_K8S_NAMESPACE", "")
 
 		prev := serviceAccountNamespacePath
 		serviceAccountNamespacePath = filepath.Join(t.TempDir(), "missing")
@@ -287,11 +287,11 @@ func TestNewKubernetesRuntime_UsesDetectedNamespace(t *testing.T) {
 	fc := fake.NewSimpleDynamicClient(scheme)
 	client := k8s.NewTestClient(fc, clientset)
 
-	t.Setenv("POD_NAMESPACE", "scion")
-	t.Setenv("SCION_K8S_NAMESPACE", "")
+	t.Setenv("POD_NAMESPACE", "fabric")
+	t.Setenv("FABRIC_K8S_NAMESPACE", "")
 
 	r := NewKubernetesRuntime(client)
-	if r.DefaultNamespace != "scion" {
-		t.Fatalf("DefaultNamespace = %q, want %q", r.DefaultNamespace, "scion")
+	if r.DefaultNamespace != "fabric" {
+		t.Fatalf("DefaultNamespace = %q, want %q", r.DefaultNamespace, "fabric")
 	}
 }

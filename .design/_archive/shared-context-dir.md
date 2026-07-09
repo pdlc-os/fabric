@@ -2,7 +2,7 @@
 
 have a grove level shared context directory that agents can use to share information and status between themselves.
 
-'./scion/shared_context'
+'./fabric/shared_context'
 
 mounted in container to /shared_context
 

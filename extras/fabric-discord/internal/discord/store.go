@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/lockloop"
+	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
 
 	_ "modernc.org/sqlite"
 )
@@ -22,7 +22,7 @@ var NewAdvisoryLockHandle = lockloop.NewAdvisoryLockHandle
 
 // Store defines the persistence interface for the Discord broker plugin.
 type Store interface {
-	// Channel links (Discord channel <-> Scion project)
+	// Channel links (Discord channel <-> Fabric project)
 	CreateChannelLink(ctx context.Context, link *ChannelLink) error
 	GetChannelLink(ctx context.Context, channelID string) (*ChannelLink, error)
 	GetChannelLinksForProject(ctx context.Context, projectID string) ([]*ChannelLink, error)
@@ -31,11 +31,11 @@ type Store interface {
 	DeactivateLinksForGuild(ctx context.Context, guildID string) error
 	DeleteChannelLink(ctx context.Context, channelID string) error
 
-	// User mappings (Discord user <-> Scion identity)
+	// User mappings (Discord user <-> Fabric identity)
 	CreateUserMapping(ctx context.Context, mapping *DiscordUserMapping) error
 	GetUserMapping(ctx context.Context, discordUserID string) (*DiscordUserMapping, error)
 	GetUserMappingByEmail(ctx context.Context, email string) (*DiscordUserMapping, error)
-	GetUserMappingByScionUserID(ctx context.Context, userID string) (*DiscordUserMapping, error)
+	GetUserMappingByFabricUserID(ctx context.Context, userID string) (*DiscordUserMapping, error)
 	DeleteUserMapping(ctx context.Context, discordUserID string) error
 
 	// Conversation context
@@ -71,7 +71,7 @@ type Store interface {
 	Close() error
 }
 
-// ChannelLink represents a Discord channel linked to a Scion project.
+// ChannelLink represents a Discord channel linked to a Fabric project.
 type ChannelLink struct {
 	ChannelID          string
 	GuildID            string
@@ -88,12 +88,12 @@ type ChannelLink struct {
 	ChatOnly           bool
 }
 
-// DiscordUserMapping links a Discord user to a Scion user identity.
+// DiscordUserMapping links a Discord user to a Fabric user identity.
 type DiscordUserMapping struct {
 	DiscordUserID   string
 	DiscordUsername string
-	ScionUserID     string
-	ScionEmail      string
+	FabricUserID     string
+	FabricEmail      string
 	LinkedAt        time.Time
 }
 
@@ -199,13 +199,13 @@ CREATE INDEX IF NOT EXISTS idx_channel_links_guild ON channel_links(guild_id);
 CREATE TABLE IF NOT EXISTS user_mappings (
 	discord_user_id TEXT PRIMARY KEY,
 	discord_username TEXT NOT NULL DEFAULT '',
-	scion_user_id TEXT NOT NULL DEFAULT '',
-	scion_email TEXT NOT NULL DEFAULT '',
+	fabric_user_id TEXT NOT NULL DEFAULT '',
+	fabric_email TEXT NOT NULL DEFAULT '',
 	linked_at TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(scion_email);
-CREATE INDEX IF NOT EXISTS idx_user_mappings_scion_id ON user_mappings(scion_user_id);
+CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(fabric_email);
+CREATE INDEX IF NOT EXISTS idx_user_mappings_fabric_id ON user_mappings(fabric_user_id);
 
 CREATE TABLE IF NOT EXISTS conversation_context (
 	discord_user_id TEXT NOT NULL,
@@ -352,32 +352,32 @@ func (s *sqliteStore) DeleteChannelLink(ctx context.Context, channelID string) e
 
 func (s *sqliteStore) CreateUserMapping(ctx context.Context, mapping *DiscordUserMapping) error {
 	const q = `
-INSERT INTO user_mappings (discord_user_id, discord_username, scion_user_id, scion_email, linked_at)
+INSERT INTO user_mappings (discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at)
 VALUES (?, ?, ?, ?, ?)
 ON CONFLICT(discord_user_id) DO UPDATE SET
-	discord_username=excluded.discord_username, scion_user_id=excluded.scion_user_id,
-	scion_email=excluded.scion_email, linked_at=excluded.linked_at`
+	discord_username=excluded.discord_username, fabric_user_id=excluded.fabric_user_id,
+	fabric_email=excluded.fabric_email, linked_at=excluded.linked_at`
 	_, err := s.db.ExecContext(ctx, q,
 		mapping.DiscordUserID, mapping.DiscordUsername,
-		mapping.ScionUserID, mapping.ScionEmail,
+		mapping.FabricUserID, mapping.FabricEmail,
 		mapping.LinkedAt.UTC().Format(time.RFC3339))
 	return err
 }
 
 func (s *sqliteStore) GetUserMapping(ctx context.Context, discordUserID string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE discord_user_id = ?`
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE discord_user_id = ?`
 	row := s.db.QueryRowContext(ctx, q, discordUserID)
 	return scanUserMapping(row)
 }
 
 func (s *sqliteStore) GetUserMappingByEmail(ctx context.Context, email string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE scion_email = ?`
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE fabric_email = ?`
 	row := s.db.QueryRowContext(ctx, q, email)
 	return scanUserMapping(row)
 }
 
-func (s *sqliteStore) GetUserMappingByScionUserID(ctx context.Context, userID string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE scion_user_id = ?`
+func (s *sqliteStore) GetUserMappingByFabricUserID(ctx context.Context, userID string) (*DiscordUserMapping, error) {
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE fabric_user_id = ?`
 	row := s.db.QueryRowContext(ctx, q, userID)
 	return scanUserMapping(row)
 }
@@ -684,7 +684,7 @@ func scanChannelLinks(rows *sql.Rows) ([]*ChannelLink, error) {
 func scanUserMapping(row *sql.Row) (*DiscordUserMapping, error) {
 	var m DiscordUserMapping
 	var linkedAt string
-	err := row.Scan(&m.DiscordUserID, &m.DiscordUsername, &m.ScionUserID, &m.ScionEmail, &linkedAt)
+	err := row.Scan(&m.DiscordUserID, &m.DiscordUsername, &m.FabricUserID, &m.FabricEmail, &linkedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

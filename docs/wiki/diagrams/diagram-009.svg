@@ -50,7 +50,7 @@
 <title>Filesystem Cache</title>
 <polygon fill="lightblue" stroke="black" points="226,-61 0,-61 0,-25 226,-25 226,-61"/>
 <text xml:space="preserve" text-anchor="middle" x="113" y="-40.2" font-family="Times,serif" font-size="14.00">Filesystem Cache</text>
-<text xml:space="preserve" text-anchor="middle" x="113" y="-29.7" font-family="Times,serif" font-size="14.00">(~/.scion/cache/agent&#45;names)</text>
+<text xml:space="preserve" text-anchor="middle" x="113" y="-29.7" font-family="Times,serif" font-size="14.00">(~/.fabric/cache/agent&#45;names)</text>
 </g>
 <!-- agentcache Package&#45;&gt;Filesystem Cache -->
 <g id="edge2" class="edge">

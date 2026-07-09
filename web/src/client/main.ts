@@ -126,78 +126,78 @@ interface RouteConfig {
 }
 
 const ROUTES: RouteConfig[] = [
-  { pattern: /^\/login$/, tag: 'scion-login-page', load: () => import('../components/pages/login.js') },
-  { pattern: /^\/invite$/, tag: 'scion-page-invite', load: () => import('../components/pages/invite.js') },
-  { pattern: /^\/onboarding$/, tag: 'scion-page-onboarding', load: () => import('../components/pages/onboarding.js') },
-  { pattern: /^\/$/, tag: 'scion-page-home', load: () => import('../components/pages/home.js') },
-  { pattern: /^\/projects$/, tag: 'scion-page-projects', load: () => import('../components/pages/projects.js') },
-  { pattern: /^\/agents$/, tag: 'scion-page-agents', load: () => import('../components/pages/agents.js') },
-  { pattern: /^\/brokers$/, tag: 'scion-page-brokers', load: () => import('../components/pages/brokers.js') },
-  { pattern: /^\/brokers\/[^/]+$/, tag: 'scion-page-broker-detail', load: () => import('../components/pages/broker-detail.js') },
-  { pattern: /^\/skills$/, tag: 'scion-page-skills', load: () => import('../components/pages/skills.js') },
-  { pattern: /^\/skills\/new$/, tag: 'scion-page-skill-create', load: () => import('../components/pages/skill-create.js') },
-  { pattern: /^\/skills\/[^/]+$/, tag: 'scion-page-skill-detail', load: () => import('../components/pages/skill-detail.js') },
-  { pattern: /^\/admin\/skill-registries$/, tag: 'scion-page-admin-skill-registries', load: () => import('../components/pages/admin-skill-registries.js') },
-  { pattern: /^\/admin\/skill-registries\/[^/]+$/, tag: 'scion-page-admin-skill-registry-detail', load: () => import('../components/pages/admin-skill-registry-detail.js') },
-  { pattern: /^\/admin\/scheduler$/, tag: 'scion-page-admin-scheduler', load: () => import('../components/pages/admin-scheduler.js') },
-  { pattern: /^\/admin\/users$/, tag: 'scion-page-admin-users', load: () => import('../components/pages/admin-users.js') },
-  { pattern: /^\/admin\/groups$/, tag: 'scion-page-admin-groups', load: () => import('../components/pages/admin-groups.js') },
-  { pattern: /^\/admin\/groups\/[^/]+$/, tag: 'scion-page-admin-group-detail', load: () => import('../components/pages/admin-group-detail.js') },
-  { pattern: /^\/metrics$/, tag: 'scion-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
-  { pattern: /^\/admin\/metrics$/, tag: 'scion-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
-  { pattern: /^\/admin\/maintenance$/, tag: 'scion-page-admin-maintenance', load: () => import('../components/pages/admin-maintenance.js') },
-  { pattern: /^\/admin\/integrations$/, tag: 'scion-page-admin-integrations', load: () => import('../components/pages/admin-integrations.js') },
-  { pattern: /^\/admin\/integrations\/[^/]+$/, tag: 'scion-page-admin-integrations', load: () => import('../components/pages/admin-integrations.js') },
-  { pattern: /^\/admin\/server-config$/, tag: 'scion-page-admin-server-config', load: () => import('../components/pages/admin-server-config.js') },
-  { pattern: /^\/settings$/, tag: 'scion-page-settings', load: () => import('../components/pages/settings.js') },
-  { pattern: /^\/settings\/templates\/[^/]+$/, tag: 'scion-page-template-detail', load: () => import('../components/pages/template-detail.js') },
-  { pattern: /^\/settings\/harness-configs\/[^/]+$/, tag: 'scion-page-harness-config-detail', load: () => import('../components/pages/harness-config-detail.js') },
-  { pattern: /^\/profile\/env$/, tag: 'scion-page-profile-env-vars', load: () => import('../components/pages/profile-env-vars.js') },
-  { pattern: /^\/profile\/secrets$/, tag: 'scion-page-profile-secrets', load: () => import('../components/pages/profile-secrets.js') },
-  { pattern: /^\/profile\/settings$/, tag: 'scion-page-profile-settings', load: () => import('../components/pages/profile-settings.js') },
-  { pattern: /^\/profile\/tokens$/, tag: 'scion-page-profile-tokens', load: () => import('../components/pages/profile-tokens.js') },
-  { pattern: /^\/profile\/telegram$/, tag: 'scion-page-profile-telegram', load: () => import('../components/pages/profile-telegram.js') },
-  { pattern: /^\/profile\/discord$/, tag: 'scion-page-profile-discord', load: () => import('../components/pages/profile-discord.js') },
-  { pattern: /^\/profile$/, tag: 'scion-page-profile-env-vars', load: () => import('../components/pages/profile-env-vars.js') },
-  { pattern: /^\/github-app\/installed$/, tag: 'scion-page-github-app-setup', load: () => import('../components/pages/github-app-setup.js') },
-  { pattern: /^\/projects\/new$/, tag: 'scion-page-project-create', load: () => import('../components/pages/project-create.js') },
-  { pattern: /^\/projects\/[^/]+\/settings$/, tag: 'scion-page-project-settings', load: () => import('../components/pages/project-settings.js') },
-  { pattern: /^\/projects\/[^/]+\/templates\/[^/]+$/, tag: 'scion-page-template-detail', load: () => import('../components/pages/template-detail.js') },
-  { pattern: /^\/projects\/[^/]+\/harness-configs\/[^/]+$/, tag: 'scion-page-harness-config-detail', load: () => import('../components/pages/harness-config-detail.js') },
-  { pattern: /^\/projects\/[^/]+\/schedules$/, tag: 'scion-page-project-schedules', load: () => import('../components/pages/project-schedules.js') },
-  { pattern: /^\/projects\/[^/]+\/metrics$/, tag: 'scion-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
-  { pattern: /^\/projects\/[^/]+$/, tag: 'scion-page-project-detail', load: () => import('../components/pages/project-detail.js') },
-  { pattern: /^\/agents\/new$/, tag: 'scion-page-agent-create', load: () => import('../components/pages/agent-create.js') },
-  { pattern: /^\/agents\/[^/]+\/configure$/, tag: 'scion-page-agent-configure', load: () => import('../components/pages/agent-configure.js') },
-  { pattern: /^\/agents\/[^/]+\/terminal$/, tag: 'scion-page-terminal', load: () => import('../components/pages/terminal.js') },
-  { pattern: /^\/agents\/[^/]+$/, tag: 'scion-page-agent-detail', load: () => import('../components/pages/agent-detail.js') },
+  { pattern: /^\/login$/, tag: 'fabric-login-page', load: () => import('../components/pages/login.js') },
+  { pattern: /^\/invite$/, tag: 'fabric-page-invite', load: () => import('../components/pages/invite.js') },
+  { pattern: /^\/onboarding$/, tag: 'fabric-page-onboarding', load: () => import('../components/pages/onboarding.js') },
+  { pattern: /^\/$/, tag: 'fabric-page-home', load: () => import('../components/pages/home.js') },
+  { pattern: /^\/projects$/, tag: 'fabric-page-projects', load: () => import('../components/pages/projects.js') },
+  { pattern: /^\/agents$/, tag: 'fabric-page-agents', load: () => import('../components/pages/agents.js') },
+  { pattern: /^\/brokers$/, tag: 'fabric-page-brokers', load: () => import('../components/pages/brokers.js') },
+  { pattern: /^\/brokers\/[^/]+$/, tag: 'fabric-page-broker-detail', load: () => import('../components/pages/broker-detail.js') },
+  { pattern: /^\/skills$/, tag: 'fabric-page-skills', load: () => import('../components/pages/skills.js') },
+  { pattern: /^\/skills\/new$/, tag: 'fabric-page-skill-create', load: () => import('../components/pages/skill-create.js') },
+  { pattern: /^\/skills\/[^/]+$/, tag: 'fabric-page-skill-detail', load: () => import('../components/pages/skill-detail.js') },
+  { pattern: /^\/admin\/skill-registries$/, tag: 'fabric-page-admin-skill-registries', load: () => import('../components/pages/admin-skill-registries.js') },
+  { pattern: /^\/admin\/skill-registries\/[^/]+$/, tag: 'fabric-page-admin-skill-registry-detail', load: () => import('../components/pages/admin-skill-registry-detail.js') },
+  { pattern: /^\/admin\/scheduler$/, tag: 'fabric-page-admin-scheduler', load: () => import('../components/pages/admin-scheduler.js') },
+  { pattern: /^\/admin\/users$/, tag: 'fabric-page-admin-users', load: () => import('../components/pages/admin-users.js') },
+  { pattern: /^\/admin\/groups$/, tag: 'fabric-page-admin-groups', load: () => import('../components/pages/admin-groups.js') },
+  { pattern: /^\/admin\/groups\/[^/]+$/, tag: 'fabric-page-admin-group-detail', load: () => import('../components/pages/admin-group-detail.js') },
+  { pattern: /^\/metrics$/, tag: 'fabric-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
+  { pattern: /^\/admin\/metrics$/, tag: 'fabric-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
+  { pattern: /^\/admin\/maintenance$/, tag: 'fabric-page-admin-maintenance', load: () => import('../components/pages/admin-maintenance.js') },
+  { pattern: /^\/admin\/integrations$/, tag: 'fabric-page-admin-integrations', load: () => import('../components/pages/admin-integrations.js') },
+  { pattern: /^\/admin\/integrations\/[^/]+$/, tag: 'fabric-page-admin-integrations', load: () => import('../components/pages/admin-integrations.js') },
+  { pattern: /^\/admin\/server-config$/, tag: 'fabric-page-admin-server-config', load: () => import('../components/pages/admin-server-config.js') },
+  { pattern: /^\/settings$/, tag: 'fabric-page-settings', load: () => import('../components/pages/settings.js') },
+  { pattern: /^\/settings\/templates\/[^/]+$/, tag: 'fabric-page-template-detail', load: () => import('../components/pages/template-detail.js') },
+  { pattern: /^\/settings\/harness-configs\/[^/]+$/, tag: 'fabric-page-harness-config-detail', load: () => import('../components/pages/harness-config-detail.js') },
+  { pattern: /^\/profile\/env$/, tag: 'fabric-page-profile-env-vars', load: () => import('../components/pages/profile-env-vars.js') },
+  { pattern: /^\/profile\/secrets$/, tag: 'fabric-page-profile-secrets', load: () => import('../components/pages/profile-secrets.js') },
+  { pattern: /^\/profile\/settings$/, tag: 'fabric-page-profile-settings', load: () => import('../components/pages/profile-settings.js') },
+  { pattern: /^\/profile\/tokens$/, tag: 'fabric-page-profile-tokens', load: () => import('../components/pages/profile-tokens.js') },
+  { pattern: /^\/profile\/telegram$/, tag: 'fabric-page-profile-telegram', load: () => import('../components/pages/profile-telegram.js') },
+  { pattern: /^\/profile\/discord$/, tag: 'fabric-page-profile-discord', load: () => import('../components/pages/profile-discord.js') },
+  { pattern: /^\/profile$/, tag: 'fabric-page-profile-env-vars', load: () => import('../components/pages/profile-env-vars.js') },
+  { pattern: /^\/github-app\/installed$/, tag: 'fabric-page-github-app-setup', load: () => import('../components/pages/github-app-setup.js') },
+  { pattern: /^\/projects\/new$/, tag: 'fabric-page-project-create', load: () => import('../components/pages/project-create.js') },
+  { pattern: /^\/projects\/[^/]+\/settings$/, tag: 'fabric-page-project-settings', load: () => import('../components/pages/project-settings.js') },
+  { pattern: /^\/projects\/[^/]+\/templates\/[^/]+$/, tag: 'fabric-page-template-detail', load: () => import('../components/pages/template-detail.js') },
+  { pattern: /^\/projects\/[^/]+\/harness-configs\/[^/]+$/, tag: 'fabric-page-harness-config-detail', load: () => import('../components/pages/harness-config-detail.js') },
+  { pattern: /^\/projects\/[^/]+\/schedules$/, tag: 'fabric-page-project-schedules', load: () => import('../components/pages/project-schedules.js') },
+  { pattern: /^\/projects\/[^/]+\/metrics$/, tag: 'fabric-page-metrics', load: () => import('../components/pages/metrics-dashboard.js') },
+  { pattern: /^\/projects\/[^/]+$/, tag: 'fabric-page-project-detail', load: () => import('../components/pages/project-detail.js') },
+  { pattern: /^\/agents\/new$/, tag: 'fabric-page-agent-create', load: () => import('../components/pages/agent-create.js') },
+  { pattern: /^\/agents\/[^/]+\/configure$/, tag: 'fabric-page-agent-configure', load: () => import('../components/pages/agent-configure.js') },
+  { pattern: /^\/agents\/[^/]+\/terminal$/, tag: 'fabric-page-terminal', load: () => import('../components/pages/terminal.js') },
+  { pattern: /^\/agents\/[^/]+$/, tag: 'fabric-page-agent-detail', load: () => import('../components/pages/agent-detail.js') },
 ];
 
 /**
  * Routes that render without the app shell (full-page layout)
  */
-const STANDALONE_ROUTES = new Set(['scion-login-page', 'scion-page-invite', 'scion-page-onboarding']);
+const STANDALONE_ROUTES = new Set(['fabric-login-page', 'fabric-page-invite', 'fabric-page-onboarding']);
 
 /**
  * Routes that render inside the profile shell instead of the main app shell
  */
-const PROFILE_ROUTES = new Set(['scion-page-profile-env-vars', 'scion-page-profile-secrets', 'scion-page-profile-settings', 'scion-page-profile-tokens', 'scion-page-profile-telegram', 'scion-page-profile-discord']);
+const PROFILE_ROUTES = new Set(['fabric-page-profile-env-vars', 'fabric-page-profile-secrets', 'fabric-page-profile-settings', 'fabric-page-profile-tokens', 'fabric-page-profile-telegram', 'fabric-page-profile-discord']);
 
 /**
  * Routes that require admin role. Non-admin users are redirected to dashboard.
  */
-const ADMIN_ROUTES = new Set(['scion-page-settings', 'scion-page-admin-scheduler', 'scion-page-admin-maintenance', 'scion-page-admin-users', 'scion-page-admin-groups', 'scion-page-admin-group-detail', 'scion-page-admin-server-config', 'scion-page-admin-integrations', 'scion-page-admin-skill-registries', 'scion-page-admin-skill-registry-detail']);
+const ADMIN_ROUTES = new Set(['fabric-page-settings', 'fabric-page-admin-scheduler', 'fabric-page-admin-maintenance', 'fabric-page-admin-users', 'fabric-page-admin-groups', 'fabric-page-admin-group-detail', 'fabric-page-admin-server-config', 'fabric-page-admin-integrations', 'fabric-page-admin-skill-registries', 'fabric-page-admin-skill-registry-detail']);
 
 /**
  * Initialize the client-side application
  */
 async function init(): Promise<void> {
-  console.info('[Scion] Initializing client...');
+  console.info('[Fabric] Initializing client...');
 
   // Get initial data from SSR and hydrate state manager
   const initialData = getInitialData();
   if (initialData) {
-    console.info('[Scion] Initial page data:', initialData.path);
+    console.info('[Fabric] Initial page data:', initialData.path);
     if (initialData.user) {
       currentUser = initialData.user;
     }
@@ -223,15 +223,15 @@ async function init(): Promise<void> {
 
   // Wait for core shell components to be defined (page components are lazy-loaded)
   await Promise.all([
-    customElements.whenDefined('scion-app'),
-    customElements.whenDefined('scion-nav'),
-    customElements.whenDefined('scion-header'),
-    customElements.whenDefined('scion-breadcrumb'),
-    customElements.whenDefined('scion-status-badge'),
-    customElements.whenDefined('scion-debug-panel'),
+    customElements.whenDefined('fabric-app'),
+    customElements.whenDefined('fabric-nav'),
+    customElements.whenDefined('fabric-header'),
+    customElements.whenDefined('fabric-breadcrumb'),
+    customElements.whenDefined('fabric-status-badge'),
+    customElements.whenDefined('fabric-debug-panel'),
   ]);
 
-  console.info('[Scion] Components defined, setting up router...');
+  console.info('[Fabric] Components defined, setting up router...');
 
   // First-run redirect: if the system hasn't completed onboarding, navigate to /onboarding
   const skipRedirectPaths = ['/onboarding', '/login', '/invite'];
@@ -261,23 +261,23 @@ async function init(): Promise<void> {
     stateManager.disconnect();
   });
 
-  console.info('[Scion] Client initialization complete');
+  console.info('[Fabric] Client initialization complete');
 }
 
 /**
  * Retrieves initial page data from SSR-injected script tag
  */
 function getInitialData(): PageData | null {
-  const script = document.getElementById('__SCION_DATA__');
+  const script = document.getElementById('__FABRIC_DATA__');
   if (!script) {
-    console.warn('[Scion] No initial data found');
+    console.warn('[Fabric] No initial data found');
     return null;
   }
 
   try {
     return JSON.parse(script.textContent || '{}') as PageData;
   } catch (e) {
-    console.error('[Scion] Failed to parse initial data:', e);
+    console.error('[Fabric] Failed to parse initial data:', e);
     return null;
   }
 }
@@ -285,7 +285,7 @@ function getInitialData(): PageData | null {
 /** Fallback route for unmatched paths */
 const NOT_FOUND_ROUTE: RouteConfig = {
   pattern: /./,
-  tag: 'scion-page-404',
+  tag: 'fabric-page-404',
   load: () => import('../components/pages/not-found.js'),
 };
 
@@ -339,7 +339,7 @@ async function renderRoute(path: string): Promise<void> {
   const hasSsrData = ssrPageData && ssrPageData.path === path && ssrPageData.data;
   const pageData: PageData = {
     path,
-    title: 'Scion',
+    title: 'Fabric',
     user: currentUser || undefined,
     data: hasSsrData ? ssrPageData!.data : undefined,
   };
@@ -360,7 +360,7 @@ async function renderRoute(path: string): Promise<void> {
   // The import registers the custom element as a side effect.
   const thisNav = ++navigationId;
   const loads: Promise<unknown>[] = [route.load()];
-  if (shellType === 'profile' && !customElements.get('scion-profile-shell')) {
+  if (shellType === 'profile' && !customElements.get('fabric-profile-shell')) {
     loads.push(
       import('../components/profile/profile-shell.js'),
       import('../components/profile/profile-nav.js'),
@@ -383,7 +383,7 @@ async function renderRoute(path: string): Promise<void> {
     activeShell = null;
     const page = document.createElement(tag);
     appContainer.appendChild(page);
-    setDocumentTitle(tag === 'scion-login-page' ? 'Login' : tag === 'scion-page-invite' ? 'Invite' : 'Page Not Found');
+    setDocumentTitle(tag === 'fabric-login-page' ? 'Login' : tag === 'fabric-page-invite' ? 'Invite' : 'Page Not Found');
   } else if (activeShell) {
     // Reuse existing shell — just update properties and swap page content
     const shell = activeShell.element as HTMLElement & {
@@ -394,17 +394,17 @@ async function renderRoute(path: string): Promise<void> {
     shell.user = currentUser;
 
     // Replace only the page content inside the shell
-    const oldPage = shell.querySelector('[data-scion-page]');
+    const oldPage = shell.querySelector('[data-fabric-page]');
     if (oldPage) oldPage.remove();
 
     const page = document.createElement(tag) as HTMLElement & { pageData: PageData };
     page.pageData = pageData;
-    page.setAttribute('data-scion-page', '');
+    page.setAttribute('data-fabric-page', '');
     shell.appendChild(page);
   } else {
     // Create the shell for the first time — clear any SSR-rendered content
     appContainer.innerHTML = '';
-    const shellTag = shellType === 'profile' ? 'scion-profile-shell' : 'scion-app';
+    const shellTag = shellType === 'profile' ? 'fabric-profile-shell' : 'fabric-app';
     const shell = document.createElement(shellTag) as HTMLElement & {
       currentPath: string;
       user: User | null;
@@ -414,7 +414,7 @@ async function renderRoute(path: string): Promise<void> {
 
     const page = document.createElement(tag) as HTMLElement & { pageData: PageData };
     page.pageData = pageData;
-    page.setAttribute('data-scion-page', '');
+    page.setAttribute('data-fabric-page', '');
     shell.appendChild(page);
     appContainer.appendChild(shell);
 

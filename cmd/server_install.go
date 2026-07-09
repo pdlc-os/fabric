@@ -26,7 +26,7 @@ import (
 func runServerInstall(cmd *cobra.Command, args []string) error {
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to find scion executable: %w", err)
+		return fmt.Errorf("failed to find fabric executable: %w", err)
 	}
 
 	// Resolve to absolute path
@@ -51,9 +51,9 @@ func generateSystemdUnit(executable string, hosted bool) error {
 		args = "server start --foreground --hosted"
 	}
 
-	description := "Scion Workstation Server"
+	description := "Fabric Workstation Server"
 	if hosted {
-		description = "Scion Server (Hosted)"
+		description = "Fabric Server (Hosted)"
 	}
 
 	unit := fmt.Sprintf(`[Unit]
@@ -76,9 +76,9 @@ WantedBy=default.target
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "To install as a systemd user service:")
 	fmt.Fprintln(os.Stderr, "  mkdir -p ~/.config/systemd/user")
-	fmt.Fprintln(os.Stderr, "  scion server install > ~/.config/systemd/user/scion-server.service")
+	fmt.Fprintln(os.Stderr, "  fabric server install > ~/.config/systemd/user/fabric-server.service")
 	fmt.Fprintln(os.Stderr, "  systemctl --user daemon-reload")
-	fmt.Fprintln(os.Stderr, "  systemctl --user enable --now scion-server")
+	fmt.Fprintln(os.Stderr, "  systemctl --user enable --now fabric-server")
 	return nil
 }
 
@@ -94,7 +94,7 @@ func generateLaunchdPlist(executable string, hosted bool) error {
 		argEntries += fmt.Sprintf("        <string>%s</string>\n", arg)
 	}
 
-	label := "io.scion.server"
+	label := "io.fabric.server"
 	plist := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -109,9 +109,9 @@ func generateLaunchdPlist(executable string, hosted bool) error {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/scion-server.log</string>
+    <string>/tmp/fabric-server.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/scion-server.log</string>
+    <string>/tmp/fabric-server.log</string>
 </dict>
 </plist>
 `, label, argEntries)
@@ -120,7 +120,7 @@ func generateLaunchdPlist(executable string, hosted bool) error {
 
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "To install as a launchd user agent:")
-	fmt.Fprintln(os.Stderr, "  scion server install > ~/Library/LaunchAgents/io.scion.server.plist")
-	fmt.Fprintln(os.Stderr, "  launchctl load ~/Library/LaunchAgents/io.scion.server.plist")
+	fmt.Fprintln(os.Stderr, "  fabric server install > ~/Library/LaunchAgents/io.fabric.server.plist")
+	fmt.Fprintln(os.Stderr, "  launchctl load ~/Library/LaunchAgents/io.fabric.server.plist")
 	return nil
 }

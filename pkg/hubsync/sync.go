@@ -27,12 +27,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"gopkg.in/yaml.v3"
 )
 
@@ -216,7 +216,7 @@ func EnsureHubReady(projectPath string, opts EnsureHubReadyOptions) (*HubContext
 	}
 
 	// Check if hub is explicitly enabled via settings OR if we're inside
-	// a hub-connected container (env vars like SCION_HUB_ENDPOINT are set).
+	// a hub-connected container (env vars like FABRIC_HUB_ENDPOINT are set).
 	// Inside containers, hub.enabled is not written to settings files, but
 	// the hub env vars signal that the Hub API should be used.
 	hubContext := config.IsHubContext()
@@ -239,25 +239,25 @@ func EnsureHubReady(projectPath string, opts EnsureHubReadyOptions) (*HubContext
 	// project path resolves to a synthetic or tmpfs directory without a settings file
 	// and koanf doesn't populate the pointer struct). Fall back to the env var.
 	if endpoint == "" && hubContext {
-		endpoint = os.Getenv("SCION_HUB_ENDPOINT")
+		endpoint = os.Getenv("FABRIC_HUB_ENDPOINT")
 		if endpoint == "" {
-			endpoint = os.Getenv("SCION_HUB_URL")
+			endpoint = os.Getenv("FABRIC_HUB_URL")
 		}
 	}
 	if endpoint == "" {
-		return nil, wrapHubError(fmt.Errorf("hub is enabled but no endpoint configured; configure via: scion config set hub.endpoint <url>"))
+		return nil, wrapHubError(fmt.Errorf("hub is enabled but no endpoint configured; configure via: fabric config set hub.endpoint <url>"))
 	}
 
 	// Ensure project_id exists.
-	// In hub context, SCION_GROVE_ID takes priority over settings.ProjectID
+	// In hub context, FABRIC_GROVE_ID takes priority over settings.ProjectID
 	// because the dispatcher sets it to the authoritative project for this
-	// agent. The workspace may contain a cloned repo whose .scion/settings
+	// agent. The workspace may contain a cloned repo whose .fabric/settings
 	// has a different project_id (e.g. template-sync from an external repo).
 	var projectID string
 	if hubContext {
-		projectID = os.Getenv("SCION_GROVE_ID")
+		projectID = os.Getenv("FABRIC_GROVE_ID")
 		if projectID == "" {
-			projectID = os.Getenv("SCION_PROJECT_ID")
+			projectID = os.Getenv("FABRIC_PROJECT_ID")
 		}
 	}
 	if projectID == "" {
@@ -265,7 +265,7 @@ func EnsureHubReady(projectPath string, opts EnsureHubReadyOptions) (*HubContext
 	}
 	if projectID == "" {
 		if hubContext {
-			// Inside a container without SCION_GROVE_ID — we can't generate
+			// Inside a container without FABRIC_GROVE_ID — we can't generate
 			// and persist a project ID. The Hub client can still be constructed
 			// for cross-project operations like list --all.
 			debugf("hub context without project_id — project-scoped operations may fail")
@@ -399,8 +399,8 @@ func EnsureHubReady(projectPath string, opts EnsureHubReadyOptions) (*HubContext
 				// No matching projects - ask for confirmation
 				if !ShowLinkPrompt(projectName, opts.AutoConfirm) {
 					return nil, fmt.Errorf("project must be linked to Hub to perform this operation\n\n" +
-						"Link this project: scion hub link\n" +
-						"Or use local-only mode: scion --no-hub <command>")
+						"Link this project: fabric hub link\n" +
+						"Or use local-only mode: fabric --no-hub <command>")
 				}
 			}
 		}
@@ -488,8 +488,8 @@ func EnsureHubReady(projectPath string, opts EnsureHubReadyOptions) (*HubContext
 			}
 		} else {
 			return nil, fmt.Errorf("agents must be synchronized with Hub to perform this operation\n\n" +
-				"Sync agents: scion hub sync\n" +
-				"Or use local-only mode: scion --no-hub <command>")
+				"Sync agents: fabric hub sync\n" +
+				"Or use local-only mode: fabric --no-hub <command>")
 		}
 	} else {
 		// Already in sync — update the watermark and synced agents to keep current
@@ -976,7 +976,7 @@ func collectSyncedAgentNames(result *SyncResult) []string {
 	return names
 }
 
-// GetLocalAgents returns agent names from .scion/agents/.
+// GetLocalAgents returns agent names from .fabric/agents/.
 func GetLocalAgents(projectPath string) ([]string, error) {
 	agentsDir := filepath.Join(projectPath, "agents")
 
@@ -993,9 +993,9 @@ func GetLocalAgents(projectPath string) ([]string, error) {
 		if !entry.IsDir() {
 			continue
 		}
-		// Check if it has a scion-agent config file (YAML or JSON)
-		yamlPath := filepath.Join(agentsDir, entry.Name(), "scion-agent.yaml")
-		jsonPath := filepath.Join(agentsDir, entry.Name(), "scion-agent.json")
+		// Check if it has a fabric-agent config file (YAML or JSON)
+		yamlPath := filepath.Join(agentsDir, entry.Name(), "fabric-agent.yaml")
+		jsonPath := filepath.Join(agentsDir, entry.Name(), "fabric-agent.json")
 		if _, err := os.Stat(yamlPath); err == nil {
 			agents = append(agents, entry.Name())
 		} else if _, err := os.Stat(jsonPath); err == nil {
@@ -1021,27 +1021,27 @@ func getLocalAgentInfo(projectPath, agentName string) *api.AgentInfo {
 		}
 	}
 
-	// Fallback to scion-agent.json (legacy)
-	scionJSONPath := filepath.Join(agentDir, "scion-agent.json")
-	if data, err := os.ReadFile(scionJSONPath); err == nil {
-		var cfg api.ScionConfig
+	// Fallback to fabric-agent.json (legacy)
+	fabricJSONPath := filepath.Join(agentDir, "fabric-agent.json")
+	if data, err := os.ReadFile(fabricJSONPath); err == nil {
+		var cfg api.FabricConfig
 		if err := json.Unmarshal(data, &cfg); err == nil {
-			// Build a minimal AgentInfo from ScionConfig
+			// Build a minimal AgentInfo from FabricConfig
 			info := &api.AgentInfo{
 				HarnessConfig: cfg.HarnessConfig,
 			}
 			if info.HarnessConfig == "" {
 				info.HarnessConfig = cfg.Harness
 			}
-			applyFileTimestampFallback(info, scionJSONPath)
+			applyFileTimestampFallback(info, fabricJSONPath)
 			return info
 		}
 	}
 
-	// Fallback to scion-agent.yaml
-	scionYAMLPath := filepath.Join(agentDir, "scion-agent.yaml")
-	if data, err := os.ReadFile(scionYAMLPath); err == nil {
-		var cfg api.ScionConfig
+	// Fallback to fabric-agent.yaml
+	fabricYAMLPath := filepath.Join(agentDir, "fabric-agent.yaml")
+	if data, err := os.ReadFile(fabricYAMLPath); err == nil {
+		var cfg api.FabricConfig
 		if err := yaml.Unmarshal(data, &cfg); err == nil {
 			info := &api.AgentInfo{
 				HarnessConfig: cfg.HarnessConfig,
@@ -1049,7 +1049,7 @@ func getLocalAgentInfo(projectPath, agentName string) *api.AgentInfo {
 			if info.HarnessConfig == "" {
 				info.HarnessConfig = cfg.Harness
 			}
-			applyFileTimestampFallback(info, scionYAMLPath)
+			applyFileTimestampFallback(info, fabricYAMLPath)
 			return info
 		}
 	}
@@ -1314,13 +1314,13 @@ func getEndpoint(settings *config.Settings) string {
 	return ""
 }
 
-// readAgentTokenFile reads the canonical agent token from ~/.scion/scion-token.
+// readAgentTokenFile reads the canonical agent token from ~/.fabric/fabric-token.
 func readAgentTokenFile() string {
 	home := os.Getenv("HOME")
 	if home == "" {
 		return ""
 	}
-	data, err := os.ReadFile(filepath.Join(home, ".scion", "scion-token"))
+	data, err := os.ReadFile(filepath.Join(home, ".fabric", "fabric-token"))
 	if err != nil {
 		return ""
 	}
@@ -1329,16 +1329,16 @@ func readAgentTokenFile() string {
 
 // createHubClient creates a new Hub client with proper authentication.
 // Note: hub.token and hub.apiKey are deprecated and no longer used for auth.
-// Auth priority: OAuth credentials > scion-token file > SCION_AUTH_TOKEN env > auto dev auth.
+// Auth priority: OAuth credentials > fabric-token file > FABRIC_AUTH_TOKEN env > auto dev auth.
 // Exception: for localhost endpoints, dev auth takes priority over non-dev agent tokens
-// to avoid stale scion-token files from previous remote hub connections.
+// to avoid stale fabric-token files from previous remote hub connections.
 func createHubClient(settings *config.Settings, endpoint string) (hubclient.Client, error) {
 	var opts []hubclient.Option
 
 	// Add authentication - check in priority order
 	authConfigured := false
 
-	// 1. Check for OAuth credentials from scion hub auth login
+	// 1. Check for OAuth credentials from fabric hub auth login
 	if accessToken := credentials.GetAccessToken(endpoint); accessToken != "" {
 		opts = append(opts, hubclient.WithBearerToken(accessToken))
 		authConfigured = true
@@ -1357,7 +1357,7 @@ func createHubClient(settings *config.Settings, endpoint string) (hubclient.Clie
 				opts = append(opts, hubclient.WithAgentToken(token))
 				authConfigured = true
 			}
-		} else if token := os.Getenv("SCION_AUTH_TOKEN"); token != "" {
+		} else if token := os.Getenv("FABRIC_AUTH_TOKEN"); token != "" {
 			opts = append(opts, hubclient.WithAgentToken(token))
 			authConfigured = true
 		}
@@ -1365,7 +1365,7 @@ func createHubClient(settings *config.Settings, endpoint string) (hubclient.Clie
 
 	// 3. Check for hub-mode token (running inside a container)
 	if !authConfigured {
-		if token := os.Getenv("SCION_HUB_TOKEN"); token != "" {
+		if token := os.Getenv("FABRIC_HUB_TOKEN"); token != "" {
 			opts = append(opts, hubclient.WithBearerToken(token))
 			authConfigured = true
 		}
@@ -1393,9 +1393,9 @@ func isLocalhostEndpoint(endpoint string) bool {
 // wrapHubError wraps a Hub error with guidance to disable Hub integration.
 func wrapHubError(err error) error {
 	if apiclient.IsUnauthorizedError(err) {
-		return fmt.Errorf("authentication failed, login to hub with 'scion hub auth login'")
+		return fmt.Errorf("authentication failed, login to hub with 'fabric hub auth login'")
 	}
-	return fmt.Errorf("%w\n\nTo use local-only mode, use: scion --no-hub <command>", err)
+	return fmt.Errorf("%w\n\nTo use local-only mode, use: fabric --no-hub <command>", err)
 }
 
 // containsIgnoreCase checks if a string contains a substring (case-insensitive).
@@ -1405,7 +1405,7 @@ func containsIgnoreCase(s, substr string) bool {
 
 // cleanupProjectBrokerCredentials removes stale broker credentials from project settings.
 // These should only exist in global settings, not project-specific.
-// Earlier versions of scion incorrectly wrote them to project settings.
+// Earlier versions of fabric incorrectly wrote them to project settings.
 //
 // For legacy files: removes hub.brokerId and hub.brokerToken
 // For v1 files: removes server.broker.broker_id and server.broker.broker_token

@@ -12,10 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/accesspolicy"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/policybinding"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
+	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/schema"
 	"github.com/google/uuid"
 )
 

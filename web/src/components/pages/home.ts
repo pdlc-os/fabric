@@ -44,8 +44,8 @@ interface InviteStats {
   }[];
 }
 
-@customElement('scion-page-home')
-export class ScionPageHome extends LitElement {
+@customElement('fabric-page-home')
+export class FabricPageHome extends LitElement {
   /**
    * Page data from SSR
    */
@@ -145,12 +145,12 @@ export class ScionPageHome extends LitElement {
     .hero {
       background: linear-gradient(
         135deg,
-        var(--scion-primary, #3b82f6) 0%,
-        var(--scion-primary-700, #1d4ed8) 100%
+        var(--fabric-primary, #3b82f6) 0%,
+        var(--fabric-primary-700, #1d4ed8) 100%
       );
       color: white;
       padding: 2rem;
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       margin-bottom: 2rem;
     }
 
@@ -174,24 +174,24 @@ export class ScionPageHome extends LitElement {
     }
 
     .stat-card {
-      background: var(--scion-surface, #ffffff);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
-      box-shadow: var(--scion-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
-      border: 1px solid var(--scion-border, #e2e8f0);
+      box-shadow: var(--fabric-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .stat-card h3 {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 0.5rem 0;
     }
 
     .stat-value {
       font-size: 2rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -200,14 +200,14 @@ export class ScionPageHome extends LitElement {
     .stat-change {
       font-size: 0.875rem;
       margin-top: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .section-title {
       font-size: 1.25rem;
       font-weight: 600;
       margin-bottom: 1rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .quick-actions {
@@ -217,34 +217,34 @@ export class ScionPageHome extends LitElement {
     }
 
     .action-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.25rem;
       display: flex;
       align-items: center;
       gap: 1rem;
       cursor: pointer;
-      transition: all var(--scion-transition-fast, 150ms ease);
+      transition: all var(--fabric-transition-fast, 150ms ease);
       text-decoration: none;
       color: inherit;
     }
 
     .action-card:hover {
-      border-color: var(--scion-primary, #3b82f6);
-      box-shadow: var(--scion-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+      border-color: var(--fabric-primary, #3b82f6);
+      box-shadow: var(--fabric-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
       transform: translateY(-2px);
     }
 
     .action-icon {
       width: 3rem;
       height: 3rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      background: var(--scion-primary-50, #eff6ff);
+      border-radius: var(--fabric-radius, 0.5rem);
+      background: var(--fabric-primary-50, #eff6ff);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       flex-shrink: 0;
     }
 
@@ -256,12 +256,12 @@ export class ScionPageHome extends LitElement {
       font-size: 1rem;
       font-weight: 600;
       margin: 0 0 0.25rem 0;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .action-text p {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
     }
 
@@ -271,9 +271,9 @@ export class ScionPageHome extends LitElement {
     }
 
     .activity-list {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
 
@@ -282,7 +282,7 @@ export class ScionPageHome extends LitElement {
       align-items: center;
       gap: 1rem;
       padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .activity-item:last-child {
@@ -293,11 +293,11 @@ export class ScionPageHome extends LitElement {
       width: 2.5rem;
       height: 2.5rem;
       border-radius: 50%;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       flex-shrink: 0;
     }
 
@@ -309,20 +309,20 @@ export class ScionPageHome extends LitElement {
     .activity-title {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .activity-time {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.125rem;
     }
 
     .empty-state {
       text-align: center;
       padding: 3rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state > sl-icon {
@@ -348,7 +348,7 @@ export class ScionPageHome extends LitElement {
             <span>${this.activeAgentCount}</span>
           </div>
           <div class="stat-change">
-            <scion-status-badge status="success" label="Ready" size="small"></scion-status-badge>
+            <fabric-status-badge status="success" label="Ready" size="small"></fabric-status-badge>
           </div>
         </div>
         <div class="stat-card">
@@ -459,6 +459,6 @@ export class ScionPageHome extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-home': ScionPageHome;
+    'fabric-page-home': FabricPageHome;
   }
 }

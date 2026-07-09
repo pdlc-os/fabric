@@ -17,7 +17,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -119,17 +119,17 @@ func TestResolveHubEndpointSettingsFallback(t *testing.T) {
 		webBaseURL = ""
 		enableWeb = true
 		webPort = 8080
-		t.Setenv("SCION_SERVER_BASE_URL", "")
+		t.Setenv("FABRIC_SERVER_BASE_URL", "")
 
 		cfg := &config.GlobalConfig{}
 		settings := &config.Settings{
 			Hub: &config.HubClientConfig{
-				Endpoint: "https://hub.demo.scion-ai.dev",
+				Endpoint: "https://hub.demo.fabric-ai.dev",
 			},
 		}
 
 		got := resolveHubEndpoint(cfg, settings)
-		assert.Equal(t, "https://hub.demo.scion-ai.dev", got)
+		assert.Equal(t, "https://hub.demo.fabric-ai.dev", got)
 	})
 
 	t.Run("server config takes priority over settings", func(t *testing.T) {
@@ -138,7 +138,7 @@ func TestResolveHubEndpointSettingsFallback(t *testing.T) {
 		webBaseURL = ""
 		enableWeb = true
 		webPort = 8080
-		t.Setenv("SCION_SERVER_BASE_URL", "")
+		t.Setenv("FABRIC_SERVER_BASE_URL", "")
 
 		cfg := &config.GlobalConfig{
 			Hub: config.HubServerConfig{
@@ -161,7 +161,7 @@ func TestResolveHubEndpointSettingsFallback(t *testing.T) {
 		webBaseURL = ""
 		enableWeb = true
 		webPort = 8080
-		t.Setenv("SCION_SERVER_BASE_URL", "")
+		t.Setenv("FABRIC_SERVER_BASE_URL", "")
 
 		cfg := &config.GlobalConfig{}
 		settings := &config.Settings{}
@@ -183,12 +183,12 @@ func TestResolveHubEndpointForBroker(t *testing.T) {
 		webPort = origWebPort
 	}()
 
-	t.Run("co-located always uses localhost even with SCION_SERVER_BASE_URL", func(t *testing.T) {
+	t.Run("co-located always uses localhost even with FABRIC_SERVER_BASE_URL", func(t *testing.T) {
 		enableHub = true
 		enableDebug = false
 		enableWeb = true
 		webPort = 8080
-		t.Setenv("SCION_SERVER_BASE_URL", "https://scionduet03.ameer.cloud")
+		t.Setenv("FABRIC_SERVER_BASE_URL", "https://fabricduet03.ameer.cloud")
 
 		cfg := &config.GlobalConfig{}
 		settings := &config.Settings{}
@@ -267,7 +267,7 @@ func TestIsLocalhostURL(t *testing.T) {
 		{"http://127.0.0.1:9810", true},
 		{"http://[::1]:8080", true},
 		{"https://hub.example.com", false},
-		{"https://hub.demo.scion-ai.dev", false},
+		{"https://hub.demo.fabric-ai.dev", false},
 		{"http://10.0.0.1:8080", false},
 		{"", false},
 		{"://invalid", false},

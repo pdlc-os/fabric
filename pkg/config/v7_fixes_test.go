@@ -16,19 +16,19 @@ func TestLoadVersionedSettings_ProjectIDRemapping(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	// Test SCION_HUB_PROJECT_ID maps correctly and remaps to grove_id
-	_ = os.Setenv("SCION_HUB_PROJECT_ID", "env-project-id")
-	defer func() { _ = os.Unsetenv("SCION_HUB_PROJECT_ID") }()
+	// Test FABRIC_HUB_PROJECT_ID maps correctly and remaps to grove_id
+	_ = os.Setenv("FABRIC_HUB_PROJECT_ID", "env-project-id")
+	defer func() { _ = os.Unsetenv("FABRIC_HUB_PROJECT_ID") }()
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
 
 	require.NotNil(t, vs.Hub)
 	// V1HubClientConfig.ProjectID has koanf:"grove_id" tag,
-	// so it should be populated from SCION_HUB_PROJECT_ID (mapped to hub.project_id)
+	// so it should be populated from FABRIC_HUB_PROJECT_ID (mapped to hub.project_id)
 	// via our new remapping logic.
 	assert.Equal(t, "env-project-id", vs.Hub.ProjectID)
 }

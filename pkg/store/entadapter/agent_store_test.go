@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -528,7 +528,7 @@ func TestAgentStore_LabelFiltering(t *testing.T) {
 	require.NoError(t, s.CreateAgent(ctx, a4))
 
 	a5 := makeAgent(projectID, "label-5")
-	a5.Labels = map[string]string{"scion.dev/role": "worker"}
+	a5.Labels = map[string]string{"fabric.dev/role": "worker"}
 	require.NoError(t, s.CreateAgent(ctx, a5))
 
 	tests := []struct {
@@ -558,7 +558,7 @@ func TestAgentStore_LabelFiltering(t *testing.T) {
 		},
 		{
 			name:    "dotted key",
-			labels:  map[string]string{"scion.dev/role": "worker"},
+			labels:  map[string]string{"fabric.dev/role": "worker"},
 			wantIDs: []string{a5.ID},
 		},
 	}

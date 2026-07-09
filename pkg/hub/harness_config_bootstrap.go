@@ -19,10 +19,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // BootstrapHarnessConfigsFromDir imports or updates local harness configs from
@@ -116,7 +116,7 @@ func (s *Server) bootstrapSingleHarnessConfigScoped(ctx context.Context, name, d
 
 // isHarnessConfigDir reports whether dir looks like a harness-config directory,
 // i.e. it contains a config.yaml file. Analogous to
-// templateimport.IsScionTemplate (which checks for scion-agent.yaml).
+// templateimport.IsFabricTemplate (which checks for fabric-agent.yaml).
 func isHarnessConfigDir(dir string) bool {
 	info, err := os.Stat(filepath.Join(dir, "config.yaml"))
 	return err == nil && !info.IsDir()
@@ -135,7 +135,7 @@ func (s *Server) importHarnessConfigsFromRemote(ctx context.Context, projectID, 
 
 // importHarnessConfigsFromWorkspace imports harness-configs from a path within
 // the project's workspace filesystem. The workspacePath is relative to the
-// project's workspace root (e.g. "/.scion/harness-configs").
+// project's workspace root (e.g. "/.fabric/harness-configs").
 //
 // This is a thin wrapper over the shared import driver (resource_import.go).
 func (s *Server) importHarnessConfigsFromWorkspace(ctx context.Context, project *store.Project, workspacePath string) ([]string, error) {

@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/scion/extras/agent-viz
+module github.com/pdlc-os/fabric/extras/agent-viz
 
 go 1.25.4
 

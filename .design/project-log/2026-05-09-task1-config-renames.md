@@ -37,7 +37,7 @@ Additionally renamed related test functions for consistency:
 
 ### Verification Results
 - `go build ./pkg/config/...` passes.
-- `go test ./pkg/config/...` shows pre-existing failures related to the environment (`SCION_HUB_ENDPOINT`, `SCION_GROVE_ID`, `SCION_OTEL_ENDPOINT` being set), but no new regressions were identified.
+- `go test ./pkg/config/...` shows pre-existing failures related to the environment (`FABRIC_HUB_ENDPOINT`, `FABRIC_GROVE_ID`, `FABRIC_OTEL_ENDPOINT` being set), but no new regressions were identified.
 - JSON/YAML/Koanf tags were preserved as requested.
 
 ## Observations

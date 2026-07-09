@@ -1,6 +1,6 @@
-# scion-plugin-discord
+# fabric-plugin-discord
 
-Discord message broker plugin for the Scion hub. Provides bidirectional messaging between Discord channels and Scion agents.
+Discord message broker plugin for the Fabric hub. Provides bidirectional messaging between Discord channels and Fabric agents.
 
 **Two operating modes:**
 - **Plugin mode** (default) — runs as a [go-plugin](https://github.com/hashicorp/go-plugin) subprocess managed by the hub
@@ -11,7 +11,7 @@ Discord message broker plugin for the Scion hub. Provides bidirectional messagin
 
 ## Prerequisites
 
-- Scion hub running with FanOutBroker support (`server.message_broker.types`)
+- Fabric hub running with FanOutBroker support (`server.message_broker.types`)
 - A Discord account with permission to create applications at [discord.com/developers](https://discord.com/developers/applications)
 - Go 1.26+ (for building from source)
 - **Standalone mode only:** PostgreSQL database shared with the hub
@@ -21,7 +21,7 @@ Discord message broker plugin for the Scion hub. Provides bidirectional messagin
 ### 1. Create the Discord Bot
 
 1. Go to [discord.com/developers/applications](https://discord.com/developers/applications) and click **New Application**
-2. Name it (e.g., "Scion"), then go to the **Bot** tab
+2. Name it (e.g., "Fabric"), then go to the **Bot** tab
 3. Click **Reset Token** and copy the bot token (you'll need it for `settings.yaml`)
 4. Copy the **Application ID** and **Public Key** from the **General Information** tab
 
@@ -32,7 +32,7 @@ Under the **Bot** tab, scroll to **Privileged Gateway Intents** and enable:
 - **Message Content Intent** — required for reading @-mention message text. There is no slash-command-only fallback mode.
 - **Server Members Intent** — required for resolving user information
 
-> **Note:** Scion bots are self-hosted and typically serve <100 guilds, so privileged intents are straightforward to enable without Discord's verification process.
+> **Note:** Fabric bots are self-hosted and typically serve <100 guilds, so privileged intents are straightforward to enable without Discord's verification process.
 
 ### 2. Invite the Bot to Your Server
 
@@ -52,7 +52,7 @@ Go to the **OAuth2** tab, then **URL Generator**:
 | Embed Links | Rich embed formatting for agent responses |
 | Read Message History | Access thread context for conversations |
 | View Channels | Discover and read linked channels |
-| Use Application Commands | Register and respond to `/scion` slash commands |
+| Use Application Commands | Register and respond to `/fabric` slash commands |
 | Manage Threads | Archive/unarchive conversation threads |
 | Manage Webhooks | **Required for per-agent identity** — each agent appears with its own name and avatar via Discord webhooks |
 | Add Reactions | Acknowledge messages (optional) |
@@ -61,12 +61,12 @@ Go to the **OAuth2** tab, then **URL Generator**:
 
 ### 3. Build and Install
 
-The plugin binary must be built separately from the hub. The hub discovers it by name (`scion-plugin-discord`) on `$PATH` or via an explicit `path` in `settings.yaml`.
+The plugin binary must be built separately from the hub. The hub discovers it by name (`fabric-plugin-discord`) on `$PATH` or via an explicit `path` in `settings.yaml`.
 
 ```bash
-cd extras/scion-discord
-go build -o scion-plugin-discord ./cmd/scion-plugin-discord
-sudo install scion-plugin-discord /usr/local/bin/
+cd extras/fabric-discord
+go build -o fabric-plugin-discord ./cmd/fabric-plugin-discord
+sudo install fabric-plugin-discord /usr/local/bin/
 ```
 
 ### 4. Configure settings.yaml
@@ -94,7 +94,7 @@ server:
 
           # SQLite database for channel links, user mappings, and state.
           # Default: discord.db (relative to hub working directory).
-          db_path: /var/lib/scion/discord.db
+          db_path: /var/lib/fabric/discord.db
 
           # Optional tuning.
           # send_queue_size: 100     # max queued messages per channel
@@ -105,23 +105,23 @@ server:
 ### 5. Start the Hub
 
 ```bash
-sudo systemctl restart scion-hub
+sudo systemctl restart fabric-hub
 
 # Or manually
-./scion server
+./fabric server
 ```
 
-The hub will discover and launch `scion-plugin-discord` as a managed subprocess. Look for `Discord broker configured` in the logs to confirm startup.
+The hub will discover and launch `fabric-plugin-discord` as a managed subprocess. Look for `Discord broker configured` in the logs to confirm startup.
 
 ### 6. Link a Discord Channel
 
 1. **Invite the bot** to your Discord server using the OAuth2 URL
-2. **Run `/scion setup`** in any channel → select a project from the list
-3. **Register your identity:** run `/scion register` → click the link → authenticate on your hub's profile page (`/profile/discord`)
+2. **Run `/fabric setup`** in any channel → select a project from the list
+3. **Register your identity:** run `/fabric register` → click the link → authenticate on your hub's profile page (`/profile/discord`)
 
 ## Agent-Led Installation and Setup
 
-If you are using an AI coding assistant or deployment agent (like Antigravity) to set up and configure this plugin on your Scion instance, you can guide the agent with the following instructions:
+If you are using an AI coding assistant or deployment agent (like Antigravity) to set up and configure this plugin on your Fabric instance, you can guide the agent with the following instructions:
 
 ### 1. Interactive Information Gathering
 An agent should proactively ask the user for:
@@ -137,62 +137,62 @@ https://discord.com/api/oauth2/authorize?client_id=<APPLICATION_ID>&permissions=
 ### 2. Remote Configuration via gcloud ssh
 The agent can automatically configure your remote GCE server:
 1. **Identify GCE Instance:** Determine the running instance name, zone, and project ID.
-2. **Build and Install Plugin:** Compile the binary locally or directly on the remote VM, and install to `/usr/local/bin/scion-plugin-discord`.
-3. **Inject Settings:** Append or modify the YAML configuration inside the remote settings file (located at `/home/scion/.scion/settings.yaml`).
+2. **Build and Install Plugin:** Compile the binary locally or directly on the remote VM, and install to `/usr/local/bin/fabric-plugin-discord`.
+3. **Inject Settings:** Append or modify the YAML configuration inside the remote settings file (located at `/home/fabric/.fabric/settings.yaml`).
 4. **Service Restart & Verification:** Safely restart the service and stream the logs.
 
 ### 3. Agent Prompts
 You can copy and paste the following prompt to have an agent execute this installation:
 
 > **Agent Prompt:**
-> Please configure the Discord plugin on our active Scion Hub instance.
+> Please configure the Discord plugin on our active Fabric Hub instance.
 > 
 > 1. Ask me for my Discord Bot Token and Application ID.
 > 2. Once I provide the Application ID, generate and output my Discord bot server invite link with permissions set to `329101954112`.
-> 3. SSH into the active GCE VM and configure the `/home/scion/.scion/settings.yaml` file:
+> 3. SSH into the active GCE VM and configure the `/home/fabric/.fabric/settings.yaml` file:
 >    - Ensure `- discord` is enabled under `server.message_broker.types`.
 >    - Add the `server.plugins.broker.discord` block with the provided token and app-id (ensure `plugins` is nested under `server:` and not at the root level).
->    - Set `db_path` to `/home/scion/.scion/discord.db`.
-> 4. Run `sudo systemctl restart scion-hub` and check the logs via `journalctl` to verify that the message `Discord gateway connected` or `Discord bot ready` is present.
+>    - Set `db_path` to `/home/fabric/.fabric/discord.db`.
+> 4. Run `sudo systemctl restart fabric-hub` and check the logs via `journalctl` to verify that the message `Discord gateway connected` or `Discord bot ready` is present.
 
 ### 4. Verification Checklist (for the Agent)
 The agent should verify the following to confirm a successful installation:
-- [ ] `which scion-plugin-discord` returns `/usr/local/bin/scion-plugin-discord`.
-- [ ] The SQLite database directory for `db_path` exists and is writable by the `scion` user.
-- [ ] `/home/scion/.scion/settings.yaml` is valid YAML and includes the `discord` broker type.
-- [ ] The `plugins:` block is properly nested under the `server:` block in `/home/scion/.scion/settings.yaml`.
-- [ ] `systemctl is-active scion-hub` returns `active`.
+- [ ] `which fabric-plugin-discord` returns `/usr/local/bin/fabric-plugin-discord`.
+- [ ] The SQLite database directory for `db_path` exists and is writable by the `fabric` user.
+- [ ] `/home/fabric/.fabric/settings.yaml` is valid YAML and includes the `discord` broker type.
+- [ ] The `plugins:` block is properly nested under the `server:` block in `/home/fabric/.fabric/settings.yaml`.
+- [ ] `systemctl is-active fabric-hub` returns `active`.
 
 
 ## User Guide
 
 ### Slash Commands
 
-All commands are subcommands of `/scion`:
+All commands are subcommands of `/fabric`:
 
 | Command | Description |
 |---------|-------------|
-| `/scion setup` | Link this channel to a Scion project |
-| `/scion unlink` | Unlink this channel from its project |
-| `/scion agents` | List agents in the linked project with real-time state |
-| `/scion default [agent]` | Set, change, or show the default agent |
-| `/scion status <agent>` | Show detailed status for an agent |
-| `/scion register` | Link your Discord account to your Scion hub identity |
-| `/scion unregister` | Remove your Discord account link |
-| `/scion info` | Show your registration status |
-| `/scion settings` | Configure channel notification settings |
-| `/scion help` | Show available commands |
+| `/fabric setup` | Link this channel to a Fabric project |
+| `/fabric unlink` | Unlink this channel from its project |
+| `/fabric agents` | List agents in the linked project with real-time state |
+| `/fabric default [agent]` | Set, change, or show the default agent |
+| `/fabric status <agent>` | Show detailed status for an agent |
+| `/fabric register` | Link your Discord account to your Fabric hub identity |
+| `/fabric unregister` | Remove your Discord account link |
+| `/fabric info` | Show your registration status |
+| `/fabric settings` | Configure channel notification settings |
+| `/fabric help` | Show available commands |
 
 Commands that modify configuration (`setup`, `unlink`) require Discord's **Manage Channels** permission.
 
 ### Registration Flow
 
-1. Run `/scion register` in any channel (response is ephemeral — only you can see it)
+1. Run `/fabric register` in any channel (response is ephemeral — only you can see it)
 2. Click the profile link button in the response
 3. Authenticate on the hub and confirm the 6-character code
 4. The plugin detects confirmation and stores the link
 
-Registration codes expire after 15 minutes. Run `/scion register` again for a fresh code.
+Registration codes expire after 15 minutes. Run `/fabric register` again for a fresh code.
 
 ### Sending Messages to Agents
 
@@ -206,7 +206,7 @@ Messages are routed based on @-mentions. If a default agent is set and the messa
 | `@all message` | Broadcasts to ALL agents in the linked project |
 | *(reply to a bot message)* | Continues the conversation with the same agent |
 
-The bot strips @-mentions from the message text before forwarding to the agent. Use `/scion default` to set, change, or clear the default agent.
+The bot strips @-mentions from the message text before forwarding to the agent. Use `/fabric default` to set, change, or clear the default agent.
 
 ### Receiving Messages from Agents
 
@@ -218,7 +218,7 @@ The bot strips @-mentions from the message text before forwarding to the agent. 
 
 ### Agent Identity (Webhooks)
 
-Each agent appears in Discord with a distinct username and avatar, powered by Discord webhooks. The plugin lazily creates one webhook per channel ("Scion Agent Relay") and sends messages through it with per-agent `username` and `avatar_url` parameters. This requires the **Manage Webhooks** permission.
+Each agent appears in Discord with a distinct username and avatar, powered by Discord webhooks. The plugin lazily creates one webhook per channel ("Fabric Agent Relay") and sends messages through it with per-agent `username` and `avatar_url` parameters. This requires the **Manage Webhooks** permission.
 
 If the permission is not granted, messages fall back to the bot's own identity.
 
@@ -261,7 +261,7 @@ server:
           application_id: "123456789012345678"
           public_key: "abcdef1234567890abcdef1234567890abcdef1234567890"
           guild_id: "987654321098765432"
-          db_path: /var/lib/scion/discord.db
+          db_path: /var/lib/fabric/discord.db
 ```
 
 ## Architecture
@@ -271,7 +271,7 @@ Discord Gateway API
      │
      ▼
  ┌──────────────────┐   Gateway events     ┌──────────────────────┐
- │  Discord Channels │ ◄───────────────── │  scion-plugin-       │
+ │  Discord Channels │ ◄───────────────── │  fabric-plugin-       │
  │  & DMs            │ ──────────────────►│  discord              │
  └──────────────────┘   Bot API / Webhooks│                      │
                                           │  ┌─ CommandHandler   │
@@ -285,7 +285,7 @@ Discord Gateway API
                                                      │ go-plugin RPC
                                                      ▼
                                           ┌──────────────────────┐
-                                          │     Scion Hub        │
+                                          │     Fabric Hub        │
                                           │   (FanOutBroker)     │
                                           │                      │
                                           │  ┌─ broker-log       │
@@ -296,7 +296,7 @@ Discord Gateway API
 
 - **FanOutBroker spoke:** The plugin runs as one of potentially several broker spokes. The hub publishes messages to all configured spokes concurrently.
 - **Gateway mode:** The plugin connects to Discord via WebSocket Gateway (not HTTP interactions), receiving real-time message events.
-- **Registration** uses a hub-issued 6-character code. The user generates a code via `/scion register`, then confirms it on the hub's `/profile/discord` page.
+- **Registration** uses a hub-issued 6-character code. The user generates a code via `/fabric register`, then confirms it on the hub's `/profile/discord` page.
 - **SQLite state** persists channel links, user mappings, conversation contexts, notification preferences, and pending ask-user callbacks across restarts.
 - **Send queue** uses per-channel worker goroutines with configurable rate limiting to avoid Discord 429 errors.
 - **Webhook identity** gives each agent a unique name and RoboHash avatar in Discord, managed per-channel with automatic recreation if deleted.
@@ -319,27 +319,27 @@ Standalone mode runs the Discord bot as an independent service, communicating wi
 
 ```bash
 # Build
-cd extras/scion-discord
-go build -o scion-plugin-discord ./cmd/scion-plugin-discord
+cd extras/fabric-discord
+go build -o fabric-plugin-discord ./cmd/fabric-plugin-discord
 
 # Run
-export DATABASE_URL="postgres://user:pass@localhost:5432/scion?sslmode=disable"
+export DATABASE_URL="postgres://user:pass@localhost:5432/fabric?sslmode=disable"
 export DISCORD_BOT_TOKEN="your-bot-token"
 export DISCORD_APPLICATION_ID="your-app-id"
 export DISCORD_HUB_URL="https://your-hub.example.com"
 export DISCORD_BROKER_ID="your-broker-uuid"
 export DISCORD_HMAC_KEY="your-base64-hmac-key"
-./scion-plugin-discord --standalone
+./fabric-plugin-discord --standalone
 ```
 
 ### Docker
 
 ```bash
 # Build from repository root
-docker build -f extras/scion-discord/Dockerfile -t scion-discord .
+docker build -f extras/fabric-discord/Dockerfile -t fabric-discord .
 
 # Run
-docker run -e DATABASE_URL=... -e DISCORD_BOT_TOKEN=... scion-discord
+docker run -e DATABASE_URL=... -e DISCORD_BOT_TOKEN=... fabric-discord
 ```
 
 ### Required Environment Variables
@@ -380,7 +380,7 @@ Without `mode: grpc`, the hub launches Discord as a go-plugin subprocess (plugin
 
 ### Broker Auth Credentials
 
-The `/scion register` command makes direct HTTP calls to the hub API, authenticated via HMAC-SHA256. The standalone bot needs `DISCORD_HUB_URL`, `DISCORD_BROKER_ID`, and `DISCORD_HMAC_KEY` to authenticate.
+The `/fabric register` command makes direct HTTP calls to the hub API, authenticated via HMAC-SHA256. The standalone bot needs `DISCORD_HUB_URL`, `DISCORD_BROKER_ID`, and `DISCORD_HMAC_KEY` to authenticate.
 
 To register a broker:
 ```bash
@@ -456,5 +456,5 @@ This means the bot has not been granted the required privileged intents in the D
 2. Go to the **Bot** tab on the left-side menu.
 3. Scroll down to the **Privileged Gateway Intents** section.
 4. Enable both **Server Members Intent** and **Message Content Intent**.
-5. Click **Save Changes** and restart your Scion hub server (`sudo systemctl restart scion-hub`).
+5. Click **Save Changes** and restart your Fabric hub server (`sudo systemctl restart fabric-hub`).
 

@@ -1,10 +1,10 @@
 # OAuth Setup Guide
 
-This document provides step-by-step instructions for obtaining and configuring OAuth credentials for the Scion Web Frontend.
+This document provides step-by-step instructions for obtaining and configuring OAuth credentials for the Fabric Web Frontend.
 
 ## Overview
 
-The Scion Web Frontend supports OAuth authentication with the following providers:
+The Fabric Web Frontend supports OAuth authentication with the following providers:
 - **Google OAuth 2.0** - Recommended for organizations using Google Workspace
 - **GitHub OAuth** - Useful for developer-focused deployments
 
@@ -30,7 +30,7 @@ GITHUB_CLIENT_ID=<your-github-client-id>
 GITHUB_CLIENT_SECRET=<your-github-client-secret>
 
 # Authorization (optional)
-SCION_AUTHORIZED_DOMAINS=example.com,company.org  # Comma-separated list of allowed email domains
+FABRIC_AUTHORIZED_DOMAINS=example.com,company.org  # Comma-separated list of allowed email domains
 ```
 
 ---
@@ -47,9 +47,9 @@ SCION_AUTHORIZED_DOMAINS=example.com,company.org  # Comma-separated list of allo
 
 1. Click the project dropdown at the top of the page (next to "Google Cloud")
 2. Either:
-   - **Select an existing project** if you have one for Scion
+   - **Select an existing project** if you have one for Fabric
    - **Create a new project** by clicking "New Project":
-     - Project name: `scion-web` (or your preferred name)
+     - Project name: `fabric-web` (or your preferred name)
      - Organization: Select your organization if applicable
      - Location: Leave as default or select a folder
      - Click "Create"
@@ -67,11 +67,11 @@ Before creating credentials, you must configure the consent screen:
 3. Click "Create"
 
 4. Fill in the **OAuth consent screen** form:
-   - **App name**: `Scion` (or your preferred name)
+   - **App name**: `Fabric` (or your preferred name)
    - **User support email**: Select your email
    - **App logo**: Optional, upload a logo
    - **App domain**: Leave blank for development
-   - **Authorized domains**: Add your production domain (e.g., `scion.example.com`)
+   - **Authorized domains**: Add your production domain (e.g., `fabric.example.com`)
    - **Developer contact information**: Enter your email address
 5. Click "Save and Continue"
 
@@ -98,7 +98,7 @@ Before creating credentials, you must configure the consent screen:
 
 4. Configure the OAuth client:
    - **Application type**: Web application
-   - **Name**: `Scion Web Frontend` (or your preferred name)
+   - **Name**: `Fabric Web Frontend` (or your preferred name)
 
 5. Add **Authorized JavaScript origins**:
    ```
@@ -149,7 +149,7 @@ echo "GOOGLE_CLIENT_SECRET=your-client-secret-here" >> web/.env
 1. Click "New OAuth App" (or "Register a new application")
 
 2. Fill in the application form:
-   - **Application name**: `Scion` (or your preferred name)
+   - **Application name**: `Fabric` (or your preferred name)
    - **Homepage URL**: `http://localhost:8080` (or your production URL)
    - **Application description**: Optional description
    - **Authorization callback URL**: `http://localhost:8080/auth/callback/github`
@@ -173,7 +173,7 @@ For production, you'll need a separate OAuth app:
 
 1. Return to "OAuth Apps" and click "New OAuth App"
 2. Create another app with:
-   - **Application name**: `Scion (Production)`
+   - **Application name**: `Fabric (Production)`
    - **Homepage URL**: `https://your-production-domain.com`
    - **Authorization callback URL**: `https://your-production-domain.com/auth/callback/github`
 
@@ -225,21 +225,21 @@ The web frontend supports basic domain-based authorization. Users can only log i
 
 ### Configure Authorized Domains
 
-Set the `SCION_AUTHORIZED_DOMAINS` environment variable with a comma-separated list:
+Set the `FABRIC_AUTHORIZED_DOMAINS` environment variable with a comma-separated list:
 
 ```bash
 # Allow users from these email domains
-SCION_AUTHORIZED_DOMAINS=example.com,mycompany.org
+FABRIC_AUTHORIZED_DOMAINS=example.com,mycompany.org
 
 # For development, allow all domains (not recommended for production)
-SCION_AUTHORIZED_DOMAINS=*
+FABRIC_AUTHORIZED_DOMAINS=*
 ```
 
 ### How It Works
 
 1. User authenticates via Google or GitHub
 2. The frontend extracts the email domain from the user's email
-3. If the domain matches any in `SCION_AUTHORIZED_DOMAINS`, access is granted
+3. If the domain matches any in `FABRIC_AUTHORIZED_DOMAINS`, access is granted
 4. Otherwise, the user sees an "Unauthorized" error page
 
 ---
@@ -273,7 +273,7 @@ GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 
 # Authorization
-SCION_AUTHORIZED_DOMAINS=example.com,mycompany.org
+FABRIC_AUTHORIZED_DOMAINS=example.com,mycompany.org
 ```
 
 > **Important**: Add `web/.env` to your `.gitignore` file!
@@ -289,17 +289,17 @@ env:
   - name: SESSION_SECRET
     valueFrom:
       secretKeyRef:
-        name: scion-secrets
+        name: fabric-secrets
         key: session-secret
   - name: GOOGLE_CLIENT_ID
     valueFrom:
       secretKeyRef:
-        name: scion-secrets
+        name: fabric-secrets
         key: google-client-id
   - name: GOOGLE_CLIENT_SECRET
     valueFrom:
       secretKeyRef:
-        name: scion-secrets
+        name: fabric-secrets
         key: google-client-secret
 ```
 
@@ -359,19 +359,19 @@ The web frontend supports two authentication modes:
 
 | Mode | Use Case | How It Works |
 |------|----------|--------------|
-| **Dev Auth** | Local development | Auto-login using a shared dev token from `~/.scion/dev-token` |
+| **Dev Auth** | Local development | Auto-login using a shared dev token from `~/.fabric/dev-token` |
 | **OAuth** | Production / Staging | Users authenticate via Google or GitHub |
 
 ### Controlling Authentication Mode
 
-The authentication mode is controlled by the `SCION_DEV_AUTH_ENABLED` environment variable:
+The authentication mode is controlled by the `FABRIC_DEV_AUTH_ENABLED` environment variable:
 
 ```bash
 # Explicitly enable dev-auth (useful for staging/testing)
-SCION_DEV_AUTH_ENABLED=true
+FABRIC_DEV_AUTH_ENABLED=true
 
 # Explicitly disable dev-auth (forces OAuth even in development)
-SCION_DEV_AUTH_ENABLED=false
+FABRIC_DEV_AUTH_ENABLED=false
 ```
 
 **Default behavior:**
@@ -381,7 +381,7 @@ SCION_DEV_AUTH_ENABLED=false
 ### How It Works
 
 1. On server startup, the web frontend checks for dev-auth eligibility
-2. If dev-auth is enabled AND a valid token exists in `~/.scion/dev-token`:
+2. If dev-auth is enabled AND a valid token exists in `~/.fabric/dev-token`:
    - Users are automatically logged in as "Development User"
    - No OAuth flow is triggered
    - The dev token is forwarded to the Hub API for authorization
@@ -392,21 +392,21 @@ SCION_DEV_AUTH_ENABLED=false
 ### Token Resolution Order
 
 The dev token is resolved in this order:
-1. `SCION_DEV_TOKEN` environment variable
-2. File at `SCION_DEV_TOKEN_FILE` path (if set)
-3. Default file: `~/.scion/dev-token`
+1. `FABRIC_DEV_TOKEN` environment variable
+2. File at `FABRIC_DEV_TOKEN_FILE` path (if set)
+3. Default file: `~/.fabric/dev-token`
 
 ---
 
 ## Appendix A: Sample Configuration Files
 
-### ~/.scion/settings.yaml
+### ~/.fabric/settings.yaml
 
-This file configures the Scion CLI and can include web frontend settings:
+This file configures the Fabric CLI and can include web frontend settings:
 
 ```yaml
-# ~/.scion/settings.yaml
-# Scion configuration file
+# ~/.fabric/settings.yaml
+# Fabric configuration file
 
 # Hub API configuration
 hub:
@@ -449,8 +449,8 @@ web:
 dev:
   # Enable dev-auth mode (overrides NODE_ENV default)
   auth_enabled: true
-  # Explicit dev token (optional, normally read from ~/.scion/dev-token)
-  # token: "scion_dev_abc123..."
+  # Explicit dev token (optional, normally read from ~/.fabric/dev-token)
+  # token: "fabric_dev_abc123..."
 ```
 
 > **Note**: The web frontend currently reads configuration from environment variables. This settings.yaml format is for documentation and future CLI integration. Convert to environment variables for current use.
@@ -465,11 +465,11 @@ dev:
 | `web.auth.google.client_secret` | `GOOGLE_CLIENT_SECRET` |
 | `web.auth.github.client_id` | `GITHUB_CLIENT_ID` |
 | `web.auth.github.client_secret` | `GITHUB_CLIENT_SECRET` |
-| `web.auth.authorized_domains` | `SCION_AUTHORIZED_DOMAINS` (comma-separated) |
+| `web.auth.authorized_domains` | `FABRIC_AUTHORIZED_DOMAINS` (comma-separated) |
 | `web.session.secret` | `SESSION_SECRET` |
 | `web.session.max_age_hours` | `SESSION_MAX_AGE` (in milliseconds) |
-| `dev.auth_enabled` | `SCION_DEV_AUTH_ENABLED` |
-| `dev.token` | `SCION_DEV_TOKEN` |
+| `dev.auth_enabled` | `FABRIC_DEV_AUTH_ENABLED` |
+| `dev.token` | `FABRIC_DEV_TOKEN` |
 | `hub.url` | `HUB_API_URL` |
 
 ---

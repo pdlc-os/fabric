@@ -20,10 +20,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/spf13/cobra"
 )
 
@@ -55,15 +55,15 @@ var notificationsCmd = &cobra.Command{
 	Short:   "Manage notifications and subscriptions",
 	Long: `Manage notifications and notification subscriptions.
 
-Notifications require Hub mode. Enable with 'scion hub enable <endpoint>'.
+Notifications require Hub mode. Enable with 'fabric hub enable <endpoint>'.
 
 Commands:
-  scion notifications                         List your notifications
-  scion notifications ack [id]                Acknowledge notification(s)
-  scion notifications subscribe               Create a subscription
-  scion notifications unsubscribe [id]        Remove a subscription
-  scion notifications update [id]             Update a subscription's triggers
-  scion notifications subscriptions           List your subscriptions`,
+  fabric notifications                         List your notifications
+  fabric notifications ack [id]                Acknowledge notification(s)
+  fabric notifications subscribe               Create a subscription
+  fabric notifications unsubscribe [id]        Remove a subscription
+  fabric notifications update [id]             Update a subscription's triggers
+  fabric notifications subscriptions           List your subscriptions`,
 	RunE: runNotificationsList,
 }
 
@@ -77,8 +77,8 @@ With an ID argument, acknowledges that specific notification.
 With --all flag, acknowledges all unacknowledged notifications.
 
 Examples:
-  scion notifications ack a1b2c3d4
-  scion notifications ack --all`,
+  fabric notifications ack a1b2c3d4
+  fabric notifications ack --all`,
 	RunE: runNotificationsAck,
 }
 
@@ -96,13 +96,13 @@ that is linked to the Hub.
 
 Examples:
   # Subscribe to a specific agent
-  scion notifications subscribe --agent my-agent
+  fabric notifications subscribe --agent my-agent
 
   # Subscribe to all agents in a project
-  scion notifications subscribe --project my-project
+  fabric notifications subscribe --project my-project
 
   # Subscribe with specific triggers
-  scion notifications subscribe --agent my-agent --triggers COMPLETED,WAITING_FOR_INPUT`,
+  fabric notifications subscribe --agent my-agent --triggers COMPLETED,WAITING_FOR_INPUT`,
 	RunE: runNotificationsSubscribe,
 }
 
@@ -113,8 +113,8 @@ var notificationsUnsubscribeCmd = &cobra.Command{
 	Long: `Remove a notification subscription by ID, or remove all subscriptions in a project.
 
 Examples:
-  scion notifications unsubscribe a1b2c3d4
-  scion notifications unsubscribe --project my-project --all`,
+  fabric notifications unsubscribe a1b2c3d4
+  fabric notifications unsubscribe --project my-project --all`,
 	RunE: runNotificationsUnsubscribe,
 }
 
@@ -125,7 +125,7 @@ var notificationsUpdateCmd = &cobra.Command{
 	Long: `Update the trigger activities for an existing subscription.
 
 Examples:
-  scion notifications update a1b2c3d4 --triggers COMPLETED,WAITING_FOR_INPUT,DELETED`,
+  fabric notifications update a1b2c3d4 --triggers COMPLETED,WAITING_FOR_INPUT,DELETED`,
 	Args: cobra.ExactArgs(1),
 	RunE: runNotificationsUpdate,
 }
@@ -138,9 +138,9 @@ var notificationsSubscriptionsCmd = &cobra.Command{
 	Long: `List notification subscriptions owned by you.
 
 Examples:
-  scion notifications subscriptions
-  scion notifications subscriptions --project my-project
-  scion notifications subscriptions --json`,
+  fabric notifications subscriptions
+  fabric notifications subscriptions --project my-project
+  fabric notifications subscriptions --json`,
 	RunE: runNotificationsSubscriptions,
 }
 
@@ -199,7 +199,7 @@ func requireHubClient() (*config.Settings, hubclient.Client, error) {
 	}
 
 	if !settings.IsHubEnabled() {
-		return nil, nil, fmt.Errorf("notifications require Hub mode. Enable with 'scion hub enable <endpoint>'")
+		return nil, nil, fmt.Errorf("notifications require Hub mode. Enable with 'fabric hub enable <endpoint>'")
 	}
 
 	client, err := getHubClient(settings)
@@ -222,7 +222,7 @@ func resolveProjectID(settings *config.Settings, projectFlag string) (string, er
 		projectID = settings.ProjectID
 	}
 	if projectID == "" {
-		return "", fmt.Errorf("cannot determine project ID. Use --project flag or link this project with 'scion hub link'")
+		return "", fmt.Errorf("cannot determine project ID. Use --project flag or link this project with 'fabric hub link'")
 	}
 	return projectID, nil
 }

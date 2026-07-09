@@ -66,7 +66,7 @@ This avoids a dedicated pre-flight round-trip. In the common case where the Hub 
 
 **Interactive mode:** The CLI checks `os.Getenv()` for each needed key. It then displays a summary of the keys found (not values) and prompts the user to confirm it is OK to send them. If the user confirms, the values are submitted.
 
-If the CLI cannot find all needed keys in its local environment, it is an **error**. The CLI reports which required keys were not available at any point during provisioning and instructs the user to set them — in the Hub (`scion hub env set`), on the Broker, or in the local shell environment — and try again.
+If the CLI cannot find all needed keys in its local environment, it is an **error**. The CLI reports which required keys were not available at any point during provisioning and instructs the user to set them — in the Hub (`fabric hub env set`), on the Broker, or in the local shell environment — and try again.
 
 **Non-interactive mode (`--non-interactive`):** If needed keys are not available in the CLI environment, it is an immediate error. No prompting occurs; the CLI exits with an error message listing the unsatisfied keys.
 
@@ -78,9 +78,9 @@ The Broker initiates the gather request back to the Hub over the existing WebSoc
 
 No new agent state is introduced. The agent uses the existing `pending` or `provisioning` states during the gather process. Logging should clearly indicate what is happening (e.g., "waiting for CLI env gather", "needed keys: GEMINI_API_KEY, GITHUB_TOKEN").
 
-If the gather process cannot be satisfied — the CLI fails to provide the needed keys, disconnects, or times out — it is an error. The agent creation fails, and the user must re-issue the `scion start` command after establishing the required env vars in the system or locally.
+If the gather process cannot be satisfied — the CLI fails to provide the needed keys, disconnects, or times out — it is an error. The agent creation fails, and the user must re-issue the `fabric start` command after establishing the required env vars in the system or locally.
 
-There is no resumability or deferred env submission. The gather is synchronous within the scope of the `scion start` command.
+There is no resumability or deferred env submission. The gather is synchronous within the scope of the `fabric start` command.
 
 ## 4. MVP Scope
 
@@ -95,13 +95,13 @@ The minimum implementation that demonstrates the flow end-to-end:
 7. The CLI submits the gathered env back to the Hub.
 8. The Hub forwards to the Broker, which merges and starts the agent.
 
-**Out of scope for MVP:** TTL/GC for stalled gathers, `--force` flag, `--no-env-gather` flag, scope annotations in the gather response, `scion env submit` recovery command, `${VAR}` reference expansion in template values.
+**Out of scope for MVP:** TTL/GC for stalled gathers, `--force` flag, `--no-env-gather` flag, scope annotations in the gather response, `fabric env submit` recovery command, `${VAR}` reference expansion in template values.
 
 ## 5. Open Questions
 
 ### 5.1 Template env declarations vs. settings-only
 
-The decision in 3.1 covers settings profiles declaring required keys. Should template YAML files (`scion-agent.yaml`) also support an `env:` section that declares required keys?
+The decision in 3.1 covers settings profiles declaring required keys. Should template YAML files (`fabric-agent.yaml`) also support an `env:` section that declares required keys?
 
 If so, the template and settings declarations would be merged (union of keys). This would allow template authors to declare env requirements that are visible and version-controlled alongside the template, rather than relying on users to have the right settings profile.
 
@@ -109,7 +109,7 @@ Not blocking MVP — settings-only is sufficient to demonstrate the flow.
 
 ### 5.2 Gather request timeout
 
-How long should the Hub/Broker wait for the CLI to respond with gathered env? The CLI gather is synchronous within `scion start`, so it should be fast (user confirms a prompt). But network delays or a slow user could extend this.
+How long should the Hub/Broker wait for the CLI to respond with gathered env? The CLI gather is synchronous within `fabric start`, so it should be fast (user confirms a prompt). But network delays or a slow user could extend this.
 
 **Options:**
 - Fixed timeout (e.g., 60 seconds) with error on expiry.
@@ -118,7 +118,7 @@ How long should the Hub/Broker wait for the CLI to respond with gathered env? Th
 
 ### 5.3 Multiple brokers and env availability
 
-If a grove has multiple brokers with different local environments, a user might prefer a broker based on what env vars it already has. Should `scion start` provide visibility into which broker can satisfy which keys before the user selects one?
+If a grove has multiple brokers with different local environments, a user might prefer a broker based on what env vars it already has. Should `fabric start` provide visibility into which broker can satisfy which keys before the user selects one?
 
 **Recommendation:** Defer. User selects broker first (existing flow), then env is gathered. Broker selection based on env availability is a future optimization.
 
@@ -193,7 +193,7 @@ If `needs` is empty, the agent starts immediately (HTTP 201, existing fast path)
 **Gather logic** (`cmd/common.go`, `gatherAndSubmitEnv()`):
 1. For each key in `resp.EnvGather.Needs`, checks `os.Getenv(key)`.
 2. Separates keys into "found locally" and "still missing".
-3. If any keys are still missing, prints an error listing unsatisfied keys with guidance to set them via `scion hub env set`, broker env, or local shell, and returns an error.
+3. If any keys are still missing, prints an error listing unsatisfied keys with guidance to set them via `fabric hub env set`, broker env, or local shell, and returns an error.
 4. In interactive mode (`util.IsTerminal()`), prompts the user to confirm sending the gathered values (displays key names, not values).
 5. Submits via `hubCtx.Client.GroveAgents(groveID).SubmitEnv()`.
 6. On success, returns the agent info from the finalized response so the normal startup flow continues.
@@ -265,7 +265,7 @@ The following items from §4 and §5 remain unimplemented:
 - TTL/GC for stalled pending gathers on the Broker
 - `--force` flag to skip env-gather and start with missing keys
 - `--no-env-gather` flag to disable the flow entirely
-- `scion env submit` recovery command for re-submitting env after a failed gather
+- `fabric env submit` recovery command for re-submitting env after a failed gather
 - `${VAR}` reference expansion in template env values
 - Template-level env declarations (§5.1) — currently settings-only
 - Configurable gather timeout (§5.2)

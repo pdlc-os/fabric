@@ -55,7 +55,7 @@ import (
 
 	entschema "entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/migrate"
+	"github.com/pdlc-os/fabric/pkg/ent/migrate"
 	"github.com/google/uuid"
 	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )

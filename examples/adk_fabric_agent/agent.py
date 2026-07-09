@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Root agent definition for the ADK scion example.
+"""Root agent definition for the ADK fabric example.
 
-This module defines an ADK LlmAgent that integrates with scion's lifecycle
+This module defines an ADK LlmAgent that integrates with fabric's lifecycle
 management. It bridges auth environment variables, wires up status-reporting
 callbacks, and exposes an EnvironmentToolset (for filesystem and shell access)
-plus sciontool_status as callable tools.
+plus fabrictool_status as callable tools.
 
 When run with `adk run`, the agent operates as an interactive coding assistant
-that reports its status to scion throughout its lifecycle.
+that reports its status to fabric throughout its lifecycle.
 """
 
 import os
@@ -35,7 +35,7 @@ from . import callbacks, tools
 # ---------------------------------------------------------------------------
 # Auth bridging
 # ---------------------------------------------------------------------------
-# ADK requires GOOGLE_API_KEY for Gemini API access. Scion's Gemini harness
+# ADK requires GOOGLE_API_KEY for Gemini API access. Fabric's Gemini harness
 # provides GEMINI_API_KEY instead. Bridge the gap at import time.
 if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
     os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
@@ -48,7 +48,7 @@ MODEL = os.environ.get("ADK_MODEL", "gemini-2.5-flash")
 # ---------------------------------------------------------------------------
 # Workspace configuration
 # ---------------------------------------------------------------------------
-# /workspace inside scion containers, otherwise CWD.
+# /workspace inside fabric containers, otherwise CWD.
 _WORKSPACE_DIR = Path(os.environ.get("WORKSPACE_ROOT", "/workspace"))
 if not _WORKSPACE_DIR.exists():
     _WORKSPACE_DIR = Path.cwd()
@@ -57,7 +57,7 @@ if not _WORKSPACE_DIR.exists():
 # Agent instruction
 # ---------------------------------------------------------------------------
 AGENT_INSTRUCTION = """\
-You are a coding assistant running inside a scion-managed container.
+You are a coding assistant running inside a fabric-managed container.
 
 Your workspace is mounted at /workspace (or the current working directory if
 running outside a container). You can read, create, and modify files there
@@ -72,11 +72,11 @@ using the environment tools (ReadFile, WriteFile, EditFile, Execute).
 - **EditFile**: Make surgical text replacements in an existing file.
 - **Execute**: Run shell commands in the workspace directory.
 
-### Scion lifecycle
+### Fabric lifecycle
 
-- **sciontool_status(status_type, message)**: Signal lifecycle events to scion.
+- **fabrictool_status(status_type, message)**: Signal lifecycle events to fabric.
   - `"ask_user"` — call **before** you ask the user a question. This lets
-    scion know you are waiting for input.
+    fabric know you are waiting for input.
   - `"blocked"` — call when you are intentionally waiting for something
     (e.g. an external process or a child agent to complete).
   - `"task_completed"` — call when you have finished the user's task.
@@ -87,11 +87,11 @@ using the environment tools (ReadFile, WriteFile, EditFile, Execute).
 
 1. When you receive a task, work through it step by step.
 2. Use the environment tools to read, create, and modify files as needed.
-3. If you need clarification, call sciontool_status("ask_user", ...) first,
+3. If you need clarification, call fabrictool_status("ask_user", ...) first,
    then ask your question.
 4. If you are waiting on an external dependency, call
-   sciontool_status("blocked", ...) with a reason.
-5. When the task is complete, call sciontool_status("task_completed", ...)
+   fabrictool_status("blocked", ...) with a reason.
+5. When the task is complete, call fabrictool_status("task_completed", ...)
    with a brief summary of what you accomplished.
 """
 
@@ -100,13 +100,13 @@ using the environment tools (ReadFile, WriteFile, EditFile, Execute).
 # ---------------------------------------------------------------------------
 root_agent = Agent(
     model=MODEL,
-    name="scion_agent",
+    name="fabric_agent",
     instruction=AGENT_INSTRUCTION,
     tools=[
         EnvironmentToolset(
             environment=LocalEnvironment(working_dir=_WORKSPACE_DIR),
         ),
-        tools.sciontool_status,
+        tools.fabrictool_status,
     ],
     before_agent_callback=callbacks.before_agent_callback,
     before_tool_callback=callbacks.before_tool_callback,

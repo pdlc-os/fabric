@@ -22,12 +22,12 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/allowlistentry"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/invitecode"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/user"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/allowlistentry"
+	"github.com/pdlc-os/fabric/pkg/ent/invitecode"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/user"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 

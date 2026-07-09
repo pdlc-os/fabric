@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"io/fs"
 
-	harnesses "github.com/GoogleCloudPlatform/scion/harnesses"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	harnesses "github.com/pdlc-os/fabric/harnesses"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/version"
 )
 
 // BundledResource describes a built-in resource shipped with the binary.
@@ -43,11 +43,11 @@ func bundledVersion() string {
 }
 
 func sourceURL(kind storage.ResourceKind, name string) string {
-	return fmt.Sprintf("builtin://scion/%s/%s/%s", bundledVersion(), kind, name)
+	return fmt.Sprintf("builtin://fabric/%s/%s/%s", bundledVersion(), kind, name)
 }
 
 func harnessConfigSourceURL(name string) string {
-	return fmt.Sprintf("git+https://github.com/GoogleCloudPlatform/scion/harnesses/%s", name)
+	return fmt.Sprintf("git+https://github.com/pdlc-os/fabric/harnesses/%s", name)
 }
 
 // BuiltinTemplates returns the bundled template resources.

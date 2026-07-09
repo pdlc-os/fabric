@@ -19,6 +19,6 @@ This release focuses on Kubernetes security hardening, unified agent action disp
 * **Profile Resolution:** Resolved an issue where grove-level `active_profile` overrides were ignored for existing agents.
 * **Runtime Consistency:** 
     * Standardized agent phase derivation from container status across all runtime `List` methods.
-    * Fixed Podman rootless detection to correctly return the `scion` user instead of `root` for exec operations.
+    * Fixed Podman rootless detection to correctly return the `fabric` user instead of `root` for exec operations.
 * **OAuth & Config:** Improved OAuth provider fallback logic and added a configuration loader fix to remap legacy V1 grove ID fields.
 * **Claude Harness:** Fixed workspace trust issues and removed the redundant `@default` model suffix in the Claude harness.

@@ -1,11 +1,11 @@
 # Rebase workstation-improvements onto latest upstream main
 
 ## Goal
-Rebase `ptone/scion:workstation-improvements` onto the latest `GoogleCloudPlatform/scion:main`, resolve all conflicts carefully, verify the build, and force-push.
+Rebase `ptone/fabric:workstation-improvements` onto the latest `pdlc-os/fabric:main`, resolve all conflicts carefully, verify the build, and force-push.
 
 ## Setup
 ```bash
-git remote -v  # verify remotes; 'origin' = GoogleCloudPlatform/scion, 'ptone' = ptone/scion
+git remote -v  # verify remotes; 'origin' = pdlc-os/fabric, 'ptone' = ptone/fabric
 git fetch origin
 git fetch ptone
 git checkout workstation-improvements  # or: git checkout ptone/workstation-improvements -b workstation-improvements
@@ -59,7 +59,7 @@ If upstream refactored this file, resolve: keep upstream structure + our Worksta
 
 **`web/src/components/app-shell.ts`** — We added `'/onboarding': 'Setup'` to PAGE_TITLES.
 
-**`web/src/components/pages/project-create.ts`** — We added the "linked local directory" third mode with `scion-dir-browser`.
+**`web/src/components/pages/project-create.ts`** — We added the "linked local directory" third mode with `fabric-dir-browser`.
 
 ## Conflict resolution principles
 
@@ -74,9 +74,9 @@ If upstream refactored this file, resolve: keep upstream structure + our Worksta
 git push ptone workstation-improvements --force
 ```
 
-The `ptone` remote should already be configured (https://github.com/ptone/scion.git). If not, add it:
+The `ptone` remote should already be configured (https://github.com/ptone/fabric.git). If not, add it:
 ```bash
-git remote add ptone https://github.com/ptone/scion.git
+git remote add ptone https://github.com/ptone/fabric.git
 ```
 
 ## Done

@@ -28,8 +28,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"gopkg.in/yaml.v3"
 )
 
@@ -83,9 +83,9 @@ type TemplateFileWriteResponse struct {
 	ModTime string `json:"modTime"`
 }
 
-const scionAgentConfigFile = "scion-agent.yaml"
+const fabricAgentConfigFile = "fabric-agent.yaml"
 
-// detectHarnessFromContent parses scion-agent.yaml content and returns
+// detectHarnessFromContent parses fabric-agent.yaml content and returns
 // the harness type and default harness config name.
 // Falls back to templateName-based inference.
 func detectHarnessFromContent(data []byte, templateName string) templateConfigInfo {
@@ -374,7 +374,7 @@ func (s *Server) handleTemplateFileWrite(w http.ResponseWriter, r *http.Request,
 	template.ContentHash = computeContentHash(template.Files)
 
 	// Re-detect harness type and default harness config when the config file changes
-	if filePath == scionAgentConfigFile {
+	if filePath == fabricAgentConfigFile {
 		cfgInfo := detectHarnessFromContent(content, template.Name)
 		template.Harness = cfgInfo.Harness
 		template.DefaultHarnessConfig = cfgInfo.DefaultHarnessConfig
@@ -448,7 +448,7 @@ func (s *Server) handleTemplateFileWriteRaw(w http.ResponseWriter, r *http.Reque
 	template.ContentHash = computeContentHash(template.Files)
 
 	// Re-detect harness type and default harness config when the config file changes
-	if filePath == scionAgentConfigFile {
+	if filePath == fabricAgentConfigFile {
 		cfgInfo := detectHarnessFromContent(data, template.Name)
 		template.Harness = cfgInfo.Harness
 		template.DefaultHarnessConfig = cfgInfo.DefaultHarnessConfig
@@ -558,7 +558,7 @@ func (s *Server) handleTemplateFileUpload(w http.ResponseWriter, r *http.Request
 			}
 
 			// Re-detect harness type and default harness config when the config file changes
-			if relPath == scionAgentConfigFile {
+			if relPath == fabricAgentConfigFile {
 				cfgInfo := detectHarnessFromContent(data, template.Name)
 				template.Harness = cfgInfo.Harness
 				template.DefaultHarnessConfig = cfgInfo.DefaultHarnessConfig
@@ -630,7 +630,7 @@ func (s *Server) handleTemplateFileDelete(w http.ResponseWriter, r *http.Request
 	template.ContentHash = computeContentHash(template.Files)
 
 	// Re-detect harness type when the config file is removed
-	if filePath == scionAgentConfigFile {
+	if filePath == fabricAgentConfigFile {
 		template.Harness = inferHarnessFromName(template.Name)
 	}
 

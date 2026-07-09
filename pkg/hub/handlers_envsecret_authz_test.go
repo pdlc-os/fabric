@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // doRequestWithAgentToken performs an HTTP request with an agent JWT token.
@@ -46,7 +46,7 @@ func doRequestWithAgentToken(t *testing.T, srv *Server, method, path string, bod
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 
 	rec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rec, req)

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +30,7 @@ func TestLoggingHandler_LogEvent(t *testing.T) {
 	require.NoError(t, err)
 
 	content := string(data)
-	assert.Contains(t, content, "[sciontool]")
+	assert.Contains(t, content, "[fabrictool]")
 	assert.Contains(t, content, "[thinking]")
 	assert.Contains(t, content, "Test message")
 }
@@ -103,7 +103,7 @@ func TestLoggingHandler_Handle(t *testing.T) {
 			content := string(data)
 			assert.True(t, strings.Contains(content, tt.wantContain),
 				"log should contain %q, got: %s", tt.wantContain, content)
-			assert.Contains(t, content, "[sciontool]")
+			assert.Contains(t, content, "[fabrictool]")
 		})
 	}
 }

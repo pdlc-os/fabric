@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# extras/scion-chat-app/install.sh — Install the chat app alongside a
-# provisioned Scion Hub (via scripts/starter-hub/).
+# extras/fabric-chat-app/install.sh — Install the chat app alongside a
+# provisioned Fabric Hub (via scripts/starter-hub/).
 #
 # Idempotent: safe to re-run after hub updates that overwrite the Caddyfile
 # or settings.yaml.
@@ -29,15 +29,15 @@ set -euo pipefail
 # Paths
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SCION_HOME="/home/scion"
-SCION_DIR="${SCION_HOME}/.scion"
+FABRIC_HOME="/home/fabric"
+FABRIC_DIR="${FABRIC_HOME}/.fabric"
 INSTALL_BIN="/usr/local/bin"
 CADDYFILE="/etc/caddy/Caddyfile"
-SETTINGS_FILE="${SCION_DIR}/settings.yaml"
-HUB_ENV="${SCION_DIR}/hub.env"
-CHAT_ENV="${SCION_DIR}/chat-app.env"
-CONFIG_FILE="${SCION_DIR}/scion-chat-app.yaml"
-SYSTEMD_UNIT="/etc/systemd/system/scion-chat-app.service"
+SETTINGS_FILE="${FABRIC_DIR}/settings.yaml"
+HUB_ENV="${FABRIC_DIR}/hub.env"
+CHAT_ENV="${FABRIC_DIR}/chat-app.env"
+CONFIG_FILE="${FABRIC_DIR}/fabric-chat-app.yaml"
+SYSTEMD_UNIT="/etc/systemd/system/fabric-chat-app.service"
 
 LISTEN_PORT="${CHAT_APP_LISTEN_PORT:-8443}"
 
@@ -63,7 +63,7 @@ need_file() {
 # Preflight
 # ---------------------------------------------------------------------------
 need_file "${HUB_ENV}" "Run scripts/starter-hub/gce-start-hub.sh --full first."
-need_file "${CHAT_ENV}" "Copy extras/scion-chat-app/chat-app.env.sample to ${CHAT_ENV} and fill in values."
+need_file "${CHAT_ENV}" "Copy extras/fabric-chat-app/chat-app.env.sample to ${CHAT_ENV} and fill in values."
 
 # Source env files (hub.env first, chat-app.env may reference hub vars).
 set -a
@@ -73,16 +73,16 @@ source "${HUB_ENV}"
 source "${CHAT_ENV}"
 set +a
 
-# Resolve the hub endpoint — prefer SCION_HUB_ENDPOINT, fall back to
-# SCION_SERVER_BASE_URL which is set by the starter-hub provisioning.
-SCION_HUB_ENDPOINT="${SCION_HUB_ENDPOINT:-${SCION_SERVER_BASE_URL:-}}"
-if [[ -z "${SCION_HUB_ENDPOINT}" ]]; then
-    echo "ERROR: neither SCION_HUB_ENDPOINT nor SCION_SERVER_BASE_URL is set in ${HUB_ENV}" >&2
+# Resolve the hub endpoint — prefer FABRIC_HUB_ENDPOINT, fall back to
+# FABRIC_SERVER_BASE_URL which is set by the starter-hub provisioning.
+FABRIC_HUB_ENDPOINT="${FABRIC_HUB_ENDPOINT:-${FABRIC_SERVER_BASE_URL:-}}"
+if [[ -z "${FABRIC_HUB_ENDPOINT}" ]]; then
+    echo "ERROR: neither FABRIC_HUB_ENDPOINT nor FABRIC_SERVER_BASE_URL is set in ${HUB_ENV}" >&2
     exit 1
 fi
 
 # Derive the external URL from the hub endpoint.
-EXTERNAL_URL="${SCION_HUB_ENDPOINT}/chat/events"
+EXTERNAL_URL="${FABRIC_HUB_ENDPOINT}/chat/events"
 
 # ---------------------------------------------------------------------------
 # Chat API preflight — verify the service account can call the Chat API.
@@ -181,26 +181,26 @@ if [[ "${PREFLIGHT_FAILED}" -eq 1 ]]; then
     exit 1
 fi
 
-step "Installing scion-chat-app"
+step "Installing fabric-chat-app"
 
 # ---------------------------------------------------------------------------
 # 1. Binary
 # ---------------------------------------------------------------------------
-BINARY="${SCRIPT_DIR}/scion-chat-app"
+BINARY="${SCRIPT_DIR}/fabric-chat-app"
 need_file "${BINARY}" "Run 'make build' first."
 
 substep "Installing binary to ${INSTALL_BIN}"
-sudo install -m 755 "${BINARY}" "${INSTALL_BIN}/scion-chat-app"
+sudo install -m 755 "${BINARY}" "${INSTALL_BIN}/fabric-chat-app"
 
 # ---------------------------------------------------------------------------
 # 2. Config file
 # ---------------------------------------------------------------------------
 substep "Writing config to ${CONFIG_FILE}"
-cat > "${TMPDIR}/scion-chat-app.yaml" <<EOF
+cat > "${TMPDIR}/fabric-chat-app.yaml" <<EOF
 hub:
-  endpoint: "${SCION_HUB_ENDPOINT}"
+  endpoint: "${FABRIC_HUB_ENDPOINT}"
   user: "${CHAT_APP_HUB_USER}"
-  project: "${SCION_GCP_PROJECT_ID:-${GOOGLE_CLOUD_PROJECT:-}}"
+  project: "${FABRIC_GCP_PROJECT_ID:-${GOOGLE_CLOUD_PROJECT:-}}"
   signing_key: "${CHAT_APP_HUB_SIGNING_KEY:-}"
   signing_key_secret: "${CHAT_APP_HUB_SIGNING_KEY_SECRET:-}"
 
@@ -216,11 +216,11 @@ platforms:
     external_url: "${EXTERNAL_URL}"
     service_account_email: "${CHAT_APP_SERVICE_ACCOUNT_EMAIL:-}"
     command_id_map:
-      "1": "scion"
-      "2": "scionAdmin"
+      "1": "fabric"
+      "2": "fabricAdmin"
 
 state:
-  database: "${SCION_DIR}/scion-chat-app.db"
+  database: "${FABRIC_DIR}/fabric-chat-app.db"
 
 notifications:
   trigger_activities:
@@ -234,33 +234,33 @@ logging:
   level: "${CHAT_APP_LOG_LEVEL:-info}"
   format: "json"
 EOF
-sudo install -m 600 -o scion -g scion "${TMPDIR}/scion-chat-app.yaml" "${CONFIG_FILE}"
+sudo install -m 600 -o fabric -g fabric "${TMPDIR}/fabric-chat-app.yaml" "${CONFIG_FILE}"
 
 # ---------------------------------------------------------------------------
 # 3. Systemd unit
 # ---------------------------------------------------------------------------
 substep "Installing systemd unit"
-cat > "${TMPDIR}/scion-chat-app.service" <<EOF
+cat > "${TMPDIR}/fabric-chat-app.service" <<EOF
 [Unit]
-Description=Scion Chat App
+Description=Fabric Chat App
 After=network.target
 
 [Service]
-User=scion
-Group=scion
-Environment="HOME=${SCION_HOME}"
+User=fabric
+Group=fabric
+Environment="HOME=${FABRIC_HOME}"
 StandardOutput=journal
 StandardError=journal
-ExecStart=${INSTALL_BIN}/scion-chat-app -config ${CONFIG_FILE}
+ExecStart=${INSTALL_BIN}/fabric-chat-app -config ${CONFIG_FILE}
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOF
-sudo install -m 644 "${TMPDIR}/scion-chat-app.service" "${SYSTEMD_UNIT}"
+sudo install -m 644 "${TMPDIR}/fabric-chat-app.service" "${SYSTEMD_UNIT}"
 sudo systemctl daemon-reload
-sudo systemctl enable scion-chat-app
+sudo systemctl enable fabric-chat-app
 
 # ---------------------------------------------------------------------------
 # 4. Patch Caddyfile
@@ -364,12 +364,12 @@ step "Restarting services"
 # Restart the hub first if settings changed (it needs to load the broker
 # plugin before the chat app connects).
 if [[ "${HUB_SETTINGS_CHANGED}" -eq 1 ]]; then
-    substep "Hub settings changed — restarting scion-hub"
-    sudo systemctl restart scion-hub
+    substep "Hub settings changed — restarting fabric-hub"
+    sudo systemctl restart fabric-hub
     # Give the hub a moment to start the broker plugin listener before the
     # chat app tries to connect.
     sleep 2
 fi
 
-sudo systemctl restart scion-chat-app
-substep "Done — check status with: journalctl -u scion-chat-app -f"
+sudo systemctl restart fabric-chat-app
+substep "Done — check status with: journalctl -u fabric-chat-app -f"

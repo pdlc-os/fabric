@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package credentials manages CLI authentication credentials for Scion Hub.
+// Package credentials manages CLI authentication credentials for Fabric Hub.
 package credentials
 
 import (
@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 const (
@@ -205,13 +205,13 @@ func IsAuthenticated(hubURL string) bool {
 // credentialsPath is a function variable that returns the path to the credentials file.
 // It can be overridden in tests.
 var credentialsPath = func() string {
-	scionDir, err := config.GetGlobalDir()
+	fabricDir, err := config.GetGlobalDir()
 	if err != nil {
 		// Fallback to home directory
 		home, _ := os.UserHomeDir()
-		scionDir = filepath.Join(home, ".scion")
+		fabricDir = filepath.Join(home, ".fabric")
 	}
-	return filepath.Join(scionDir, CredentialsFile)
+	return filepath.Join(fabricDir, CredentialsFile)
 }
 
 // loadFile reads and parses the credentials file.

@@ -1,15 +1,15 @@
-# Scion Docs Agent - Design Document
+# Fabric Docs Agent - Design Document
 
 ## Overview
 
-A lightweight, standalone satellite service that answers user questions about Scion using Gemini 3.1 Flash-Lite. The service ships as a container deployed to Cloud Run, bundling a checkout of the Scion source code and documentation as context. A simple HTTP handler accepts a query, invokes the Gemini CLI in non-interactive mode with the repository as grounding context, and returns the answer.
+A lightweight, standalone satellite service that answers user questions about Fabric using Gemini 3.1 Flash-Lite. The service ships as a container deployed to Cloud Run, bundling a checkout of the Fabric source code and documentation as context. A simple HTTP handler accepts a query, invokes the Gemini CLI in non-interactive mode with the repository as grounding context, and returns the answer.
 
-This is intentionally separate from the main Scion codebase. It is a small, self-contained project living in `extras/docs-agent/` within the Scion repo, with its own Dockerfile and deployment pipeline.
+This is intentionally separate from the main Fabric codebase. It is a small, self-contained project living in `extras/docs-agent/` within the Fabric repo, with its own Dockerfile and deployment pipeline.
 
 ## Goals
 
-- Provide a public-facing Q&A endpoint for Scion users and contributors
-- Answer questions about Scion usage, configuration, architecture, and source code
+- Provide a public-facing Q&A endpoint for Fabric users and contributors
+- Answer questions about Fabric usage, configuration, architecture, and source code
 - Keep the service minimal: no database, no auth, no state
 - Leverage existing deployment patterns (Cloud Build + Cloud Run) from `docs-site/`
 - Use Gemini 3.1 Flash-Lite for fast, low-cost responses
@@ -28,7 +28,7 @@ This is intentionally separate from the main Scion codebase. It is a small, self
 ┌─────────────┐     GET /chat           │  │  - Returns response     │  │
 │  docs-site   │ ──────────────────────>│  └────────────────────────┘  │
 │  (iframe)    │ <─────────────────────│                              │
-│              │     HTML chat widget    │  /workspace/scion/           │
+│              │     HTML chat widget    │  /workspace/fabric/           │
 └─────────────┘                         │  (source + docs checkout)    │
                                         └──────────────────────────────┘
 ```
@@ -60,10 +60,10 @@ FROM golang:1.25 AS builder
 
 WORKDIR /build
 
-# Clone the Scion repo at build time for latest content
-ARG SCION_REPO=https://github.com/GoogleCloudPlatform/scion.git
-ARG SCION_REF=main
-RUN git clone --depth 1 --branch ${SCION_REF} ${SCION_REPO} /scion-source
+# Clone the Fabric repo at build time for latest content
+ARG FABRIC_REPO=https://github.com/pdlc-os/fabric.git
+ARG FABRIC_REF=main
+RUN git clone --depth 1 --branch ${FABRIC_REF} ${FABRIC_REPO} /fabric-source
 
 # Build the docs-agent handler
 COPY go.mod go.sum ./
@@ -82,7 +82,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 
 # Copy handler binary and source context
 COPY --from=builder /docs-agent /usr/local/bin/docs-agent
-COPY --from=builder /scion-source /workspace/scion
+COPY --from=builder /fabric-source /workspace/fabric
 
 # Copy the system prompt and chat widget assets
 COPY system-prompt.md /etc/docs-agent/system-prompt.md
@@ -93,10 +93,10 @@ CMD ["docs-agent"]
 ```
 
 Key points:
-- The Scion repo is cloned at **image build time**, and can be updated at runtime via the `/refresh` endpoint
+- The Fabric repo is cloned at **image build time**, and can be updated at runtime via the `/refresh` endpoint
 - Git is included in the runtime image to support `git pull` on the public repo
 - Gemini CLI is installed via npm (same pattern as `image-build/gemini/Dockerfile`)
-- No scion-base image dependency; this is fully standalone
+- No fabric-base image dependency; this is fully standalone
 - The Go handler is a single static binary
 
 ### System Prompt
@@ -104,13 +104,13 @@ Key points:
 A `system-prompt.md` file will be included in the image and passed to the CLI via the `GEMINI_SYSTEM_MD` environment variable to completely override the default system instructions, giving Gemini its persona and constraints:
 
 ```markdown
-You are the Scion Documentation Agent. You answer questions about Scion,
+You are the Fabric Documentation Agent. You answer questions about Fabric,
 a container-based orchestration platform for concurrent LLM-based code agents.
 
 Your knowledge comes from:
-- The Scion documentation in /workspace/scion/docs-site/
-- The Scion source code in /workspace/scion/
-- Design documents in /workspace/scion/.design/
+- The Fabric documentation in /workspace/fabric/docs-site/
+- The Fabric source code in /workspace/fabric/
+- Design documents in /workspace/fabric/.design/
 
 Rules:
 - Answer concisely and accurately based on the available source material
@@ -128,13 +128,13 @@ The Gemini CLI supports non-interactive (headless) use via the `-p` or `--prompt
 GEMINI_SYSTEM_MD=/etc/docs-agent/system-prompt.md \
 gemini --prompt "<user_query>" \
        --model gemini-3.1-flash-lite-preview \
-       --sandbox_dir /workspace/scion
+       --sandbox_dir /workspace/fabric
 ```
 
 **Key considerations:**
 - The `--prompt` flag provides the user query. The `GEMINI_SYSTEM_MD` environment variable points to our custom markdown file, completely replacing the default agent system prompt.
 - The `--model gemini-3.1-flash-lite-preview` flag selects the Flash-Lite model for fast, low-cost responses.
-- The `--sandbox_dir` flag (if available) or working directory should point to the Scion checkout so Gemini can reference files.
+- The `--sandbox_dir` flag (if available) or working directory should point to the Fabric checkout so Gemini can reference files.
 - The process runs to completion and stdout is captured.
 - A configurable timeout (e.g., 60 seconds) kills the process if it hangs.
 
@@ -164,7 +164,7 @@ func handleChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRefresh(w http.ResponseWriter, r *http.Request) {
-    // 1. Run "git pull" in /workspace/scion
+    // 1. Run "git pull" in /workspace/fabric
     // 2. Return success/failure status
 }
 ```
@@ -181,7 +181,7 @@ The docs-agent serves an iframeable Q&A mini-chat interface at `/chat`, designed
 - **Iframe-friendly:** Designed to work inside an `<iframe>` with no external dependencies, appropriate sizing, and transparent/configurable background.
 - **Docs-site integration:** The Astro/Starlight docs-site embeds the widget via an iframe in a sidebar, drawer, or dedicated page:
   ```html
-  <iframe src="https://scion-docs-agent-xxxxx.run.app/chat"
+  <iframe src="https://fabric-docs-agent-xxxxx.run.app/chat"
           style="width: 100%; height: 500px; border: none;"></iframe>
   ```
 
@@ -201,8 +201,8 @@ Follow the same pattern as `docs-site/deploy.sh` and `docs-site/cloudbuild.yaml`
 
 - **Project:** `duet01` (or configurable)
 - **Region:** `us-west1`
-- **Service name:** `scion-docs-agent`
-- **Image registry:** `${REGION}-docker.pkg.dev/${PROJECT_ID}/scion-images/docs-agent`
+- **Service name:** `fabric-docs-agent`
+- **Image registry:** `${REGION}-docker.pkg.dev/${PROJECT_ID}/fabric-images/docs-agent`
 - **Concurrency:** 5 (server handles concurrent requests; each spawns a Gemini CLI process)
 - **Memory:** 1Gi (Gemini CLI + Node.js runtime)
 - **CPU:** 1-2 vCPUs
@@ -219,7 +219,7 @@ The Gemini CLI needs a `GEMINI_API_KEY` (or equivalent). This should be:
 
 ### Rebuild Trigger
 
-A Cloud Build trigger on the main branch of the Scion repo would rebuild and redeploy the docs-agent image, ensuring the bundled source stays current. Between rebuilds, the `/refresh` endpoint can be called to `git pull` the latest changes from the public repo without requiring a full image rebuild.
+A Cloud Build trigger on the main branch of the Fabric repo would rebuild and redeploy the docs-agent image, ensuring the bundled source stays current. Between rebuilds, the `/refresh` endpoint can be called to `git pull` the latest changes from the public repo without requiring a full image rebuild.
 
 ## Project Structure
 

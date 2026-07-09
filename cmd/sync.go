@@ -21,13 +21,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/projectsync"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
@@ -46,13 +46,13 @@ var syncCmd = &cobra.Command{
 	Long: `Synchronizes the workspace for a project or a specific agent.
 
 Project-level sync (requires Hub):
-  scion sync                   Bidirectional sync (newer file wins)
-  scion sync push              Push local workspace to hub
-  scion sync pull              Pull hub workspace to local
+  fabric sync                   Bidirectional sync (newer file wins)
+  fabric sync push              Push local workspace to hub
+  fabric sync pull              Pull hub workspace to local
 
 Agent-level sync (existing behavior):
-  scion sync to <agent-name>   Push to a running agent's workspace
-  scion sync from <agent-name> Pull from a running agent's workspace
+  fabric sync to <agent-name>   Push to a running agent's workspace
+  fabric sync from <agent-name> Pull from a running agent's workspace
 
 Options:
   --dry-run                    Preview what would be synced
@@ -61,23 +61,23 @@ Options:
 
 Examples:
   # Bidirectional project sync against hub
-  scion sync
+  fabric sync
 
   # Push local project workspace to hub
-  scion sync push
+  fabric sync push
 
   # Pull hub workspace to local
-  scion sync pull
+  fabric sync pull
 
   # Preview project sync
-  scion sync --dry-run
+  fabric sync --dry-run
 
   # Sync with specific project
-  scion sync -g /path/to/project push
+  fabric sync -g /path/to/project push
 
   # Agent-level sync (unchanged)
-  scion sync from my-agent
-  scion sync to my-agent --exclude "*.log"`,
+  fabric sync from my-agent
+  fabric sync to my-agent --exclude "*.log"`,
 	Args: cobra.MaximumNArgs(2),
 	RunE: runSync,
 }
@@ -92,7 +92,7 @@ func init() {
 func runSync(cmd *cobra.Command, args []string) error {
 	// Parse arguments to determine scope and direction
 	if len(args) == 0 {
-		// Bare `scion sync` → project-level bidirectional
+		// Bare `fabric sync` → project-level bidirectional
 		return runProjectSync(projectsync.DirBisync)
 	}
 
@@ -102,12 +102,12 @@ func runSync(cmd *cobra.Command, args []string) error {
 	switch direction {
 	case "push":
 		if len(args) > 1 {
-			return fmt.Errorf("'push' does not take an agent name; use 'scion sync to <agent>' for agent-level sync")
+			return fmt.Errorf("'push' does not take an agent name; use 'fabric sync to <agent>' for agent-level sync")
 		}
 		return runProjectSync(projectsync.DirPush)
 	case "pull":
 		if len(args) > 1 {
-			return fmt.Errorf("'pull' does not take an agent name; use 'scion sync from <agent>' for agent-level sync")
+			return fmt.Errorf("'pull' does not take an agent name; use 'fabric sync from <agent>' for agent-level sync")
 		}
 		return runProjectSync(projectsync.DirPull)
 	}
@@ -115,7 +115,7 @@ func runSync(cmd *cobra.Command, args []string) error {
 	// Agent-level subcommands: to, from
 	if direction == "to" || direction == "from" {
 		if len(args) < 2 {
-			return fmt.Errorf("agent-level sync requires an agent name: scion sync %s <agent-name>", direction)
+			return fmt.Errorf("agent-level sync requires an agent name: fabric sync %s <agent-name>", direction)
 		}
 		return runAgentSync(args)
 	}
@@ -132,7 +132,7 @@ func runProjectSync(direction projectsync.Direction) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("project-level sync requires a Hub connection.\nUse 'scion sync to/from <agent>' for agent-level sync in solo mode")
+		return fmt.Errorf("project-level sync requires a Hub connection.\nUse 'fabric sync to/from <agent>' for agent-level sync in solo mode")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -152,7 +152,7 @@ func runProjectSync(direction projectsync.Direction) error {
 	// Get auth token for WebDAV
 	authToken := getHubAccessToken(hubCtx.Endpoint)
 	if authToken == "" {
-		return fmt.Errorf("no authentication token available for hub; run 'scion hub auth login'")
+		return fmt.Errorf("no authentication token available for hub; run 'fabric hub auth login'")
 	}
 
 	dirLabel := string(direction)
@@ -199,14 +199,14 @@ func runProjectSync(direction projectsync.Direction) error {
 }
 
 // resolveProjectWorkspacePath resolves the local workspace path for project-level sync.
-// It finds the project root directory containing .scion/.
+// It finds the project root directory containing .fabric/.
 func resolveProjectWorkspacePath() (string, error) {
 	if projectPath != "" {
 		resolvedPath, _, err := config.ResolveProjectPath(projectPath)
 		if err != nil {
 			return "", fmt.Errorf("failed to resolve project path: %w", err)
 		}
-		// The workspace is the parent of the .scion directory (for project projects)
+		// The workspace is the parent of the .fabric directory (for project projects)
 		// or a recorded path (for external projects)
 		return resolveProjectWorkspace(resolvedPath)
 	}
@@ -250,7 +250,7 @@ func runAgentSync(args []string) error {
 	if hubCtx != nil {
 		// Hosted mode requires direction
 		if direction == runtime.SyncUnspecified {
-			return fmt.Errorf("hosted mode requires sync direction: scion sync [to|from] %s", agentName)
+			return fmt.Errorf("hosted mode requires sync direction: fabric sync [to|from] %s", agentName)
 		}
 		return syncViaHub(hubCtx, agentName, direction)
 	}
@@ -568,9 +568,9 @@ func resolveLocalWorkspacePath(agentName string) (string, error) {
 	// Get project name from the directory
 	projectName := filepath.Base(projectDir)
 
-	// Check for standard worktree location: {parent}/.scion_worktrees/{project}/{agent}
+	// Check for standard worktree location: {parent}/.fabric_worktrees/{project}/{agent}
 	projectParent := filepath.Dir(projectDir)
-	worktreePath := filepath.Join(projectParent, ".scion_worktrees", projectName, agentName)
+	worktreePath := filepath.Join(projectParent, ".fabric_worktrees", projectName, agentName)
 
 	// If the worktree exists, use it
 	if info, err := os.Stat(worktreePath); err == nil && info.IsDir() {

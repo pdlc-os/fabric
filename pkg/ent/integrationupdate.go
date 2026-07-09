@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/integrationupdate"
+	"github.com/pdlc-os/fabric/pkg/ent/integrationupdate"
 	"github.com/google/uuid"
 )
 

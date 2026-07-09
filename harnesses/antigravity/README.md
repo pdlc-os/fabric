@@ -1,6 +1,6 @@
 # Antigravity Harness Bundle
 
-Scion harness configuration for
+Fabric harness configuration for
 [Antigravity CLI](https://antigravity.google/product/antigravity-cli), a
 Gemini-based coding agent CLI using OAuth via gnome-keyring.
 
@@ -9,13 +9,13 @@ Gemini-based coding agent CLI using OAuth via gnome-keyring.
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/antigravity
+fabric harness-config install harnesses/antigravity
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/antigravity
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/antigravity
 ```
 
 ## Auth Modes
@@ -35,8 +35,8 @@ gnome-keyring and stores the token at container startup.
 antigravity/
   config.yaml       # Harness configuration (provisioner, capabilities, auth)
   provision.py       # Container-side provisioner (pre-start hook)
-  dialect.yaml       # Hook dialect mapping (antigravity events -> scion events)
-  Dockerfile         # Image build (FROM scion-base)
+  dialect.yaml       # Hook dialect mapping (antigravity events -> fabric events)
+  Dockerfile         # Image build (FROM fabric-base)
   cloudbuild.yaml    # Cloud Build configuration
   skills/.gitkeep    # Skills directory placeholder
   home/.gitkeep      # Home files generated at provision time
@@ -45,16 +45,16 @@ antigravity/
 ## Image Build Chain
 
 ```
-core-base -> scion-base -> scion-antigravity
+core-base -> fabric-base -> fabric-antigravity
 ```
 
 The keyring packages (`gnome-keyring`, `libsecret`, `dbus-x11`) are
 provided by `core-base`. The antigravity Dockerfile adds the Antigravity
-CLI binary on top of `scion-base`.
+CLI binary on top of `fabric-base`.
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-antigravity:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-antigravity:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

@@ -1,8 +1,8 @@
 ---
-title: Scion CLI Reference
+title: Fabric CLI Reference
 ---
 
-The Scion CLI is the primary interface for managing agents, projects, and server components.
+The Fabric CLI is the primary interface for managing agents, projects, and server components.
 
 ## Global Flags
 
@@ -12,7 +12,7 @@ These flags are available on all commands:
 - `--global`: Use the global project (equivalent to `--project global`).
 - `-p, --profile <name>`: Configuration profile to use.
 - `--format <string>`: Output format (`json` or `plain`).
-- `--hub <url>`: Hub API endpoint URL (overrides `SCION_HUB_ENDPOINT`).
+- `--hub <url>`: Hub API endpoint URL (overrides `FABRIC_HUB_ENDPOINT`).
 - `--no-hub`: Disable Hub integration for this invocation (local-only mode).
 - `-y, --yes`: Skip confirmation prompts.
 - `--non-interactive`: Full non-interactive mode (implies `--yes`, errors on ambiguous prompts).
@@ -20,14 +20,14 @@ These flags are available on all commands:
 
 ## Agent Lifecycle
 
-### `scion start` (or `run`)
+### `fabric start` (or `run`)
 
 Starts a new agent or resumes an existing one. Starting a **suspended** agent
 implicitly resumes its harness session (continuing the prior conversation);
 starting a **stopped** or **error** agent runs a fresh session. See
-[`scion suspend`](#scion-suspend) and [`scion resume`](#scion-resume).
+[`fabric suspend`](#fabric-suspend) and [`fabric resume`](#fabric-resume).
 
-**Usage:** `scion start <agent-name> [task] [flags]`
+**Usage:** `fabric start <agent-name> [task] [flags]`
 
 - **Arguments:**
     - `<agent-name>`: Unique name for the agent instance.
@@ -45,14 +45,14 @@ starting a **stopped** or **error** agent runs a fresh session. See
     - `--broker <string>`: Preferred runtime broker ID or name for execution.
     - `--notify`: Get notified via the browser or system when the spawned agent reaches a terminal state.
 
-### `scion stop`
+### `fabric stop`
 
 Stops a running agent. This is a graceful shutdown (`SIGTERM`); the agent's
 phase becomes `stopped` and the next `start` runs a fresh session.
 
-**Usage:** `scion stop <agent-name>`
+**Usage:** `fabric stop <agent-name>`
 
-### `scion suspend`
+### `fabric suspend`
 
 Suspends a running agent, preserving its harness session for a later resume.
 Unlike `stop`, suspending sets the agent's phase to `suspended`, and the next
@@ -61,45 +61,45 @@ fresh.
 
 Only running agents can be suspended, and the agent's harness must support
 session resume (Claude Code and Gemini CLI do; the generic harness does not —
-use `stop` instead). See [Agent Lifecycle](/scion/local/agent-lifecycle/).
+use `stop` instead). See [Agent Lifecycle](/fabric/local/agent-lifecycle/).
 
-**Usage:** `scion suspend <agent-name> [flags]`
+**Usage:** `fabric suspend <agent-name> [flags]`
 
 - **Flags:**
     - `-a, --all`: Suspend all running agents in the current project. Agents
       whose harness does not support resume are skipped.
 
-### `scion resume`
+### `fabric resume`
 
 Resumes an existing agent. For a **suspended** agent, the harness session is
 continued (Claude Code receives `--continue`, Gemini CLI `--resume`, etc.). For
 a **stopped** agent, there is no session to continue, so a fresh session is
 started.
 
-A plain `scion resume <agent-name>` (no task) simply **continues** the prior
+A plain `fabric resume <agent-name>` (no task) simply **continues** the prior
 session — the agent's original creation task is *not* re-injected. If you pass an
 explicit prompt, it is sent as a **new message** on top of the continued
 session.
 
-**Usage:** `scion resume <agent-name> [task] [flags]`
+**Usage:** `fabric resume <agent-name> [task] [flags]`
 
 - **Flags:**
     - `-a, --attach`: Attach to the agent immediately.
 
-### `scion attach`
+### `fabric attach`
 
 Connects to the interactive session of a running agent.
 
-**Usage:** `scion attach <agent-name>`
+**Usage:** `fabric attach <agent-name>`
 
 - **Key Bindings:**
     - `Ctrl+P, Ctrl+Q`: Detach from the session without stopping the agent.
 
-### `scion message` (or `msg`)
+### `fabric message` (or `msg`)
 
 Sends a message to a running agent's harness by enqueuing it into its input stream (requires Tmux).
 
-**Usage:** `scion message [agent] <message> [flags]`
+**Usage:** `fabric message [agent] <message> [flags]`
 
 - **Arguments:**
     - `[agent]`: The name of the agent (optional if `--broadcast` is used).
@@ -110,11 +110,11 @@ Sends a message to a running agent's harness by enqueuing it into its input stre
     - `-a, --all`: Send the message to all running agents across all projects.
     - `--notify`: Get notified when the target agent(s) respond or reach a terminal state after receiving the message.
 
-### `scion messages` (aliases: `msgs`, `inbox`)
+### `fabric messages` (aliases: `msgs`, `inbox`)
 
 Manages bidirectional communication and persistent messages sent by agents to humans.
 
-**Usage:** `scion messages [command] [flags]`
+**Usage:** `fabric messages [command] [flags]`
 
 - **Commands:**
     - `list` (default): View unread messages.
@@ -124,40 +124,40 @@ Manages bidirectional communication and persistent messages sent by agents to hu
     - `--agent <string>`: Filter messages by a specific agent.
     - `--all`: Show all messages, including those already marked as read.
 
-### `scion logs`
+### `fabric logs`
 
 Displays the logs of an agent.
 
-**Usage:** `scion logs <agent-name> [flags]`
+**Usage:** `fabric logs <agent-name> [flags]`
 
 - **Flags:**
     - `-f, --follow`: Stream logs.
 
-### `scion list` (or `ps`)
+### `fabric list` (or `ps`)
 
 Lists all agents and their status.
 
-**Usage:** `scion list [flags]`
+**Usage:** `fabric list [flags]`
 
 - **Flags:**
     - `-a, --all`: Show all agents (including stopped ones).
     - `-r, --running`: Filter for active (running) agents.
 
-### `scion delete` (or `rm`)
+### `fabric delete` (or `rm`)
 
 Deletes an agent, removing its container, home directory, and worktree.
 
-**Usage:** `scion delete <agent-name> [flags]`
+**Usage:** `fabric delete <agent-name> [flags]`
 
 - **Flags:**
     - `-b, --preserve-branch`: Preserve the git branch associated with the worktree (default: deleted).
     - `--stopped`: Delete all agents with stopped containers.
 
-### `scion sync`
+### `fabric sync`
 
 Synchronizes the agent workspace between the host and the container.
 
-**Usage:** `scion sync [to|from] <agent-name> [flags]`
+**Usage:** `fabric sync [to|from] <agent-name> [flags]`
 
 - **Flags:**
     - `--dry-run`: Preview changes without syncing.
@@ -165,31 +165,31 @@ Synchronizes the agent workspace between the host and the container.
 
 ## Configuration & Workspace
 
-### `scion project`
+### `fabric project`
 
-Manages the Scion workspace (Project).
+Manages the Fabric workspace (Project).
 
-- `scion project init`: Initialize a new project. By default, creates a `.scion` directory in the current directory or the root of the current git repository.
+- `fabric project init`: Initialize a new project. By default, creates a `.fabric` directory in the current directory or the root of the current git repository.
     - Flags:
         - `--global`: Initialize the global project in the home directory.
         - `--machine`: Perform full machine-level setup (seeds harness-configs, templates, settings).
         - `--image-registry <string>`: Configure the container image registry path (e.g., `ghcr.io/myorg`).
-    - **Note:** If you are in a git repository, add `.scion/agents` to your `.gitignore` to avoid issues with nested git worktrees: `echo ".scion/agents" >> .gitignore`
+    - **Note:** If you are in a git repository, add `.fabric/agents` to your `.gitignore` to avoid issues with nested git worktrees: `echo ".fabric/agents" >> .gitignore`
     - **Hub Integration:** If a Hub endpoint is configured, `init` will prompt to register the new project with the Hub.
-- `scion project list` (alias `ls`): List all projects known to Scion on this machine, including their type, agent count, status, and workspace path.
-- `scion project prune`: Detect and remove project configurations whose workspace directories no longer exist. This stops any running containers associated with orphaned projects before cleaning up.
-- `scion project reconnect <new-workspace-path>`: Reconnect a moved workspace to its externalized project configuration. This fixes projects that show as "orphaned" after being relocated.
+- `fabric project list` (alias `ls`): List all projects known to Fabric on this machine, including their type, agent count, status, and workspace path.
+- `fabric project prune`: Detect and remove project configurations whose workspace directories no longer exist. This stops any running containers associated with orphaned projects before cleaning up.
+- `fabric project reconnect <new-workspace-path>`: Reconnect a moved workspace to its externalized project configuration. This fixes projects that show as "orphaned" after being relocated.
 
-### `scion clean`
+### `fabric clean`
 
-Removes the scion project configuration from the current project or global location.
+Removes the fabric project configuration from the current project or global location.
 
-**Usage:** `scion clean [flags]`
+**Usage:** `fabric clean [flags]`
 
 - **Flags:**
     - `--skip-hub-check`: Skip Hub connectivity check before removing.
 
-### `scion config`
+### `fabric config`
 
 View and modify configuration settings.
 
@@ -200,25 +200,25 @@ View and modify configuration settings.
 - `migrate`: Migrate configuration to the latest versioned format.
 - `dir`: Print the path to the active configuration directory.
 
-### `scion cd-config`
+### `fabric cd-config`
 
-Open a new shell in the active Scion configuration directory.
+Open a new shell in the active Fabric configuration directory.
 
-**Usage:** `scion cd-config`
+**Usage:** `fabric cd-config`
 
-### `scion cd-project`
+### `fabric cd-project`
 
 Open a new shell in the active project's workspace directory.
 
-**Usage:** `scion cd-project`
+**Usage:** `fabric cd-project`
 
-### `scion cdw`
+### `fabric cdw`
 
 Change directory to the workspace of an agent.
 
-**Usage:** `scion cdw <agent-name>`
+**Usage:** `fabric cdw <agent-name>`
 
-### `scion shared-dir`
+### `fabric shared-dir`
 
 Manages shared directories for agents within a project.
 
@@ -229,7 +229,7 @@ Manages shared directories for agents within a project.
 
 ## Template Management
 
-### `scion templates`
+### `fabric templates`
 
 Manages agent templates.
 
@@ -247,62 +247,62 @@ Manages agent templates.
 
 ## Hub Integration
 
-### `scion hub`
+### `fabric hub`
 
-Manages connection to and interaction with a Scion Hub. Authentication lives under `scion hub auth` (there is no top-level `scion auth` command).
+Manages connection to and interaction with a Fabric Hub. Authentication lives under `fabric hub auth` (there is no top-level `fabric auth` command).
 
-- `scion hub auth`: Manage Hub authentication.
+- `fabric hub auth`: Manage Hub authentication.
     - `login`: Authenticate with Hub server (opens a browser; supports `--no-browser` for device flow and `--provider github`).
     - `logout`: Clear stored credentials.
-- `scion hub token`: Manage user access tokens (scoped, revocable bearer tokens for CI/CD and automation).
+- `fabric hub token`: Manage user access tokens (scoped, revocable bearer tokens for CI/CD and automation).
     - `create`: Create a new token. Flags: `--project`, `--name`, `--scopes`, `--expires`.
     - `list`: List your access tokens.
     - `revoke <token-id>`: Revoke a token (remains visible in listings as revoked).
     - `delete <token-id>`: Permanently delete a token.
-- `scion hub status`: Show the current Hub connection status.
-- `scion hub notifications`: Retrieve a list of recent system notifications and agent alerts.
-- `scion hub link`: Link the current local project to the Hub.
-- `scion hub unlink`: Unlink the current project from the Hub locally.
-- `scion hub projects`: List all projects registered on the Hub.
-- `scion hub brokers`: List all runtime brokers registered on the Hub.
-- `scion hub secret`: Manage write-only secrets on the Hub.
+- `fabric hub status`: Show the current Hub connection status.
+- `fabric hub notifications`: Retrieve a list of recent system notifications and agent alerts.
+- `fabric hub link`: Link the current local project to the Hub.
+- `fabric hub unlink`: Unlink the current project from the Hub locally.
+- `fabric hub projects`: List all projects registered on the Hub.
+- `fabric hub brokers`: List all runtime brokers registered on the Hub.
+- `fabric hub secret`: Manage write-only secrets on the Hub.
     - `set <key> <value>`: Set a secret.
     - `get [key]`: Get secret metadata.
     - `clear <key>`: Remove a secret.
-- `scion hub env`: Manage environment variables on the Hub.
+- `fabric hub env`: Manage environment variables on the Hub.
     - `set <key>=<value>`: Set a variable.
     - `get [key]`: Get variable values.
     - `clear <key>`: Remove a variable.
-- `scion hub project create <git-url>`: Create a project from a remote git repository.
+- `fabric hub project create <git-url>`: Create a project from a remote git repository.
     - Flags: `--slug`, `--name`, `--branch`, `--visibility`, `--json`
 
 ## Infrastructure
 
-### `scion broker`
+### `fabric broker`
 
 Manages the local host as a Runtime Broker.
 
-- `scion broker status`: Show status of the local broker server.
-- `scion broker start`: Start the broker server as a background daemon.
-- `scion broker stop`: Stop the broker daemon.
-- `scion broker register`: Register this host as a Runtime Broker with the Hub.
-- `scion broker deregister`: Remove this broker's registration from the Hub.
-- `scion broker provide`: Add this broker as a provider for a project.
-- `scion broker withdraw`: Remove this broker as a provider from a project.
+- `fabric broker status`: Show status of the local broker server.
+- `fabric broker start`: Start the broker server as a background daemon.
+- `fabric broker stop`: Stop the broker daemon.
+- `fabric broker register`: Register this host as a Runtime Broker with the Hub.
+- `fabric broker deregister`: Remove this broker's registration from the Hub.
+- `fabric broker provide`: Add this broker as a provider for a project.
+- `fabric broker withdraw`: Remove this broker as a provider from a project.
 
-### `scion server`
+### `fabric server`
 
-Manages Scion server components (Hub and Broker).
+Manages Fabric server components (Hub and Broker).
 
-- `scion server start`: Start one or more server components.
+- `fabric server start`: Start one or more server components.
     - Flags: `--enable-hub`, `--enable-runtime-broker`, `--port`, `--db`, `--dev-auth`.
 
 ## Miscellaneous
 
-### `scion version`
+### `fabric version`
 
-Prints the Scion version information.
+Prints the Fabric version information.
 
-**Usage:** `scion version`
+**Usage:** `fabric version`
 
 

@@ -21,8 +21,8 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // labelContains returns an Ent predicate restricting results to agents whose
@@ -36,7 +36,7 @@ import (
 // path uses json_extract with a parameterised value to avoid SQL injection.
 //
 // The SQLite json_path uses quoted-member syntax ($."key") so that keys
-// containing dots (e.g. "scion.dev/role") are treated as a single top-level
+// containing dots (e.g. "fabric.dev/role") are treated as a single top-level
 // key rather than nested object traversal.
 func labelContains(key, value string) predicate.Agent {
 	return func(s *entsql.Selector) {

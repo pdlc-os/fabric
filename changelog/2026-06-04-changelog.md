@@ -1,6 +1,6 @@
 # Release Notes (2026-06-04)
 
-This release marks a major architectural milestone for Scion, introducing the foundational components for **Multi-node and Distributed Operations**. The system now supports horizontal scaling of Hub replicas, distributed message brokering, and shared agent workspaces.
+This release marks a major architectural milestone for Fabric, introducing the foundational components for **Multi-node and Distributed Operations**. The system now supports horizontal scaling of Hub replicas, distributed message brokering, and shared agent workspaces.
 
 ## 🚀 Features
 
@@ -10,6 +10,6 @@ This release marks a major architectural milestone for Scion, introducing the fo
 
 ## 🧹 Chores & Internal
 
-* **Engineering Glossary:** Added a comprehensive `GLOSSARY.md` to the repository root to establish a canonical "ubiquitous language" for Scion terminology.
+* **Engineering Glossary:** Added a comprehensive `GLOSSARY.md` to the repository root to establish a canonical "ubiquitous language" for Fabric terminology.
 * **Developer Tooling Reorganization:** Consolidated developer convenience scripts and Go tools into the `hack/` directory and added Kubernetes manifests for testing NFS workspace scenarios.
 * **Cleanup:** Removed legacy scratchpad markdown files and optimized the internal build configuration for developer tools.

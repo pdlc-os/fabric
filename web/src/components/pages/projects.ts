@@ -32,8 +32,8 @@ import '../shared/git-remote-display.js';
 import type { ViewMode } from '../shared/view-toggle.js';
 import '../shared/view-toggle.js';
 
-@customElement('scion-page-projects')
-export class ScionPageProjects extends LitElement {
+@customElement('fabric-page-projects')
+export class FabricPageProjects extends LitElement {
   /**
    * Page data from SSR
    */
@@ -88,9 +88,9 @@ export class ScionPageProjects extends LitElement {
 
       .project-path {
         font-size: 0.875rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         margin-top: 0.25rem;
-        font-family: var(--scion-font-mono, monospace);
+        font-family: var(--fabric-font-mono, monospace);
         word-break: break-all;
       }
 
@@ -99,7 +99,7 @@ export class ScionPageProjects extends LitElement {
         gap: 1.5rem;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid var(--scion-border, #e2e8f0);
+        border-top: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       .project-stats .stat-value {
@@ -109,8 +109,8 @@ export class ScionPageProjects extends LitElement {
 
       .scope-toggle {
         display: inline-flex;
-        border: 1px solid var(--scion-border, #e2e8f0);
-        border-radius: var(--scion-radius, 0.5rem);
+        border: 1px solid var(--fabric-border, #e2e8f0);
+        border-radius: var(--fabric-radius, 0.5rem);
         overflow: hidden;
       }
 
@@ -120,8 +120,8 @@ export class ScionPageProjects extends LitElement {
         gap: 0.25rem;
         height: 2rem;
         border: none;
-        background: var(--scion-surface, #ffffff);
-        color: var(--scion-text-muted, #64748b);
+        background: var(--fabric-surface, #ffffff);
+        color: var(--fabric-text-muted, #64748b);
         cursor: pointer;
         padding: 0 0.625rem;
         font-size: 0.8125rem;
@@ -131,15 +131,15 @@ export class ScionPageProjects extends LitElement {
       }
 
       .scope-toggle button:not(:last-child) {
-        border-right: 1px solid var(--scion-border, #e2e8f0);
+        border-right: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       .scope-toggle button:hover:not(.active) {
-        background: var(--scion-bg-subtle, #f1f5f9);
+        background: var(--fabric-bg-subtle, #f1f5f9);
       }
 
       .scope-toggle button.active {
-        background: var(--scion-primary, #3b82f6);
+        background: var(--fabric-primary, #3b82f6);
         color: white;
       }
 
@@ -156,14 +156,14 @@ export class ScionPageProjects extends LitElement {
     super.connectedCallback();
 
     // Read persisted view mode
-    const stored = localStorage.getItem('scion-view-projects') as ViewMode | null;
+    const stored = localStorage.getItem('fabric-view-projects') as ViewMode | null;
     if (stored === 'grid' || stored === 'list') {
       this.viewMode = stored;
     }
 
     // Read persisted scope filter
     if (this.pageData?.user) {
-      const scope = localStorage.getItem('scion-scope-projects');
+      const scope = localStorage.getItem('fabric-scope-projects');
       if (scope === 'mine' || scope === 'shared') {
         this.projectScope = scope;
       }
@@ -276,9 +276,9 @@ export class ScionPageProjects extends LitElement {
     if (this.projectScope === scope) return;
     this.projectScope = scope;
     if (scope === 'all') {
-      localStorage.removeItem('scion-scope-projects');
+      localStorage.removeItem('fabric-scope-projects');
     } else {
-      localStorage.setItem('scion-scope-projects', scope);
+      localStorage.setItem('fabric-scope-projects', scope);
     }
     void this.loadProjects();
   }
@@ -313,11 +313,11 @@ export class ScionPageProjects extends LitElement {
               </button>
             </div>
           ` : nothing}
-          <scion-view-toggle
+          <fabric-view-toggle
             .view=${this.viewMode}
-            storageKey="scion-view-projects"
+            storageKey="fabric-view-projects"
             @view-change=${this.onViewChange}
-          ></scion-view-toggle>
+          ></fabric-view-toggle>
           ${can(this.scopeCapabilities, 'create') ? html`
             <a href="/projects/new" style="text-decoration: none;">
               <sl-button variant="primary" size="small">
@@ -390,7 +390,7 @@ export class ScionPageProjects extends LitElement {
         <h2>No Projects Found</h2>
         <p>
           Projects are project workspaces that contain your agents.${can(this.scopeCapabilities, 'create') ? ' Create your first project to get started, or run' : ' Run'}
-          <code>scion init</code> in a project directory.
+          <code>fabric init</code> in a project directory.
         </p>
         ${can(this.scopeCapabilities, 'create') ? html`
           <a href="/projects/new" style="text-decoration: none;">
@@ -428,7 +428,7 @@ export class ScionPageProjects extends LitElement {
               ${this.renderProjectIcon()}
               ${project.name}${this.renderLinkedBadge(project)}
             </h3>
-            <div class="project-path"><scion-git-remote-display .project=${project} stop-propagation></scion-git-remote-display></div>
+            <div class="project-path"><fabric-git-remote-display .project=${project} stop-propagation></fabric-git-remote-display></div>
           </div>
         </div>
         <div class="project-stats">
@@ -479,7 +479,7 @@ export class ScionPageProjects extends LitElement {
             ${project.name}${this.renderLinkedBadge(project)}
           </span>
         </td>
-        <td class="mono-cell"><scion-git-remote-display .project=${project} stop-propagation></scion-git-remote-display></td>
+        <td class="mono-cell"><fabric-git-remote-display .project=${project} stop-propagation></fabric-git-remote-display></td>
         <td>${project.agentCount}</td>
         <td class="hide-mobile">
           <span class="meta-text">${project.ownerName || '—'}</span>
@@ -491,6 +491,6 @@ export class ScionPageProjects extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-projects': ScionPageProjects;
+    'fabric-page-projects': FabricPageProjects;
   }
 }

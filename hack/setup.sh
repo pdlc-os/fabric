@@ -18,7 +18,7 @@ set -e
 # hack/setup.sh - Setup isolated test environment
 
 REPO_ROOT=$(pwd)
-TEST_DIR="${REPO_ROOT}/../qa-scion"
+TEST_DIR="${REPO_ROOT}/../qa-fabric"
 BIN_DIR="${HOME}/UNIX/bin"
 
 echo "=== Setting up test environment in ${TEST_DIR} ==="
@@ -26,17 +26,17 @@ echo "=== Setting up test environment in ${TEST_DIR} ==="
 mkdir -p "${TEST_DIR}"
 mkdir -p "${BIN_DIR}"
 
-echo "=== Building scion binary to ${BIN_DIR} ==="
-go build -o "${BIN_DIR}/scion" ./cmd/scion
+echo "=== Building fabric binary to ${BIN_DIR} ==="
+go build -o "${BIN_DIR}/fabric" ./cmd/fabric
 
 cd "${TEST_DIR}"
 if [ ! -d ".git" ]; then
     git init -q
 fi
-echo ".scion/agents/" > .gitignore
+echo ".fabric/agents/" > .gitignore
 
 echo "=== Initializing grove ==="
-scion grove init
+fabric grove init
 
 echo "=== Setup Complete ==="
-ls -A1 .scion
+ls -A1 .fabric

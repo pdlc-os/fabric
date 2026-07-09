@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -12,10 +12,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/handlers"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks/handlers"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // statusCmd represents the status command
@@ -24,7 +24,7 @@ var statusCmd = &cobra.Command{
 	Short: "Update agent status",
 	Long: `The status command updates the agent's session status and logs the event.
 
-This is used by agents to signal state changes to the scion orchestrator.
+This is used by agents to signal state changes to the fabric orchestrator.
 
 Status Types:
   ask_user         Signal that the agent is waiting for user input
@@ -34,16 +34,16 @@ Status Types:
 
 Examples:
   # Signal waiting for user input
-  sciontool status ask_user "What should I do next?"
+  fabrictool status ask_user "What should I do next?"
 
   # Signal blocked waiting for a child agent
-  sciontool status blocked "Waiting for agent deploy-frontend to complete"
+  fabrictool status blocked "Waiting for agent deploy-frontend to complete"
 
   # Signal task completion
-  sciontool status task_completed "Implemented feature X"
+  fabrictool status task_completed "Implemented feature X"
 
   # Signal limits exceeded
-  sciontool status limits_exceeded "max_turns of 50 exceeded"`,
+  fabrictool status limits_exceeded "max_turns of 50 exceeded"`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		statusType := args[0]

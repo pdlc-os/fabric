@@ -10,17 +10,17 @@ The decoupled harness implementation (Phases 0–5) proved that provisioning log
 - It uses a straightforward API-key auth model (Anthropic key or Sourcegraph access token).
 - It has a simple config layout (`~/.config/amp/`) with JSON settings.
 - It supports system prompts via an `AGENT.md` file convention.
-- Its container image is easy to build on `scion-base`.
+- Its container image is easy to build on `fabric-base`.
 
 This design describes an Amp harness delivered entirely through the `examples/` directory — a `config.yaml`, a `provision.py`, a Dockerfile, a template, and home directory files. No additions to `pkg/harness/`, no Go compilation, no binary changes. The example simultaneously serves as:
 
-1. **A working Amp integration** for users who want to orchestrate Amp agents in scion.
+1. **A working Amp integration** for users who want to orchestrate Amp agents in fabric.
 2. **A reference implementation** for community harness authors following the same pattern.
 3. **Validation of the Phase 7 goal** — proving the script provisioning contract is sufficient for a real, non-trivial harness without compiled support.
 
 ## Non-Goals
 
-- Building a production-grade, officially-supported Amp harness embedded in the scion binary. If Amp grows significant enough to warrant that, the compiled path remains available.
+- Building a production-grade, officially-supported Amp harness embedded in the fabric binary. If Amp grows significant enough to warrant that, the compiled path remains available.
 - Covering every Amp auth method (OAuth, SSO, team accounts). The example targets the common path: API key and Sourcegraph access token.
 - Hook dialect integration for turn/model counting. Amp's hook system (if any) is out of scope for the initial example; `max_turns` and `max_model_calls` are advertised as unsupported.
 
@@ -47,11 +47,11 @@ Amp is a terminal-based coding agent from Sourcegraph. Key characteristics relev
 ```
 examples/amp/
 ├── README.md                          # Setup and usage guide
-├── Dockerfile                         # Container image (based on scion-base)
+├── Dockerfile                         # Container image (based on fabric-base)
 ├── provision.py                       # Container-side provisioning script
 ├── templates/
 │   └── amp/
-│       ├── scion-agent.yaml           # Template definition
+│       ├── fabric-agent.yaml           # Template definition
 │       ├── agents.md                  # Portable agent instructions
 │       └── harness-configs/
 │           └── amp/
@@ -63,7 +63,7 @@ examples/amp/
 │                           └── settings.json  # Amp defaults (permissions, model)
 ```
 
-This mirrors the ADK example structure: self-contained, copyable into any grove's `.scion/` directory.
+This mirrors the ADK example structure: self-contained, copyable into any grove's `.fabric/` directory.
 
 ### Harness Config (`config.yaml`)
 
@@ -71,13 +71,13 @@ The config uses `provisioner.type: container-script` from the start — there is
 
 ```yaml
 harness: amp
-image: scion-amp:latest
-user: scion
+image: fabric-amp:latest
+user: fabric
 
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -98,7 +98,7 @@ command:
   task_position: after_base_args
 
 env_template:
-  SCION_AGENT_NAME: "{{ .AgentName }}"
+  FABRIC_AGENT_NAME: "{{ .AgentName }}"
 
 capabilities:
   limits:
@@ -144,7 +144,7 @@ The script follows the established contract from OpenCode/Codex provisioners. It
 
 1. **Auth resolution** — Read `inputs/auth-candidates.json`, apply precedence (`AMP_API_KEY` > `ANTHROPIC_API_KEY`), write `outputs/resolved-auth.json`.
 2. **Auth environment projection** — When using `api-key` auth, read the secret value from the staged `secrets/<NAME>` file and project it into `outputs/env.json` as `AMP_API_KEY` so Amp can pick it up.
-3. **Settings reconciliation** — Merge any scion-managed settings (e.g., model selection, permission overrides) into `~/.config/amp/settings.json` without clobbering user-provided keys from the home overlay.
+3. **Settings reconciliation** — Merge any fabric-managed settings (e.g., model selection, permission overrides) into `~/.config/amp/settings.json` without clobbering user-provided keys from the home overlay.
 
 **What it does NOT do:**
 
@@ -157,7 +157,7 @@ The script follows the established contract from OpenCode/Codex provisioners. It
 #!/usr/bin/env python3
 """Amp container-side provisioner.
 
-Stdlib-only. Runs inside the agent container via sciontool harness provision.
+Stdlib-only. Runs inside the agent container via fabrictool harness provision.
 """
 
 import argparse, json, os, sys
@@ -170,7 +170,7 @@ VALID_AUTH_TYPES = ("api-key",)
 EXIT_OK, EXIT_ERROR, EXIT_UNSUPPORTED = 0, 1, 2
 
 def _provision(manifest: dict[str, Any]) -> int:
-    bundle = os.path.expanduser(manifest.get("harness_bundle_dir", "$HOME/.scion/harness"))
+    bundle = os.path.expanduser(manifest.get("harness_bundle_dir", "$HOME/.fabric/harness"))
     inputs_dir = os.path.join(bundle, "inputs")
 
     # 1. Load auth candidates
@@ -205,7 +205,7 @@ The full script follows the same patterns as `opencode/embeds/provision.py`: arg
 ### Container Image (`Dockerfile`)
 
 ```dockerfile
-FROM scion-base:latest
+FROM fabric-base:latest
 
 # Install Amp CLI
 RUN npm install -g @sourcegraph/amp@latest \
@@ -214,13 +214,13 @@ RUN npm install -g @sourcegraph/amp@latest \
 # Ensure the provisioning script can run
 RUN python3 --version
 
-USER scion
+USER fabric
 WORKDIR /workspace
 ```
 
-The image builds on `scion-base` which already provides `sciontool`, `tmux`, `git`, `python3`, and `node`. Amp is installed via npm. No additional dependencies are needed for the provisioning script (stdlib-only).
+The image builds on `fabric-base` which already provides `fabrictool`, `tmux`, `git`, `python3`, and `node`. Amp is installed via npm. No additional dependencies are needed for the provisioning script (stdlib-only).
 
-### Template Definition (`scion-agent.yaml`)
+### Template Definition (`fabric-agent.yaml`)
 
 ```yaml
 schema_version: "1"
@@ -231,19 +231,19 @@ default_harness_config: amp
 
 ### Agent Instructions (`agents.md`)
 
-Portable, harness-agnostic instructions that teach the agent about scion lifecycle integration:
+Portable, harness-agnostic instructions that teach the agent about fabric lifecycle integration:
 
 ```markdown
-# Scion Agent Instructions
+# Fabric Agent Instructions
 
 ## Status Reporting
 
-You are running inside a scion-managed container. Use `sciontool` to report
+You are running inside a fabric-managed container. Use `fabrictool` to report
 your status:
 
-- `sciontool status ask_user "<question>"` — before asking the user a question
-- `sciontool status blocked "<reason>"` — when waiting on external input
-- `sciontool status task_completed "<summary>"` — when your task is finished
+- `fabrictool status ask_user "<question>"` — before asking the user a question
+- `fabrictool status blocked "<reason>"` — when waiting on external input
+- `fabrictool status task_completed "<summary>"` — when your task is finished
 
 ## Workspace
 
@@ -279,38 +279,38 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ```bash
 # 1. Build the container image
-docker build -t scion-amp examples/amp/
+docker build -t fabric-amp examples/amp/
 
 # 2. Copy template into grove
-cp -r examples/amp/templates/amp .scion/templates/amp
+cp -r examples/amp/templates/amp .fabric/templates/amp
 
 # 3. Copy harness-config (grove-level or global)
-cp -r examples/amp/templates/amp/harness-configs/amp .scion/harness-configs/amp
-# OR: cp -r ... ~/.scion/harness-configs/amp
+cp -r examples/amp/templates/amp/harness-configs/amp .fabric/harness-configs/amp
+# OR: cp -r ... ~/.fabric/harness-configs/amp
 
 # 4. Start an agent
-scion start my-researcher --template amp
+fabric start my-researcher --template amp
 
 # With a task:
-scion start my-researcher --template amp --task "Review the auth module for security issues"
+fabric start my-researcher --template amp --task "Review the auth module for security issues"
 
 # With explicit auth:
-AMP_API_KEY=sk-... scion start my-researcher --template amp
+AMP_API_KEY=sk-... fabric start my-researcher --template amp
 ```
 
 ### What Happens at Runtime
 
-1. **`scion start`** resolves the `amp` template → finds `default_harness_config: amp` → loads `harness-configs/amp/config.yaml`.
+1. **`fabric start`** resolves the `amp` template → finds `default_harness_config: amp` → loads `harness-configs/amp/config.yaml`.
 2. **Harness resolution** sees `provisioner.type: container-script` → instantiates `ContainerScriptHarness` (the generic Go implementation). No Amp-specific Go code exists.
-3. **Provision phase** stages the harness bundle into `agent_home/.scion/harness/`:
+3. **Provision phase** stages the harness bundle into `agent_home/.fabric/harness/`:
    - Copies `config.yaml` and `provision.py` from the harness-config directory.
    - Stages `inputs/auth-candidates.json` with available credentials.
    - Stages `inputs/instructions.md` from the template's `agents.md`.
-   - Generates the lifecycle hook wrapper at `.scion/hooks/pre-start.d/20-harness-provision`.
-4. **Container start** — `sciontool init` runs the pre-start hooks:
-   - Executes `python3 /home/scion/.scion/harness/provision.py --manifest /home/scion/.scion/harness/manifest.json`.
+   - Generates the lifecycle hook wrapper at `.fabric/hooks/pre-start.d/20-harness-provision`.
+4. **Container start** — `fabrictool init` runs the pre-start hooks:
+   - Executes `python3 /home/fabric/.fabric/harness/provision.py --manifest /home/fabric/.fabric/harness/manifest.json`.
    - Script resolves auth, sets AMP_API_KEY in the env overlay, writes outputs.
-   - `sciontool init` loads `outputs/env.json` overlay into the child environment.
+   - `fabrictool init` loads `outputs/env.json` overlay into the child environment.
    - Launches `amp -x "task..."`.
 5. **Attach/resume** — Pre-start hooks re-execute (idempotent), then `amp threads continue`.
 
@@ -321,9 +321,9 @@ The ADK example uses `harness: generic` with custom Python agent code. The Amp e
 | Aspect | ADK Example | Amp Example |
 |---|---|---|
 | Harness type | `generic` (no provisioner) | `container-script` (full provisioner) |
-| CLI binary | Custom Python (`python -m adk_scion_agent`) | Third-party CLI (`amp`) |
-| Auth handling | Manual env bridging in Python code | Provisioning script via scion contract |
-| Status reporting | Custom ADK callbacks + `sciontool_status` tool | Amp's native behavior (no custom code) |
+| CLI binary | Custom Python (`python -m adk_fabric_agent`) | Third-party CLI (`amp`) |
+| Auth handling | Manual env bridging in Python code | Provisioning script via fabric contract |
+| Status reporting | Custom ADK callbacks + `fabrictool_status` tool | Amp's native behavior (no custom code) |
 | Provisioning | None (generic harness) | `provision.py` for auth + settings |
 | Go code required | None | None |
 | System prompt | Not supported | Downgraded into `AGENT.md` preamble |
@@ -335,10 +335,10 @@ The Amp example is closer to the built-in harness experience (auth resolution, s
 The example is considered successful if:
 
 1. **No Go changes** — `git diff` against `pkg/` shows zero modifications. The entire harness is defined by files in `examples/amp/`.
-2. **Auth works** — `AMP_API_KEY`, `ANTHROPIC_API_KEY` resolves correctly through the standard scion auth flow.
-3. **Task delivery** — `scion start agent --template amp --task "..."` delivers the task to Amp and it begins working.
-4. **Resume** — `scion start agent` (without task) resumes the previous Amp conversation.
-5. **Attach** — `scion attach agent` connects to the running Amp session via tmux.
+2. **Auth works** — `AMP_API_KEY`, `ANTHROPIC_API_KEY` resolves correctly through the standard fabric auth flow.
+3. **Task delivery** — `fabric start agent --template amp --task "..."` delivers the task to Amp and it begins working.
+4. **Resume** — `fabric start agent` (without task) resumes the previous Amp conversation.
+5. **Attach** — `fabric attach agent` connects to the running Amp session via tmux.
 6. **Instructions** — Agent instructions from `agents.md` appear in `AGENT.md` in the workspace.
 7. **System prompt** — If a system prompt is configured (template or grove level), it is prepended to `AGENT.md`.
 8. **Idempotent provision** — Attaching or resuming re-runs `provision.py` without corrupting state.
@@ -382,4 +382,4 @@ This example is the capstone of the decoupled harness implementation effort:
 | Phase 6 | Pending | Claude/Gemini evaluation |
 | **Phase 7** | **This doc** | **Community harness template — Amp as first example** |
 
-The Amp example validates the claim that started the entire effort: *a new harness can be added without Go expertise and without forking the scion binary.* If a community contributor can follow this example to integrate their preferred coding agent, the decoupled harness architecture has achieved its goal.
+The Amp example validates the claim that started the entire effort: *a new harness can be added without Go expertise and without forking the fabric binary.* If a community contributor can follow this example to integrate their preferred coding agent, the decoupled harness architecture has achieved its goal.

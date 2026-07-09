@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/templatecache"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/templatecache"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 // ConnectionStatus represents the state of a hub connection.
@@ -43,7 +43,7 @@ const (
 
 // HubConnection encapsulates all per-hub state for a single hub connection.
 type HubConnection struct {
-	Name        string // "local", "prod", "hub-scion-dev"
+	Name        string // "local", "prod", "hub-fabric-dev"
 	HubEndpoint string
 	BrokerID    string
 	AuthMode    brokercredentials.AuthMode

@@ -1,4 +1,4 @@
-# Design: Multi-Broker Fan-Out for Scion Hub
+# Design: Multi-Broker Fan-Out for Fabric Hub
 
 **Status**: Draft (updated with owner feedback)  
 **Author**: Research Agent  
@@ -9,9 +9,9 @@
 
 The hub currently supports exactly one message broker plugin at a time, selected
 via `server.message_broker.type` in settings.yaml. To run multiple integrations
-simultaneously (e.g., scion-broker-log for observability, scion-chat-app for
-Google Chat, scion-a2a-bridge for A2A protocol), users must resort to manual
-chaining via the `--forward` flag in scion-broker-log. This is fragile, creates
+simultaneously (e.g., fabric-broker-log for observability, fabric-chat-app for
+Google Chat, fabric-a2a-bridge for A2A protocol), users must resort to manual
+chaining via the `--forward` flag in fabric-broker-log. This is fragile, creates
 a single chain of failure, and doesn't scale to N integrations.
 
 **Goal**: The hub should natively support N simultaneous broker integrations with
@@ -69,7 +69,7 @@ implements `HostCallbacks`. All plugins currently share this single forwarder.
 
 ### 2.5 The Tee Workaround
 
-`scion-broker-log --forward localhost:9090` manually chains to scion-chat-app.
+`fabric-broker-log --forward localhost:9090` manually chains to fabric-chat-app.
 broker-log acts as primary broker, forwards all Publish/Subscribe/Configure calls
 to the downstream. This means:
 - broker-log must be started first
@@ -132,9 +132,9 @@ deliver inbound messages via the existing `/api/v1/broker/inbound` endpoint.
                     │                      │
                     ├──────────────────────┤
                     │  InProcessBroker     │  ← local pub/sub (always present)
-                    │  scion-broker-log    │  ← spoke: logging/debug
-                    │  scion-chat-app      │  ← spoke: Google Chat bridge
-                    │  scion-a2a-bridge    │  ← spoke: A2A protocol
+                    │  fabric-broker-log    │  ← spoke: logging/debug
+                    │  fabric-chat-app      │  ← spoke: Google Chat bridge
+                    │  fabric-a2a-bridge    │  ← spoke: A2A protocol
                     └──────────────────────┘
 ```
 
@@ -216,7 +216,7 @@ if len(brokerTypes) == 0 && vs.Server.MessageBroker.Type != "" && vs.Server.Mess
 }
 
 for _, bt := range brokerTypes {
-    if pluginMgr.HasPlugin(scionplugin.PluginTypeBroker, bt) {
+    if pluginMgr.HasPlugin(fabricplugin.PluginTypeBroker, bt) {
         b, err := pluginMgr.GetBroker(bt)
         if err != nil {
             log.Printf("Warning: failed to load broker plugin %q: %v", bt, err)
@@ -310,7 +310,7 @@ to work per-plugin.
 
 ## 4. Impact on Existing Plugins
 
-### 4.1 scion-broker-log
+### 4.1 fabric-broker-log
 
 - **`--forward` flag**: Can be deprecated. Users configure both broker-log and
   chat-app as separate plugins in settings.yaml.
@@ -319,19 +319,19 @@ to work per-plugin.
 - The `HostCallbacks` forwarding logic in broker-log (lines 280-298) becomes
   unnecessary since each plugin gets its own direct host callbacks channel.
 
-### 4.2 scion-chat-app
+### 4.2 fabric-chat-app
 
 - **No code changes required**. Already implements the full plugin interface.
 - Currently must be chained behind broker-log; with fan-out, it runs independently.
 
-### 4.3 scion-a2a-bridge
+### 4.3 fabric-a2a-bridge
 
 The A2A bridge is fully implemented and merged into `main`
-(`extras/scion-a2a-bridge/`). Key findings from code review:
+(`extras/fabric-a2a-bridge/`). Key findings from code review:
 
 - **Broker plugin**: `internal/bridge/broker.go` implements the full
   `MessageBrokerPluginInterface` + `HostCallbacksAware`. The pattern is nearly
-  identical to scion-chat-app's `BrokerServer` — same self-managed plugin,
+  identical to fabric-chat-app's `BrokerServer` — same self-managed plugin,
   same `SetHostCallbacks` retry loop, same `RequestSubscription` flow. **No
   code changes required** for fan-out compatibility.
 
@@ -347,7 +347,7 @@ The A2A bridge is fully implemented and merged into `main`
   the Hub's authenticated API. Either inbound path works fine with fan-out.
 
 - **Subscriptions**: The bridge subscribes to user-scoped topics
-  (`scion.grove.<groveID>.user.<user>.messages`) to receive agent responses.
+  (`fabric.grove.<groveID>.user.<user>.messages`) to receive agent responses.
   These subscriptions use the standard `HostCallbacks.RequestSubscription()`
   mechanism.
 
@@ -398,7 +398,7 @@ server:
           forward: "localhost:9090"  # chain to chat-app
       # chat-app not listed here — broker-log forwards manually
 ```
-Start: `scion-broker-log --forward localhost:9090 & scion-chat-app &`
+Start: `fabric-broker-log --forward localhost:9090 & fabric-chat-app &`
 
 **After** (native fan-out):
 ```yaml
@@ -421,7 +421,7 @@ server:
         self_managed: true
         address: "localhost:9092"
 ```
-Start: `scion-broker-log & scion-chat-app & scion-a2a-bridge &` (no `--forward` needed)
+Start: `fabric-broker-log & fabric-chat-app & fabric-a2a-bridge &` (no `--forward` needed)
 
 ## 6. Files to Change
 
@@ -434,7 +434,7 @@ Start: `scion-broker-log & scion-chat-app & scion-a2a-bridge &` (no `--forward` 
 | `pkg/hub/server.go` | No change — `StartMessageBroker(b broker.MessageBroker)` already takes the interface |
 | `pkg/hub/messagebroker.go` | No change — works with any `broker.MessageBroker` |
 | `pkg/plugin/manager.go` | No change — already supports N broker plugins |
-| `extras/scion-broker-log/main.go` | Optional: deprecation warning on `--forward` flag |
+| `extras/fabric-broker-log/main.go` | Optional: deprecation warning on `--forward` flag |
 
 ## 7. Resolved Questions
 
@@ -465,7 +465,7 @@ Start: `scion-broker-log & scion-chat-app & scion-a2a-bridge &` (no `--forward` 
    synchronously first, then fan-out to plugin brokers concurrently.
 
 2. **Subscription deduplication across plugins**: If broker-log requests
-   `scion.>` and chat-app requests `scion.grove.*.user.*.messages`, the hub
+   `fabric.>` and chat-app requests `fabric.grove.*.user.*.messages`, the hub
    receives the union. Publishing fans out to all plugins regardless of their
    individual subscription requests. This appears correct — plugins already
    receive all messages via `Publish()`, and their subscriptions are hints for

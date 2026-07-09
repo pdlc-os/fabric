@@ -23,11 +23,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/imagecheck"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hub/imagecheck"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 type imageManager interface {
@@ -673,7 +673,7 @@ func (s *Server) handleHarnessConfigDownload(w http.ResponseWriter, r *http.Requ
 
 	downloadURLs, manifestURL, expires, err := generateDownloadURLs(ctx, stor, hc.StoragePath, hc.Files)
 	if err != nil {
-		RuntimeError(w, fmt.Sprintf("harness-config %q: %s — run 'scion harness-config validate %s' to diagnose", hc.Name, err, hc.Name))
+		RuntimeError(w, fmt.Sprintf("harness-config %q: %s — run 'fabric harness-config validate %s' to diagnose", hc.Name, err, hc.Name))
 		return
 	}
 

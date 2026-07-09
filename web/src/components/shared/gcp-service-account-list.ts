@@ -18,7 +18,7 @@
  * GCP Service Account List Component
  *
  * CRUD component for managing GCP service accounts at the project level.
- * Follows the same patterns as scion-secret-list.
+ * Follows the same patterns as fabric-secret-list.
  */
 
 import { LitElement, html, css, nothing } from 'lit';
@@ -29,8 +29,8 @@ import { can } from '../../shared/types.js';
 import { apiFetch, extractApiError } from '../../client/api.js';
 import { resourceStyles } from './resource-styles.js';
 
-@customElement('scion-gcp-service-account-list')
-export class ScionGCPServiceAccountList extends LitElement {
+@customElement('fabric-gcp-service-account-list')
+export class FabricGCPServiceAccountList extends LitElement {
   @property() projectId = '';
   @property({ type: Boolean }) compact = false;
 
@@ -109,7 +109,7 @@ export class ScionGCPServiceAccountList extends LitElement {
 
       .quota-info {
         font-size: 0.8125rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -766,8 +766,8 @@ export class ScionGCPServiceAccountList extends LitElement {
         <form class="dialog-form" @submit=${this.handleMint}>
           <sl-input
             label="Account ID"
-            placeholder="Optional (e.g. my-pipeline → scion-my-pipeline)"
-            help-text="Leave empty for auto-generated ID. Will be prefixed with scion-."
+            placeholder="Optional (e.g. my-pipeline → fabric-my-pipeline)"
+            help-text="Leave empty for auto-generated ID. Will be prefixed with fabric-."
             value=${this.mintAccountId}
             @sl-input=${(e: Event) => {
               this.mintAccountId = (e.target as HTMLInputElement).value;
@@ -886,6 +886,6 @@ export class ScionGCPServiceAccountList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-gcp-service-account-list': ScionGCPServiceAccountList;
+    'fabric-gcp-service-account-list': FabricGCPServiceAccountList;
   }
 }

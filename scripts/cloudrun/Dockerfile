@@ -1,4 +1,4 @@
-# Scion Hub — Cloud Run container image
+# Fabric Hub — Cloud Run container image
 # Multi-stage build: web frontend → Go binary → slim runtime
 
 # ---------------------------------------------------------------------------
@@ -26,8 +26,8 @@ COPY --from=web-builder /src/web/dist/client ./web/dist/client
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -buildvcs=false \
-      -ldflags "-X github.com/GoogleCloudPlatform/scion/pkg/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-      -o /scion ./cmd/scion
+      -ldflags "-X github.com/pdlc-os/fabric/pkg/version.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      -o /fabric ./cmd/fabric
 
 # ---------------------------------------------------------------------------
 # Stage 3: Runtime
@@ -41,18 +41,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -d /home/scion -s /bin/bash -u 1000 scion \
-    && mkdir -p /home/scion/.kube /run/secrets \
-    && chown -R scion:scion /home/scion /run/secrets
+RUN useradd -m -d /home/fabric -s /bin/bash -u 1000 fabric \
+    && mkdir -p /home/fabric/.kube /run/secrets \
+    && chown -R fabric:fabric /home/fabric /run/secrets
 
-COPY --from=go-builder /scion /usr/local/bin/scion
+COPY --from=go-builder /fabric /usr/local/bin/fabric
 COPY scripts/cloudrun/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-ENV HOME=/home/scion
-ENV KUBECONFIG=/home/scion/.kube/config
+ENV HOME=/home/fabric
+ENV KUBECONFIG=/home/fabric/.kube/config
 
-USER scion
-WORKDIR /home/scion
+USER fabric
+WORKDIR /home/fabric
 
 EXPOSE 8080
 

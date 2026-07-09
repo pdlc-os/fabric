@@ -19,8 +19,8 @@
 
 if [ -n "$1" ]; then
     # Get specific agent status
-    scion list --format json | jq --arg name "$1" '.[] | select(.name == $name or .Name == $name)'
+    fabric list --format json | jq --arg name "$1" '.[] | select(.name == $name or .Name == $name)'
 else
     # Get all agents as JSON
-    scion list --format json
+    fabric list --format json
 fi

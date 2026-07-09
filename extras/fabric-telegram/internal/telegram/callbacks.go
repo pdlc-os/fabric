@@ -319,7 +319,7 @@ func (h *CallbackHandler) handleSetupUnlink(ctx context.Context, cb *CallbackQue
 		h.answerCallback(ctx, cb.ID, "Failed to unlink.", false)
 		return err
 	}
-	h.editMessage(ctx, chatID, messageID, "This group has been unlinked from the scion hub. Use /setup to link it again.", nil)
+	h.editMessage(ctx, chatID, messageID, "This group has been unlinked from the fabric hub. Use /setup to link it again.", nil)
 	h.answerCallback(ctx, cb.ID, "Group unlinked.", false)
 	return nil
 }

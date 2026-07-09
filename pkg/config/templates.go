@@ -23,8 +23,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"gopkg.in/yaml.v3"
 )
 
@@ -83,23 +83,23 @@ func ResolveContentInChain(chain []*Template, field string) ([]byte, error) {
 	return []byte(field), nil
 }
 
-func (t *Template) LoadConfig() (*api.ScionConfig, error) {
+func (t *Template) LoadConfig() (*api.FabricConfig, error) {
 	// Try YAML first, then JSON
-	configPath := GetScionAgentConfigPath(t.Path)
+	configPath := GetFabricAgentConfigPath(t.Path)
 	if configPath == "" {
 		// No config file found, return empty config
-		return &api.ScionConfig{}, nil
+		return &api.FabricConfig{}, nil
 	}
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &api.ScionConfig{}, nil
+			return &api.FabricConfig{}, nil
 		}
 		return nil, err
 	}
 
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 	ext := filepath.Ext(configPath)
 	if ext == ".yaml" || ext == ".yml" {
 		if err := unmarshalYAMLNormalized(data, &cfg); err != nil {
@@ -126,10 +126,10 @@ func (t *Template) LoadConfig() (*api.ScionConfig, error) {
 	return &cfg, nil
 }
 
-// unmarshalYAMLNormalized parses YAML into a ScionConfig, normalizing
+// unmarshalYAMLNormalized parses YAML into a FabricConfig, normalizing
 // top-level hyphenated keys to underscored keys. This allows template
 // authors to use either `harness-config` or `harness_config` style keys.
-func unmarshalYAMLNormalized(data []byte, cfg *api.ScionConfig) error {
+func unmarshalYAMLNormalized(data []byte, cfg *api.FabricConfig) error {
 	var node yaml.Node
 	if err := yaml.Unmarshal(data, &node); err != nil {
 		return err
@@ -234,7 +234,7 @@ func FindTemplateWithContext(ctx context.Context, name string) (*Template, error
 
 	// TODO: Future enhancement - when operating with a remote hub system,
 	// simple template names could also be resolved to remote storage locations:
-	// <bucket-name>/<scion-prefix>/<project-id>/templates/<template-name>
+	// <bucket-name>/<fabric-prefix>/<project-id>/templates/<template-name>
 	// This would enable shared templates across teams/organizations.
 
 	return nil, fmt.Errorf("template %s not found", name)
@@ -370,7 +370,7 @@ func FindTemplateInProjectPath(name, projectPath string) (*Template, error) {
 		return nil, fmt.Errorf("template path %s not found or not a directory", name)
 	}
 
-	// Check project-specific templates directory (in-repo .scion/templates/ for git projects)
+	// Check project-specific templates directory (in-repo .fabric/templates/ for git projects)
 	projectTemplatesDir := filepath.Join(projectPath, "templates")
 	path := filepath.Join(projectTemplatesDir, name)
 	if info, err := os.Stat(path); err == nil && info.IsDir() {
@@ -609,12 +609,12 @@ func ListTemplates() ([]*Template, error) {
 	return list, nil
 }
 
-// ValidateAgnosticTemplate validates that a ScionConfig is a valid agnostic template.
+// ValidateAgnosticTemplate validates that a FabricConfig is a valid agnostic template.
 // It rejects templates that still use the legacy 'harness' field and validates
 // that agnostic template fields are properly configured.
-func ValidateAgnosticTemplate(cfg *api.ScionConfig) error {
+func ValidateAgnosticTemplate(cfg *api.FabricConfig) error {
 	if cfg.Harness != "" {
-		return fmt.Errorf("invalid template: 'harness' field is no longer supported in scion-agent.yaml. Remove it and use --harness-config to specify the harness")
+		return fmt.Errorf("invalid template: 'harness' field is no longer supported in fabric-agent.yaml. Remove it and use --harness-config to specify the harness")
 	}
 	return nil
 }
@@ -630,7 +630,7 @@ var KnownModelAliases = map[string]bool{
 // WarnDeprecatedTemplateFields returns deprecation warnings for harness-specific
 // fields that should live in the harness-config rather than the template.
 // These fields are still accepted for backward compatibility but should be migrated.
-func WarnDeprecatedTemplateFields(cfg *api.ScionConfig) []string {
+func WarnDeprecatedTemplateFields(cfg *api.FabricConfig) []string {
 	if cfg == nil {
 		return nil
 	}
@@ -673,9 +673,9 @@ func ResolveModelAlias(model string, aliases map[string]string) string {
 	return model // alias not mapped, pass through
 }
 
-func MergeScionConfig(base, override *api.ScionConfig) *api.ScionConfig {
+func MergeFabricConfig(base, override *api.FabricConfig) *api.FabricConfig {
 	if base == nil {
-		base = &api.ScionConfig{}
+		base = &api.FabricConfig{}
 	}
 	if override == nil {
 		return base

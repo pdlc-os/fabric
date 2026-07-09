@@ -21,7 +21,7 @@ import (
 // resumeCmd represents the resume command
 var resumeCmd = &cobra.Command{
 	Use:   "resume <agent-name>",
-	Short: "Resume a stopped scion agent",
+	Short: "Resume a stopped fabric agent",
 	Long: `Resume an existing stopped LLM agent.
 The agent will be re-launched with the harness-specific resume flag,
 preserving its previous state.

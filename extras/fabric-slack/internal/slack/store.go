@@ -14,7 +14,7 @@ import (
 
 // Store defines the persistence interface for the Slack broker plugin.
 type Store interface {
-	// Channel links (Slack channel <-> Scion project)
+	// Channel links (Slack channel <-> Fabric project)
 	CreateChannelLink(ctx context.Context, link *ChannelLink) error
 	GetChannelLink(ctx context.Context, channelID string) (*ChannelLink, error)
 	GetChannelLinksForProject(ctx context.Context, projectID string) ([]*ChannelLink, error)
@@ -22,7 +22,7 @@ type Store interface {
 	UpdateChannelLink(ctx context.Context, link *ChannelLink) error
 	DeleteChannelLink(ctx context.Context, channelID string) error
 
-	// User mappings (Slack user <-> Scion identity)
+	// User mappings (Slack user <-> Fabric identity)
 	CreateUserMapping(ctx context.Context, mapping *SlackUserMapping) error
 	GetUserMapping(ctx context.Context, slackUserID string) (*SlackUserMapping, error)
 	GetUserMappingByEmail(ctx context.Context, email string) (*SlackUserMapping, error)
@@ -46,7 +46,7 @@ type Store interface {
 	Close() error
 }
 
-// ChannelLink represents a Slack channel linked to a Scion project.
+// ChannelLink represents a Slack channel linked to a Fabric project.
 type ChannelLink struct {
 	ChannelID        string
 	TeamID           string
@@ -60,12 +60,12 @@ type ChannelLink struct {
 	ShowStateChanges bool
 }
 
-// SlackUserMapping links a Slack user to a Scion user identity.
+// SlackUserMapping links a Slack user to a Fabric user identity.
 type SlackUserMapping struct {
 	SlackUserID   string
 	SlackUsername string
-	ScionUserID   string
-	ScionEmail    string
+	FabricUserID   string
+	FabricEmail    string
 	LinkedAt      time.Time
 }
 
@@ -150,12 +150,12 @@ CREATE INDEX IF NOT EXISTS idx_channel_links_project ON channel_links(project_id
 CREATE TABLE IF NOT EXISTS user_mappings (
 	slack_user_id TEXT PRIMARY KEY,
 	slack_username TEXT NOT NULL DEFAULT '',
-	scion_user_id TEXT NOT NULL DEFAULT '',
-	scion_email TEXT NOT NULL DEFAULT '',
+	fabric_user_id TEXT NOT NULL DEFAULT '',
+	fabric_email TEXT NOT NULL DEFAULT '',
 	linked_at TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(scion_email);
+CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(fabric_email);
 
 CREATE TABLE IF NOT EXISTS conversation_context (
 	slack_user_id TEXT NOT NULL,
@@ -278,26 +278,26 @@ func (s *sqliteStore) DeleteChannelLink(ctx context.Context, channelID string) e
 
 func (s *sqliteStore) CreateUserMapping(ctx context.Context, mapping *SlackUserMapping) error {
 	const q = `
-INSERT INTO user_mappings (slack_user_id, slack_username, scion_user_id, scion_email, linked_at)
+INSERT INTO user_mappings (slack_user_id, slack_username, fabric_user_id, fabric_email, linked_at)
 VALUES (?, ?, ?, ?, ?)
 ON CONFLICT(slack_user_id) DO UPDATE SET
-	slack_username=excluded.slack_username, scion_user_id=excluded.scion_user_id,
-	scion_email=excluded.scion_email, linked_at=excluded.linked_at`
+	slack_username=excluded.slack_username, fabric_user_id=excluded.fabric_user_id,
+	fabric_email=excluded.fabric_email, linked_at=excluded.linked_at`
 	_, err := s.db.ExecContext(ctx, q,
 		mapping.SlackUserID, mapping.SlackUsername,
-		mapping.ScionUserID, mapping.ScionEmail,
+		mapping.FabricUserID, mapping.FabricEmail,
 		mapping.LinkedAt.UTC().Format(time.RFC3339))
 	return err
 }
 
 func (s *sqliteStore) GetUserMapping(ctx context.Context, slackUserID string) (*SlackUserMapping, error) {
-	const q = `SELECT slack_user_id, slack_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE slack_user_id = ?`
+	const q = `SELECT slack_user_id, slack_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE slack_user_id = ?`
 	row := s.db.QueryRowContext(ctx, q, slackUserID)
 	return scanUserMapping(row)
 }
 
 func (s *sqliteStore) GetUserMappingByEmail(ctx context.Context, email string) (*SlackUserMapping, error) {
-	const q = `SELECT slack_user_id, slack_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE scion_email = ?`
+	const q = `SELECT slack_user_id, slack_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE fabric_email = ?`
 	row := s.db.QueryRowContext(ctx, q, email)
 	return scanUserMapping(row)
 }
@@ -504,7 +504,7 @@ func scanChannelLinks(rows *sql.Rows) ([]*ChannelLink, error) {
 func scanUserMapping(row *sql.Row) (*SlackUserMapping, error) {
 	var m SlackUserMapping
 	var linkedAt string
-	err := row.Scan(&m.SlackUserID, &m.SlackUsername, &m.ScionUserID, &m.ScionEmail, &linkedAt)
+	err := row.Scan(&m.SlackUserID, &m.SlackUsername, &m.FabricUserID, &m.FabricEmail, &linkedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

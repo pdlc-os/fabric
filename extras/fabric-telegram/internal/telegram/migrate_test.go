@@ -64,14 +64,14 @@ func TestMigrateSQLiteToPostgres(t *testing.T) {
 	require.NoError(t, src.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID:   "user-a",
 		TelegramUsername: "alice",
-		ScionUserID:      "scion-a",
-		ScionEmail:       "alice@example.com",
+		FabricUserID:      "fabric-a",
+		FabricEmail:       "alice@example.com",
 		LinkedAt:         now,
 	}))
 	require.NoError(t, src.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID:   "user-b",
 		TelegramUsername: "bob",
-		ScionEmail:       "bob@example.com",
+		FabricEmail:       "bob@example.com",
 		LinkedAt:         now,
 	}))
 

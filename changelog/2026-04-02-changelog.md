@@ -11,7 +11,7 @@ This release focuses on a significant architectural overhaul of the template imp
 * **Enhanced Template Discovery & Deep Path Support:**
     * **Deep GitHub Paths:** Support for importing from specific subdirectories (e.g., `/tree/main/path/to/templates`) rather than just the repository root.
     * **Expanded Protocol Support:** Added support for importing templates from archives (`.zip`, `.tar.gz`) and rclone URIs (`:gcs:bucket/path`).
-    * **Native Scion Templates:** Support for direct "copy" imports of native scion templates containing `scion-agent.yaml`, skipping the conversion process.
+    * **Native Fabric Templates:** Support for direct "copy" imports of native fabric templates containing `fabric-agent.yaml`, skipping the conversion process.
 * **New Agent Skill: `team-creation`:** A specialized skill for generating coordinated multi-agent template sets. It simplifies the creation of orchestrator-worker patterns and provides best-practice guidance for agent-to-agent communication.
 * **Multi-Agent Example: `agent-poker`:** A complete Texas Hold'em poker simulation featuring:
     * **Dealer Role:** Manages game state, deals cards using a persistent Python-based deck script, and enforces rules.
@@ -19,5 +19,5 @@ This release focuses on a significant architectural overhaul of the template imp
     * **Auditor Role:** Independently validates the integrity of the game by tracking all dealt cards and monitoring broadcast actions for violations.
 
 ## 🐛 Fixes
-* **Agent Skill Refinement:** Improved guidance on the `--notify` flag and added missing documentation for the `scion messages` CLI command.
+* **Agent Skill Refinement:** Improved guidance on the `--notify` flag and added missing documentation for the `fabric messages` CLI command.
 * **Template Examples:** Resolved broken URLs in example templates and updated them to the new import workflow.

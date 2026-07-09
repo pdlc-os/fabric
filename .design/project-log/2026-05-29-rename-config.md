@@ -22,7 +22,7 @@ Completed Tier 1 (internal identifiers) rename of "grove" to "project" across al
 - **`shared_dirs.go`**: No Tier 1 changes needed
 
 ### Test Files (9 files)
-- Renamed test local variables: `groveDir` → `projectDir`, `groveScionDir` → `projectScionDir`, `groveSettingsYAML` → `projectSettingsYAML`, `groveSettings` → `projectSettings`, `groveConfigDir` → `projectConfigDir`, `groveHCDir` → `projectHCDir`, etc.
+- Renamed test local variables: `groveDir` → `projectDir`, `groveFabricDir` → `projectFabricDir`, `groveSettingsYAML` → `projectSettingsYAML`, `groveSettings` → `projectSettings`, `groveConfigDir` → `projectConfigDir`, `groveHCDir` → `projectHCDir`, etc.
 - Renamed test function names: `TestWriteGroveSettings_*` → `TestWriteProjectSettings_*`, `TestGetAgentHomePath_GitGroveSplitStorage` → `TestGetAgentHomePath_GitProjectSplitStorage`, `TestResolveAgentDir_FallsBackToInGroveWhenExternalAbsent` → `TestResolveAgentDir_FallsBackToInProjectWhenExternalAbsent`
 - Updated comments and human-readable strings in test assertions
 - Updated test directory path strings (`"my-grove"` → `"my-project"`)
@@ -31,7 +31,7 @@ Completed Tier 1 (internal identifiers) rename of "grove" to "project" across al
 - Exported constants: `GroveConfigsDir`, `GrovesDir`
 - Exported struct fields with JSON/YAML tags: `ProjectInfo.GroveID`, `V1HubClientConfig.ProjectID` (json:"grove_id")
 - Config key strings: `"grove_id"`, `"hub.grove_id"`, `"hub.groveId"`
-- Environment variable strings: `"SCION_GROVE_ID"`, `"SCION_HUB_GROVE_ID"`
+- Environment variable strings: `"FABRIC_GROVE_ID"`, `"FABRIC_HUB_GROVE_ID"`
 - Filesystem path strings: `"grove-configs"`, `"grove-id"`, `"groves/"`, `"default_grove_settings.yaml"`
 - YAML struct tags: `yaml:"grove-id"`, `yaml:"grove-name"`, `yaml:"grove-slug"`
 - Backward compatibility logic and comments documenting it

@@ -55,8 +55,8 @@ const AVAILABLE_SCOPES = [
   { value: 'agent:manage', label: 'agent:manage', description: 'All agent actions (convenience alias)' },
 ] as const;
 
-@customElement('scion-token-list')
-export class ScionTokenList extends LitElement {
+@customElement('fabric-token-list')
+export class FabricTokenList extends LitElement {
   @state() private loading = true;
   @state() private tokens: AccessToken[] = [];
   @state() private projects: Project[] = [];
@@ -89,7 +89,7 @@ export class ScionTokenList extends LitElement {
         border-radius: 9999px;
         font-size: 0.6875rem;
         font-weight: 500;
-        font-family: var(--scion-font-mono, monospace);
+        font-family: var(--fabric-font-mono, monospace);
         background: var(--sl-color-primary-100, #dbeafe);
         color: var(--sl-color-primary-700, #1d4ed8);
       }
@@ -140,12 +140,12 @@ export class ScionTokenList extends LitElement {
       }
 
       .token-value {
-        font-family: var(--scion-font-mono, monospace);
+        font-family: var(--fabric-font-mono, monospace);
         font-size: 0.8125rem;
-        background: var(--scion-bg-subtle, #f1f5f9);
+        background: var(--fabric-bg-subtle, #f1f5f9);
         padding: 0.75rem 1rem;
-        border-radius: var(--scion-radius, 0.5rem);
-        border: 1px solid var(--scion-border, #e2e8f0);
+        border-radius: var(--fabric-radius, 0.5rem);
+        border: 1px solid var(--fabric-border, #e2e8f0);
         word-break: break-all;
         user-select: all;
       }
@@ -184,26 +184,26 @@ export class ScionTokenList extends LitElement {
 
       .scope-checkbox-label {
         font-size: 0.8125rem;
-        font-family: var(--scion-font-mono, monospace);
-        color: var(--scion-text, #1e293b);
+        font-family: var(--fabric-font-mono, monospace);
+        color: var(--fabric-text, #1e293b);
       }
 
       .scope-checkbox-desc {
         font-size: 0.6875rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         font-family: inherit;
       }
 
       .field-label {
         font-size: 0.875rem;
         font-weight: 500;
-        color: var(--scion-text, #1e293b);
+        color: var(--fabric-text, #1e293b);
         margin-bottom: 0.375rem;
       }
 
       .project-name {
         font-size: 0.8125rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
       }
 
       tr.revoked td {
@@ -737,6 +737,6 @@ export class ScionTokenList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-token-list': ScionTokenList;
+    'fabric-token-list': FabricTokenList;
   }
 }

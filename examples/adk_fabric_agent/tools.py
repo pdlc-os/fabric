@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Agent-callable tools for scion status signaling.
+"""Agent-callable tools for fabric status signaling.
 
 File and shell operations are provided by ADK's EnvironmentToolset
-(via LocalEnvironment). This module exposes only the scion-specific
-sciontool_status tool.
+(via LocalEnvironment). This module exposes only the fabric-specific
+fabrictool_status tool.
 """
 
 import logging
 
-from . import sciontool
+from . import fabrictool
 
 logger = logging.getLogger(__name__)
 
 
-def sciontool_status(status_type: str, message: str) -> dict:
-    """Signal a lifecycle event to scion's orchestration layer.
+def fabrictool_status(status_type: str, message: str) -> dict:
+    """Signal a lifecycle event to fabric's orchestration layer.
 
     Args:
         status_type: One of "ask_user", "blocked", "task_completed", or
@@ -47,7 +47,7 @@ def sciontool_status(status_type: str, message: str) -> dict:
             ),
         }
 
-    sciontool.run_status(status_type, message)
+    fabrictool.run_status(status_type, message)
 
     return {
         "status": "success",

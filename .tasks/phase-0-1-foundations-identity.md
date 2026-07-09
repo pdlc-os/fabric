@@ -51,7 +51,7 @@ Add a small `PUT /api/v1/system/identity` endpoint:
 This is a text/copy pass only — **no code logic changes**:
 - `cmd/server_daemon.go` `printWorkstationQuickstart()` (line 361-384): change "dev token" → "developer token" in the printed output
 - CLI help strings referencing "dev token" in `cmd/` — update to "developer token"  
-- Web copy in `web/src/` — grep for "dev token" / "dev-token" in UI strings and update display text (not variable names, not `scion_dev_` format, not env var names — those stay)
+- Web copy in `web/src/` — grep for "dev token" / "dev-token" in UI strings and update display text (not variable names, not `fabric_dev_` format, not env var names — those stay)
 - Any user-facing docs in `docs-site/` or `docs-repo/`
 
 ---

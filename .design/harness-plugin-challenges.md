@@ -4,23 +4,23 @@
 
 The harness plugin system (via `pkg/plugin/` and hashicorp/go-plugin RPC) successfully externalizes harness **logic** — provisioning, auth, env vars, commands. However, two coupled extension points remain closed to plugin authors:
 
-1. **Sciontool hook dialects** — parsing harness-specific hook JSON into normalized events is compiled Go code inside `pkg/sciontool/hooks/dialects/`. A new harness with its own hook event schema requires modifying sciontool itself.
+1. **Fabrictool hook dialects** — parsing harness-specific hook JSON into normalized events is compiled Go code inside `pkg/fabrictool/hooks/dialects/`. A new harness with its own hook event schema requires modifying fabrictool itself.
 2. **Container images** — harness CLIs and runtime dependencies are baked into Dockerfiles in `image-build/`. A new harness needs its own container, but there's no mechanism for a plugin to declare which image to use.
 
-This means a contributor who builds a harness plugin still needs to fork and modify the scion codebase for hooks and containers, undermining the plugin model.
+This means a contributor who builds a harness plugin still needs to fork and modify the fabric codebase for hooks and containers, undermining the plugin model.
 
 ## Current Architecture
 
 ### What's Already Pluggable
 
 - Harness interface (`pkg/api/harness.go`): `Provision()`, `GetCommand()`, `GetEnv()`, `ResolveAuth()`, etc.
-- Plugin discovery: binary naming convention (`scion-plugin-<name>`), filesystem scan, PATH lookup, explicit config
+- Plugin discovery: binary naming convention (`fabric-plugin-<name>`), filesystem scan, PATH lookup, explicit config
 - Plugin RPC bridge: `pkg/plugin/harness_plugin.go` handles cross-process communication
 - Reference implementation: `pkg/plugin/refharness/` provides a working template
 
 ### What's Not Pluggable
 
-**Hook Dialects** (`pkg/sciontool/hooks/dialects/`)
+**Hook Dialects** (`pkg/fabrictool/hooks/dialects/`)
 
 Each dialect is a compiled Go struct implementing the `Dialect` interface:
 ```go
@@ -34,7 +34,7 @@ Dialects map harness-specific event names to normalized events (`tool-start`, `p
 
 **Container Images** (`image-build/`)
 
-The image hierarchy is: `core-base` → `scion-base` → `<harness>` (claude, gemini, etc.). Harness images install the CLI tool and any harness-specific configuration. The runtime layer currently hardcodes the image-to-harness mapping.
+The image hierarchy is: `core-base` → `fabric-base` → `<harness>` (claude, gemini, etc.). Harness images install the CLI tool and any harness-specific configuration. The runtime layer currently hardcodes the image-to-harness mapping.
 
 ## Proposed Approach
 
@@ -70,14 +70,14 @@ mappings:
 
 **Implementation:**
 
-- Add a `MappingDialect` implementation in `pkg/sciontool/hooks/dialects/` that loads from a spec file at runtime
-- Load specs from `~/.scion/plugins/harness/<name>/dialect.yaml` or via a `GetDialectSpec() ([]byte, error)` RPC method on the plugin interface
+- Add a `MappingDialect` implementation in `pkg/fabrictool/hooks/dialects/` that loads from a spec file at runtime
+- Load specs from `~/.fabric/plugins/harness/<name>/dialect.yaml` or via a `GetDialectSpec() ([]byte, error)` RPC method on the plugin interface
 - The `HarnessProcessor` registers these alongside built-in dialects at startup
 - All existing handlers (status, logging, hub, telemetry, limits) work unchanged since they operate on normalized events
 
 **For complex parsing needs:** consider supporting CEL or Starlark expressions for field extraction, but defer until someone actually needs it.
 
-**Why this is highest priority:** sciontool runs *inside the container*. Without this, every new harness requires rebuilding sciontool and the container image, which defeats the plugin model entirely.
+**Why this is highest priority:** fabrictool runs *inside the container*. Without this, every new harness requires rebuilding fabrictool and the container image, which defeats the plugin model entirely.
 
 ### Tier 2: Plugin-Declared Container Image
 
@@ -89,10 +89,10 @@ type ContainerImageProvider interface {
 }
 
 type ContainerImageSpec struct {
-    // Pre-built image reference (e.g. "ghcr.io/someone/scion-harness-cursor:latest")
+    // Pre-built image reference (e.g. "ghcr.io/someone/fabric-harness-cursor:latest")
     Image string
 
-    // Alternative: base image to layer on (e.g. "scion-base")
+    // Alternative: base image to layer on (e.g. "fabric-base")
     BaseImage string
 
     // Alternative: inline Dockerfile content for local build
@@ -102,27 +102,27 @@ type ContainerImageSpec struct {
 
 This lets a plugin declare:
 - **"Use this image"** — pre-built and published to a registry
-- **"Layer on scion-base"** — provide a Dockerfile fragment that the runtime builds locally
+- **"Layer on fabric-base"** — provide a Dockerfile fragment that the runtime builds locally
 
 The runtime layer already resolves images; it just needs to consult the plugin instead of maintaining a hardcoded mapping.
 
-For contributors, the simplest path: publish a container image extending `scion-base`, reference it from plugin metadata.
+For contributors, the simplest path: publish a container image extending `fabric-base`, reference it from plugin metadata.
 
 ### Tier 3: Contributor SDK / Scaffold
 
 Once Tiers 1 and 2 are in place, formalize the contributor experience:
 
-1. `scion plugin init my-harness` — scaffolds a Go module from refharness template
+1. `fabric plugin init my-harness` — scaffolds a Go module from refharness template
 2. Contributor implements `Provision()`, `GetCommand()`, `ResolveAuth()`
 3. Contributor writes a `dialect.yaml` for hook event mapping
-4. Contributor writes a `Dockerfile` extending `scion-base` (or references an existing image)
-5. `scion plugin build` — produces `scion-plugin-my-harness` binary + packages dialect spec
-6. Drop into `~/.scion/plugins/harness/` and it works
+4. Contributor writes a `Dockerfile` extending `fabric-base` (or references an existing image)
+5. `fabric plugin build` — produces `fabric-plugin-my-harness` binary + packages dialect spec
+6. Drop into `~/.fabric/plugins/harness/` and it works
 
 ## Priority
 
-1. **Declarative dialect spec** — unblocks hook processing without sciontool changes; architecturally the most constraining problem
-2. **Plugin-declared container image** — less urgent since contributors can build images from `scion-base` manually; mainly a config/settings wiring problem
+1. **Declarative dialect spec** — unblocks hook processing without fabrictool changes; architecturally the most constraining problem
+2. **Plugin-declared container image** — less urgent since contributors can build images from `fabric-base` manually; mainly a config/settings wiring problem
 3. **Scaffold tooling** — quality-of-life; depends on Tiers 1 and 2 being stable
 
 ## Related Files
@@ -133,8 +133,8 @@ Once Tiers 1 and 2 are in place, formalize the contributor experience:
 | Harness factory | `pkg/harness/harness.go` |
 | Plugin system | `pkg/plugin/harness_plugin.go`, `manager.go`, `discovery.go`, `config.go` |
 | Reference plugin | `pkg/plugin/refharness/refharness.go` |
-| Hook processor | `pkg/sciontool/hooks/harness.go` |
-| Hook types | `pkg/sciontool/hooks/types.go` |
-| Existing dialects | `pkg/sciontool/hooks/dialects/claude.go`, `gemini.go`, `codex.go` |
-| Handlers | `pkg/sciontool/hooks/handlers/status.go`, `logging.go`, `hub.go`, etc. |
-| Container images | `image-build/scion-base/Dockerfile`, `image-build/claude/Dockerfile`, etc. |
+| Hook processor | `pkg/fabrictool/hooks/harness.go` |
+| Hook types | `pkg/fabrictool/hooks/types.go` |
+| Existing dialects | `pkg/fabrictool/hooks/dialects/claude.go`, `gemini.go`, `codex.go` |
+| Handlers | `pkg/fabrictool/hooks/handlers/status.go`, `logging.go`, `hub.go`, etc. |
+| Container images | `image-build/fabric-base/Dockerfile`, `image-build/claude/Dockerfile`, etc. |

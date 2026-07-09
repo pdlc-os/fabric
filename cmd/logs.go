@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -66,8 +66,8 @@ var logsCmd = &cobra.Command{
 
 		// Find the agent to get its project path
 		agents, err := rt.List(context.Background(), map[string]string{
-			"scion.agent": "true",
-			"scion.name":  agentName,
+			"fabric.agent": "true",
+			"fabric.name":  agentName,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to find agent %s: %w", agentName, err)
@@ -120,7 +120,7 @@ func getHubLogs(ctx context.Context, hubCtx *HubContext, agentName string) error
 		fmt.Println("View logs in the Google Cloud Console:")
 		fmt.Println("  https://console.cloud.google.com/logs")
 		fmt.Println()
-		fmt.Println("Use scion look to view the agent's current interaction output.")
+		fmt.Println("Use fabric look to view the agent's current interaction output.")
 		return nil
 	}
 

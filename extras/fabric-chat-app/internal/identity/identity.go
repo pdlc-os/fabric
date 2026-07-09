@@ -25,13 +25,13 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 const (
-	tokenIssuer   = "scion-hub"
-	tokenAudience = "scion-hub-api"
+	tokenIssuer   = "fabric-hub"
+	tokenAudience = "fabric-hub-api"
 	// impersonationTokenDuration is how long per-request impersonation tokens last.
 	impersonationTokenDuration = 15 * time.Minute
 )

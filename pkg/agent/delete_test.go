@@ -21,11 +21,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 func setupGitRepo(t *testing.T, dir string) {
@@ -55,7 +55,7 @@ func listWorktrees(t *testing.T, repoDir string) string {
 }
 
 func TestDeleteAgentFiles_CleansStaleWorktree(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	// Set CWD and HOME to tmpDir so config resolution works
@@ -74,14 +74,14 @@ func TestDeleteAgentFiles_CleansStaleWorktree(t *testing.T) {
 	}
 	setupGitRepo(t, projectDir)
 
-	// Create .scion directory structure
-	scionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0755); err != nil {
-		t.Fatalf("mkdir scion agents: %v", err)
+	// Create .fabric directory structure
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0755); err != nil {
+		t.Fatalf("mkdir fabric agents: %v", err)
 	}
 
 	agentName := "stale-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	agentWorkspace := filepath.Join(agentDir, "workspace")
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("mkdir agent: %v", err)
@@ -109,7 +109,7 @@ func TestDeleteAgentFiles_CleansStaleWorktree(t *testing.T) {
 	}
 
 	// Call DeleteAgentFiles — it should clean up the stale worktree record
-	branchDeleted, err := DeleteAgentFiles(agentName, scionDir, true)
+	branchDeleted, err := DeleteAgentFiles(agentName, fabricDir, true)
 	if err != nil {
 		t.Fatalf("DeleteAgentFiles failed: %v", err)
 	}
@@ -137,10 +137,10 @@ func TestDeleteAgentFiles_CleansStaleWorktree(t *testing.T) {
 // TestDeleteAgentFiles_CleansSharedWorkspaceExternalState verifies that for
 // shared-workspace git projects (whose per-agent state lives outside the project
 // tree per .design/hub-shared-workspace-isolation.md), DeleteAgentFiles
-// removes the external <project-configs>/<slug>__<uuid>/.scion/agents/<name>
+// removes the external <project-configs>/<slug>__<uuid>/.fabric/agents/<name>
 // directory in addition to any in-project residue.
 func TestDeleteAgentFiles_CleansSharedWorkspaceExternalState(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -151,25 +151,25 @@ func TestDeleteAgentFiles_CleansSharedWorkspaceExternalState(t *testing.T) {
 
 	t.Setenv("HOME", tmpDir)
 
-	// Set up a project with .scion + project-id (split-storage marker).
+	// Set up a project with .fabric + project-id (split-storage marker).
 	projectDir := filepath.Join(tmpDir, "project")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatalf("mkdir project: %v", err)
 	}
 	setupGitRepo(t, projectDir)
 
-	scionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		t.Fatalf("mkdir scion: %v", err)
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		t.Fatalf("mkdir fabric: %v", err)
 	}
-	if err := config.WriteProjectID(scionDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
+	if err := config.WriteProjectID(fabricDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
 		t.Fatalf("WriteProjectID failed: %v", err)
 	}
 
 	agentName := "shared-agent"
 
 	// Resolve the external dir the same way production code does.
-	extAgentsDir, err := config.GetGitProjectExternalAgentsDir(scionDir)
+	extAgentsDir, err := config.GetGitProjectExternalAgentsDir(fabricDir)
 	if err != nil || extAgentsDir == "" {
 		t.Fatalf("GetGitProjectExternalAgentsDir: dir=%q err=%v", extAgentsDir, err)
 	}
@@ -180,16 +180,16 @@ func TestDeleteAgentFiles_CleansSharedWorkspaceExternalState(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(extAgentDir, "prompt.md"), []byte("task"), 0644); err != nil {
 		t.Fatalf("write prompt.md: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(extAgentDir, "scion-agent.json"), []byte(`{}`), 0644); err != nil {
-		t.Fatalf("write scion-agent.json: %v", err)
+	if err := os.WriteFile(filepath.Join(extAgentDir, "fabric-agent.json"), []byte(`{}`), 0644); err != nil {
+		t.Fatalf("write fabric-agent.json: %v", err)
 	}
 	// Also seed an external home/ subdir to mirror real layout.
 	if err := os.MkdirAll(filepath.Join(extAgentDir, "home"), 0755); err != nil {
 		t.Fatalf("mkdir home: %v", err)
 	}
 
-	// DeleteAgentFiles takes projectPath; pass scionDir like real callers do.
-	if _, err := DeleteAgentFiles(agentName, scionDir, false); err != nil {
+	// DeleteAgentFiles takes projectPath; pass fabricDir like real callers do.
+	if _, err := DeleteAgentFiles(agentName, fabricDir, false); err != nil {
 		t.Fatalf("DeleteAgentFiles failed: %v", err)
 	}
 
@@ -199,7 +199,7 @@ func TestDeleteAgentFiles_CleansSharedWorkspaceExternalState(t *testing.T) {
 }
 
 func TestDeleteAgentFiles_CleansWorktreeWithGitFile(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "") // Clear container context for worktree ops
+	t.Setenv("FABRIC_HOST_UID", "") // Clear container context for worktree ops
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -216,13 +216,13 @@ func TestDeleteAgentFiles_CleansWorktreeWithGitFile(t *testing.T) {
 	}
 	setupGitRepo(t, projectDir)
 
-	scionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0755); err != nil {
-		t.Fatalf("mkdir scion agents: %v", err)
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0755); err != nil {
+		t.Fatalf("mkdir fabric agents: %v", err)
 	}
 
 	agentName := "normal-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	agentWorkspace := filepath.Join(agentDir, "workspace")
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("mkdir agent: %v", err)
@@ -239,7 +239,7 @@ func TestDeleteAgentFiles_CleansWorktreeWithGitFile(t *testing.T) {
 	}
 
 	// DeleteAgentFiles should properly clean up via RemoveWorktree
-	branchDeleted, err := DeleteAgentFiles(agentName, scionDir, true)
+	branchDeleted, err := DeleteAgentFiles(agentName, fabricDir, true)
 	if err != nil {
 		t.Fatalf("DeleteAgentFiles failed: %v", err)
 	}
@@ -293,7 +293,7 @@ func initBareRepo(t *testing.T) string {
 // and .git/worktrees registration, while leaving the shared base and
 // sibling worktrees intact.
 func TestDeleteAgentFiles_WorktreePerAgent_DeletesOnlyTargetWorktree(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
@@ -304,10 +304,10 @@ func TestDeleteAgentFiles_WorktreePerAgent_DeletesOnlyTargetWorktree(t *testing.
 	bare := initBareRepo(t)
 	gc := &api.GitCloneConfig{URL: bare, Branch: "main", Depth: 0}
 
-	// Set up a hub-managed project layout: projectPath with .scion inside.
+	// Set up a hub-managed project layout: projectPath with .fabric inside.
 	projectPath := filepath.Join(tmpDir, "proj")
-	scionDir := filepath.Join(projectPath, config.DotScion)
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0o755); err != nil {
+	fabricDir := filepath.Join(projectPath, config.DotFabric)
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -353,13 +353,13 @@ func TestDeleteAgentFiles_WorktreePerAgent_DeletesOnlyTargetWorktree(t *testing.
 
 	// Create agent config dirs (as the broker would).
 	for _, name := range []string{"agent-a", "agent-b"} {
-		agentDir := filepath.Join(scionDir, "agents", name)
+		agentDir := filepath.Join(fabricDir, "agents", name)
 		if err := os.MkdirAll(agentDir, 0o755); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	// Delete agent-b via DeleteAgentFiles (pass projectPath, not scionDir,
+	// Delete agent-b via DeleteAgentFiles (pass projectPath, not fabricDir,
 	// to match the hub-managed broker flow).
 	branchDeleted, err := DeleteAgentFiles("agent-b", projectPath, true)
 	if err != nil {
@@ -404,12 +404,12 @@ func TestDeleteAgentFiles_WorktreePerAgent_DeletesOnlyTargetWorktree(t *testing.
 	}
 
 	// 7. agent-b config dir is removed.
-	if _, err := os.Stat(filepath.Join(scionDir, "agents", "agent-b")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(fabricDir, "agents", "agent-b")); !os.IsNotExist(err) {
 		t.Errorf("agent-b config dir should be removed, stat err=%v", err)
 	}
 
 	// 8. agent-a config dir survives.
-	if _, err := os.Stat(filepath.Join(scionDir, "agents", "agent-a")); err != nil {
+	if _, err := os.Stat(filepath.Join(fabricDir, "agents", "agent-a")); err != nil {
 		t.Errorf("agent-a config dir should survive: %v", err)
 	}
 }
@@ -418,7 +418,7 @@ func TestDeleteAgentFiles_WorktreePerAgent_DeletesOnlyTargetWorktree(t *testing.
 // that deleting the creator agent of a shared worktree does NOT remove the
 // shared worktree or branch when another sharer (joiner) remains.
 func TestDeleteAgentFiles_SharedWorktree_DeleteCreatorWhileJoinerRemains(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
@@ -430,8 +430,8 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteCreatorWhileJoinerRemains(t *test
 	gc := &api.GitCloneConfig{URL: bare, Branch: "main", Depth: 0}
 
 	projectPath := filepath.Join(tmpDir, "proj")
-	scionDir := filepath.Join(projectPath, config.DotScion)
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0o755); err != nil {
+	fabricDir := filepath.Join(projectPath, config.DotFabric)
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -470,7 +470,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteCreatorWhileJoinerRemains(t *test
 
 	// Create agent config dirs (as the broker would).
 	for _, name := range []string{"agent-a", "agent-b"} {
-		if err := os.MkdirAll(filepath.Join(scionDir, "agents", name), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Join(fabricDir, "agents", name), 0o755); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -514,7 +514,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteCreatorWhileJoinerRemains(t *test
 	}
 
 	// 5. agent-a's config dir is removed.
-	if _, err := os.Stat(filepath.Join(scionDir, "agents", "agent-a")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(fabricDir, "agents", "agent-a")); !os.IsNotExist(err) {
 		t.Errorf("agent-a config dir should be removed, stat err=%v", err)
 	}
 }
@@ -523,7 +523,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteCreatorWhileJoinerRemains(t *test
 // that deleting the last remaining sharer removes the shared worktree and
 // optionally the branch.
 func TestDeleteAgentFiles_SharedWorktree_DeleteLastSharer_RemovesWorktree(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
@@ -535,8 +535,8 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteLastSharer_RemovesWorktree(t *tes
 	gc := &api.GitCloneConfig{URL: bare, Branch: "main", Depth: 0}
 
 	projectPath := filepath.Join(tmpDir, "proj")
-	scionDir := filepath.Join(projectPath, config.DotScion)
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0o755); err != nil {
+	fabricDir := filepath.Join(projectPath, config.DotFabric)
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -552,7 +552,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteLastSharer_RemovesWorktree(t *tes
 		}); err != nil {
 			t.Fatalf("provision %s: %v", id, err)
 		}
-		if err := os.MkdirAll(filepath.Join(scionDir, "agents", id), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Join(fabricDir, "agents", id), 0o755); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -599,7 +599,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteLastSharer_RemovesWorktree(t *tes
 	}
 
 	// 4. agent-b's config dir is removed.
-	if _, err := os.Stat(filepath.Join(scionDir, "agents", "agent-b")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(fabricDir, "agents", "agent-b")); !os.IsNotExist(err) {
 		t.Errorf("agent-b config dir should be removed, stat err=%v", err)
 	}
 }
@@ -608,7 +608,7 @@ func TestDeleteAgentFiles_SharedWorktree_DeleteLastSharer_RemovesWorktree(t *tes
 // unique-branch agent (sole sharer in the registry) still has its worktree
 // removed on delete — no regression from the refcount path.
 func TestDeleteAgentFiles_SharedWorktree_SoleSharer_DeleteRemoves(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
@@ -620,8 +620,8 @@ func TestDeleteAgentFiles_SharedWorktree_SoleSharer_DeleteRemoves(t *testing.T) 
 	gc := &api.GitCloneConfig{URL: bare, Branch: "main", Depth: 0}
 
 	projectPath := filepath.Join(tmpDir, "proj")
-	scionDir := filepath.Join(projectPath, config.DotScion)
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents"), 0o755); err != nil {
+	fabricDir := filepath.Join(projectPath, config.DotFabric)
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -636,7 +636,7 @@ func TestDeleteAgentFiles_SharedWorktree_SoleSharer_DeleteRemoves(t *testing.T) 
 	}); err != nil {
 		t.Fatalf("provision solo-agent: %v", err)
 	}
-	if err := os.MkdirAll(filepath.Join(scionDir, "agents", "solo-agent"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(fabricDir, "agents", "solo-agent"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 

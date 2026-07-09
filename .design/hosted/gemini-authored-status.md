@@ -1,11 +1,11 @@
-# Scion Hosted Mode Status Analysis
+# Fabric Hosted Mode Status Analysis
 
 **Date:** January 26, 2026
 **Scope:** Review of `@.design/hosted/**` against current codebase.
 
 ## 1. Executive Summary
 
-The Scion Hosted architecture is partially implemented. The core "backend" components (Hub API, Runtime Broker API, Client Libraries) have a solid foundation in Go. The "frontend" (Web Dashboard) has a parallel implementation in Node.js (Koa + Lit SSR) but is **not yet integrated** into the main `scion` Go binary as intended by the single-binary design goal.
+The Fabric Hosted architecture is partially implemented. The core "backend" components (Hub API, Runtime Broker API, Client Libraries) have a solid foundation in Go. The "frontend" (Web Dashboard) has a parallel implementation in Node.js (Koa + Lit SSR) but is **not yet integrated** into the main `fabric` Go binary as intended by the single-binary design goal.
 
 ## 2. Component Status Review
 
@@ -43,7 +43,7 @@ The Scion Hosted architecture is partially implemented. The core "backend" compo
     *   Lit Components Structure.
     *   Milestones M1 & M2 (Server Foundation, Lit SSR) appear implemented in the `web/` directory.
 *   **Critical Gap:**
-    *   **Integration:** The `scion` CLI (`cmd/server.go`) **does not** have the `web` server component wired up. The flags `--enable-web` are defined in design but missing in `serverCmd`.
+    *   **Integration:** The `fabric` CLI (`cmd/server.go`) **does not** have the `web` server component wired up. The flags `--enable-web` are defined in design but missing in `serverCmd`.
     *   **Architecture Conflict:** `web-frontend-design.md` relies on Node.js for SSR. `server-implementation-design.md` calls for a single Go binary.
         *   *Current Reality:* We have a Node.js app. To run as a single Go binary, we must either:
             1.  Drop SSR and serve as a static SPA (Client-Side Rendering only) embedded in Go.
@@ -54,13 +54,13 @@ The Scion Hosted architecture is partially implemented. The core "backend" compo
 
 ### 3.1 The SSR vs. Single Binary Conflict
 The biggest architectural risk is the requirement for `@lit-labs/ssr` (Node.js) vs. the "Single Binary" deployment model.
-*   **Risk:** Users expecting `scion server start --enable-web` to just work will be disappointed if it requires a separate `npm start` process.
+*   **Risk:** Users expecting `fabric server start --enable-web` to just work will be disappointed if it requires a separate `npm start` process.
 *   **Mitigation:** Define the Go binary's web role as "Static SPA Server" (Read-Only/Dashboard) and keep the Node.js server for the full "Hosted" experience, OR migrate the frontend to a pure Client-Side Rendering (CSR) model if single-binary is the priority.
 
 ### 3.2 Event Propagation (The "Live Wire")
 The design relies heavily on NATS for real-time updates (`web-frontend-design.md`).
 *   **Risk:** `pkg/hub` does not seem to have NATS embedded. If the Hub is supposed to be self-contained (SQLite + Go), introducing an external NATS dependency complicates the "Solo/Local" deployment significantly.
-*   **Recommendation:** For local/solo mode, implement an in-memory event bus that mimics the NATS interface, so `scion server` doesn't require a Dockerized NATS sidecar.
+*   **Recommendation:** For local/solo mode, implement an in-memory event bus that mimics the NATS interface, so `fabric server` doesn't require a Dockerized NATS sidecar.
 
 ### 3.3 Dev Auth vs. Production Auth
 *   **Risk:** `dev-auth` is implemented, but the transition to Production Auth (OAuth) in the single binary is complex. The Go binary needs to handle OAuth callbacks if it's serving the frontend.
@@ -69,7 +69,7 @@ The design relies heavily on NATS for real-time updates (`web-frontend-design.md
 ## 4. Next Logical Milestones
 
 ### M1: Bridge the Gap (Go <-> Web)
-*   **Task:** Implement `scion server start --enable-web`.
+*   **Task:** Implement `fabric server start --enable-web`.
 *   **Approach:**
     1.  Add `//go:embed` to `cmd/server.go` (or `pkg/web`) to bundle the *built* frontend assets (`dist/client`).
     2.  Implement a simple HTTP server in Go that serves these static assets.
@@ -79,7 +79,7 @@ The design relies heavily on NATS for real-time updates (`web-frontend-design.md
 *   **Task:** Implement the Event Bus in `pkg/hub`.
 *   **Approach:**
     1.  Define an `EventBus` interface.
-    2.  Implement `MemoryEventBus` for local `scion server` usage.
+    2.  Implement `MemoryEventBus` for local `fabric server` usage.
     3.  Implement `NatsEventBus` for clustered/k8s usage.
     4.  Wire this into `AgentService` to publish status changes.
 

@@ -73,13 +73,13 @@ func TestOTelRecordAuthAttempt(t *testing.T) {
 
 	metrics := collectMetrics(t, reader)
 
-	if got := sumCounter(metrics["scion.hub.auth.attempts"]); got != 2 {
+	if got := sumCounter(metrics["fabric.hub.auth.attempts"]); got != 2 {
 		t.Errorf("auth.attempts = %d, want 2", got)
 	}
-	if got := sumCounter(metrics["scion.hub.auth.successes"]); got != 1 {
+	if got := sumCounter(metrics["fabric.hub.auth.successes"]); got != 1 {
 		t.Errorf("auth.successes = %d, want 1", got)
 	}
-	if got := sumCounter(metrics["scion.hub.auth.failures"]); got != 1 {
+	if got := sumCounter(metrics["fabric.hub.auth.failures"]); got != 1 {
 		t.Errorf("auth.failures = %d, want 1", got)
 	}
 
@@ -101,9 +101,9 @@ func TestOTelAuthDurationHistogram(t *testing.T) {
 	rec.RecordAuthAttempt("broker-1", true, 42*time.Millisecond)
 
 	metrics := collectMetrics(t, reader)
-	m, ok := metrics["scion.hub.auth.duration"]
+	m, ok := metrics["fabric.hub.auth.duration"]
 	if !ok {
-		t.Fatal("scion.hub.auth.duration not found")
+		t.Fatal("fabric.hub.auth.duration not found")
 	}
 	hist, ok := m.Data.(metricdata.Histogram[float64])
 	if !ok {
@@ -124,7 +124,7 @@ func TestOTelRecordRegistration(t *testing.T) {
 	rec.RecordRegistration("broker-2")
 
 	metrics := collectMetrics(t, reader)
-	if got := sumCounter(metrics["scion.hub.registration.count"]); got != 2 {
+	if got := sumCounter(metrics["fabric.hub.registration.count"]); got != 2 {
 		t.Errorf("registration.count = %d, want 2", got)
 	}
 
@@ -141,10 +141,10 @@ func TestOTelRecordJoin(t *testing.T) {
 	rec.RecordJoin("broker-2", false)
 
 	metrics := collectMetrics(t, reader)
-	if got := sumCounter(metrics["scion.hub.join.attempts"]); got != 2 {
+	if got := sumCounter(metrics["fabric.hub.join.attempts"]); got != 2 {
 		t.Errorf("join.attempts = %d, want 2", got)
 	}
-	if got := sumCounter(metrics["scion.hub.join.failures"]); got != 1 {
+	if got := sumCounter(metrics["fabric.hub.join.failures"]); got != 1 {
 		t.Errorf("join.failures = %d, want 1", got)
 	}
 
@@ -163,7 +163,7 @@ func TestOTelRecordRotation(t *testing.T) {
 	rec.RecordRotation("broker-1")
 
 	metrics := collectMetrics(t, reader)
-	if got := sumCounter(metrics["scion.hub.rotation.count"]); got != 1 {
+	if got := sumCounter(metrics["fabric.hub.rotation.count"]); got != 1 {
 		t.Errorf("rotation.count = %d, want 1", got)
 	}
 
@@ -180,10 +180,10 @@ func TestOTelRecordDispatch(t *testing.T) {
 	rec.RecordDispatch("broker-1", "create", false, 20*time.Millisecond)
 
 	metrics := collectMetrics(t, reader)
-	if got := sumCounter(metrics["scion.hub.dispatch.attempts"]); got != 2 {
+	if got := sumCounter(metrics["fabric.hub.dispatch.attempts"]); got != 2 {
 		t.Errorf("dispatch.attempts = %d, want 2", got)
 	}
-	if got := sumCounter(metrics["scion.hub.dispatch.failures"]); got != 1 {
+	if got := sumCounter(metrics["fabric.hub.dispatch.failures"]); got != 1 {
 		t.Errorf("dispatch.failures = %d, want 1", got)
 	}
 
@@ -202,9 +202,9 @@ func TestOTelSetConnectedBrokers(t *testing.T) {
 	rec.SetConnectedBrokers(5)
 
 	metrics := collectMetrics(t, reader)
-	m, ok := metrics["scion.hub.brokers.connected"]
+	m, ok := metrics["fabric.hub.brokers.connected"]
 	if !ok {
-		t.Fatal("scion.hub.brokers.connected not found")
+		t.Fatal("fabric.hub.brokers.connected not found")
 	}
 	gauge, ok := m.Data.(metricdata.Gauge[int64])
 	if !ok {

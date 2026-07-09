@@ -3,11 +3,11 @@ title: Observability
 description: Monitoring agents with logs and metrics.
 ---
 
-Scion provides comprehensive observability for agent containers and system components through the `sciontool` telemetry pipeline and OpenTelemetry log bridging. This guide covers how to monitor agent activity, collect logs, and integrate with cloud-native observability platforms like Google Cloud Logging and Trace.
+Fabric provides comprehensive observability for agent containers and system components through the `fabrictool` telemetry pipeline and OpenTelemetry log bridging. This guide covers how to monitor agent activity, collect logs, and integrate with cloud-native observability platforms like Google Cloud Logging and Trace.
 
 ## Architecture Overview
 
-Scion's observability architecture follows a "forwarder" pattern where `sciontool` acts as a local collector inside each agent container, and system components (Hub and Broker) bridge their logs directly to a central backend.
+Fabric's observability architecture follows a "forwarder" pattern where `fabrictool` acts as a local collector inside each agent container, and system components (Hub and Broker) bridge their logs directly to a central backend.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -20,7 +20,7 @@ Scion's observability architecture follows a "forwarder" pattern where `sciontoo
 │  └─────────────┘       │               │
 │                        ▼               │
 │              ┌─────────────────┐       │
-│              │   sciontool     │       │
+│              │   fabrictool     │       │
 │              │   forwarder     │       │
 │              └────────┬────────┘       │
 │                       │                │
@@ -42,23 +42,23 @@ Scion's observability architecture follows a "forwarder" pattern where `sciontoo
 
 ## Administrator Setup: Cloud Logging
 
-To centralize logs and traces from all Scion components in Google Cloud, you must configure the OTLP endpoints and project identifiers.
+To centralize logs and traces from all Fabric components in Google Cloud, you must configure the OTLP endpoints and project identifiers.
 
 ### Connecting Hub and Broker Logs
 
-The Scion Hub and Runtime Broker use structured logging (`slog`) with an OpenTelemetry bridge. To enable log forwarding to Google Cloud:
+The Fabric Hub and Runtime Broker use structured logging (`slog`) with an OpenTelemetry bridge. To enable log forwarding to Google Cloud:
 
 1.  **Configure Environment Variables**: Set the following on your Hub and Broker server processes:
 
     ```bash
     # Enable OTel log forwarding
-    export SCION_OTEL_LOG_ENABLED=true
+    export FABRIC_OTEL_LOG_ENABLED=true
 
     # Set the GCP OTLP endpoint (standard for Cloud Trace/Logging)
-    export SCION_OTEL_ENDPOINT="monitoring.googleapis.com:443"
+    export FABRIC_OTEL_ENDPOINT="monitoring.googleapis.com:443"
 
     # Specify your GCP Project ID
-    export SCION_GCP_PROJECT_ID="your-project-id"
+    export FABRIC_GCP_PROJECT_ID="your-project-id"
     ```
 
 2.  **Authentication**: Ensure the service account running the Hub/Broker has the following IAM roles:
@@ -72,27 +72,27 @@ As an alternative to the OTel pipeline, the Hub and Broker can send logs directl
 
 ```bash
 # Enable direct Cloud Logging
-export SCION_CLOUD_LOGGING=true
-export SCION_GCP_PROJECT_ID="your-project-id"
+export FABRIC_CLOUD_LOGGING=true
+export FABRIC_GCP_PROJECT_ID="your-project-id"
 
-# Optional: customize the log name (default: "scion")
-export SCION_CLOUD_LOGGING_LOG_ID="scion-hub"
+# Optional: customize the log name (default: "fabric")
+export FABRIC_CLOUD_LOGGING_LOG_ID="fabric-hub"
 
-scion server start --enable-hub
+fabric server start --enable-hub
 ```
 
 Both approaches can be used simultaneously — OTel for the full telemetry pipeline and Cloud Logging for direct log delivery.
 
 ### Configuring Agent Telemetry
 
-Agents use `sciontool` as their init process, which includes an embedded OTLP forwarder. This forwarder must be configured to point to your cloud backend.
+Agents use `fabrictool` as their init process, which includes an embedded OTLP forwarder. This forwarder must be configured to point to your cloud backend.
 
 #### Via Settings File (Recommended)
 
-The preferred approach is to configure telemetry in `settings.yaml`. Settings at the global level apply to all agents; project-level settings apply to a specific project. Templates and individual agents can further override these via their `scion-agent.yaml`.
+The preferred approach is to configure telemetry in `settings.yaml`. Settings at the global level apply to all agents; project-level settings apply to a specific project. Templates and individual agents can further override these via their `fabric-agent.yaml`.
 
 ```yaml
-# In ~/.scion/settings.yaml (global) or .scion/settings.yaml (project)
+# In ~/.fabric/settings.yaml (global) or .fabric/settings.yaml (project)
 telemetry:
   enabled: true
   cloud:
@@ -105,56 +105,56 @@ telemetry:
         - "agent.user.prompt"
 ```
 
-See the [Orchestrator Settings Reference](/scion/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference, and [Metrics & OpenTelemetry](/scion/hosted/single-node/metrics/#configuration-hierarchy) for how settings merge across scopes.
+See the [Orchestrator Settings Reference](/fabric/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference, and [Metrics & OpenTelemetry](/fabric/hosted/single-node/metrics/#configuration-hierarchy) for how settings merge across scopes.
 
 #### Via Hub Environment Variables
 
 For hosted deployments, environment variables can be set at the Project or Broker level on the Hub. These are automatically injected into every agent container.
 
 ```bash
-SCION_OTEL_ENDPOINT="monitoring.googleapis.com:443"
-SCION_GCP_PROJECT_ID="your-project-id"
-SCION_TELEMETRY_ENABLED="true"
+FABRIC_OTEL_ENDPOINT="monitoring.googleapis.com:443"
+FABRIC_GCP_PROJECT_ID="your-project-id"
+FABRIC_TELEMETRY_ENABLED="true"
 ```
 
 #### Harness-Specific Configuration
 
-If you are using agents that natively support OpenTelemetry (like `opencode`), you may need to explicitly tell the agent where to find the `sciontool` forwarder (which is `localhost` from the agent's perspective):
+If you are using agents that natively support OpenTelemetry (like `opencode`), you may need to explicitly tell the agent where to find the `fabrictool` forwarder (which is `localhost` from the agent's perspective):
 
 - **gRPC (Default)**: `OTEL_EXPORTER_OTLP_ENDPOINT="localhost:4317"`
 - **HTTP**: `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"`
 
-These harness-specific env vars are injected at agent start time via the harness config's `env` map and are separate from the Scion telemetry settings.
+These harness-specific env vars are injected at agent start time via the harness config's `env` map and are separate from the Fabric telemetry settings.
 
 ## Agent Logs
 
-Agent logs are written to `/home/scion/agent.log` inside the container. The sciontool logging system writes to both stderr and this file.
+Agent logs are written to `/home/fabric/agent.log` inside the container. The fabrictool logging system writes to both stderr and this file.
 
 ### Cloud Log Viewer & Hub API
 
-Scion provides a built-in Cloud Log Viewer in the Web UI to stream agent logs in real-time. This is backed by the Hub API, which retrieves logs directly from the active runtime broker or from the persisted `agent.log` file, ensuring comprehensive visibility into agent execution regardless of its current state.
+Fabric provides a built-in Cloud Log Viewer in the Web UI to stream agent logs in real-time. This is backed by the Hub API, which retrieves logs directly from the active runtime broker or from the persisted `agent.log` file, ensuring comprehensive visibility into agent execution regardless of its current state.
 
 ### Log Ownership and Permissions
 
-The `sciontool` utility ensures that `agent.log` is owned by the `scion` user during initialization, even if `sciontool` is initially run as root. The log file is created with permissive `0666` permissions to ensure multiple processes can contribute to the log stream.
+The `fabrictool` utility ensures that `agent.log` is owned by the `fabric` user during initialization, even if `fabrictool` is initially run as root. The log file is created with permissive `0666` permissions to ensure multiple processes can contribute to the log stream.
 
 ### Log Levels
 
 - **INFO**: Normal operational events
 - **ERROR**: Critical failures
-- **DEBUG**: Detailed information (enabled with `SCION_DEBUG=true` or `SCION_LOG_LEVEL=debug`)
+- **DEBUG**: Detailed information (enabled with `FABRIC_DEBUG=true` or `FABRIC_LOG_LEVEL=debug`)
 
 ## Telemetry Collection
 
-The telemetry pipeline in sciontool collects and forwards OpenTelemetry (OTLP) data from agents. See the [Metrics & OpenTelemetry guide](/scion/hosted/single-node/metrics/) for deep configuration details.
+The telemetry pipeline in fabrictool collects and forwards OpenTelemetry (OTLP) data from agents. See the [Metrics & OpenTelemetry guide](/fabric/hosted/single-node/metrics/) for deep configuration details.
 
 ### What's Collected
 
 | Data Type | Source | Description |
 |-----------|--------|-------------|
 | Traces | Agent OTLP | Span data for tool calls, API requests |
-| Metrics | sciontool | Counters and histograms for tokens, tools, and latency |
-| Correlated Logs | sciontool | Log records linked to traces for every hook event |
+| Metrics | fabrictool | Counters and histograms for tokens, tools, and latency |
+| Correlated Logs | fabrictool | Log records linked to traces for every hook event |
 | Hook Events | Harness hooks | Tool calls, prompts, model invocations converted to spans |
 | Session Metrics | Gemini session files | Token counts, turn counts, tool statistics |
 
@@ -173,8 +173,8 @@ HTTP requests to Hub, Broker, and Web servers are logged as a dedicated structur
 
 | Method | Configuration |
 |--------|--------------|
-| **File** | Set `SCION_SERVER_REQUEST_LOG_PATH=/path/to/requests.log` |
-| **Cloud Logging** | Automatic when `SCION_CLOUD_LOGGING=true` — uses log name `scion_request_log` |
+| **File** | Set `FABRIC_SERVER_REQUEST_LOG_PATH=/path/to/requests.log` |
+| **Cloud Logging** | Automatic when `FABRIC_CLOUD_LOGGING=true` — uses log name `fabric_request_log` |
 | **Stdout** | Default when running in background mode (suppressed in `--foreground` mode) |
 
 ### Trace Context Propagation
@@ -187,27 +187,27 @@ Request logs appear under a separate log name from application logs:
 
 ```
 -- All HTTP request logs
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 
 -- Slow requests (latency > 1s)
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 httpRequest.latency > "1s"
 
 -- Failed requests for a specific project
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 httpRequest.status >= 400
 labels.project_id = "my-project"
 
 -- Correlate a request with its application logs
-logName="projects/YOUR_PROJECT/logs/scion" OR logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric" OR logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 jsonPayload.request_id = "YOUR_REQUEST_ID"
 ```
 
-See the [Local Development Logging guide](/scion/contributing/logging/#http-request-logging) for the full field reference and file output format.
+See the [Local Development Logging guide](/fabric/contributing/logging/#http-request-logging) for the full field reference and file output format.
 
 ## Querying Logs by Subsystem
 
-Hub and Broker logs include a `subsystem` attribute that identifies the internal subsystem that produced each log entry. This is separate from the top-level `component` field (which reflects the server mode: `scion-hub`, `scion-broker`, or `scion-server`) and provides finer-grained filtering.
+Hub and Broker logs include a `subsystem` attribute that identifies the internal subsystem that produced each log entry. This is separate from the top-level `component` field (which reflects the server mode: `fabric-hub`, `fabric-broker`, or `fabric-server`) and provides finer-grained filtering.
 
 ### Available Subsystems
 
@@ -216,7 +216,7 @@ Hub and Broker logs include a `subsystem` attribute that identifies the internal
 | `hub.agent-lifecycle` | Agent create, start, stop, delete, and state transitions |
 | `hub.auth` | Authentication and authorization decisions |
 | `hub.control-channel` | WebSocket lifecycle for broker connections |
-| `hub.messages` | Message routing from `scion message` to brokers |
+| `hub.messages` | Message routing from `fabric message` to brokers |
 | `hub.notifications` | Event-driven notification dispatch and subscription matching |
 | `hub.scheduler` | Background recurring and one-shot scheduled tasks |
 | `hub.env-secrets` | Environment variable and secret management |
@@ -229,37 +229,37 @@ Hub and Broker logs include a `subsystem` attribute that identifies the internal
 | `broker.heartbeat` | Periodic broker status reports to hub |
 | `broker.env-secrets` | Broker-side environment gathering and finalization |
 
-In combo server mode (`scion-server`), both `hub.*` and `broker.*` subsystem logs appear in the same stream. The dotted prefix distinguishes them without requiring separate processes.
+In combo server mode (`fabric-server`), both `hub.*` and `broker.*` subsystem logs appear in the same stream. The dotted prefix distinguishes them without requiring separate processes.
 
 ### Cloud Logging Query Examples
 
-All examples assume your logs are in the `scion` log name. Adjust the `logName` filter to match your configuration.
+All examples assume your logs are in the `fabric` log name. Adjust the `logName` filter to match your configuration.
 
 #### Filter by Server Component
 
 ```
 -- All hub logs (hub-only or combo mode)
-logName="projects/YOUR_PROJECT/logs/scion"
-labels.component="scion-hub"
+logName="projects/YOUR_PROJECT/logs/fabric"
+labels.component="fabric-hub"
 
 -- All logs from combo server mode
-logName="projects/YOUR_PROJECT/logs/scion"
-labels.component="scion-server"
+logName="projects/YOUR_PROJECT/logs/fabric"
+labels.component="fabric-server"
 ```
 
 #### Filter by Subsystem
 
 ```
 -- All hub subsystem logs
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "^hub\."
 
 -- All broker subsystem logs
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "^broker\."
 
 -- A specific subsystem
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem = "hub.notifications"
 ```
 
@@ -267,16 +267,16 @@ jsonPayload.subsystem = "hub.notifications"
 
 ```
 -- All agent lifecycle events across hub and broker
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.agent-lifecycle$"
 
 -- Agent lifecycle for a specific agent
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.agent-lifecycle$"
 jsonPayload.agent_id = "my-agent-id"
 
 -- Only errors in agent lifecycle
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.agent-lifecycle$"
 severity >= ERROR
 ```
@@ -285,16 +285,16 @@ severity >= ERROR
 
 ```
 -- All message-related logs (hub routing + broker injection)
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.messages$"
 
 -- Messages from a specific sender
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.messages$"
 jsonPayload.sender = "agent-slug"
 
 -- Messages to a specific recipient in a project
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.messages$"
 jsonPayload.recipient = "target-agent"
 jsonPayload.project_id = "my-project-id"
@@ -304,11 +304,11 @@ jsonPayload.project_id = "my-project-id"
 
 ```
 -- All authentication and authorization events
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem = "hub.auth"
 
 -- Auth failures only
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem = "hub.auth"
 severity >= WARNING
 ```
@@ -317,11 +317,11 @@ severity >= WARNING
 
 ```
 -- All control channel activity (hub + broker sides)
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.control-channel$"
 
 -- Control channel errors (connectivity issues)
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "\.control-channel$"
 severity >= ERROR
 ```
@@ -330,12 +330,12 @@ severity >= ERROR
 
 ```
 -- All hub logs EXCEPT heartbeat noise
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "^hub\."
 jsonPayload.subsystem != "broker.heartbeat"
 
 -- Only high-priority subsystems (notifications, auth, agent lifecycle)
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem = "hub.notifications" OR
 jsonPayload.subsystem = "hub.auth" OR
 jsonPayload.subsystem =~ "\.agent-lifecycle$"
@@ -345,13 +345,13 @@ jsonPayload.subsystem =~ "\.agent-lifecycle$"
 
 ```
 -- Errors across all subsystems in the last hour
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem != ""
 severity >= ERROR
 timestamp >= "2026-03-03T00:00:00Z"
 
 -- Debug-level broker logs for troubleshooting
-logName="projects/YOUR_PROJECT/logs/scion"
+logName="projects/YOUR_PROJECT/logs/fabric"
 jsonPayload.subsystem =~ "^broker\."
 severity = DEBUG
 ```
@@ -362,7 +362,7 @@ Create **saved queries** in the Cloud Logging console for subsystem filters you 
 
 ## Structured Messaging Pipeline
 
-Scion includes a comprehensive structured messaging pipeline that provides reliable delivery of messages to and from agents. This pipeline is fully observable:
+Fabric includes a comprehensive structured messaging pipeline that provides reliable delivery of messages to and from agents. This pipeline is fully observable:
 
 - **Hub API Integration**: Messages can be sent and retrieved via the new Hub API, allowing external systems to programmatically interact with agents.
 - **Web UI "Messages" Tab**: An interactive interface in the dashboard allows administrators and users to trace message flows in real-time.
@@ -385,23 +385,23 @@ Server maintenance operations (like `rebuild-server`, `rebuild-web`, and `pull-i
 
 ### Logs Not Appearing in GCP
 
-1.  **Verify Endpoints**: Ensure `SCION_OTEL_ENDPOINT` is set to `monitoring.googleapis.com:443`.
-2.  **Check Credentials**: Outside of GKE/Cloud Run (where ADC is automatic), agents need a GCP service account key file. Verify the `scion-telemetry-gcp-credentials` secret is registered with target `~/.scion/telemetry-gcp-credentials.json`. Inside the agent, check `echo $SCION_OTEL_GCP_CREDENTIALS` — it should point to the file. See [GCP Credentials for Agent Containers](/scion/hosted/single-node/metrics/#4-gcp-credentials-for-agent-containers-non-adc-environments) for setup.
+1.  **Verify Endpoints**: Ensure `FABRIC_OTEL_ENDPOINT` is set to `monitoring.googleapis.com:443`.
+2.  **Check Credentials**: Outside of GKE/Cloud Run (where ADC is automatic), agents need a GCP service account key file. Verify the `fabric-telemetry-gcp-credentials` secret is registered with target `~/.fabric/telemetry-gcp-credentials.json`. Inside the agent, check `echo $FABRIC_OTEL_GCP_CREDENTIALS` — it should point to the file. See [GCP Credentials for Agent Containers](/fabric/hosted/single-node/metrics/#4-gcp-credentials-for-agent-containers-non-adc-environments) for setup.
 3.  **Check Permissions**: Verify the Workload Identity or Service Account has `roles/logging.logWriter`.
-4.  **Inspect Agent Init**: View the agent container logs (stderr) to see if `sciontool` reported a telemetry startup failure:
+4.  **Inspect Agent Init**: View the agent container logs (stderr) to see if `fabrictool` reported a telemetry startup failure:
     ```
-    [sciontool] ERROR: Failed to start telemetry: connection refused
+    [fabrictool] ERROR: Failed to start telemetry: connection refused
     ```
 5.  **Network Policy**: If running in Kubernetes, ensure Egress is allowed to GCP APIs.
 
 ### Missing Trace Correlation
 
 If you see logs but they aren't linked to traces in the Cloud Trace waterfall:
-1.  Ensure the agent is using the `sciontool` gRPC port (4317).
-2.  Verify `SCION_OTEL_LOG_ENABLED=true` is set on the system components.
+1.  Ensure the agent is using the `fabrictool` gRPC port (4317).
+2.  Verify `FABRIC_OTEL_LOG_ENABLED=true` is set on the system components.
 
 ## Related Guides
 
-- [Metrics & OpenTelemetry](/scion/hosted/single-node/metrics/) - Detailed telemetry configuration
-- [Hub Server](/scion/hosted/single-node/hub-server/) - Hub integration for hosted mode
-- [Runtime Broker](/scion/hosted/ha/runtime-broker/) - Broker setup and configuration
+- [Metrics & OpenTelemetry](/fabric/hosted/single-node/metrics/) - Detailed telemetry configuration
+- [Hub Server](/fabric/hosted/single-node/hub-server/) - Hub integration for hosted mode
+- [Runtime Broker](/fabric/hosted/ha/runtime-broker/) - Broker setup and configuration

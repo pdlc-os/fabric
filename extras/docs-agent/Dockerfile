@@ -18,10 +18,10 @@ FROM golang:1.25 AS builder
 
 WORKDIR /build
 
-# Clone the Scion repo at build time for latest content
-ARG SCION_REPO=https://github.com/GoogleCloudPlatform/scion.git
-ARG SCION_REF=main
-RUN git clone --depth 1 --branch ${SCION_REF} ${SCION_REPO} /scion-source
+# Clone the Fabric repo at build time for latest content
+ARG FABRIC_REPO=https://github.com/pdlc-os/fabric.git
+ARG FABRIC_REF=main
+RUN git clone --depth 1 --branch ${FABRIC_REF} ${FABRIC_REPO} /fabric-source
 
 # Build the docs-agent handler
 COPY go.mod go.sum ./
@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 
 # Copy handler binary and source context
 COPY --from=builder /docs-agent /usr/local/bin/docs-agent
-COPY --from=builder /scion-source /workspace/scion
+COPY --from=builder /fabric-source /workspace/fabric
 
 EXPOSE 8080
 CMD ["docs-agent"]

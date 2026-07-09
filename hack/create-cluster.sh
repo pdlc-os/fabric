@@ -20,7 +20,7 @@
 set -euo pipefail
 
 # Configurable variables with defaults
-CLUSTER_NAME=${CLUSTER_NAME:-"scion-agents"}
+CLUSTER_NAME=${CLUSTER_NAME:-"fabric-agents"}
 REGION=${REGION:-"us-central1"}
 PROJECT_ID=${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null)}
 

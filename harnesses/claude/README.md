@@ -1,6 +1,6 @@
 # Claude Harness Bundle
 
-Scion harness configuration for [Claude Code](https://claude.ai/code),
+Fabric harness configuration for [Claude Code](https://claude.ai/code),
 Anthropic's coding agent CLI.
 
 ## Install
@@ -8,13 +8,13 @@ Anthropic's coding agent CLI.
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/claude
+fabric harness-config install harnesses/claude
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/claude
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/claude
 ```
 
 ## Auth Modes
@@ -33,11 +33,11 @@ claude/
   config.yaml        # Harness configuration (provisioner, capabilities, auth)
   provision.py        # Container-side provisioner (pre-start hook)
   capture_auth.py     # Interactive auth capture script
-  Dockerfile          # Image build (FROM scion-base)
+  Dockerfile          # Image build (FROM fabric-base)
   init-firewall.sh    # Network firewall setup for the container
   cloudbuild.yaml     # Cloud Build configuration
   home/
-    .bashrc                     # Shell config with scion env sourcing
+    .bashrc                     # Shell config with fabric env sourcing
     .claude.json                # Claude Code settings template
     .claude/settings.json       # Claude Code settings (hooks, permissions)
 ```
@@ -46,7 +46,7 @@ claude/
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-claude:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-claude:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

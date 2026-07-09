@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package runtimebroker provides the Scion Runtime Broker API server.
+// Package runtimebroker provides the Fabric Runtime Broker API server.
 package runtimebroker
 
 import (
@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // BrokerAuthConfig configures host-side HMAC authentication.
@@ -91,15 +91,15 @@ func (m *BrokerAuthMiddleware) Middleware(next http.Handler) http.Handler {
 
 		// Validate required headers are all present
 		if brokerID == "" {
-			m.writeError(w, "missing X-Scion-Broker-ID header")
+			m.writeError(w, "missing X-Fabric-Broker-ID header")
 			return
 		}
 		if timestamp == "" {
-			m.writeError(w, "missing X-Scion-Timestamp header")
+			m.writeError(w, "missing X-Fabric-Timestamp header")
 			return
 		}
 		if signature == "" {
-			m.writeError(w, "missing X-Scion-Signature header")
+			m.writeError(w, "missing X-Fabric-Signature header")
 			return
 		}
 
@@ -229,15 +229,15 @@ func (m *MultiKeyBrokerAuthMiddleware) Middleware(next http.Handler) http.Handle
 
 		// Validate required headers
 		if brokerID == "" {
-			m.writeError(w, "missing X-Scion-Broker-ID header")
+			m.writeError(w, "missing X-Fabric-Broker-ID header")
 			return
 		}
 		if timestamp == "" {
-			m.writeError(w, "missing X-Scion-Timestamp header")
+			m.writeError(w, "missing X-Fabric-Timestamp header")
 			return
 		}
 		if signature == "" {
-			m.writeError(w, "missing X-Scion-Signature header")
+			m.writeError(w, "missing X-Fabric-Signature header")
 			return
 		}
 

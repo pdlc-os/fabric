@@ -1,11 +1,11 @@
 ---
 title: Hub Setup on GCE
-description: Deploy a Scion Hub on a Google Compute Engine VM using the starter scripts.
+description: Deploy a Fabric Hub on a Google Compute Engine VM using the starter scripts.
 ---
 
 ## Overview
 
-The quickest path to a deployed Scion Hub is a single Google Compute Engine VM using the starter scripts in `scripts/starter-hub/`. These scripts automate VM provisioning, repository setup, TLS configuration, and Hub startup.
+The quickest path to a deployed Fabric Hub is a single Google Compute Engine VM using the starter scripts in `scripts/starter-hub/`. These scripts automate VM provisioning, repository setup, TLS configuration, and Hub startup.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ Creates a GCE VM with the necessary machine type, disk, firewall rules, and serv
 ./scripts/starter-hub/gce-demo-setup-repo.sh
 ```
 
-SSHs into the VM and clones the Scion repository, installing required dependencies.
+SSHs into the VM and clones the Fabric repository, installing required dependencies.
 
 ### 3. Build and Deploy
 
@@ -70,7 +70,7 @@ Starts the Hub service on the VM. The Hub is now ready to accept connections.
 Once the Hub is running:
 
 1. **Access the Web Dashboard** — Navigate to your domain (or the VM's external IP) in a browser.
-2. **Create your first project** — Use the dashboard or `scion project create` from the CLI.
-3. **Register a Runtime Broker** — Connect a machine to execute agents. See [Runtime Broker](/scion/hosted/ha/runtime-broker/) for details on registering your local machine or a remote VM.
+2. **Create your first project** — Use the dashboard or `fabric project create` from the CLI.
+3. **Register a Runtime Broker** — Connect a machine to execute agents. See [Runtime Broker](/fabric/hosted/ha/runtime-broker/) for details on registering your local machine or a remote VM.
 
 For ongoing Hub administration (auth, permissions, observability), see the other guides in the Hub Administration section.

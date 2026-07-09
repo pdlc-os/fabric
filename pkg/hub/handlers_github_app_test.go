@@ -26,7 +26,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ============================================================================
@@ -436,7 +436,7 @@ func doRequestWithAgentTokenGH(t *testing.T, srv *Server, method, path string, b
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 
 	rec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rec, req)

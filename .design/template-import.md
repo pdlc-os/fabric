@@ -9,9 +9,9 @@
 
 ## 1. Overview
 
-This document covers the research and design for a **template import** feature in scion. The goal is to allow users to import agent or sub-agent definitions from existing harness ecosystems (Claude Code, Gemini CLI) and convert them into scion templates.
+This document covers the research and design for a **template import** feature in fabric. The goal is to allow users to import agent or sub-agent definitions from existing harness ecosystems (Claude Code, Gemini CLI) and convert them into fabric templates.
 
-These harnesses define specialized agent configurations as markdown files with YAML front matter containing a system prompt and metadata. Scion can consume these definitions and produce first-class scion templates, enabling users to quickly onboard their existing agent customizations.
+These harnesses define specialized agent configurations as markdown files with YAML front matter containing a system prompt and metadata. Fabric can consume these definitions and produce first-class fabric templates, enabling users to quickly onboard their existing agent customizations.
 
 ---
 
@@ -152,15 +152,15 @@ Skills live in `.gemini/skills/<skill-name>/SKILL.md` with optional `scripts/`, 
 
 ---
 
-## 3. Comparison: Source Format vs Scion Template
+## 3. Comparison: Source Format vs Fabric Template
 
-### 3.1 What a Scion Template Contains
+### 3.1 What a Fabric Template Contains
 
-A scion template is a directory with the following structure:
+A fabric template is a directory with the following structure:
 
 ```
 templates/<name>/
-├── scion-agent.yaml          # Harness configuration
+├── fabric-agent.yaml          # Harness configuration
 └── home/
     ├── .bashrc               # Shell environment
     ├── .tmux.conf             # Terminal multiplexer config
@@ -169,7 +169,7 @@ templates/<name>/
         └── <instructions>.md  # System prompt / instructions
 ```
 
-The `scion-agent.yaml` contains a `ScionConfig`:
+The `fabric-agent.yaml` contains a `FabricConfig`:
 
 ```yaml
 harness: claude          # or gemini, opencode, codex
@@ -181,16 +181,16 @@ commandArgs: []          # extra CLI arguments
 detached: true           # run in background
 ```
 
-### 3.2 Mapping: Source Fields → Scion Template
+### 3.2 Mapping: Source Fields → Fabric Template
 
-| Source Field (Claude/Gemini) | Scion Equivalent | Notes |
+| Source Field (Claude/Gemini) | Fabric Equivalent | Notes |
 |------------------------------|------------------|-------|
 | `name` | Template directory name | Slugified |
-| `description` | `scion-agent.yaml` → new `description` field or metadata | Currently no description field exists |
-| `model` | `scion-agent.yaml` → `model` | Needs model name normalization |
+| `description` | `fabric-agent.yaml` → new `description` field or metadata | Currently no description field exists |
+| `model` | `fabric-agent.yaml` → `model` | Needs model name normalization |
 | Body (markdown below front matter) | `home/<config-dir>/<instructions>.md` | The system prompt |
 | `tools` | Partial mapping to harness settings | Tool restrictions are harness-specific |
-| `maxTurns` / `max_turns` | `scion-agent.yaml` → `commandArgs` or harness settings | Could map to CLI args |
+| `maxTurns` / `max_turns` | `fabric-agent.yaml` → `commandArgs` or harness settings | Could map to CLI args |
 | `permissionMode` (Claude) | Claude settings.json | Harness-specific |
 | `temperature` (Gemini) | Gemini settings.json | Harness-specific |
 | `kind` (Gemini) | N/A | Remote agents not supported initially |
@@ -205,7 +205,7 @@ detached: true           # run in background
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    scion template import                     │
+│                    fabric template import                     │
 │                                                              │
 │  ┌──────────┐    ┌──────────────┐    ┌───────────────────┐  │
 │  │ Detector │───>│   Parser     │───>│  Template Writer  │  │
@@ -213,7 +213,7 @@ detached: true           # run in background
 │  └──────────┘    └──────────────┘    └───────────────────┘  │
 │       │                                       │              │
 │       │  Identifies source type               │  Writes to   │
-│       │  (claude, gemini, auto)                │  .scion/     │
+│       │  (claude, gemini, auto)                │  .fabric/     │
 │       │                                       │  templates/  │
 │       ▼                                       ▼              │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -316,7 +316,7 @@ type Importer interface {
 
 ### 4.5 Template Writer
 
-The template writer takes an `ImportedAgent` and produces a scion template directory:
+The template writer takes an `ImportedAgent` and produces a fabric template directory:
 
 ```go
 // pkg/config/templateimport/writer.go
@@ -326,8 +326,8 @@ func WriteTemplate(agent *ImportedAgent, grovePath string, force bool) (string, 
 
 **Output structure** (example for Claude import):
 ```
-.scion/templates/<name>/
-├── scion-agent.yaml
+.fabric/templates/<name>/
+├── fabric-agent.yaml
 │   harness: claude
 │   configDir: .claude
 │   model: <mapped-model>
@@ -346,12 +346,12 @@ The writer:
 2. Seeds common files from embedded defaults (via the default template base layer)
 3. Writes the system prompt to the appropriate harness instruction file
 4. Generates harness-specific settings from the parsed metadata
-5. Writes `scion-agent.yaml` with harness config and model
+5. Writes `fabric-agent.yaml` with harness config and model
 
 ### 4.6 CLI Command
 
 ```
-scion template import [flags] <source>
+fabric template import [flags] <source>
 
 Arguments:
   source    Path to an agent definition file (.md), a directory containing
@@ -368,28 +368,28 @@ Flags:
 
 Examples:
   # Import a single Claude sub-agent definition
-  scion template import .claude/agents/code-reviewer.md
+  fabric template import .claude/agents/code-reviewer.md
 
   # Import all Gemini agents from a project
-  scion template import --all .gemini/agents/
+  fabric template import --all .gemini/agents/
 
   # Auto-detect and import all agents from project root
-  scion template import --all .
+  fabric template import --all .
 
   # Import with explicit harness and custom name
-  scion template import --harness gemini --name my-auditor agents/security.md
+  fabric template import --harness gemini --name my-auditor agents/security.md
 
   # Preview import without writing
-  scion template import --dry-run .claude/agents/code-reviewer.md
+  fabric template import --dry-run .claude/agents/code-reviewer.md
 ```
 
 ### 4.7 Model Name Normalization
 
 Since Claude Code uses short aliases and Gemini uses full model names, we need normalization:
 
-| Source | Source Value | Scion Value | Notes |
+| Source | Source Value | Fabric Value | Notes |
 |--------|-------------|-------------|-------|
-| Claude | `sonnet` | `sonnet` | Pass through; scion/harness resolves |
+| Claude | `sonnet` | `sonnet` | Pass through; fabric/harness resolves |
 | Claude | `opus` | `opus` | Pass through |
 | Claude | `haiku` | `haiku` | Pass through |
 | Claude | `inherit` | (omit) | Use template default |
@@ -397,7 +397,7 @@ Since Claude Code uses short aliases and Gemini uses full model names, we need n
 | Gemini | `gemini-2.5-flash` | `gemini-2.5-flash` | Pass through |
 | Gemini | `inherit` | (omit) | Use template default |
 
-Model names are stored as-is in `scion-agent.yaml`. The harness runtime handles resolution.
+Model names are stored as-is in `fabric-agent.yaml`. The harness runtime handles resolution.
 
 ---
 
@@ -408,7 +408,7 @@ Model names are stored as-is in `scion-agent.yaml`. The harness runtime handles 
 - The import only captures the sub-agent definition's body as the template's instruction file. It does NOT import project-level CLAUDE.md/GEMINI.md content.
 
 ### 5.2 Tool Mapping Limitations
-- Scion templates don't have a universal tool permission model. Tool restrictions are harness-specific.
+- Fabric templates don't have a universal tool permission model. Tool restrictions are harness-specific.
 - For Claude: tools map to `settings.json` permission rules
 - For Gemini: tools map to `settings.json` tool configuration
 - Imported tool lists are best-effort; users may need to adjust after import.
@@ -425,11 +425,11 @@ Model names are stored as-is in `scion-agent.yaml`. The harness runtime handles 
 
 ### 5.5 Remote Agents (Gemini)
 - Gemini `kind: remote` agents reference external A2A endpoints
-- These have no direct scion equivalent
+- These have no direct fabric equivalent
 - Phase 1 skips remote agents and logs a warning
 
 ### 5.6 Cross-Harness Import
-- A Claude sub-agent definition describes Claude-specific behavior. It should produce a scion template for the Claude harness, not attempt to translate it to Gemini or vice versa.
+- A Claude sub-agent definition describes Claude-specific behavior. It should produce a fabric template for the Claude harness, not attempt to translate it to Gemini or vice versa.
 - The `harness` field in the output template always matches the source harness.
 
 ### 5.7 Name Conflicts
@@ -445,8 +445,8 @@ Model names are stored as-is in `scion-agent.yaml`. The harness runtime handles 
 - [x] Claude Code importer: parse front matter + body, detect signature
 - [x] Gemini CLI importer: parse front matter + body, detect signature
 - [x] Auto-detection logic (path-based + content-based)
-- [x] Template writer: produce scion template directory structure
-- [x] CLI command: `scion template import` (`cmd/template_import.go`, 301 lines)
+- [x] Template writer: produce fabric template directory structure
+- [x] CLI command: `fabric template import` (`cmd/template_import.go`, 301 lines)
 - [x] Map `name`, `description`, `model`, `tools`, system prompt
 - [x] Single file and directory import, auto-discovery, dry-run mode, force overwrite, custom name override
 - [ ] Tests: unit tests for parsing, detection, and template output
@@ -485,10 +485,10 @@ cmd/
 
 ## 8. Open Questions
 
-1. **Description field in scion-agent.yaml**: Currently `ScionConfig` has no `description` field. Should we add one, or store the description in a separate metadata file? Adding it to `ScionConfig` seems cleanest.
+1. **Description field in fabric-agent.yaml**: Currently `FabricConfig` has no `description` field. Should we add one, or store the description in a separate metadata file? Adding it to `FabricConfig` seems cleanest.
 
 2. **Harness-specific settings generation**: Should we generate full harness settings files (e.g., Claude `settings.json` with tool permissions), or keep it minimal and let users customize post-import?
 
-3. **CLAUDE.md vs dedicated file**: Should the imported system prompt go into `CLAUDE.md` (which is what the harness reads for instructions) or into a separate `system_prompt.md` that scion manages? The current template embed uses `claude.md` (lowercase), not `CLAUDE.md`.
+3. **CLAUDE.md vs dedicated file**: Should the imported system prompt go into `CLAUDE.md` (which is what the harness reads for instructions) or into a separate `system_prompt.md` that fabric manages? The current template embed uses `claude.md` (lowercase), not `CLAUDE.md`.
 
 4. **Batch import naming**: When importing multiple agents from a directory, should we prefix names with the harness (e.g., `claude-code-reviewer`) to avoid collisions, or keep original names?

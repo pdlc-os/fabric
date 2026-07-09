@@ -9,7 +9,7 @@ A major push on harness development — the Codex harness gained notification ho
 * **[Codex Harness]:** Extended OTEL config support for richer telemetry integration (#494).
 * **[Codex Harness]:** Updated model aliases (#481).
 * **[Antigravity]:** Pinned CLI binary to v1.0.11 from GitHub Releases for build reproducibility, with `TARGETARCH` mapping for multi-platform support (#487).
-* **[Sciontool]:** Hook support for bundled dialect overrides, allowing harness-specific model mapping to be shipped with the harness config (#485, #489).
+* **[Fabrictool]:** Hook support for bundled dialect overrides, allowing harness-specific model mapping to be shipped with the harness config (#485, #489).
 
 ## 🐛 Fixes
 * **[Antigravity]:** Added missing field extractions (`session_id` from `.conversationId`, `tool_input` from `.toolCall.args`) and removed false `tool_name` extraction from `PostToolUse`. Declared `max_model_calls` as supported capability (#490).

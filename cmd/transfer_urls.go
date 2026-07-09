@@ -17,7 +17,7 @@ package cmd
 import (
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // hasLocalSignedURLs returns true if any URL uses the file:// scheme, indicating

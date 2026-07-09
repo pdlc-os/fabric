@@ -17,8 +17,8 @@ package hub
 import (
 	"encoding/json"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // AgentWithCapabilities wraps a store.Agent with capability annotations.

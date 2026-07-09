@@ -75,7 +75,7 @@ func TestPodExec_TargetsAgentContainer(t *testing.T) {
 			name: "Exec",
 			opts: &corev1.PodExecOptions{
 				Container: agentContainerName,
-				Command:   ExecAsUserCmd("scion", "echo hi"),
+				Command:   ExecAsUserCmd("fabric", "echo hi"),
 				Stdout:    true,
 				Stderr:    true,
 			},
@@ -84,7 +84,7 @@ func TestPodExec_TargetsAgentContainer(t *testing.T) {
 			name: "execInPod",
 			opts: &corev1.PodExecOptions{
 				Container: agentContainerName,
-				Command:   []string{"chown", "-R", "scion:scion", "/home/scion"},
+				Command:   []string{"chown", "-R", "fabric:fabric", "/home/fabric"},
 				Stdout:    true,
 				Stderr:    true,
 			},
@@ -126,7 +126,7 @@ func TestBuildPod_AgentContainerName(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := rt.buildPod("default", config)
@@ -155,14 +155,14 @@ func TestKubernetesRuntime_List_MultiContainerPod(t *testing.T) {
 			Name:      "sidecar-agent",
 			Namespace: "default",
 			Labels: map[string]string{
-				"scion.name": "sidecar-agent",
+				"fabric.name": "sidecar-agent",
 			},
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				// sidecar first so any index-0 assumption picks the wrong container
 				{Name: "sidecar", Image: "sidecar:latest"},
-				{Name: agentContainerName, Image: "scion-agent:latest"},
+				{Name: agentContainerName, Image: "fabric-agent:latest"},
 			},
 		},
 		Status: corev1.PodStatus{
@@ -202,7 +202,7 @@ func TestKubernetesRuntime_List_MultiContainerPod(t *testing.T) {
 	if agents[0].Name != "sidecar-agent" {
 		t.Errorf("agent name = %q, want %q", agents[0].Name, "sidecar-agent")
 	}
-	if agents[0].Image != "scion-agent:latest" {
-		t.Errorf("agent image = %q, want %q", agents[0].Image, "scion-agent:latest")
+	if agents[0].Image != "fabric-agent:latest" {
+		t.Errorf("agent image = %q, want %q", agents[0].Image, "fabric-agent:latest")
 	}
 }

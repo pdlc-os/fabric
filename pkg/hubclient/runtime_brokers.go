@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // RuntimeBrokerService handles runtime broker operations.

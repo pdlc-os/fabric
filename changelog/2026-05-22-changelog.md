@@ -1,14 +1,14 @@
 # Release Notes (2026-05-16 - 2026-05-22)
 
-This week's release is headlined by the introduction of the Telegram Broker Plugin, bringing native mobile and desktop chat integration to Scion agents. Alongside this, the release includes foundational improvements to the message dispatch pipeline and significant CLI optimizations for large-scale workspaces.
+This week's release is headlined by the introduction of the Telegram Broker Plugin, bringing native mobile and desktop chat integration to Fabric agents. Alongside this, the release includes foundational improvements to the message dispatch pipeline and significant CLI optimizations for large-scale workspaces.
 
 ## 🚀 Features
-* **[Messaging]: Telegram Broker Integration.** A comprehensive new plugin that enables full interaction with Scion agents via Telegram.
+* **[Messaging]: Telegram Broker Integration.** A comprehensive new plugin that enables full interaction with Fabric agents via Telegram.
     * **Bot Interaction:** Send instructions, receive replies, and manage agents using standard Telegram bot commands and @-mentions.
     * **Rich Notifications:** Agent state changes (started, stalled, completed, etc.) are delivered as rich HTML-formatted status cards with emoji indicators.
     * **File Support:** Bi-directional support for file attachments; agents can send files from their workspace, and users can upload photos/documents directly to agents.
     * **Group Chat Support:** Native support for group conversations, including multi-agent mention fan-out and conversation-aware reply routing.
-    * **User Linking:** A secure, self-service registration flow allows Telegram users to link their chat identity to their Scion account via the Web UI.
+    * **User Linking:** A secure, self-service registration flow allows Telegram users to link their chat identity to their Fabric account via the Web UI.
 * **[Infrastructure]: Multi-Broker Fan-Out.** Introduced `FanOutBroker`, allowing the Hub to dispatch messages to multiple internal and external brokers (e.g., Telegram and the internal event bus) concurrently.
 * **[Messaging]: Multi-Agent Awareness.** Added a `recipients` field to fanned-out messages. When multiple agents are tagged in a single conversation, each agent is now aware of the other participants, enabling better collaborative context.
 * **[Harnesses]: Data-Driven Mapping Dialect.** Introduced `MappingDialect`, which allows for hook event translation via YAML configuration files. This enables the integration of new external harnesses without requiring core Go code changes.

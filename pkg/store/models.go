@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package store provides the persistence layer for the Scion Hub.
+// Package store provides the persistence layer for the Fabric Hub.
 package store
 
 import (
@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // Agent represents an agent record in the Hub database.
@@ -47,7 +47,7 @@ type Agent struct {
 	ContainerStatus string `json:"containerStatus,omitempty"` // Container-level status
 	RuntimeState    string `json:"runtimeState,omitempty"`    // Low-level runtime state
 
-	// Limits tracking (updated by sciontool status reports)
+	// Limits tracking (updated by fabrictool status reports)
 	CurrentTurns      int       `json:"currentTurns,omitempty"`
 	CurrentModelCalls int       `json:"currentModelCalls,omitempty"`
 	StartedAt         time.Time `json:"startedAt,omitempty"`
@@ -160,10 +160,10 @@ type AgentAppliedConfig struct {
 	// Set during workspace bootstrap for non-git projects.
 	WorkspaceStoragePath string `json:"workspaceStoragePath,omitempty"`
 
-	// InlineConfig holds the full ScionConfig provided via the --config flag
+	// InlineConfig holds the full FabricConfig provided via the --config flag
 	// or Hub API config field. When set, the dispatcher threads it through to the
 	// broker so it can apply the full configuration during agent provisioning.
-	InlineConfig *api.ScionConfig `json:"inlineConfig,omitempty"`
+	InlineConfig *api.FabricConfig `json:"inlineConfig,omitempty"`
 
 	// NoAuth indicates the agent should start with zero injected credentials.
 	// Stored on the agent record so restarts preserve the intent.
@@ -188,7 +188,7 @@ const (
 // When a git project has the workspace mode label set to "shared", it uses a
 // single shared clone mounted by all agents instead of per-agent clones.
 const (
-	LabelWorkspaceMode            = "scion.dev/workspace-mode"
+	LabelWorkspaceMode            = "fabric.dev/workspace-mode"
 	WorkspaceModeShared           = "shared"
 	WorkspaceModePerAgent         = "per-agent"
 	WorkspaceModeWorktreePerAgent = "worktree-per-agent"
@@ -343,7 +343,7 @@ type RuntimeBroker struct {
 	Slug string `json:"slug"` // URL-safe identifier
 
 	// Configuration
-	Version string `json:"version"` // Scion broker agent version
+	Version string `json:"version"` // Fabric broker agent version
 
 	// Status
 	Status          string    `json:"status"`          // online, offline, degraded
@@ -402,7 +402,7 @@ type ProjectProvider struct {
 	ProjectID  string    `json:"projectId"`
 	BrokerID   string    `json:"brokerId"`
 	BrokerName string    `json:"brokerName"`
-	LocalPath  string    `json:"localPath,omitempty"` // Filesystem path to the project on this broker (e.g., ~/.scion or /path/to/project/.scion)
+	LocalPath  string    `json:"localPath,omitempty"` // Filesystem path to the project on this broker (e.g., ~/.fabric or /path/to/project/.fabric)
 	Status     string    `json:"status"`              // online, offline
 	LastSeen   time.Time `json:"lastSeen,omitempty"`
 
@@ -746,7 +746,7 @@ type InviteCode struct {
 }
 
 // InviteCodePrefix distinguishes invite codes from other token types.
-const InviteCodePrefix = "scion_inv_"
+const InviteCodePrefix = "fabric_inv_"
 
 // InviteCodeRandomBytes is the number of random bytes in an invite code.
 const InviteCodeRandomBytes = 24
@@ -1096,7 +1096,7 @@ type Secret struct {
 // SecretType constants define how a secret is projected into the agent container.
 const (
 	SecretTypeEnvironment = "environment" // Injected as environment variable (default)
-	SecretTypeVariable    = "variable"    // Written to ~/.scion/secrets.json for programmatic access
+	SecretTypeVariable    = "variable"    // Written to ~/.fabric/secrets.json for programmatic access
 	SecretTypeFile        = "file"        // Written to a file at the specified Target path
 	SecretTypeInternal    = "internal"    // Hub-internal infrastructure key; never projected into agent environments
 )
@@ -1421,7 +1421,7 @@ func (t *UserAccessToken) UnmarshalJSON(data []byte) error {
 }
 
 // UATPrefix is the token prefix that distinguishes UATs from other token types.
-const UATPrefix = "scion_pat_"
+const UATPrefix = "fabric_pat_"
 
 // UAT scope constants define the allowed capability scopes.
 const (

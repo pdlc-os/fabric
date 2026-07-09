@@ -47,7 +47,7 @@
 <title>Browser UI</title>
 <polygon fill="lightblue" stroke="black" points="196.25,-223 67.75,-223 67.75,-187 196.25,-187 196.25,-223"/>
 <text xml:space="preserve" text-anchor="middle" x="132" y="-202.2" font-family="Helvetica,sans-Serif" font-size="14.00">Browser UI</text>
-<text xml:space="preserve" text-anchor="middle" x="132" y="-191.7" font-family="Helvetica,sans-Serif" font-size="14.00">(Scion Web App)</text>
+<text xml:space="preserve" text-anchor="middle" x="132" y="-191.7" font-family="Helvetica,sans-Serif" font-size="14.00">(Fabric Web App)</text>
 </g>
 <!-- Playwright Test (JS)&#45;&gt;Browser UI -->
 <g id="edge1" class="edge">
@@ -56,16 +56,16 @@
 <polygon fill="#334155" stroke="#334155" points="134.67,-234.81 131.45,-224.72 127.67,-234.62 134.67,-234.81"/>
 <text xml:space="preserve" text-anchor="middle" x="182.5" y="-281.95" font-family="Times,serif" font-size="14.00">interacts with</text>
 </g>
-<!-- Scion Server (Hub API) -->
+<!-- Fabric Server (Hub API) -->
 <g id="node3" class="node">
-<title>Scion Server (Hub API)</title>
+<title>Fabric Server (Hub API)</title>
 <polygon fill="lightblue" stroke="black" points="364,-223 258,-223 258,-187 364,-187 364,-223"/>
-<text xml:space="preserve" text-anchor="middle" x="311" y="-202.2" font-family="Helvetica,sans-Serif" font-size="14.00">Scion Server</text>
+<text xml:space="preserve" text-anchor="middle" x="311" y="-202.2" font-family="Helvetica,sans-Serif" font-size="14.00">Fabric Server</text>
 <text xml:space="preserve" text-anchor="middle" x="311" y="-191.7" font-family="Helvetica,sans-Serif" font-size="14.00">(Hub API)</text>
 </g>
-<!-- Playwright Test (JS)&#45;&gt;Scion Server (Hub API) -->
+<!-- Playwright Test (JS)&#45;&gt;Fabric Server (Hub API) -->
 <g id="edge2" class="edge">
-<title>Playwright Test (JS)&#45;&gt;Scion Server (Hub API)</title>
+<title>Playwright Test (JS)&#45;&gt;Fabric Server (Hub API)</title>
 <path fill="none" stroke="#334155" d="M156.02,-355.74C178.28,-340.95 210.1,-318.41 235,-295.25 255.81,-275.89 276.54,-251.1 291.07,-232.55"/>
 <polygon fill="#334155" stroke="#334155" points="293.81,-234.74 297.15,-224.69 288.27,-230.46 293.81,-234.74"/>
 <text xml:space="preserve" text-anchor="middle" x="277.88" y="-281.95" font-family="Times,serif" font-size="14.00">API calls</text>
@@ -84,9 +84,9 @@
 <polygon fill="#334155" stroke="#334155" points="235.19,-63.31 242.93,-56.07 232.37,-56.9 235.19,-63.31"/>
 <text xml:space="preserve" text-anchor="middle" x="224.5" y="-112.95" font-family="Times,serif" font-size="14.00">SSEClient connects</text>
 </g>
-<!-- Scion Server (Hub API)&#45;&gt;SSE Endpoint (/events) -->
+<!-- Fabric Server (Hub API)&#45;&gt;SSE Endpoint (/events) -->
 <g id="edge6" class="edge">
-<title>Scion Server (Hub API)&#45;&gt;SSE Endpoint (/events)</title>
+<title>Fabric Server (Hub API)&#45;&gt;SSE Endpoint (/events)</title>
 <path fill="none" stroke="#334155" d="M306.99,-186.51C303.6,-170.83 298.99,-147.14 297,-126.25 295.11,-106.39 294.89,-83.91 295.12,-66.61"/>
 <polygon fill="#334155" stroke="#334155" points="298.62,-66.87 295.32,-56.81 291.62,-66.73 298.62,-66.87"/>
 <text xml:space="preserve" text-anchor="middle" x="357" y="-112.95" font-family="Times,serif" font-size="14.00">publishes events</text>
@@ -98,9 +98,9 @@
 <text xml:space="preserve" text-anchor="middle" x="389" y="-371.2" font-family="Helvetica,sans-Serif" font-size="14.00">cURL Test</text>
 <text xml:space="preserve" text-anchor="middle" x="389" y="-360.7" font-family="Helvetica,sans-Serif" font-size="14.00">(sse&#45;curl&#45;test.sh)</text>
 </g>
-<!-- cURL Test (Shell)&#45;&gt;Scion Server (Hub API) -->
+<!-- cURL Test (Shell)&#45;&gt;Fabric Server (Hub API) -->
 <g id="edge4" class="edge">
-<title>cURL Test (Shell)&#45;&gt;Scion Server (Hub API)</title>
+<title>cURL Test (Shell)&#45;&gt;Fabric Server (Hub API)</title>
 <path fill="none" stroke="#334155" d="M379.74,-355.55C371.53,-339.9 359.34,-316.22 349.5,-295.25 339.93,-274.85 329.87,-251.45 322.43,-233.73"/>
 <polygon fill="#334155" stroke="#334155" points="325.73,-232.53 318.65,-224.65 319.26,-235.23 325.73,-232.53"/>
 <text xml:space="preserve" text-anchor="middle" x="383.25" y="-281.95" font-family="Times,serif" font-size="14.00">API calls</text>

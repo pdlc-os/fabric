@@ -25,12 +25,12 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 329.25)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-329.25 358.96,-329.25 358.96,4 -4,4"/>
-<!-- Scion CLI -->
+<!-- Fabric CLI -->
 <g id="node1" class="node">
-<title>Scion CLI</title>
+<title>Fabric CLI</title>
 <g id="a_node1"><a xlink:title="User interface for managing the Runtime Broker">
 <polygon fill="lightblue" stroke="black" points="220.5,-323 137,-323 137,-287 220.5,-287 220.5,-323"/>
-<text xml:space="preserve" text-anchor="middle" x="178.75" y="-296.95" font-family="Times,serif" font-size="14.00">Scion CLI</text>
+<text xml:space="preserve" text-anchor="middle" x="178.75" y="-296.95" font-family="Times,serif" font-size="14.00">Fabric CLI</text>
 </a>
 </g>
 </g>
@@ -43,9 +43,9 @@
 </a>
 </g>
 </g>
-<!-- Scion CLI&#45;&gt;Runtime Broker Daemon -->
+<!-- Fabric CLI&#45;&gt;Runtime Broker Daemon -->
 <g id="edge1" class="edge">
-<title>Scion CLI&#45;&gt;Runtime Broker Daemon</title>
+<title>Fabric CLI&#45;&gt;Runtime Broker Daemon</title>
 <path fill="none" stroke="black" d="M164.64,-286.51C153.43,-272.61 137.58,-252.95 124.86,-237.18"/>
 <polygon fill="black" stroke="black" points="127.75,-235.18 118.74,-229.59 122.3,-239.57 127.75,-235.18"/>
 <text xml:space="preserve" text-anchor="middle" x="169.75" y="-248.95" font-family="Times,serif" font-size="14.00">manages</text>
@@ -53,31 +53,31 @@
 <!-- Hub Client -->
 <g id="node3" class="node">
 <title>Hub Client</title>
-<g id="a_node3"><a xlink:title="API client for communicating with the Scion Hub">
+<g id="a_node3"><a xlink:title="API client for communicating with the Fabric Hub">
 <polygon fill="lightblue" stroke="black" points="325.25,-228 234.25,-228 234.25,-192 325.25,-192 325.25,-228"/>
 <text xml:space="preserve" text-anchor="middle" x="279.75" y="-201.95" font-family="Times,serif" font-size="14.00">Hub Client</text>
 </a>
 </g>
 </g>
-<!-- Scion CLI&#45;&gt;Hub Client -->
+<!-- Fabric CLI&#45;&gt;Hub Client -->
 <g id="edge2" class="edge">
-<title>Scion CLI&#45;&gt;Hub Client</title>
+<title>Fabric CLI&#45;&gt;Hub Client</title>
 <path fill="none" stroke="black" d="M197.75,-286.51C213.27,-272.22 235.39,-251.85 252.75,-235.86"/>
 <polygon fill="black" stroke="black" points="254.74,-238.79 259.72,-229.44 250,-233.64 254.74,-238.79"/>
 <text xml:space="preserve" text-anchor="middle" x="284.05" y="-248.95" font-family="Times,serif" font-size="14.00">interacts via</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node4" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <g id="a_node4"><a xlink:title="Centralized coordination for projects, agents, and templates">
 <polygon fill="lightblue" stroke="black" points="277.5,-133 194,-133 194,-97 277.5,-97 277.5,-133"/>
-<text xml:space="preserve" text-anchor="middle" x="235.75" y="-106.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="235.75" y="-106.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </a>
 </g>
 </g>
-<!-- Runtime Broker Daemon&#45;&gt;Scion Hub -->
+<!-- Runtime Broker Daemon&#45;&gt;Fabric Hub -->
 <g id="edge3" class="edge">
-<title>Runtime Broker Daemon&#45;&gt;Scion Hub</title>
+<title>Runtime Broker Daemon&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M97.53,-191.72C94.82,-180.95 93.66,-167.36 100.75,-157.75 101.08,-157.3 144.99,-143.77 182.64,-132.23"/>
 <polygon fill="black" stroke="black" points="183.57,-135.61 192.11,-129.33 181.52,-128.91 183.57,-135.61"/>
 <text xml:space="preserve" text-anchor="middle" x="190.75" y="-154.95" font-family="Times,serif" font-size="14.00">registers &amp; communicates</text>
@@ -98,16 +98,16 @@
 <polygon fill="black" stroke="black" points="85.01,-51.33 83.11,-40.9 78.09,-50.23 85.01,-51.33"/>
 <text xml:space="preserve" text-anchor="middle" x="132.25" y="-106.95" font-family="Times,serif" font-size="14.00">reads &amp; writes</text>
 </g>
-<!-- Hub Client&#45;&gt;Scion Hub -->
+<!-- Hub Client&#45;&gt;Fabric Hub -->
 <g id="edge5" class="edge">
-<title>Hub Client&#45;&gt;Scion Hub</title>
+<title>Hub Client&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M285.73,-191.64C288.26,-181.35 289.62,-168.3 284.75,-157.75 281.9,-151.57 277.63,-145.98 272.79,-141.03"/>
 <polygon fill="black" stroke="black" points="275.13,-138.43 265.36,-134.34 270.45,-143.63 275.13,-138.43"/>
 <text xml:space="preserve" text-anchor="middle" x="321.21" y="-154.95" font-family="Times,serif" font-size="14.00">API calls</text>
 </g>
-<!-- Scion Hub&#45;&gt;Project Configuration -->
+<!-- Fabric Hub&#45;&gt;Project Configuration -->
 <g id="edge6" class="edge">
-<title>Scion Hub&#45;&gt;Project Configuration</title>
+<title>Fabric Hub&#45;&gt;Project Configuration</title>
 <path fill="none" stroke="black" d="M207.72,-96.7C184.18,-82.16 150.32,-61.25 124.41,-45.25"/>
 <polygon fill="black" stroke="black" points="126.54,-42.45 116.19,-40.18 122.86,-48.41 126.54,-42.45"/>
 <text xml:space="preserve" text-anchor="middle" x="195.72" y="-59.95" font-family="Times,serif" font-size="14.00">persists</text>

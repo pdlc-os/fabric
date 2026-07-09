@@ -1,32 +1,32 @@
 ---
-title: Running Scion on Kubernetes
+title: Running Fabric on Kubernetes
 ---
 
-Scion supports running agents as Pods in a Kubernetes cluster. This enables remote execution, resource management, and scaling beyond a single machine.
+Fabric supports running agents as Pods in a Kubernetes cluster. This enables remote execution, resource management, and scaling beyond a single machine.
 
 ## Prerequisites
 
 - A running Kubernetes cluster (GKE, EKS, AKS, or self-managed).
 - Kubeconfig file configured with access to the target cluster (or running within the cluster using In-Cluster Authentication).
-- Scion agent images available to the cluster (pushed to a container registry accessible by the cluster).
+- Fabric agent images available to the cluster (pushed to a container registry accessible by the cluster).
 - Appropriate RBAC permissions for pod creation, execution, and secret management.
 
 :::note
-Scion utilizes the native Kubernetes Go client API for operations like `exec` and `attach`. The `kubectl` binary is **not** required on the host machine.
+Fabric utilizes the native Kubernetes Go client API for operations like `exec` and `attach`. The `kubectl` binary is **not** required on the host machine.
 :::
 
-Use `scion doctor` to verify prerequisites before starting agents.
+Use `fabric doctor` to verify prerequisites before starting agents.
 
 ## Configuration
 
-Configure the Kubernetes runtime in your global `~/.scion/settings.yaml`:
+Configure the Kubernetes runtime in your global `~/.fabric/settings.yaml`:
 
 ```yaml
 runtimes:
   k8s:
     type: kubernetes
     context: my-cluster-context    # kubectl context (optional, defaults to current)
-    namespace: scion-agents        # target namespace (default: "default")
+    namespace: fabric-agents        # target namespace (default: "default")
     gke: false                     # enable GKE-specific features
     list_all_namespaces: false     # list agents across all namespaces
 
@@ -37,7 +37,7 @@ profiles:
 
 ### Agent-Level Kubernetes Configuration
 
-Per-agent or per-template Kubernetes settings in `~/.scion/settings.yaml`:
+Per-agent or per-template Kubernetes settings in `~/.fabric/settings.yaml`:
 
 ```yaml
 kubernetes:
@@ -80,7 +80,7 @@ Extended resources (GPUs, custom devices) use `kubernetes.resources`.
 
 ### GKE Workload Identity
 
-When running in Google Kubernetes Engine (GKE), Scion natively supports Workload Identity for secure access to GCP APIs (like Vertex AI or Cloud Storage) without passing long-lived service account keys.
+When running in Google Kubernetes Engine (GKE), Fabric natively supports Workload Identity for secure access to GCP APIs (like Vertex AI or Cloud Storage) without passing long-lived service account keys.
 
 1. Enable the `gke: true` flag in your runtime configuration.
 2. Ensure your cluster is configured with Workload Identity.
@@ -92,20 +92,20 @@ This provides the agent container with an ambient identity, which the underlying
 ## Architecture & Security
 
 ### Native Client & In-Cluster Authentication
-Scion communicates directly with the Kubernetes API using the native Go client, providing high-performance `exec` and `attach` streams without relying on external binaries. If Scion is running inside a Kubernetes cluster (e.g., as a Scion Hub deployment), it automatically detects and uses the in-cluster service account tokens for authentication.
+Fabric communicates directly with the Kubernetes API using the native Go client, providing high-performance `exec` and `attach` streams without relying on external binaries. If Fabric is running inside a Kubernetes cluster (e.g., as a Fabric Hub deployment), it automatically detects and uses the in-cluster service account tokens for authentication.
 
 ### Pod Security Hardening
-To ensure secure execution, Scion enforces the following pod security policies automatically:
-- **Non-Root Execution**: Agent pods run as the unprivileged `scion` user (UID `1000`).
-- **Environment Injection**: Standard environmental variables like `HOME` (`/home/scion`), `USER` (`scion`), and `LOGNAME` (`scion`) are explicitly injected to prevent sandbox escapes and ensure consistent toolchain behavior.
+To ensure secure execution, Fabric enforces the following pod security policies automatically:
+- **Non-Root Execution**: Agent pods run as the unprivileged `fabric` user (UID `1000`).
+- **Environment Injection**: Standard environmental variables like `HOME` (`/home/fabric`), `USER` (`fabric`), and `LOGNAME` (`fabric`) are explicitly injected to prevent sandbox escapes and ensure consistent toolchain behavior.
 
 ## Reliability & Auto-Recovery
 
 ### Terminal Pod State Reconciliation
-Scion's Kubernetes runtime actively monitors pod phases and reconciles terminal states (e.g., `Failed`, `Evicted`, or unexpectedly `Succeeded`). This active reconciliation improves auto-recovery, ensuring that failed agents are properly cleaned up and rescheduled if necessary.
+Fabric's Kubernetes runtime actively monitors pod phases and reconciles terminal states (e.g., `Failed`, `Evicted`, or unexpectedly `Succeeded`). This active reconciliation improves auto-recovery, ensuring that failed agents are properly cleaned up and rescheduled if necessary.
 
 ### GKE Autopilot Auto-Detection
-When running on GKE Autopilot, Scion automatically detects the environment and applies the correct scheduling tolerations required by Autopilot to seamlessly provision workloads without manual node selector configuration.
+When running on GKE Autopilot, Fabric automatically detects the environment and applies the correct scheduling tolerations required by Autopilot to seamlessly provision workloads without manual node selector configuration.
 
 ## Support Matrix
 
@@ -160,11 +160,11 @@ Tar sync includes retry with exponential backoff (1s, 2s, 4s — up to 3 retries
 | Per-agent namespace | Supported (via config or labels) |
 | Multi-namespace listing | Supported (`list_all_namespaces: true`) |
 | Namespace/pod ID format | Supported (`namespace/podname` for all operations) |
-| Namespace annotation | Supported (`scion.namespace` persisted on pod) |
+| Namespace annotation | Supported (`fabric.namespace` persisted on pod) |
 
 ## Required Permissions
 
-The user or service account running scion needs the following RBAC permissions in the target namespace:
+The user or service account running fabric needs the following RBAC permissions in the target namespace:
 
 ### Minimum RBAC
 
@@ -194,7 +194,7 @@ The user or service account running scion needs the following RBAC permissions i
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: scion-agent-manager
+  name: fabric-agent-manager
 rules:
 - apiGroups: [""]
   resources: ["pods"]
@@ -212,19 +212,19 @@ rules:
 
 ## Execution Flow
 
-1. **Start**: `scion start` creates a Pod with the configured image, resources, and secrets.
+1. **Start**: `fabric start` creates a Pod with the configured image, resources, and secrets.
 2. **Sync**: Workspace and agent home are transferred to the Pod via tar streaming over `pods/exec`.
 3. **Ready**: Pod readiness is polled with detailed error classification (image pull, scheduling, config errors).
-4. **Attach**: `scion attach` connects to the tmux session inside the Pod via `pods/exec`.
-5. **Sync back**: `scion sync from <agent>` retrieves workspace changes via tar streaming.
-6. **Delete**: `scion rm <agent>` deletes the Pod and associated Secrets/SecretProviderClasses.
+4. **Attach**: `fabric attach` connects to the tmux session inside the Pod via `pods/exec`.
+5. **Sync back**: `fabric sync from <agent>` retrieves workspace changes via tar streaming.
+6. **Delete**: `fabric rm <agent>` deletes the Pod and associated Secrets/SecretProviderClasses.
 
 ## Diagnostics
 
-Run `scion doctor` to verify your Kubernetes runtime configuration:
+Run `fabric doctor` to verify your Kubernetes runtime configuration:
 
 ```bash
-scion doctor
+fabric doctor
 ```
 
 This checks:
@@ -236,7 +236,7 @@ This checks:
 - (GKE mode) Secrets Store CSI driver installation
 - (GKE mode) GCS FUSE CSI driver installation
 
-Use `scion doctor --format json` for machine-readable output.
+Use `fabric doctor --format json` for machine-readable output.
 
 ## Error Handling
 
@@ -247,13 +247,13 @@ The Kubernetes runtime provides structured error messages with remediation hints
 | ImagePullBackOff / ErrImagePull | Verify image name and registry access; check `imagePullPolicy` |
 | InvalidImageName | Check image name format |
 | CreateContainerConfigError | Check secret references and volume mounts |
-| CrashLoopBackOff | Check container logs with `scion logs` |
+| CrashLoopBackOff | Check container logs with `fabric logs` |
 | Unschedulable | Check node selectors, tolerations, and resource availability |
 | Invalid resource values | Error includes the field name and invalid value |
 
 ## Limitations
 
-- Workspace sync uses tar snapshots (not live filesystem). Changes require explicit `scion sync`.
+- Workspace sync uses tar snapshots (not live filesystem). Changes require explicit `fabric sync`.
 - Local/bind-mount volumes are not supported on remote clusters.
 - Pod networking depends on cluster CNI configuration.
 - Authentication credentials must be propagated via Secrets or Workload Identity.

@@ -26,7 +26,7 @@ import (
 	"testing"
 	"time"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -99,7 +99,7 @@ func TestNewClient_FromEnvironment(t *testing.T) {
 		assert.True(t, client.IsConfigured())
 	})
 
-	t.Run("prefers SCION_HUB_ENDPOINT over SCION_HUB_URL", func(t *testing.T) {
+	t.Run("prefers FABRIC_HUB_ENDPOINT over FABRIC_HUB_URL", func(t *testing.T) {
 		scrubHubEnv(t)
 		t.Setenv(EnvHubEndpoint, "http://endpoint.example.com")
 		t.Setenv(EnvHubURL, "http://url.example.com")
@@ -111,7 +111,7 @@ func TestNewClient_FromEnvironment(t *testing.T) {
 		assert.Equal(t, "http://endpoint.example.com", client.hubURL)
 	})
 
-	t.Run("falls back to SCION_HUB_URL when SCION_HUB_ENDPOINT not set", func(t *testing.T) {
+	t.Run("falls back to FABRIC_HUB_URL when FABRIC_HUB_ENDPOINT not set", func(t *testing.T) {
 		scrubHubEnv(t)
 		t.Setenv(EnvHubURL, "http://url.example.com")
 		t.Setenv(EnvHubToken, "test-token")
@@ -171,7 +171,7 @@ func TestClient_UpdateStatus(t *testing.T) {
 		// Check request
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "/api/v1/agents/agent-123/status", r.URL.Path)
-		receivedToken = r.Header.Get("X-Scion-Agent-Token")
+		receivedToken = r.Header.Get("X-Fabric-Agent-Token")
 
 		// Parse body
 		err := json.NewDecoder(r.Body).Decode(&receivedStatus)
@@ -574,7 +574,7 @@ func TestClient_RefreshToken(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, http.MethodPost, r.Method)
 			assert.Equal(t, "/api/v1/agents/agent-123/token/refresh", r.URL.Path)
-			assert.Equal(t, "old-token", r.Header.Get("X-Scion-Agent-Token"))
+			assert.Equal(t, "old-token", r.Header.Get("X-Fabric-Agent-Token"))
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -637,8 +637,8 @@ func TestClient_GetToken(t *testing.T) {
 func TestClient_StartTokenRefresh(t *testing.T) {
 	t.Run("refreshes token at scheduled time", func(t *testing.T) {
 		// Isolate the token file to a temp dir. Without this, RefreshToken's
-		// WriteTokenFile would clobber the real ~/.scion/scion-token when the
-		// suite is run inside an agent container (where the scion user exists).
+		// WriteTokenFile would clobber the real ~/.fabric/fabric-token when the
+		// suite is run inside an agent container (where the fabric user exists).
 		cleanup := SetTokenHome(t.TempDir())
 		defer cleanup()
 
@@ -975,7 +975,7 @@ func TestClient_RefreshToken_ConcurrentAccess(t *testing.T) {
 	client := NewClientWithConfig(server.URL, "initial-token", "agent-123")
 
 	// Run concurrent refresh and heartbeat to detect data races.
-	// Use -race flag to validate: go test -race ./pkg/sciontool/hub/
+	// Use -race flag to validate: go test -race ./pkg/fabrictool/hub/
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
@@ -1002,7 +1002,7 @@ func TestClient_RefreshGitHubToken(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, http.MethodPost, r.Method)
 			assert.Equal(t, "/api/v1/agents/agent-123/refresh-token", r.URL.Path)
-			assert.Equal(t, "hub-token", r.Header.Get("X-Scion-Agent-Token"))
+			assert.Equal(t, "hub-token", r.Header.Get("X-Fabric-Agent-Token"))
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -1340,7 +1340,7 @@ func TestClient_SetSecret_Created(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		receivedMethod = r.Method
 		receivedPath = r.URL.Path
-		receivedToken = r.Header.Get("X-Scion-Agent-Token")
+		receivedToken = r.Header.Get("X-Fabric-Agent-Token")
 		if err := json.NewDecoder(r.Body).Decode(&receivedReq); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return

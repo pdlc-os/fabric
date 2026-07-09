@@ -1,7 +1,7 @@
 # NFS Workspace — Phase 3 (Cloud Run + Filestore-CSI) Design Note
 
 **Status:** Documentation deliverable (N3-1 + N3-2). **No code in this phase.**
-**Why doc-only:** Verified against `postgres/wave-b-integration` — Scion has **no Cloud Run
+**Why doc-only:** Verified against `postgres/wave-b-integration` — Fabric has **no Cloud Run
 runtime** (`pkg/runtime/factory.go` supports `container`/`docker`/`podman`/`kubernetes` only;
 no `run.googleapis.com`/knative anywhere). There is no Cloud Run Service/Job spec to attach an
 NFS volume to, so N3-1 "emit an NFS volume in the Cloud Run spec" cannot land as code until a

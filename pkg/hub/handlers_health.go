@@ -19,15 +19,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/version"
 )
 
 type HealthResponse struct {
 	Status       string            `json:"status"`
 	Version      string            `json:"version"`
-	ScionVersion string            `json:"scionVersion"`
+	FabricVersion string            `json:"fabricVersion"`
 	Uptime       string            `json:"uptime"`
 	Checks       map[string]string `json:"checks,omitempty"`
 	Stats        *HealthStats      `json:"stats,omitempty"`
@@ -75,7 +75,7 @@ func (s *Server) GetHealthInfo(ctx context.Context) *HealthResponse {
 	return &HealthResponse{
 		Status:       status,
 		Version:      "0.1.0", // TODO: Get from build info
-		ScionVersion: version.Short(),
+		FabricVersion: version.Short(),
 		Uptime:       time.Since(s.startTime).Round(time.Second).String(),
 		Checks:       checks,
 		Stats:        stats,

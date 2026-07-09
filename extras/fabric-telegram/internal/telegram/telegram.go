@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package telegram implements a Telegram bot message broker plugin for Scion.
-// It provides bidirectional messaging between Telegram chats and Scion agents:
+// Package telegram implements a Telegram bot message broker plugin for Fabric.
+// It provides bidirectional messaging between Telegram chats and Fabric agents:
 //   - Outbound: Hub publishes StructuredMessages which are formatted and sent
 //     to Telegram chats via the Bot API.
 //   - Inbound: Telegram messages received via long-polling are converted to
@@ -37,15 +37,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 const (
 	// OriginMarkerKey is the config key injected into outbound messages
-	// to identify messages originating from the scion hub.
-	OriginMarkerKey = "scion_origin"
+	// to identify messages originating from the fabric hub.
+	OriginMarkerKey = "fabric_origin"
 
 	// OriginMarkerValue is the marker value for hub-originated messages.
 	OriginMarkerValue = "hub"
@@ -143,7 +143,7 @@ type TelegramBroker struct {
 	chatRoutes map[int64]string   // chatID -> topic
 	topicChats map[string][]int64 // topic -> chatIDs (inverse of chatRoutes)
 
-	// User identity mapping: Telegram user ID -> scion user (e.g. "user:ptone@google.com")
+	// User identity mapping: Telegram user ID -> fabric user (e.g. "user:ptone@google.com")
 	userMappings map[string]string
 
 	// Registration server and config
@@ -291,7 +291,7 @@ func (b *TelegramBroker) Configure(config map[string]string) error {
 }
 
 // parseChatRoutes parses a JSON string mapping chat IDs to topic patterns.
-// Expected format: {"123456789": "scion.project.myproj.agent.coder.messages"}
+// Expected format: {"123456789": "fabric.project.myproj.agent.coder.messages"}
 func (b *TelegramBroker) parseChatRoutes(routesJSON string) error {
 	var raw map[string]string
 	if err := json.Unmarshal([]byte(routesJSON), &raw); err != nil {
@@ -316,7 +316,7 @@ func (b *TelegramBroker) parseChatRoutes(routesJSON string) error {
 // parseOutboundRoutes parses a JSON string mapping topic patterns to chat IDs.
 // This is the reverse of chat_routes: it allows routing outbound messages
 // (e.g. user-topic replies) to specific Telegram chats.
-// Expected format: {"scion.project.*.user.*.messages": "-5242408331"}
+// Expected format: {"fabric.project.*.user.*.messages": "-5242408331"}
 func (b *TelegramBroker) parseOutboundRoutes(routesJSON string) error {
 	var raw map[string]string
 	if err := json.Unmarshal([]byte(routesJSON), &raw); err != nil {
@@ -665,7 +665,7 @@ func (b *TelegramBroker) handleIncomingMessage(tgMsg *TGMessage) {
 		}
 	}
 
-	// Check user mappings for a scion identity override
+	// Check user mappings for a fabric identity override
 	b.mu.RLock()
 	if senderID != "" && b.userMappings != nil {
 		if mapped, ok := b.userMappings[senderID]; ok {
@@ -679,7 +679,7 @@ func (b *TelegramBroker) handleIncomingMessage(tgMsg *TGMessage) {
 
 	if !ok {
 		// Default topic based on chat ID
-		topic = fmt.Sprintf("scion.telegram.chat.%d.messages", tgMsg.Chat.ID)
+		topic = fmt.Sprintf("fabric.telegram.chat.%d.messages", tgMsg.Chat.ID)
 	}
 
 	// Determine recipient from topic
@@ -724,7 +724,7 @@ func (b *TelegramBroker) handleIncomingMessage(tgMsg *TGMessage) {
 }
 
 // recipientFromTopic extracts a recipient identity from a topic string.
-// For example, "scion.project.myproj.agent.coder.messages" yields "agent:coder".
+// For example, "fabric.project.myproj.agent.coder.messages" yields "agent:coder".
 func recipientFromTopic(topic string) string {
 	parts := strings.Split(topic, ".")
 	for i, part := range parts {
@@ -738,7 +738,7 @@ func recipientFromTopic(topic string) string {
 	return "broker:topic"
 }
 
-// isEcho returns true if the message was tagged with the scion origin marker,
+// isEcho returns true if the message was tagged with the fabric origin marker,
 // indicating it originated from the hub and should not be re-delivered.
 func isEcho(msg *messages.StructuredMessage) bool {
 	if msg == nil {
@@ -790,7 +790,7 @@ func (b *TelegramBroker) deliverInbound(topic string, msg *messages.StructuredMe
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	// Sign the request with HMAC if broker credentials are configured
 	if brokerID != "" && hmacKey != "" {

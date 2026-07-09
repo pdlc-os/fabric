@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -48,7 +48,7 @@ func buildLookCmd(plain, full bool, numLines int) []string {
 	} else {
 		args = append(args, flags)
 	}
-	args = append(args, "-t", "scion")
+	args = append(args, "-t", "fabric")
 	return args
 }
 

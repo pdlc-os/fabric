@@ -1,12 +1,12 @@
 # Design: Worktree-Per-Agent Mode for Hub-Managed Workspaces
 
-**Branch:** `scion/worktree-per-agent`
+**Branch:** `fabric/worktree-per-agent`
 **Date:** 2026-06-06
 **Author:** worktree-designer agent
 **Status:** Design proposal — initial draft for review
 **Vocabulary:** follows `GLOSSARY.md` (Runtime Broker, Project, workspace sharing modes)
 **Reviewers:** @ptone
-**Tracking issue:** https://github.com/ptone/scion/issues/158
+**Tracking issue:** https://github.com/ptone/fabric/issues/158
 
 **Inputs (verified against source):**
 `pkg/store/models.go`, `pkg/runtime/workspace_backend.go`,
@@ -21,14 +21,14 @@
 
 In hub-managed mode, every agent created against a git-backed project performs its
 **own full clone** of the project's remote. The Hub dispatches a `GitCloneConfig`
-(`pkg/api/types.go`) and `sciontool` clones the repository into the agent's workspace
+(`pkg/api/types.go`) and `fabrictool` clones the repository into the agent's workspace
 **inside the container** at startup (the `gitClone != nil` branch in
 `pkg/agent/provision.go:371-396`). Concretely:
 
 1. Hub computes the workspace mode for the project and builds a dispatch carrying
    `GitClone` (URL + branch + depth).
 2. The Runtime Broker prepares an empty per-agent workspace dir and mounts it.
-3. `sciontool` clones into `/workspace` when the container starts.
+3. `fabrictool` clones into `/workspace` when the container starts.
 
 This is simple and isolates agents perfectly, but it scales badly:
 
@@ -67,10 +67,10 @@ clone; every subsequent agent pays only a cheap `git worktree add`.
 
 ### 1.1 The mechanism already exists for *local* git projects
 
-This is not a from-scratch effort. For **local** (non-hub) git projects, Scion already:
+This is not a from-scratch effort. For **local** (non-hub) git projects, Fabric already:
 
 - Creates host-side `--relative-paths` worktrees per agent at
-  `.scion/agents/<name>/workspace` via `util.CreateWorktree`
+  `.fabric/agents/<name>/workspace` via `util.CreateWorktree`
   (`pkg/agent/provision.go:449-485`, Case 2 at lines 412-434).
 - Dual-mounts the shared `.git` and the per-agent worktree into the container so the
   relative gitdir pointer resolves (`pkg/runtime/common.go:181-189`):
@@ -105,7 +105,7 @@ on node-local storage, reusing the NFS backend's `ensureWorktree` logic where it
 ## 2. Background: the three sharing modes
 
 `pkg/store/models.go:197-231` defines the canonical modes and the label mapping
-(`scion.dev/workspace-mode`, `ResolveWorkspaceSharingMode`):
+(`fabric.dev/workspace-mode`, `ResolveWorkspaceSharingMode`):
 
 | Mode | Constant | Storage today | Isolation |
 |------|----------|---------------|-----------|
@@ -125,7 +125,7 @@ Per node, per project, the broker maintains a single **base repo** and a `worktr
 subtree, mirroring the NFS backend's layout (`workspace_backend_nfs.go:331-332`):
 
 ```
-<project-root>/                         # e.g. ~/.scion.projects/<slug>/
+<project-root>/                         # e.g. ~/.fabric.projects/<slug>/
   base/                                 # the one shared clone (.git lives here)
     .git/                               #   shared object store + packed-refs
     <checked-out files of base branch>
@@ -133,10 +133,10 @@ subtree, mirroring the NFS backend's layout (`workspace_backend_nfs.go:331-332`)
     <agentID>/                          # per-agent worktree (own branch + working tree)
       .git                              #   FILE: gitdir pointer (relative) → base/.git/worktrees/<id>
       <agent's working tree>
-  .scion-provisioned                    # sentinel: base clone complete
+  .fabric-provisioned                    # sentinel: base clone complete
 ```
 
-Per-agent **non-workspace** state (prompt.md, scion-agent.json, home/) stays in the
+Per-agent **non-workspace** state (prompt.md, fabric-agent.json, home/) stays in the
 external split-storage location, exactly as shared-workspace mode does today
 (`.design/hub-shared-workspace-isolation.md`, `provision.go:120-143`), so siblings
 never see each other's prompts through a shared mount.
@@ -144,7 +144,7 @@ never see each other's prompts through a shared mount.
 > Naming note: `.design/worktree-guards.md` calls out that every agent worktree using
 > the basename `workspace` causes git to auto-suffix entries (`workspace`, `workspace1`,
 > …). Using `worktrees/<agentID>` as the worktree path gives each a **unique basename**
-> (the agent UUID), eliminating that ambiguity. Scion associates worktrees by branch
+> (the agent UUID), eliminating that ambiguity. Fabric associates worktrees by branch
 > (`FindWorktreeByBranch`) regardless, but unique basenames make `git worktree list`
 > legible.
 
@@ -160,7 +160,7 @@ When the first agent for a project lands on a node in worktree-per-agent mode:
    `LockWorkspaceProvision`, keyed by a stable project hash — same guard the NFS
    backend uses, `workspace_backend_nfs.go:227-268`). On Postgres this is
    `pg_try_advisory_lock`; on SQLite/single-node it serializes naturally.
-2. **Check the `.scion-provisioned` sentinel.** If present, skip to §4.2.
+2. **Check the `.fabric-provisioned` sentinel.** If present, skip to §4.2.
 3. **Clone the remote once** into `base/` using the dispatched `GitCloneConfig`
    (URL/branch/depth). This is the *only* network clone for the project on this node.
 4. **Write the sentinel** atomically, release the lock.
@@ -182,9 +182,9 @@ Under the same per-project lock (worktree add/remove mutates shared `.git` metad
 4. `git -C base worktree add --relative-paths -b <branch> <worktreePath>`.
    `--relative-paths` (git ≥ 2.47) is **mandatory** so the gitdir pointer survives the
    container mount remap (§6).
-5. Write the `.scion` workspace marker into the worktree
+5. Write the `.fabric` workspace marker into the worktree
    (`config.WriteWorkspaceMarker`, as `provision.go:475-484` does) so the in-container
-   CLI can discover project context — worktrees don't carry `.scion`.
+   CLI can discover project context — worktrees don't carry `.fabric`.
 
 ### 4.2a The coordinator / `main` agent (Q1 resolved)
 
@@ -213,10 +213,10 @@ startup. Worktree-per-agent inverts this: the worktree is created **on the host/
 
 - When mode is `worktree-per-agent`, the broker provisions the worktree on the host and
   takes the **dual-mount** path (`common.go:181-189`) instead of passing `GitClone`
-  through to sciontool.
+  through to fabrictool.
 - `GitCloneConfig` is still used by `Provision` (§4.1) to perform the *base* clone, but
   it is consumed broker-side, not container-side.
-- The `SCION_HOST_UID` guard that forces `isGit = false` inside containers
+- The `FABRIC_HOST_UID` guard that forces `isGit = false` inside containers
   (`provision.go:303-309`) stays — agents must **never** create worktrees from inside
   the container (see §6, `.design/worktree-guards.md`).
 
@@ -263,7 +263,7 @@ Hard rules that fall out:
   version check; fall back to clone-per-agent with a logged warning if absent.
 - **No in-container worktree creation.** Relative paths computed against the container
   namespace are meaningless on the host (`.design/worktree-guards.md` §3). The existing
-  `SCION_HOST_UID` guard enforces this; keep it.
+  `FABRIC_HOST_UID` guard enforces this; keep it.
 
 Other shared-state isolation concerns:
 
@@ -274,7 +274,7 @@ Other shared-state isolation concerns:
 - **`.git/config` is shared.** Per-agent git identity/credentials must live in the
   agent's `$HOME/.gitconfig` (already the pattern for shared-workspace mode,
   `provision.go:881-901`), never written into the shared base.
-- **Per-agent non-workspace state** (prompt.md, scion-agent.json) uses external split
+- **Per-agent non-workspace state** (prompt.md, fabric-agent.json) uses external split
   storage (§3) so it isn't visible through the shared tree.
 
 ---
@@ -282,7 +282,7 @@ Other shared-state isolation concerns:
 ## 7. How the Hub manages the shared base repo
 
 - **Mode selection.** Hub stamps the project label
-  `scion.dev/workspace-mode = worktree-per-agent` at project-create time (parallel to
+  `fabric.dev/workspace-mode = worktree-per-agent` at project-create time (parallel to
   the existing `shared` stamping in `pkg/hub/handlers.go`). `ResolveWorkspaceSharingMode`
   already maps the wire value (`models.go:225-226`).
 - **Dispatch.** Hub keeps sending `GitCloneConfig` (URL/branch/depth); the broker
@@ -337,7 +337,7 @@ New work for the base repo:
 
 1. **git ≥ 2.47 required** on the broker host (`--relative-paths`). Older hosts fall
    back to clone-per-agent.
-2. **No nested / in-container worktrees.** Enforced by the `SCION_HOST_UID` guard;
+2. **No nested / in-container worktrees.** Enforced by the `FABRIC_HOST_UID` guard;
    agents that try to `git worktree add` inside the container get path-identity
    corruption (`.design/worktree-guards.md`).
 3. **Shared object store is a shared fate.** Corruption or an ill-timed `gc` in the base
@@ -362,7 +362,7 @@ New work for the base repo:
 | First-access guard | sentinel + `store.AdvisoryLocker` | `workspace_backend_nfs.go:141-268` |
 | Dual mount (`.git` + worktree) | runtime mount registration | `common.go:181-189` |
 | Worktree teardown + prune | `RemoveWorktree`/`PruneWorktreesIn`/`DeleteBranchIn` | `provision.go:35-146` |
-| In-container worktree guard | `SCION_HOST_UID` → `isGit=false` | `provision.go:303-309` |
+| In-container worktree guard | `FABRIC_HOST_UID` → `isGit=false` | `provision.go:303-309` |
 | Per-agent state isolation | external split storage | `.design/hub-shared-workspace-isolation.md` |
 | Backend abstraction | `WorkspaceBackend` Resolve/Provision/Realize | `workspace_backend.go:33-64` |
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package hooks
@@ -13,12 +13,12 @@ import (
 	"strings"
 )
 
-// LifecycleManager handles Scion lifecycle hooks.
-// These are container-level events managed by sciontool init.
+// LifecycleManager handles Fabric lifecycle hooks.
+// These are container-level events managed by fabrictool init.
 type LifecycleManager struct {
 	// HooksDirs is the ordered list of directories containing hook scripts.
 	// Discovery walks each directory in order; per-agent staged hooks (e.g.
-	// $HOME/.scion/hooks for container-script harnesses) are appended after
+	// $HOME/.fabric/hooks for container-script harnesses) are appended after
 	// the system default and run after the system hooks.
 	HooksDirs []string
 
@@ -28,14 +28,14 @@ type LifecycleManager struct {
 	// AgentHome overrides the HOME environment variable for hook scripts.
 	// Init runs as root (HOME=/root) but hook scripts (especially the
 	// container-script harness provisioner) need HOME to point at the
-	// scion user's home directory where the harness bundle is staged.
+	// fabric user's home directory where the harness bundle is staged.
 	AgentHome string
 }
 
 // NewLifecycleManager creates a new lifecycle manager.
 //
-// The default discovery list is built from $SCION_HOOKS_DIR (colon-separated;
-// each entry is honored in order) and falls back to /etc/scion/hooks. Callers
+// The default discovery list is built from $FABRIC_HOOKS_DIR (colon-separated;
+// each entry is honored in order) and falls back to /etc/fabric/hooks. Callers
 // can append per-agent hook directories with AddHooksDir.
 func NewLifecycleManager() *LifecycleManager {
 	return &LifecycleManager{
@@ -45,7 +45,7 @@ func NewLifecycleManager() *LifecycleManager {
 }
 
 func defaultHooksDirs() []string {
-	if envDir := os.Getenv("SCION_HOOKS_DIR"); envDir != "" {
+	if envDir := os.Getenv("FABRIC_HOOKS_DIR"); envDir != "" {
 		var dirs []string
 		for _, d := range strings.Split(envDir, ":") {
 			d = strings.TrimSpace(d)
@@ -57,11 +57,11 @@ func defaultHooksDirs() []string {
 			return dirs
 		}
 	}
-	return []string{"/etc/scion/hooks"}
+	return []string{"/etc/fabric/hooks"}
 }
 
 // AddHooksDir appends a hooks directory to the discovery list. Per-agent
-// hook directories (e.g. $HOME/.scion/hooks for container-script harnesses)
+// hook directories (e.g. $HOME/.fabric/hooks for container-script harnesses)
 // are appended after the system default so system hooks run first. Duplicate
 // paths are ignored.
 func (m *LifecycleManager) AddHooksDir(dir string) {
@@ -202,7 +202,7 @@ func (m *LifecycleManager) executeScript(path string) error {
 	}
 	if info.Mode()&0111 == 0 {
 		// Not executable, skip with warning
-		fmt.Fprintf(os.Stderr, "[sciontool] Warning: hook script %s is not executable, skipping\n", path)
+		fmt.Fprintf(os.Stderr, "[fabrictool] Warning: hook script %s is not executable, skipping\n", path)
 		return nil
 	}
 
@@ -218,7 +218,7 @@ func (m *LifecycleManager) executeScript(path string) error {
 }
 
 // hookEnv builds the environment for hook scripts. When AgentHome is set,
-// HOME is overridden so that $HOME in hook scripts resolves to the scion
+// HOME is overridden so that $HOME in hook scripts resolves to the fabric
 // user's home directory rather than root's.
 func (m *LifecycleManager) hookEnv() []string {
 	env := os.Environ()

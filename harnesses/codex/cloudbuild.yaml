@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Per-bundle Cloud Build configuration for the Codex harness image.
-# Builds scion-codex on top of scion-base:<_TAG>.
+# Builds fabric-codex on top of fabric-base:<_TAG>.
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     id: 'setup-buildx'
@@ -28,18 +28,18 @@ steps:
       - 'DOCKER_CLI_EXPERIMENTAL=enabled'
 
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'build-scion-codex'
+    id: 'build-fabric-codex'
     args:
       - 'buildx'
       - 'build'
       - '--platform'
       - 'linux/amd64,linux/arm64'
       - '--build-arg'
-      - 'BASE_IMAGE=$_REGISTRY/scion-base:$_TAG'
+      - 'BASE_IMAGE=$_REGISTRY/fabric-base:$_TAG'
       - '-t'
-      - '$_REGISTRY/scion-codex:$_SHORT_SHA'
+      - '$_REGISTRY/fabric-codex:$_SHORT_SHA'
       - '-t'
-      - '$_REGISTRY/scion-codex:$_TAG'
+      - '$_REGISTRY/fabric-codex:$_TAG'
       - '-f'
       - 'Dockerfile'
       - '--pull'

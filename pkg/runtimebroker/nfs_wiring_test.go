@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // TestServer_NFSReconcilerWired_WhenNFSConfigured verifies that the
@@ -32,7 +32,7 @@ func TestServer_NFSReconcilerWired_WhenNFSConfigured(t *testing.T) {
 			MountRoot:    "/mnt/nfs",
 			MountOptions: "vers=3,hard",
 			Shares: []config.V1NFSShare{
-				{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+				{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 			},
 		},
 	}
@@ -91,7 +91,7 @@ func TestServer_HealthIncludesNFS(t *testing.T) {
 			MountRoot:    "/mnt/nfs",
 			MountOptions: "vers=3,hard",
 			Shares: []config.V1NFSShare{
-				{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+				{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 			},
 		},
 	}

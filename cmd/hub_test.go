@@ -19,16 +19,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAuthInfo_NoAuth(t *testing.T) {
 	// Clear all dev token sources so getAuthInfo doesn't find dev auth
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 	t.Setenv("HOME", t.TempDir())
 
 	settings := &config.Settings{}
@@ -39,10 +39,10 @@ func TestGetAuthInfo_NoAuth(t *testing.T) {
 
 func TestGetAuthInfo_DeprecatedTokenIgnored(t *testing.T) {
 	// Clear higher-priority token sources
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 	t.Setenv("HOME", t.TempDir())
 
 	// hub.token is deprecated and should no longer be used for auth
@@ -58,10 +58,10 @@ func TestGetAuthInfo_DeprecatedTokenIgnored(t *testing.T) {
 
 func TestGetAuthInfo_DeprecatedAPIKeyIgnored(t *testing.T) {
 	// Clear higher-priority token sources
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 	t.Setenv("HOME", t.TempDir())
 
 	// hub.apiKey is deprecated and should no longer be used for auth
@@ -76,26 +76,26 @@ func TestGetAuthInfo_DeprecatedAPIKeyIgnored(t *testing.T) {
 }
 
 func TestGetAuthInfo_EnvTokenTakesPriority(t *testing.T) {
-	// Clear higher-priority token sources so SCION_HUB_TOKEN is reached
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
+	// Clear higher-priority token sources so FABRIC_HUB_TOKEN is reached
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 	t.Setenv("HOME", t.TempDir())
 
-	// SCION_HUB_TOKEN env var should work for bearer auth
+	// FABRIC_HUB_TOKEN env var should work for bearer auth
 	settings := &config.Settings{}
-	t.Setenv("SCION_HUB_TOKEN", "env-token")
+	t.Setenv("FABRIC_HUB_TOKEN", "env-token")
 	info := getAuthInfo(settings, "https://hub.example.com")
 	assert.Equal(t, "bearer", info.MethodType)
-	assert.Equal(t, "SCION_HUB_TOKEN env", info.Source)
+	assert.Equal(t, "FABRIC_HUB_TOKEN env", info.Source)
 }
 
 func TestGetAuthInfo_NilHub(t *testing.T) {
 	// Clear all dev token sources so getAuthInfo doesn't find dev auth
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 	t.Setenv("HOME", t.TempDir())
 
 	settings := &config.Settings{
@@ -108,23 +108,23 @@ func TestGetAuthInfo_NilHub(t *testing.T) {
 func TestGetAuthInfo_DevAuthPreferredOverStaleAgentTokenOnLocalhost(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Write a non-dev agent token (stale JWT from a previous remote hub)
-	if err := os.WriteFile(filepath.Join(scionDir, "scion-token"), []byte("eyJhbGciOiJIUzI1NiJ9.stale-jwt"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "fabric-token"), []byte("eyJhbGciOiJIUzI1NiJ9.stale-jwt"), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	// Write a dev token (from the currently running local server)
-	if err := os.WriteFile(filepath.Join(scionDir, "dev-token"), []byte("scion_dev_abc123"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "dev-token"), []byte("fabric_dev_abc123"), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -138,23 +138,23 @@ func TestGetAuthInfo_DevAuthPreferredOverStaleAgentTokenOnLocalhost(t *testing.T
 func TestGetAuthInfo_AgentTokenUsedOnRemoteEndpoint(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Write a non-dev agent token
-	if err := os.WriteFile(filepath.Join(scionDir, "scion-token"), []byte("eyJhbGciOiJIUzI1NiJ9.valid-jwt"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "fabric-token"), []byte("eyJhbGciOiJIUzI1NiJ9.valid-jwt"), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	// Write a dev token (leftover from a previous local server)
-	if err := os.WriteFile(filepath.Join(scionDir, "dev-token"), []byte("scion_dev_abc123"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "dev-token"), []byte("fabric_dev_abc123"), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -162,24 +162,24 @@ func TestGetAuthInfo_AgentTokenUsedOnRemoteEndpoint(t *testing.T) {
 	info := getAuthInfo(settings, "https://hub.example.com")
 	assert.Equal(t, "agent_token", info.MethodType)
 	assert.Equal(t, "Agent token", info.Method)
-	assert.Equal(t, "scion-token file", info.Source)
+	assert.Equal(t, "fabric-token file", info.Source)
 }
 
 func TestGetAuthInfo_DevAgentTokenUsedDirectly(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	t.Setenv("SCION_HUB_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_HUB_TOKEN", "")
 
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	// Write a dev token in the scion-token file (agent launched by dev server)
-	if err := os.WriteFile(filepath.Join(scionDir, "scion-token"), []byte("scion_dev_abc123"), 0600); err != nil {
+	// Write a dev token in the fabric-token file (agent launched by dev server)
+	if err := os.WriteFile(filepath.Join(fabricDir, "fabric-token"), []byte("fabric_dev_abc123"), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -202,7 +202,7 @@ func TestIsLocalhostEndpoint(t *testing.T) {
 
 func TestGetHubEnabledScope_GlobalScope(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	enabled := true
 	settings := &config.Settings{
@@ -218,10 +218,10 @@ func TestGetHubEnabledScope_GlobalScope(t *testing.T) {
 func TestGetHubEnabledScope_ProjectHasOwnSetting(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	// Create project settings with hub.enabled
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -244,10 +244,10 @@ func TestGetHubEnabledScope_ProjectHasOwnSetting(t *testing.T) {
 func TestGetHubEnabledScope_InheritedFromGlobal(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	// Create global settings with hub.enabled
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +257,7 @@ func TestGetHubEnabledScope_InheritedFromGlobal(t *testing.T) {
 	}
 
 	// Create project settings WITHOUT hub.enabled
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -280,16 +280,16 @@ func TestGetHubEnabledScope_InheritedFromGlobal(t *testing.T) {
 func TestGetHubEnabledScope_DefaultWhenNothingSet(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	// Create empty global dir
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create project settings WITHOUT hub.enabled
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -305,7 +305,7 @@ func TestGetHubEnabledScope_DefaultWhenNothingSet(t *testing.T) {
 func TestGetHubEndpointScope_FromProject(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	// Save original hubEndpoint and restore after test
 	origHubEndpoint := hubEndpoint
@@ -313,7 +313,7 @@ func TestGetHubEndpointScope_FromProject(t *testing.T) {
 	defer func() { hubEndpoint = origHubEndpoint }()
 
 	// Create project settings with hub.endpoint
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -335,14 +335,14 @@ func TestGetHubEndpointScope_FromProject(t *testing.T) {
 func TestGetHubEndpointScope_InheritedFromGlobal(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	origHubEndpoint := hubEndpoint
 	hubEndpoint = ""
 	defer func() { hubEndpoint = origHubEndpoint }()
 
 	// Create global settings with hub.endpoint
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -352,7 +352,7 @@ func TestGetHubEndpointScope_InheritedFromGlobal(t *testing.T) {
 	}
 
 	// Create project settings WITHOUT hub.endpoint
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -374,20 +374,20 @@ func TestGetHubEndpointScope_InheritedFromGlobal(t *testing.T) {
 func TestGetHubEndpointScope_FromEnv(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("SCION_HUB_ENDPOINT", "https://env-hub.example.com")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "https://env-hub.example.com")
 
 	origHubEndpoint := hubEndpoint
 	hubEndpoint = ""
 	defer func() { hubEndpoint = origHubEndpoint }()
 
 	// Create empty global dir
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create project settings WITHOUT hub.endpoint
-	projectDir := filepath.Join(tmpDir, "project-scion")
+	projectDir := filepath.Join(tmpDir, "project-fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -401,7 +401,7 @@ func TestGetHubEndpointScope_FromEnv(t *testing.T) {
 
 func TestGetHubEndpointScope_FromFlag(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	origHubEndpoint := hubEndpoint
 	hubEndpoint = "https://flag-hub.example.com"

@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/integrationconfig"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/integrationconfig"
 )
 
 // PostgresConfigProvider implements IntegrationConfigProvider backed by the

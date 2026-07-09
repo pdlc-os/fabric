@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -45,9 +45,9 @@ When user_access_mode is set to "invite_only", only emails on this
 allow list (plus admin emails) are permitted to log in.
 
 Examples:
-  scion hub allow-list
-  scion hub allow-list add alice@example.com --note "New hire"
-  scion hub allow-list remove alice@example.com`,
+  fabric hub allow-list
+  fabric hub allow-list add alice@example.com --note "New hire"
+  fabric hub allow-list remove alice@example.com`,
 	Args: cobra.NoArgs,
 	RunE: runAllowListList,
 }
@@ -58,8 +58,8 @@ var hubAllowListAddCmd = &cobra.Command{
 	Long: `Add an email address to the allow list.
 
 Examples:
-  scion hub allow-list add alice@example.com
-  scion hub allow-list add bob@example.com --note "Contractor, Q3"`,
+  fabric hub allow-list add alice@example.com
+  fabric hub allow-list add bob@example.com --note "Contractor, Q3"`,
 	Args: cobra.ExactArgs(1),
 	RunE: runAllowListAdd,
 }
@@ -70,7 +70,7 @@ var hubAllowListRemoveCmd = &cobra.Command{
 	Long: `Remove an email address from the allow list.
 
 Examples:
-  scion hub allow-list remove alice@example.com`,
+  fabric hub allow-list remove alice@example.com`,
 	Args: cobra.ExactArgs(1),
 	RunE: runAllowListRemove,
 }
@@ -81,8 +81,8 @@ var hubAllowListListCmd = &cobra.Command{
 	Long: `List all email addresses on the allow list.
 
 Examples:
-  scion hub allow-list list
-  scion hub allow-list list --json`,
+  fabric hub allow-list list
+  fabric hub allow-list list --json`,
 	Args: cobra.NoArgs,
 	RunE: runAllowListList,
 }
@@ -96,8 +96,8 @@ The CSV file should have one email per line, with an optional second column for 
 A header row (starting with "email") is automatically skipped.
 
 Examples:
-  scion hub allow-list import emails.csv
-  scion hub allow-list import emails.csv --note "Q3 batch import"`,
+  fabric hub allow-list import emails.csv
+  fabric hub allow-list import emails.csv --note "Q3 batch import"`,
 	Args: cobra.ExactArgs(1),
 	RunE: runAllowListImport,
 }

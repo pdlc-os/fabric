@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -41,11 +41,11 @@ Source can be:
 The installed name defaults to the source directory name, override with --name.
 
 Examples:
-  scion harness-config install https://github.com/org/repo/tree/main/harness-configs/my-config
-  scion harness-config install github.com/org/repo/tree/main/harness-configs/custom-claude
-  scion harness-config install file:///path/to/my-config
-  scion harness-config install :gcs:my-bucket/harness-configs/prod-claude
-  scion harness-config install --name my-claude --global https://github.com/org/repo/tree/main/custom`,
+  fabric harness-config install https://github.com/org/repo/tree/main/harness-configs/my-config
+  fabric harness-config install github.com/org/repo/tree/main/harness-configs/custom-claude
+  fabric harness-config install file:///path/to/my-config
+  fabric harness-config install :gcs:my-bucket/harness-configs/prod-claude
+  fabric harness-config install --name my-claude --global https://github.com/org/repo/tree/main/custom`,
 	Args: cobra.ExactArgs(1),
 	RunE: runHarnessConfigInstall,
 }

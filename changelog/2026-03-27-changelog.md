@@ -17,12 +17,12 @@ This release marks a major milestone with the completion of the bidirectional me
     * Optimized overall web terminal mouse behavior for a more native feel.
 * **Terminal Key Handling:** Resolved an issue where Shift+Enter caused double newlines; the terminal now correctly sends `ESC CR` instead of `CSI u`.
 * **Rootless Podman Compatibility:** 
-    * Fixed UID/GID mapping issues during `sciontool init` for rootless environments.
+    * Fixed UID/GID mapping issues during `fabrictool init` for rootless environments.
     * Ensured `ExecUser` is correctly threaded through PTY handlers.
     * Mandated the use of the root user for `podman exec` when running in rootless mode to ensure proper permissions.
 * **Terminal Environment:** PTY sessions now automatically set `TERM=xterm-256color` to ensure consistent color and feature support across different shells.
 * **Web Assets:** Added a fallback for bootstrap-icons in the Shoelace icon copy script to ensure UI consistency during build processes.
-* **Sciontool Initialization:** Improved `sciontool` resilience by falling back to direct `/etc/passwd` edits when `usermod` fails.
+* **Fabrictool Initialization:** Improved `fabrictool` resilience by falling back to direct `/etc/passwd` edits when `usermod` fails.
 
 ## 🧹 Chore & Refactoring
 

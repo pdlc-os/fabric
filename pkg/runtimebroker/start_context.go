@@ -25,12 +25,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // startContext holds all the resolved state needed to start an agent.
@@ -61,7 +61,7 @@ type startContextInputs struct {
 	Config *CreateAgentConfig
 
 	// InlineConfig for provisioning
-	InlineConfig *api.ScionConfig
+	InlineConfig *api.FabricConfig
 
 	// SharedDirs from project
 	SharedDirs []api.SharedDir
@@ -90,7 +90,7 @@ type startContextInputs struct {
 
 // buildStartContext unifies the common startup logic shared by createAgent,
 // startAgent, restartAgent, and finalizeEnv:
-//   - Hub-managed project path resolution (ProjectSlug → ~/.scion.projects/<slug>/)
+//   - Hub-managed project path resolution (ProjectSlug → ~/.fabric.projects/<slug>/)
 //   - Merged env assembly (resolved env + config env + auth + hub endpoint + broker identity)
 //   - Template hydration
 //   - Git-clone env injection
@@ -122,59 +122,59 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 		}
 	}
 
-	// Ensure hub-managed projects have a .scion marker with project-id for
+	// Ensure hub-managed projects have a .fabric marker with project-id for
 	// external split storage. When the hub dispatches to a broker without a
 	// LocalPath (e.g. auto-provided embedded broker for a linked project), the
-	// broker creates the workspace at ~/.scion.projects/<slug>/. Without a
+	// broker creates the workspace at ~/.fabric.projects/<slug>/. Without a
 	// project-id, agents are provisioned inside that workspace directory.
 	// Writing the hub's project ID enables split storage so agent homes go to
-	// ~/.scion.project-configs/<slug>__<uuid>/.scion/agents/ instead.
+	// ~/.fabric.project-configs/<slug>__<uuid>/.fabric/agents/ instead.
 	//
-	// The .scion path may be a marker file (hub-managed/workspace marker) or
+	// The .fabric path may be a marker file (hub-managed/workspace marker) or
 	// a directory (git project). This block handles both forms.
 	//
 	// This block also handles the case where the createAgent handler already
 	// resolved ProjectPath (for env-gather) before calling buildStartContext,
 	// which would skip the resolution block above.
 	if in.ProjectSlug != "" && in.ProjectPath != "" {
-		scionPath := filepath.Join(in.ProjectPath, config.DotScion)
+		fabricPath := filepath.Join(in.ProjectPath, config.DotFabric)
 
-		if config.IsProjectMarkerFile(scionPath) {
-			// .scion is a marker file — project-id is already recorded.
+		if config.IsProjectMarkerFile(fabricPath) {
+			// .fabric is a marker file — project-id is already recorded.
 			// Ensure external split storage directories exist.
-			if marker, err := config.ReadProjectMarker(scionPath); err == nil && marker.ProjectID != "" {
+			if marker, err := config.ReadProjectMarker(fabricPath); err == nil && marker.ProjectID != "" {
 				if extPath, err := marker.ExternalProjectPath(); err == nil && extPath != "" {
 					_ = os.MkdirAll(extPath, 0755)
 					_ = os.MkdirAll(filepath.Join(extPath, "agents"), 0755)
 				}
 				if s.config.Debug {
 					s.agentLifecycleLog.Debug("Hub-managed project has marker with split storage",
-						"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", marker.ProjectID, "path", scionPath)
+						"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", marker.ProjectID, "path", fabricPath)
 				}
 			}
-		} else if info, statErr := os.Stat(scionPath); statErr == nil && info.IsDir() {
-			// .scion is a directory (git project) — use file-based project-id
+		} else if info, statErr := os.Stat(fabricPath); statErr == nil && info.IsDir() {
+			// .fabric is a directory (git project) — use file-based project-id
 			if in.ProjectID != "" {
-				if existingID, err := config.ReadProjectID(scionPath); err != nil || existingID == "" {
-					if wErr := config.WriteProjectID(scionPath, in.ProjectID); wErr != nil {
+				if existingID, err := config.ReadProjectID(fabricPath); err != nil || existingID == "" {
+					if wErr := config.WriteProjectID(fabricPath, in.ProjectID); wErr != nil {
 						s.agentLifecycleLog.Warn("Failed to write project-id for hub-managed project",
 							"agent_id", in.AgentID, "project_id", in.ProjectID, "error", wErr)
 					} else {
-						if extAgents, err := config.GetGitProjectExternalAgentsDir(scionPath); err == nil && extAgents != "" {
+						if extAgents, err := config.GetGitProjectExternalAgentsDir(fabricPath); err == nil && extAgents != "" {
 							_ = os.MkdirAll(extAgents, 0755)
 						}
-						if extConfig, err := config.GetGitProjectExternalConfigDir(scionPath); err == nil && extConfig != "" {
+						if extConfig, err := config.GetGitProjectExternalConfigDir(fabricPath); err == nil && extConfig != "" {
 							_ = os.MkdirAll(extConfig, 0755)
 						}
 						if s.config.Debug {
 							s.agentLifecycleLog.Debug("Initialized git project with split storage",
-								"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", in.ProjectID, "path", scionPath)
+								"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", in.ProjectID, "path", fabricPath)
 						}
 					}
 				}
 			}
 		} else if in.ProjectID != "" {
-			// .scion doesn't exist — create project dir and write a marker file
+			// .fabric doesn't exist — create project dir and write a marker file
 			if err := os.MkdirAll(in.ProjectPath, 0755); err != nil {
 				s.agentLifecycleLog.Warn("Failed to create project dir for hub-managed project",
 					"agent_id", in.AgentID, "slug", in.ProjectSlug, "path", in.ProjectPath, "error", err)
@@ -184,8 +184,8 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 					ProjectName: in.ProjectSlug,
 					ProjectSlug: in.ProjectSlug,
 				}
-				if wErr := config.WriteProjectMarker(scionPath, marker); wErr != nil {
-					s.agentLifecycleLog.Warn("Failed to write .scion marker for hub-managed project",
+				if wErr := config.WriteProjectMarker(fabricPath, marker); wErr != nil {
+					s.agentLifecycleLog.Warn("Failed to write .fabric marker for hub-managed project",
 						"agent_id", in.AgentID, "project_id", in.ProjectID, "error", wErr)
 				} else {
 					if extPath, err := marker.ExternalProjectPath(); err == nil && extPath != "" {
@@ -194,7 +194,7 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 					}
 					if s.config.Debug {
 						s.agentLifecycleLog.Debug("Initialized hub-managed project with split storage",
-							"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", in.ProjectID, "path", scionPath)
+							"agent_id", in.AgentID, "slug", in.ProjectSlug, "project_id", in.ProjectID, "path", fabricPath)
 					}
 				}
 			}
@@ -221,27 +221,27 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 
 	// 3. Hub auth token. Precedence (highest first):
 	//   1. in.AgentToken — the explicit hub-provided dedicated field (create path).
-	//   2. an existing env["SCION_AUTH_TOKEN"] already populated from in.ResolvedEnv
+	//   2. an existing env["FABRIC_AUTH_TOKEN"] already populated from in.ResolvedEnv
 	//      above — on the start/resume path the hub mints the agent JWT into
 	//      resolvedEnv, so it is already present here and must be kept.
-	//   3. the broker's own dev SCION_AUTH_TOKEN — last resort only.
+	//   3. the broker's own dev FABRIC_AUTH_TOKEN — last resort only.
 	// The dev-token fallback must NOT clobber a token resolved from the hub:
 	// resume mints a valid JWT into resolvedEnv, and overwriting it with the
 	// broker's dev token caused 401s ("compact JWS format must have three parts").
 	if in.AgentToken != "" {
-		env["SCION_AUTH_TOKEN"] = in.AgentToken
+		env["FABRIC_AUTH_TOKEN"] = in.AgentToken
 		if s.config.Debug {
-			s.agentLifecycleLog.Debug("SCION_AUTH_TOKEN set from agent token", "agent_id", in.AgentID, "length", len(in.AgentToken))
+			s.agentLifecycleLog.Debug("FABRIC_AUTH_TOKEN set from agent token", "agent_id", in.AgentID, "length", len(in.AgentToken))
 		}
-	} else if env["SCION_AUTH_TOKEN"] != "" {
+	} else if env["FABRIC_AUTH_TOKEN"] != "" {
 		// Token already resolved from the hub via resolvedEnv (start/resume path); keep it.
 		if s.config.Debug {
-			s.agentLifecycleLog.Debug("SCION_AUTH_TOKEN kept from resolved env", "agent_id", in.AgentID, "length", len(env["SCION_AUTH_TOKEN"]))
+			s.agentLifecycleLog.Debug("FABRIC_AUTH_TOKEN kept from resolved env", "agent_id", in.AgentID, "length", len(env["FABRIC_AUTH_TOKEN"]))
 		}
-	} else if devToken := os.Getenv("SCION_AUTH_TOKEN"); devToken != "" {
-		env["SCION_AUTH_TOKEN"] = devToken
+	} else if devToken := os.Getenv("FABRIC_AUTH_TOKEN"); devToken != "" {
+		env["FABRIC_AUTH_TOKEN"] = devToken
 		if s.config.Debug {
-			s.agentLifecycleLog.Debug("SCION_AUTH_TOKEN set from broker env", "agent_id", in.AgentID, "length", len(devToken))
+			s.agentLifecycleLog.Debug("FABRIC_AUTH_TOKEN set from broker env", "agent_id", in.AgentID, "length", len(devToken))
 		}
 	}
 
@@ -281,10 +281,10 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 		)
 	}
 	if hubEndpoint != "" {
-		env["SCION_HUB_ENDPOINT"] = hubEndpoint
-		env["SCION_HUB_URL"] = hubEndpoint // legacy compat
+		env["FABRIC_HUB_ENDPOINT"] = hubEndpoint
+		env["FABRIC_HUB_URL"] = hubEndpoint // legacy compat
 		if s.config.Debug {
-			s.agentLifecycleLog.Debug("SCION_HUB_ENDPOINT set", "agent_id", in.AgentID, "endpoint", hubEndpoint)
+			s.agentLifecycleLog.Debug("FABRIC_HUB_ENDPOINT set", "agent_id", in.AgentID, "endpoint", hubEndpoint)
 		}
 	}
 
@@ -297,34 +297,34 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 
 	// 5. Agent identity env
 	if in.Slug != "" {
-		env["SCION_AGENT_SLUG"] = in.Slug
+		env["FABRIC_AGENT_SLUG"] = in.Slug
 	}
 	if in.AgentID != "" {
-		env["SCION_AGENT_ID"] = in.AgentID
+		env["FABRIC_AGENT_ID"] = in.AgentID
 	}
 	if in.ProjectID != "" {
-		env["SCION_GROVE_ID"] = in.ProjectID
-		env["SCION_PROJECT_ID"] = in.ProjectID
+		env["FABRIC_GROVE_ID"] = in.ProjectID
+		env["FABRIC_PROJECT_ID"] = in.ProjectID
 	}
 	if in.ProjectPath != "" {
-		env["SCION_GROVE_PATH"] = in.ProjectPath
-		env["SCION_PROJECT_PATH"] = in.ProjectPath
+		env["FABRIC_GROVE_PATH"] = in.ProjectPath
+		env["FABRIC_PROJECT_PATH"] = in.ProjectPath
 	}
 
 	// 6. Broker identity
 	if s.config.BrokerName != "" {
-		env["SCION_BROKER_NAME"] = s.config.BrokerName
+		env["FABRIC_BROKER_NAME"] = s.config.BrokerName
 	}
 	if s.config.BrokerID != "" {
-		env["SCION_BROKER_ID"] = s.config.BrokerID
+		env["FABRIC_BROKER_ID"] = s.config.BrokerID
 	}
 	if in.CreatorName != "" {
-		env["SCION_CREATOR"] = in.CreatorName
+		env["FABRIC_CREATOR"] = in.CreatorName
 	}
 
 	// 7. Debug
 	if s.config.Debug {
-		env["SCION_DEBUG"] = "1"
+		env["FABRIC_DEBUG"] = "1"
 	}
 
 	// 8. GCP identity metadata server configuration.
@@ -337,17 +337,17 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 	gcpMetadataMode := "block" // secure default
 	if in.Config != nil && in.Config.GCPIdentity != nil {
 		gcpMetadataMode = in.Config.GCPIdentity.MetadataMode
-	} else if mode := env["SCION_METADATA_MODE"]; mode != "" {
-		// The hub injects SCION_METADATA_MODE (and SA details) via
+	} else if mode := env["FABRIC_METADATA_MODE"]; mode != "" {
+		// The hub injects FABRIC_METADATA_MODE (and SA details) via
 		// resolvedEnv when dispatching a start for a provisioned agent.
 		gcpMetadataMode = mode
 	}
 	if gcpMetadataMode == "assign" || gcpMetadataMode == "block" {
-		env["SCION_METADATA_MODE"] = gcpMetadataMode
-		env["SCION_METADATA_PORT"] = "18380"
+		env["FABRIC_METADATA_MODE"] = gcpMetadataMode
+		env["FABRIC_METADATA_PORT"] = "18380"
 		if gcpMetadataMode == "assign" && in.Config != nil && in.Config.GCPIdentity != nil {
-			env["SCION_METADATA_SA_EMAIL"] = in.Config.GCPIdentity.SAEmail
-			env["SCION_METADATA_PROJECT_ID"] = in.Config.GCPIdentity.ProjectID
+			env["FABRIC_METADATA_SA_EMAIL"] = in.Config.GCPIdentity.SAEmail
+			env["FABRIC_METADATA_PROJECT_ID"] = in.Config.GCPIdentity.ProjectID
 		}
 		env["GCE_METADATA_HOST"] = "localhost:18380"
 		// gcloud CLI uses GCE_METADATA_ROOT (not GCE_METADATA_HOST) to locate
@@ -453,7 +453,7 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 
 	// --- Shared workspace mode (git-workspace hybrid) ---
 	if in.Config != nil && in.Config.SharedWorkspace {
-		env["SCION_SHARED_WORKSPACE"] = "true"
+		env["FABRIC_SHARED_WORKSPACE"] = "true"
 		if s.config.Debug {
 			s.agentLifecycleLog.Debug("Shared workspace mode enabled", "agent_id", in.AgentID)
 		}
@@ -473,19 +473,19 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 	// --- Git clone mode ---
 	if !worktreeProvisioned && in.Config != nil && in.Config.GitClone != nil {
 		gc := in.Config.GitClone
-		env["SCION_GIT_CLONE_URL"] = gc.URL
+		env["FABRIC_GIT_CLONE_URL"] = gc.URL
 		if gc.Branch != "" {
-			env["SCION_GIT_BRANCH"] = gc.Branch
+			env["FABRIC_GIT_BRANCH"] = gc.Branch
 		}
 		if gc.Depth > 0 {
-			env["SCION_GIT_DEPTH"] = strconv.Itoa(gc.Depth)
+			env["FABRIC_GIT_DEPTH"] = strconv.Itoa(gc.Depth)
 		}
 		if in.Config.Branch != "" {
-			env["SCION_AGENT_BRANCH"] = in.Config.Branch
+			env["FABRIC_AGENT_BRANCH"] = in.Config.Branch
 		}
 		opts.Workspace = ""
 		// Keep opts.ProjectPath so that ProvisionAgent can resolve the correct
-		// agent directory (e.g. ~/.scion.projects/<slug>/) instead of falling
+		// agent directory (e.g. ~/.fabric.projects/<slug>/) instead of falling
 		// back to the global project. The git-clone check in ProvisionAgent
 		// runs before the worktree logic, so no worktree will be created.
 		opts.GitClone = gc
@@ -498,7 +498,7 @@ func (s *Server) buildStartContext(ctx context.Context, in startContextInputs) (
 	// --- Env + telemetry + secrets ---
 	opts.Env = env
 
-	if v, ok := env["SCION_TELEMETRY_ENABLED"]; ok {
+	if v, ok := env["FABRIC_TELEMETRY_ENABLED"]; ok {
 		enabled := v == "true" || v == "1"
 		opts.TelemetryOverride = &enabled
 	}
@@ -621,7 +621,7 @@ func (s *Server) tryProvisionWorktree(ctx context.Context, in startContextInputs
 		actualWorkspace = regPath
 	}
 
-	// Write .scion workspace marker so the in-container CLI discovers project context.
+	// Write .fabric workspace marker so the in-container CLI discovers project context.
 	if in.ProjectID != "" && in.ProjectSlug != "" {
 		if err := config.WriteWorkspaceMarker(actualWorkspace, in.ProjectID, in.ProjectSlug, in.ProjectSlug); err != nil {
 			slog.Warn("worktree-per-agent: failed to write workspace marker (non-fatal)",
@@ -771,7 +771,7 @@ func hasWorkspaceContent(dir string) bool {
 	}
 	for _, e := range entries {
 		switch e.Name() {
-		case "shared-dirs", ".scion":
+		case "shared-dirs", ".fabric":
 			continue
 		default:
 			return true

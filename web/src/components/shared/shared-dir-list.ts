@@ -32,8 +32,8 @@ import { resourceStyles } from './resource-styles.js';
 
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
-@customElement('scion-shared-dir-list')
-export class ScionSharedDirList extends LitElement {
+@customElement('fabric-shared-dir-list')
+export class FabricSharedDirList extends LitElement {
   @property() projectId = '';
   @property() apiBasePath = '';
 
@@ -243,8 +243,8 @@ export class ScionSharedDirList extends LitElement {
   private renderRow(dir: SharedDir) {
     const isDeleting = this.deletingName === dir.name;
     const mountPath = dir.in_workspace
-      ? `/workspace/.scion-volumes/${dir.name}`
-      : `/scion-volumes/${dir.name}`;
+      ? `/workspace/.fabric-volumes/${dir.name}`
+      : `/fabric-volumes/${dir.name}`;
 
     return html`
       <tr>
@@ -339,7 +339,7 @@ export class ScionSharedDirList extends LitElement {
               <span class="checkbox-text">
                 <span>Mount in workspace</span>
                 <span class="checkbox-description">
-                  Mount at /workspace/.scion-volumes/ instead of /scion-volumes/.
+                  Mount at /workspace/.fabric-volumes/ instead of /fabric-volumes/.
                   Useful for caches that tools expect relative to the project root.
                 </span>
               </span>
@@ -375,6 +375,6 @@ export class ScionSharedDirList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-shared-dir-list': ScionSharedDirList;
+    'fabric-shared-dir-list': FabricSharedDirList;
   }
 }

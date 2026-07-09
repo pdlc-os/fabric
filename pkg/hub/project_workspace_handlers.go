@@ -34,9 +34,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // maxUploadTotalSize is the maximum total request body size for file uploads (100MB).
@@ -783,14 +783,14 @@ type sharedDirResolution struct {
 }
 
 // resolveSharedDirPath resolves the host-side path for a shared directory.
-// Shared dirs always live under ~/.scion/project-configs/<slug>__<uuid>/shared-dirs/<name>,
+// Shared dirs always live under ~/.fabric/project-configs/<slug>__<uuid>/shared-dirs/<name>,
 // matching the path used by agent provisioning (config.GetSharedDirPath).
 // For git-based projects with a co-located broker that has a LocalPath, the path is
 // resolved via config.GetSharedDirPath(localPath, dirName). Otherwise, the path is
-// resolved via the .scion marker in the hub-managed workspace directory.
+// resolved via the .fabric marker in the hub-managed workspace directory.
 func (s *Server) resolveSharedDirPath(ctx context.Context, project *store.Project, dirName string) (*sharedDirResolution, error) {
 	if project.GitRemote == "" {
-		// Hub-managed project: resolve via the .scion marker in the workspace directory
+		// Hub-managed project: resolve via the .fabric marker in the workspace directory
 		// to find the project-configs path where shared dirs actually live.
 		sdPath, err := resolveHubProjectSharedDirPath(project.Slug, dirName)
 		if err != nil {
@@ -831,7 +831,7 @@ func (s *Server) resolveSharedDirPath(ctx context.Context, project *store.Projec
 	}
 
 	// Fallback: embedded broker is a provider but has no LocalPath recorded
-	// (e.g. auto-linked or shared-workspace project). Resolve via the .scion marker
+	// (e.g. auto-linked or shared-workspace project). Resolve via the .fabric marker
 	// in the hub workspace to find the project-configs path.
 	if embeddedIsProvider {
 		sdPath, err := resolveHubProjectSharedDirPath(project.Slug, dirName)
@@ -849,7 +849,7 @@ func (s *Server) resolveSharedDirPath(ctx context.Context, project *store.Projec
 }
 
 // resolveHubProjectSharedDirPath resolves the project-configs shared dir path for
-// a project whose workspace lives at ~/.scion/projects/<slug>/. It reads the .scion
+// a project whose workspace lives at ~/.fabric/projects/<slug>/. It reads the .fabric
 // marker (or project-id for git clones) to find the external project-configs path,
 // then returns the shared-dirs/<name> subdirectory within it.
 func resolveHubProjectSharedDirPath(projectSlug, dirName string) (string, error) {
@@ -857,8 +857,8 @@ func resolveHubProjectSharedDirPath(projectSlug, dirName string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	scionPath := filepath.Join(workspacePath, config.DotScion)
-	projectDir, _, err := config.ResolveProjectPath(scionPath)
+	fabricPath := filepath.Join(workspacePath, config.DotFabric)
+	projectDir, _, err := config.ResolveProjectPath(fabricPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve project path for %s: %w", projectSlug, err)
 	}

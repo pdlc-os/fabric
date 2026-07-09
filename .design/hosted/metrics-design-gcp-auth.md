@@ -2,7 +2,7 @@
 
 **Status:** Draft — Reviewed
 **Date:** 2026-03-03
-**Parent Document:** [Hosted Scion Metrics System Design](metrics-system.md)
+**Parent Document:** [Hosted Fabric Metrics System Design](metrics-system.md)
 
 ---
 
@@ -14,7 +14,7 @@ This document supersedes §11.8 by defining a concrete, GCP-specific credential 
 
 1. Provides a hub-managed, least-privilege service account key dedicated to telemetry writes.
 2. Injects the key into agent containers during provisioning.
-3. Uses a **scion-specific environment variable** (not `GOOGLE_APPLICATION_CREDENTIALS`) so the credential is consumed exclusively by the sciontool OTEL exporter and is not inadvertently discovered by other Google client libraries running in the container.
+3. Uses a **fabric-specific environment variable** (not `GOOGLE_APPLICATION_CREDENTIALS`) so the credential is consumed exclusively by the fabrictool OTEL exporter and is not inadvertently discovered by other Google client libraries running in the container.
 
 ---
 
@@ -34,7 +34,7 @@ This document supersedes §11.8 by defining a concrete, GCP-specific credential 
 A GCP service account is created specifically for telemetry ingestion:
 
 ```
-scion-telemetry-writer@<project-id>.iam.gserviceaccount.com
+fabric-telemetry-writer@<project-id>.iam.gserviceaccount.com
 ```
 
 ### 3.2 Minimum Required IAM Roles
@@ -61,13 +61,13 @@ A JSON key file is generated for this service account and stored as a Hub-manage
 
 ```
 ┌──────────────┐       ┌───────────────────┐       ┌───────────────────────────────┐
-│   Scion Hub  │       │  Runtime Broker    │       │     Agent Container           │
+│   Fabric Hub  │       │  Runtime Broker    │       │     Agent Container           │
 │              │       │                    │       │                               │
 │  Stores SA   │──────▶│  Receives key in   │──────▶│  Key written to agent-home:   │
-│  key as a    │ Agent │  CreateAgent       │ File  │  ~/.scion/telemetry-gcp-     │
+│  key as a    │ Agent │  CreateAgent       │ File  │  ~/.fabric/telemetry-gcp-     │
 │  secret      │ Dispatch  dispatch payload │ Inject│  credentials.json            │
 │              │       │                    │       │                               │
-│  Attaches    │       │  Stages file in    │ Env   │  SCION_OTEL_GCP_CREDENTIALS  │
+│  Attaches    │       │  Stages file in    │ Env   │  FABRIC_OTEL_GCP_CREDENTIALS  │
 │  to grove    │       │  agent-home dir    │ Set   │  set to file path            │
 │  config      │       │                    │       │                               │
 └──────────────┘       └───────────────────┘       └───────────────────────────────┘
@@ -79,9 +79,9 @@ The telemetry SA key is stored using the existing secrets system ([Secrets Desig
 
 | Field | Value |
 |-------|-------|
-| **Name** | `scion-telemetry-gcp-credentials` |
+| **Name** | `fabric-telemetry-gcp-credentials` |
 | **Type** | `file` |
-| **Target** | `~/.scion/telemetry-gcp-credentials.json` |
+| **Target** | `~/.fabric/telemetry-gcp-credentials.json` |
 | **Scope** | `hub` |
 | **Value** | Base64-encoded service account JSON key |
 
@@ -91,40 +91,40 @@ Hub-scoped secrets are resolved and included for all groves and brokers served b
 
 The Runtime Broker receives the secret through the standard `CreateAgent` dispatch flow and stages it using the existing `writeFileSecrets` mechanism (`pkg/runtime/common.go`):
 
-1. The base64-encoded key content is decoded and written to the host-side staging directory: `<agent-dir>/secrets/scion-telemetry-gcp-credentials`
-2. The file is bind-mounted read-only into the container at `~/.scion/telemetry-gcp-credentials.json`
+1. The base64-encoded key content is decoded and written to the host-side staging directory: `<agent-dir>/secrets/fabric-telemetry-gcp-credentials`
+2. The file is bind-mounted read-only into the container at `~/.fabric/telemetry-gcp-credentials.json`
 3. File permissions are set to `0600` (owner-read only).
 
 No new file-staging code is required; the existing secrets projection pipeline handles this.
 
 ### 4.4 Broker: Environment Variable Injection
 
-In addition to staging the file, the broker sets a scion-specific environment variable to inform sciontool where to find the credential:
+In addition to staging the file, the broker sets a fabric-specific environment variable to inform fabrictool where to find the credential:
 
 ```
-SCION_OTEL_GCP_CREDENTIALS=/home/<user>/.scion/telemetry-gcp-credentials.json
+FABRIC_OTEL_GCP_CREDENTIALS=/home/<user>/.fabric/telemetry-gcp-credentials.json
 ```
 This variable is set alongside the existing telemetry env vars emitted by `TelemetryConfigToEnv()` in `pkg/config/telemetry_convert.go`.
 
 **Why not `GOOGLE_APPLICATION_CREDENTIALS`?**
 
-Setting `GOOGLE_APPLICATION_CREDENTIALS` would cause every Google Cloud client library in the container to discover and use this credential. Agent containers may run tools (e.g., `gcloud`, `gsutil`, GCS FUSE, or application code using Google SDKs) that should authenticate with the agent's own identity — not the telemetry writer. A scion-namespaced variable ensures only the sciontool exporter consumes this credential.
+Setting `GOOGLE_APPLICATION_CREDENTIALS` would cause every Google Cloud client library in the container to discover and use this credential. Agent containers may run tools (e.g., `gcloud`, `gsutil`, GCS FUSE, or application code using Google SDKs) that should authenticate with the agent's own identity — not the telemetry writer. A fabric-namespaced variable ensures only the fabrictool exporter consumes this credential.
 
 ---
 
-## 5. Sciontool Credential Consumption
+## 5. Fabrictool Credential Consumption
 
 ### 5.1 OTEL Exporter Configuration
 
-The sciontool telemetry pipeline (`pkg/sciontool/telemetry/pipeline.go`) must be updated to:
+The fabrictool telemetry pipeline (`pkg/fabrictool/telemetry/pipeline.go`) must be updated to:
 
-1. Check for `SCION_OTEL_GCP_CREDENTIALS` at startup.
+1. Check for `FABRIC_OTEL_GCP_CREDENTIALS` at startup.
 2. If present, read the JSON key file and construct a `google.Credentials` object from it using `google.CredentialsFromJSON()`.
 3. Pass the credential explicitly to the GCP OTEL exporter via `option.WithCredentials()`, rather than relying on ADC auto-discovery.
 
 ```go
 // Pseudocode for credential loading
-if credPath := os.Getenv("SCION_OTEL_GCP_CREDENTIALS"); credPath != "" {
+if credPath := os.Getenv("FABRIC_OTEL_GCP_CREDENTIALS"); credPath != "" {
     keyBytes, err := os.ReadFile(credPath)
     if err != nil {
         return fmt.Errorf("failed to read GCP telemetry credentials: %w", err)
@@ -149,11 +149,11 @@ if credPath := os.Getenv("SCION_OTEL_GCP_CREDENTIALS"); credPath != "" {
 
 ### 5.2 Fallback Behavior
 
-If `SCION_OTEL_GCP_CREDENTIALS` is not set, sciontool falls back to the standard ADC chain. This preserves backward compatibility for environments where Workload Identity, metadata server credentials, or a pre-existing `GOOGLE_APPLICATION_CREDENTIALS` is available (e.g., GKE pods with Workload Identity Federation).
+If `FABRIC_OTEL_GCP_CREDENTIALS` is not set, fabrictool falls back to the standard ADC chain. This preserves backward compatibility for environments where Workload Identity, metadata server credentials, or a pre-existing `GOOGLE_APPLICATION_CREDENTIALS` is available (e.g., GKE pods with Workload Identity Federation).
 
 ### 5.3 Credential Caching
 
-The `google.Credentials` object handles token refresh internally. Sciontool should create the credential once at startup and reuse it for all exporters (traces, logs, metrics). No additional caching is needed.
+The `google.Credentials` object handles token refresh internally. Fabrictool should create the credential once at startup and reuse it for all exporters (traces, logs, metrics). No additional caching is needed.
 
 ---
 
@@ -184,9 +184,9 @@ type TelemetryCloudConfig struct {
 
 | Condition | Variable | Value |
 |-----------|----------|-------|
-| `Cloud.Provider == "gcp"` | `SCION_TELEMETRY_CLOUD_PROVIDER` | `gcp` |
+| `Cloud.Provider == "gcp"` | `FABRIC_TELEMETRY_CLOUD_PROVIDER` | `gcp` |
 
-The `SCION_OTEL_GCP_CREDENTIALS` variable itself is not emitted by `TelemetryConfigToEnv()` — it is set by the broker's secret-injection path based on the presence of the resolved secret. This keeps the telemetry config conversion stateless (it doesn't need to know about file paths).
+The `FABRIC_OTEL_GCP_CREDENTIALS` variable itself is not emitted by `TelemetryConfigToEnv()` — it is set by the broker's secret-injection path based on the presence of the resolved secret. This keeps the telemetry config conversion stateless (it doesn't need to know about file paths).
 
 ### 6.3 Grove Settings Example
 
@@ -200,7 +200,7 @@ telemetry:
     enabled: true
 ```
 
-When `provider: gcp` is set and the `scion-telemetry-gcp-credentials` secret exists at hub scope, the full injection chain activates automatically during agent provisioning.
+When `provider: gcp` is set and the `fabric-telemetry-gcp-credentials` secret exists at hub scope, the full injection chain activates automatically during agent provisioning.
 
 ---
 
@@ -220,15 +220,15 @@ When `provider: gcp` is set and the `scion-telemetry-gcp-credentials` secret exi
 
 ### 7.4 Workload Identity Federation as Alternative
 
-**Decision:** Key-file injection is the universal baseline. For GKE or Cloud Run environments where Workload Identity Federation (WIF) is available, the sciontool fallback-to-ADC behavior (§5.2) already provides a working path — no key injection is needed when ambient credentials are present. A dedicated `provider: gcp-wif` variant can be added in the future if explicit opt-in is desired.
+**Decision:** Key-file injection is the universal baseline. For GKE or Cloud Run environments where Workload Identity Federation (WIF) is available, the fabrictool fallback-to-ADC behavior (§5.2) already provides a working path — no key injection is needed when ambient credentials are present. A dedicated `provider: gcp-wif` variant can be added in the future if explicit opt-in is desired.
 
 ### 7.5 Key File Path Convention
 
-**Decision:** `~/.scion/telemetry-gcp-credentials.json`. This path is outside `~/.config/gcloud/` (avoiding ADC discovery), within the `.scion` namespace for consistency, and does not collide with existing scion-managed files.
+**Decision:** `~/.fabric/telemetry-gcp-credentials.json`. This path is outside `~/.config/gcloud/` (avoiding ADC discovery), within the `.fabric` namespace for consistency, and does not collide with existing fabric-managed files.
 
 ### 7.6 Multiple Cloud Providers
 
-The `SCION_OTEL_GCP_CREDENTIALS` variable is GCP-specific by name and only consumed by the GCP exporter codepath. A second provider (e.g., AWS) would use its own namespaced variable (e.g., `SCION_OTEL_AWS_CREDENTIALS`) and its own injected credential, without conflict.
+The `FABRIC_OTEL_GCP_CREDENTIALS` variable is GCP-specific by name and only consumed by the GCP exporter codepath. A second provider (e.g., AWS) would use its own namespaced variable (e.g., `FABRIC_OTEL_AWS_CREDENTIALS`) and its own injected credential, without conflict.
 
 ### 7.7 Credential File Permissions in Apple Runtime — Open
 
@@ -268,12 +268,12 @@ If an agent process escapes the container, it could read the key file from the h
 
 ## 9. Implementation Checklist
 
-1. **GCP Setup**: Create `scion-telemetry-writer` service account with roles from §3.2. Generate JSON key.
-2. **Hub Secret**: Store the key as a `file`-type secret named `scion-telemetry-gcp-credentials` at hub scope.
+1. **GCP Setup**: Create `fabric-telemetry-writer` service account with roles from §3.2. Generate JSON key.
+2. **Hub Secret**: Store the key as a `file`-type secret named `fabric-telemetry-gcp-credentials` at hub scope.
 3. **API Types**: Add `Provider` field to `TelemetryCloudConfig` (§6.1).
-4. **Config Conversion**: Emit `SCION_TELEMETRY_CLOUD_PROVIDER` from `TelemetryConfigToEnv()` (§6.2).
-5. **Provisioning**: Ensure `CreateAgent` dispatch includes the telemetry secret when `provider: gcp` and the secret exists. Set `SCION_OTEL_GCP_CREDENTIALS` env var pointing to the mounted path.
-6. **Sciontool**: Update OTEL provider setup to load explicit credentials from `SCION_OTEL_GCP_CREDENTIALS` (§5.1).
+4. **Config Conversion**: Emit `FABRIC_TELEMETRY_CLOUD_PROVIDER` from `TelemetryConfigToEnv()` (§6.2).
+5. **Provisioning**: Ensure `CreateAgent` dispatch includes the telemetry secret when `provider: gcp` and the secret exists. Set `FABRIC_OTEL_GCP_CREDENTIALS` env var pointing to the mounted path.
+6. **Fabrictool**: Update OTEL provider setup to load explicit credentials from `FABRIC_OTEL_GCP_CREDENTIALS` (§5.1).
 7. **Tests**: Unit tests for credential loading, env var emission, and fallback-to-ADC behavior.
 8. **Documentation**: Update operator runbook with GCP setup instructions and key rotation procedure.
 9. **Demo Scripts**: Update the demo-hub GCE provisioning scripts in `.hack/` to include telemetry SA key setup and injection configuration.

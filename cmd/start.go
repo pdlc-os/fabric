@@ -22,7 +22,7 @@ import (
 var startCmd = &cobra.Command{
 	Use:     "start <agent-name> [task...]",
 	Aliases: []string{"run"},
-	Short:   "Launch a new scion agent",
+	Short:   "Launch a new fabric agent",
 	Long: `Provision and launch a new isolated LLM agent.
 The agent will be created from a template and run in a detached container.
 

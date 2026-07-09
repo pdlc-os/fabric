@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // GCPServiceAccountService handles GCP service account operations for a project.

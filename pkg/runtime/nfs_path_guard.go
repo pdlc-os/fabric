@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // ValidateNotExportRoot ensures that hostPath is a proper subdirectory of
@@ -52,7 +52,7 @@ func ValidateNotExportRoot(hostPath, hostBase string) error {
 // NFSSharedDirsToVolumeMounts converts shared directory declarations into
 // VolumeMount entries using NFS-resolved paths from a ResolvedWorkspace.
 // This is the NFS counterpart of config.SharedDirsToVolumeMounts — the
-// container-side targets are unchanged (/scion-volumes/<name> or in-workspace),
+// container-side targets are unchanged (/fabric-volumes/<name> or in-workspace),
 // but the host-side source paths come from the NFS backend's Resolve output
 // instead of the local filesystem helpers.
 //
@@ -80,9 +80,9 @@ func NFSSharedDirsToVolumeMounts(resolved ResolvedWorkspace, dirs []api.SharedDi
 			return nil, fmt.Errorf("shared dir %q: %w", d.Name, err)
 		}
 
-		target := fmt.Sprintf("/scion-volumes/%s", d.Name)
+		target := fmt.Sprintf("/fabric-volumes/%s", d.Name)
 		if d.InWorkspace {
-			target = fmt.Sprintf("%s/.scion-volumes/%s", containerWorkspace, d.Name)
+			target = fmt.Sprintf("%s/.fabric-volumes/%s", containerWorkspace, d.Name)
 		}
 
 		mounts = append(mounts, api.VolumeMount{

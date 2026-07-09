@@ -24,32 +24,32 @@
    Layout
    ========================================================================== */
 
-.scion-flex {
+.fabric-flex {
   display: flex;
 }
 
-.scion-flex-col {
+.fabric-flex-col {
   display: flex;
   flex-direction: column;
 }
 
-.scion-flex-center {
+.fabric-flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.scion-flex-between {
+.fabric-flex-between {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.scion-flex-1 {
+.fabric-flex-1 {
   flex: 1;
 }
 
-.scion-grid {
+.fabric-grid {
   display: grid;
 }
 
@@ -57,62 +57,62 @@
    Spacing
    ========================================================================== */
 
-.scion-gap-1 {
-  gap: var(--scion-space-1);
+.fabric-gap-1 {
+  gap: var(--fabric-space-1);
 }
-.scion-gap-2 {
-  gap: var(--scion-space-2);
+.fabric-gap-2 {
+  gap: var(--fabric-space-2);
 }
-.scion-gap-3 {
-  gap: var(--scion-space-3);
+.fabric-gap-3 {
+  gap: var(--fabric-space-3);
 }
-.scion-gap-4 {
-  gap: var(--scion-space-4);
+.fabric-gap-4 {
+  gap: var(--fabric-space-4);
 }
-.scion-gap-6 {
-  gap: var(--scion-space-6);
+.fabric-gap-6 {
+  gap: var(--fabric-space-6);
 }
-.scion-gap-8 {
-  gap: var(--scion-space-8);
+.fabric-gap-8 {
+  gap: var(--fabric-space-8);
 }
 
 /* ==========================================================================
    Typography
    ========================================================================== */
 
-.scion-text-xs {
-  font-size: var(--scion-font-size-xs);
+.fabric-text-xs {
+  font-size: var(--fabric-font-size-xs);
 }
-.scion-text-sm {
-  font-size: var(--scion-font-size-sm);
+.fabric-text-sm {
+  font-size: var(--fabric-font-size-sm);
 }
-.scion-text-base {
-  font-size: var(--scion-font-size-base);
+.fabric-text-base {
+  font-size: var(--fabric-font-size-base);
 }
-.scion-text-lg {
-  font-size: var(--scion-font-size-lg);
+.fabric-text-lg {
+  font-size: var(--fabric-font-size-lg);
 }
-.scion-text-xl {
-  font-size: var(--scion-font-size-xl);
+.fabric-text-xl {
+  font-size: var(--fabric-font-size-xl);
 }
-.scion-text-2xl {
-  font-size: var(--scion-font-size-2xl);
+.fabric-text-2xl {
+  font-size: var(--fabric-font-size-2xl);
 }
-.scion-text-3xl {
-  font-size: var(--scion-font-size-3xl);
+.fabric-text-3xl {
+  font-size: var(--fabric-font-size-3xl);
 }
 
-.scion-font-medium {
+.fabric-font-medium {
   font-weight: 500;
 }
-.scion-font-semibold {
+.fabric-font-semibold {
   font-weight: 600;
 }
-.scion-font-bold {
+.fabric-font-bold {
   font-weight: 700;
 }
 
-.scion-truncate {
+.fabric-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -122,76 +122,76 @@
    Interactive
    ========================================================================== */
 
-.scion-interactive {
+.fabric-interactive {
   cursor: pointer;
-  transition: var(--scion-transition-fast);
+  transition: var(--fabric-transition-fast);
 }
 
-.scion-interactive:hover {
-  background: var(--scion-bg-subtle);
+.fabric-interactive:hover {
+  background: var(--fabric-bg-subtle);
 }
 
-.scion-interactive:active {
-  background: var(--scion-border);
+.fabric-interactive:active {
+  background: var(--fabric-border);
 }
 
 /* ==========================================================================
    Scrolling
    ========================================================================== */
 
-.scion-scroll {
+.fabric-scroll {
   overflow: auto;
 }
 
-.scion-scroll-y {
+.fabric-scroll-y {
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.scion-scroll-x {
+.fabric-scroll-x {
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 /* Hide scrollbar but keep functionality */
-.scion-scroll-hidden {
+.fabric-scroll-hidden {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.scion-scroll-hidden::-webkit-scrollbar {
+.fabric-scroll-hidden::-webkit-scrollbar {
   display: none;
 }
 
 /* Custom scrollbar styling */
-.scion-scrollbar {
+.fabric-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--scion-neutral-300) transparent;
+  scrollbar-color: var(--fabric-neutral-300) transparent;
 }
 
-.scion-scrollbar::-webkit-scrollbar {
+.fabric-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-.scion-scrollbar::-webkit-scrollbar-track {
+.fabric-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.scion-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--scion-neutral-300);
+.fabric-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--fabric-neutral-300);
   border-radius: 3px;
 }
 
-.scion-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--scion-neutral-400);
+.fabric-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--fabric-neutral-400);
 }
 
 /* ==========================================================================
    Visibility
    ========================================================================== */
 
-.scion-sr-only {
+.fabric-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -208,13 +208,13 @@
    ========================================================================== */
 
 @media (max-width: 768px) {
-  .scion-hide-mobile {
+  .fabric-hide-mobile {
     display: none !important;
   }
 }
 
 @media (min-width: 769px) {
-  .scion-hide-desktop {
+  .fabric-hide-desktop {
     display: none !important;
   }
 }

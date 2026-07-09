@@ -37,7 +37,7 @@ type LocalStorage struct {
 func NewLocal(cfg Config) (*LocalStorage, error) {
 	basePath := cfg.LocalPath
 	if basePath == "" {
-		basePath = filepath.Join(os.TempDir(), "scion-storage")
+		basePath = filepath.Join(os.TempDir(), "fabric-storage")
 	}
 
 	// Ensure the base path exists

@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -115,7 +115,7 @@ func TestHarnessConfigReset_BundleHarnessReturnsError(t *testing.T) {
 	// Create a harness-config for an opt-in harness (opencode resolves to Generic)
 	hcDir := filepath.Join(globalDir, "harness-configs", "opencode")
 	require.NoError(t, os.MkdirAll(hcDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: opencode\nimage: scion-opencode:latest\nuser: scion\n"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: opencode\nimage: fabric-opencode:latest\nuser: fabric\n"), 0644))
 
 	// harness.New("opencode") returns &Generic{} which has no embeds
 	h := harness.New("opencode")
@@ -123,7 +123,7 @@ func TestHarnessConfigReset_BundleHarnessReturnsError(t *testing.T) {
 	assert.Equal(t, "", basePath, "opencode should have no embedded defaults")
 
 	// Verify the error message mentions reinstall
-	err = fmt.Errorf("cannot reset %q: it is installed from a bundle and has no built-in defaults; reinstall with: scion harness-config install harnesses/%s", "opencode", "opencode")
+	err = fmt.Errorf("cannot reset %q: it is installed from a bundle and has no built-in defaults; reinstall with: fabric harness-config install harnesses/%s", "opencode", "opencode")
 	assert.Contains(t, err.Error(), "installed from a bundle")
 	assert.Contains(t, err.Error(), "harnesses/opencode")
 }

@@ -1,6 +1,6 @@
 .PHONY: build test vet fmt clean
 
-BINARY := scion-fs-watcher
+BINARY := fabric-fs-watcher
 
 build:
 	go build -buildvcs=false -o $(BINARY) .

@@ -28,20 +28,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/labels"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsclient"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/labels"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/wsclient"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
@@ -96,10 +96,10 @@ func parseLabels(raw []string) (map[string]string, error) {
 	return m, nil
 }
 
-// loadInlineConfig loads a ScionConfig from the --config flag path.
+// loadInlineConfig loads a FabricConfig from the --config flag path.
 // If path is "-", reads from stdin. Supports YAML and JSON formats.
 // Returns (nil, nil) if no inline config path is set.
-func loadInlineConfig(path string) (*api.ScionConfig, string, error) {
+func loadInlineConfig(path string) (*api.FabricConfig, string, error) {
 	if path == "" {
 		return nil, "", nil
 	}
@@ -131,7 +131,7 @@ func loadInlineConfig(path string) (*api.ScionConfig, string, error) {
 		return nil, "", fmt.Errorf("config file is empty")
 	}
 
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 
 	// Try JSON first (if it starts with '{'), otherwise YAML
 	trimmed := strings.TrimSpace(string(data))
@@ -154,7 +154,7 @@ func loadInlineConfig(path string) (*api.ScionConfig, string, error) {
 // resolveInlineConfigContent resolves file:// URIs in system_prompt and
 // agent_instructions fields of an inline config. The configDir is used
 // as the base for relative file:// URIs.
-func resolveInlineConfigContent(cfg *api.ScionConfig, configDir string) error {
+func resolveInlineConfigContent(cfg *api.FabricConfig, configDir string) error {
 	if cfg.SystemPrompt != "" {
 		resolved, err := api.ResolveContent(cfg.SystemPrompt, configDir)
 		if err != nil {
@@ -187,7 +187,7 @@ type HubContext struct {
 // It checks OAuth credentials first, then falls back to dev-auth tokens.
 // This mirrors the auth resolution order used by hubsync.createHubClient.
 func getHubAccessToken(endpoint string) string {
-	// Priority 1: OAuth credentials from scion hub auth login
+	// Priority 1: OAuth credentials from fabric hub auth login
 	if token := credentials.GetAccessToken(endpoint); token != "" {
 		return token
 	}
@@ -262,7 +262,7 @@ func CheckHubAvailabilityForAgents(projectPath string, excludedAgents []string, 
 	}, nil
 }
 
-// CheckAgentsGitignore verifies that .scion/agents/ is listed in .gitignore
+// CheckAgentsGitignore verifies that .fabric/agents/ is listed in .gitignore
 // when running inside a git repo with a project-local project directory.
 // This runs once before any agent provisioning so the user gets a single
 // clear error instead of one per agent.
@@ -276,7 +276,7 @@ func CheckAgentsGitignore(projectPath string) error {
 		return nil
 	}
 
-	if os.Getenv("SCION_HOST_UID") != "" {
+	if os.Getenv("FABRIC_HOST_UID") != "" {
 		return nil
 	}
 
@@ -292,7 +292,7 @@ func CheckAgentsGitignore(projectPath string) error {
 
 	agentsPath := filepath.ToSlash(filepath.Join(rel, "agents"))
 	if !util.IsIgnored(root, agentsPath+"/") {
-		return fmt.Errorf("security error: '%s/' must be in .gitignore when using a project-local project.\n\nRun 'scion init' to set up the project, or manually add '%s/' to your .gitignore", agentsPath, agentsPath)
+		return fmt.Errorf("security error: '%s/' must be in .gitignore when using a project-local project.\n\nRun 'fabric init' to set up the project, or manually add '%s/' to your .gitignore", agentsPath, agentsPath)
 	}
 
 	return nil
@@ -310,9 +310,9 @@ func PrintUsingHub(endpoint string) {
 // wrapHubError wraps a Hub error with guidance to disable Hub integration.
 func wrapHubError(err error) error {
 	if apiclient.IsUnauthorizedError(err) {
-		return fmt.Errorf("authentication failed, login to hub with 'scion hub auth login'")
+		return fmt.Errorf("authentication failed, login to hub with 'fabric hub auth login'")
 	}
-	return fmt.Errorf("%w\n\nTo use local-only mode, run: scion hub disable", err)
+	return fmt.Errorf("%w\n\nTo use local-only mode, run: fabric hub disable", err)
 }
 
 // GetProjectID looks up the project ID from HubContext or settings.
@@ -341,7 +341,7 @@ func GetProjectID(hubCtx *HubContext) (string, error) {
 	// Fall back to git remote lookup
 	gitRemote := util.GetGitRemote()
 	if gitRemote == "" {
-		return "", fmt.Errorf("no git origin remote found for this project.\n\nThe Hub uses the origin remote URL to identify projects.\nRun 'scion hub link' to link this project with the Hub, or use --no-hub for local-only mode")
+		return "", fmt.Errorf("no git origin remote found for this project.\n\nThe Hub uses the origin remote URL to identify projects.\nRun 'fabric hub link' to link this project with the Hub, or use --no-hub for local-only mode")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -356,7 +356,7 @@ func GetProjectID(hubCtx *HubContext) (string, error) {
 	}
 
 	if len(resp.Projects) == 0 {
-		return "", fmt.Errorf("no project found for git remote: %s\n\nRun 'scion hub link' to link this project with the Hub", gitRemote)
+		return "", fmt.Errorf("no project found for git remote: %s\n\nRun 'fabric hub link' to link this project with the Hub", gitRemote)
 	}
 
 	// Return the first matching project
@@ -387,14 +387,14 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 		}
 	}
 
-	// Pre-flight: verify .scion/agents/ is gitignored (once, before any provisioning).
+	// Pre-flight: verify .fabric/agents/ is gitignored (once, before any provisioning).
 	if err := CheckAgentsGitignore(projectPath); err != nil {
 		return err
 	}
 
 	// Check if Hub should be used, excluding the target agent from sync requirements.
 	// Load inline config if --config was specified (needed for both local and Hub paths)
-	var inlineCfg *api.ScionConfig
+	var inlineCfg *api.FabricConfig
 	var inlineConfigDir string
 	if inlineConfigPath != "" {
 		var err error
@@ -411,7 +411,7 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 	if modelFlag != "" {
 		normalizedModel := config.NormalizeModelAlias(modelFlag)
 		if inlineCfg == nil {
-			inlineCfg = &api.ScionConfig{}
+			inlineCfg = &api.FabricConfig{}
 		}
 		inlineCfg.Model = normalizedModel
 	}
@@ -433,7 +433,7 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 
 	// Check if already running and we want to attach
 	if attach {
-		agents, err := rt.List(context.Background(), map[string]string{"scion.name": agentName})
+		agents, err := rt.List(context.Background(), map[string]string{"fabric.name": agentName})
 		if err == nil {
 			for _, a := range agents {
 				if strings.EqualFold(a.Name, agentName) || a.ID == agentName || strings.EqualFold(strings.TrimPrefix(a.Name, "/"), agentName) {
@@ -522,17 +522,17 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 		opts.TelemetryOverride = &val
 	}
 
-	// Propagate debug mode to container so sciontool logs debug info
+	// Propagate debug mode to container so fabrictool logs debug info
 	if debugMode {
 		opts.Env = map[string]string{
-			"SCION_DEBUG": "1",
+			"FABRIC_DEBUG": "1",
 		}
 	}
 
 	// Thread CLI-resolved hub endpoint so locally-started agents get
-	// hub connectivity. The --hub flag and host SCION_HUB_ENDPOINT env
-	// var are resolved here; the agent's scion-agent.yaml can override
-	// inside Start() via hub.endpoint or env.SCION_HUB_ENDPOINT.
+	// hub connectivity. The --hub flag and host FABRIC_HUB_ENDPOINT env
+	// var are resolved here; the agent's fabric-agent.yaml can override
+	// inside Start() via hub.endpoint or env.FABRIC_HUB_ENDPOINT.
 	if IsHubEnabled() {
 		if cliSettings, err := config.LoadSettings(projectPath); err == nil {
 			if !cliSettings.IsHubExplicitlyDisabled() {
@@ -540,8 +540,8 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 					if opts.Env == nil {
 						opts.Env = make(map[string]string)
 					}
-					opts.Env["SCION_HUB_ENDPOINT"] = ep
-					opts.Env["SCION_HUB_URL"] = ep
+					opts.Env["FABRIC_HUB_ENDPOINT"] = ep
+					opts.Env["FABRIC_HUB_URL"] = ep
 				}
 			}
 		}
@@ -578,7 +578,7 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 		statusf("Attaching to agent '%s'...\n", agentName)
 
 		// Use the container ID for exec/attach operations. Container names are
-		// now project-scoped (e.g. "scion--agent") but agentName is just the agent
+		// now project-scoped (e.g. "fabric--agent") but agentName is just the agent
 		// name. The container ID is the reliable identifier for runtime operations.
 		containerID := info.ContainerID
 		if containerID == "" {
@@ -586,7 +586,7 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 		}
 
 		// Wait for the container to be ready before attaching.
-		// After container start, sciontool init needs time to set up the user,
+		// After container start, fabrictool init needs time to set up the user,
 		// run pre-start hooks, and launch the child process. The tmux session
 		// must exist before we can attach.
 		if err := waitForTmuxSession(rt, containerID); err != nil {
@@ -620,8 +620,8 @@ func RunAgent(cmd *cobra.Command, args []string, resume bool) error {
 	return nil
 }
 
-// waitForTmuxSession polls the container until the tmux session "scion" is
-// available. After starting a container, sciontool init needs time to
+// waitForTmuxSession polls the container until the tmux session "fabric" is
+// available. After starting a container, fabrictool init needs time to
 // synchronize UID/GID, run pre-start hooks, and launch the tmux session.
 // Without this wait, an immediate attach would fail with "no sessions".
 func waitForTmuxSession(rt runtime.Runtime, agentName string) error {
@@ -636,7 +636,7 @@ func waitForTmuxSession(rt runtime.Runtime, agentName string) error {
 		case <-ctx.Done():
 			return fmt.Errorf("timed out waiting for tmux session in agent '%s' to become ready", agentName)
 		case <-ticker.C:
-			_, err := rt.Exec(ctx, agentName, []string{"tmux", "has-session", "-t", "scion"})
+			_, err := rt.Exec(ctx, agentName, []string{"tmux", "has-session", "-t", "fabric"})
 			if err == nil {
 				return nil
 			}
@@ -645,7 +645,7 @@ func waitForTmuxSession(rt runtime.Runtime, agentName string) error {
 	}
 }
 
-func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, inlineCfg *api.ScionConfig) error {
+func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, inlineCfg *api.FabricConfig) error {
 	PrintUsingHub(hubCtx.Endpoint)
 
 	// Get the project ID for this project
@@ -662,7 +662,7 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 		project, projectErr := hubCtx.Client.Projects().Get(ctx, projectID)
 		cancel()
 		if projectErr == nil && project != nil && project.GitRemote != "" {
-			cloneURL := project.Labels["scion.dev/clone-url"]
+			cloneURL := project.Labels["fabric.dev/clone-url"]
 			if cloneURL == "" {
 				cloneURL = "https://" + project.GitRemote + ".git"
 			}
@@ -724,7 +724,7 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 		}
 	} else if agentImage != "" || debugMode || enableTelemetry || disableTelemetry {
 		// Build config from CLI flags alone
-		req.Config = &api.ScionConfig{
+		req.Config = &api.FabricConfig{
 			Image: agentImage,
 		}
 	}
@@ -736,12 +736,12 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 			configEnv = make(map[string]string)
 		}
 		if debugMode {
-			configEnv["SCION_DEBUG"] = "1"
+			configEnv["FABRIC_DEBUG"] = "1"
 		}
 		if enableTelemetry {
-			configEnv["SCION_TELEMETRY_ENABLED"] = "true"
+			configEnv["FABRIC_TELEMETRY_ENABLED"] = "true"
 		} else if disableTelemetry {
-			configEnv["SCION_TELEMETRY_ENABLED"] = "false"
+			configEnv["FABRIC_TELEMETRY_ENABLED"] = "false"
 		}
 		if len(configEnv) > 0 {
 			req.Config.Env = configEnv
@@ -779,7 +779,7 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 	// large workspaces.
 	var workspaceFiles []transfer.FileInfo
 	if hubCtx.ProjectPath != "" && !hubCtx.IsGlobal && !config.IsHubContext() {
-		projectDir := filepath.Dir(hubCtx.ProjectPath) // parent of .scion
+		projectDir := filepath.Dir(hubCtx.ProjectPath) // parent of .fabric
 		if _, statErr := os.Stat(projectDir); statErr == nil && !util.IsGitRepoDir(projectDir) {
 			if debugMode {
 				util.Debugf("[workspace-scan] non-git project detected at %s, collecting files...", projectDir)
@@ -918,7 +918,7 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 	}
 
 	// Advance watermark to the hub-assigned creation time so this agent
-	// won't trigger a sync warning on the next 'scion ls'.
+	// won't trigger a sync warning on the next 'fabric ls'.
 	if resp.Agent != nil && !resp.Agent.Created.IsZero() {
 		hubsync.UpdateLastSyncedAt(hubCtx.ProjectPath, resp.Agent.Created, hubCtx.IsGlobal)
 		hubsync.AddSyncedAgent(hubCtx.ProjectPath, agentName)
@@ -988,7 +988,7 @@ func startAgentViaHub(hubCtx *HubContext, agentName, task string, resume bool, i
 					}
 					token := getHubAccessToken(hubCtx.Endpoint)
 					if token == "" {
-						return fmt.Errorf("no access token found for Hub\n\nPlease login first: scion hub auth login")
+						return fmt.Errorf("no access token found for Hub\n\nPlease login first: fabric hub auth login")
 					}
 					statusf("Attaching to agent '%s' via Hub...\n", agentName)
 					return wsclient.AttachToAgent(context.Background(), hubCtx.Endpoint, token, agentID)
@@ -1090,7 +1090,7 @@ ready:
 	// Get access token for WebSocket authentication
 	token := getHubAccessToken(hubCtx.Endpoint)
 	if token == "" {
-		return fmt.Errorf("no access token found for Hub\n\nPlease login first: scion hub auth login")
+		return fmt.Errorf("no access token found for Hub\n\nPlease login first: fabric hub auth login")
 	}
 
 	statusf("Attaching to agent '%s' via Hub...\n", agentName)
@@ -1251,7 +1251,7 @@ func gatherAndSubmitEnv(ctx context.Context, hubCtx *HubContext, projectID strin
 
 	// Categorize missing keys into promptable secrets, file secrets, and env-only
 	var secretEligible []string // can prompt interactively
-	var fileSecrets []string    // file-type secrets, guide to scion hub secret set --type file
+	var fileSecrets []string    // file-type secrets, guide to fabric hub secret set --type file
 	var envOnly []string        // not secret-eligible, must fail
 	for _, key := range missingKeys {
 		if gather.SecretInfo != nil {
@@ -1313,7 +1313,7 @@ func gatherAndSubmitEnv(ctx context.Context, hubCtx *HubContext, projectID strin
 				}
 			}
 			fmt.Fprintf(os.Stderr, "  %s — file-type secret, cannot be entered interactively%s\n", key, desc)
-			fmt.Fprintf(os.Stderr, "    scion hub secret set --type file %s @./path/to/file\n", key)
+			fmt.Fprintf(os.Stderr, "    fabric hub secret set --type file %s @./path/to/file\n", key)
 		}
 	}
 
@@ -1338,14 +1338,14 @@ func gatherAndSubmitEnv(ctx context.Context, hubCtx *HubContext, projectID strin
 				if gather.SecretInfo != nil {
 					if info, ok := gather.SecretInfo[key]; ok {
 						if info.Type == "file" {
-							fmt.Fprintf(os.Stderr, "  scion hub secret set --type file %s @./path/to/file\n", key)
+							fmt.Fprintf(os.Stderr, "  fabric hub secret set --type file %s @./path/to/file\n", key)
 						} else {
-							fmt.Fprintf(os.Stderr, "  scion hub secret set %s <value>\n", key)
+							fmt.Fprintf(os.Stderr, "  fabric hub secret set %s <value>\n", key)
 						}
 						continue
 					}
 				}
-				fmt.Fprintf(os.Stderr, "  scion hub env set %s <value>\n", key)
+				fmt.Fprintf(os.Stderr, "  fabric hub env set %s <value>\n", key)
 			}
 			fmt.Fprintln(os.Stderr)
 		}
@@ -1390,7 +1390,7 @@ func gatherAndSubmitEnv(ctx context.Context, hubCtx *HubContext, projectID strin
 		statusln("\nTip: To avoid entering secrets each time, store them permanently:")
 		for _, key := range secretEligible {
 			if _, ok := gatheredEnv[key]; ok {
-				statusf("  scion hub secret set %s <value>\n", key)
+				statusf("  fabric hub secret set %s <value>\n", key)
 			}
 		}
 	}

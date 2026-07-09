@@ -372,9 +372,9 @@ so the same hook can cleanly deregister.
   "action": {
     "type": "http",
     "method": "POST",
-    "url": "https://agentregistry.googleapis.com/v1alpha/projects/<gcp-project>/locations/<region>/services?serviceId=scion-${PROJECT_SLUG}-${AGENT_SLUG}",
+    "url": "https://agentregistry.googleapis.com/v1alpha/projects/<gcp-project>/locations/<region>/services?serviceId=fabric-${PROJECT_SLUG}-${AGENT_SLUG}",
     "headers": { "Content-Type": "application/json" },
-    "body": "{\"displayName\":\"Scion Agent: ${PROJECT_SLUG}/${AGENT_SLUG}\",\"agentSpec\":{\"type\":\"A2A_AGENT_CARD\",\"content\":{\"name\":\"${AGENT_SLUG}\",\"description\":\"Scion agent ${AGENT_SLUG} in project ${PROJECT_SLUG}\",\"version\":\"1.0.0\",\"supportedInterfaces\":[{\"url\":\"https://<a2a-bridge-url>/projects/${PROJECT_SLUG}/agents/${AGENT_SLUG}\",\"protocolBinding\":\"JSONRPC\",\"protocolVersion\":\"0.3\"}],\"capabilities\":{\"streaming\":true,\"pushNotifications\":true},\"defaultInputModes\":[\"text/plain\",\"application/json\"],\"defaultOutputModes\":[\"text/plain\",\"application/json\"],\"skills\":[{\"id\":\"${AGENT_SLUG}\",\"name\":\"${AGENT_SLUG}\",\"description\":\"Interact with agent ${AGENT_SLUG}\",\"tags\":[\"scion\",\"a2a\"]}],\"provider\":{\"organization\":\"Scion\",\"url\":\"https://github.com/ptone/scion\"}}}}",
+    "body": "{\"displayName\":\"Fabric Agent: ${PROJECT_SLUG}/${AGENT_SLUG}\",\"agentSpec\":{\"type\":\"A2A_AGENT_CARD\",\"content\":{\"name\":\"${AGENT_SLUG}\",\"description\":\"Fabric agent ${AGENT_SLUG} in project ${PROJECT_SLUG}\",\"version\":\"1.0.0\",\"supportedInterfaces\":[{\"url\":\"https://<a2a-bridge-url>/projects/${PROJECT_SLUG}/agents/${AGENT_SLUG}\",\"protocolBinding\":\"JSONRPC\",\"protocolVersion\":\"0.3\"}],\"capabilities\":{\"streaming\":true,\"pushNotifications\":true},\"defaultInputModes\":[\"text/plain\",\"application/json\"],\"defaultOutputModes\":[\"text/plain\",\"application/json\"],\"skills\":[{\"id\":\"${AGENT_SLUG}\",\"name\":\"${AGENT_SLUG}\",\"description\":\"Interact with agent ${AGENT_SLUG}\",\"tags\":[\"fabric\",\"a2a\"]}],\"provider\":{\"organization\":\"Fabric\",\"url\":\"https://github.com/ptone/fabric\"}}}}",
     "onError": "retry",
     "timeoutSeconds": 15
   },
@@ -393,7 +393,7 @@ so the same hook can cleanly deregister.
   "action": {
     "type": "http",
     "method": "DELETE",
-    "url": "https://agentregistry.googleapis.com/v1alpha/projects/<gcp-project>/locations/<region>/services/scion-${PROJECT_SLUG}-${AGENT_SLUG}",
+    "url": "https://agentregistry.googleapis.com/v1alpha/projects/<gcp-project>/locations/<region>/services/fabric-${PROJECT_SLUG}-${AGENT_SLUG}",
     "headers": { "Content-Type": "application/json" },
     "onError": "retry",
     "timeoutSeconds": 15

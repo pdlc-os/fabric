@@ -18,9 +18,9 @@ set -e
 # Pick up PROJECT_ID from env variable, but default to deploy-demo-test
 PROJECT_ID=${PROJECT_ID:-duet01}
 REGION=${REGION:-us-west1}
-SERVICE_NAME=${SERVICE_NAME:-scion-docs}
+SERVICE_NAME=${SERVICE_NAME:-fabric-docs}
 
-echo "Deploying Scion Documentation Site..."
+echo "Deploying Fabric Documentation Site..."
 echo "Project ID: $PROJECT_ID"
 echo "Region:     $REGION"
 echo "Service:    $SERVICE_NAME"
@@ -29,7 +29,7 @@ echo "Service:    $SERVICE_NAME"
 # We pass the project explicitly to gcloud
 # We calculate a short SHA for tagging if in a git repo
 GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "latest")
-REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/scion-images"
+REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/fabric-images"
 
 gcloud builds submit \
   --async \

@@ -70,7 +70,7 @@ func remoteCacheDir() (string, error) {
 //  1. Missing scheme: if the URL doesn't start with a scheme or rclone prefix,
 //     "https://" is prepended automatically (e.g. "github.com/org/repo").
 //  2. Bare GitHub org/repo: if the result is a GitHub URL with only owner/repo
-//     in the path (no deeper path), "/.scion/templates/" is appended so that
+//     in the path (no deeper path), "/.fabric/templates/" is appended so that
 //     the standard template directory is used automatically.
 func NormalizeTemplateSourceURL(raw string) string {
 	s := strings.TrimSpace(raw)
@@ -80,7 +80,7 @@ func NormalizeTemplateSourceURL(raw string) string {
 		s = "https://" + s
 	}
 
-	// For GitHub URLs with just owner/repo, append /.scion/templates/
+	// For GitHub URLs with just owner/repo, append /.fabric/templates/
 	u, err := url.Parse(s)
 	if err != nil {
 		return s
@@ -97,7 +97,7 @@ func NormalizeTemplateSourceURL(raw string) string {
 			// Just owner/repo — point to the standard templates directory
 			// Include /tree/main so the URL is a valid GitHub browsable path
 			// and parseGitHubURL can correctly extract the branch and sub-path.
-			u.Path = "/" + parts[0] + "/" + parts[1] + "/tree/main/.scion/templates"
+			u.Path = "/" + parts[0] + "/" + parts[1] + "/tree/main/.fabric/templates"
 			return u.String()
 		}
 	}
@@ -330,7 +330,7 @@ func fetchGitHubTarball(ctx context.Context, parts *GitHubURLParts, destPath str
 	}
 
 	// Save to a temp file
-	tmpFile, err := os.CreateTemp("", "scion-gh-tarball-*.tar.gz")
+	tmpFile, err := os.CreateTemp("", "fabric-gh-tarball-*.tar.gz")
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -350,7 +350,7 @@ func fetchGitHubTarball(ctx context.Context, parts *GitHubURLParts, destPath str
 	}
 
 	// Extract to a temp directory, then copy the desired sub-path
-	tmpExtract, err := os.MkdirTemp("", "scion-gh-extract-*")
+	tmpExtract, err := os.MkdirTemp("", "fabric-gh-extract-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -416,7 +416,7 @@ func parseGitHubURL(uri string) (*GitHubURLParts, error) {
 		result.Branch = "main"
 	} else if len(pathParts) > 2 {
 		// Direct path without /tree/branch/ — default to main branch
-		// e.g., https://github.com/org/repo/some/path/.scion/templates
+		// e.g., https://github.com/org/repo/some/path/.fabric/templates
 		result.Branch = "main"
 		result.Path = strings.Join(pathParts[2:], "/")
 	}
@@ -432,7 +432,7 @@ func parseGitHubURL(uri string) (*GitHubURLParts, error) {
 // When token is non-empty it is embedded in the remote URL for authentication.
 func sparseGitCheckout(ctx context.Context, parts *GitHubURLParts, destPath string, token string) error {
 	// Create a temporary directory for the git clone
-	tmpDir, err := os.MkdirTemp("", "scion-git-sparse-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-git-sparse-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -552,7 +552,7 @@ func copyDirExcludingGit(src, dst string) error {
 // fetchArchive downloads and extracts a compressed archive.
 func fetchArchive(ctx context.Context, uri string, destPath string) error {
 	// Download the archive to a temp file
-	tmpFile, err := os.CreateTemp("", "scion-archive-*")
+	tmpFile, err := os.CreateTemp("", "fabric-archive-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -867,7 +867,7 @@ func CleanRemoteTemplateCache() error {
 
 // TODO: Future enhancement - simple template names may resolve to remote storage when
 // operating with a remote hub system. The resolution could follow a pattern like:
-// <bucket-name>/<scion-prefix>/<project-id>/templates/<template-name>
+// <bucket-name>/<fabric-prefix>/<project-id>/templates/<template-name>
 // This would allow templates to be shared across a team or organization via
 // a central hub, using both the current project's location as well as a global
 // location on the hub. The hub integration would need to provide:

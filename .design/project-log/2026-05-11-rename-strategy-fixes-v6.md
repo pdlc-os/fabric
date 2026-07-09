@@ -4,7 +4,7 @@
 **Agent:** Developer
 
 ## Overview
-Addressed several fixes from Code Review v6 on the `scion/rename-strategy` branch. The changes focus on ensuring consistent support for `project_id` alongside the legacy `grove_id`, improving SSR prefetching in the web server, and updating outdated comments.
+Addressed several fixes from Code Review v6 on the `fabric/rename-strategy` branch. The changes focus on ensuring consistent support for `project_id` alongside the legacy `grove_id`, improving SSR prefetching in the web server, and updating outdated comments.
 
 ## Changes Made
 

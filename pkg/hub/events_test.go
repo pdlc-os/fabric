@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func TestSubjectMatchesPattern(t *testing.T) {
@@ -162,7 +162,7 @@ func TestChannelEventPublisher_PublishAgentCreated(t *testing.T) {
 		Phase:           "created",
 		Activity:        "working",
 		ContainerStatus: "running",
-		Image:           "scion-claude:latest",
+		Image:           "fabric-claude:latest",
 		Runtime:         "docker",
 		RuntimeBrokerID: "b1",
 		CreatedBy:       "user1",
@@ -183,7 +183,7 @@ func TestChannelEventPublisher_PublishAgentCreated(t *testing.T) {
 		if data.Phase != "created" || data.Activity != "working" || data.ContainerStatus != "running" {
 			t.Errorf("unexpected status data: %+v", data)
 		}
-		if data.Image != "scion-claude:latest" || data.Runtime != "docker" || data.RuntimeBrokerID != "b1" {
+		if data.Image != "fabric-claude:latest" || data.Runtime != "docker" || data.RuntimeBrokerID != "b1" {
 			t.Errorf("unexpected runtime data: %+v", data)
 		}
 	case <-time.After(time.Second):

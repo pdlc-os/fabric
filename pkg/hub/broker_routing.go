@@ -19,8 +19,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ErrMessageDeferred signals that broker dispatch failed transiently and should

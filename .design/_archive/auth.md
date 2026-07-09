@@ -1,16 +1,16 @@
-# Auth Propagation Design for Scion Agents
+# Auth Propagation Design for Fabric Agents
 
-This document proposes a design for propagating authentication credentials from the host machine into container-based `scion` agents. The primary goal is to enable the `gemini` CLI and other tools running inside the agent to interact with Gemini and Vertex AI APIs using the user's existing host-side authentication.
+This document proposes a design for propagating authentication credentials from the host machine into container-based `fabric` agents. The primary goal is to enable the `gemini` CLI and other tools running inside the agent to interact with Gemini and Vertex AI APIs using the user's existing host-side authentication.
 
 ## Background
 
-`scion` agents run in isolated containers (Docker or Apple Virtualization Framework). To function effectively, they often need access to:
+`fabric` agents run in isolated containers (Docker or Apple Virtualization Framework). To function effectively, they often need access to:
 1.  **Gemini API Keys**: `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 2.  **Vertex AI Auth**: `VERTEX_API_KEY` or Service Account keys.
 3.  **GCP Project Context**: `GOOGLE_CLOUD_PROJECT` or `GCP_PROJECT`.
 4.  **OAuth Credentials**: `~/.gemini/oauth_creds.json` when `selectedType` is `oauth-personal`.
 
-The `gemini-cli` itself handles sandboxing by mounting host directories (like `~/.config/gcloud`) and selectively passing environment variables. `scion` should adopt a similar but more "agent-centric" approach.
+The `gemini-cli` itself handles sandboxing by mounting host directories (like `~/.config/gcloud`) and selectively passing environment variables. `fabric` should adopt a similar but more "agent-centric" approach.
 
 ## Proposed Mechanism
 
@@ -18,7 +18,7 @@ Authentication propagation will occur in two phases: **Discovery** (on the host)
 
 ### 1. Discovery (Host-side)
 
-The `scion` CLI (running on the host) will look for authentication markers in the following order of precedence:
+The `fabric` CLI (running on the host) will look for authentication markers in the following order of precedence:
 
 1.  **Explicit Environment Variables**:
     - `GEMINI_API_KEY`
@@ -32,7 +32,7 @@ The `scion` CLI (running on the host) will look for authentication markers in th
 
 ### 2. Injection (Runtime-side)
 
-Once discovered, `scion` will inject these credentials into the agent runtime.
+Once discovered, `fabric` will inject these credentials into the agent runtime.
 
 #### A. Environment Variable Propagation
 For API keys, the simplest and most secure method for containers is environment variable injection.
@@ -41,7 +41,7 @@ For API keys, the simplest and most secure method for containers is environment 
 - `GEMINI_DEFAULT_AUTH_TYPE` will be set based on the discovered auth method.
 
 #### B. Filesystem Mirroring (ADC and OAuth)
-If `GOOGLE_APPLICATION_CREDENTIALS` is set and points to a file, `scion` should:
+If `GOOGLE_APPLICATION_CREDENTIALS` is set and points to a file, `fabric` should:
 1.  Mount the credential JSON file into a standard location in the container (e.g., `/home/node/.config/gcp/application_default_credentials.json`).
 2.  Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable inside the container to point to this internal path.
 
@@ -53,7 +53,7 @@ If OAuth is detected:
 ### 3. Agent Configuration Alignment
 
 Each agent has its own `.gemini/settings.json` in its home directory. 
-- During `scion grove init`, the template should *not* contain hardcoded keys.
+- During `fabric grove init`, the template should *not* contain hardcoded keys.
 - Instead, the agent's system prompt or configuration should be designed to rely on the environment variables provided by the runtime.
 
 ## Security Considerations
@@ -69,4 +69,4 @@ Each agent has its own `.gemini/settings.json` in its home directory.
     - Expand `RunConfig` to include a dedicated `Auth` field or ensure `Env` is populated with discovered keys.
     - Implement path translation for `GOOGLE_APPLICATION_CREDENTIALS`.
 3.  **Refactor `DockerRuntime` and `AppleContainerRuntime`**: Ensure they process the new auth-related configuration.
-4.  **CLI Flag**: Add a `--no-auth-propagation` flag to `scion start` for users who want to keep an agent entirely unauthenticated or manually provide keys.
+4.  **CLI Flag**: Add a `--no-auth-propagation` flag to `fabric start` for users who want to keep an agent entirely unauthenticated or manually provide keys.

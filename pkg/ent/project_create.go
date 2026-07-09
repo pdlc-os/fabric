@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/project"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/project"
 	"github.com/google/uuid"
 )
 

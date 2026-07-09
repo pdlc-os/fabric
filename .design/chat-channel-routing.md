@@ -66,9 +66,9 @@ Key files:
 - `pkg/broker/fanout.go` — `FanOutBroker.Publish()` fans out to all children
 - `pkg/hub/messagebroker.go` — `MessageBrokerProxy` bridges broker ↔ hub dispatch
 - `pkg/plugin/broker_plugin.go` — `MessageBrokerPluginInterface` (RPC contract)
-- `extras/scion-telegram/` — Telegram broker plugin
-- `extras/scion-chat-app/` — Chat app broker plugin
-- `cmd/message.go` — `scion message` CLI command
+- `extras/fabric-telegram/` — Telegram broker plugin
+- `extras/fabric-chat-app/` — Chat app broker plugin
+- `cmd/message.go` — `fabric message` CLI command
 
 ## Proposed Design
 
@@ -163,16 +163,16 @@ This is distinct from the "no broker for channel" error — the channel exists a
 
 Each broker plugin must set `msg.Channel` when constructing inbound messages.
 
-**Telegram** (`extras/scion-telegram/internal/telegram/broker_v2.go`):
+**Telegram** (`extras/fabric-telegram/internal/telegram/broker_v2.go`):
 In `handleGroupMessage()` and `handleCallbackQuery()`, set `Channel: "telegram"` on the constructed `StructuredMessage`.
 
-**Chat App** (`extras/scion-chat-app/`):
+**Chat App** (`extras/fabric-chat-app/`):
 Set `Channel: "gchat"` (or whatever the configured channel name is).
 
 **Web UI** (messages from the web interface):
 Set `Channel: "web"` in the hub's `handleAgentMessage()` handler.
 
-**Broker Log** (`extras/scion-broker-log/`):
+**Broker Log** (`extras/fabric-broker-log/`):
 Observer-only; no inbound messages. No changes needed.
 
 **Thread ID mapping:**
@@ -182,28 +182,28 @@ Observer-only; no inbound messages. No changes needed.
 
 ### 6. CLI Changes
 
-#### `scion message` — add `--channel` and `--thread-id` flags
+#### `fabric message` — add `--channel` and `--thread-id` flags
 
 ```
-scion message agent:coder "do the thing" --channel telegram
-scion message user:ptone@google.com "done!" --channel telegram --thread-id 12345
+fabric message agent:coder "do the thing" --channel telegram
+fabric message user:ptone@google.com "done!" --channel telegram --thread-id 12345
 ```
 
-When agents send messages via `sciontool` or the hub API, the `Channel` and `ThreadID` fields in the structured message are forwarded.
+When agents send messages via `fabrictool` or the hub API, the `Channel` and `ThreadID` fields in the structured message are forwarded.
 
-#### `scion message channels` — new subcommand
+#### `fabric message channels` — new subcommand
 
 List the available message channels (registered broker plugins). This gives agents and users a way to discover what channels are available without auto-injecting info into agent prompts.
 
 ```
-$ scion message channels
+$ fabric message channels
 NAME        STATUS    CAPABILITIES
 inprocess   healthy   local-dispatch
 telegram    healthy   echo-filter, long-polling, telegram-bot-api, ...
 gchat       healthy   chat-bridge, notification-relay
 ```
 
-**Implementation:** Add a new hub API endpoint `GET /api/v1/message-channels` that queries the plugin manager for registered broker plugins and their health status. The CLI `scion message channels` calls this endpoint and formats the output.
+**Implementation:** Add a new hub API endpoint `GET /api/v1/message-channels` that queries the plugin manager for registered broker plugins and their health status. The CLI `fabric message channels` calls this endpoint and formats the output.
 
 The hub already has `PluginInfo` and `HealthStatus` types in the plugin system. The endpoint aggregates `GetInfo()` and `HealthCheck()` from each registered broker plugin.
 
@@ -253,7 +253,7 @@ Plugins should return errors when a targeted recipient can't be reached on their
 
 4. **Thread ID format:** Opaque — each plugin defines its own format. The hub treats ThreadID as a passthrough string. Plugins handle validation and graceful degradation.
 
-5. **Channel discovery:** No auto-injection into agent instructions. Instead, add `scion message channels` subcommand to list available channels. Agents learn about channels from the `channel` field in messages they receive.
+5. **Channel discovery:** No auto-injection into agent instructions. Instead, add `fabric message channels` subcommand to list available channels. Agents learn about channels from the `channel` field in messages they receive.
 
 ## Phased Implementation Plan
 
@@ -285,20 +285,20 @@ Plugins should return errors when a targeted recipient can't be reached on their
 **Scope:** Broker plugins set `Channel` (and optionally `ThreadID`) on all inbound messages.
 
 **Changes:**
-1. `extras/scion-telegram/` — Set `Channel: "telegram"` on all inbound messages; set `ThreadID` from `message_thread_id` for forum topics.
-2. `extras/scion-chat-app/` — Set `Channel` to the configured channel name on inbound messages.
+1. `extras/fabric-telegram/` — Set `Channel: "telegram"` on all inbound messages; set `ThreadID` from `message_thread_id` for forum topics.
+2. `extras/fabric-chat-app/` — Set `Channel` to the configured channel name on inbound messages.
 3. `pkg/hub/handlers.go` — Set `Channel: "web"` for messages from the web UI.
-4. `extras/scion-broker-log/` — Log channel/thread fields.
+4. `extras/fabric-broker-log/` — Log channel/thread fields.
 
 ### Phase 4: CLI and Agent Support
 
 **Scope:** Allow agents and CLI users to specify channel routing and discover available channels.
 
 **Changes:**
-1. `scion message` CLI command — Add `--channel` and `--thread-id` flags.
-2. `scion message channels` — New subcommand to list available message channels.
+1. `fabric message` CLI command — Add `--channel` and `--thread-id` flags.
+2. `fabric message channels` — New subcommand to list available message channels.
 3. Hub API — New `GET /api/v1/message-channels` endpoint.
-4. Update `sciontool` to forward channel metadata in messages.
+4. Update `fabrictool` to forward channel metadata in messages.
 5. Documentation updates for agent authors.
 
 ### Phase 5: User-Channel Validation in Plugins
@@ -323,7 +323,7 @@ Plugins should return errors when a targeted recipient can't be reached on their
 
 - **Unit tests:** Validation logic for Channel/ThreadID, FanOutBroker channel filtering, error on unmatched channel.
 - **Integration tests:** End-to-end message flow with channel routing through FanOutBroker with mock plugins. User-not-registered error paths.
-- **Manual testing:** Send messages via CLI with `--channel` flag and verify only the targeted plugin receives them. Test `scion message channels` output.
+- **Manual testing:** Send messages via CLI with `--channel` flag and verify only the targeted plugin receives them. Test `fabric message channels` output.
 
 ## Risks and Mitigations
 
@@ -331,6 +331,6 @@ Plugins should return errors when a targeted recipient can't be reached on their
 |------|-----------|
 | Breaking existing message flow | All new fields are optional/omitempty; no-channel = current fan-out behavior |
 | Plugin RPC compatibility | Fields are part of the existing StructuredMessage passed via RPC; no protocol changes needed |
-| Agent confusion about channels | `scion message channels` provides discovery; agents learn from inbound message channel field |
+| Agent confusion about channels | `fabric message channels` provides discovery; agents learn from inbound message channel field |
 | Thread ID mismatch | ThreadID is opaque; plugins validate their own thread IDs |
 | User not registered on channel | Plugins return errors; agents can catch and fall back to fan-out or try another channel |

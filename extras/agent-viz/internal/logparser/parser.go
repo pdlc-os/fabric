@@ -306,8 +306,8 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 		logName := logBaseName(e.LogName)
 		jp := e.JSONPayload
 
-		// scion-server "Agent created" logs carry name, slug, and agent_id
-		if logName == "scion-server" && getStr(jp, "message") == "Agent created" {
+		// fabric-server "Agent created" logs carry name, slug, and agent_id
+		if logName == "fabric-server" && getStr(jp, "message") == "Agent created" {
 			aid := getStr(jp, "agent_id")
 			if aid == "" {
 				aid = e.Labels["agent_id"]
@@ -321,7 +321,7 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 			}
 		}
 
-		if logName == "scion-messages" {
+		if logName == "fabric-messages" {
 			for _, field := range []string{"sender", "recipient"} {
 				val := getStr(jp, field)
 				if val == "" {
@@ -351,10 +351,10 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 		}
 	}
 
-	// Second pass: collect agents from scion-agents logs (these have UUIDs and harness info)
+	// Second pass: collect agents from fabric-agents logs (these have UUIDs and harness info)
 	for _, e := range entries {
 		logName := logBaseName(e.LogName)
-		if logName != "scion-agents" {
+		if logName != "fabric-agents" {
 			continue
 		}
 		aid := e.Labels["agent_id"]
@@ -362,7 +362,7 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 			continue
 		}
 		if _, exists := agentMap[aid]; !exists {
-			harness := e.Labels["scion.harness"]
+			harness := e.Labels["fabric.harness"]
 			name := nameMap[aid]
 			if name == "" && len(aid) >= 8 {
 				name = aid[:8]
@@ -381,7 +381,7 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 		}
 	}
 
-	// Third pass: backfill agents discovered only from messages (no scion-agents entries).
+	// Third pass: backfill agents discovered only from messages (no fabric-agents entries).
 	// These are agents that existed before the log window or whose agent logs weren't captured.
 	// Build a set of known agent names to avoid creating duplicates with different IDs.
 	knownNames := make(map[string]bool)
@@ -424,7 +424,7 @@ func extractAgents(entries []GCPLogEntry) []AgentInfo {
 func agentsWithLifecycle(entries []GCPLogEntry) map[string]bool {
 	has := make(map[string]bool)
 	for _, e := range entries {
-		if logBaseName(e.LogName) != "scion-agents" {
+		if logBaseName(e.LogName) != "fabric-agents" {
 			continue
 		}
 		msg := getStr(e.JSONPayload, "message")
@@ -440,7 +440,7 @@ func extractFiles(entries []GCPLogEntry) []FileNode {
 
 	for _, e := range entries {
 		logName := logBaseName(e.LogName)
-		if logName != "scion-agents" {
+		if logName != "fabric-agents" {
 			continue
 		}
 		jp := e.JSONPayload
@@ -580,7 +580,7 @@ func extractEventsOpt(entries []GCPLogEntry, agents []AgentInfo, skipFileEvents 
 		ts := e.Timestamp
 
 		switch logName {
-		case "scion-agents":
+		case "fabric-agents":
 			msg := getStr(jp, "message")
 			aid := e.Labels["agent_id"]
 
@@ -738,7 +738,7 @@ func extractEventsOpt(entries []GCPLogEntry, agents []AgentInfo, skipFileEvents 
 				})
 			}
 
-		case "scion-messages":
+		case "fabric-messages":
 			// Skip rejected messages (failed deliveries)
 			msgAction := getStr(jp, "message")
 			if strings.Contains(msgAction, "rejected") {
@@ -824,11 +824,11 @@ func extractEventsOpt(entries []GCPLogEntry, agents []AgentInfo, skipFileEvents 
 		}
 	}
 
-	// Collect DELETE agent requests from scion_request_log entries
+	// Collect DELETE agent requests from fabric_request_log entries
 	var deleteRequests []deleteAgentRequest
 	for _, e := range entries {
 		logName := logBaseName(e.LogName)
-		if !strings.HasSuffix(logName, "scion_request_log") {
+		if !strings.HasSuffix(logName, "fabric_request_log") {
 			continue
 		}
 		if e.HTTPRequest == nil || e.HTTPRequest.RequestMethod != "DELETE" {

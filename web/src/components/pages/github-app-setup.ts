@@ -31,8 +31,8 @@ import type { PageData, Project, GitHubAppProjectStatus } from '../../shared/typ
 
 type GitHubProject = Project;
 
-@customElement('scion-page-github-app-setup')
-export class ScionPageGitHubAppSetup extends LitElement {
+@customElement('fabric-page-github-app-setup')
+export class FabricPageGitHubAppSetup extends LitElement {
   @property({ type: Object })
   pageData?: PageData;
 
@@ -210,7 +210,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
     .page-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
       display: flex;
       align-items: center;
@@ -218,12 +218,12 @@ export class ScionPageGitHubAppSetup extends LitElement {
     }
 
     .page-header h1 sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .page-header p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
       font-size: 0.875rem;
     }
@@ -231,7 +231,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
     .success-banner {
       background: var(--sl-color-success-50, #f0fdf4);
       border: 1px solid var(--sl-color-success-200, #bbf7d0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.5rem;
       display: flex;
@@ -249,7 +249,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
     .error-banner {
       background: var(--sl-color-danger-50, #fef2f2);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.5rem;
       display: flex;
@@ -265,9 +265,9 @@ export class ScionPageGitHubAppSetup extends LitElement {
     }
 
     .actions-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -275,27 +275,27 @@ export class ScionPageGitHubAppSetup extends LitElement {
     .actions-card h2 {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .actions-card p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0 0 1rem 0;
     }
 
     .projects-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
     }
 
     .projects-card h2 {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
       display: flex;
       align-items: center;
@@ -303,7 +303,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
     }
 
     .projects-card .subtitle {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0 0 1rem 0;
     }
@@ -319,9 +319,9 @@ export class ScionPageGitHubAppSetup extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 0.75rem 1rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
-      background: var(--scion-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
     }
 
     .project-info {
@@ -333,14 +333,14 @@ export class ScionPageGitHubAppSetup extends LitElement {
 
     .project-name {
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       font-size: 0.875rem;
     }
 
     .project-repo {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -362,7 +362,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
     .empty-state {
       text-align: center;
       padding: 2rem 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state sl-icon {
@@ -382,7 +382,7 @@ export class ScionPageGitHubAppSetup extends LitElement {
       justify-content: center;
       padding: 3rem;
       gap: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
   `;
 
@@ -529,6 +529,6 @@ export class ScionPageGitHubAppSetup extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-github-app-setup': ScionPageGitHubAppSetup;
+    'fabric-page-github-app-setup': FabricPageGitHubAppSetup;
   }
 }

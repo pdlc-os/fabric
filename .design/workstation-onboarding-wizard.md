@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-30 (decisions folded in 2026-05-31)
 **Status:** Proposal — Detailed Design (decisions confirmed)
-**Author:** Scion Agent (workstation-onboarding)
+**Author:** Fabric Agent (workstation-onboarding)
 **Parent doc:** [`workstation-onboarding.md`](./workstation-onboarding.md) (see §1a for
 the confirmed decisions and §7 for the single primary work sequence)
 **Scope:** W1 (onboarding wizard + supporting API) and W4 (harness-aware, Go-native
@@ -12,9 +12,9 @@ depends on them.
 > **Confirmed decisions (2026-05-31):** **D1** identity is cosmetic (settable display
 > name/email, stable UUID, default OS user) — the identity step writes it via
 > `PUT /system/identity`. **D3** images: prebuilt pull from the pre-seeded
-> `ghcr.io/homebrew-scion` is the default; **add a local build option** once a runtime
+> `ghcr.io/homebrew-fabric` is the default; **add a local build option** once a runtime
 > is confirmed. **D4** per-image pull progress (build streams log lines). **D8**
-> `scion server start` **auto-opens** the browser to `/onboarding` when un-onboarded and
+> `fabric server start` **auto-opens** the browser to `/onboarding` when un-onboarded and
 > **always prints the URL, before backgrounding**. SSE travels on the shared `/events`
 > stream (`system.images.<jobId>`); status cached in `sessionStorage`.
 
@@ -49,7 +49,7 @@ What this doc fully owns:
 Browser (Lit SPA)                         Hub (Go, net/http.ServeMux)
 ─────────────────                         ───────────────────────────
 /onboarding route        ── GET ──▶  GET  /api/v1/system/status     ┐
-  scion-page-onboarding                                              │ thin wrappers over
+  fabric-page-onboarding                                              │ thin wrappers over
   (wizard state machine) ── GET ──▶  GET  /api/v1/system/check      │ existing logic:
                                      GET  /api/v1/system/runtime    │  • doctor.go
                          ── POST ─▶  PUT  /api/v1/system/runtime    │  • runtime_detect.go
@@ -79,7 +79,7 @@ The authoritative computation lives server-side in a new
 
 | Field | Source of truth | "Done" when |
 |---|---|---|
-| `initialized` | `config.GetSettingsPath()` returns a path (i.e. `~/.scion/settings.yaml` exists) — see `pkg/config/init.go:560` | settings file present |
+| `initialized` | `config.GetSettingsPath()` returns a path (i.e. `~/.fabric/settings.yaml` exists) — see `pkg/config/init.go:560` | settings file present |
 | `runtimeDetected` | `config.DetectLocalRuntime()` (`pkg/config/runtime_detect.go:57`) returns no error | a runtime is reachable |
 | `runtimeConfigured` | `VersionedSettings.ResolveRuntime("")` yields a non-empty type (`pkg/config/settings_v1.go:90`) | runtime persisted in settings |
 | `harnessesSeeded` | non-empty `VersionedSettings.HarnessConfigs` (`settings_v1.go:224`) | at least one harness-config seeded |
@@ -118,14 +118,14 @@ Two consumers:
    ~line 329) gains a guard: on first navigation to `/` (dashboard), if the SPA has not
    yet confirmed setup, fetch `/api/v1/system/status`; when `needsOnboarding`, call
    `navigateTo('/onboarding')`. Gate this behind a workstation-mode flag exposed in the
-   bootstrapped page data (`__SCION_DATA__`, consumed in `main.ts:238`) so production
+   bootstrapped page data (`__FABRIC_DATA__`, consumed in `main.ts:238`) so production
    Hubs never trigger it. Cache the "setup complete" result in `sessionStorage` to avoid
    a status fetch on every navigation.
 
 ### 3.3 Why not just "settings.yaml missing"
 
 The parent doc's open question (Q2) asks for "a crisp, cheap signal." A bare
-`settings.yaml`-exists check is cheap but wrong: `scion server start` itself can create
+`settings.yaml`-exists check is cheap but wrong: `fabric server start` itself can create
 settings via workstation defaults before the user has chosen harnesses or made a
 workspace. The struct approach keeps each probe cheap (all are stat/in-memory except
 `imagesPresent`, which is only computed when explicitly requested with
@@ -173,7 +173,7 @@ admin-gated is safer.
 
 The auto-login is only acceptable because workstation mode binds to `127.0.0.1`
 (`applyWorkstationDefaults`) and is single-user. To prevent these powerful endpoints
-(they write `~/.scion`, pull images, read the host) from ever being reachable on a
+(they write `~/.fabric`, pull images, read the host) from ever being reachable on a
 multi-user/production Hub, every `system/*` handler **must** guard on workstation mode:
 
 ```go
@@ -214,14 +214,14 @@ implementation choices, decide at build time:
 - **Route:** add to the `ROUTES` array in `web/src/client/main.ts` (the table around
   lines 127-158):
   ```ts
-  { pattern: /^\/onboarding$/, tag: 'scion-page-onboarding',
+  { pattern: /^\/onboarding$/, tag: 'fabric-page-onboarding',
     load: () => import('../components/pages/onboarding.js') }
   ```
 - **Shell:** use the **standalone** shell (like `/login` and `/invite`) by adding the
   tag to `STANDALONE_ROUTES` (`main.ts:163`). The wizard is a full-screen takeover, not
   a page inside the app chrome with sidebar.
 - **New component:** `web/src/components/pages/onboarding.ts`,
-  `@customElement('scion-page-onboarding') class ScionPageOnboarding extends LitElement`.
+  `@customElement('fabric-page-onboarding') class FabricPageOnboarding extends LitElement`.
   Model it on `invite.ts` (`web/src/components/pages/invite.ts`) for the
   multi-`@state()` step machine and on `admin-server-config.ts` for the form-field /
   `apiFetch` / `extractApiError` patterns. Reuse Shoelace `sl-tab`/`sl-step`-style
@@ -383,7 +383,7 @@ Wraps `config.InitMachine(harnesses, opts)` (`pkg/config/init.go:548`):
 - Map harness ids → `[]api.Harness` (the same resolution `cmd/project.go:82` uses).
 - Build `InitMachineOpts{ Force: req.force, ImageRegistry: req.imageRegistry }`
   (`init.go:538`).
-- `InitMachine` creates `~/.scion`, detects runtime, seeds `settings.yaml`, seeds the
+- `InitMachine` creates `~/.fabric`, detects runtime, seeds `settings.yaml`, seeds the
   chosen harness-configs, seeds the default template, ensures a broker ID — all
   idempotent (it skips seeding when settings already exist; `MkdirAll`/`ensureBrokerID`
   are no-ops when present, per `init.go:554-635`).
@@ -404,7 +404,7 @@ the wizard surfaces via `extractApiError` (`web/src/client/api.ts:96`).
 ## 7. API Surface — Images (W4)
 
 Today image pulling is only the shell script
-`image-build/scripts/pull-containers.sh` (pulls `scion-claude|gemini|opencode|codex`,
+`image-build/scripts/pull-containers.sh` (pulls `fabric-claude|gemini|opencode|codex`,
 prunes after). There is no Go path wired to the server. W4 adds one, reusing the
 runtime interface that already supports pulls.
 
@@ -418,7 +418,7 @@ runtime interface that already supports pulls.
 - **Registry resolution** (`pkg/config/settings_v1.go`):
   `ResolveImageRegistry(profile)` (line 152) and `RewriteImageRegistry(fullImage,
   newRegistry)` (line 190) to compute the actual image refs per harness.
-- **Image set per harness:** the four `scion-<harness>` names from the shell script,
+- **Image set per harness:** the four `fabric-<harness>` names from the shell script,
   resolved against the configured registry + tag.
 
 ### 7.2 New Go glue
@@ -458,7 +458,7 @@ that out as a follow-up rather than blocking W4 on it.
 // request
 { "harnesses": ["claude","gemini"], "force": false }
 // response (starts the job, returns a job id)
-{ "jobId": "imgpull-7f3a", "images": ["ghcr.io/acme/scion-claude:...", "..."] }
+{ "jobId": "imgpull-7f3a", "images": ["ghcr.io/acme/fabric-claude:...", "..."] }
 ```
 
 Starts `PullImages` in a goroutine, publishing each `ImagePullEvent` to the event bus
@@ -512,7 +512,7 @@ Re-running a pull is idempotent: `ImageExists` short-circuits already-present im
 
 ### 7.6 Local image build (D3) — `POST /api/v1/system/images/build`
 
-Default onboarding pulls prebuilt images from the pre-seeded `ghcr.io/homebrew-scion`
+Default onboarding pulls prebuilt images from the pre-seeded `ghcr.io/homebrew-fabric`
 registry (D3), so most users never build. But for users on their own registry, an
 air-gapped setup, or who simply want local images, the wizard offers a **"Build images
 locally"** action — **enabled only after a runtime is confirmed present** (the runtime
@@ -520,7 +520,7 @@ step, §5.2, must be complete; the button is disabled otherwise).
 
 - **Mechanism:** shell out to the existing build script
   `image-build/scripts/build-images.sh` with the resolved registry/tag and a target of
-  `common` (scion-base + harnesses + hub; the script's default — see
+  `common` (fabric-base + harnesses + hub; the script's default — see
   `.design/image-onboarding.md`). The chosen builder follows the active runtime
   (`local-docker` / `local-podman`).
 - **Progress (D4):** builds are long-running, so unlike per-image pull pills, the build
@@ -547,7 +547,7 @@ step, §5.2, must be complete; the button is disabled otherwise).
 
 1. **Workstation-mode hard fence (§4.2).** Every `system/*` handler returns `404` unless
    `s.requireWorkstation(...)` (the `Workstation bool` flag set from `!production`). These
-   endpoints write `~/.scion`, mutate runtime config, and pull/build images — they must
+   endpoints write `~/.fabric`, mutate runtime config, and pull/build images — they must
    be invisible on any multi-user/production Hub. This is the same fence the parent doc
    demands for filesystem access (W5 shares the flag and helper).
 2. **Loopback only.** Auto-login (§4.1) is acceptable solely because
@@ -583,7 +583,7 @@ step, §5.2, must be complete; the button is disabled otherwise).
 
 | Action | Path | Notes |
 |---|---|---|
-| new | `web/src/components/pages/onboarding.ts` | `scion-page-onboarding` wizard + state machine |
+| new | `web/src/components/pages/onboarding.ts` | `fabric-page-onboarding` wizard + state machine |
 | edit | `web/src/client/main.ts` | add route to `ROUTES`; add to `STANDALONE_ROUTES`; first-run redirect guard in `renderRoute` |
 | reuse | `web/src/client/api.ts` | `apiFetch`, `extractApiError` |
 | reuse | `web/src/client/sse-client.ts`, `state.ts` | subscribe `system.images.>` for image progress |

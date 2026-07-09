@@ -54,7 +54,7 @@ func TestEnvProjectIDConfigKey(t *testing.T) {
 		{EnvGroveID, false, ConfigGroveIDKey, true},
 		{EnvHubProjectID, false, ConfigHubProjectIDKey, true},
 		{EnvHubGroveID, false, ConfigHubGroveIDKey, true},
-		{"SCION_HUB_ENDPOINT", false, "", false},
+		{"FABRIC_HUB_ENDPOINT", false, "", false},
 	}
 
 	for _, tt := range tests {

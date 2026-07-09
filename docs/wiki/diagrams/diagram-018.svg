@@ -35,7 +35,7 @@
 <g id="node2" class="node">
 <title>Emulated Metadata Server</title>
 <polygon fill="lightblue" stroke="black" points="234,-285 105.5,-285 105.5,-249 234,-249 234,-285"/>
-<text xml:space="preserve" text-anchor="middle" x="169.75" y="-264.2" font-family="Times,serif" font-size="14.00">Scion Emulated</text>
+<text xml:space="preserve" text-anchor="middle" x="169.75" y="-264.2" font-family="Times,serif" font-size="14.00">Fabric Emulated</text>
 <text xml:space="preserve" text-anchor="middle" x="169.75" y="-253.7" font-family="Times,serif" font-size="14.00">Metadata Server</text>
 </g>
 <!-- Agent&#45;&gt;Emulated Metadata Server -->
@@ -45,15 +45,15 @@
 <polygon fill="black" stroke="black" points="140.08,-295.87 144.98,-286.47 135.29,-290.76 140.08,-295.87"/>
 <text xml:space="preserve" text-anchor="middle" x="177.75" y="-318.95" font-family="Times,serif" font-size="14.00">Queries metadata</text>
 </g>
-<!-- Scion Hub API -->
+<!-- Fabric Hub API -->
 <g id="node3" class="node">
-<title>Scion Hub API</title>
+<title>Fabric Hub API</title>
 <polygon fill="lightblue" stroke="black" points="113.5,-165 0,-165 0,-129 113.5,-129 113.5,-165"/>
-<text xml:space="preserve" text-anchor="middle" x="56.75" y="-138.95" font-family="Times,serif" font-size="14.00">Scion Hub API</text>
+<text xml:space="preserve" text-anchor="middle" x="56.75" y="-138.95" font-family="Times,serif" font-size="14.00">Fabric Hub API</text>
 </g>
-<!-- Emulated Metadata Server&#45;&gt;Scion Hub API -->
+<!-- Emulated Metadata Server&#45;&gt;Fabric Hub API -->
 <g id="edge2" class="edge">
-<title>Emulated Metadata Server&#45;&gt;Scion Hub API</title>
+<title>Emulated Metadata Server&#45;&gt;Fabric Hub API</title>
 <path fill="none" stroke="black" d="M105.16,-248.94C86.94,-240.86 69.13,-229.14 58.25,-212.25 51.54,-201.84 50.37,-188.38 51.19,-176.47"/>
 <polygon fill="black" stroke="black" points="54.64,-177.1 52.37,-166.75 47.69,-176.26 54.64,-177.1"/>
 <text xml:space="preserve" text-anchor="middle" x="129.5" y="-198.95" font-family="Times,serif" font-size="14.00">Fetches credentials</text>
@@ -78,9 +78,9 @@
 <polygon fill="lightblue" stroke="black" points="94.75,-44 18.75,-44 18.75,-8 94.75,-8 94.75,-44"/>
 <text xml:space="preserve" text-anchor="middle" x="56.75" y="-17.95" font-family="Times,serif" font-size="14.00">GCP APIs</text>
 </g>
-<!-- Scion Hub API&#45;&gt;GCP APIs -->
+<!-- Fabric Hub API&#45;&gt;GCP APIs -->
 <g id="edge3" class="edge">
-<title>Scion Hub API&#45;&gt;GCP APIs</title>
+<title>Fabric Hub API&#45;&gt;GCP APIs</title>
 <path fill="none" stroke="black" d="M56.75,-128.7C56.75,-109.57 56.75,-78.46 56.75,-55.68"/>
 <polygon fill="black" stroke="black" points="60.25,-55.84 56.75,-45.84 53.25,-55.84 60.25,-55.84"/>
 <text xml:space="preserve" text-anchor="middle" x="124.25" y="-77.95" font-family="Times,serif" font-size="14.00">Obtains GCP tokens</text>
@@ -89,7 +89,7 @@
 <g id="node5" class="node">
 <title>Metadata Diagnostics</title>
 <polygon fill="lightblue" stroke="black" points="413.75,-405 247.75,-405 247.75,-369 413.75,-369 413.75,-405"/>
-<text xml:space="preserve" text-anchor="middle" x="330.75" y="-384.2" font-family="Times,serif" font-size="14.00">Sciontool</text>
+<text xml:space="preserve" text-anchor="middle" x="330.75" y="-384.2" font-family="Times,serif" font-size="14.00">Fabrictool</text>
 <text xml:space="preserve" text-anchor="middle" x="330.75" y="-373.7" font-family="Times,serif" font-size="14.00">Metadata Diagnostics</text>
 </g>
 <!-- Metadata Diagnostics&#45;&gt;Emulated Metadata Server -->

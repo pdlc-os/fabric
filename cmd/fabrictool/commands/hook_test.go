@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -10,27 +10,27 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// scrubScionEnv clears all Hub and telemetry environment variables for the
+// scrubFabricEnv clears all Hub and telemetry environment variables for the
 // duration of the test, preventing accidental communication with a real Hub
 // or telemetry backend when tests run inside an agent container.
-func scrubScionEnv(t *testing.T) {
+func scrubFabricEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
-		"SCION_HUB_ENDPOINT",
-		"SCION_HUB_URL",
-		"SCION_AUTH_TOKEN",
-		"SCION_AGENT_ID",
-		"SCION_AGENT_MODE",
-		"SCION_TELEMETRY_ENABLED",
-		"SCION_TELEMETRY_CLOUD_ENABLED",
-		"SCION_OTEL_ENDPOINT",
-		"SCION_OTEL_GCP_CREDENTIALS",
-		"SCION_GCP_PROJECT_ID",
+		"FABRIC_HUB_ENDPOINT",
+		"FABRIC_HUB_URL",
+		"FABRIC_AUTH_TOKEN",
+		"FABRIC_AGENT_ID",
+		"FABRIC_AGENT_MODE",
+		"FABRIC_TELEMETRY_ENABLED",
+		"FABRIC_TELEMETRY_CLOUD_ENABLED",
+		"FABRIC_OTEL_ENDPOINT",
+		"FABRIC_OTEL_GCP_CREDENTIALS",
+		"FABRIC_GCP_PROJECT_ID",
 		"OTEL_EXPORTER_OTLP_ENDPOINT",
 	} {
 		t.Setenv(key, "")
@@ -43,7 +43,7 @@ func TestProcessHookData_Claude(t *testing.T) {
 	oldHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", oldHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 	log.SetLogPath(filepath.Join(tmpDir, "agent.log"))
 
 	hookDialect = "claude"
@@ -81,7 +81,7 @@ func TestProcessHookData_Gemini(t *testing.T) {
 	oldHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", oldHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 	log.SetLogPath(filepath.Join(tmpDir, "agent.log"))
 
 	hookDialect = "gemini"
@@ -112,7 +112,7 @@ func TestProcessHookData_SessionEvents(t *testing.T) {
 	oldHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", oldHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 	log.SetLogPath(filepath.Join(tmpDir, "agent.log"))
 
 	hookDialect = "claude"
@@ -155,7 +155,7 @@ func TestProcessHookData_CodexCompletion(t *testing.T) {
 	oldHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", oldHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 	log.SetLogPath(filepath.Join(tmpDir, "agent.log"))
 
 	hookDialect = "codex"
@@ -184,14 +184,14 @@ func TestProcessHookData_HarnessBundledDialectOverridesBuiltin(t *testing.T) {
 	oldHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", oldHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 	log.SetLogPath(filepath.Join(tmpDir, "agent.log"))
 
 	oldDialect := hookDialect
 	hookDialect = "codex"
 	defer func() { hookDialect = oldDialect }()
 
-	bundleDir := filepath.Join(tmpDir, ".scion", "harness")
+	bundleDir := filepath.Join(tmpDir, ".fabric", "harness")
 	require.NoError(t, os.MkdirAll(bundleDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(bundleDir, "dialect.yaml"), []byte(`
 dialect: codex

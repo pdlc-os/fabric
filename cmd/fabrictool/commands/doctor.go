@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package commands
@@ -17,7 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
 )
 
 var doctorCmd = &cobra.Command{
@@ -27,7 +27,7 @@ var doctorCmd = &cobra.Command{
 authentication tokens, hub connectivity, and ancillary services.
 
 Checks performed:
-  - Environment variables (SCION_HUB_ENDPOINT, SCION_AGENT_ID, etc.)
+  - Environment variables (FABRIC_HUB_ENDPOINT, FABRIC_AGENT_ID, etc.)
   - Token file presence, format, and expiry
   - Hub reachability (unauthenticated health check)
   - Token validity (authenticated status update)
@@ -48,7 +48,7 @@ func init() {
 func runDoctor() int {
 	failures := 0
 
-	fmt.Println("=== Scion Agent Doctor ===")
+	fmt.Println("=== Fabric Agent Doctor ===")
 
 	// --- Environment ---
 	failures += checkEnvironment()
@@ -95,9 +95,9 @@ func checkEnvironment() int {
 		required bool
 		fallback string
 	}{
-		{"SCION_HUB_ENDPOINT", true, "SCION_HUB_URL"},
-		{"SCION_AGENT_ID", true, ""},
-		{"SCION_AGENT_MODE", false, ""},
+		{"FABRIC_HUB_ENDPOINT", true, "FABRIC_HUB_URL"},
+		{"FABRIC_AGENT_ID", true, ""},
+		{"FABRIC_AGENT_MODE", false, ""},
 	}
 
 	for _, ev := range envVars {
@@ -190,9 +190,9 @@ func checkToken() (time.Time, string) {
 }
 
 func resolveHubURL() string {
-	hubURL := os.Getenv("SCION_HUB_ENDPOINT")
+	hubURL := os.Getenv("FABRIC_HUB_ENDPOINT")
 	if hubURL == "" {
-		hubURL = os.Getenv("SCION_HUB_URL")
+		hubURL = os.Getenv("FABRIC_HUB_URL")
 	}
 	return hubURL
 }
@@ -222,7 +222,7 @@ func checkHubConnectivity(hubURL string) bool {
 func checkAuthentication(hubURL string, failures *int) bool {
 	fmt.Println("\n--- Authentication ---")
 
-	agentID := os.Getenv("SCION_AGENT_ID")
+	agentID := os.Getenv("FABRIC_AGENT_ID")
 	token := hub.ReadTokenFile()
 
 	if token == "" || agentID == "" {
@@ -242,7 +242,7 @@ func checkAuthentication(hubURL string, failures *int) bool {
 
 	req, _ := http.NewRequest("POST", statusURL, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -267,7 +267,7 @@ func checkAuthentication(hubURL string, failures *int) bool {
 		strings.TrimSuffix(hubURL, "/"), agentID)
 
 	req, _ = http.NewRequest("POST", refreshURL, nil)
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 
 	resp, err = client.Do(req)
 	if err != nil {
@@ -293,7 +293,7 @@ func checkAuthentication(hubURL string, failures *int) bool {
 }
 
 func checkGCPMetadata(failures *int) {
-	mode := os.Getenv("SCION_METADATA_MODE")
+	mode := os.Getenv("FABRIC_METADATA_MODE")
 	if mode == "" {
 		return
 	}
@@ -301,7 +301,7 @@ func checkGCPMetadata(failures *int) {
 	fmt.Println("\n--- GCP Metadata ---")
 
 	port := 18380
-	if p := os.Getenv("SCION_METADATA_PORT"); p != "" {
+	if p := os.Getenv("FABRIC_METADATA_PORT"); p != "" {
 		_, _ = fmt.Sscanf(p, "%d", &port)
 	}
 
@@ -359,7 +359,7 @@ func checkGCPTokenAcquisition(port int, failures *int) {
 		fmt.Printf("[FAIL] GCP token check: metadata server returned %d: %s\n",
 			resp.StatusCode, doctorTruncate(string(body), 120))
 		fmt.Println("[!] gcloud auth print-access-token will fail in this state")
-		fmt.Println("[!] Run from the host:  scion agent reset-auth <agent-name>")
+		fmt.Println("[!] Run from the host:  fabric agent reset-auth <agent-name>")
 		*failures++
 		return
 	}
@@ -385,7 +385,7 @@ func checkGCPTokenAcquisition(port int, failures *int) {
 }
 
 func checkGitHubToken(failures *int) {
-	if os.Getenv("SCION_GITHUB_APP_ENABLED") != "true" {
+	if os.Getenv("FABRIC_GITHUB_APP_ENABLED") != "true" {
 		return
 	}
 
@@ -431,12 +431,12 @@ func printRemediation(tokenExpiry time.Time, tokenSubject string, tokenValid boo
 
 	if expired && !tokenValid {
 		fmt.Println("[!] Token is expired and cannot be refreshed.")
-		fmt.Println("[!] Run from the host:  scion agent reset-auth <agent-name>")
-		fmt.Println("[!] Or restart agent:   scion agent restart <agent-name>")
+		fmt.Println("[!] Run from the host:  fabric agent reset-auth <agent-name>")
+		fmt.Println("[!] Or restart agent:   fabric agent restart <agent-name>")
 	} else if !tokenValid {
 		fmt.Println("[!] Token is rejected by the hub (signing key may have changed).")
-		fmt.Println("[!] Run from the host:  scion agent reset-auth <agent-name>")
-		fmt.Println("[!] Or restart agent:   scion agent restart <agent-name>")
+		fmt.Println("[!] Run from the host:  fabric agent reset-auth <agent-name>")
+		fmt.Println("[!] Or restart agent:   fabric agent restart <agent-name>")
 	}
 }
 

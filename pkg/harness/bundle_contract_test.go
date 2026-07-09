@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	harnessFS "github.com/GoogleCloudPlatform/scion/harnesses"
+	harnessFS "github.com/pdlc-os/fabric/harnesses"
 )
 
 // TestBundleContract runs each harness's provision.py against a set of
@@ -126,7 +126,7 @@ func runBundleContractCase(t *testing.T, python, hname, caseDir string) {
 
 	// Create a temp HOME.
 	tmpHome := t.TempDir()
-	bundleDir := filepath.Join(tmpHome, ".scion", "harness")
+	bundleDir := filepath.Join(tmpHome, ".fabric", "harness")
 
 	for _, sub := range []string{"", "inputs", "outputs", "secrets"} {
 		if err := os.MkdirAll(filepath.Join(bundleDir, sub), 0755); err != nil {
@@ -134,12 +134,12 @@ func runBundleContractCase(t *testing.T, python, hname, caseDir string) {
 		}
 	}
 
-	// Stage the harness bundle (provision.py, config.yaml, scion_harness.py)
+	// Stage the harness bundle (provision.py, config.yaml, fabric_harness.py)
 	// from the embedded FS.
-	for _, fname := range []string{"provision.py", "config.yaml", "scion_harness.py"} {
+	for _, fname := range []string{"provision.py", "config.yaml", "fabric_harness.py"} {
 		data, err := fs.ReadFile(harnessFS.FS, hname+"/"+fname)
 		if err != nil {
-			if fname == "scion_harness.py" {
+			if fname == "fabric_harness.py" {
 				data = harnessFS.CanonicalHarnessLib
 			} else if fname == "config.yaml" {
 				continue // optional
@@ -320,7 +320,7 @@ func TestBundleContractCoverage(t *testing.T) {
 }
 
 // TestBundleContractNoDeletedHelpers fails if any provision.py contains
-// helper definitions or patterns that should live in scion_harness.py.
+// helper definitions or patterns that should live in fabric_harness.py.
 // This prevents re-introduction of duplicated code after consolidation.
 func TestBundleContractNoDeletedHelpers(t *testing.T) {
 	forbidden := []string{
@@ -344,11 +344,11 @@ func TestBundleContractNoDeletedHelpers(t *testing.T) {
 		content := string(data)
 		for _, pat := range forbidden {
 			if strings.Contains(content, pat) {
-				t.Errorf("harness %s/provision.py contains %q — this helper should be in scion_harness.py", hname, pat)
+				t.Errorf("harness %s/provision.py contains %q — this helper should be in fabric_harness.py", hname, pat)
 			}
 		}
-		if strings.Contains(content, "except ImportError") && strings.Contains(content, "scion_harness") {
-			t.Errorf("harness %s/provision.py uses except ImportError around scion_harness — import must be mandatory", hname)
+		if strings.Contains(content, "except ImportError") && strings.Contains(content, "fabric_harness") {
+			t.Errorf("harness %s/provision.py uses except ImportError around fabric_harness — import must be mandatory", hname)
 		}
 	}
 }

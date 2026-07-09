@@ -22,7 +22,7 @@ import (
 	goruntime "runtime"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
@@ -34,10 +34,10 @@ import (
 
 // LoadSettingsKoanf loads settings using Koanf with provider priority:
 // 1. Embedded defaults (YAML) with OS-specific runtime adjustment
-// 2. Global settings file (~/.scion/settings.yaml or .json)
-// 3. In-repo project settings file (.scion/settings.yaml or .json)
+// 2. Global settings file (~/.fabric/settings.yaml or .json)
+// 3. In-repo project settings file (.fabric/settings.yaml or .json)
 // 4. External project config settings (for git projects with split storage)
-// 5. Environment variables (SCION_ prefix, top-level only)
+// 5. Environment variables (FABRIC_ prefix, top-level only)
 func LoadSettingsKoanf(projectPath string) (*Settings, error) {
 	k := koanf.New(".")
 
@@ -47,7 +47,7 @@ func LoadSettingsKoanf(projectPath string) (*Settings, error) {
 		_ = k.Load(rawbytes.Provider(defaultData), json.Parser())
 	}
 
-	// 2. Load global settings (~/.scion/settings.yaml or .json)
+	// 2. Load global settings (~/.fabric/settings.yaml or .json)
 	globalDir, _ := GetGlobalDir()
 	if globalDir != "" {
 		if err := loadSettingsFile(k, globalDir); err != nil {
@@ -55,7 +55,7 @@ func LoadSettingsKoanf(projectPath string) (*Settings, error) {
 		}
 	}
 
-	// 3. Load in-repo project settings (.scion/settings.yaml)
+	// 3. Load in-repo project settings (.fabric/settings.yaml)
 	// For git projects with split storage, the in-repo settings provide
 	// project-level defaults checked into the repo.
 	effectiveProjectPath := resolveEffectiveProjectPath(projectPath)
@@ -73,22 +73,22 @@ func LoadSettingsKoanf(projectPath string) (*Settings, error) {
 		}
 	}
 
-	// 4. Load environment variables (SCION_ prefix, top-level only)
-	// Maps: SCION_ACTIVE_PROFILE -> active_profile
-	//       SCION_DEFAULT_TEMPLATE -> default_template
-	//       SCION_BUCKET_PROVIDER -> bucket.provider
-	//       SCION_BUCKET_NAME -> bucket.name
-	//       SCION_BUCKET_PREFIX -> bucket.prefix
-	//       SCION_HUB_ENDPOINT -> hub.endpoint
-	//       SCION_HUB_TOKEN -> hub.token
-	//       SCION_HUB_API_KEY -> hub.apiKey
-	//       SCION_HUB_BROKER_ID -> hub.brokerId
-	//       SCION_HUB_BROKER_TOKEN -> hub.brokerToken
-	_ = k.Load(env.Provider("SCION_", ".", func(s string) string {
+	// 4. Load environment variables (FABRIC_ prefix, top-level only)
+	// Maps: FABRIC_ACTIVE_PROFILE -> active_profile
+	//       FABRIC_DEFAULT_TEMPLATE -> default_template
+	//       FABRIC_BUCKET_PROVIDER -> bucket.provider
+	//       FABRIC_BUCKET_NAME -> bucket.name
+	//       FABRIC_BUCKET_PREFIX -> bucket.prefix
+	//       FABRIC_HUB_ENDPOINT -> hub.endpoint
+	//       FABRIC_HUB_TOKEN -> hub.token
+	//       FABRIC_HUB_API_KEY -> hub.apiKey
+	//       FABRIC_HUB_BROKER_ID -> hub.brokerId
+	//       FABRIC_HUB_BROKER_TOKEN -> hub.brokerToken
+	_ = k.Load(env.Provider("FABRIC_", ".", func(s string) string {
 		if mapped, ok := projectcompat.EnvProjectIDConfigKey(s, true); ok {
 			return mapped
 		}
-		key := strings.ToLower(strings.TrimPrefix(s, "SCION_"))
+		key := strings.ToLower(strings.TrimPrefix(s, "FABRIC_"))
 		// Handle nested bucket keys
 		if strings.HasPrefix(key, "bucket_") {
 			return "bucket." + strings.TrimPrefix(key, "bucket_")
@@ -144,9 +144,9 @@ func LoadSettingsKoanf(projectPath string) (*Settings, error) {
 	}
 
 	// For git projects, the project_id is stored in a project-id file inside the
-	// .scion directory rather than in the settings file. Read it here so that
+	// .fabric directory rather than in the settings file. Read it here so that
 	// it overrides any project_id inherited from global settings. The original
-	// projectPath points to the .scion directory (before resolveEffectiveProjectPath
+	// projectPath points to the .fabric directory (before resolveEffectiveProjectPath
 	// redirects to the external config dir).
 	if projectPath != "" && projectPath != globalDir {
 		if projectID, err := ReadProjectID(projectPath); err == nil && projectID != "" {
@@ -262,7 +262,7 @@ func GetDefaultSettingsDataYAML() ([]byte, error) {
 
 // GetProjectDefaultSettingsYAML returns the embedded project-level default settings YAML.
 // Unlike the full default settings, project settings do not include profiles or runtimes;
-// those are managed at the global/broker level (~/.scion/settings.yaml).
+// those are managed at the global/broker level (~/.fabric/settings.yaml).
 func GetProjectDefaultSettingsYAML() ([]byte, error) {
 
 	return EmbedsFS.ReadFile("embeds/default_project_settings.yaml")
@@ -287,12 +287,12 @@ func GetSettingsPath(dir string) string {
 	return ""
 }
 
-// GetScionAgentConfigPath returns the path to the scion-agent config file,
+// GetFabricAgentConfigPath returns the path to the fabric-agent config file,
 // preferring YAML over JSON. Returns empty string if no config file exists.
-func GetScionAgentConfigPath(dir string) string {
-	yamlPath := filepath.Join(dir, "scion-agent.yaml")
-	ymlPath := filepath.Join(dir, "scion-agent.yml")
-	jsonPath := filepath.Join(dir, "scion-agent.json")
+func GetFabricAgentConfigPath(dir string) string {
+	yamlPath := filepath.Join(dir, "fabric-agent.yaml")
+	ymlPath := filepath.Join(dir, "fabric-agent.yml")
+	jsonPath := filepath.Join(dir, "fabric-agent.json")
 
 	if _, err := os.Stat(yamlPath); err == nil {
 		return yamlPath
@@ -311,9 +311,9 @@ func SettingsFileExists(dir string) bool {
 	return GetSettingsPath(dir) != ""
 }
 
-// ScionAgentConfigExists checks if a scion-agent config file exists (YAML or JSON)
-func ScionAgentConfigExists(dir string) bool {
-	return GetScionAgentConfigPath(dir) != ""
+// FabricAgentConfigExists checks if a fabric-agent config file exists (YAML or JSON)
+func FabricAgentConfigExists(dir string) bool {
+	return GetFabricAgentConfigPath(dir) != ""
 }
 
 // warnIfInRepoHasGlobalKeys emits a warning if an in-repo settings file contains
@@ -339,7 +339,7 @@ func warnIfInRepoHasGlobalKeys(inRepoPath, effectivePath string) {
 		keys = append(keys, "runtimes")
 	}
 	if len(keys) > 0 {
-		fmt.Fprintf(os.Stderr, "Warning: in-repo %s/settings.yaml contains %s; these are typically managed at the global level (~/.scion/settings.yaml).\n",
+		fmt.Fprintf(os.Stderr, "Warning: in-repo %s/settings.yaml contains %s; these are typically managed at the global level (~/.fabric/settings.yaml).\n",
 			inRepoPath, strings.Join(keys, " and "))
 	}
 }

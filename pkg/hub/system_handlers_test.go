@@ -27,9 +27,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	_ "github.com/GoogleCloudPlatform/scion/pkg/store/sqlite" // register the sqlite driver for the hub test binary
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
+	_ "github.com/pdlc-os/fabric/pkg/store/sqlite" // register the sqlite driver for the hub test binary
 )
 
 // testWorkstationServer creates a test server with workstation mode enabled.
@@ -167,7 +167,7 @@ func TestSystemInit_ValidHarnesses(t *testing.T) {
 		t.Errorf("expected ok=true initialized=true, got %+v", resp)
 	}
 
-	settingsPath := filepath.Join(tmpHome, ".scion", "settings.yaml")
+	settingsPath := filepath.Join(tmpHome, ".fabric", "settings.yaml")
 	if _, err := os.Stat(settingsPath); os.IsNotExist(err) {
 		t.Error("expected settings.yaml to be created")
 	}
@@ -212,21 +212,21 @@ func TestSystemInit_SelectiveHarnessConfig(t *testing.T) {
 	}
 
 	// Codex harness-config should be seeded.
-	codexConfig := filepath.Join(tmpHome, ".scion", "harness-configs", "codex", "config.yaml")
+	codexConfig := filepath.Join(tmpHome, ".fabric", "harness-configs", "codex", "config.yaml")
 	if _, err := os.Stat(codexConfig); err != nil {
 		t.Errorf("expected codex config.yaml to be created: %v", err)
 	}
 
 	// Claude should NOT be seeded (selective materialization).
-	claudeConfig := filepath.Join(tmpHome, ".scion", "harness-configs", "claude", "config.yaml")
+	claudeConfig := filepath.Join(tmpHome, ".fabric", "harness-configs", "claude", "config.yaml")
 	if _, err := os.Stat(claudeConfig); err == nil {
 		t.Error("expected claude config.yaml to NOT be created in selective mode")
 	}
 
 	// Default template should always be seeded.
-	templateFile := filepath.Join(tmpHome, ".scion", "templates", "default", "scion-agent.yaml")
+	templateFile := filepath.Join(tmpHome, ".fabric", "templates", "default", "fabric-agent.yaml")
 	if _, err := os.Stat(templateFile); err != nil {
-		t.Errorf("expected default template scion-agent.yaml to be created: %v", err)
+		t.Errorf("expected default template fabric-agent.yaml to be created: %v", err)
 	}
 }
 
@@ -250,7 +250,7 @@ func TestSystemInit_EmbedOnlyHarness(t *testing.T) {
 	}
 
 	// Gemini harness-config should be seeded via the embed-only path.
-	geminiConfig := filepath.Join(tmpHome, ".scion", "harness-configs", "gemini", "config.yaml")
+	geminiConfig := filepath.Join(tmpHome, ".fabric", "harness-configs", "gemini", "config.yaml")
 	if _, err := os.Stat(geminiConfig); err != nil {
 		t.Errorf("expected gemini config.yaml to be created: %v", err)
 	}
@@ -266,11 +266,11 @@ func TestSystemIdentity_PUT(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	// Seed a minimal settings.yaml so UpdateSetting has a file to update
-	scionDir := filepath.Join(tmpHome, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpHome, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte("version: \"1\"\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte("version: \"1\"\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -311,7 +311,7 @@ func TestFSValidatePath_ManagedOverlap(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	managedDir := filepath.Join(tmpHome, ".scion", "projects", "something")
+	managedDir := filepath.Join(tmpHome, ".fabric", "projects", "something")
 	if err := os.MkdirAll(managedDir, 0755); err != nil {
 		t.Fatal(err)
 	}

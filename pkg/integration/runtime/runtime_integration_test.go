@@ -30,9 +30,9 @@ import (
 
 func testPostgresURL(t *testing.T) string {
 	t.Helper()
-	url := os.Getenv("SCION_TEST_POSTGRES_URL")
+	url := os.Getenv("FABRIC_TEST_POSTGRES_URL")
 	if url == "" {
-		t.Skip("SCION_TEST_POSTGRES_URL not set")
+		t.Skip("FABRIC_TEST_POSTGRES_URL not set")
 	}
 	return url
 }

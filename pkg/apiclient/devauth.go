@@ -26,7 +26,7 @@ import (
 
 const (
 	// DevTokenPrefix is the prefix for development tokens.
-	DevTokenPrefix = "scion_dev_"
+	DevTokenPrefix = "fabric_dev_"
 	// DevTokenLength is the number of random bytes in a dev token (32 bytes = 64 hex chars).
 	DevTokenLength = 32
 )
@@ -37,14 +37,14 @@ type DevAuthConfig struct {
 	Enabled bool `json:"devMode" yaml:"devMode" koanf:"devMode"`
 	// Token is an explicitly configured development token.
 	Token string `json:"devToken" yaml:"devToken" koanf:"devToken"`
-	// TokenFile is the path to the token file (default: ~/.scion/dev-token).
+	// TokenFile is the path to the token file (default: ~/.fabric/dev-token).
 	TokenFile string `json:"devTokenFile" yaml:"devTokenFile" koanf:"devTokenFile"`
 }
 
 // InitDevAuth initializes development authentication.
 // Returns the token to use and any error encountered.
 // If dev auth is not enabled, returns empty string and nil error.
-func InitDevAuth(cfg DevAuthConfig, scionDir string) (string, error) {
+func InitDevAuth(cfg DevAuthConfig, fabricDir string) (string, error) {
 	if !cfg.Enabled {
 		return "", nil
 	}
@@ -57,7 +57,7 @@ func InitDevAuth(cfg DevAuthConfig, scionDir string) (string, error) {
 	// Determine token file path
 	tokenFile := cfg.TokenFile
 	if tokenFile == "" {
-		tokenFile = filepath.Join(scionDir, "dev-token")
+		tokenFile = filepath.Join(fabricDir, "dev-token")
 	}
 
 	// Priority 2: Existing token file
@@ -109,9 +109,9 @@ func ValidateDevToken(provided, expected string) bool {
 
 // ResolveDevToken finds a development token from environment or file.
 // It checks in order:
-// 1. SCION_DEV_TOKEN environment variable
-// 2. SCION_DEV_TOKEN_FILE environment variable (path to token file)
-// 3. Default token file (~/.scion/dev-token)
+// 1. FABRIC_DEV_TOKEN environment variable
+// 2. FABRIC_DEV_TOKEN_FILE environment variable (path to token file)
+// 3. Default token file (~/.fabric/dev-token)
 func ResolveDevToken() string {
 	token, _ := ResolveDevTokenWithSource()
 	return token
@@ -120,21 +120,21 @@ func ResolveDevToken() string {
 // ResolveDevTokenWithSource finds a development token and returns both
 // the token and the source it was loaded from.
 // It checks in order:
-// 1. SCION_DEV_TOKEN environment variable
-// 2. SCION_DEV_TOKEN_FILE environment variable (path to token file)
-// 3. Default token file (~/.scion/dev-token)
+// 1. FABRIC_DEV_TOKEN environment variable
+// 2. FABRIC_DEV_TOKEN_FILE environment variable (path to token file)
+// 3. Default token file (~/.fabric/dev-token)
 func ResolveDevTokenWithSource() (string, string) {
 	// Priority 1: Environment variable
-	if token := os.Getenv("SCION_DEV_TOKEN"); token != "" {
-		return token, "SCION_DEV_TOKEN env var"
+	if token := os.Getenv("FABRIC_DEV_TOKEN"); token != "" {
+		return token, "FABRIC_DEV_TOKEN env var"
 	}
 
 	// Priority 2: Custom token file from env
-	if tokenFile := os.Getenv("SCION_DEV_TOKEN_FILE"); tokenFile != "" {
+	if tokenFile := os.Getenv("FABRIC_DEV_TOKEN_FILE"); tokenFile != "" {
 		if data, err := os.ReadFile(tokenFile); err == nil {
 			token := strings.TrimSpace(string(data))
 			if token != "" {
-				return token, "SCION_DEV_TOKEN_FILE: " + tokenFile
+				return token, "FABRIC_DEV_TOKEN_FILE: " + tokenFile
 			}
 		}
 	}
@@ -145,11 +145,11 @@ func ResolveDevTokenWithSource() (string, string) {
 		return "", ""
 	}
 
-	tokenFile := filepath.Join(home, ".scion", "dev-token")
+	tokenFile := filepath.Join(home, ".fabric", "dev-token")
 	if data, err := os.ReadFile(tokenFile); err == nil {
 		token := strings.TrimSpace(string(data))
 		if token != "" {
-			return token, "~/.scion/dev-token"
+			return token, "~/.fabric/dev-token"
 		}
 	}
 

@@ -56,8 +56,8 @@ interface RuntimeResponse {
   availableRuntimes?: string[];
 }
 
-@customElement('scion-page-onboarding')
-export class ScionPageOnboarding extends LitElement {
+@customElement('fabric-page-onboarding')
+export class FabricPageOnboarding extends LitElement {
   @state() private currentStep = 0;
   @state() private loading = true;
   @state() private stepLoading = false;
@@ -111,14 +111,14 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--scion-bg, #f8fafc);
-      font-family: var(--scion-font, system-ui, -apple-system, sans-serif);
+      background: var(--fabric-bg, #f8fafc);
+      font-family: var(--fabric-font, system-ui, -apple-system, sans-serif);
     }
 
     .wizard {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 2.5rem;
       max-width: 36rem;
       width: 100%;
@@ -131,26 +131,26 @@ export class ScionPageOnboarding extends LitElement {
 
     .step-label {
       font-size: 0.8rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 0.5rem;
     }
 
     h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.5rem 0;
       line-height: 1.5;
     }
@@ -163,7 +163,7 @@ export class ScionPageOnboarding extends LitElement {
       display: block;
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
 
@@ -173,7 +173,7 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       margin-top: 2rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .footer-right {
@@ -185,7 +185,7 @@ export class ScionPageOnboarding extends LitElement {
       background: var(--sl-color-danger-50, #fef2f2);
       color: var(--sl-color-danger-700, #b91c1c);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1rem;
       font-size: 0.875rem;
@@ -195,7 +195,7 @@ export class ScionPageOnboarding extends LitElement {
       background: var(--sl-color-warning-50, #fefce8);
       color: var(--sl-color-warning-700, #a16207);
       border: 1px solid var(--sl-color-warning-200, #fef08a);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1rem;
       font-size: 0.875rem;
@@ -214,18 +214,18 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .check-item .name {
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       min-width: 5rem;
     }
 
     .check-item .message {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       flex: 1;
     }
@@ -257,19 +257,19 @@ export class ScionPageOnboarding extends LitElement {
 
     .runtime-info {
       padding: 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       margin-bottom: 1.25rem;
     }
 
     .runtime-detected {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 0.25rem;
     }
 
     .runtime-detected strong {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .harness-list {
@@ -284,13 +284,13 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .harness-item .harness-name {
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .placeholder-content {
@@ -300,7 +300,7 @@ export class ScionPageOnboarding extends LitElement {
 
     .placeholder-content sl-icon {
       font-size: 2.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 1rem;
     }
 
@@ -339,15 +339,15 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.625rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       font-size: 0.875rem;
     }
 
     .image-item .image-name {
       flex: 1;
       font-family: monospace;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .image-status {
@@ -405,19 +405,19 @@ export class ScionPageOnboarding extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       cursor: pointer;
       transition: border-color 0.15s;
     }
 
     .ws-card:hover {
-      border-color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
     }
 
     .ws-card sl-icon {
       font-size: 1.5rem;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       flex-shrink: 0;
     }
 
@@ -427,13 +427,13 @@ export class ScionPageOnboarding extends LitElement {
 
     .ws-card .ws-card-title {
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       font-size: 0.9375rem;
     }
 
     .ws-card .ws-card-desc {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.125rem;
     }
 
@@ -441,7 +441,7 @@ export class ScionPageOnboarding extends LitElement {
       font-size: 0.8125rem;
       margin-top: 0.375rem;
       padding: 0.5rem 0.75rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .ws-validation.valid {
@@ -496,7 +496,7 @@ export class ScionPageOnboarding extends LitElement {
         this.imageRegistry = status.imageRegistry;
         this.registryInput = status.imageRegistry;
       } else {
-        this.registryInput = 'ghcr.io/homebrew-scion';
+        this.registryInput = 'ghcr.io/homebrew-fabric';
       }
       if (status?.gitVersion !== undefined) this.gitVersion = status.gitVersion;
       if (status?.gitVersionOK !== undefined) this.gitVersionOK = status.gitVersionOK;
@@ -569,7 +569,7 @@ export class ScionPageOnboarding extends LitElement {
 
   private renderIdentity() {
     return html`
-      <h1>Welcome to Scion</h1>
+      <h1>Welcome to Fabric</h1>
       <p>Let's get your workstation set up. First, tell us who you are.</p>
 
       <div class="form-group">
@@ -802,7 +802,7 @@ export class ScionPageOnboarding extends LitElement {
         this.dnsWarning =
           'Apple Container requires a DNS rule for agent connectivity. Run once (and after each reboot):\n' +
           '  sudo container system dns create host.containers.internal --localhost 203.0.113.1\n' +
-          'See: https://googlecloudplatform.github.io/scion/local/apple-container/';
+          'See: https://pdlc-os.github.io/fabric/local/apple-container/';
       }
 
       this.currentStep = 3;
@@ -816,17 +816,17 @@ export class ScionPageOnboarding extends LitElement {
   private renderRegistry() {
     return html`
       <h2>Image Registry</h2>
-      <p>Enter the container image registry where Scion images are hosted. This is required to pull harness images.</p>
+      <p>Enter the container image registry where Fabric images are hosted. This is required to pull harness images.</p>
       <div class="form-group">
         <label>Registry URL</label>
         <sl-input
-          placeholder="e.g. us-central1-docker.pkg.dev/my-project/scion"
+          placeholder="e.g. us-central1-docker.pkg.dev/my-project/fabric"
           value=${this.registryInput}
           @sl-input=${(e: Event) => { this.registryInput = (e.target as HTMLInputElement).value; }}
         ></sl-input>
       </div>
-      <p style="font-size:0.8125rem;color:var(--scion-text-muted,#64748b);">
-        Images like <code>${this.registryInput || 'your-registry'}/scion-claude:latest</code> will be pulled during setup.
+      <p style="font-size:0.8125rem;color:var(--fabric-text-muted,#64748b);">
+        Images like <code>${this.registryInput || 'your-registry'}/fabric-claude:latest</code> will be pulled during setup.
       </p>
       <div class="footer">
         <sl-button variant="text" @click=${() => { this.currentStep = 2; }}>Back</sl-button>
@@ -894,7 +894,7 @@ export class ScionPageOnboarding extends LitElement {
                 >
                   <span class="harness-name">${displayName}</span>
                 </sl-checkbox>
-                <span style="flex:1;font-family:monospace;font-size:0.8125rem;color:var(--scion-text-muted,#64748b);text-align:right;">
+                <span style="flex:1;font-family:monospace;font-size:0.8125rem;color:var(--fabric-text-muted,#64748b);text-align:right;">
                   ${imageName}
                 </span>
                 ${checking
@@ -935,7 +935,7 @@ export class ScionPageOnboarding extends LitElement {
           </div>
         ` : nothing}
 
-        <p style="font-size:0.8125rem;color:var(--scion-text-muted,#64748b);margin-top:1rem;">
+        <p style="font-size:0.8125rem;color:var(--fabric-text-muted,#64748b);margin-top:1rem;">
           Additional harnesses can be imported and configured from Hub settings after onboarding.
         </p>
       `}
@@ -1301,7 +1301,7 @@ export class ScionPageOnboarding extends LitElement {
 
       <div class="form-group">
         <label>Directory</label>
-        <scion-dir-browser
+        <fabric-dir-browser
           @path-selected=${(e: CustomEvent<{ path: string }>) => {
             this.wsLocalPath = e.detail.path;
             if (!this.wsProjectName.trim()) {
@@ -1313,7 +1313,7 @@ export class ScionPageOnboarding extends LitElement {
             }
             void this.wsValidatePath(e.detail.path);
           }}
-        ></scion-dir-browser>
+        ></fabric-dir-browser>
       </div>
 
       ${this.wsLocalPath ? html`
@@ -1442,6 +1442,6 @@ export class ScionPageOnboarding extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-onboarding': ScionPageOnboarding;
+    'fabric-page-onboarding': FabricPageOnboarding;
   }
 }

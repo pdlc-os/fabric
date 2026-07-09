@@ -17,7 +17,7 @@
 # Hub Environment Variables Integration Test Script
 # ===================================================
 # This script tests the full hub env storage feature by exercising the
-# scion CLI commands for setting, getting, listing, and clearing
+# fabric CLI commands for setting, getting, listing, and clearing
 # environment variables at user and grove scopes.
 #
 # It starts a Hub server with dev auth, links a test grove, and runs
@@ -27,7 +27,7 @@
 #   ./scripts/hub-env-integration-test.sh [options]
 #
 # Options:
-#   --skip-build     Skip building the scion binary
+#   --skip-build     Skip building the fabric binary
 #   --skip-cleanup   Don't clean up test artifacts after completion
 #   --verbose        Show verbose output
 #   --help           Show this help message
@@ -45,12 +45,12 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TEST_DIR="/tmp/scion-hub-env-test-$$"
+TEST_DIR="/tmp/fabric-hub-env-test-$$"
 HUB_PORT=9820
 SKIP_BUILD=false
 SKIP_CLEANUP=false
 VERBOSE=false
-SCION=""
+FABRIC=""
 SERVER_PID=""
 
 # Test counters
@@ -232,25 +232,25 @@ check_prerequisites() {
     log_success "Required tools available (go, jq)"
 }
 
-build_scion() {
+build_fabric() {
     if [[ "$SKIP_BUILD" == "true" ]]; then
         log_info "Skipping build (--skip-build)"
-        SCION="$TEST_DIR/scion"
+        FABRIC="$TEST_DIR/fabric"
         return
     fi
 
-    log_section "Building Scion Binary"
+    log_section "Building Fabric Binary"
 
     cd "$PROJECT_ROOT"
-    log_info "Building scion from $PROJECT_ROOT..."
+    log_info "Building fabric from $PROJECT_ROOT..."
 
-    if go build -buildvcs=false -o "$TEST_DIR/scion" ./cmd/scion 2>&1; then
-        log_success "Build successful: $TEST_DIR/scion"
+    if go build -buildvcs=false -o "$TEST_DIR/fabric" ./cmd/fabric 2>&1; then
+        log_success "Build successful: $TEST_DIR/fabric"
     else
         log_error "Build failed"
         exit 1
     fi
-    SCION="$TEST_DIR/scion"
+    FABRIC="$TEST_DIR/fabric"
 }
 
 start_hub_server() {
@@ -258,7 +258,7 @@ start_hub_server() {
 
     mkdir -p "$TEST_DIR"
 
-    local cmd=("$SCION" "server" "start" "--foreground" "--production"
+    local cmd=("$FABRIC" "server" "start" "--foreground" "--production"
         "--enable-hub"
         "--dev-auth"
         "--port" "$HUB_PORT"
@@ -290,14 +290,14 @@ start_hub_server() {
 
     # Retrieve dev token
     local token
-    token=$(cat ~/.scion/dev-token 2>/dev/null || echo "")
+    token=$(cat ~/.fabric/dev-token 2>/dev/null || echo "")
     if [[ -z "$token" ]]; then
-        log_error "Dev token not found at ~/.scion/dev-token"
+        log_error "Dev token not found at ~/.fabric/dev-token"
         exit 1
     fi
 
-    export SCION_DEV_TOKEN="$token"
-    export SCION_HUB_ENDPOINT="http://localhost:$HUB_PORT"
+    export FABRIC_DEV_TOKEN="$token"
+    export FABRIC_HUB_ENDPOINT="http://localhost:$HUB_PORT"
 
     log_success "Authentication configured (dev token)"
 }
@@ -313,11 +313,11 @@ setup_test_grove() {
     git init -q .
     git commit --allow-empty -m "init" -q
 
-    $SCION init -y 2>&1 || true
+    $FABRIC init -y 2>&1 || true
     log_success "Grove initialized at $grove_dir"
 
     # Link grove to the Hub
-    if $SCION hub link -y 2>&1; then
+    if $FABRIC hub link -y 2>&1; then
         log_success "Grove linked to Hub"
     else
         log_error "Failed to link grove to Hub"
@@ -325,10 +325,10 @@ setup_test_grove() {
     fi
 
     # Extract the grove ID for later use
-    GROVE_ID=$($SCION config get grove_id 2>/dev/null || "")
+    GROVE_ID=$($FABRIC config get grove_id 2>/dev/null || "")
     if [[ -z "$GROVE_ID" ]]; then
         # Fall back to reading settings.yaml directly
-        GROVE_ID=$(grep 'grove_id:' "$grove_dir/.scion/settings.yaml" 2>/dev/null | awk '{print $2}' || echo "")
+        GROVE_ID=$(grep 'grove_id:' "$grove_dir/.fabric/settings.yaml" 2>/dev/null | awk '{print $2}' || echo "")
     fi
     log_info "Grove ID: ${GROVE_ID:-<not found>}"
 }
@@ -344,60 +344,60 @@ test_phase1_user_scope() {
     assert_output_contains \
         "1.1  List env vars (empty)" \
         "No environment variables found" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     # 1.2 Set a variable using KEY=VALUE format
     assert_output_contains \
         "1.2  Set env var (KEY=VALUE format)" \
         "Created" \
-        $SCION hub env set "TEST_VAR_A=hello_world"
+        $FABRIC hub env set "TEST_VAR_A=hello_world"
 
     # 1.3 Set a variable using KEY VALUE format
     assert_output_contains \
         "1.3  Set env var (KEY VALUE format)" \
         "Created" \
-        $SCION hub env set TEST_VAR_B some_value
+        $FABRIC hub env set TEST_VAR_B some_value
 
     # 1.4 Set a third variable
     assert_output_contains \
         "1.4  Set another env var" \
         "Created" \
-        $SCION hub env set "TEST_VAR_C=third_value"
+        $FABRIC hub env set "TEST_VAR_C=third_value"
 
     # 1.5 Get a specific variable
     assert_output_contains \
         "1.5  Get specific env var" \
         "TEST_VAR_A=hello_world" \
-        $SCION hub env get TEST_VAR_A
+        $FABRIC hub env get TEST_VAR_A
 
     # 1.6 List all variables
     assert_output_contains \
         "1.6  List all env vars (contains TEST_VAR_A)" \
         "TEST_VAR_A" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     assert_output_contains \
         "1.6b List all env vars (contains TEST_VAR_B)" \
         "TEST_VAR_B" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     # 1.7 Update an existing variable
     assert_output_contains \
         "1.7  Update existing env var" \
         "Updated" \
-        $SCION hub env set "TEST_VAR_A=updated_value"
+        $FABRIC hub env set "TEST_VAR_A=updated_value"
 
     # 1.8 Verify the update took effect
     assert_output_contains \
         "1.8  Verify update" \
         "TEST_VAR_A=updated_value" \
-        $SCION hub env get TEST_VAR_A
+        $FABRIC hub env get TEST_VAR_A
 
     # 1.9 Get variable in JSON format
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
     local json_key=""
-    json_output=$($SCION hub env get --json TEST_VAR_A 2>/dev/null) || true
+    json_output=$($FABRIC hub env get --json TEST_VAR_A 2>/dev/null) || true
     json_key=$(echo "$json_output" | jq -r '.key // empty' 2>/dev/null) || true
     if [[ "$json_key" == "TEST_VAR_A" ]]; then
         log_success "1.9  Get env var with --json flag"
@@ -410,7 +410,7 @@ test_phase1_user_scope() {
 
     # 1.10 List variables in JSON format
     TESTS_RUN=$((TESTS_RUN + 1))
-    json_output=$($SCION hub env get --json 2>/dev/null) || true
+    json_output=$($FABRIC hub env get --json 2>/dev/null) || true
     local var_count=""
     var_count=$(echo "$json_output" | jq '.envVars | length' 2>/dev/null) || true
     if [[ "$var_count" -ge 3 ]]; then
@@ -426,18 +426,18 @@ test_phase1_user_scope() {
     assert_output_contains \
         "1.11 Clear env var" \
         "Deleted" \
-        $SCION hub env clear TEST_VAR_C
+        $FABRIC hub env clear TEST_VAR_C
 
     # 1.12 Verify the cleared variable is gone
     assert_failure \
         "1.12 Verify cleared var is gone (get should fail)" \
-        $SCION hub env get TEST_VAR_C
+        $FABRIC hub env get TEST_VAR_C
 
     # 1.13 Verify remaining variables still exist
     assert_output_contains \
         "1.13 Verify remaining vars survive clear" \
         "TEST_VAR_A" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     log_info "Phase 1 complete"
 }
@@ -453,64 +453,64 @@ test_phase2_grove_scope() {
     assert_output_contains \
         "2.1  List grove env vars (empty)" \
         "No environment variables found" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     # 2.2 Set a grove-scoped variable (infer grove from current dir)
     assert_output_contains \
         "2.2  Set grove-scoped env var" \
         "Created" \
-        $SCION hub env set --grove="$GROVE_ID" "GROVE_VAR_A=grove_value_1"
+        $FABRIC hub env set --grove="$GROVE_ID" "GROVE_VAR_A=grove_value_1"
 
     # 2.3 Set another grove-scoped variable
     assert_output_contains \
         "2.3  Set another grove-scoped env var" \
         "Created" \
-        $SCION hub env set --grove="$GROVE_ID" GROVE_VAR_B grove_value_2
+        $FABRIC hub env set --grove="$GROVE_ID" GROVE_VAR_B grove_value_2
 
     # 2.4 Get a specific grove variable
     assert_output_contains \
         "2.4  Get specific grove env var" \
         "GROVE_VAR_A=grove_value_1" \
-        $SCION hub env get --grove="$GROVE_ID" GROVE_VAR_A
+        $FABRIC hub env get --grove="$GROVE_ID" GROVE_VAR_A
 
     # 2.5 List all grove variables
     assert_output_contains \
         "2.5  List grove env vars" \
         "GROVE_VAR_A" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     assert_output_contains \
         "2.5b List grove env vars (contains B)" \
         "GROVE_VAR_B" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     # 2.6 Update a grove variable
     assert_output_contains \
         "2.6  Update grove-scoped env var" \
         "Updated" \
-        $SCION hub env set --grove="$GROVE_ID" "GROVE_VAR_A=updated_grove_value"
+        $FABRIC hub env set --grove="$GROVE_ID" "GROVE_VAR_A=updated_grove_value"
 
     # 2.7 Verify the grove update
     assert_output_contains \
         "2.7  Verify grove update" \
         "GROVE_VAR_A=updated_grove_value" \
-        $SCION hub env get --grove="$GROVE_ID" GROVE_VAR_A
+        $FABRIC hub env get --grove="$GROVE_ID" GROVE_VAR_A
 
     # 2.8 Grove and user scopes are independent
     assert_output_not_contains \
         "2.8  User scope does not contain grove vars" \
         "GROVE_VAR_A" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     assert_output_not_contains \
         "2.8b Grove scope does not contain user vars" \
         "TEST_VAR_A" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     # 2.9 Get grove variable in JSON format
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
-    json_output=$($SCION hub env get --grove="$GROVE_ID" --json GROVE_VAR_A 2>/dev/null) || true
+    json_output=$($FABRIC hub env get --grove="$GROVE_ID" --json GROVE_VAR_A 2>/dev/null) || true
     local json_scope=""
     json_scope=$(echo "$json_output" | jq -r '.scope // empty' 2>/dev/null) || true
     if [[ "$json_scope" == "project" ]]; then
@@ -526,18 +526,18 @@ test_phase2_grove_scope() {
     assert_output_contains \
         "2.10 Clear grove env var" \
         "Deleted" \
-        $SCION hub env clear --grove="$GROVE_ID" GROVE_VAR_B
+        $FABRIC hub env clear --grove="$GROVE_ID" GROVE_VAR_B
 
     # 2.11 Verify the cleared grove variable is gone
     assert_failure \
         "2.11 Verify cleared grove var is gone" \
-        $SCION hub env get --grove="$GROVE_ID" GROVE_VAR_B
+        $FABRIC hub env get --grove="$GROVE_ID" GROVE_VAR_B
 
     # 2.12 Verify remaining grove variable still exists
     assert_output_contains \
         "2.12 Remaining grove var survives clear" \
         "GROVE_VAR_A" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     log_info "Phase 2 complete"
 }
@@ -553,60 +553,60 @@ test_phase3_edge_cases() {
     assert_output_contains \
         "3.1  Set var with special chars in value" \
         "Created" \
-        $SCION hub env set "SPECIAL_VAR=hello world with spaces"
+        $FABRIC hub env set "SPECIAL_VAR=hello world with spaces"
 
     # 3.2 Retrieve variable with special value
     assert_output_contains \
         "3.2  Get var with special chars" \
         "hello world with spaces" \
-        $SCION hub env get SPECIAL_VAR
+        $FABRIC hub env get SPECIAL_VAR
 
     # 3.3 Set variable with URL value
     assert_output_contains \
         "3.3  Set var with URL value" \
         "Created" \
-        $SCION hub env set "URL_VAR=https://example.com:8080/api/v1?key=val&other=123"
+        $FABRIC hub env set "URL_VAR=https://example.com:8080/api/v1?key=val&other=123"
 
     # 3.4 Retrieve URL value
     assert_output_contains \
         "3.4  Get URL value" \
         "https://example.com:8080/api/v1?key=val&other=123" \
-        $SCION hub env get URL_VAR
+        $FABRIC hub env get URL_VAR
 
     # 3.5 Set variable with equals sign in value
     assert_output_contains \
         "3.5  Set var with '=' in value" \
         "Created" \
-        $SCION hub env set "EQUALS_VAR=key=value=extra"
+        $FABRIC hub env set "EQUALS_VAR=key=value=extra"
 
     # 3.6 Overwrite variable multiple times
-    $SCION hub env set "MULTI_VAR=first" > /dev/null 2>&1
-    $SCION hub env set "MULTI_VAR=second" > /dev/null 2>&1
-    $SCION hub env set "MULTI_VAR=third" > /dev/null 2>&1
+    $FABRIC hub env set "MULTI_VAR=first" > /dev/null 2>&1
+    $FABRIC hub env set "MULTI_VAR=second" > /dev/null 2>&1
+    $FABRIC hub env set "MULTI_VAR=third" > /dev/null 2>&1
     assert_output_contains \
         "3.6  Overwrite var multiple times (final value)" \
         "MULTI_VAR=third" \
-        $SCION hub env get MULTI_VAR
+        $FABRIC hub env get MULTI_VAR
 
     # 3.7 Invalid key format (contains =)
     assert_failure \
         "3.7  Reject key containing '=' in KEY VALUE form" \
-        $SCION hub env set "BAD=KEY" "value"
+        $FABRIC hub env set "BAD=KEY" "value"
 
     # 3.8 Empty key
     assert_failure \
         "3.8  Reject empty key (=value)" \
-        $SCION hub env set "=value"
+        $FABRIC hub env set "=value"
 
     # 3.9 Clear non-existent variable
     assert_failure \
         "3.9  Clear non-existent var fails" \
-        $SCION hub env clear NON_EXISTENT_VAR_ZZZZZ
+        $FABRIC hub env clear NON_EXISTENT_VAR_ZZZZZ
 
     # 3.10 Cannot use --grove and --broker at the same time
     assert_failure \
         "3.10 Reject --grove and --broker together" \
-        $SCION hub env get --grove="$GROVE_ID" --broker=fake-broker-id
+        $FABRIC hub env get --grove="$GROVE_ID" --broker=fake-broker-id
 
     log_info "Phase 3 complete"
 }
@@ -622,76 +622,76 @@ test_phase4_injection_and_secret() {
     assert_output_contains \
         "4.1  Set var with --always" \
         "always" \
-        $SCION hub env set --always "INJECT_VAR_A=always_val"
+        $FABRIC hub env set --always "INJECT_VAR_A=always_val"
 
     # 4.2 Get var shows (always) annotation
     assert_output_contains \
         "4.2  Get var shows (always) annotation" \
         "always" \
-        $SCION hub env get INJECT_VAR_A
+        $FABRIC hub env get INJECT_VAR_A
 
     # 4.3 Set var with explicit --as-needed
     assert_output_contains \
         "4.3  Set var with --as-needed" \
         "(as-needed)" \
-        $SCION hub env set --as-needed "INJECT_VAR_B=asneeded_val"
+        $FABRIC hub env set --as-needed "INJECT_VAR_B=asneeded_val"
 
     # 4.4 Set var with neither (default is as-needed)
     assert_output_contains \
         "4.4  Set var with default injection mode" \
         "(as-needed)" \
-        $SCION hub env set "INJECT_VAR_C=default_val"
+        $FABRIC hub env set "INJECT_VAR_C=default_val"
 
     # 4.5 Set var with --secret
     assert_output_contains \
         "4.5  Set var with --secret" \
         "secret" \
-        $SCION hub env set --secret "SECRET_VAR_A=s3cret_val"
+        $FABRIC hub env set --secret "SECRET_VAR_A=s3cret_val"
 
     # 4.6 Get secret var shows masked value
     assert_output_contains \
         "4.6  Get secret var shows masked value" \
         "******" \
-        $SCION hub env get SECRET_VAR_A
+        $FABRIC hub env get SECRET_VAR_A
 
     # 4.7 Secret var value is not shown
     assert_output_not_contains \
         "4.7  Secret var value is not shown in get" \
         "s3cret_val" \
-        $SCION hub env get SECRET_VAR_A
+        $FABRIC hub env get SECRET_VAR_A
 
     # 4.8 Update var from as-needed to always
     assert_output_contains \
         "4.8  Update var to --always" \
         "always" \
-        $SCION hub env set --always "INJECT_VAR_B=updated_always"
+        $FABRIC hub env set --always "INJECT_VAR_B=updated_always"
 
     # 4.9 Verify update changed injection mode
     assert_output_contains \
         "4.9  Verify updated injection mode" \
         "always" \
-        $SCION hub env get INJECT_VAR_B
+        $FABRIC hub env get INJECT_VAR_B
 
     # 4.10 Set var with --secret --always combined
     assert_output_contains \
         "4.10 Set var with --secret --always" \
         "always" \
-        $SCION hub env set --secret --always "COMBO_VAR=combo_val"
+        $FABRIC hub env set --secret --always "COMBO_VAR=combo_val"
 
     assert_output_contains \
         "4.10b Set var with --secret --always shows secret" \
         "secret" \
-        $SCION hub env get COMBO_VAR
+        $FABRIC hub env get COMBO_VAR
 
     # 4.11 --always and --as-needed together is rejected
     assert_failure \
         "4.11 Reject --always and --as-needed together" \
-        $SCION hub env set --always --as-needed "BAD_VAR=bad"
+        $FABRIC hub env set --always --as-needed "BAD_VAR=bad"
 
     # 4.12 JSON output includes injectionMode and secret fields
     TESTS_RUN=$((TESTS_RUN + 1))
     local json_output=""
-    json_output=$($SCION hub env get --json SECRET_VAR_A 2>/dev/null) || true
+    json_output=$($FABRIC hub env get --json SECRET_VAR_A 2>/dev/null) || true
     local json_injection_mode=""
     local json_secret=""
     json_injection_mode=$(echo "$json_output" | jq -r '.injectionMode // empty' 2>/dev/null) || true
@@ -706,7 +706,7 @@ test_phase4_injection_and_secret() {
     fi
 
     TESTS_RUN=$((TESTS_RUN + 1))
-    json_output=$($SCION hub env get --json INJECT_VAR_A 2>/dev/null) || true
+    json_output=$($FABRIC hub env get --json INJECT_VAR_A 2>/dev/null) || true
     json_injection_mode=$(echo "$json_output" | jq -r '.injectionMode // empty' 2>/dev/null) || true
     if [[ "$json_injection_mode" == "always" ]]; then
         log_success "4.12b JSON output includes injectionMode field"
@@ -719,7 +719,7 @@ test_phase4_injection_and_secret() {
 
     # Clean up test vars
     for key in INJECT_VAR_A INJECT_VAR_B INJECT_VAR_C SECRET_VAR_A COMBO_VAR; do
-        $SCION hub env clear "$key" 2>/dev/null || true
+        $FABRIC hub env clear "$key" 2>/dev/null || true
     done
 
     log_info "Phase 4 complete"
@@ -734,23 +734,23 @@ test_phase5_cleanup() {
 
     # Clear all user-scoped test variables
     for key in TEST_VAR_A TEST_VAR_B SPECIAL_VAR URL_VAR EQUALS_VAR MULTI_VAR; do
-        $SCION hub env clear "$key" 2>/dev/null || true
+        $FABRIC hub env clear "$key" 2>/dev/null || true
     done
 
     # Clear remaining grove-scoped variables
-    $SCION hub env clear --grove="$GROVE_ID" GROVE_VAR_A 2>/dev/null || true
+    $FABRIC hub env clear --grove="$GROVE_ID" GROVE_VAR_A 2>/dev/null || true
 
     # 5.1 Verify user scope is empty
     assert_output_contains \
         "5.1  User scope empty after cleanup" \
         "No environment variables found" \
-        $SCION hub env get
+        $FABRIC hub env get
 
     # 5.2 Verify grove scope is empty
     assert_output_contains \
         "5.2  Grove scope empty after cleanup" \
         "No environment variables found" \
-        $SCION hub env get --grove="$GROVE_ID"
+        $FABRIC hub env get --grove="$GROVE_ID"
 
     log_info "Phase 5 complete"
 }
@@ -760,14 +760,14 @@ test_phase5_cleanup() {
 # ============================================================================
 
 run_all_tests() {
-    log_section "Scion Hub Env Integration Test Suite"
+    log_section "Fabric Hub Env Integration Test Suite"
     log_info "Test directory: $TEST_DIR"
     log_info "Project root: $PROJECT_ROOT"
 
     mkdir -p "$TEST_DIR"
 
     check_prerequisites
-    build_scion
+    build_fabric
     start_hub_server
     setup_test_grove
 

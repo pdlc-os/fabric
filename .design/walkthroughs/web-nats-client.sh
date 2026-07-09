@@ -439,7 +439,7 @@ cmd_lifecycle() {
 # 7. NATS-Disabled Graceful Degradation
 # ---------------------------------------------------------------------------
 #
-# When the web server starts without NATS (no SCION_NATS_URL / NATS_URL),
+# When the web server starts without NATS (no FABRIC_NATS_URL / NATS_URL),
 # it should display:
 #
 #   +----------------------------------------------------------+

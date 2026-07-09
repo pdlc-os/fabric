@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	// webhookName is the name used for all Scion-managed channel webhooks.
+	// webhookName is the name used for all Fabric-managed channel webhooks.
 	// One webhook per channel is created lazily and reused for all agent messages.
-	webhookName = "Scion Agent Relay"
+	webhookName = "Fabric Agent Relay"
 )
 
 // WebhookManager manages per-channel Discord webhooks used to send messages

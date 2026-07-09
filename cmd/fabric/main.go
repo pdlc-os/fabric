@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/GoogleCloudPlatform/scion/cmd"
+import "github.com/pdlc-os/fabric/cmd"
 
 func main() {
 	cmd.Execute()

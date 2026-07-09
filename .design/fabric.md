@@ -1,10 +1,10 @@
-# Scion Local Orchestration Design
+# Fabric Local Orchestration Design
 
-This document covers the core design principles for the local `scion` CLI and its orchestration of containerized agents. For a comprehensive overview of the entire Scion platform (including Hosted architecture), see [agents.md](../agents.md).
+This document covers the core design principles for the local `fabric` CLI and its orchestration of containerized agents. For a comprehensive overview of the entire Fabric platform (including Hosted architecture), see [agents.md](../agents.md).
 
 ## Architecture
 
-Scion uses a Manager-Worker architecture where the `scion` CLI (Manager) orchestrates isolated containerized environments (Workers) for LLM agents.
+Fabric uses a Manager-Worker architecture where the `fabric` CLI (Manager) orchestrates isolated containerized environments (Workers) for LLM agents.
 
 ### Key Design Pillars
 
@@ -15,7 +15,7 @@ Scion uses a Manager-Worker architecture where the `scion` CLI (Manager) orchest
 
 ## Implementation Details
 
-- **Worktree Management**: Worktrees are created in `../.scion_worktrees/` to avoid polluting the main project tree.
+- **Worktree Management**: Worktrees are created in `../.fabric_worktrees/` to avoid polluting the main project tree.
 - **Agent Status**: Agents report state via a JSON status file in their home directory, enabling the Manager to monitor progress and detect when an agent is awaiting user input.
 - **Interactivity**: The `attach` command connects the host TTY to the agent's container, facilitating human-in-the-loop debugging and confirmation.
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // ExitCodeLimitsExceeded is the exit code used when an agent is stopped due to
@@ -33,7 +33,7 @@ type LimitsState struct {
 
 // LimitsHandler tracks turn and model call counts and enforces configured limits.
 // When a limit is exceeded, it updates the agent status, logs the event, reports
-// to the Hub, and sends SIGUSR1 to PID 1 (sciontool init) to initiate shutdown.
+// to the Hub, and sends SIGUSR1 to PID 1 (fabrictool init) to initiate shutdown.
 type LimitsHandler struct {
 	maxTurns        int
 	maxModelCalls   int
@@ -43,11 +43,11 @@ type LimitsHandler struct {
 }
 
 // NewLimitsHandler creates a new limits handler.
-// Reads SCION_MAX_TURNS and SCION_MAX_MODEL_CALLS from the environment.
+// Reads FABRIC_MAX_TURNS and FABRIC_MAX_MODEL_CALLS from the environment.
 // Returns nil if no limits are configured.
 func NewLimitsHandler() *LimitsHandler {
-	maxTurns := ParseEnvInt("SCION_MAX_TURNS")
-	maxModelCalls := ParseEnvInt("SCION_MAX_MODEL_CALLS")
+	maxTurns := ParseEnvInt("FABRIC_MAX_TURNS")
+	maxModelCalls := ParseEnvInt("FABRIC_MAX_MODEL_CALLS")
 
 	if maxTurns <= 0 && maxModelCalls <= 0 {
 		return nil
@@ -55,7 +55,7 @@ func NewLimitsHandler() *LimitsHandler {
 
 	home := os.Getenv("HOME")
 	if home == "" {
-		home = "/home/scion"
+		home = "/home/fabric"
 	}
 
 	return &LimitsHandler{
@@ -233,7 +233,7 @@ func writeLimitsState(path string, ls *LimitsState) error {
 // LimitsTriggerFile is the well-known path for the limits-exceeded trigger file.
 // When a hook handler detects a limit is exceeded, it creates this file.
 // The init process watches for it to initiate shutdown.
-const LimitsTriggerFile = "/tmp/scion-limits-exceeded"
+const LimitsTriggerFile = "/tmp/fabric-limits-exceeded"
 
 // signalLimitsExceeded notifies PID 1 that a limit has been exceeded.
 // It writes a trigger file and also attempts SIGUSR1 as a fallback.
@@ -244,7 +244,7 @@ func (h *LimitsHandler) signalLimitsExceeded() error {
 	}
 	// Primary mechanism: create a trigger file that init watches for.
 	// This works regardless of UID differences between the hook process
-	// and PID 1 (init runs as root, hooks run as the scion user).
+	// and PID 1 (init runs as root, hooks run as the fabric user).
 	if err := os.WriteFile(triggerPath, []byte("exceeded"), 0666); err != nil {
 		log.Error("Failed to write limits trigger file: %v", err)
 	}

@@ -36,8 +36,8 @@ import type { ViewMode } from '../shared/view-toggle.js';
 import '../shared/status-badge.js';
 import '../shared/view-toggle.js';
 
-@customElement('scion-page-agents')
-export class ScionPageAgents extends LitElement {
+@customElement('fabric-page-agents')
+export class FabricPageAgents extends LitElement {
   /**
    * Page data from SSR
    */
@@ -116,7 +116,7 @@ export class ScionPageAgents extends LitElement {
 
       .agent-meta {
         font-size: 0.813rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         margin-top: 0.25rem;
         display: flex;
         flex-direction: column;
@@ -133,12 +133,12 @@ export class ScionPageAgents extends LitElement {
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         text-decoration: none;
       }
 
       .agent-meta .broker-link:hover {
-        color: var(--scion-primary, #3b82f6);
+        color: var(--fabric-primary, #3b82f6);
       }
 
       .agent-meta a {
@@ -152,11 +152,11 @@ export class ScionPageAgents extends LitElement {
 
       .agent-task {
         font-size: 0.875rem;
-        color: var(--scion-text, #1e293b);
+        color: var(--fabric-text, #1e293b);
         margin-top: 0.75rem;
         padding: 0.75rem;
-        background: var(--scion-bg-subtle, #f1f5f9);
-        border-radius: var(--scion-radius, 0.5rem);
+        background: var(--fabric-bg-subtle, #f1f5f9);
+        border-radius: var(--fabric-radius, 0.5rem);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -167,21 +167,21 @@ export class ScionPageAgents extends LitElement {
         gap: 0.5rem;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid var(--scion-border, #e2e8f0);
+        border-top: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       /* Card-specific: no hover transform for agent cards (they have action buttons) */
       .agent-card {
-        background: var(--scion-surface, #ffffff);
-        border: 1px solid var(--scion-border, #e2e8f0);
-        border-radius: var(--scion-radius-lg, 0.75rem);
+        background: var(--fabric-surface, #ffffff);
+        border: 1px solid var(--fabric-border, #e2e8f0);
+        border-radius: var(--fabric-radius-lg, 0.75rem);
         padding: 1.5rem;
-        transition: all var(--scion-transition-fast, 150ms ease);
+        transition: all var(--fabric-transition-fast, 150ms ease);
       }
 
       .agent-card:hover {
-        border-color: var(--scion-primary, #3b82f6);
-        box-shadow: var(--scion-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+        border-color: var(--fabric-primary, #3b82f6);
+        box-shadow: var(--fabric-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
       }
 
       /* Table-specific: inline action buttons */
@@ -193,33 +193,33 @@ export class ScionPageAgents extends LitElement {
 
       /* Color-coded hover effects for action buttons (skip disabled) */
       .action-btn-danger:not([disabled])::part(base):hover {
-        background: var(--scion-action-hover-danger-bg, rgba(239, 68, 68, 0.1));
-        border-color: var(--scion-danger-400, #f87171);
-        color: var(--scion-danger-600, #dc2626);
+        background: var(--fabric-action-hover-danger-bg, rgba(239, 68, 68, 0.1));
+        border-color: var(--fabric-danger-400, #f87171);
+        color: var(--fabric-danger-600, #dc2626);
       }
 
       .action-btn-warning:not([disabled])::part(base):hover {
-        background: var(--scion-action-hover-warning-bg, rgba(245, 158, 11, 0.1));
-        border-color: var(--scion-warning-400, #fbbf24);
-        color: var(--scion-warning-600, #d97706);
+        background: var(--fabric-action-hover-warning-bg, rgba(245, 158, 11, 0.1));
+        border-color: var(--fabric-warning-400, #fbbf24);
+        color: var(--fabric-warning-600, #d97706);
       }
 
       .action-btn-success:not([disabled])::part(base):hover {
-        background: var(--scion-action-hover-success-bg, rgba(34, 197, 94, 0.1));
-        border-color: var(--scion-success-400, #4ade80);
-        color: var(--scion-success-600, #16a34a);
+        background: var(--fabric-action-hover-success-bg, rgba(34, 197, 94, 0.1));
+        border-color: var(--fabric-success-400, #4ade80);
+        color: var(--fabric-success-600, #16a34a);
       }
 
       .action-btn-primary:not([disabled])::part(base):hover {
-        background: var(--scion-action-hover-primary-bg, rgba(59, 130, 246, 0.1));
-        border-color: var(--scion-primary-400, #60a5fa);
-        color: var(--scion-primary-600, #2563eb);
+        background: var(--fabric-action-hover-primary-bg, rgba(59, 130, 246, 0.1));
+        border-color: var(--fabric-primary-400, #60a5fa);
+        color: var(--fabric-primary-600, #2563eb);
       }
 
       .scope-toggle {
         display: inline-flex;
-        border: 1px solid var(--scion-border, #e2e8f0);
-        border-radius: var(--scion-radius, 0.5rem);
+        border: 1px solid var(--fabric-border, #e2e8f0);
+        border-radius: var(--fabric-radius, 0.5rem);
         overflow: hidden;
       }
 
@@ -229,8 +229,8 @@ export class ScionPageAgents extends LitElement {
         gap: 0.25rem;
         height: 2rem;
         border: none;
-        background: var(--scion-surface, #ffffff);
-        color: var(--scion-text-muted, #64748b);
+        background: var(--fabric-surface, #ffffff);
+        color: var(--fabric-text-muted, #64748b);
         cursor: pointer;
         padding: 0 0.625rem;
         font-size: 0.8125rem;
@@ -240,15 +240,15 @@ export class ScionPageAgents extends LitElement {
       }
 
       .scope-toggle button:not(:last-child) {
-        border-right: 1px solid var(--scion-border, #e2e8f0);
+        border-right: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       .scope-toggle button:hover:not(.active) {
-        background: var(--scion-bg-subtle, #f1f5f9);
+        background: var(--fabric-bg-subtle, #f1f5f9);
       }
 
       .scope-toggle button.active {
-        background: var(--scion-primary, #3b82f6);
+        background: var(--fabric-primary, #3b82f6);
         color: white;
       }
 
@@ -275,7 +275,7 @@ export class ScionPageAgents extends LitElement {
 
       .filter-bar .label {
         font-size: 0.8125rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         font-weight: 500;
       }
 
@@ -285,7 +285,7 @@ export class ScionPageAgents extends LitElement {
       }
 
       th.sortable:hover {
-        color: var(--scion-text, #1e293b);
+        color: var(--fabric-text, #1e293b);
       }
 
       .sort-indicator {
@@ -308,27 +308,27 @@ export class ScionPageAgents extends LitElement {
     super.connectedCallback();
 
     // Read persisted view mode
-    const stored = localStorage.getItem('scion-view-agents') as ViewMode | null;
+    const stored = localStorage.getItem('fabric-view-agents') as ViewMode | null;
     if (stored === 'grid' || stored === 'list') {
       this.viewMode = stored;
     }
 
     // Read persisted scope filter
     if (this.pageData?.user) {
-      const scope = localStorage.getItem('scion-scope-agents');
+      const scope = localStorage.getItem('fabric-scope-agents');
       if (scope === 'mine' || scope === 'shared') {
         this.agentScope = scope;
       }
     }
 
     // Read persisted phase filter
-    const storedPhase = localStorage.getItem('scion-filter-agents-phase');
+    const storedPhase = localStorage.getItem('fabric-filter-agents-phase');
     if (storedPhase === 'running' || storedPhase === 'stopped' || storedPhase === 'suspended' || storedPhase === 'error') {
       this.phaseFilter = storedPhase;
     }
 
     // Read persisted sort
-    const storedSort = localStorage.getItem('scion-sort-agents');
+    const storedSort = localStorage.getItem('fabric-sort-agents');
     if (storedSort) {
       try {
         const parsed = JSON.parse(storedSort);
@@ -628,9 +628,9 @@ export class ScionPageAgents extends LitElement {
     if (this.phaseFilter === phase) return;
     this.phaseFilter = phase;
     if (phase) {
-      localStorage.setItem('scion-filter-agents-phase', phase);
+      localStorage.setItem('fabric-filter-agents-phase', phase);
     } else {
-      localStorage.removeItem('scion-filter-agents-phase');
+      localStorage.removeItem('fabric-filter-agents-phase');
     }
   }
 
@@ -641,7 +641,7 @@ export class ScionPageAgents extends LitElement {
       this.sortField = field;
       this.sortDir = field === 'name' ? 'asc' : 'desc';
     }
-    localStorage.setItem('scion-sort-agents', JSON.stringify({ field: this.sortField, dir: this.sortDir }));
+    localStorage.setItem('fabric-sort-agents', JSON.stringify({ field: this.sortField, dir: this.sortDir }));
   }
 
   private sortIndicator(field: AgentSortField): string {
@@ -652,9 +652,9 @@ export class ScionPageAgents extends LitElement {
     if (this.agentScope === scope) return;
     this.agentScope = scope;
     if (scope === 'all') {
-      localStorage.removeItem('scion-scope-agents');
+      localStorage.removeItem('fabric-scope-agents');
     } else {
-      localStorage.setItem('scion-scope-agents', scope);
+      localStorage.setItem('fabric-scope-agents', scope);
     }
     void this.loadAgents();
   }
@@ -689,11 +689,11 @@ export class ScionPageAgents extends LitElement {
               </button>
             </div>
           ` : nothing}
-          <scion-view-toggle
+          <fabric-view-toggle
             .view=${this.viewMode}
-            storageKey="scion-view-agents"
+            storageKey="fabric-view-agents"
             @view-change=${this.onViewChange}
-          ></scion-view-toggle>
+          ></fabric-view-toggle>
           ${can(this.scopeCapabilities, 'stop_all') && this.hasRunningAgents() ? html`
             <sl-button
               variant="danger"
@@ -999,12 +999,12 @@ export class ScionPageAgents extends LitElement {
                 : ''}
             </div>
           </div>
-          <scion-status-badge
+          <fabric-status-badge
             status=${getAgentDisplayStatus(agent) as StatusType}
             label=${getAgentDisplayStatus(agent)}
             size="small"
           >
-          </scion-status-badge>
+          </fabric-status-badge>
         </div>
 
         ${agent.taskSummary ? html` <div class="agent-task">${agent.taskSummary}</div> ` : ''}
@@ -1066,11 +1066,11 @@ export class ScionPageAgents extends LitElement {
         <td>${agent.project ? html`<a href="/projects/${agent.projectId}" class="project-link">${agent.project}</a>` : '\u2014'}</td>
         <td class="hide-mobile">${agent.template}</td>
         <td>
-          <scion-status-badge
+          <fabric-status-badge
             status=${getAgentDisplayStatus(agent) as StatusType}
             label=${getAgentDisplayStatus(agent)}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </td>
         <td class="hide-mobile">${agent.updated ? this.formatRelativeTime(agent.updated) : '\u2014'}</td>
         <td class="hide-mobile">
@@ -1088,6 +1088,6 @@ export class ScionPageAgents extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-agents': ScionPageAgents;
+    'fabric-page-agents': FabricPageAgents;
   }
 }

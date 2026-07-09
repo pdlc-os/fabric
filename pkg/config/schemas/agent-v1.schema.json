@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://scion.dev/schemas/agent/v1.json",
-  "title": "Scion Agent Configuration",
-  "description": "Configuration for a Scion agent template (scion-agent.yaml).",
+  "$id": "https://fabric.dev/schemas/agent/v1.json",
+  "title": "Fabric Agent Configuration",
+  "description": "Configuration for a Fabric agent template (fabric-agent.yaml).",
   "type": "object",
   "properties": {
     "$schema": {

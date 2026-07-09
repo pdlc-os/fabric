@@ -56,8 +56,8 @@ func TestWorkspaceSharingMode_Constants(t *testing.T) {
 	if WorkspaceModePerAgent != "per-agent" {
 		t.Errorf("WorkspaceModePerAgent = %q, want %q", WorkspaceModePerAgent, "per-agent")
 	}
-	if LabelWorkspaceMode != "scion.dev/workspace-mode" {
-		t.Errorf("LabelWorkspaceMode = %q, want %q", LabelWorkspaceMode, "scion.dev/workspace-mode")
+	if LabelWorkspaceMode != "fabric.dev/workspace-mode" {
+		t.Errorf("LabelWorkspaceMode = %q, want %q", LabelWorkspaceMode, "fabric.dev/workspace-mode")
 	}
 
 	// Verify the new typed constants have the expected string values.

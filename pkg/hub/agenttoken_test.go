@@ -177,9 +177,9 @@ func TestAgentAuthMiddleware(t *testing.T) {
 	// Wrap with middleware
 	wrapped := service.AgentAuthMiddleware(handler)
 
-	t.Run("valid token in X-Scion-Agent-Token", func(t *testing.T) {
+	t.Run("valid token in X-Fabric-Agent-Token", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		rr := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rr, req)
@@ -201,7 +201,7 @@ func TestAgentAuthMiddleware(t *testing.T) {
 
 	t.Run("invalid token", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Set("X-Scion-Agent-Token", "invalid-token")
+		req.Header.Set("X-Fabric-Agent-Token", "invalid-token")
 		rr := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rr, req)
@@ -239,7 +239,7 @@ func TestRequireAgentScope(t *testing.T) {
 		wrapped := service.AgentAuthMiddleware(RequireAgentScope(ScopeAgentStatusUpdate)(handler))
 
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		rr := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rr, req)
@@ -251,7 +251,7 @@ func TestRequireAgentScope(t *testing.T) {
 		wrapped := service.AgentAuthMiddleware(RequireAgentScope(ScopeProjectSecretRead)(handler))
 
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		rr := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rr, req)

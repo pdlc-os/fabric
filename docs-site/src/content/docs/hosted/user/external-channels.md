@@ -1,11 +1,11 @@
 ---
 title: External Channels
-description: Connect Scion to Telegram, Discord, and A2A for external messaging and notifications.
+description: Connect Fabric to Telegram, Discord, and A2A for external messaging and notifications.
 ---
 
 ## Overview
 
-Scion can relay agent messages and notifications to external platforms, extending communication beyond the CLI and Web Dashboard. Three channels are available: **Telegram** (bidirectional group chat), **Discord** (outbound webhook notifications), and **A2A protocol** (expose agents as A2A endpoints for programmatic interaction).
+Fabric can relay agent messages and notifications to external platforms, extending communication beyond the CLI and Web Dashboard. Three channels are available: **Telegram** (bidirectional group chat), **Discord** (outbound webhook notifications), and **A2A protocol** (expose agents as A2A endpoints for programmatic interaction).
 
 ## Telegram
 
@@ -13,10 +13,10 @@ The Telegram integration provides **bidirectional messaging** — users can mess
 
 ### How It Works
 
-- A Telegram bot (created via [@BotFather](https://core.telegram.org/bots#botfather)) acts as the bridge between Telegram groups and the Scion Hub.
-- The bot runs as a Hub plugin (`scion-plugin-telegram`), which must be built and configured in the Hub's `settings.yaml`.
-- **Group linking:** Use the `/setup` bot command in a Telegram group to link it to a Scion project.
-- **Identity linking:** Use `/register` to associate your Telegram account with your Scion Hub identity.
+- A Telegram bot (created via [@BotFather](https://core.telegram.org/bots#botfather)) acts as the bridge between Telegram groups and the Fabric Hub.
+- The bot runs as a Hub plugin (`fabric-plugin-telegram`), which must be built and configured in the Hub's `settings.yaml`.
+- **Group linking:** Use the `/setup` bot command in a Telegram group to link it to a Fabric project.
+- **Identity linking:** Use `/register` to associate your Telegram account with your Fabric Hub identity.
 
 ### Routing & Commands
 
@@ -32,7 +32,7 @@ Each linked group can be configured via `/settings`:
 - **Commentary:** Show agent reply messages (responses to other agents) in the group.
 - **Group notifications (`grp`):** Post agent state change notifications (completed, error, waiting for input) in the group chat.
 
-For full setup instructions, bot configuration, and troubleshooting, see [extras/scion-telegram/README.md](https://github.com/GoogleCloudPlatform/scion/tree/main/extras/scion-telegram).
+For full setup instructions, bot configuration, and troubleshooting, see [extras/fabric-telegram/README.md](https://github.com/pdlc-os/fabric/tree/main/extras/fabric-telegram).
 
 ## Discord
 
@@ -46,18 +46,18 @@ Discord integration provides **outbound-only** webhook notifications — agents 
 Set the webhook URL in one of two ways:
 
 - **settings.yaml:** Set `server.discord_webhook_url` in the Hub configuration.
-- **Environment variable:** Set `SCION_DISCORD_WEBHOOK_URL`.
+- **Environment variable:** Set `FABRIC_DISCORD_WEBHOOK_URL`.
 
-For more details, see [Hub Setup — Discord Integration](/scion/hosted/single-node/hub-server/#discord-integration).
+For more details, see [Hub Setup — Discord Integration](/fabric/hosted/single-node/hub-server/#discord-integration).
 
 ## A2A Protocol Bridge
 
-The A2A (Agent-to-Agent protocol) bridge exposes Scion agents as **standard A2A endpoints**, allowing external A2A clients to discover and interact with them programmatically.
+The A2A (Agent-to-Agent protocol) bridge exposes Fabric agents as **standard A2A endpoints**, allowing external A2A clients to discover and interact with them programmatically.
 
 - **Discovery:** External clients can query available agents and their capabilities via the A2A protocol.
 - **Interaction modes:** Supports blocking (synchronous), SSE streaming, and push notification delivery.
-- **Standalone service:** Runs as a separate bridge process alongside the Hub (see `extras/scion-a2a-bridge`).
+- **Standalone service:** Runs as a separate bridge process alongside the Hub (see `extras/fabric-a2a-bridge`).
 
-This is useful for integrating Scion agents into larger multi-agent systems or exposing them to third-party A2A-compatible clients.
+This is useful for integrating Fabric agents into larger multi-agent systems or exposing them to third-party A2A-compatible clients.
 
-For setup and configuration, see [extras/scion-a2a-bridge/README.md](https://github.com/GoogleCloudPlatform/scion/tree/main/extras/scion-a2a-bridge).
+For setup and configuration, see [extras/fabric-a2a-bridge/README.md](https://github.com/pdlc-os/fabric/tree/main/extras/fabric-a2a-bridge).

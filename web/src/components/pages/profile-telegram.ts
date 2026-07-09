@@ -26,8 +26,8 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { apiFetch } from '../../client/api.js';
 
-@customElement('scion-page-profile-telegram')
-export class ScionPageProfileTelegram extends LitElement {
+@customElement('fabric-page-profile-telegram')
+export class FabricPageProfileTelegram extends LitElement {
   @state()
   private _code = '';
 
@@ -98,19 +98,19 @@ export class ScionPageProfileTelegram extends LitElement {
     .page-header-info h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .page-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
 
     .settings-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.75rem;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -119,7 +119,7 @@ export class ScionPageProfileTelegram extends LitElement {
     .section-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
       display: flex;
       align-items: center;
@@ -128,12 +128,12 @@ export class ScionPageProfileTelegram extends LitElement {
 
     .section-title sl-icon {
       font-size: 1.125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .instructions {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.25rem 0;
       line-height: 1.6;
     }
@@ -197,7 +197,7 @@ export class ScionPageProfileTelegram extends LitElement {
       align-items: center;
       gap: 0.75rem;
       font-size: 0.9375rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding: 0.5rem 0;
     }
   `;
@@ -291,7 +291,7 @@ export class ScionPageProfileTelegram extends LitElement {
 
         <div class="instructions">
           <ol>
-            <li>Open a direct message with the Scion Telegram bot</li>
+            <li>Open a direct message with the Fabric Telegram bot</li>
             <li>Send <strong>/register</strong> to the bot</li>
             <li>Enter the 6-character code below</li>
           </ol>
@@ -355,6 +355,6 @@ export class ScionPageProfileTelegram extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-profile-telegram': ScionPageProfileTelegram;
+    'fabric-page-profile-telegram': FabricPageProfileTelegram;
   }
 }

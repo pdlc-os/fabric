@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1434)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-1434 1434,-1434 1434,4 -4,4"/>
-<!-- ScionConfig -->
+<!-- FabricConfig -->
 <g id="node1" class="node">
-<title>ScionConfig</title>
+<title>FabricConfig</title>
 <polygon fill="lightblue" stroke="black" points="852.25,-1270.25 536.25,-1270.25 536.25,-1167.75 852.25,-1167.75 852.25,-1270.25"/>
-<text xml:space="preserve" text-anchor="middle" x="694.25" y="-1252.95" font-family="Times,serif" font-size="14.00">{ScionConfig|HarnessConfig: string</text>
+<text xml:space="preserve" text-anchor="middle" x="694.25" y="-1252.95" font-family="Times,serif" font-size="14.00">{FabricConfig|HarnessConfig: string</text>
 <text xml:space="preserve" text-anchor="middle" x="694.25" y="-1242.45" font-family="Times,serif" font-size="14.00">Volumes: []VolumeMount</text>
 <text xml:space="preserve" text-anchor="middle" x="694.25" y="-1231.95" font-family="Times,serif" font-size="14.00">Services: []ServiceSpec</text>
 <text xml:space="preserve" text-anchor="middle" x="694.25" y="-1221.45" font-family="Times,serif" font-size="14.00">MCPServers: map&lt;string, MCPServerConfig&gt;</text>
@@ -50,9 +50,9 @@
 <text xml:space="preserve" text-anchor="middle" x="472.25" y="-648.2" font-family="Times,serif" font-size="14.00">ApplyTelemetrySettings()</text>
 <text xml:space="preserve" text-anchor="middle" x="472.25" y="-637.7" font-family="Times,serif" font-size="14.00">ApplyMCPSettings()}</text>
 </g>
-<!-- ScionConfig&#45;&gt;HarnessInterface -->
+<!-- FabricConfig&#45;&gt;HarnessInterface -->
 <g id="edge1" class="edge">
-<title>ScionConfig&#45;&gt;HarnessInterface</title>
+<title>FabricConfig&#45;&gt;HarnessInterface</title>
 <path fill="none" stroke="black" d="M673.76,-1167.7C630.78,-1062.19 531.78,-819.15 490.67,-718.22"/>
 <polygon fill="black" stroke="black" points="494,-717.11 486.98,-709.17 487.51,-719.75 494,-717.11"/>
 </g>
@@ -69,9 +69,9 @@
 <text xml:space="preserve" text-anchor="middle" x="1001.25" y="-637.7" font-family="Times,serif" font-size="14.00">Kubernetes: *AgentK8sMetadata</text>
 <text xml:space="preserve" text-anchor="middle" x="1001.25" y="-627.2" font-family="Times,serif" font-size="14.00">Created: time.Time}</text>
 </g>
-<!-- ScionConfig&#45;&gt;AgentInfoNode -->
+<!-- FabricConfig&#45;&gt;AgentInfoNode -->
 <g id="edge2" class="edge">
-<title>ScionConfig&#45;&gt;AgentInfoNode</title>
+<title>FabricConfig&#45;&gt;AgentInfoNode</title>
 <path fill="none" stroke="black" d="M722.58,-1167.7C780.17,-1065.47 910.5,-834.1 970.26,-728.02"/>
 <polygon fill="black" stroke="black" points="973.22,-729.9 975.07,-719.47 967.12,-726.46 973.22,-729.9"/>
 </g>
@@ -137,9 +137,9 @@
 <path fill="none" stroke="black" d="M1015.77,-625.92C1048.52,-524.23 1127.37,-279.4 1154.16,-196.21"/>
 <polygon fill="black" stroke="black" points="1157.46,-197.39 1157.19,-186.8 1150.8,-195.25 1157.46,-197.39"/>
 </g>
-<!-- AuthConfigNode&#45;&gt;ScionConfig -->
+<!-- AuthConfigNode&#45;&gt;FabricConfig -->
 <g id="edge7" class="edge">
-<title>AuthConfigNode&#45;&gt;ScionConfig</title>
+<title>AuthConfigNode&#45;&gt;FabricConfig</title>
 <path fill="none" stroke="black" d="M694.25,-208.22C694.25,-368.41 694.25,-961.67 694.25,-1155.96"/>
 <polygon fill="black" stroke="black" points="690.75,-1155.84 694.25,-1165.84 697.75,-1155.84 690.75,-1155.84"/>
 </g>

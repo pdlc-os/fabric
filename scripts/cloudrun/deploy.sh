@@ -1,53 +1,53 @@
 #!/usr/bin/env bash
-# Deploy the Scion hub as a production Cloud Run HA service with native IAP.
+# Deploy the Fabric hub as a production Cloud Run HA service with native IAP.
 #
 # Architecture:
 #   User / agent / CLI -> Cloud Run native IAP -> Hub/Web/co-located Broker
 #     -> Cloud SQL Postgres, GCS, Cloud Run Instances, Filestore
 #
 # This script intentionally does not provision the older SQLite/GKE demo shape.
-# Required production inputs are supplied through SCION_* environment variables;
+# Required production inputs are supplied through FABRIC_* environment variables;
 # see scripts/cloudrun/README.md for the full list.
 
 set -euo pipefail
 
-PROJECT="${SCION_PROJECT:-deploy-demo-test}"
-REGION="${SCION_REGION:-us-central1}"
-SERVICE_NAME="${SCION_SERVICE:-scion-hub}"
-SA_NAME="${SCION_SA_NAME:-scion-hub-sa}"
-TRANSPORT_SA_NAME="${SCION_TRANSPORT_SA_NAME:-${SA_NAME}-transport}"
-RUNTIME_SA_NAME="${SCION_RUNTIME_SA_NAME:-scion-agent-runtime-sa}"
-REPO="${SCION_REPO:-scion}"
-IMAGE_TAG="${SCION_IMAGE_TAG:-latest}"
+PROJECT="${FABRIC_PROJECT:-deploy-demo-test}"
+REGION="${FABRIC_REGION:-us-central1}"
+SERVICE_NAME="${FABRIC_SERVICE:-fabric-hub}"
+SA_NAME="${FABRIC_SA_NAME:-fabric-hub-sa}"
+TRANSPORT_SA_NAME="${FABRIC_TRANSPORT_SA_NAME:-${SA_NAME}-transport}"
+RUNTIME_SA_NAME="${FABRIC_RUNTIME_SA_NAME:-fabric-agent-runtime-sa}"
+REPO="${FABRIC_REPO:-fabric}"
+IMAGE_TAG="${FABRIC_IMAGE_TAG:-latest}"
 IMAGE_REGISTRY="${REGION}-docker.pkg.dev/${PROJECT}/${REPO}"
 IMAGE="${IMAGE_REGISTRY}/hub:${IMAGE_TAG}"
 
-CLOUDSQL_INSTANCE="${SCION_CLOUDSQL_INSTANCE:-}"
-DATABASE_NAME="${SCION_DATABASE_NAME:-scionhub}"
-DATABASE_USER="${SCION_DATABASE_USER:-scion}"
-DATABASE_PASSWORD="${SCION_DATABASE_PASSWORD:-}"
-DATABASE_PASSWORD_SECRET="${SCION_DATABASE_PASSWORD_SECRET:-}"
-DATABASE_URL="${SCION_DATABASE_URL:-}"
-DB_MAX_OPEN_CONNS="${SCION_DB_MAX_OPEN_CONNS:-10}"
-DB_MAX_IDLE_CONNS="${SCION_DB_MAX_IDLE_CONNS:-5}"
+CLOUDSQL_INSTANCE="${FABRIC_CLOUDSQL_INSTANCE:-}"
+DATABASE_NAME="${FABRIC_DATABASE_NAME:-fabrichub}"
+DATABASE_USER="${FABRIC_DATABASE_USER:-fabric}"
+DATABASE_PASSWORD="${FABRIC_DATABASE_PASSWORD:-}"
+DATABASE_PASSWORD_SECRET="${FABRIC_DATABASE_PASSWORD_SECRET:-}"
+DATABASE_URL="${FABRIC_DATABASE_URL:-}"
+DB_MAX_OPEN_CONNS="${FABRIC_DB_MAX_OPEN_CONNS:-10}"
+DB_MAX_IDLE_CONNS="${FABRIC_DB_MAX_IDLE_CONNS:-5}"
 
-GCS_BUCKET="${SCION_GCS_BUCKET:-}"
-RUNTIME_NETWORK="${SCION_RUNTIME_NETWORK:-}"
-RUNTIME_SUBNETWORK="${SCION_RUNTIME_SUBNETWORK:-}"
-FILESTORE_IP="${SCION_FILESTORE_IP:-}"
-FILESTORE_EXPORT="${SCION_FILESTORE_EXPORT:-}"
-BROKER_ID="${SCION_BROKER_ID:-cloudrun-instances}"
-BROKER_NAME="${SCION_BROKER_NAME:-Cloud Run Instances}"
-PUBLIC_URL="${SCION_PUBLIC_URL:-}"
+GCS_BUCKET="${FABRIC_GCS_BUCKET:-}"
+RUNTIME_NETWORK="${FABRIC_RUNTIME_NETWORK:-}"
+RUNTIME_SUBNETWORK="${FABRIC_RUNTIME_SUBNETWORK:-}"
+FILESTORE_IP="${FABRIC_FILESTORE_IP:-}"
+FILESTORE_EXPORT="${FABRIC_FILESTORE_EXPORT:-}"
+BROKER_ID="${FABRIC_BROKER_ID:-cloudrun-instances}"
+BROKER_NAME="${FABRIC_BROKER_NAME:-Cloud Run Instances}"
+PUBLIC_URL="${FABRIC_PUBLIC_URL:-}"
 
-MIN_INSTANCES="${SCION_MIN_INSTANCES:-2}"
-MAX_INSTANCES="${SCION_MAX_INSTANCES:-10}"
-CPU="${SCION_CPU:-1}"
-MEMORY="${SCION_MEMORY:-1Gi}"
-TIMEOUT="${SCION_TIMEOUT:-3600}"
+MIN_INSTANCES="${FABRIC_MIN_INSTANCES:-2}"
+MAX_INSTANCES="${FABRIC_MAX_INSTANCES:-10}"
+CPU="${FABRIC_CPU:-1}"
+MEMORY="${FABRIC_MEMORY:-1Gi}"
+TIMEOUT="${FABRIC_TIMEOUT:-3600}"
 
-IAP_CLIENT_ID="${SCION_IAP_CLIENT_ID:-}"
-IAP_CLIENT_SECRET="${SCION_IAP_CLIENT_SECRET:-}"
+IAP_CLIENT_ID="${FABRIC_IAP_CLIENT_ID:-}"
+IAP_CLIENT_SECRET="${FABRIC_IAP_CLIENT_SECRET:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -156,8 +156,8 @@ deploy_service() {
     --memory "$MEMORY" \
     --cpu "$CPU" \
     --timeout "$TIMEOUT" \
-    --set-secrets "/run/secrets/settings.yaml=${settings_secret}:latest,SCION_SERVER_SESSION_SECRET=${session_secret}:latest" \
-    --set-env-vars "HOME=/home/scion,SCION_REQUIRE_STABLE_SIGNING_KEY=true"
+    --set-secrets "/run/secrets/settings.yaml=${settings_secret}:latest,FABRIC_SERVER_SESSION_SECRET=${session_secret}:latest" \
+    --set-env-vars "HOME=/home/fabric,FABRIC_REQUIRE_STABLE_SIGNING_KEY=true"
 }
 
 command -v gcloud >/dev/null || die "gcloud CLI not found"
@@ -165,12 +165,12 @@ command -v docker >/dev/null || die "docker CLI not found"
 command -v python3 >/dev/null || die "python3 is required to URL-encode the database password"
 command -v openssl >/dev/null || die "openssl is required to generate the session secret"
 
-require_var "SCION_CLOUDSQL_INSTANCE" "$CLOUDSQL_INSTANCE"
-require_var "SCION_GCS_BUCKET" "$GCS_BUCKET"
-require_var "SCION_RUNTIME_NETWORK" "$RUNTIME_NETWORK"
-require_var "SCION_RUNTIME_SUBNETWORK" "$RUNTIME_SUBNETWORK"
-require_var "SCION_FILESTORE_IP" "$FILESTORE_IP"
-require_var "SCION_FILESTORE_EXPORT" "$FILESTORE_EXPORT"
+require_var "FABRIC_CLOUDSQL_INSTANCE" "$CLOUDSQL_INSTANCE"
+require_var "FABRIC_GCS_BUCKET" "$GCS_BUCKET"
+require_var "FABRIC_RUNTIME_NETWORK" "$RUNTIME_NETWORK"
+require_var "FABRIC_RUNTIME_SUBNETWORK" "$RUNTIME_SUBNETWORK"
+require_var "FABRIC_FILESTORE_IP" "$FILESTORE_IP"
+require_var "FABRIC_FILESTORE_EXPORT" "$FILESTORE_EXPORT"
 
 SA_EMAIL="${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 TRANSPORT_SA_EMAIL="${TRANSPORT_SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
@@ -184,7 +184,7 @@ if [[ -z "$DATABASE_URL" ]]; then
       --secret="$DATABASE_PASSWORD_SECRET" \
       --project="$PROJECT")
   fi
-  require_var "SCION_DATABASE_PASSWORD or SCION_DATABASE_URL" "$DATABASE_PASSWORD"
+  require_var "FABRIC_DATABASE_PASSWORD or FABRIC_DATABASE_URL" "$DATABASE_PASSWORD"
   ENCODED_DB_PASSWORD="$(urlencode "$DATABASE_PASSWORD")"
   DATABASE_URL="postgres://${DATABASE_USER}:${ENCODED_DB_PASSWORD}@/${DATABASE_NAME}?host=/cloudsql/${CLOUDSQL_CONNECTION_NAME}"
 fi
@@ -203,9 +203,9 @@ if [[ -z "$PUBLIC_URL" ]]; then
   PUBLIC_URL="https://pending-first-deploy.invalid"
 fi
 
-ensure_service_account "$SA_NAME" "Scion Hub (Cloud Run HA)"
-ensure_service_account "$TRANSPORT_SA_NAME" "Scion transport auth (IAP)"
-ensure_service_account "$RUNTIME_SA_NAME" "Scion agent runtime (Cloud Run Instances)"
+ensure_service_account "$SA_NAME" "Fabric Hub (Cloud Run HA)"
+ensure_service_account "$TRANSPORT_SA_NAME" "Fabric transport auth (IAP)"
+ensure_service_account "$RUNTIME_SA_NAME" "Fabric agent runtime (Cloud Run Instances)"
 
 log "Granting project IAM roles"
 for role in \
@@ -255,7 +255,7 @@ fi
 
 SETTINGS_SECRET="${SERVICE_NAME}-settings"
 SESSION_SECRET_NAME="${SERVICE_NAME}-session-secret"
-SESSION_SECRET="${SCION_SESSION_SECRET:-$(openssl rand -hex 32)}"
+SESSION_SECRET="${FABRIC_SESSION_SECRET:-$(openssl rand -hex 32)}"
 
 log "Rendering production settings for ${PUBLIC_URL}"
 ensure_secret "$SETTINGS_SECRET" "$(render_settings "$PUBLIC_URL")"
@@ -269,7 +269,7 @@ SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
   --project "$PROJECT" \
   --format="value(status.url)")
 
-if [[ "${SCION_PUBLIC_URL:-}" == "" && "$SERVICE_URL" != "$PUBLIC_URL" ]]; then
+if [[ "${FABRIC_PUBLIC_URL:-}" == "" && "$SERVICE_URL" != "$PUBLIC_URL" ]]; then
   log "Updating settings with discovered Cloud Run URL ${SERVICE_URL}"
   ensure_secret "$SETTINGS_SECRET" "$(render_settings "$SERVICE_URL")"
   deploy_service "$SETTINGS_SECRET" "$SESSION_SECRET_NAME"

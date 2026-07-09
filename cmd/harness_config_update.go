@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -34,9 +34,9 @@ If --url is provided, it overrides (and updates) the stored source URL.
 Use --all to re-import all harness-configs that have a stored source URL.
 
 Examples:
-  scion harness-config update my-claude
-  scion harness-config update my-claude --url https://github.com/org/repo/tree/main/harness-configs/claude
-  scion harness-config update --all`,
+  fabric harness-config update my-claude
+  fabric harness-config update my-claude --url https://github.com/org/repo/tree/main/harness-configs/claude
+  fabric harness-config update --all`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHarnessConfigUpdate,
 }

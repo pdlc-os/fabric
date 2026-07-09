@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 // Package hubmetrics creates the OpenTelemetry MeterProvider used by hub-side
@@ -32,16 +32,16 @@ type MetricGroup struct {
 }
 
 var metricGroups = []MetricGroup{
-	{EnvVar: "SCION_METRICS_DB_NOTIFY", NamePattern: "scion.db.notify.*"},
-	{EnvVar: "SCION_METRICS_DB_POOL", NamePattern: "scion.db.pool.*"},
-	{EnvVar: "SCION_METRICS_DISPATCH", NamePattern: "scion.dispatch.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.auth.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.registration.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.join.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.rotation.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.brokers.*"},
-	{EnvVar: "SCION_METRICS_HUB_AUTH", NamePattern: "scion.hub.dispatch.*"},
-	{EnvVar: "SCION_METRICS_HUB_GCP", NamePattern: "scion.hub.gcp.*"},
+	{EnvVar: "FABRIC_METRICS_DB_NOTIFY", NamePattern: "fabric.db.notify.*"},
+	{EnvVar: "FABRIC_METRICS_DB_POOL", NamePattern: "fabric.db.pool.*"},
+	{EnvVar: "FABRIC_METRICS_DISPATCH", NamePattern: "fabric.dispatch.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.auth.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.registration.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.join.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.rotation.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.brokers.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_AUTH", NamePattern: "fabric.hub.dispatch.*"},
+	{EnvVar: "FABRIC_METRICS_HUB_GCP", NamePattern: "fabric.hub.gcp.*"},
 }
 
 // Option configures the MeterProvider.
@@ -57,7 +57,7 @@ func WithExportInterval(d time.Duration) Option {
 	return func(o *options) { o.exportInterval = d }
 }
 
-// WithHubID sets the scion.hub.id resource attribute.
+// WithHubID sets the fabric.hub.id resource attribute.
 func WithHubID(id string) Option {
 	return func(o *options) { o.hubID = id }
 }
@@ -84,13 +84,13 @@ func NewMeterProvider(ctx context.Context, gcpProjectID string, opts ...Option) 
 	}
 
 	resAttrs := []attribute.KeyValue{
-		semconv.ServiceName("scion-hub"),
+		semconv.ServiceName("fabric-hub"),
 	}
 	if o.hubID != "" {
-		resAttrs = append(resAttrs, attribute.String("scion.hub.id", o.hubID))
+		resAttrs = append(resAttrs, attribute.String("fabric.hub.id", o.hubID))
 	}
-	if envHubID := os.Getenv("SCION_HUB_ID"); envHubID != "" && o.hubID == "" {
-		resAttrs = append(resAttrs, attribute.String("scion.hub.id", envHubID))
+	if envHubID := os.Getenv("FABRIC_HUB_ID"); envHubID != "" && o.hubID == "" {
+		resAttrs = append(resAttrs, attribute.String("fabric.hub.id", envHubID))
 	}
 
 	res, err := resource.New(ctx,

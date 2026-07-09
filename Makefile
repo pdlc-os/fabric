@@ -1,27 +1,27 @@
-# Scion Makefile
+# Fabric Makefile
 # Run 'make help' to see available targets.
 
-BINARY        := scion
+BINARY        := fabric
 BUILD_DIR     := ./build
 CONTAINER_DIR := ./.build/container
 PREFIX        ?= /usr/local
 DESTDIR       ?=
 INSTALL_DIR   := $(PREFIX)/bin
-MAIN_PKG      := ./cmd/scion
+MAIN_PKG      := ./cmd/fabric
 LDFLAGS            := $(shell ./hack/version.sh)
-SCIONTOOL_LDFLAGS  := $(shell ./hack/version.sh github.com/GoogleCloudPlatform/scion/cmd/sciontool/commands)
+FABRICTOOL_LDFLAGS  := $(shell ./hack/version.sh github.com/pdlc-os/fabric/cmd/fabrictool/commands)
 CONTAINER_OS  := linux
 CONTAINER_ARCH := $(shell if [ "$$(uname -m)" = "x86_64" ]; then echo amd64; else echo arm64; fi)
 GOLANGCI_LINT := $(shell command -v golangci-lint 2>/dev/null || echo $(shell go env GOPATH)/bin/golangci-lint)
 
 .DEFAULT_GOAL := help
 
-.PHONY: all build install test test-fast vet lint compat-literals golangci-lint web web-typecheck fmt fmt-check ci ci-full clean help container-sciontool container-scion container-binaries proto proto-check
+.PHONY: all build install test test-fast vet lint compat-literals golangci-lint web web-typecheck fmt fmt-check ci ci-full clean help container-fabrictool container-fabric container-binaries proto proto-check
 
 ## all: Build the web frontend and compile the Go binary (run 'make install' separately to install)
 all: web build
 
-## build: Compile the scion binary into ./build/
+## build: Compile the fabric binary into ./build/
 build:
 	@echo "Building $(BINARY)..."
 	@mkdir -p $(BUILD_DIR)
@@ -40,7 +40,7 @@ install:
 	@echo ""
 	@echo "✔ Installed $(BINARY) to $(DESTDIR)$(INSTALL_DIR)/$(BINARY)"
 	@echo ""
-	@echo "  Run 'scion version' to verify."
+	@echo "  Run 'fabric version' to verify."
 	@echo ""
 	@case ":$$PATH:" in \
 		*":$(INSTALL_DIR):"* | *":$(INSTALL_DIR)/:"*) ;; \
@@ -91,29 +91,29 @@ web:
 	@mkdir -p web/dist/client && touch web/dist/client/.gitkeep
 	@echo "Web frontend built."
 
-## container-sciontool: Cross-compile sciontool for Linux containers
-container-sciontool:
-	@echo "Building sciontool for $(CONTAINER_OS)/$(CONTAINER_ARCH)..."
+## container-fabrictool: Cross-compile fabrictool for Linux containers
+container-fabrictool:
+	@echo "Building fabrictool for $(CONTAINER_OS)/$(CONTAINER_ARCH)..."
 	@mkdir -p $(CONTAINER_DIR)
 	@GOOS=$(CONTAINER_OS) GOARCH=$(CONTAINER_ARCH) CGO_ENABLED=0 \
-		go build -buildvcs=false -ldflags "$(SCIONTOOL_LDFLAGS)" \
-		-o $(CONTAINER_DIR)/sciontool ./cmd/sciontool
-	@echo "Built: $(CONTAINER_DIR)/sciontool"
+		go build -buildvcs=false -ldflags "$(FABRICTOOL_LDFLAGS)" \
+		-o $(CONTAINER_DIR)/fabrictool ./cmd/fabrictool
+	@echo "Built: $(CONTAINER_DIR)/fabrictool"
 
-## container-scion: Cross-compile scion CLI for Linux containers
-container-scion:
-	@echo "Building scion for $(CONTAINER_OS)/$(CONTAINER_ARCH)..."
+## container-fabric: Cross-compile fabric CLI for Linux containers
+container-fabric:
+	@echo "Building fabric for $(CONTAINER_OS)/$(CONTAINER_ARCH)..."
 	@mkdir -p $(CONTAINER_DIR)
 	@GOOS=$(CONTAINER_OS) GOARCH=$(CONTAINER_ARCH) CGO_ENABLED=0 \
 		go build -buildvcs=false -tags no_embed_web -ldflags "$(LDFLAGS)" \
-		-o $(CONTAINER_DIR)/scion ./cmd/scion
-	@echo "Built: $(CONTAINER_DIR)/scion"
+		-o $(CONTAINER_DIR)/fabric ./cmd/fabric
+	@echo "Built: $(CONTAINER_DIR)/fabric"
 
-## container-binaries: Build both scion and sciontool for Linux containers
-container-binaries: container-sciontool container-scion
+## container-binaries: Build both fabric and fabrictool for Linux containers
+container-binaries: container-fabrictool container-fabric
 	@echo ""
 	@echo "Dev binaries ready in $(CONTAINER_DIR)/"
-	@echo "Usage: export SCION_DEV_BINARIES=$(CONTAINER_DIR)"
+	@echo "Usage: export FABRIC_DEV_BINARIES=$(CONTAINER_DIR)"
 
 ## web-typecheck: Run TypeScript type checking on the web frontend
 web-typecheck:
@@ -153,8 +153,8 @@ proto:
 	@echo "Generating protobuf Go code..."
 	@protoc \
 		--proto_path=proto \
-		--go_out=. --go_opt=module=github.com/GoogleCloudPlatform/scion \
-		--go-grpc_out=. --go-grpc_opt=module=github.com/GoogleCloudPlatform/scion \
+		--go_out=. --go_opt=module=github.com/pdlc-os/fabric \
+		--go-grpc_out=. --go-grpc_opt=module=github.com/pdlc-os/fabric \
 		proto/broker/v1/broker.proto
 	@echo "Proto generation done."
 
@@ -164,8 +164,8 @@ proto-check:
 	@TMP=$$(mktemp -d) && \
 	protoc \
 		--proto_path=proto \
-		--go_out=$$TMP --go_opt=module=github.com/GoogleCloudPlatform/scion \
-		--go-grpc_out=$$TMP --go-grpc_opt=module=github.com/GoogleCloudPlatform/scion \
+		--go_out=$$TMP --go_opt=module=github.com/pdlc-os/fabric \
+		--go-grpc_out=$$TMP --go-grpc_opt=module=github.com/pdlc-os/fabric \
 		proto/broker/v1/broker.proto && \
 	diff $$TMP/proto/broker/v1/broker.pb.go proto/broker/v1/broker.pb.go && \
 	diff $$TMP/proto/broker/v1/broker_grpc.pb.go proto/broker/v1/broker_grpc.pb.go && \

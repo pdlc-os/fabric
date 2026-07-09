@@ -44,8 +44,8 @@ import type { FileEditorDataSource } from '../shared/file-editor.js';
 type AgentSortField = 'name' | 'status' | 'created' | 'updated';
 type SortDir = 'asc' | 'desc';
 
-@customElement('scion-page-project-detail')
-export class ScionPageProjectDetail extends LitElement {
+@customElement('fabric-page-project-detail')
+export class FabricPageProjectDetail extends LitElement {
   /**
    * Page data from SSR
    */
@@ -203,21 +203,21 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .header-title sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .header-path {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
       word-break: break-all;
     }
@@ -233,9 +233,9 @@ export class ScionPageProjectDetail extends LitElement {
       gap: 2rem;
       margin-bottom: 2rem;
       padding: 1.25rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .stat {
@@ -245,7 +245,7 @@ export class ScionPageProjectDetail extends LitElement {
 
     .stat-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
@@ -254,7 +254,7 @@ export class ScionPageProjectDetail extends LitElement {
     .stat-value {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .section-header {
@@ -267,7 +267,7 @@ export class ScionPageProjectDetail extends LitElement {
     .section-header h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -278,19 +278,19 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .agent-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
-      transition: all var(--scion-transition-fast, 150ms ease);
+      transition: all var(--fabric-transition-fast, 150ms ease);
       text-decoration: none;
       color: inherit;
       display: block;
     }
 
     .agent-card:hover {
-      border-color: var(--scion-primary, #3b82f6);
-      box-shadow: var(--scion-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+      border-color: var(--fabric-primary, #3b82f6);
+      box-shadow: var(--fabric-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
     }
 
     .agent-header {
@@ -303,7 +303,7 @@ export class ScionPageProjectDetail extends LitElement {
     .agent-name {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
       display: flex;
       align-items: center;
@@ -311,12 +311,12 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .agent-name sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .agent-meta {
       font-size: 0.813rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
@@ -330,21 +330,21 @@ export class ScionPageProjectDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
     }
 
     .broker-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .agent-task {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-top: 0.75rem;
       padding: 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -355,13 +355,13 @@ export class ScionPageProjectDetail extends LitElement {
       gap: 0.5rem;
       margin-top: 1rem;
       padding-top: 1rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .agent-table-container {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
 
@@ -377,16 +377,16 @@ export class ScionPageProjectDetail extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .agent-table-container td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
 
@@ -395,7 +395,7 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .agent-table-container tr:hover td {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .agent-table-container .name-cell {
@@ -406,7 +406,7 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .agent-table-container .name-cell sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       flex-shrink: 0;
     }
 
@@ -430,7 +430,7 @@ export class ScionPageProjectDetail extends LitElement {
       overflow: hidden;
       max-width: 250px;
       white-space: normal;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.8125rem;
     }
 
@@ -448,14 +448,14 @@ export class ScionPageProjectDetail extends LitElement {
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .empty-state > sl-icon {
       font-size: 4rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 1rem;
     }
@@ -463,12 +463,12 @@ export class ScionPageProjectDetail extends LitElement {
     .empty-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.5rem 0;
     }
 
@@ -478,7 +478,7 @@ export class ScionPageProjectDetail extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -489,9 +489,9 @@ export class ScionPageProjectDetail extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -503,21 +503,21 @@ export class ScionPageProjectDetail extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -526,14 +526,14 @@ export class ScionPageProjectDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .header-path a {
@@ -542,7 +542,7 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .header-path a:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .workspace-section {
@@ -566,7 +566,7 @@ export class ScionPageProjectDetail extends LitElement {
     .workspace-header h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -575,7 +575,7 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .files-tab-group::part(base) {
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .files-tab-group::part(body) {
@@ -601,7 +601,7 @@ export class ScionPageProjectDetail extends LitElement {
       overflow-y: auto;
       font-family: var(--sl-font-mono, monospace);
       line-height: 1.5;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .pull-commits .commit-hash {
@@ -619,14 +619,14 @@ export class ScionPageProjectDetail extends LitElement {
 
     .filter-bar .label {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-weight: 500;
     }
 
     .scope-toggle {
       display: inline-flex;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
     }
 
@@ -636,8 +636,8 @@ export class ScionPageProjectDetail extends LitElement {
       gap: 0.25rem;
       height: 2rem;
       border: none;
-      background: var(--scion-surface, #ffffff);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-surface, #ffffff);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
       padding: 0 0.625rem;
       font-size: 0.8125rem;
@@ -647,15 +647,15 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     .scope-toggle button:not(:last-child) {
-      border-right: 1px solid var(--scion-border, #e2e8f0);
+      border-right: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .scope-toggle button:hover:not(.active) {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .scope-toggle button.active {
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: white;
     }
 
@@ -665,7 +665,7 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     th.sortable:hover {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .sort-indicator {
@@ -683,7 +683,7 @@ export class ScionPageProjectDetail extends LitElement {
     .empty-filter-state {
       text-align: center;
       padding: 3rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     @media (max-width: 768px) {
@@ -708,19 +708,19 @@ export class ScionPageProjectDetail extends LitElement {
     }
 
     // Read persisted view mode
-    const stored = localStorage.getItem('scion-view-project-agents') as ViewMode | null;
+    const stored = localStorage.getItem('fabric-view-project-agents') as ViewMode | null;
     if (stored === 'grid' || stored === 'list') {
       this.viewMode = stored;
     }
 
     // Read persisted phase filter
-    const storedPhase = localStorage.getItem(`scion-filter-project-agents-phase-${this.projectId}`);
+    const storedPhase = localStorage.getItem(`fabric-filter-project-agents-phase-${this.projectId}`);
     if (storedPhase === 'running' || storedPhase === 'stopped' || storedPhase === 'suspended' || storedPhase === 'error') {
       this.phaseFilter = storedPhase;
     }
 
     // Read persisted sort
-    const storedSort = localStorage.getItem(`scion-sort-project-agents-${this.projectId}`);
+    const storedSort = localStorage.getItem(`fabric-sort-project-agents-${this.projectId}`);
     if (storedSort) {
       try {
         const parsed = JSON.parse(storedSort);
@@ -1120,9 +1120,9 @@ export class ScionPageProjectDetail extends LitElement {
     if (this.phaseFilter === phase) return;
     this.phaseFilter = phase;
     if (phase) {
-      localStorage.setItem(`scion-filter-project-agents-phase-${this.projectId}`, phase);
+      localStorage.setItem(`fabric-filter-project-agents-phase-${this.projectId}`, phase);
     } else {
-      localStorage.removeItem(`scion-filter-project-agents-phase-${this.projectId}`);
+      localStorage.removeItem(`fabric-filter-project-agents-phase-${this.projectId}`);
     }
   }
 
@@ -1133,7 +1133,7 @@ export class ScionPageProjectDetail extends LitElement {
       this.sortField = field;
       this.sortDir = field === 'name' ? 'asc' : 'desc';
     }
-    localStorage.setItem(`scion-sort-project-agents-${this.projectId}`, JSON.stringify({ field: this.sortField, dir: this.sortDir }));
+    localStorage.setItem(`fabric-sort-project-agents-${this.projectId}`, JSON.stringify({ field: this.sortField, dir: this.sortDir }));
   }
 
   private sortIndicator(field: AgentSortField): string {
@@ -1304,7 +1304,7 @@ export class ScionPageProjectDetail extends LitElement {
             ${this.renderProjectIcon()}
             <h1>${this.project.name}${this.renderLinkedBadge()}</h1>
           </div>
-          <div class="header-path"><scion-git-remote-display .project=${this.project}></scion-git-remote-display></div>
+          <div class="header-path"><fabric-git-remote-display .project=${this.project}></fabric-git-remote-display></div>
         </div>
         <div class="header-actions">
           ${can(this.agentScopeCapabilities, 'create')
@@ -1431,11 +1431,11 @@ export class ScionPageProjectDetail extends LitElement {
       <div class="section-header">
         <h2>Agents</h2>
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <scion-view-toggle
+          <fabric-view-toggle
             .view=${this.viewMode}
-            storageKey="scion-view-project-agents"
+            storageKey="fabric-view-project-agents"
             @view-change=${this.onViewChange}
-          ></scion-view-toggle>
+          ></fabric-view-toggle>
           ${can(this.agentScopeCapabilities, 'stop_all') && this.hasRunningAgents() ? html`
             <sl-button
               variant="danger"
@@ -1471,8 +1471,8 @@ export class ScionPageProjectDetail extends LitElement {
     if (this.messagesExpanded) {
       // Collapse: stop streaming and reset loaded state so next expand reloads
       const viewer = this.shadowRoot?.querySelector(
-        'scion-agent-message-viewer'
-      ) as import('../shared/agent-message-viewer.js').ScionAgentMessageViewer | null;
+        'fabric-agent-message-viewer'
+      ) as import('../shared/agent-message-viewer.js').FabricAgentMessageViewer | null;
       viewer?.stopStream();
       viewer?.resetLoaded();
       this.messagesExpanded = false;
@@ -1480,8 +1480,8 @@ export class ScionPageProjectDetail extends LitElement {
       this.messagesExpanded = true;
       this.updateComplete.then(() => {
         const viewer = this.shadowRoot?.querySelector(
-          'scion-agent-message-viewer'
-        ) as import('../shared/agent-message-viewer.js').ScionAgentMessageViewer | null;
+          'fabric-agent-message-viewer'
+        ) as import('../shared/agent-message-viewer.js').FabricAgentMessageViewer | null;
         viewer?.loadMessages();
       });
     }
@@ -1498,12 +1498,12 @@ export class ScionPageProjectDetail extends LitElement {
           </h2>
         </div>
         ${this.messagesExpanded ? html`
-          <scion-agent-message-viewer
+          <fabric-agent-message-viewer
             logsUrl=${`/api/v1/projects/${this.projectId}/message-logs`}
             streamUrl=${`/api/v1/projects/${this.projectId}/message-logs/stream`}
             broadcastUrl=${`/api/v1/projects/${this.projectId}/broadcast`}
             ?canSend=${true}
-          ></scion-agent-message-viewer>
+          ></fabric-agent-message-viewer>
         ` : nothing}
       </div>
     `;
@@ -1543,8 +1543,8 @@ export class ScionPageProjectDetail extends LitElement {
 
   private refreshActiveFileBrowser(): void {
     const browser = this.shadowRoot?.querySelector(
-      `scion-file-browser[data-tab="${this.activeFileTab}"]`
-    ) as import('../shared/file-browser.js').ScionFileBrowser | null;
+      `fabric-file-browser[data-tab="${this.activeFileTab}"]`
+    ) as import('../shared/file-browser.js').FabricFileBrowser | null;
     browser?.loadFiles();
   }
 
@@ -1569,14 +1569,14 @@ export class ScionPageProjectDetail extends LitElement {
                   Back to files
                 </sl-button>
               </div>
-              <scion-file-editor
+              <fabric-file-editor
                 .filePath=${this.editingFilePath || ''}
                 .dataSource=${this.getEditorDataSource(this.activeFileTab)}
                 ?readonly=${!isEditable}
                 ?initialPreview=${this.editorInitialPreview}
                 @file-saved=${this.handleFileSaved}
                 @editor-closed=${this.handleEditorClosed}
-              ></scion-file-editor>
+              ></fabric-file-editor>
             `
           : html`
               <div class="files-tab-header">
@@ -1591,7 +1591,7 @@ export class ScionPageProjectDetail extends LitElement {
                   ${tabs.map(
                     (tab) => html`
                       <sl-tab-panel name=${tab.key}>
-                        <scion-file-browser
+                        <fabric-file-browser
                           data-tab=${tab.key}
                           .dataSource=${this.getTabDataSource(tab.key)}
                           ?editable=${isEditable}
@@ -1599,7 +1599,7 @@ export class ScionPageProjectDetail extends LitElement {
                           @file-edit-requested=${this.handleFileEditRequested}
                           @file-preview-requested=${this.handleFilePreviewRequested}
                           @file-create-requested=${this.handleFileCreateRequested}
-                        ></scion-file-browser>
+                        ></fabric-file-browser>
                       </sl-tab-panel>
                     `
                   )}
@@ -1723,11 +1723,11 @@ export class ScionPageProjectDetail extends LitElement {
             : '\u2014'}
         </td>
         <td>
-          <scion-status-badge
+          <fabric-status-badge
             status=${getAgentDisplayStatus(agent) as StatusType}
             label=${getAgentDisplayStatus(agent)}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </td>
         <td class="hide-mobile">${(agent.updated || agent.updatedAt) ? this.formatRelativeTime(agent.updated || agent.updatedAt!) : '\u2014'}</td>
         <td class="hide-mobile">
@@ -1858,11 +1858,11 @@ export class ScionPageProjectDetail extends LitElement {
                 : ''}
             </div>
           </div>
-          <scion-status-badge
+          <fabric-status-badge
             status=${getAgentDisplayStatus(agent) as StatusType}
             label=${getAgentDisplayStatus(agent)}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </div>
 
         ${agent.taskSummary ? html`<div class="agent-task">${agent.taskSummary}</div>` : ''}
@@ -1980,6 +1980,6 @@ export class ScionPageProjectDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-project-detail': ScionPageProjectDetail;
+    'fabric-page-project-detail': FabricPageProjectDetail;
   }
 }

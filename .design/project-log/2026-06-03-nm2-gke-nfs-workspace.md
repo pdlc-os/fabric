@@ -4,7 +4,7 @@
 **Agent:** qa-agent  
 **Branch:** `postgres/wave-b-integration` @ `4a6ccf50`  
 **Gate:** NM2 (Model B — GKE Autopilot + Filestore)  
-**Full report:** `/scion-volumes/scratchpad/NM2-REPORT.md`
+**Full report:** `/fabric-volumes/scratchpad/NM2-REPORT.md`
 
 ## Result: PASS (4 full + 1 partial-expected)
 
@@ -16,10 +16,10 @@
 | (d) Stable FSGroup/UID 1000 on all NFS-backed pods | **PASS** |
 | (e) Shared dirs on NFS via same PVC + distinct subPaths | **PASS** |
 
-## Infrastructure Provisioned in `scion-demo-cluster`
+## Infrastructure Provisioned in `fabric-demo-cluster`
 
-- Namespace `scion-agents` created
-- Static PV `scion-workspaces` + PVC `scion-workspaces` bound to Filestore `10.45.255.170:/scion_share` (RWX, NFSv3, 1Ti) — left in place for future tests
+- Namespace `fabric-agents` created
+- Static PV `fabric-workspaces` + PVC `fabric-workspaces` bound to Filestore `10.45.255.170:/fabric_share` (RWX, NFSv3, 1Ti) — left in place for future tests
 - Binary `4a6ccf50` confirmed working on GKE Autopilot
 
 ## Key Observations

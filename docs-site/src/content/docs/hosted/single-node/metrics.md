@@ -1,41 +1,41 @@
 ---
 title: Metrics & OpenTelemetry
-description: Collecting and forwarding operational metrics with sciontool telemetry.
+description: Collecting and forwarding operational metrics with fabrictool telemetry.
 ---
 
-Scion provides built-in telemetry collection via `sciontool`, which runs as the init process in agent containers. The telemetry pipeline acts as an **OTLP Forwarder**: it receives data from agents locally and forwards it to a central cloud observability backend.
+Fabric provides built-in telemetry collection via `fabrictool`, which runs as the init process in agent containers. The telemetry pipeline acts as an **OTLP Forwarder**: it receives data from agents locally and forwards it to a central cloud observability backend.
 
 ## Telemetry Flow
 
 1.  **Agent (The Source)**: Emits OTLP data (traces/metrics) or harness hook events.
-2.  **sciontool (The Forwarder)**: 
+2.  **fabrictool (The Forwarder)**: 
     - Receives OTLP via gRPC (port 4317) or HTTP (port 4318).
     - Normalizes harness hooks into standard OTLP spans.
     - Applies privacy filters (redaction/hashing).
-3.  **Cloud Backend (The Destination)**: Receives the processed telemetry from `sciontool`.
+3.  **Cloud Backend (The Destination)**: Receives the processed telemetry from `fabrictool`.
 
 ## Configuration
 
-Telemetry is configured through `settings.yaml` (for global and project-level defaults) and `scion-agent.yaml` (for per-template and per-agent overrides). Environment variables provide the highest-priority override.
+Telemetry is configured through `settings.yaml` (for global and project-level defaults) and `fabric-agent.yaml` (for per-template and per-agent overrides). Environment variables provide the highest-priority override.
 
 ### Configuration Hierarchy
 
 Telemetry settings resolve across scopes using **last-write-wins** semantics:
 
-1.  **Global settings** (`~/.scion/settings.yaml`) — Organization-wide defaults.
-2.  **Project settings** (`.scion/settings.yaml`) — Project-level overrides.
-3.  **Template config** (`scion-agent.yaml` in template) — Role-specific overrides.
-4.  **Agent config** (`scion-agent.yaml` in agent home) — Per-agent overrides.
-5.  **Environment variables** (`SCION_TELEMETRY_*`, `SCION_OTEL_*`) — Highest priority.
+1.  **Global settings** (`~/.fabric/settings.yaml`) — Organization-wide defaults.
+2.  **Project settings** (`.fabric/settings.yaml`) — Project-level overrides.
+3.  **Template config** (`fabric-agent.yaml` in template) — Role-specific overrides.
+4.  **Agent config** (`fabric-agent.yaml` in agent home) — Per-agent overrides.
+5.  **Environment variables** (`FABRIC_TELEMETRY_*`, `FABRIC_OTEL_*`) — Highest priority.
 
 At each scope, only the fields you specify are overridden; unset fields inherit from the previous scope.
 
 ### Settings File Configuration
 
-The `telemetry` block can appear in any `settings.yaml` (global or project) or `scion-agent.yaml` (template or agent):
+The `telemetry` block can appear in any `settings.yaml` (global or project) or `fabric-agent.yaml` (template or agent):
 
 ```yaml
-# In settings.yaml or scion-agent.yaml
+# In settings.yaml or fabric-agent.yaml
 telemetry:
   enabled: true
 
@@ -80,10 +80,10 @@ telemetry:
       rates: {}
 
   resource:
-    service.name: "scion-agent"
+    service.name: "fabric-agent"
 ```
 
-See the [Orchestrator Settings Reference](/scion/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference.
+See the [Orchestrator Settings Reference](/fabric/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference.
 
 ### Environment Variable Overrides
 
@@ -91,29 +91,29 @@ Environment variables override any settings file value and are the most convenie
 
 | Variable | Settings Path | Default | Description |
 |----------|--------------|---------|-------------|
-| `SCION_TELEMETRY_ENABLED` | `telemetry.enabled` | `true` | Enable/disable collection entirely |
-| `SCION_TELEMETRY_CLOUD_ENABLED` | `telemetry.cloud.enabled` | `true` | Enable forwarding to cloud backend |
-| `SCION_OTEL_ENDPOINT` | `telemetry.cloud.endpoint` | (required) | Cloud OTLP endpoint URL |
-| `SCION_OTEL_PROTOCOL` | `telemetry.cloud.protocol` | `grpc` | Protocol: `grpc` or `http` |
-| `SCION_OTEL_INSECURE` | `telemetry.cloud.tls.insecure_skip_verify` | `false` | Skip TLS verification (dev only) |
-| `SCION_TELEMETRY_HUB_ENABLED` | `telemetry.hub.enabled` | `true` | Enable Hub reporting |
-| `SCION_TELEMETRY_DEBUG` | `telemetry.local.enabled` | `false` | Enable local debug output |
-| `SCION_GCP_PROJECT_ID` | — | (auto) | GCP project ID for Google Cloud backends |
-| `SCION_OTEL_GCP_CREDENTIALS` | — | (auto) | Path to a GCP service account key JSON file; set automatically by the broker from the `scion-telemetry-gcp-credentials` secret |
-| `SCION_TELEMETRY_CLOUD_PROVIDER` | — | (auto) | Cloud backend: `gcp` for GCP-native export; auto-detected when credentials file is present |
+| `FABRIC_TELEMETRY_ENABLED` | `telemetry.enabled` | `true` | Enable/disable collection entirely |
+| `FABRIC_TELEMETRY_CLOUD_ENABLED` | `telemetry.cloud.enabled` | `true` | Enable forwarding to cloud backend |
+| `FABRIC_OTEL_ENDPOINT` | `telemetry.cloud.endpoint` | (required) | Cloud OTLP endpoint URL |
+| `FABRIC_OTEL_PROTOCOL` | `telemetry.cloud.protocol` | `grpc` | Protocol: `grpc` or `http` |
+| `FABRIC_OTEL_INSECURE` | `telemetry.cloud.tls.insecure_skip_verify` | `false` | Skip TLS verification (dev only) |
+| `FABRIC_TELEMETRY_HUB_ENABLED` | `telemetry.hub.enabled` | `true` | Enable Hub reporting |
+| `FABRIC_TELEMETRY_DEBUG` | `telemetry.local.enabled` | `false` | Enable local debug output |
+| `FABRIC_GCP_PROJECT_ID` | — | (auto) | GCP project ID for Google Cloud backends |
+| `FABRIC_OTEL_GCP_CREDENTIALS` | — | (auto) | Path to a GCP service account key JSON file; set automatically by the broker from the `fabric-telemetry-gcp-credentials` secret |
+| `FABRIC_TELEMETRY_CLOUD_PROVIDER` | — | (auto) | Cloud backend: `gcp` for GCP-native export; auto-detected when credentials file is present |
 
 ### Local Receiver Settings (For Agents)
 
-These settings control the ports where `sciontool` listens for data from the agent processes *inside* the container.
+These settings control the ports where `fabrictool` listens for data from the agent processes *inside* the container.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SCION_OTEL_GRPC_PORT` | `4317` | Local gRPC receiver port |
-| `SCION_OTEL_HTTP_PORT` | `4318` | Local HTTP receiver port |
+| `FABRIC_OTEL_GRPC_PORT` | `4317` | Local gRPC receiver port |
+| `FABRIC_OTEL_HTTP_PORT` | `4318` | Local HTTP receiver port |
 
 ## Google Cloud Setup (Recommended)
 
-When deploying on Google Cloud, `sciontool` can forward directly to Cloud Trace and Cloud Logging using the standard OTLP endpoint.
+When deploying on Google Cloud, `fabrictool` can forward directly to Cloud Trace and Cloud Logging using the standard OTLP endpoint.
 
 ### 1. Configure the Forwarder
 
@@ -121,17 +121,17 @@ Set these environment variables in your Hub settings (Project or Broker level):
 
 ```bash
 # Direct OTLP ingestion for Google Cloud
-export SCION_OTEL_ENDPOINT="monitoring.googleapis.com:443"
-export SCION_OTEL_PROTOCOL="grpc"
-export SCION_GCP_PROJECT_ID="your-project-id"
+export FABRIC_OTEL_ENDPOINT="monitoring.googleapis.com:443"
+export FABRIC_OTEL_PROTOCOL="grpc"
+export FABRIC_GCP_PROJECT_ID="your-project-id"
 ```
 
 ### 2. Configure the Agent (Native OTel)
 
-If your agent harness supports native OpenTelemetry (e.g., `opencode`), configure it to point to the `sciontool` forwarder running on localhost:
+If your agent harness supports native OpenTelemetry (e.g., `opencode`), configure it to point to the `fabrictool` forwarder running on localhost:
 
 ```bash
-# Tell the agent to send to sciontool
+# Tell the agent to send to fabrictool
 export OTEL_EXPORTER_OTLP_ENDPOINT="localhost:4317"
 ```
 
@@ -146,52 +146,52 @@ Ensure the environment where the agent container runs (GKE Pod, Cloud Run, etc.)
 
 ### 4. GCP Credentials for Agent Containers (Non-ADC Environments)
 
-When agents run outside of GKE or Cloud Run — where [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/application-default-credentials) are not automatically available — you must supply a GCP service account key file. Scion uses a **well-known secret** to provision this credential into every agent container automatically.
+When agents run outside of GKE or Cloud Run — where [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/application-default-credentials) are not automatically available — you must supply a GCP service account key file. Fabric uses a **well-known secret** to provision this credential into every agent container automatically.
 
 | Property | Value |
 |----------|-------|
-| **Secret name** | `scion-telemetry-gcp-credentials` |
+| **Secret name** | `fabric-telemetry-gcp-credentials` |
 | **Secret type** | `file` |
-| **Target path** | `~/.scion/telemetry-gcp-credentials.json` |
-| **Env var set by broker** | `SCION_OTEL_GCP_CREDENTIALS` |
+| **Target path** | `~/.fabric/telemetry-gcp-credentials.json` |
+| **Env var set by broker** | `FABRIC_OTEL_GCP_CREDENTIALS` |
 
 Register the secret once via the Hub:
 
 ```bash
-scion hub secret set \
+fabric hub secret set \
   --type file \
-  --target ~/.scion/telemetry-gcp-credentials.json \
-  scion-telemetry-gcp-credentials @/path/to/sa-key.json
+  --target ~/.fabric/telemetry-gcp-credentials.json \
+  fabric-telemetry-gcp-credentials @/path/to/sa-key.json
 ```
 
 When an agent starts, the broker:
-1. Writes the credential file to `~/.scion/telemetry-gcp-credentials.json` in the agent's home directory.
-2. Sets `SCION_OTEL_GCP_CREDENTIALS` to that path.
-3. Auto-sets `SCION_TELEMETRY_CLOUD_PROVIDER=gcp` if not already configured.
-4. Reads `project_id` from the credentials JSON to populate `SCION_GCP_PROJECT_ID` if not set explicitly.
+1. Writes the credential file to `~/.fabric/telemetry-gcp-credentials.json` in the agent's home directory.
+2. Sets `FABRIC_OTEL_GCP_CREDENTIALS` to that path.
+3. Auto-sets `FABRIC_TELEMETRY_CLOUD_PROVIDER=gcp` if not already configured.
+4. Reads `project_id` from the credentials JSON to populate `FABRIC_GCP_PROJECT_ID` if not set explicitly.
 
 :::note[Fallback probe]
-`sciontool` also probes `~/.scion/telemetry-gcp-credentials.json` at startup even when `SCION_OTEL_GCP_CREDENTIALS` is not set — for example, when the file is placed via a volume mount or template provisioning. If the file exists, all of the above auto-detection applies.
+`fabrictool` also probes `~/.fabric/telemetry-gcp-credentials.json` at startup even when `FABRIC_OTEL_GCP_CREDENTIALS` is not set — for example, when the file is placed via a volume mount or template provisioning. If the file exists, all of the above auto-detection applies.
 :::
 
 ## Native Metrics Pipeline
 
-Scion includes a native OTel metrics pipeline that captures operational data from agent sessions. This data is recorded as counters and histograms, providing a time-series view of agent performance. 
+Fabric includes a native OTel metrics pipeline that captures operational data from agent sessions. This data is recorded as counters and histograms, providing a time-series view of agent performance. 
 
-To enable harness-aware telemetry, Scion automatically injects `SCION_HARNESS` and `SCION_MODEL` environment variables into all agent containers.
+To enable harness-aware telemetry, Fabric automatically injects `FABRIC_HARNESS` and `FABRIC_MODEL` environment variables into all agent containers.
 
 ### Enriched Resource Attributes
 
-All metrics and traces emitted by Scion are enriched with context-aware OpenTelemetry resource attributes to allow for precise filtering and aggregation in your cloud backend:
+All metrics and traces emitted by Fabric are enriched with context-aware OpenTelemetry resource attributes to allow for precise filtering and aggregation in your cloud backend:
 
-- `scion.harness`: The type of harness running the agent (e.g., `gemini`, `claude`, `codex`).
-- `scion.model`: The specific LLM model being used.
-- `scion.broker`: The ID of the Runtime Broker executing the agent.
+- `fabric.harness`: The type of harness running the agent (e.g., `gemini`, `claude`, `codex`).
+- `fabric.model`: The specific LLM model being used.
+- `fabric.broker`: The ID of the Runtime Broker executing the agent.
 - `project_id`: The ID of the agent's parent project.
 
 ### Automated Metrics Collection
 
-When harness events occur (via hooks), sciontool automatically records the following metrics:
+When harness events occur (via hooks), fabrictool automatically records the following metrics:
 
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
@@ -208,11 +208,11 @@ When harness events occur (via hooks), sciontool automatically records the follo
 
 ### Correlated Logs
 
-For every significant lifecycle event (session start/end, tool use, model call), sciontool emits an OTel log record that is automatically correlated with the active trace. This means when viewing a trace waterfall in your observability backend (like Google Cloud Trace), you can click directly through to the specific logs associated with each span.
+For every significant lifecycle event (session start/end, tool use, model call), fabrictool emits an OTel log record that is automatically correlated with the active trace. This means when viewing a trace waterfall in your observability backend (like Google Cloud Trace), you can click directly through to the specific logs associated with each span.
 
 ## Hub Infrastructure Metrics
 
-The Scion Hub maintains internal operational metrics for infrastructure monitoring. These are available via the `/api/v1/admin/metrics` endpoint (requires `hub:admin` role) and can be exported to standard monitoring tools.
+The Fabric Hub maintains internal operational metrics for infrastructure monitoring. These are available via the `/api/v1/admin/metrics` endpoint (requires `hub:admin` role) and can be exported to standard monitoring tools.
 
 ### GCP Token Metrics
 
@@ -238,7 +238,7 @@ Monitors the security and connectivity of Runtime Brokers:
 
 ## Privacy Filtering
 
-By default, sciontool excludes `agent.user.prompt` events to protect user privacy. Filtering is configured via the `telemetry.filter` block in `settings.yaml` or `scion-agent.yaml`, or via environment variables.
+By default, fabrictool excludes `agent.user.prompt` events to protect user privacy. Filtering is configured via the `telemetry.filter` block in `settings.yaml` or `fabric-agent.yaml`, or via environment variables.
 
 ### Via Settings File
 
@@ -266,15 +266,15 @@ telemetry:
 
 ```bash
 # Exclude multiple event types
-export SCION_TELEMETRY_FILTER_EXCLUDE="agent.user.prompt,agent.tool.result"
+export FABRIC_TELEMETRY_FILTER_EXCLUDE="agent.user.prompt,agent.tool.result"
 
 # Only forward specific event types
-export SCION_TELEMETRY_FILTER_INCLUDE="agent.session.start,agent.session.end,agent.tool.call"
+export FABRIC_TELEMETRY_FILTER_INCLUDE="agent.session.start,agent.session.end,agent.tool.call"
 ```
 
 ## Attribute Redaction
 
-Beyond event filtering, sciontool provides field-level attribute redaction for sensitive data. This allows telemetry to flow while protecting specific values.
+Beyond event filtering, fabrictool provides field-level attribute redaction for sensitive data. This allows telemetry to flow while protecting specific values.
 
 ### Redacted Fields
 
@@ -282,7 +282,7 @@ Redacted fields have their values replaced with `[REDACTED]`:
 
 ```bash
 # Default redacted fields
-export SCION_TELEMETRY_REDACT="prompt,user.email,tool_output,tool_input"
+export FABRIC_TELEMETRY_REDACT="prompt,user.email,tool_output,tool_input"
 ```
 
 ### Hashed Fields
@@ -291,7 +291,7 @@ Hashed fields are replaced with their SHA256 hash, allowing correlation without 
 
 ```bash
 # Default hashed fields
-export SCION_TELEMETRY_HASH="session_id"
+export FABRIC_TELEMETRY_HASH="session_id"
 ```
 
 ## Hook-to-Span Conversion
@@ -321,7 +321,7 @@ Session files are automatically parsed from `~/.gemini/sessions/`.
 
 ## Implementation Details
 
-The telemetry pipeline is implemented in `pkg/sciontool/telemetry/`:
+The telemetry pipeline is implemented in `pkg/fabrictool/telemetry/`:
 
 - `config.go` - Configuration loading from environment variables
 - `filter.go` - Event type filtering (include/exclude) and attribute redaction
@@ -329,9 +329,9 @@ The telemetry pipeline is implemented in `pkg/sciontool/telemetry/`:
 - `receiver.go` - OTLP gRPC/HTTP receiver
 - `pipeline.go` - Main orchestration (Start/Stop lifecycle)
 
-Hook-to-span conversion is in `pkg/sciontool/hooks/handlers/`:
+Hook-to-span conversion is in `pkg/fabrictool/hooks/handlers/`:
 
 - `telemetry.go` - TelemetryHandler for converting hooks to spans
-- Session parsing in `pkg/sciontool/hooks/session/parser.go`
+- Session parsing in `pkg/fabrictool/hooks/session/parser.go`
 
-The pipeline is integrated into the init command (`cmd/sciontool/commands/init.go`) and starts after user setup, before lifecycle hooks.
+The pipeline is integrated into the init command (`cmd/fabrictool/commands/init.go`) and starts after user setup, before lifecycle hooks.

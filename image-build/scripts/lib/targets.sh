@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Target DAG and step descriptors for the Scion image build orchestrator.
+# Target DAG and step descriptors for the Fabric image build orchestrator.
 #
 # This file is sourced by build-images.sh. It is the single source of truth
 # for which images exist, which target names expand to which ordered step
@@ -36,14 +36,14 @@ discover_harness_names() {
 
 is_harness_step() {
   local step="$1"
-  local name="${step#scion-}"
-  [[ "${step}" == scion-* && -f "${REPO_ROOT}/harnesses/${name}/Dockerfile" ]]
+  local name="${step#fabric-}"
+  [[ "${step}" == fabric-* && -f "${REPO_ROOT}/harnesses/${name}/Dockerfile" ]]
 }
 
 emit_harness_steps() {
   local name
   discover_harness_names | while IFS= read -r name; do
-    [[ -n "${name}" ]] && echo "scion-${name}"
+    [[ -n "${name}" ]] && echo "fabric-${name}"
   done
 }
 
@@ -52,20 +52,20 @@ emit_harness_steps() {
 # harnesses catalog.
 ALL_STEP_IDS=(
   core-base
-  scion-base
+  fabric-base
 )
 while IFS= read -r harness_step; do
   [[ -n "${harness_step}" ]] && ALL_STEP_IDS+=("${harness_step}")
 done < <(emit_harness_steps)
 ALL_STEP_IDS+=(
-  scion-hub
+  fabric-hub
 )
 
 # All known target names. Used by the orchestrator's --help and --target
 # validation.
 ALL_TARGETS=(
   core-base
-  scion-base
+  fabric-base
   harnesses
   hub
   common
@@ -81,24 +81,24 @@ resolve_targets() {
     core-base)
       echo core-base
       ;;
-    scion-base)
-      echo scion-base
+    fabric-base)
+      echo fabric-base
       ;;
     harnesses)
       emit_harness_steps
       ;;
     hub)
-      echo scion-hub
+      echo fabric-hub
       ;;
     common)
-      printf '%s\n' scion-base
+      printf '%s\n' fabric-base
       emit_harness_steps
-      printf '%s\n' scion-hub
+      printf '%s\n' fabric-hub
       ;;
     all)
-      printf '%s\n' core-base scion-base
+      printf '%s\n' core-base fabric-base
       emit_harness_steps
-      printf '%s\n' scion-hub
+      printf '%s\n' fabric-hub
       ;;
     *)
       return 1
@@ -118,11 +118,11 @@ step_image_name() {
 step_dockerfile() {
   case "$1" in
     core-base)     echo "${IMAGE_BUILD_DIR}/core-base/Dockerfile" ;;
-    scion-base)    echo "${IMAGE_BUILD_DIR}/scion-base/Dockerfile" ;;
-    scion-hub)     echo "${IMAGE_BUILD_DIR}/hub/Dockerfile" ;;
+    fabric-base)    echo "${IMAGE_BUILD_DIR}/fabric-base/Dockerfile" ;;
+    fabric-hub)     echo "${IMAGE_BUILD_DIR}/hub/Dockerfile" ;;
     *)
       if is_harness_step "$1"; then
-        echo "${REPO_ROOT}/harnesses/${1#scion-}/Dockerfile"
+        echo "${REPO_ROOT}/harnesses/${1#fabric-}/Dockerfile"
       else
         return 1
       fi
@@ -132,17 +132,17 @@ step_dockerfile() {
 
 # step_context_dir <step_id>
 #
-# Echoes the absolute path to the build context for the step. scion-base
+# Echoes the absolute path to the build context for the step. fabric-base
 # uses the repo root because it copies go source; everything else uses its
 # own image-build subdirectory.
 step_context_dir() {
   case "$1" in
     core-base)     echo "${IMAGE_BUILD_DIR}/core-base" ;;
-    scion-base)    echo "${REPO_ROOT}" ;;
-    scion-hub)     echo "${IMAGE_BUILD_DIR}/hub" ;;
+    fabric-base)    echo "${REPO_ROOT}" ;;
+    fabric-hub)     echo "${IMAGE_BUILD_DIR}/hub" ;;
     *)
       if is_harness_step "$1"; then
-        echo "${REPO_ROOT}/harnesses/${1#scion-}"
+        echo "${REPO_ROOT}/harnesses/${1#fabric-}"
       else
         return 1
       fi
@@ -167,18 +167,18 @@ step_build_args() {
     core-base)
       # No build-args.
       ;;
-    scion-base)
+    fabric-base)
       echo "BASE_IMAGE=${prefix}core-base:${BASE_TAG}"
       if [[ -n "${COMMIT_SHA:-}" ]]; then
         echo "GIT_COMMIT=${COMMIT_SHA}"
       fi
       ;;
-    scion-hub)
-      echo "BASE_IMAGE=${prefix}scion-base:${BASE_TAG}"
+    fabric-hub)
+      echo "BASE_IMAGE=${prefix}fabric-base:${BASE_TAG}"
       ;;
     *)
       if is_harness_step "$1"; then
-        echo "BASE_IMAGE=${prefix}scion-base:${BASE_TAG}"
+        echo "BASE_IMAGE=${prefix}fabric-base:${BASE_TAG}"
       else
         return 1
       fi
@@ -194,11 +194,11 @@ step_build_args() {
 step_parent() {
   case "$1" in
     core-base)     echo "" ;;
-    scion-base)    echo "core-base" ;;
-    scion-hub)     echo "scion-base" ;;
+    fabric-base)    echo "core-base" ;;
+    fabric-hub)     echo "fabric-base" ;;
     *)
       if is_harness_step "$1"; then
-        echo "scion-base"
+        echo "fabric-base"
       else
         return 1
       fi

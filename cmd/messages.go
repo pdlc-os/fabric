@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -37,14 +37,14 @@ var messagesCmd = &cobra.Command{
 	Short:   "View messages from agents",
 	Long: `View and manage messages sent to you by agents.
 
-Messages require Hub mode. Enable with 'scion hub enable <endpoint>'.
+Messages require Hub mode. Enable with 'fabric hub enable <endpoint>'.
 
 Commands:
-  scion messages                            List your unread messages
-  scion messages --all                      List all messages (including read)
-  scion messages --agent <name>             Filter by agent
-  scion messages read [id]                  Mark message(s) as read
-  scion messages read --all                 Mark all messages as read`,
+  fabric messages                            List your unread messages
+  fabric messages --all                      List all messages (including read)
+  fabric messages --agent <name>             Filter by agent
+  fabric messages read [id]                  Mark message(s) as read
+  fabric messages read --all                 Mark all messages as read`,
 	RunE: runMessagesList,
 }
 
@@ -58,8 +58,8 @@ With an ID argument, marks that specific message as read.
 With --all flag, marks all unread messages as read.
 
 Examples:
-  scion messages read a1b2c3d4
-  scion messages read --all`,
+  fabric messages read a1b2c3d4
+  fabric messages read --all`,
 	RunE: runMessagesRead,
 }
 

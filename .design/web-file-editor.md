@@ -10,7 +10,7 @@
 
 ### Goal
 
-Add an inline file editor to the web UI that supports editing raw text formats (markdown, JSON, YAML, TOML, shell scripts, Go, TypeScript, etc.) with syntax highlighting. Alongside the editor, extract the file browser from `grove-detail.ts` into a shared `scion-file-browser` component. Together, the file browser and file editor form a reusable pair consumed by the workspace/shared-dir views and the template editor ([template-editor.md](./template-editor.md)).
+Add an inline file editor to the web UI that supports editing raw text formats (markdown, JSON, YAML, TOML, shell scripts, Go, TypeScript, etc.) with syntax highlighting. Alongside the editor, extract the file browser from `grove-detail.ts` into a shared `fabric-file-browser` component. Together, the file browser and file editor form a reusable pair consumed by the workspace/shared-dir views and the template editor ([template-editor.md](./template-editor.md)).
 
 ### Current State
 
@@ -19,8 +19,8 @@ The workspace file browser (`grove-detail.ts`) supports file listing, upload, do
 ### Scope
 
 This document covers:
-- The shared `scion-file-browser` component (extracted from `grove-detail.ts`)
-- The `scion-file-editor` component and its integration into the workspace file browser
+- The shared `fabric-file-browser` component (extracted from `grove-detail.ts`)
+- The `fabric-file-editor` component and its integration into the workspace file browser
 - API changes needed to support reading and writing file content
 - New file creation flow
 
@@ -249,12 +249,12 @@ Files above 1MB are not opened in the editor — the UI shows a message and offe
 
 ## 6. Component Architecture
 
-### 6.1 Shared File Browser (`scion-file-browser`)
+### 6.1 Shared File Browser (`fabric-file-browser`)
 
 Extracted from the existing file table in `grove-detail.ts` into a reusable component. This extraction happens as part of this design's implementation (not deferred).
 
 ```
-scion-file-browser (LitElement)
+fabric-file-browser (LitElement)
 ├── Properties:
 │   files: FileEntry[]
 │   loading: boolean
@@ -294,15 +294,15 @@ The `TemplateFileBrowserDataSource` is added later as part of [template-editor.m
 ### 6.2 Component Hierarchy (Editor)
 
 ```
-scion-file-editor (LitElement)
+fabric-file-editor (LitElement)
 ├── toolbar (save, revert, preview toggle, close)
-├── scion-code-editor (wraps CodeMirror)
+├── fabric-code-editor (wraps CodeMirror)
 │   └── CodeMirror EditorView
-└── scion-markdown-preview (conditional)
+└── fabric-markdown-preview (conditional)
     └── rendered HTML (via marked + DOMPurify)
 ```
 
-### 6.3 `scion-file-editor`
+### 6.3 `fabric-file-editor`
 
 Top-level component managing the editing session.
 
@@ -317,7 +317,7 @@ Top-level component managing the editing session.
 - `file-saved` — emitted after successful save
 - `editor-closed` — emitted when user closes the editor
 
-### 6.4 `scion-code-editor`
+### 6.4 `fabric-code-editor`
 
 Thin wrapper around CodeMirror 6. Lazy-loaded — the CodeMirror bundle is fetched only when the editor is first opened.
 
@@ -329,7 +329,7 @@ Thin wrapper around CodeMirror 6. Lazy-loaded — the CodeMirror bundle is fetch
 **Events:**
 - `content-changed` — emitted on edits (debounced), carries current content
 
-### 6.5 `scion-markdown-preview`
+### 6.5 `fabric-markdown-preview`
 
 Renders markdown as sanitized HTML.
 
@@ -342,7 +342,7 @@ Renders markdown as sanitized HTML.
 
 - **Edit capability** gated on the existing `update` capability for the grove/resource. If the user cannot upload/delete files, they also cannot edit.
 - **Read-only mode** for shared dirs configured as read-only. The editor opens but the save button is hidden/disabled.
-- **Path validation** reuses the existing `validateWorkspaceFilePath()` server-side logic — no `..` traversal, no `.scion/` prefix.
+- **Path validation** reuses the existing `validateWorkspaceFilePath()` server-side logic — no `..` traversal, no `.fabric/` prefix.
 - **Unsaved changes warning** — prompt before navigating away or closing the editor if dirty.
 
 ---
@@ -365,22 +365,22 @@ Renders markdown as sanitized HTML.
 
 ### Phase 1: Shared File Browser Extraction ✅
 
-- [x] Extract file table rendering from `grove-detail.ts` into `scion-file-browser` component
+- [x] Extract file table rendering from `grove-detail.ts` into `fabric-file-browser` component
 - [x] Define `FileBrowserDataSource` adapter interface
 - [x] Implement `WorkspaceFileBrowserDataSource`
 - [x] Implement `SharedDirFileBrowserDataSource`
-- [x] Refactor `grove-detail.ts` workspace view to use `scion-file-browser`
-- [x] Refactor shared-dir browser to use `scion-file-browser`
+- [x] Refactor `grove-detail.ts` workspace view to use `fabric-file-browser`
+- [x] Refactor shared-dir browser to use `fabric-file-browser`
 - [x] Add "New File" button to file browser toolbar
 - [x] Verify no regressions in existing file browser functionality
 
 ### Phase 2: Core Editor ✅
 
-- [x] Add `scion-code-editor` component wrapping CodeMirror 6 (lazy-loaded) with basic language modes (markdown, JSON, YAML, shell, Go, TypeScript)
-- [x] Add `scion-file-editor` component with toolbar (save, revert, close)
+- [x] Add `fabric-code-editor` component wrapping CodeMirror 6 (lazy-loaded) with basic language modes (markdown, JSON, YAML, shell, Go, TypeScript)
+- [x] Add `fabric-file-editor` component with toolbar (save, revert, close)
 - [x] Add `?format=json` support to existing download endpoint
 - [x] Add `PUT` endpoint for writing file content
-- [x] Add pencil icon to `scion-file-browser` rows (for editable file types)
+- [x] Add pencil icon to `fabric-file-browser` rows (for editable file types)
 - [x] Full-width replacement layout (Option B)
 - [x] "New File" creation flow via editor (filename input + empty buffer)
 - [x] Gate on `update` capability
@@ -388,7 +388,7 @@ Renders markdown as sanitized HTML.
 
 ### Phase 3: Markdown Preview ✅
 
-- [x] Add `scion-markdown-preview` component with `marked` + `DOMPurify`
+- [x] Add `fabric-markdown-preview` component with `marked` + `DOMPurify`
 - [x] Add preview toggle button to editor toolbar for `.md` files
 - [x] Change eye icon behavior for `.md` files to open inline preview
 

@@ -39,7 +39,7 @@ type MessageBrokerPluginInterface interface {
 
 ### Plugin Manager (`pkg/plugin/manager.go`)
 
-- Discovers plugins by binary name (`scion-plugin-<name>`) or config
+- Discovers plugins by binary name (`fabric-plugin-<name>`) or config
 - Starts plugin as a child process via `hashicorp/go-plugin`
 - Calls `Configure()` immediately after loading
 - Dispenses `BrokerRPCClient` wrapped in `BrokerPluginAdapter`
@@ -67,7 +67,7 @@ type MessageBrokerPluginInterface interface {
 
 Currently, the `MessageBrokerProxy` manages all subscriptions. When a new agent is created, the proxy subscribes to that agent's message topic on the broker. The plugin has no say in which topics it receives.
 
-This works for the simple case where the Hub knows everything about what the plugin needs. But a chat app plugin needs to subscribe to topics based on its own state — specifically, which groves are linked to chat spaces. When a user runs `/scion link production` in a chat space, the plugin needs to start receiving messages for the `production` grove immediately.
+This works for the simple case where the Hub knows everything about what the plugin needs. But a chat app plugin needs to subscribe to topics based on its own state — specifically, which groves are linked to chat spaces. When a user runs `/fabric link production` in a chat space, the plugin needs to start receiving messages for the `production` grove immediately.
 
 The proxy doesn't know about space-grove links (that's chat-app state), so it can't manage these subscriptions.
 

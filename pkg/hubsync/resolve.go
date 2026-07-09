@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/google/uuid"
 )
 
@@ -58,12 +58,12 @@ func IsHubProjectRef(projectPath string) bool {
 	}
 
 	// Could be a slug or a relative directory name. Check the filesystem:
-	// if the path exists as a directory or contains a .scion subdirectory,
+	// if the path exists as a directory or contains a .fabric subdirectory,
 	// treat it as a local path.
 	if info, err := os.Stat(projectPath); err == nil && info.IsDir() {
 		return false
 	}
-	if info, err := os.Stat(projectPath + "/.scion"); err == nil && info.IsDir() {
+	if info, err := os.Stat(projectPath + "/.fabric"); err == nil && info.IsDir() {
 		return false
 	}
 
@@ -103,7 +103,7 @@ func resolveHubProjectRef(ref string, opts EnsureHubReadyOptions) (*HubContext, 
 
 	if !settings.IsHubEnabled() {
 		return nil, fmt.Errorf("hub project references (slugs, names, git URLs) require hub mode to be enabled\n\n" +
-			"Enable with: scion config set hub.enabled true")
+			"Enable with: fabric config set hub.enabled true")
 	}
 
 	endpoint := opts.EndpointOverride
@@ -111,7 +111,7 @@ func resolveHubProjectRef(ref string, opts EnsureHubReadyOptions) (*HubContext, 
 		endpoint = getEndpoint(settings)
 	}
 	if endpoint == "" {
-		return nil, fmt.Errorf("hub is enabled but no endpoint configured\n\nConfigure via: scion config set hub.endpoint <url>")
+		return nil, fmt.Errorf("hub is enabled but no endpoint configured\n\nConfigure via: fabric config set hub.endpoint <url>")
 	}
 
 	client, err := createHubClient(settings, endpoint)

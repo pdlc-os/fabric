@@ -1,8 +1,8 @@
 # Grove-to-Project Internal Rename
 
 **Date:** 2026-05-31
-**Issue:** https://github.com/ptone/scion/issues/101
-**Branch:** scion/cleanup-grove-to-project
+**Issue:** https://github.com/ptone/fabric/issues/101
+**Branch:** fabric/cleanup-grove-to-project
 
 ## What was done
 
@@ -17,7 +17,7 @@ the fs-watcher-tool CLI flag.
 - Comments and log messages updated in `cmd/attach.go`, `cmd/cdw.go`, `cmd/clean.go`,
   `cmd/completion_helper.go`, `cmd/config.go`, `cmd/delete.go`, `cmd/list.go`,
   `cmd/message.go`, `cmd/schedule.go`, `cmd/stop.go`, `cmd/suspend.go`,
-  `cmd/server_foreground.go`, `cmd/server_dispatcher.go`, `cmd/sciontool/commands/init.go`,
+  `cmd/server_foreground.go`, `cmd/server_dispatcher.go`, `cmd/fabrictool/commands/init.go`,
   `cmd/harness_config_install.go`, `cmd/logs.go`
 - Internal variables/comments in `pkg/agentcache/cache.go`, `pkg/harness/`,
   `pkg/secret/`, `pkg/util/git.go`, `pkg/runtimebroker/types.go`, `pkg/projectsync/`

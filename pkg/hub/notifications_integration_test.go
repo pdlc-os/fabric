@@ -26,8 +26,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -133,7 +133,7 @@ func (env *integrationTestEnv) createAgentWithNotify(t *testing.T, callingAgent 
 		Notify:    true,
 	})
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()
@@ -172,7 +172,7 @@ func (env *integrationTestEnv) updateStatusViaAPI(t *testing.T, agentID, status,
 	body, _ := json.Marshal(statusUpdate)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agentID+"/status", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()
@@ -833,7 +833,7 @@ func TestIntegration_NoNotifyFlag_NoSubscription(t *testing.T) {
 		Notify:    false,
 	})
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()

@@ -15,7 +15,7 @@ causing permission errors on NFS.
 
 ```bash
 # On the broker host / container:
-id    # should show uid=1000(scion) gid=1000(scion)
+id    # should show uid=1000(fabric) gid=1000(fabric)
 
 # In settings.yaml:
 # server:

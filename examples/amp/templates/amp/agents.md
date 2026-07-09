@@ -1,13 +1,13 @@
-# Scion Agent Instructions
+# Fabric Agent Instructions
 
 ## Status Reporting
 
-You are running inside a scion-managed container. Use `sciontool` to report
+You are running inside a fabric-managed container. Use `fabrictool` to report
 your status:
 
-- `sciontool status ask_user "<question>"` — before asking the user a question
-- `sciontool status blocked "<reason>"` — when waiting on external input
-- `sciontool status task_completed "<summary>"` — when your task is finished
+- `fabrictool status ask_user "<question>"` — before asking the user a question
+- `fabrictool status blocked "<reason>"` — when waiting on external input
+- `fabrictool status task_completed "<summary>"` — when your task is finished
 
 ## Workspace
 

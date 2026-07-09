@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // --- Front Matter Tests ---
@@ -430,12 +430,12 @@ func TestWriteTemplate_Claude(t *testing.T) {
 	require.NoError(t, err)
 	assert.DirExists(t, path)
 
-	// Check scion-agent.yaml exists and has correct default_harness_config
-	configPath := filepath.Join(path, "scion-agent.yaml")
+	// Check fabric-agent.yaml exists and has correct default_harness_config
+	configPath := filepath.Join(path, "fabric-agent.yaml")
 	assert.FileExists(t, configPath)
 	data, err := os.ReadFile(configPath)
 	require.NoError(t, err)
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 	require.NoError(t, yaml.Unmarshal(data, &cfg))
 	assert.Equal(t, "claude", cfg.DefaultHarnessConfig)
 	assert.Empty(t, cfg.Harness, "agnostic templates should not have harness field")
@@ -468,11 +468,11 @@ func TestWriteTemplate_Gemini(t *testing.T) {
 	require.NoError(t, err)
 	assert.DirExists(t, path)
 
-	// Check scion-agent.yaml
-	configPath := filepath.Join(path, "scion-agent.yaml")
+	// Check fabric-agent.yaml
+	configPath := filepath.Join(path, "fabric-agent.yaml")
 	data, err := os.ReadFile(configPath)
 	require.NoError(t, err)
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 	require.NoError(t, yaml.Unmarshal(data, &cfg))
 	assert.Equal(t, "gemini", cfg.DefaultHarnessConfig)
 	assert.Empty(t, cfg.Harness, "agnostic templates should not have harness field")
@@ -534,63 +534,63 @@ func TestWriteTemplate_NoModel(t *testing.T) {
 	require.NoError(t, err)
 
 	// Config should have default_harness_config but no model
-	configPath := filepath.Join(path, "scion-agent.yaml")
+	configPath := filepath.Join(path, "fabric-agent.yaml")
 	data, err := os.ReadFile(configPath)
 	require.NoError(t, err)
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 	require.NoError(t, yaml.Unmarshal(data, &cfg))
 	assert.Equal(t, "claude", cfg.DefaultHarnessConfig)
 	assert.Empty(t, cfg.Harness, "agnostic templates should not have harness field")
 	assert.Empty(t, cfg.Model)
 }
 
-// --- Scion Format Tests ---
+// --- Fabric Format Tests ---
 
-func TestIsScionTemplate(t *testing.T) {
+func TestIsFabricTemplate(t *testing.T) {
 	dir := t.TempDir()
 
-	// Not a scion template (no scion-agent.yaml)
-	assert.False(t, IsScionTemplate(dir))
+	// Not a fabric template (no fabric-agent.yaml)
+	assert.False(t, IsFabricTemplate(dir))
 
-	// Create scion-agent.yaml
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte(`
+	// Create fabric-agent.yaml
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "Test template"
 default_harness_config: claude
 `), 0644))
 
-	assert.True(t, IsScionTemplate(dir))
+	assert.True(t, IsFabricTemplate(dir))
 }
 
-func TestIsScionTemplatesDir(t *testing.T) {
+func TestIsFabricTemplatesDir(t *testing.T) {
 	dir := t.TempDir()
 
 	// Empty directory
-	assert.False(t, IsScionTemplatesDir(dir))
+	assert.False(t, IsFabricTemplatesDir(dir))
 
-	// Create a subdirectory without scion-agent.yaml
+	// Create a subdirectory without fabric-agent.yaml
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "not-a-template"), 0755))
-	assert.False(t, IsScionTemplatesDir(dir))
+	assert.False(t, IsFabricTemplatesDir(dir))
 
-	// Create a valid scion template subdirectory
+	// Create a valid fabric template subdirectory
 	templateDir := filepath.Join(dir, "my-template")
 	require.NoError(t, os.MkdirAll(templateDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte(`
+	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "A template"
 `), 0644))
 
-	assert.True(t, IsScionTemplatesDir(dir))
+	assert.True(t, IsFabricTemplatesDir(dir))
 }
 
-func TestDiscoverScionTemplates(t *testing.T) {
+func TestDiscoverFabricTemplates(t *testing.T) {
 	dir := t.TempDir()
 
-	// Create two scion templates
+	// Create two fabric templates
 	for _, name := range []string{"frontend", "backend"} {
 		templateDir := filepath.Join(dir, name)
 		require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "home"), 0755))
-		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte(fmt.Sprintf(`
+		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte(fmt.Sprintf(`
 schema_version: "1"
 description: "%s agent template"
 default_harness_config: claude
@@ -602,44 +602,44 @@ model: sonnet
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "docs"), 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "docs", "README.md"), []byte("# Docs\n"), 0644))
 
-	agents, err := DiscoverScionTemplates(dir)
+	agents, err := DiscoverFabricTemplates(dir)
 	require.NoError(t, err)
 	assert.Len(t, agents, 2)
 
 	for _, agent := range agents {
-		assert.True(t, agent.ScionFormat)
+		assert.True(t, agent.FabricFormat)
 		assert.Equal(t, "claude", agent.Harness)
 		assert.Equal(t, "sonnet", agent.Model)
 		assert.NotEmpty(t, agent.SourcePath)
 	}
 }
 
-func TestParseScionTemplate(t *testing.T) {
+func TestParseFabricTemplate(t *testing.T) {
 	dir := t.TempDir()
 	templateDir := filepath.Join(dir, "my-agent")
 	require.NoError(t, os.MkdirAll(templateDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte(`
+	require.NoError(t, os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "My custom agent"
 default_harness_config: gemini
 model: gemini-2.5-pro
 `), 0644))
 
-	agent, err := ParseScionTemplate(templateDir)
+	agent, err := ParseFabricTemplate(templateDir)
 	require.NoError(t, err)
 	assert.Equal(t, "my-agent", agent.Name)
 	assert.Equal(t, "My custom agent", agent.Description)
 	assert.Equal(t, "gemini", agent.Harness)
 	assert.Equal(t, "gemini-2.5-pro", agent.Model)
-	assert.True(t, agent.ScionFormat)
+	assert.True(t, agent.FabricFormat)
 	assert.Equal(t, templateDir, agent.SourcePath)
 }
 
-func TestCopyScionTemplate(t *testing.T) {
+func TestCopyFabricTemplate(t *testing.T) {
 	// Create source template
 	srcDir := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(srcDir, "home", ".claude"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "scion-agent.yaml"), []byte(`
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "Source template"
 `), 0644))
@@ -648,12 +648,12 @@ description: "Source template"
 	destBase := t.TempDir()
 	destDir := filepath.Join(destBase, "copied-template")
 
-	path, err := CopyScionTemplate(srcDir, destDir, false)
+	path, err := CopyFabricTemplate(srcDir, destDir, false)
 	require.NoError(t, err)
 	assert.Equal(t, destDir, path)
 
 	// Verify files were copied
-	assert.FileExists(t, filepath.Join(destDir, "scion-agent.yaml"))
+	assert.FileExists(t, filepath.Join(destDir, "fabric-agent.yaml"))
 	assert.FileExists(t, filepath.Join(destDir, "home", ".claude", "CLAUDE.md"))
 
 	content, err := os.ReadFile(filepath.Join(destDir, "home", ".claude", "CLAUDE.md"))
@@ -661,42 +661,42 @@ description: "Source template"
 	assert.Equal(t, "# Instructions\n", string(content))
 }
 
-func TestCopyScionTemplate_AlreadyExists(t *testing.T) {
+func TestCopyFabricTemplate_AlreadyExists(t *testing.T) {
 	srcDir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "scion-agent.yaml"), []byte("test\n"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fabric-agent.yaml"), []byte("test\n"), 0644))
 
 	destBase := t.TempDir()
 	destDir := filepath.Join(destBase, "existing")
 	require.NoError(t, os.MkdirAll(destDir, 0755))
 
-	_, err := CopyScionTemplate(srcDir, destDir, false)
+	_, err := CopyFabricTemplate(srcDir, destDir, false)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists")
 }
 
-func TestCopyScionTemplate_ForceOverwrite(t *testing.T) {
+func TestCopyFabricTemplate_ForceOverwrite(t *testing.T) {
 	srcDir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "scion-agent.yaml"), []byte("new\n"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fabric-agent.yaml"), []byte("new\n"), 0644))
 
 	destBase := t.TempDir()
 	destDir := filepath.Join(destBase, "existing")
 	require.NoError(t, os.MkdirAll(destDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(destDir, "old-file.txt"), []byte("old"), 0644))
 
-	path, err := CopyScionTemplate(srcDir, destDir, true)
+	path, err := CopyFabricTemplate(srcDir, destDir, true)
 	require.NoError(t, err)
 	assert.Equal(t, destDir, path)
 	assert.NoFileExists(t, filepath.Join(destDir, "old-file.txt"))
-	assert.FileExists(t, filepath.Join(destDir, "scion-agent.yaml"))
+	assert.FileExists(t, filepath.Join(destDir, "fabric-agent.yaml"))
 }
 
-func TestWriteTemplate_ScionFormat(t *testing.T) {
-	// Create source scion template
+func TestWriteTemplate_FabricFormat(t *testing.T) {
+	// Create source fabric template
 	srcDir := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(srcDir, "home"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "scion-agent.yaml"), []byte(`
+	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
-description: "Scion template"
+description: "Fabric template"
 default_harness_config: claude
 `), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(srcDir, "system-prompt.md"), []byte("# Prompt\n"), 0644))
@@ -704,16 +704,16 @@ default_harness_config: claude
 	templatesDir := t.TempDir()
 
 	agent := &ImportedAgent{
-		Name:        "scion-copy",
+		Name:        "fabric-copy",
 		Harness:     "claude",
 		SourcePath:  srcDir,
-		ScionFormat: true,
+		FabricFormat: true,
 	}
 
 	path, err := WriteTemplate(agent, templatesDir, false)
 	require.NoError(t, err)
 	assert.DirExists(t, path)
-	assert.FileExists(t, filepath.Join(path, "scion-agent.yaml"))
+	assert.FileExists(t, filepath.Join(path, "fabric-agent.yaml"))
 	assert.FileExists(t, filepath.Join(path, "system-prompt.md"))
 }
 

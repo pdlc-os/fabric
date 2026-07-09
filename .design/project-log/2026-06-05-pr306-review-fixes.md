@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-05
 **Branch:** pr/nfs-workspace
-**PR:** https://github.com/GoogleCloudPlatform/scion/pull/306
+**PR:** https://github.com/pdlc-os/fabric/pull/306
 
 ## Review Comments Addressed
 

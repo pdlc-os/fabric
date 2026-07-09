@@ -1,11 +1,11 @@
 ---
 title: Connecting to a Hub
-description: Connecting your CLI to a Scion Hub to dispatch agents, share projects, and collaborate.
+description: Connecting your CLI to a Fabric Hub to dispatch agents, share projects, and collaborate.
 ---
 
-**What you will learn**: How to connect your local CLI to a Scion Hub, dispatch agents remotely, use the Web Dashboard, and collaborate with others.
+**What you will learn**: How to connect your local CLI to a Fabric Hub, dispatch agents remotely, use the Web Dashboard, and collaborate with others.
 
-[Hosted mode](/scion/choosing-a-mode/) lets you — or a team — share state, infrastructure, and agent configurations by connecting to a networked Scion Hub. This guide is the **shared user journey** for both hosted tiers ([Single-node](/scion/hosted/single-node/overview/) and [HA](/scion/hosted/ha/overview/)): the connection and dispatch workflow is identical on either.
+[Hosted mode](/fabric/choosing-a-mode/) lets you — or a team — share state, infrastructure, and agent configurations by connecting to a networked Fabric Hub. This guide is the **shared user journey** for both hosted tiers ([Single-node](/fabric/hosted/single-node/overview/) and [HA](/fabric/hosted/ha/overview/)): the connection and dispatch workflow is identical on either.
 
 ## Connecting to a Hub
 
@@ -13,12 +13,12 @@ To connect your local CLI to a team Hub, you configure the `hub` section in your
 
 ### Configuration
 
-Edit `~/.scion/settings.yaml` (or use `scion config set`):
+Edit `~/.fabric/settings.yaml` (or use `fabric config set`):
 
 ```yaml
 hub:
   enabled: true
-  endpoint: "https://scion.yourcompany.com"
+  endpoint: "https://fabric.yourcompany.com"
   local_only: false
 ```
 
@@ -31,7 +31,7 @@ hub:
 Once the endpoint is configured, authenticate your CLI:
 
 ```bash
-scion hub auth login
+fabric hub auth login
 ```
 
 This will open your browser to complete the OAuth flow.
@@ -42,14 +42,14 @@ In a team environment, a **Project** represents a shared project. You link your 
 
 ```bash
 # Link the current directory to the Hub
-scion hub link
+fabric hub link
 ```
 
-If the project is already registered (matched by Git remote), Scion will link it automatically. If not, it will prompt you to register a new Project.
+If the project is already registered (matched by Git remote), Fabric will link it automatically. If not, it will prompt you to register a new Project.
 
 ### Project Configuration
 
-When linked, your `.scion/settings.yaml` will include the Project ID:
+When linked, your `.fabric/settings.yaml` will include the Project ID:
 
 ```yaml
 hub:
@@ -63,7 +63,7 @@ Once a git project is linked to a Hub, **all agents started via the Hub use HTTP
 This means:
 - A `GITHUB_TOKEN` with at least **Contents: Read** access is required. Set it as a secret or ensure it is in your local environment:
   ```bash
-  scion hub secret set --project my-project GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+  fabric hub secret set --project my-project GITHUB_TOKEN=ghp_xxxxxxxxxxxx
   ```
 - SSH credentials are not used for workspace provisioning when Hub mode is active.
 - The CLI will confirm the clone path when starting agents:
@@ -72,7 +72,7 @@ This means:
   ```
 - To use local worktrees instead, run with `--no-hub` or disable hub integration temporarily.
 
-Clone-per-agent is one of Scion's three **workspace sharing modes** (Shared-plain, Worktree-per-agent, Clone-per-agent). For how each mode provisions the workspace and which apply to Hub-managed projects, see [Workspaces & Sharing Modes](/scion/local/workspaces-and-sharing/) and [About Workspaces](/scion/local/workspace/).
+Clone-per-agent is one of Fabric's three **workspace sharing modes** (Shared-plain, Worktree-per-agent, Clone-per-agent). For how each mode provisions the workspace and which apply to Hub-managed projects, see [Workspaces & Sharing Modes](/fabric/local/workspaces-and-sharing/) and [About Workspaces](/fabric/local/workspace/).
 
 ## Using Remote Infrastructure
 
@@ -90,17 +90,17 @@ Teams should manage configuration and secrets centrally on the Hub instead of sh
 
 ```bash
 # Set an environment variable for the project
-scion hub env set --project API_URL=https://api.staging.example.com
+fabric hub env set --project API_URL=https://api.staging.example.com
 
 # Set a secret for the project
-scion hub secret set --project OPENAI_API_KEY=sk-...
+fabric hub secret set --project OPENAI_API_KEY=sk-...
 ```
 
 Secrets are encrypted and never returned via the API; they are securely injected into agents at runtime by the Runtime Broker.
 
 These can also be managed via the web UI at either the user scope (under the profile) or at the Project scope (under Project settings page)
 
-See the [Secret & Environment Management guide](/scion/hosted/user/secrets/) for details on scoping and projection modes.
+See the [Secret & Environment Management guide](/fabric/hosted/user/secrets/) for details on scoping and projection modes.
 
 ## Remote & Hub-Managed Projects
 
@@ -111,7 +111,7 @@ Hub-Managed projects allow you to create project workspaces without any external
 
 ```bash
 # Target a Hub-Managed project remotely by its slug:
-scion start my-agent --project my-hub-managed-slug "do some work"
+fabric start my-agent --project my-hub-managed-slug "do some work"
 ```
 
 ### Git Projects
@@ -120,7 +120,7 @@ You can also create a project directly from a git repository URL. The agent's co
 #### Creating a Project from a Git URL
 
 ```bash
-scion hub project create https://github.com/org/my-project.git \
+fabric hub project create https://github.com/org/my-project.git \
   --name "My Project" \
   --slug my-project \
   --branch develop
@@ -131,7 +131,7 @@ scion hub project create https://github.com/org/my-project.git \
 For private repositories, set a `GITHUB_TOKEN` secret on the project. The token needs at minimum **Contents: Read** permission.
 
 ```bash
-scion hub secret set --project my-project GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+fabric hub secret set --project my-project GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 ```
 
 #### Starting Agents Remotely
@@ -139,28 +139,28 @@ scion hub secret set --project my-project GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 Once the project is created, you can start agents targeting the remote project directly using the `--project` flag with the slug or git URL:
 
 ```bash
-scion start my-agent --project my-project "implement feature X"
+fabric start my-agent --project my-project "implement feature X"
 ```
 
-The agent's container will clone the repository at startup, create a `scion/<agent-name>` branch, and begin working.
+The agent's container will clone the repository at startup, create a `fabric/<agent-name>` branch, and begin working.
 
 ### End-to-End Example
 
 ```bash
 # 1. Create the project from a git URL
-scion hub project create https://github.com/acme/backend.git --name "Acme Backend"
+fabric hub project create https://github.com/acme/backend.git --name "Acme Backend"
 
 # 2. Set the GitHub token for private repo access
-scion hub secret set --project acme-backend GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+fabric hub secret set --project acme-backend GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 
 # 3. Start an agent remotely on the project
-scion start my-agent --project acme-backend "add user authentication"
+fabric start my-agent --project acme-backend "add user authentication"
 
 # 4. Monitor the agent
-scion list --project acme-backend
+fabric list --project acme-backend
 ```
 
 ## Collaboration
 
 - **Web Dashboard**: Use the Hub's web interface to view running agents, logs, and status.
-- **Remote Attach**: You can attach to a remote agent's terminal session using `scion attach`, tunneling through the Hub.
+- **Remote Attach**: You can attach to a remote agent's terminal session using `fabric attach`, tunneling through the Hub.

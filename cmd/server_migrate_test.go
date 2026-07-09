@@ -26,9 +26,9 @@ func TestParseSQLiteSourceDSN(t *testing.T) {
 	}{
 		{
 			name:     "absolute sqlite url",
-			in:       "sqlite:///var/lib/scion/hub.db",
-			wantDSN:  "file:/var/lib/scion/hub.db?cache=shared",
-			wantPath: "/var/lib/scion/hub.db",
+			in:       "sqlite:///var/lib/fabric/hub.db",
+			wantDSN:  "file:/var/lib/fabric/hub.db?cache=shared",
+			wantPath: "/var/lib/fabric/hub.db",
 		},
 		{
 			name:     "relative sqlite url",

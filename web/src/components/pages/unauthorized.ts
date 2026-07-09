@@ -26,8 +26,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import type { PageData } from '../../shared/types.js';
 
-@customElement('scion-page-unauthorized')
-export class ScionPageUnauthorized extends LitElement {
+@customElement('fabric-page-unauthorized')
+export class FabricPageUnauthorized extends LitElement {
   /**
    * Page data from SSR
    */
@@ -46,14 +46,14 @@ export class ScionPageUnauthorized extends LitElement {
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
       padding: 1rem;
     }
 
     .container {
       text-align: center;
       max-width: 480px;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border-radius: 1rem;
       box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -82,30 +82,30 @@ export class ScionPageUnauthorized extends LitElement {
     h1 {
       font-size: 1.5rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.75rem 0;
     }
 
     p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
       line-height: 1.6;
     }
 
     .email-display {
-      font-family: var(--scion-font-mono, monospace);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      font-family: var(--fabric-font-mono, monospace);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.5rem 0.75rem;
-      border-radius: var(--scion-radius-sm, 0.25rem);
+      border-radius: var(--fabric-radius-sm, 0.25rem);
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       display: inline-block;
       margin-bottom: 1.5rem;
     }
 
     .help-text {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 2rem;
       padding: 1rem;
       background: #fef3c7;
@@ -144,7 +144,7 @@ export class ScionPageUnauthorized extends LitElement {
         </div>
         <div class="code">Access Denied</div>
         <h1>Domain Not Authorized</h1>
-        <p>Your email domain is not authorized to access this Scion instance.</p>
+        <p>Your email domain is not authorized to access this Fabric instance.</p>
         ${this.email ? html`<div class="email-display">${this.email}</div>` : ''}
         <div class="help-text">
           If you believe this is an error, please contact your system administrator to request
@@ -163,6 +163,6 @@ export class ScionPageUnauthorized extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-unauthorized': ScionPageUnauthorized;
+    'fabric-page-unauthorized': FabricPageUnauthorized;
   }
 }

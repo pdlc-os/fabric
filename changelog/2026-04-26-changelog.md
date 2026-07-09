@@ -10,14 +10,14 @@ This update introduces a major architectural shift with the initial transition t
 * **Harness & Provisioning:** 
     * **Container-Script Harness:** Added support for Python-based provisioning scripts within harnesses, enabling more flexible and decoupled configuration management.
     * **OAuth & Credentials for Claude:** The Claude harness now supports OAuth tokens and credentials-file based authentication.
-    * **Harness CLI:** Added `scion harness-config install` command for easier management of harness configurations.
+    * **Harness CLI:** Added `fabric harness-config install` command for easier management of harness configurations.
 * **Notifications & Communication:**
     * **Discord Integration:** Added a native Discord notification channel.
     * **Real-time Messages:** Introduced an SSE (Server-Sent Events) stream for per-agent Messages tabs in the Hub, providing live updates.
     * **Discord Adapter Design:** Finalized the design for a dedicated Discord chat adapter.
 * **Web UI Enhancements:**
     * **Advanced Filtering:** Added an all/mine/shared scope filter to the agent list view for better organization.
-    * **Workspace Improvements:** Added a toggle for dot-file visibility in the workspace file browser and ensured `.scion` directories are accessible.
+    * **Workspace Improvements:** Added a toggle for dot-file visibility in the workspace file browser and ensured `.fabric` directories are accessible.
     * **Update Management:** Added "check-for-updates" and "update-now" functionality for server rebuilds directly from the UI.
     * **Grove Details:** Added a broker column to the agent table in the grove detail view.
 * **Infrastructure:**

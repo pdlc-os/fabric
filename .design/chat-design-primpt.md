@@ -1,9 +1,9 @@
-chat app integration for scion
+chat app integration for fabric
 We want to set up a chat app integration design. It should support a common base architecture. With a first concrete implementation for Google chat. And a second target for Slack
 
-Will act as a combination scion message broker plugin, and API proxy client for additional operations on agents in scion
+Will act as a combination fabric message broker plugin, and API proxy client for additional operations on agents in fabric
 
-Should import and use hub client library code from scion package but run as a standalone process. 
+Should import and use hub client library code from fabric package but run as a standalone process. 
 
 Written in golang, using
 

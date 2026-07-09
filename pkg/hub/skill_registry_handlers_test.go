@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func newRegistryTestServer(t *testing.T) (*Server, store.Store) {

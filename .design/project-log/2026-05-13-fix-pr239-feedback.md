@@ -1,7 +1,7 @@
 # Fix PR #239 Feedback Items
 
 **Date:** 2026-05-13
-**Branch:** scion/fix-broken-tests
+**Branch:** fabric/fix-broken-tests
 
 ## Changes Made
 
@@ -19,4 +19,4 @@
 - `go build ./...` - passed
 - `go test ./pkg/util/logging/... -v` - all 60 tests passed
 - `go test ./pkg/hub/ -run LogQuery -v` - passed
-- Committed and pushed to `scion/fix-broken-tests`.
+- Committed and pushed to `fabric/fix-broken-tests`.

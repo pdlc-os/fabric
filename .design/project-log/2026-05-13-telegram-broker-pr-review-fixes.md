@@ -1,7 +1,7 @@
 # Telegram Broker PR #66 Review Fixes
 
 **Date**: 2026-05-13
-**Branch**: scion/fix-issue-43
+**Branch**: fabric/fix-issue-43
 **Agent**: fix-fb-pr66
 
 ## Summary
@@ -27,4 +27,4 @@ Addressed 2 critical and 4 medium severity issues from the code review on PR #66
 ## Verification
 - `go build ./...` - passes
 - `go test ./pkg/plugin/telegram/... -race -count=1` - all tests pass
-- `go vet ./pkg/plugin/telegram/... ./cmd/scion-plugin-telegram/...` - clean
+- `go vet ./pkg/plugin/telegram/... ./cmd/fabric-plugin-telegram/...` - clean

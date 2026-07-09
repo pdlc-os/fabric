@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // SignedURLExpiry is the duration signed URLs are valid for.
@@ -283,7 +283,7 @@ func (s *Server) createTemplateV2(w http.ResponseWriter, r *http.Request) {
 
 	// If no files provided, keep the template in 'pending' status so it
 	// cannot be used for agent dispatch until files are uploaded via
-	// "scion template sync". This prevents template_error failures when
+	// "fabric template sync". This prevents template_error failures when
 	// agents are dispatched to file-less templates.
 	// Templates with files are also created as 'pending' and promoted to
 	// 'active' during finalize (handleTemplateFinalize).
@@ -693,14 +693,14 @@ func (s *Server) handleTemplateDownload(w http.ResponseWriter, r *http.Request, 
 		if name == "" {
 			name = template.Name
 		}
-		ValidationError(w, "template "+name+" ("+template.ID+") has no files — sync template files first with: scion template sync "+name, nil)
+		ValidationError(w, "template "+name+" ("+template.ID+") has no files — sync template files first with: fabric template sync "+name, nil)
 		return
 	}
 
 	// Generate download URLs using shared helper
 	downloadURLs, manifestURL, expires, err := generateDownloadURLs(ctx, stor, template.StoragePath, template.Files)
 	if err != nil {
-		RuntimeError(w, fmt.Sprintf("template %q: %s — run 'scion template validate %s' to diagnose", template.Name, err, template.Name))
+		RuntimeError(w, fmt.Sprintf("template %q: %s — run 'fabric template validate %s' to diagnose", template.Name, err, template.Name))
 		return
 	}
 

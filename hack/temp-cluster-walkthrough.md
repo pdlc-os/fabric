@@ -1,6 +1,6 @@
 # Kubernetes Runtime Walkthrough
 
-This guide walks you through testing the Kubernetes runtime in `scion-agent` using the `agent-sandbox` standard.
+This guide walks you through testing the Kubernetes runtime in `fabric-agent` using the `agent-sandbox` standard.
 
 ## Prerequisites
 - `gcloud` CLI installed and authenticated.
@@ -51,8 +51,8 @@ kubectl get pods -n agent-sandbox-system
 ```
 
 ## Step 3: Create a Sandbox Template
-<!-- TODO the template resource should prob be just called scion -->
-Agents need a template to define their environment. Create a file named `scion-template.yaml`. We'll name it `gemini` to match the default scion template.
+<!-- TODO the template resource should prob be just called fabric -->
+Agents need a template to define their environment. Create a file named `fabric-template.yaml`. We'll name it `gemini` to match the default fabric template.
 
 
 ```yaml
@@ -74,40 +74,40 @@ spec:
 
 Apply it:
 ```bash
-kubectl apply -f scion-template.yaml
+kubectl apply -f fabric-template.yaml
 ```
 
-## Step 4: Initialize Scion Project and Build
-Before running agents, you need to initialize the scion project to seed the templates.
+## Step 4: Initialize Fabric Project and Build
+Before running agents, you need to initialize the fabric project to seed the templates.
 
 ```bash
-# Build the scion binary
-go build -o scion ./cmd/scion
+# Build the fabric binary
+go build -o fabric ./cmd/fabric
 
-# Initialize the project (creates .scion directory)
-./scion project init
+# Initialize the project (creates .fabric directory)
+./fabric project init
 ```
 
 
-## Step 5: Run Scion with Kubernetes Runtime
-Configure Scion to use the Kubernetes runtime.
+## Step 5: Run Fabric with Kubernetes Runtime
+Configure Fabric to use the Kubernetes runtime.
 
 ```bash
-./scion config set default_runtime kubernetes
+./fabric config set default_runtime kubernetes
 
 # Run a new agent with a task
-./scion run my-k8s-agent "echo 'Hello from Kubernetes!'"
+./fabric run my-k8s-agent "echo 'Hello from Kubernetes!'"
 ```
 
 ## Step 6: Verify the Resources
-Check that Scion created the `SandboxClaim` and that the controller provisioned the `Sandbox` and `Pod`.
+Check that Fabric created the `SandboxClaim` and that the controller provisioned the `Sandbox` and `Pod`.
 
 ```bash
 # Check the claim
 kubectl get sandboxclaims
 
 # Check the provisioned pod
-kubectl get pods -l scion.agent=true
+kubectl get pods -l fabric.agent=true
 ```
 
 ## Step 7: Test Logs and Attach
@@ -115,10 +115,10 @@ Test that you can see logs and interact with the agent:
 
 ```bash
 # See logs
-./scion logs my-k8s-agent
+./fabric logs my-k8s-agent
 
 # Attach interactively
-./scion attach my-k8s-agent
+./fabric attach my-k8s-agent
 ```
 
 ## Step 8: Cleanup
@@ -126,8 +126,8 @@ When finished, you can delete the agent and eventually the cluster.
 
 ```bash
 # Delete the agent (removes SandboxClaim and local files)
-./scion delete my-k8s-agent
+./fabric delete my-k8s-agent
 
 # Delete the cluster
-gcloud container clusters delete scion-agents --region us-central1
+gcloud container clusters delete fabric-agents --region us-central1
 ```

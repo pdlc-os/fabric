@@ -25,7 +25,7 @@ This design re-purposes the existing workspace file browser component to display
 
 This document covers:
 - A dedicated template detail page for browsing and editing template files
-- Re-using the shared `scion-file-browser` and `scion-file-editor` components (from [web-file-editor.md](./web-file-editor.md))
+- Re-using the shared `fabric-file-browser` and `fabric-file-editor` components (from [web-file-editor.md](./web-file-editor.md))
 - API changes needed to support reading/writing individual template files
 - Template versioning considerations
 
@@ -65,14 +65,14 @@ Currently, clicking a template in the Resources > Templates list does nothing. T
 
 **Behavior:**
 - The page shows template metadata (name, description, harness) and the file browser below.
-- The file browser uses the shared `scion-file-browser` component with a `TemplateFileBrowserDataSource`.
+- The file browser uses the shared `fabric-file-browser` component with a `TemplateFileBrowserDataSource`.
 - File actions mirror the workspace browser: edit (pencil), preview (eye), download.
 - Upload button allows adding new files to the template.
-- Editing a file opens the shared `scion-file-editor` in full-width replacement mode (same pattern as workspace editing).
+- Editing a file opens the shared `fabric-file-editor` in full-width replacement mode (same pattern as workspace editing).
 
 ### 2.2 File Browser Re-Use
 
-The template detail page uses the shared `scion-file-browser` component (extracted from `grove-detail.ts` as part of [web-file-editor.md](./web-file-editor.md)). The only differences are in the data source adapter:
+The template detail page uses the shared `fabric-file-browser` component (extracted from `grove-detail.ts` as part of [web-file-editor.md](./web-file-editor.md)). The only differences are in the data source adapter:
 
 | Aspect | Workspace Browser | Template Browser |
 |--------|------------------|------------------|
@@ -85,7 +85,7 @@ The template detail page uses the shared `scion-file-browser` component (extract
 
 ### 2.3 Editing Template Files
 
-Clicking the pencil icon on a template file opens the shared `scion-file-editor` component (from [web-file-editor.md](./web-file-editor.md)).
+Clicking the pencil icon on a template file opens the shared `fabric-file-editor` component (from [web-file-editor.md](./web-file-editor.md)).
 
 **Key differences from workspace file editing:**
 - **Save** writes back through the template file API (not the workspace API), via the `TemplateFileBrowserDataSource`.
@@ -206,15 +206,15 @@ This avoids the overhead of generating signed URLs when we just need to display 
 A new page component at the route `/groves/{groveId}/templates/{templateId}`:
 
 ```
-scion-template-detail (new page component)
+fabric-template-detail (new page component)
 ├── Properties:
 │   groveId: string
 │   templateId: string
 ├── Children:
 │   breadcrumb navigation (back to grove settings)
 │   template metadata header (name, description, harness)
-│   scion-file-browser (with TemplateFileBrowserDataSource)
-│   scion-file-editor (opened on edit request, replaces file browser)
+│   fabric-file-browser (with TemplateFileBrowserDataSource)
+│   fabric-file-editor (opened on edit request, replaces file browser)
 ```
 
 ### 4.2 Template Data Source
@@ -227,7 +227,7 @@ class TemplateFileBrowserDataSource implements FileBrowserDataSource {
 }
 ```
 
-The shared `scion-file-browser` and `scion-file-editor` components are prerequisites — built as part of [web-file-editor.md](./web-file-editor.md).
+The shared `fabric-file-browser` and `fabric-file-editor` components are prerequisites — built as part of [web-file-editor.md](./web-file-editor.md).
 
 ---
 
@@ -312,10 +312,10 @@ The `locked` field on templates was introduced speculatively in earlier designs 
 - [x] Add `PUT /api/v1/templates/{templateId}/files/{filePath}` write endpoint
 - [x] Add `DELETE /api/v1/templates/{templateId}/files/{filePath}` delete endpoint
 - [x] Implement `TemplateFileBrowserDataSource` adapter
-- [x] Add `scion-template-detail` page component with route `/groves/{id}/templates/{templateId}`
+- [x] Add `fabric-template-detail` page component with route `/groves/{id}/templates/{templateId}`
 - [x] Breadcrumb navigation back to grove settings
 - [x] Wire template list rows in grove settings to navigate to detail page
-- [x] Integrate `scion-file-browser` and `scion-file-editor` on detail page
+- [x] Integrate `fabric-file-browser` and `fabric-file-editor` on detail page
 - [x] Gate edit/delete/upload on `update` capability
 - [x] Content hash recomputation on save
 
@@ -331,6 +331,6 @@ The `locked` field on templates was introduced speculatively in earlier designs 
 
 ## 8. Dependencies
 
-- **Web File Editor & File Browser** ([web-file-editor.md](./web-file-editor.md)) — the shared `scion-file-browser` and `scion-file-editor` components are prerequisites for all phases of this design. That work is sequenced first.
+- **Web File Editor & File Browser** ([web-file-editor.md](./web-file-editor.md)) — the shared `fabric-file-browser` and `fabric-file-editor` components are prerequisites for all phases of this design. That work is sequenced first.
 - **Template API** — existing CRUD and download endpoints. New file-level endpoints needed.
 - **Storage layer** — `pkg/storage/` must support reading individual files by path (currently supports full-prefix operations).

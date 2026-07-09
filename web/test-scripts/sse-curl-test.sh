@@ -21,7 +21,7 @@
 # changes via the API. No browser needed — pure server-side validation.
 #
 # Prerequisites:
-#   - scion server running with --enable-hub --enable-web --dev-auth
+#   - fabric server running with --enable-hub --enable-web --dev-auth
 #
 # Usage:
 #   TOKEN=<dev-token> PROJECT_ID=<uuid> ./sse-curl-test.sh
@@ -41,7 +41,7 @@ BASE="${BASE:-http://localhost:8080}"
 
 # Get a session cookie (SSE endpoint requires session auth, not Bearer)
 COOKIE=$(curl -s -c - -H "Authorization: Bearer ${TOKEN}" \
-  "${BASE}/api/v1/projects" 2>/dev/null | grep scion_sess | awk '{print $NF}')
+  "${BASE}/api/v1/projects" 2>/dev/null | grep fabric_sess | awk '{print $NF}')
 
 if [ -z "$COOKIE" ]; then
   echo "ERROR: Could not obtain session cookie. Is the server running?"
@@ -50,7 +50,7 @@ fi
 
 echo "=== Starting SSE listener ==="
 SSE_OUTPUT=$(mktemp)
-timeout 20 curl -sN -b "scion_sess=${COOKIE}" \
+timeout 20 curl -sN -b "fabric_sess=${COOKIE}" \
   "${BASE}/events?sub=project.${PROJECT_ID}.>" > "$SSE_OUTPUT" 2>&1 &
 SSE_PID=$!
 sleep 2

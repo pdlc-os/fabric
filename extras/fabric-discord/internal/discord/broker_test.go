@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 func discardLogger() *slog.Logger {
@@ -134,7 +134,7 @@ func TestDeliverInbound_ReturnsHubError(t *testing.T) {
 			httpClient: http.DefaultClient,
 		}
 
-		he := b.deliverInbound("scion.project.p1.agent.coder.messages", newTestStructuredMessage())
+		he := b.deliverInbound("fabric.project.p1.agent.coder.messages", newTestStructuredMessage())
 		require.NotNil(t, he)
 		assert.Equal(t, 404, he.StatusCode)
 		assert.Equal(t, "agent_not_found", he.Code)
@@ -159,7 +159,7 @@ func TestDeliverInbound_ReturnsHubError(t *testing.T) {
 			httpClient: http.DefaultClient,
 		}
 
-		he := b.deliverInbound("scion.project.p1.agent.coder.messages", newTestStructuredMessage())
+		he := b.deliverInbound("fabric.project.p1.agent.coder.messages", newTestStructuredMessage())
 		require.NotNil(t, he)
 		assert.Equal(t, 403, he.StatusCode)
 		assert.Equal(t, "forbidden", he.Code)
@@ -181,7 +181,7 @@ func TestDeliverInbound_ReturnsHubError(t *testing.T) {
 			httpClient: http.DefaultClient,
 		}
 
-		he := b.deliverInbound("scion.project.p1.agent.coder.messages", newTestStructuredMessage())
+		he := b.deliverInbound("fabric.project.p1.agent.coder.messages", newTestStructuredMessage())
 		assert.Nil(t, he)
 	})
 

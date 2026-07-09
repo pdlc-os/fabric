@@ -244,7 +244,7 @@ func TestMultiStore_MigrateFromLegacy(t *testing.T) {
 	legacyCreds := &BrokerCredentials{
 		BrokerID:     "legacy-broker",
 		SecretKey:    base64.StdEncoding.EncodeToString([]byte("legacy-secret")),
-		HubEndpoint:  "https://hub.scion.dev",
+		HubEndpoint:  "https://hub.fabric.dev",
 		RegisteredAt: time.Now().Truncate(time.Second),
 	}
 	legacyData, _ := json.MarshalIndent(legacyCreds, "", "  ")
@@ -266,7 +266,7 @@ func TestMultiStore_MigrateFromLegacy(t *testing.T) {
 	}
 
 	// Should be able to load the migrated credentials
-	derivedName := DeriveHubName("https://hub.scion.dev")
+	derivedName := DeriveHubName("https://hub.fabric.dev")
 	loaded, err := store.Load(derivedName)
 	if err != nil {
 		t.Fatalf("Failed to load migrated credentials: %v", err)
@@ -397,7 +397,7 @@ func TestMultiStore_ValidateName(t *testing.T) {
 		{"ends with hyphen", "hub-", true},
 		{"contains uppercase", "MyHub", true},
 		{"contains spaces", "my hub", true},
-		{"contains dots", "hub.scion.dev", true},
+		{"contains dots", "hub.fabric.dev", true},
 		{"contains underscores", "my_hub", true},
 		{"too long", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", true}, // 66 chars
 		{"max length", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", false}, // 63 chars
@@ -421,13 +421,13 @@ func TestDeriveHubName(t *testing.T) {
 		endpoint string
 		expected string
 	}{
-		{"https://hub.scion.dev", "hub-scion-dev"},
+		{"https://hub.fabric.dev", "hub-fabric-dev"},
 		{"http://localhost:8080", "localhost"},
 		{"http://localhost:9090", "localhost-9090"},
 		{"http://localhost", "localhost"},
 		{"https://hub.example.com:443", "hub-example-com"},
 		{"http://hub.example.com:80", "hub-example-com"},
-		{"https://staging.hub.scion.dev", "staging-hub-scion-dev"},
+		{"https://staging.hub.fabric.dev", "staging-hub-fabric-dev"},
 		{"", ""},
 	}
 

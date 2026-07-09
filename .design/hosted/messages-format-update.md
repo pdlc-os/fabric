@@ -5,7 +5,7 @@
 
 ## Summary
 
-This document proposes upgrading Scion's messaging system from plain-text strings to structured JSON messages with well-defined fields, and lays the foundation for extensible notification channels and a future message broker architecture. Structured messages become the default; a `--plain` CLI flag marks the message for plain-text delivery at the agent harness boundary while still flowing through the system as structured JSON.
+This document proposes upgrading Fabric's messaging system from plain-text strings to structured JSON messages with well-defined fields, and lays the foundation for extensible notification channels and a future message broker architecture. Structured messages become the default; a `--plain` CLI flag marks the message for plain-text delivery at the agent harness boundary while still flowing through the system as structured JSON.
 
 ---
 
@@ -36,13 +36,13 @@ The following sender/recipient combinations are currently supported:
 
 | # | Sender | Recipient | Mechanism | Notes |
 |---|--------|-----------|-----------|-------|
-| 1 | **User (human)** | **Agent** | CLI `scion message <agent> <msg>` | Via Hub API or local tmux send-keys |
-| 2 | **Agent** | **Agent** | CLI `scion message <agent> <msg>` (from inside container) | Agent uses its JWT to message peers |
-| 3 | **Agent** | **All Agents (grove)** | CLI `scion message --broadcast <msg>` | Fan-out to all running agents in grove |
-| 4 | **Agent** | **All Agents (global)** | CLI `scion message --all <msg>` | Cross-grove broadcast |
+| 1 | **User (human)** | **Agent** | CLI `fabric message <agent> <msg>` | Via Hub API or local tmux send-keys |
+| 2 | **Agent** | **Agent** | CLI `fabric message <agent> <msg>` (from inside container) | Agent uses its JWT to message peers |
+| 3 | **Agent** | **All Agents (grove)** | CLI `fabric message --broadcast <msg>` | Fan-out to all running agents in grove |
+| 4 | **Agent** | **All Agents (global)** | CLI `fabric message --all <msg>` | Cross-grove broadcast |
 | 5 | **System (notification)** | **Agent** | `NotificationDispatcher` dispatches via `DispatchAgentMessage` | Triggered by watched agent state change |
 | 6 | **System (notification)** | **User (web)** | SSE `notification.created` event + DB persistence | Real-time via web UI notification tray |
-| 7 | **System (notification)** | **User (CLI)** | `scion hub notifications` CLI query | Polling-based retrieval |
+| 7 | **System (notification)** | **User (CLI)** | `fabric hub notifications` CLI query | Polling-based retrieval |
 | 8 | **System (scheduled)** | **Agent** | Hub scheduler fires `messageEventHandler` at scheduled time | Created via `--in`/`--at` flags |
 | 9 | **User (human)** | **Agent (via web)** | Not yet implemented | Web UI message input planned |
 
@@ -50,10 +50,10 @@ The following sender/recipient combinations are currently supported:
 
 Messages are **plain text strings** at every layer:
 
-- **CLI**: `scion message agent1 "implement the auth module"` - raw string
+- **CLI**: `fabric message agent1 "implement the auth module"` - raw string
 - **Hub API**: `POST /agents/{id}/message` with `{"message": "string", "interrupt": bool}`
 - **Runtime Broker API**: Same `MessageRequest{Message string, Interrupt bool}`
-- **Container delivery**: `tmux send-keys -t scion <message> Enter`
+- **Container delivery**: `tmux send-keys -t fabric <message> Enter`
 - **System notifications**: Plain text with prefix: `"You are being notified by the system because an agent you manage has reached a notable state. {message}"`
 
 There is no structured metadata (timestamp, sender identity, message type, urgency, attachments).
@@ -206,7 +206,7 @@ The `type` field is set automatically based on context:
 ### 3.1 New and Modified Flags
 
 ```
-scion message [agent] <message> [flags]
+fabric message [agent] <message> [flags]
 
 Existing flags (unchanged behavior):
   -i, --interrupt      Interrupt the harness before sending
@@ -231,7 +231,7 @@ The message `type` is **not** a CLI flag — it is inferred automatically from c
 
 When a user runs:
 ```bash
-scion message backend-dev "implement auth"
+fabric message backend-dev "implement auth"
 ```
 
 The CLI constructs a `StructuredMessage` with:
@@ -245,7 +245,7 @@ The CLI constructs a `StructuredMessage` with:
 
 When `--plain` is used:
 ```bash
-scion message --plain backend-dev "just send this raw text"
+fabric message --plain backend-dev "just send this raw text"
 ```
 The message is still wrapped in a `StructuredMessage` for internal routing and logging, but with `plain: true`. At harness delivery time, only the raw `msg` text is injected via tmux — no JSON envelope or delimiters.
 
@@ -268,7 +268,7 @@ Agent messaging requires a Hub connection — without a Hub, there is no means f
 ### 4.1 User -> Agent (via CLI)
 
 ```
-User: scion message backend-dev "implement auth" --attach src/spec.md
+User: fabric message backend-dev "implement auth" --attach src/spec.md
 
 CLI (cmd/message.go):
   1. Resolve sender identity
@@ -333,7 +333,7 @@ When a structured message (with `plain: false`) is delivered to an agent via tmu
 ```
 You are receiving a message from the orchestration system:
 
----BEGIN SCION MESSAGE---
+---BEGIN FABRIC MESSAGE---
 {
   "version": 1,
   "timestamp": "2026-03-07T14:30:00Z",
@@ -344,26 +344,26 @@ You are receiving a message from the orchestration system:
   "broadcasted": false,
   "attachments": ["docs/auth-spec.md"]
 }
----END SCION MESSAGE---
+---END FABRIC MESSAGE---
 ```
 
 Key points:
 - The `recipient` and `id` fields are **stripped** before delivery (the agent doesn't need its own identity from the message, and stripping `id` saves tokens).
-- The delimiters (`---BEGIN/END SCION MESSAGE---`) make it easy for LLMs and harness tooling to parse.
+- The delimiters (`---BEGIN/END FABRIC MESSAGE---`) make it easy for LLMs and harness tooling to parse.
 - The plain-text intro ensures the LLM understands this is a system-mediated message, not arbitrary user input.
 
 ### 5.2 Plain Mode Delivery
 
 When `plain: true`, the message is delivered as raw text only (current behavior):
 ```
-tmux send-keys -t scion "just send this raw text" Enter
+tmux send-keys -t fabric "just send this raw text" Enter
 ```
 
 ### 5.3 Empty Message Delivery
 
 Empty messages (no message body) are always sent as a plain tmux `Enter` keypress to trigger confirmations in the harness UI:
 ```
-tmux send-keys -t scion Enter
+tmux send-keys -t fabric Enter
 ```
 
 ### 5.4 Harness-Specific Considerations
@@ -399,7 +399,7 @@ type MessageRequest struct {
     Interrupt bool `json:"interrupt,omitempty"`
 }
 
-// StructuredMessage represents a formatted Scion message.
+// StructuredMessage represents a formatted Fabric message.
 type StructuredMessage struct {
     Version     int      `json:"version"`
     Timestamp   string   `json:"timestamp"`
@@ -462,7 +462,7 @@ slog.Info("message dispatched",
 
 ### 7.2 Cloud Logging Integration
 
-For the cloud/GCP logging integration, message logs should be written to a **dedicated `scion-messages` log** (separate from the general application log). Each log entry must include:
+For the cloud/GCP logging integration, message logs should be written to a **dedicated `fabric-messages` log** (separate from the general application log). Each log entry must include:
 
 - Standard `agent_id` labels (already present in the logging pipeline)
 - `sender` label using the `<type>:<identifier>` format (e.g., `user:alice`, `agent:backend-dev`)
@@ -484,10 +484,10 @@ In local mode (no Hub), messages are not logged beyond the standard application 
 
 Currently, human user notifications are limited to:
 1. Web UI notification tray (SSE + polling)
-2. CLI query (`scion hub notifications`)
+2. CLI query (`fabric hub notifications`)
 3. Browser push notifications (via web UI)
 
-Users want notifications in their preferred messaging apps (Slack, Discord, email, SMS, etc.) without modifying core Scion code for each integration.
+Users want notifications in their preferred messaging apps (Slack, Discord, email, SMS, etc.) without modifying core Fabric code for each integration.
 
 ### 8.2 Notification Channel Interface
 
@@ -520,7 +520,7 @@ type ChannelConfig struct {
 {
   "type": "webhook",
   "params": {
-    "url": "https://hooks.example.com/scion",
+    "url": "https://hooks.example.com/fabric",
     "method": "POST",
     "headers": "Authorization=Bearer xxx",
     "template": "default"
@@ -536,7 +536,7 @@ The webhook channel POSTs the structured message JSON to the configured URL. Thi
   "type": "slack",
   "params": {
     "webhook_url": "https://hooks.slack.com/services/...",
-    "channel": "#scion-notifications",
+    "channel": "#fabric-notifications",
     "mention_on_urgent": "@here"
   }
 }
@@ -544,21 +544,21 @@ The webhook channel POSTs the structured message JSON to the configured URL. Thi
 
 ### 8.4 Channel Configuration via Settings
 
-Notification channels are configured through the **core/global settings file** rather than dedicated CLI commands or database tables. Channel configuration is defined in the Scion settings schema and read at Hub startup.
+Notification channels are configured through the **core/global settings file** rather than dedicated CLI commands or database tables. Channel configuration is defined in the Fabric settings schema and read at Hub startup.
 
 Example settings structure:
 ```yaml
 notification_channels:
   - type: webhook
     params:
-      url: "https://hooks.example.com/scion"
+      url: "https://hooks.example.com/fabric"
       method: "POST"
     filter_types: ["state-change", "input-needed"]
     filter_urgent_only: false
   - type: slack
     params:
       webhook_url: "https://hooks.slack.com/services/..."
-      channel: "#scion-notifications"
+      channel: "#fabric-notifications"
       mention_on_urgent: "@here"
 ```
 
@@ -638,11 +638,11 @@ type Subscription interface {
 ### 9.4 Topic Hierarchy
 
 ```
-scion.grove.<grove-id>.agent.<agent-slug>.messages    # direct messages to agent
-scion.grove.<grove-id>.broadcast                       # grove-wide broadcasts
-scion.global.broadcast                                 # global broadcasts
-scion.grove.<grove-id>.notifications                   # notification events
-scion.grove.<grove-id>.agent.<agent-slug>.status       # status changes
+fabric.grove.<grove-id>.agent.<agent-slug>.messages    # direct messages to agent
+fabric.grove.<grove-id>.broadcast                       # grove-wide broadcasts
+fabric.global.broadcast                                 # global broadcasts
+fabric.grove.<grove-id>.notifications                   # notification events
+fabric.grove.<grove-id>.agent.<agent-slug>.status       # status changes
 ```
 
 ### 9.5 Adapter Implementations
@@ -684,14 +684,14 @@ type RedisBroker struct {
 The broker adapter is configured at the **Hub level**. Each grove maps to a broker namespace using a convention based on the grove ID:
 
 - **Hub configuration**: Selects the broker adapter type (InProcess, NATS, Redis) and connection parameters.
-- **Grove mapping**: Each grove maps to `scion.grove.<grove-id>.*` topic namespace automatically.
+- **Grove mapping**: Each grove maps to `fabric.grove.<grove-id>.*` topic namespace automatically.
 - **Per-grove enablement**: External broker adapters can be enabled per grove, allowing some groves to use InProcess while others use NATS.
 
 ### 9.7 Broadcast Flow with Broker
 
 **Current flow (without broker):**
 ```
-Agent A: scion message --broadcast "whats up?"
+Agent A: fabric message --broadcast "whats up?"
   -> CLI iterates over running agents
   -> CLI sends N individual HTTP requests to Hub
   -> Hub dispatches N messages to broker(s)
@@ -699,9 +699,9 @@ Agent A: scion message --broadcast "whats up?"
 
 **Proposed flow (with broker):**
 ```
-Agent A: scion message --broadcast "whats up?"
+Agent A: fabric message --broadcast "whats up?"
   -> CLI sends 1 publish to Hub
-  -> Hub publishes to broker topic: scion.grove.<id>.broadcast
+  -> Hub publishes to broker topic: fabric.grove.<id>.broadcast
   -> Broker fans out to all subscribed consumers
   -> Hub (subscribed on behalf of all agents in grove) receives
   -> Hub dispatches to each agent's runtime broker
@@ -714,9 +714,9 @@ The key difference is the CLI makes **one** API call instead of N, and the fan-o
 For direct agent-to-agent messages, the broker provides optional logging and routing but is not strictly required:
 
 ```
-Agent A: scion message agent-b "here are my findings"
+Agent A: fabric message agent-b "here are my findings"
   -> CLI sends to Hub API (1 request)
-  -> Hub publishes to broker: scion.grove.<id>.agent.agent-b.messages
+  -> Hub publishes to broker: fabric.grove.<id>.agent.agent-b.messages
   -> Hub (subscribed) receives and dispatches to agent-b's broker
   -> Message logged via structured logging
 ```
@@ -727,7 +727,7 @@ For single-node InProcess mode, this adds minimal overhead (one channel send). F
 
 Agents run in containers without direct broker connectivity. The Hub acts as a subscription proxy:
 
-1. When an agent starts, the Hub subscribes to `scion.grove.<id>.agent.<slug>.messages` on its behalf.
+1. When an agent starts, the Hub subscribes to `fabric.grove.<id>.agent.<slug>.messages` on its behalf.
 2. When a message arrives, the Hub dispatches it to the agent via the existing `DispatchAgentMessage` path.
 3. When an agent stops, the Hub unsubscribes.
 
@@ -873,7 +873,7 @@ If a new CLI sends a `StructuredMessage` to an old Hub:
 - ⏳ Add `FormatMessage` method to `Harness` interface (deferred — both Claude and Gemini use the same `FormatForDelivery()` formatting; per-harness customization not yet needed)
 
 ### Phase 3: Logging ✅ COMPLETE
-- ✅ Add structured logging for message dispatch with dedicated `scion-messages` log
+- ✅ Add structured logging for message dispatch with dedicated `fabric-messages` log
 - ✅ Include `sender`, `recipient`, and `type` as log labels (promoted to GCP labels via `messageCloudHandler`)
 - ✅ Include standard `agent_id` labels in all message log entries
 - ✅ No database table — structured logs are the message audit trail
@@ -947,7 +947,7 @@ If a new CLI sends a `StructuredMessage` to an old Hub:
 - `pkg/brokerclient/agents.go` - Update `SendMessage` to support structured format
 
 ### Logging
-- Hub structured logging configuration - Add dedicated `scion-messages` log with sender/recipient/type labels
+- Hub structured logging configuration - Add dedicated `fabric-messages` log with sender/recipient/type labels
 
 ### Web Frontend
 - `web/src/components/shared/notification-tray.ts` - Parse structured message format

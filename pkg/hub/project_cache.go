@@ -22,11 +22,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/google/uuid"
 )
 

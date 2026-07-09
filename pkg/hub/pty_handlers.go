@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
@@ -135,7 +135,7 @@ func (s *Server) handleAgentPTY(w http.ResponseWriter, r *http.Request) {
 
 	// Create PTY session
 	// Use agent.Slug for the stream since that's what the broker uses to look up containers
-	// (containers are labeled with scion.name=<slug>)
+	// (containers are labeled with fabric.name=<slug>)
 	session := newPTYSession(ctx, agent.Slug, agent.ProjectID, agent.RuntimeBrokerID, conn, s.controlChannel, cols, rows)
 	defer session.Close()
 

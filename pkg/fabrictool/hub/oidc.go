@@ -25,18 +25,18 @@ import (
 
 	"cloud.google.com/go/compute/metadata"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 const (
 	// EnvHubOIDCAudience overrides the audience claim in the OIDC identity token.
-	EnvHubOIDCAudience = "SCION_HUB_OIDC_AUDIENCE"
+	EnvHubOIDCAudience = "FABRIC_HUB_OIDC_AUDIENCE"
 
 	// EnvTransportToken is the env var for the hub-provided transport OIDC token.
-	EnvTransportToken = "SCION_TRANSPORT_TOKEN"
+	EnvTransportToken = "FABRIC_TRANSPORT_TOKEN"
 
 	// EnvTransportAudience is the env var for the transport token audience.
-	EnvTransportAudience = "SCION_TRANSPORT_AUDIENCE"
+	EnvTransportAudience = "FABRIC_TRANSPORT_AUDIENCE"
 
 	gcpMetadataBaseURL = "http://metadata.google.internal"
 
@@ -201,7 +201,7 @@ func newOIDCTransport(base http.RoundTripper, source oidcTokenSource) *oidcTrans
 
 // configureOIDCTransport sets up the OIDC transport layer on the client.
 // Token source selection:
-//  1. If SCION_TRANSPORT_TOKEN env var is set → injected mode (hub-provided token).
+//  1. If FABRIC_TRANSPORT_TOKEN env var is set → injected mode (hub-provided token).
 //  2. Else if running on GCP → metadata server mode (ambient SA identity).
 //  3. Else → no OIDC transport (agent uses plain HTTP).
 func (c *Client) configureOIDCTransport() {
@@ -219,19 +219,19 @@ func (c *Client) configureOIDCTransport() {
 		return
 	}
 
-	// Fall back to GCE metadata server if on GCP — but only when the scion
-	// metadata server is NOT active. When SCION_METADATA_MODE is "assign",
-	// iptables redirects the metadata IP (169.254.169.254) to the local scion
+	// Fall back to GCE metadata server if on GCP — but only when the fabric
+	// metadata server is NOT active. When FABRIC_METADATA_MODE is "assign",
+	// iptables redirects the metadata IP (169.254.169.254) to the local fabric
 	// metadata server on port 18380. This makes the real GCE metadata server
 	// unreachable, causing OIDC token fetches to time out and creating a
-	// circular dependency (hub client → GCE metadata → scion metadata → hub
-	// client). If no transport token was injected and scion metadata is active,
+	// circular dependency (hub client → GCE metadata → fabric metadata → hub
+	// client). If no transport token was injected and fabric metadata is active,
 	// the Hub doesn't require transport-layer OIDC auth.
 	if !isOnGCPFunc() {
 		return
 	}
-	if mode := os.Getenv("SCION_METADATA_MODE"); mode != "" {
-		log.Debug("Skipping OIDC metadata mode: scion metadata server active (mode=%s), GCE metadata IP is redirected", mode)
+	if mode := os.Getenv("FABRIC_METADATA_MODE"); mode != "" {
+		log.Debug("Skipping OIDC metadata mode: fabric metadata server active (mode=%s), GCE metadata IP is redirected", mode)
 		return
 	}
 

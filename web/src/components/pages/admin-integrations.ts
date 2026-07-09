@@ -76,7 +76,7 @@ const PLATFORM_FIELDS: Record<string, PlatformFieldDef[]> = {
   telegram: [
     { key: 'inbound_mode', label: 'Inbound Mode', description: 'How Telegram delivers updates (poll or webhook)', defaultValue: 'poll' },
     { key: 'webhook_listen', label: 'Webhook Listen', description: 'HTTP listen address for webhook mode', defaultValue: ':9094' },
-    { key: 'db_path', label: 'Database Path', description: 'Path to SQLite database', defaultValue: '~/.scion/scion-telegram.db' },
+    { key: 'db_path', label: 'Database Path', description: 'Path to SQLite database', defaultValue: '~/.fabric/fabric-telegram.db' },
   ],
   discord: [
     { key: 'application_id', label: 'Application ID', description: 'Discord application ID for slash commands', defaultValue: '' },
@@ -84,13 +84,13 @@ const PLATFORM_FIELDS: Record<string, PlatformFieldDef[]> = {
   slack: [
     { key: 'socket_mode', label: 'Socket Mode', description: 'Use Slack Socket Mode instead of HTTP webhooks (no public URL needed)', defaultValue: 'false' },
     { key: 'listen_address', label: 'Listen Address', description: 'HTTP listen address (HTTP mode only)', defaultValue: ':3000' },
-    { key: 'db_path', label: 'Database Path', description: 'Path to SQLite database', defaultValue: '~/.scion/scion-slack.db' },
+    { key: 'db_path', label: 'Database Path', description: 'Path to SQLite database', defaultValue: '~/.fabric/fabric-slack.db' },
     { key: 'agent_cache_ttl', label: 'Agent Cache TTL', description: 'How long to cache agent info', defaultValue: '5m' },
   ],
 };
 
-@customElement('scion-page-admin-integrations')
-export class ScionPageAdminIntegrations extends LitElement {
+@customElement('fabric-page-admin-integrations')
+export class FabricPageAdminIntegrations extends LitElement {
   @state() private loading = true;
   @state() private error: string | null = null;
   @state() private successMessage: string | null = null;
@@ -129,27 +129,27 @@ export class ScionPageAdminIntegrations extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .header-description {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0 0 1.5rem 0;
     }
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -157,10 +157,10 @@ export class ScionPageAdminIntegrations extends LitElement {
     .section-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .form-grid {
@@ -188,12 +188,12 @@ export class ScionPageAdminIntegrations extends LitElement {
     .form-field label {
       font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .form-field .hint {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-container {
@@ -206,31 +206,31 @@ export class ScionPageAdminIntegrations extends LitElement {
     .status-message {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       margin-bottom: 1rem;
     }
 
     .status-message.success {
-      background: var(--scion-success-bg, #dcfce7);
-      color: var(--scion-success-text, #166534);
-      border: 1px solid var(--scion-success-border, #86efac);
+      background: var(--fabric-success-bg, #dcfce7);
+      color: var(--fabric-success-text, #166534);
+      border: 1px solid var(--fabric-success-border, #86efac);
     }
 
     .status-message.error {
-      background: var(--scion-error-bg, #fef2f2);
-      color: var(--scion-error-text, #991b1b);
-      border: 1px solid var(--scion-error-border, #fca5a5);
+      background: var(--fabric-error-bg, #fef2f2);
+      color: var(--fabric-error-text, #991b1b);
+      border: 1px solid var(--fabric-error-border, #fca5a5);
     }
 
     sl-input::part(base),
     sl-select::part(combobox) {
       font-size: 0.875rem;
-      border-color: var(--scion-border, #e2e8f0);
-      background: var(--scion-surface, #ffffff);
+      border-color: var(--fabric-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
     }
 
     sl-input::part(input) {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .actions {
@@ -238,7 +238,7 @@ export class ScionPageAdminIntegrations extends LitElement {
       align-items: center;
       gap: 1rem;
       padding: 1rem 0;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
       margin-top: 1rem;
     }
 
@@ -256,18 +256,18 @@ export class ScionPageAdminIntegrations extends LitElement {
       text-align: left;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.025em;
       padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .integration-table td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .integration-table tr.clickable {
@@ -275,7 +275,7 @@ export class ScionPageAdminIntegrations extends LitElement {
     }
 
     .integration-table tr.clickable:hover td {
-      background: var(--scion-bg-subtle, #f8fafc);
+      background: var(--fabric-bg-subtle, #f8fafc);
     }
 
     .platform-name {
@@ -285,7 +285,7 @@ export class ScionPageAdminIntegrations extends LitElement {
     .empty-state {
       text-align: center;
       padding: 3rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state sl-icon {
@@ -300,7 +300,7 @@ export class ScionPageAdminIntegrations extends LitElement {
       align-items: center;
       gap: 0.25rem;
       font-size: 0.875rem;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: none;
       cursor: pointer;
       margin-bottom: 1rem;
@@ -313,13 +313,13 @@ export class ScionPageAdminIntegrations extends LitElement {
     .detail-name {
       font-size: 1.25rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .detail-platform {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: capitalize;
       margin: 0 0 1.5rem 0;
     }
@@ -334,7 +334,7 @@ export class ScionPageAdminIntegrations extends LitElement {
 
     .status-label {
       font-weight: 500;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       min-width: 6rem;
     }
 
@@ -349,7 +349,7 @@ export class ScionPageAdminIntegrations extends LitElement {
       align-items: center;
       gap: 1rem;
       padding: 0.75rem 0;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .secret-row:last-child {
@@ -359,7 +359,7 @@ export class ScionPageAdminIntegrations extends LitElement {
     .secret-key {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       min-width: 10rem;
     }
 
@@ -777,7 +777,7 @@ export class ScionPageAdminIntegrations extends LitElement {
       return html`
         <div class="section">
           <h3 class="section-title">Status</h3>
-          <p style="color: var(--scion-text-muted); font-size: 0.875rem;">No status information available.</p>
+          <p style="color: var(--fabric-text-muted); font-size: 0.875rem;">No status information available.</p>
         </div>
       `;
     }
@@ -837,7 +837,7 @@ export class ScionPageAdminIntegrations extends LitElement {
           : nothing}
         ${status.details && Object.keys(status.details).length > 0
           ? html`
-              <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--scion-border, #e2e8f0);">
+              <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fabric-border, #e2e8f0);">
                 ${Object.entries(status.details).map(
                   ([k, v]) => html`
                     <div class="status-row">
@@ -864,7 +864,7 @@ export class ScionPageAdminIntegrations extends LitElement {
       return html`
         <div class="section">
           <h3 class="section-title">Configuration</h3>
-          <p style="color: var(--scion-text-muted); font-size: 0.875rem;">No configurable settings for this integration.</p>
+          <p style="color: var(--fabric-text-muted); font-size: 0.875rem;">No configurable settings for this integration.</p>
         </div>
       `;
     }
@@ -1075,6 +1075,6 @@ export class ScionPageAdminIntegrations extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-integrations': ScionPageAdminIntegrations;
+    'fabric-page-admin-integrations': FabricPageAdminIntegrations;
   }
 }

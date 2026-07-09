@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package apiclient provides shared HTTP client utilities for Scion API clients.
+// Package apiclient provides shared HTTP client utilities for Fabric API clients.
 package apiclient
 
 import (
@@ -31,11 +31,11 @@ import (
 
 // HMAC authentication headers (must match pkg/hub/hostauth.go).
 const (
-	HeaderBrokerID      = "X-Scion-Broker-ID"
-	HeaderTimestamp     = "X-Scion-Timestamp"
-	HeaderNonce         = "X-Scion-Nonce"
-	HeaderSignature     = "X-Scion-Signature"
-	HeaderSignedHeaders = "X-Scion-Signed-Headers"
+	HeaderBrokerID      = "X-Fabric-Broker-ID"
+	HeaderTimestamp     = "X-Fabric-Timestamp"
+	HeaderNonce         = "X-Fabric-Nonce"
+	HeaderSignature     = "X-Fabric-Signature"
+	HeaderSignedHeaders = "X-Fabric-Signed-Headers"
 )
 
 // HMACAuth implements HMAC-based authentication for Runtime Brokers.

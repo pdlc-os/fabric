@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 
 	gcplog "cloud.google.com/go/logging"
 	logv2 "cloud.google.com/go/logging/apiv2"
@@ -65,7 +65,7 @@ type LogQueryOptions struct {
 	AgentID   string
 	ProjectID string
 	BrokerID  string
-	LogID     string // Cloud Logging log ID (e.g. "scion-messages"); empty = default log
+	LogID     string // Cloud Logging log ID (e.g. "fabric-messages"); empty = default log
 	Tail      int
 	Since     time.Time
 	Until     time.Time

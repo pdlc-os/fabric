@@ -26,7 +26,7 @@ after the atomic release, re-read the broker to confirm no concurrent
 ## Branch Unification
 
 Two branches addressed this issue:
-- `scion/dev-issue-131` (PR #303): had only a docs/project-log commit, no code fix
+- `fabric/dev-issue-131` (PR #303): had only a docs/project-log commit, no code fix
 - `origin/fix/session-guarded-broker-disconnect` (fork PR #144): had the complete
   code fix with tests
 

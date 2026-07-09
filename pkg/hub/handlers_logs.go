@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 // handleAgentLogs handles GET /api/v1/agents/{id}/logs
@@ -262,7 +262,7 @@ func (s *Server) handleAgentCloudLogsStream(w http.ResponseWriter, r *http.Reque
 
 // handleAgentMessageLogs handles GET /api/v1/agents/{id}/message-logs
 // and GET /api/v1/projects/{projectId}/agents/{agentId}/message-logs
-// It queries the dedicated "scion-messages" Cloud Logging log for message
+// It queries the dedicated "fabric-messages" Cloud Logging log for message
 // entries associated with the given agent.
 func (s *Server) handleAgentMessageLogs(w http.ResponseWriter, r *http.Request, agentID string) {
 	if r.Method != http.MethodGet {
@@ -334,7 +334,7 @@ func (s *Server) handleAgentMessageLogs(w http.ResponseWriter, r *http.Request, 
 
 // handleAgentMessageLogsStream handles GET /api/v1/agents/{id}/message-logs/stream
 // and GET /api/v1/projects/{projectId}/agents/{agentId}/message-logs/stream
-// It returns an SSE stream of message log entries from the "scion-messages" log.
+// It returns an SSE stream of message log entries from the "fabric-messages" log.
 func (s *Server) handleAgentMessageLogsStream(w http.ResponseWriter, r *http.Request, agentID string) {
 	if r.Method != http.MethodGet {
 		MethodNotAllowed(w)
@@ -422,7 +422,7 @@ func (s *Server) handleAgentMessageLogsStream(w http.ResponseWriter, r *http.Req
 }
 
 // handleProjectMessageLogs handles GET /api/v1/projects/{projectId}/message-logs
-// It queries the "scion-messages" Cloud Logging log for all message entries
+// It queries the "fabric-messages" Cloud Logging log for all message entries
 // within the given project (across all agents).
 func (s *Server) handleProjectMessageLogs(w http.ResponseWriter, r *http.Request, projectID string) {
 	if r.Method != http.MethodGet {

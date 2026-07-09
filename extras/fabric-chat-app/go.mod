@@ -1,10 +1,10 @@
-module github.com/GoogleCloudPlatform/scion/extras/scion-chat-app
+module github.com/pdlc-os/fabric/extras/fabric-chat-app
 
 go 1.26.1
 
 require (
 	cloud.google.com/go/secretmanager v1.16.0
-	github.com/GoogleCloudPlatform/scion v0.0.0-00010101000000-000000000000
+	github.com/pdlc-os/fabric v0.0.0-00010101000000-000000000000
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/hashicorp/go-plugin v1.7.0
 	github.com/mattn/go-sqlite3 v1.14.28
@@ -133,4 +133,4 @@ require (
 	moul.io/http2curl/v2 v2.3.0 // indirect
 )
 
-replace github.com/GoogleCloudPlatform/scion => ../../
+replace github.com/pdlc-os/fabric => ../../

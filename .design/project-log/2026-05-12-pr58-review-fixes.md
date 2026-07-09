@@ -2,11 +2,11 @@
 
 **Date:** 2026-05-12
 **PR:** #58 (feat: add download as ZIP for shared directories)
-**Branch:** scion/fix-issue-39
+**Branch:** fabric/fix-issue-39
 
 ## What changed
 
-Addressed two medium-severity review comments from Gemini Code Assist and scion-gteam:
+Addressed two medium-severity review comments from Gemini Code Assist and fabric-gteam:
 
 1. **Extracted `writeDirectoryToZip` helper** — The zip streaming logic in `handleProjectWorkspaceArchive` and `handleProjectSharedDirArchive` was nearly identical. Extracted it into a shared `writeDirectoryToZip(zw *zip.Writer, dirPath string) error` function to reduce duplication and improve maintainability.
 

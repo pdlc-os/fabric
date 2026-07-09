@@ -31,8 +31,8 @@ func TestLoadHarnessConfigDir(t *testing.T) {
 	}
 
 	configYAML := `harness: claude
-image: scion-claude:latest
-user: scion
+image: fabric-claude:latest
+user: fabric
 `
 	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(configYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -49,11 +49,11 @@ user: scion
 	if hc.Config.Harness != "claude" {
 		t.Errorf("expected harness 'claude', got %q", hc.Config.Harness)
 	}
-	if hc.Config.Image != "scion-claude:latest" {
+	if hc.Config.Image != "fabric-claude:latest" {
 		t.Errorf("expected image to be set, got %q", hc.Config.Image)
 	}
-	if hc.Config.User != "scion" {
-		t.Errorf("expected user 'scion', got %q", hc.Config.User)
+	if hc.Config.User != "fabric" {
+		t.Errorf("expected user 'fabric', got %q", hc.Config.User)
 	}
 }
 
@@ -64,8 +64,8 @@ func TestLoadHarnessConfigDir_ExtendedFields(t *testing.T) {
 		t.Fatal(err)
 	}
 	configYAML := `harness: claude
-image: scion-claude:latest
-user: scion
+image: fabric-claude:latest
+user: fabric
 provisioner:
   type: builtin
   interface_version: 1
@@ -165,7 +165,7 @@ func TestFindHarnessConfigDir(t *testing.T) {
 	}
 	projectConfigYAML := `harness: claude
 image: project-image:latest
-user: scion
+user: fabric
 `
 	if err := os.WriteFile(filepath.Join(projectHCDir, "config.yaml"), []byte(projectConfigYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -185,16 +185,16 @@ user: scion
 		t.Errorf("expected project-level image, got %q", hc.Config.Image)
 	}
 
-	// Setup global harness-config at ~/.scion/harness-configs/gemini/
-	globalScionDir := filepath.Join(tmpDir, DotScion, harnessConfigsDirName, "gemini")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	// Setup global harness-config at ~/.fabric/harness-configs/gemini/
+	globalFabricDir := filepath.Join(tmpDir, DotFabric, harnessConfigsDirName, "gemini")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 	geminiConfig := `harness: gemini
 image: gemini-global:latest
-user: scion
+user: fabric
 `
-	if err := os.WriteFile(filepath.Join(globalScionDir, "config.yaml"), []byte(geminiConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "config.yaml"), []byte(geminiConfig), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -242,7 +242,7 @@ func TestFindHarnessConfigDir_TemplatePaths(t *testing.T) {
 	}
 	tplConfigYAML := `harness: claude
 image: claude-web-image:latest
-user: scion
+user: fabric
 `
 	if err := os.WriteFile(filepath.Join(tplHCDir, "config.yaml"), []byte(tplConfigYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -261,13 +261,13 @@ user: scion
 	}
 
 	// Test: template harness-config takes precedence over global
-	globalHCDir := filepath.Join(tmpDir, DotScion, harnessConfigsDirName, "claude-web")
+	globalHCDir := filepath.Join(tmpDir, DotFabric, harnessConfigsDirName, "claude-web")
 	if err := os.MkdirAll(globalHCDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 	globalConfigYAML := `harness: claude
 image: global-claude-web:latest
-user: scion
+user: fabric
 `
 	if err := os.WriteFile(filepath.Join(globalHCDir, "config.yaml"), []byte(globalConfigYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -289,7 +289,7 @@ user: scion
 	}
 	projectConfigYAML := `harness: claude
 image: project-claude-web:latest
-user: scion
+user: fabric
 `
 	if err := os.WriteFile(filepath.Join(projectHCDir, "config.yaml"), []byte(projectConfigYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -321,11 +321,11 @@ func TestFindHarnessConfigDir_FallsThrough_BrokenDirectory(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Setup valid global harness-config
-	globalHCDir := filepath.Join(tmpDir, DotScion, harnessConfigsDirName, "opencode")
+	globalHCDir := filepath.Join(tmpDir, DotFabric, harnessConfigsDirName, "opencode")
 	if err := os.MkdirAll(globalHCDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	globalCfg := "harness: opencode\nimage: global-opencode:latest\nuser: scion\n"
+	globalCfg := "harness: opencode\nimage: global-opencode:latest\nuser: fabric\n"
 	if err := os.WriteFile(filepath.Join(globalHCDir, "config.yaml"), []byte(globalCfg), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -372,7 +372,7 @@ func TestListHarnessConfigDirs(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Setup global harness-configs
-	globalBase := filepath.Join(tmpDir, DotScion, harnessConfigsDirName)
+	globalBase := filepath.Join(tmpDir, DotFabric, harnessConfigsDirName)
 	for _, name := range []string{"claude", "gemini"} {
 		dir := filepath.Join(globalBase, name)
 		_ = os.MkdirAll(dir, 0755)
@@ -442,7 +442,7 @@ func TestSeedHarnessConfig_AdditiveOnly(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(opencodeDir, "home", ".config", "opencode"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	customConfig := "harness: opencode\nimage: my-custom-opencode:v2\nuser: scion\nprovisioner:\n  type: container-script\n  interface_version: 1\n"
+	customConfig := "harness: opencode\nimage: my-custom-opencode:v2\nuser: fabric\nprovisioner:\n  type: container-script\n  interface_version: 1\n"
 	if err := os.WriteFile(filepath.Join(opencodeDir, "config.yaml"), []byte(customConfig), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -561,7 +561,7 @@ func TestSeedHarnessConfigFromDir(t *testing.T) {
 
 	sourceFS := fstest.MapFS{
 		"myharness/config.yaml": &fstest.MapFile{
-			Data: []byte("harness: myharness\nimage: img:latest\nuser: scion\nconfig_dir: .myh\n"),
+			Data: []byte("harness: myharness\nimage: img:latest\nuser: fabric\nconfig_dir: .myh\n"),
 		},
 		"myharness/provision.py": &fstest.MapFile{
 			Data: []byte("#!/usr/bin/env python3\nprint('provision')"),
@@ -636,7 +636,7 @@ func TestSeedHarnessConfigFromDir_NoOverwriteWithoutForce(t *testing.T) {
 
 	sourceFS := fstest.MapFS{
 		"h/config.yaml": &fstest.MapFile{
-			Data: []byte("harness: h\nimage: img:latest\nuser: scion\n"),
+			Data: []byte("harness: h\nimage: img:latest\nuser: fabric\n"),
 		},
 		"h/provision.py": &fstest.MapFile{
 			Data: []byte("# new provision"),
@@ -670,13 +670,13 @@ func TestSeedAllHarnessConfigsFromEmbed(t *testing.T) {
 
 	sourceFS := fstest.MapFS{
 		"alpha/config.yaml": &fstest.MapFile{
-			Data: []byte("harness: alpha\nimage: img:latest\nuser: scion\n"),
+			Data: []byte("harness: alpha\nimage: img:latest\nuser: fabric\n"),
 		},
 		"alpha/provision.py": &fstest.MapFile{
 			Data: []byte("# alpha provision"),
 		},
 		"beta/config.yaml": &fstest.MapFile{
-			Data: []byte("harness: beta\nimage: img:latest\nuser: scion\nconfig_dir: .beta\n"),
+			Data: []byte("harness: beta\nimage: img:latest\nuser: fabric\nconfig_dir: .beta\n"),
 		},
 		"beta/home/.bashrc": &fstest.MapFile{
 			Data: []byte("# bashrc"),

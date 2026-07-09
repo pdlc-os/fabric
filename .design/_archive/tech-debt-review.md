@@ -1,7 +1,7 @@
 # Technical Debt Review - Agent Lifecycle & Architecture
 
 ## Overview
-This document tracks findings from a deep technical debt review of the Scion Agent system, focusing on agent lifecycle, settings inheritance, and runtime/harness abstractions.
+This document tracks findings from a deep technical debt review of the Fabric Agent system, focusing on agent lifecycle, settings inheritance, and runtime/harness abstractions.
 
 ## Findings
 
@@ -10,7 +10,7 @@ The `Harness` interface is currently focused on the runtime execution phase (gen
 
 -   **Provisioning Leak**: `pkg/agent/provision.go` contains `UpdateClaudeJSON`, which directly manipulates Claude-specific configuration files. This function should be part of the `ClaudeCode` harness implementation.
 -   **Template Seeding Leak**: `pkg/config/init.go`'s `SeedTemplateDir` contains hardcoded `if harness == "claude"` logic to determine directory names (`.claude` vs `.gemini`) and file lookups. This prevents adding new harnesss without modifying core config code.
--   **Missing Lifecycle Hooks**: The `Harness` interface needs methods like `OnProvision(agentHome string)` or `ConfigureAgent(agentConfig *api.ScionConfig)` to encapsulate setup logic.
+-   **Missing Lifecycle Hooks**: The `Harness` interface needs methods like `OnProvision(agentHome string)` or `ConfigureAgent(agentConfig *api.FabricConfig)` to encapsulate setup logic.
 
 ### 2. Configuration & Settings Scalability
 The configuration system uses strong typing that couples the core `Settings` struct to every supported runtime and harness.
@@ -37,7 +37,7 @@ The `Start` function in `pkg/agent/run.go` is becoming a "god function" for runt
 
 ### 6. Future Control Plane Alignment
 -   The current file-based status and config are sufficient for CLI usage but will require significant refactoring for the proposed API-based Control Plane (`control-plane-design.md`).
--   **State**: Agent state is currently "fire and forget" in `scion-agent.json` or calculated from container status. A persistent state store will be needed.
+-   **State**: Agent state is currently "fire and forget" in `fabric-agent.json` or calculated from container status. A persistent state store will be needed.
 
 ## Proposed Action Items
 

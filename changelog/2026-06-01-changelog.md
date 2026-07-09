@@ -3,7 +3,7 @@
 This release focuses on significant architectural cleanup, specifically disambiguating the "broker" terminology, alongside major enhancements to resource management and new support for Google Cloud Storage.
 
 ## ⚠️ BREAKING CHANGES
-* **CLI / Internal API:** The `scion broker` command has been renamed to `scion runtime-broker` to avoid confusion with Message Brokers. While a deprecated alias remains for now, users should update their scripts. Internally, `pkg/broker` has been renamed to `pkg/eventbus`, and related types (e.g., `MessageBroker` -> `EventBus`) have been updated.
+* **CLI / Internal API:** The `fabric broker` command has been renamed to `fabric runtime-broker` to avoid confusion with Message Brokers. While a deprecated alias remains for now, users should update their scripts. Internally, `pkg/broker` has been renamed to `pkg/eventbus`, and related types (e.g., `MessageBroker` -> `EventBus`) have been updated.
 
 ## 🚀 Features
 * **Resource Management Overhaul:** Major refactor of resource storage, caching, and import logic. This includes support for hub-level imports, improved progress tracking, and significant performance optimizations for large resource sets.

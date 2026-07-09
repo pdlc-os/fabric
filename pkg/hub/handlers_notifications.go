@@ -20,8 +20,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // handleNotifications handles GET /api/v1/notifications.

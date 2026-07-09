@@ -1,11 +1,11 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package dialects
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 )
 
 // GeminiDialect parses Gemini CLI hook events.

@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ADK Scion Agent — Container Image
+# ADK Fabric Agent — Container Image
 #
-# Builds on scion-base which provides sciontool (PID 1 init), the scion user,
+# Builds on fabric-base which provides fabrictool (PID 1 init), the fabric user,
 # tmux, git, and Python 3. This layer adds the google-adk package and the
 # agent source code.
 #
 # Build:
-#   docker build -t scion-adk-agent .
+#   docker build -t fabric-adk-agent .
 #
-# The ENTRYPOINT is inherited from scion-base:
-#   sciontool init -- <CMD>
+# The ENTRYPOINT is inherited from fabric-base:
+#   fabrictool init -- <CMD>
 #
-# At runtime, scion wraps CMD in a tmux session so that `scion message` can
+# At runtime, fabric wraps CMD in a tmux session so that `fabric message` can
 # deliver user input via send-keys into ADK's interactive input() loop.
 
 ARG BASE_IMAGE
@@ -33,7 +33,7 @@ FROM ${BASE_IMAGE}
 USER root
 
 # Create workspace directory
-RUN mkdir -p /workspace && chown scion:scion /workspace
+RUN mkdir -p /workspace && chown fabric:fabric /workspace
 WORKDIR /workspace
 
 # Install google-adk from source — the EnvironmentToolset and
@@ -47,12 +47,12 @@ RUN python3 -m venv /opt/adk-venv && \
 ENV PATH="/opt/adk-venv/bin:${PATH}"
 
 # Copy the agent source code and ensure Python can find the package.
-COPY --chown=scion:scion . /opt/adk_scion_agent/adk_scion_agent/
-ENV PYTHONPATH="/opt/adk_scion_agent:${PYTHONPATH}"
+COPY --chown=fabric:fabric . /opt/adk_fabric_agent/adk_fabric_agent/
+ENV PYTHONPATH="/opt/adk_fabric_agent:${PYTHONPATH}"
 
 # Default command: run the ADK agent via the custom runner entrypoint.
 # The custom runner supports --input for task delivery (which the released
-# `adk run` CLI does not yet support). scion's runtime layer wraps this in
-# `tmux new-session -s scion ...` and appends `--input <task>` when task_flag
+# `adk run` CLI does not yet support). fabric's runtime layer wraps this in
+# `tmux new-session -s fabric ...` and appends `--input <task>` when task_flag
 # is configured.
-CMD ["python", "-m", "adk_scion_agent"]
+CMD ["python", "-m", "adk_fabric_agent"]

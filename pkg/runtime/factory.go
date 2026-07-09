@@ -20,10 +20,10 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // GetRuntime returns the appropriate Runtime implementation based on environment,
@@ -179,7 +179,7 @@ func (e *ErrorRuntime) Name() string {
 }
 
 func (e *ErrorRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 func (e *ErrorRuntime) Run(ctx context.Context, config RunConfig) (string, error) {

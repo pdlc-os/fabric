@@ -62,8 +62,8 @@ interface DebugData {
   };
 }
 
-@customElement('scion-debug-panel')
-export class ScionDebugPanel extends LitElement {
+@customElement('fabric-debug-panel')
+export class FabricDebugPanel extends LitElement {
   @property({ type: Boolean })
   expanded = false;
 
@@ -111,7 +111,7 @@ export class ScionDebugPanel extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      font-family: var(--scion-font-mono, 'SF Mono', 'Fira Code', monospace);
+      font-family: var(--fabric-font-mono, 'SF Mono', 'Fira Code', monospace);
       font-size: 0.75rem;
       z-index: 10000;
     }
@@ -570,7 +570,7 @@ export class ScionDebugPanel extends LitElement {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `scion-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    a.download = `fabric-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -871,6 +871,6 @@ export class ScionDebugPanel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-debug-panel': ScionDebugPanel;
+    'fabric-debug-panel': FabricDebugPanel;
   }
 }

@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 func TestMain(m *testing.M) {

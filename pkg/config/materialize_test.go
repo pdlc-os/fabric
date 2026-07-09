@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 func TestMaterializeBundledResources_SeedsAllResources(t *testing.T) {
@@ -31,8 +31,8 @@ func TestMaterializeBundledResources_SeedsAllResources(t *testing.T) {
 
 	// Verify the default template was seeded.
 	templateDir := filepath.Join(globalDir, "templates", "default")
-	if _, err := os.Stat(filepath.Join(templateDir, "scion-agent.yaml")); err != nil {
-		t.Errorf("expected scion-agent.yaml in default template: %v", err)
+	if _, err := os.Stat(filepath.Join(templateDir, "fabric-agent.yaml")); err != nil {
+		t.Errorf("expected fabric-agent.yaml in default template: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(templateDir, "system-prompt.md")); err != nil {
 		t.Errorf("expected system-prompt.md in default template: %v", err)
@@ -172,8 +172,8 @@ func TestMaterializeBundledTemplates_SeedsTemplatesOnly(t *testing.T) {
 
 	// Template should be seeded.
 	templateDir := filepath.Join(globalDir, "templates", "default")
-	if _, err := os.Stat(filepath.Join(templateDir, "scion-agent.yaml")); err != nil {
-		t.Errorf("expected scion-agent.yaml in default template: %v", err)
+	if _, err := os.Stat(filepath.Join(templateDir, "fabric-agent.yaml")); err != nil {
+		t.Errorf("expected fabric-agent.yaml in default template: %v", err)
 	}
 
 	// No harness-configs should be seeded.

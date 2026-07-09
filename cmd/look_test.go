@@ -31,40 +31,40 @@ func TestBuildLookCmd(t *testing.T) {
 	}{
 		{
 			name: "default flags",
-			want: []string{"tmux", "capture-pane", "-pe", "-t", "scion"},
+			want: []string{"tmux", "capture-pane", "-pe", "-t", "fabric"},
 		},
 		{
 			name:  "plain only",
 			plain: true,
-			want:  []string{"tmux", "capture-pane", "-p", "-t", "scion"},
+			want:  []string{"tmux", "capture-pane", "-p", "-t", "fabric"},
 		},
 		{
 			name: "full only",
 			full: true,
-			want: []string{"tmux", "capture-pane", "-peS", "-", "-t", "scion"},
+			want: []string{"tmux", "capture-pane", "-peS", "-", "-t", "fabric"},
 		},
 		{
 			name:  "plain and full",
 			plain: true,
 			full:  true,
-			want:  []string{"tmux", "capture-pane", "-pS", "-", "-t", "scion"},
+			want:  []string{"tmux", "capture-pane", "-pS", "-", "-t", "fabric"},
 		},
 		{
 			name:     "num-lines",
 			numLines: 75,
-			want:     []string{"tmux", "capture-pane", "-peS", "-75", "-t", "scion"},
+			want:     []string{"tmux", "capture-pane", "-peS", "-75", "-t", "fabric"},
 		},
 		{
 			name:     "num-lines with plain",
 			plain:    true,
 			numLines: 100,
-			want:     []string{"tmux", "capture-pane", "-pS", "-100", "-t", "scion"},
+			want:     []string{"tmux", "capture-pane", "-pS", "-100", "-t", "fabric"},
 		},
 		{
 			name:     "num-lines overrides full",
 			full:     true,
 			numLines: 50,
-			want:     []string{"tmux", "capture-pane", "-peS", "-50", "-t", "scion"},
+			want:     []string{"tmux", "capture-pane", "-peS", "-50", "-t", "fabric"},
 		},
 	}
 

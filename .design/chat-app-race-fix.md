@@ -1,28 +1,28 @@
 # Chat App and Hub Startup Race Conditions
 
 ## Problem Description
-During the installation and startup of the Scion Chat App as a self-managed plugin for the Scion Hub on a fresh VM, two distinct race conditions prevented the Hub from successfully connecting to and utilizing the Chat App's broker plugin.
+During the installation and startup of the Fabric Chat App as a self-managed plugin for the Fabric Hub on a fresh VM, two distinct race conditions prevented the Hub from successfully connecting to and utilizing the Chat App's broker plugin.
 
 ### 1. Systemd Service Ordering
-The generated `scion-chat-app.service` systemd unit was configured with `After=scion-hub.service` and `Wants=scion-hub.service`. 
-However, the `scion-hub` process connects to the `scion-chat-app` plugin on port `9090` synchronously during its startup sequence. Because `scion-hub` does not implement retries for connecting to this self-managed plugin, starting the chat app *after* the hub guaranteed a `connection refused` error. 
+The generated `fabric-chat-app.service` systemd unit was configured with `After=fabric-hub.service` and `Wants=fabric-hub.service`. 
+However, the `fabric-hub` process connects to the `fabric-chat-app` plugin on port `9090` synchronously during its startup sequence. Because `fabric-hub` does not implement retries for connecting to this self-managed plugin, starting the chat app *after* the hub guaranteed a `connection refused` error. 
 
 ### 2. Plugin Callback Wiring Race
-Even with the systemd ordering fixed (where `scion-chat-app` starts first or simultaneously), a secondary race condition existed within the `go-plugin` RPC initialization.
+Even with the systemd ordering fixed (where `fabric-chat-app` starts first or simultaneously), a secondary race condition existed within the `go-plugin` RPC initialization.
 When the Hub establishes the RPC connection to the Chat App, the `go-plugin` framework immediately invokes `SetHostCallbacks` on the Chat App side. The Chat App would instantly attempt to use these callbacks to invoke `RequestSubscription` back against the Hub.
 However, the Hub's `HostCallbacksForwarder` does not have its underlying proxy target wired up until slightly later in the Hub's startup sequence. This resulted in the Chat App receiving a `host callbacks not yet available` error and failing to register its subscriptions for Grove messages.
 
 ## Proposed Fix
-1. **Remove Systemd Dependency:** Modify `extras/scion-chat-app/install.sh` to remove the `After=scion-hub.service` and `Wants=scion-hub.service` directives from the generated `scion-chat-app.service` unit, allowing it to start independently and be ready when the Hub boots.
-2. **Implement Subscription Retry Backoff:** Modify `extras/scion-chat-app/internal/chatapp/broker.go`. Track subscriptions that were requested before the host callbacks are fully ready. When `SetHostCallbacks` is called, launch a goroutine that attempts to establish the subscriptions. If the call returns `host callbacks not yet available`, implement a loop with a 1-second `time.Sleep` backoff (up to 10 retries) until the Hub's forwarder proxy is successfully wired up.
+1. **Remove Systemd Dependency:** Modify `extras/fabric-chat-app/install.sh` to remove the `After=fabric-hub.service` and `Wants=fabric-hub.service` directives from the generated `fabric-chat-app.service` unit, allowing it to start independently and be ready when the Hub boots.
+2. **Implement Subscription Retry Backoff:** Modify `extras/fabric-chat-app/internal/chatapp/broker.go`. Track subscriptions that were requested before the host callbacks are fully ready. When `SetHostCallbacks` is called, launch a goroutine that attempts to establish the subscriptions. If the call returns `host callbacks not yet available`, implement a loop with a 1-second `time.Sleep` backoff (up to 10 retries) until the Hub's forwarder proxy is successfully wired up.
 
 ## Diff of the Fix
 
 ```diff
-diff --git a/extras/scion-chat-app/go.mod b/extras/scion-chat-app/go.mod
+diff --git a/extras/fabric-chat-app/go.mod b/extras/fabric-chat-app/go.mod
 index aac6b3d5..9620d820 100644
---- a/extras/scion-chat-app/go.mod
-+++ b/extras/scion-chat-app/go.mod
+--- a/extras/fabric-chat-app/go.mod
++++ b/extras/fabric-chat-app/go.mod
 @@ -19,7 +19,7 @@ require (
         cloud.google.com/go/compute/metadata v0.9.0 // indirect
         cloud.google.com/go/iam v1.5.3 // indirect
@@ -32,10 +32,10 @@ index aac6b3d5..9620d820 100644
         github.com/felixge/httpsnoop v1.0.4 // indirect
         github.com/go-logr/logr v1.4.3 // indirect
         github.com/go-logr/stdr v1.2.2 // indirect
-diff --git a/extras/scion-chat-app/go.sum b/extras/scion-chat-app/go.sum
+diff --git a/extras/fabric-chat-app/go.sum b/extras/fabric-chat-app/go.sum
 index c0c60dc4..9271886e 100644
---- a/extras/scion-chat-app/go.sum
-+++ b/extras/scion-chat-app/go.sum
+--- a/extras/fabric-chat-app/go.sum
++++ b/extras/fabric-chat-app/go.sum
 @@ -25,8 +25,9 @@ github.com/envoyproxy/go-control-plane/envoy v1.36.0 h1:yg/JjO5E7ubRyKX3m07GF3re
  github.com/envoyproxy/go-control-plane/envoy v1.36.0/go.mod h1:ty89S1YCCVruQAm9OtKeEkQLTb+Lkz0k8v9W0Oxsv98=
  github.com/envoyproxy/protoc-gen-validate v1.3.0 h1:TvGH1wof4H33rezVKWSpqKz5NXWg5VPuZ0uONDT6eb4=
@@ -47,32 +47,32 @@ index c0c60dc4..9271886e 100644
  github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
  github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
  github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
-diff --git a/extras/scion-chat-app/install.sh b/extras/scion-chat-app/install.sh
+diff --git a/extras/fabric-chat-app/install.sh b/extras/fabric-chat-app/install.sh
 index 9c4680a9..e809c6c3 100755
---- a/extras/scion-chat-app/install.sh
-+++ b/extras/scion-chat-app/install.sh
+--- a/extras/fabric-chat-app/install.sh
++++ b/extras/fabric-chat-app/install.sh
 @@ -241,8 +241,7 @@ substep "Installing systemd unit"
- cat > "${TMPDIR}/scion-chat-app.service" <<EOF
+ cat > "${TMPDIR}/fabric-chat-app.service" <<EOF
  [Unit]
- Description=Scion Chat App
--After=network.target scion-hub.service
--Wants=scion-hub.service
+ Description=Fabric Chat App
+-After=network.target fabric-hub.service
+-Wants=fabric-hub.service
 +After=network.target
  
  [Service]
- User=scion
-diff --git a/extras/scion-chat-app/internal/chatapp/broker.go b/extras/scion-chat-app/internal/chatapp/broker.go
+ User=fabric
+diff --git a/extras/fabric-chat-app/internal/chatapp/broker.go b/extras/fabric-chat-app/internal/chatapp/broker.go
 index dfc2e6e1..8188c12b 100644
---- a/extras/scion-chat-app/internal/chatapp/broker.go
-+++ b/extras/scion-chat-app/internal/chatapp/broker.go
+--- a/extras/fabric-chat-app/internal/chatapp/broker.go
++++ b/extras/fabric-chat-app/internal/chatapp/broker.go
 @@ -21,12 +21,12 @@ import (
         "log/slog"
         "net"
         "sync"
 +       "time"
  
-        "github.com/GoogleCloudPlatform/scion/pkg/messages"
-        "github.com/GoogleCloudPlatform/scion/pkg/plugin"
+        "github.com/pdlc-os/fabric/pkg/messages"
+        "github.com/pdlc-os/fabric/pkg/plugin"
         goplugin "github.com/hashicorp/go-plugin"
  )
 -

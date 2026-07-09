@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func TestProvisionAgentReloadsConfig(t *testing.T) {
@@ -48,8 +48,8 @@ func TestProvisionAgentReloadsConfig(t *testing.T) {
 
 	// Initialize a mock project
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := config.InitProject(projectScionDir, getTestHarnesses()); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := config.InitProject(projectFabricDir, getTestHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
@@ -60,7 +60,7 @@ func TestProvisionAgentReloadsConfig(t *testing.T) {
 
 	// Provision a claude agent using the "default" agnostic template with --harness-config=claude
 	agentName := "reload-test-agent"
-	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectScionDir, "", "", "", "")
+	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectFabricDir, "", "", "", "")
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}
@@ -94,8 +94,8 @@ func TestProvisionAgentWithHarnessAuthOverride(t *testing.T) {
 	}
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := config.InitProject(projectScionDir, getTestHarnesses()); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := config.InitProject(projectFabricDir, getTestHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
@@ -105,8 +105,8 @@ func TestProvisionAgentWithHarnessAuthOverride(t *testing.T) {
 
 	// Provision with vertex-ai override via inline config (simulates --harness-auth vertex-ai)
 	agentName := "vertex-ai-override"
-	inlineCfg := &api.ScionConfig{AuthSelectedType: "vertex-ai"}
-	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectScionDir, "", "", "", "", inlineCfg)
+	inlineCfg := &api.FabricConfig{AuthSelectedType: "vertex-ai"}
+	_, _, cfg, err := ProvisionAgent(context.Background(), agentName, "default", "", "claude", projectFabricDir, "", "", "", "", inlineCfg)
 	if err != nil {
 		t.Fatalf("ProvisionAgent failed: %v", err)
 	}

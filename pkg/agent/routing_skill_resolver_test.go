@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 type mockSchemeResolver struct {
@@ -49,8 +49,8 @@ func TestDetectScheme(t *testing.T) {
 		{"gcp-skill://alias/SKILL_ID", "gcp-skill"},
 		{"https://github.com/owner/repo/tree/main/skills/s", "gh"},
 		{"http://github.com/owner/repo/tree/main/skills/s", "gh"},
-		{"skill://scion/core/my-skill", "skill"},
-		{"skill://scion/core/my-skill@1.0", "skill"},
+		{"skill://fabric/core/my-skill", "skill"},
+		{"skill://fabric/core/my-skill@1.0", "skill"},
 		{"my-skill", "skill"},
 		{"code-review", "skill"},
 		{"ftp://example.com/skill", "ftp"},
@@ -70,13 +70,13 @@ func TestRoutingSkillResolver_FallbackRouting(t *testing.T) {
 	hub := &mockSchemeResolver{
 		name: "hub",
 		resolved: []ResolvedSkill{
-			{Name: "my-skill", URI: "skill://scion/core/my-skill"},
+			{Name: "my-skill", URI: "skill://fabric/core/my-skill"},
 		},
 	}
 	router := NewRoutingSkillResolver(hub)
 
 	result, err := router.Resolve(context.Background(), []api.SkillReference{
-		{URI: "skill://scion/core/my-skill"},
+		{URI: "skill://fabric/core/my-skill"},
 		{URI: "my-skill"},
 	}, ResolveOpts{})
 
@@ -124,7 +124,7 @@ func TestRoutingSkillResolver_SchemeDispatch(t *testing.T) {
 func TestRoutingSkillResolver_MixedBatch(t *testing.T) {
 	hub := &mockSchemeResolver{
 		name:     "hub",
-		resolved: []ResolvedSkill{{Name: "hub-skill", URI: "skill://scion/core/hub-skill"}},
+		resolved: []ResolvedSkill{{Name: "hub-skill", URI: "skill://fabric/core/hub-skill"}},
 	}
 	ghMock := &mockSchemeResolver{
 		name:     "gh",
@@ -134,7 +134,7 @@ func TestRoutingSkillResolver_MixedBatch(t *testing.T) {
 	router.Register("gh", ghMock)
 
 	result, err := router.Resolve(context.Background(), []api.SkillReference{
-		{URI: "skill://scion/core/hub-skill"},
+		{URI: "skill://fabric/core/hub-skill"},
 		{URI: "gh://owner/repo/skill"},
 	}, ResolveOpts{})
 
@@ -175,7 +175,7 @@ func TestRoutingSkillResolver_NilFallback(t *testing.T) {
 	router := NewRoutingSkillResolver(nil)
 
 	result, err := router.Resolve(context.Background(), []api.SkillReference{
-		{URI: "skill://scion/core/my-skill"},
+		{URI: "skill://fabric/core/my-skill"},
 	}, ResolveOpts{})
 
 	if err != nil {

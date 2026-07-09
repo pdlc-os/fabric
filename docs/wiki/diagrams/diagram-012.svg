@@ -50,30 +50,30 @@
 <polygon fill="black" stroke="black" points="125.88,-264.24 119.39,-255.87 119.24,-266.46 125.88,-264.24"/>
 <text xml:space="preserve" text-anchor="middle" x="198" y="-312.17" font-family="Times,serif" font-size="14.00">Install from</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node3" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <polygon fill="lightblue" stroke="black" points="346,-87.22 150,-87.22 150,-51.22 346,-51.22 346,-87.22"/>
-<text xml:space="preserve" text-anchor="middle" x="248" y="-66.42" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="248" y="-66.42" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 <text xml:space="preserve" text-anchor="middle" x="248" y="-55.92" font-family="Times,serif" font-size="14.00">(Centralized Management)</text>
 </g>
-<!-- Local Operations&#45;&gt;Scion Hub -->
+<!-- Local Operations&#45;&gt;Fabric Hub -->
 <g id="edge2" class="edge">
-<title>Local Operations&#45;&gt;Scion Hub</title>
+<title>Local Operations&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M248,-384.84C248,-330.83 248,-165.56 248,-98.72"/>
 <polygon fill="black" stroke="black" points="251.5,-98.95 248,-88.95 244.5,-98.95 251.5,-98.95"/>
 <text xml:space="preserve" text-anchor="middle" x="300.5" y="-228.17" font-family="Times,serif" font-size="14.00">Sync/Push/Pull</text>
 </g>
-<!-- Remote Sources&#45;&gt;Scion Hub -->
+<!-- Remote Sources&#45;&gt;Fabric Hub -->
 <g id="edge3" class="edge">
-<title>Remote Sources&#45;&gt;Scion Hub</title>
+<title>Remote Sources&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M118.91,-218.01C124.85,-199.23 136.19,-168.91 153,-146.97 168.88,-126.24 191.48,-107.69 210.65,-94.02"/>
 <polygon fill="black" stroke="black" points="212.55,-96.96 218.78,-88.38 208.56,-91.2 212.55,-96.96"/>
 <text xml:space="preserve" text-anchor="middle" x="198" y="-144.17" font-family="Times,serif" font-size="14.00">Re&#45;import to</text>
 </g>
-<!-- Scion Hub&#45;&gt;Local Operations -->
+<!-- Fabric Hub&#45;&gt;Local Operations -->
 <g id="edge4" class="edge">
-<title>Scion Hub&#45;&gt;Local Operations</title>
+<title>Fabric Hub&#45;&gt;Local Operations</title>
 <path fill="none" stroke="black" d="M266.81,-87.61C292.99,-113.22 339.17,-163.96 357,-218.22 377.41,-280.37 318.11,-344.12 279.14,-377.84"/>
 <polygon fill="black" stroke="black" points="277.24,-374.86 271.85,-383.98 281.75,-380.21 277.24,-374.86"/>
 <text xml:space="preserve" text-anchor="middle" x="413.66" y="-228.17" font-family="Times,serif" font-size="14.00">Sync/Pull/Show</text>

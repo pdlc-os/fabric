@@ -1,11 +1,11 @@
 ---
-title: Setting up the Scion Hub
-description: Installation and configuration of the Scion Hub (State Server).
+title: Setting up the Fabric Hub
+description: Installation and configuration of the Fabric Hub (State Server).
 ---
 
-**What you will learn**: How to deploy, secure, and operate the Scion Hub infrastructure, including setting up persistence, configuring runtime brokers, and managing user access.
+**What you will learn**: How to deploy, secure, and operate the Fabric Hub infrastructure, including setting up persistence, configuring runtime brokers, and managing user access.
 
-The **Scion Hub** is the central brain of a hosted Scion architecture. It maintains the state of all agents, projects, and runtime brokers, and provides the API used by the CLI and Web Dashboard.
+The **Fabric Hub** is the central brain of a hosted Fabric architecture. It maintains the state of all agents, projects, and runtime brokers, and provides the API used by the CLI and Web Dashboard.
 
 ## Core Responsibilities
 
@@ -16,36 +16,36 @@ The **Scion Hub** is the central brain of a hosted Scion architecture. It mainta
 
 ## Running the Hub
 
-The Hub is part of the main `scion` binary. You can start it using the `server start` command. A full and complete production startup command will look something like this:
+The Hub is part of the main `fabric` binary. You can start it using the `server start` command. A full and complete production startup command will look something like this:
 
 ```bash
 # Start the Hub, Web Dashboard, and a local Runtime Broker
 
-scion --global server start --foreground --production --debug --enable-hub --enable-runtime-broker --enable-web --runtime-broker-port 9800 --web-port 8080 --storage-bucket \${SCION_HUB_STORAGE_BUCKET} --session-secret \${SESSION_SECRET} --auto-provide
+fabric --global server start --foreground --production --debug --enable-hub --enable-runtime-broker --enable-web --runtime-broker-port 9800 --web-port 8080 --storage-bucket \${FABRIC_HUB_STORAGE_BUCKET} --session-secret \${SESSION_SECRET} --auto-provide
 
 ```
 This is often best managed through something like systemd
 
 ### Hub vs. Broker Processes
-While they can run in the same process—known as **Combo Mode** (the default for `scion server start --workstation`)—they serve distinct roles:
+While they can run in the same process—known as **Combo Mode** (the default for `fabric server start --workstation`)—they serve distinct roles:
 - **The Hub** is the stateless control plane. It provides the API and Web Dashboard, and should be accessible via a public or internal URL.
 - **The Broker** is the execution host. It registers with a Hub and executes agents. Brokers can run behind NAT or firewalls, as they establish outbound connections to the Hub. You can connect multiple external brokers to a single Hub.
 
 If you prefer to run the server in the background:
 ```bash
-scion server start
+fabric server start
 ```
 
 To manage the background daemon, use:
-- `scion server status`
-- `scion server restart`
-- `scion server stop`
+- `fabric server status`
+- `fabric server restart`
+- `fabric server stop`
 
 
 
 ## Configuration
 
-The Hub is configured via the `server` section in `~/.scion/settings.yaml`.
+The Hub is configured via the `server` section in `~/.fabric/settings.yaml`.
 
 ### Basic Example
 ```yaml
@@ -66,15 +66,15 @@ server:
 When running with `--enable-web`, the Hub API is mounted on the web server's port (default 8080) and the standalone Hub listener is not started. The `hub.port` setting only applies when the Hub runs without `--enable-web`.
 :::
 
-See the [Server Configuration Reference](/scion/reference/server-config/) for all available fields.
+See the [Server Configuration Reference](/fabric/reference/server-config/) for all available fields.
 
 ## Authentication
 
 The Hub supports multiple end-user authentication modes to balance ease of development with production security.
 
 ### OAuth 2.0 (Production)
-Scion supports Google and GitHub as identity providers. Configuration requires creating OAuth Apps in the respective provider consoles.
-See the [Authentication Guide](/scion/hosted/single-node/auth/) for detailed setup instructions.
+Fabric supports Google and GitHub as identity providers. Configuration requires creating OAuth Apps in the respective provider consoles.
+See the [Authentication Guide](/fabric/hosted/single-node/auth/) for detailed setup instructions.
 
 ### Dev Auth (Local Development, workstation mode)
 For local testing, the Hub can auto-generate a development token:
@@ -83,15 +83,15 @@ server:
   auth:
     dev_mode: true
 ```
-The token is written to `~/.scion/dev-token` on startup. The CLI and Web Dashboard automatically detect this token when running on the same machine.
+The token is written to `~/.fabric/dev-token` on startup. The CLI and Web Dashboard automatically detect this token when running on the same machine.
 
 ### User Access Tokens (Programmatic)
 
-The Hub supports long-lived **user access tokens (UATs)** for CI/CD or other programmatic integrations. See [User Access Tokens](/scion/hosted/user/personal-access-tokens/).
+The Hub supports long-lived **user access tokens (UATs)** for CI/CD or other programmatic integrations. See [User Access Tokens](/fabric/hosted/user/personal-access-tokens/).
 
 ## GCP Identity & Hub-Minted Service Accounts
 
-The Scion Hub can manage and provision Google Cloud Platform (GCP) Service Accounts directly. This allows agents to authenticate to Google Cloud services via metadata server emulation, avoiding the need to distribute static credential files. 
+The Fabric Hub can manage and provision Google Cloud Platform (GCP) Service Accounts directly. This allows agents to authenticate to Google Cloud services via metadata server emulation, avoiding the need to distribute static credential files. 
 
 ### Configuration
 
@@ -110,7 +110,7 @@ Projects can be configured with default GCP identities that are automatically ve
 
 Administrative actions for GCP Service Account management require `project-owner` (`ActionManage`) permissions to enforce strict security boundaries. Direct API access to Hub secrets from agents is explicitly blocked to prevent credential leakage.
 
-For more details on how agents assume these identities via metadata server emulation, see the [Authentication Guide](/scion/hosted/single-node/auth/#gcp-identity--metadata-emulation).
+For more details on how agents assume these identities via metadata server emulation, see the [Authentication Guide](/fabric/hosted/single-node/auth/#gcp-identity--metadata-emulation).
 
 ## Project Settings & Agent Limits
 
@@ -131,11 +131,11 @@ The Project Settings UI is organized into three primary tabs:
 
 ### Template Synchronization
 
-Projects support loading templates from external Git repositories, which is especially useful for non-Git-backed (hub-managed) projects. The UI accepts bare host/org/repo URLs (e.g., `github.com/org/repo`) and automatically normalizes them, appending `/.scion/templates/` unless a deeper path is specified. This synchronization can be manually triggered via the UI to immediately pull the latest templates.
+Projects support loading templates from external Git repositories, which is especially useful for non-Git-backed (hub-managed) projects. The UI accepts bare host/org/repo URLs (e.g., `github.com/org/repo`) and automatically normalizes them, appending `/.fabric/templates/` unless a deeper path is specified. This synchronization can be manually triggered via the UI to immediately pull the latest templates.
 
 ## Server Maintenance & Updates
 
-The Scion Hub provides a built-in maintenance administration panel in the Web Dashboard for managing routine server operations, updates, and synchronization.
+The Fabric Hub provides a built-in maintenance administration panel in the Web Dashboard for managing routine server operations, updates, and synchronization.
 
 ### Maintenance Panel Operations
 
@@ -180,15 +180,15 @@ Recommended for high-availability or multi-node deployments.
 server:
   database:
     driver: postgres
-    url: "postgres://user:password@localhost:5432/scion?sslmode=disable"
+    url: "postgres://user:password@localhost:5432/fabric?sslmode=disable"
 ```
 
 ## Storage Backends
 
 The Hub stores agent templates and other artifacts.
 
-- **Local File System**: Default. Stores files in `~/.scion/storage`.
-- **Google Cloud Storage (GCS)**: Recommended for cloud deployments. Set the `SCION_SERVER_STORAGE_BUCKET` environment variable.
+- **Local File System**: Default. Stores files in `~/.fabric/storage`.
+- **Google Cloud Storage (GCS)**: Recommended for cloud deployments. Set the `FABRIC_SERVER_STORAGE_BUCKET` environment variable.
 
 ## Deployment
 
@@ -206,7 +206,7 @@ The Hub is designed to be stateless and is highly compatible with Google Cloud R
 
 The Hub supports native Discord webhooks to broadcast persistent agent messages, notifications, and `ask_user` requests to a Discord channel.
 
-To configure Discord notifications, set the `discord_webhook_url` in your `server` configuration block (or via the `SCION_DISCORD_WEBHOOK_URL` environment variable):
+To configure Discord notifications, set the `discord_webhook_url` in your `server` configuration block (or via the `FABRIC_DISCORD_WEBHOOK_URL` environment variable):
 
 ```yaml
 server:
@@ -219,7 +219,7 @@ Once configured, the Hub will automatically forward messages with severity-based
 
 The Hub supports structured logging and can forward its internal logs and traces to an OpenTelemetry-compatible backend (like Google Cloud Logging/Trace).
 
-To enable log forwarding, set `SCION_OTEL_LOG_ENABLED=true` and `SCION_OTEL_ENDPOINT`. See the [Observability Guide](/scion/hosted/single-node/observability/) for full details on centralizing system logs and agent metrics.
+To enable log forwarding, set `FABRIC_OTEL_LOG_ENABLED=true` and `FABRIC_OTEL_ENDPOINT`. See the [Observability Guide](/fabric/hosted/single-node/observability/) for full details on centralizing system logs and agent metrics.
 
 ## Monitoring
 

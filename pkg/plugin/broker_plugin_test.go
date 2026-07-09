@@ -20,7 +20,7 @@ import (
 	"net/rpc"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -110,11 +110,11 @@ func TestBrokerRPC_Publish(t *testing.T) {
 	client := startTestBrokerRPCServer(t, mock)
 
 	msg := messages.NewInstruction("user:alice", "agent:coder", "hello")
-	err := client.Publish(context.Background(), "scion.grove.g1.agent.coder.messages", msg)
+	err := client.Publish(context.Background(), "fabric.grove.g1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	require.Len(t, mock.published, 1)
-	assert.Equal(t, "scion.grove.g1.agent.coder.messages", mock.published[0].Topic)
+	assert.Equal(t, "fabric.grove.g1.agent.coder.messages", mock.published[0].Topic)
 	assert.Equal(t, "hello", mock.published[0].Msg.Msg)
 }
 
@@ -122,18 +122,18 @@ func TestBrokerRPC_Subscribe(t *testing.T) {
 	mock := &mockBrokerPlugin{}
 	client := startTestBrokerRPCServer(t, mock)
 
-	err := client.Subscribe("scion.grove.g1.agent.*.messages")
+	err := client.Subscribe("fabric.grove.g1.agent.*.messages")
 	require.NoError(t, err)
 
 	require.Len(t, mock.subscribed, 1)
-	assert.Equal(t, "scion.grove.g1.agent.*.messages", mock.subscribed[0])
+	assert.Equal(t, "fabric.grove.g1.agent.*.messages", mock.subscribed[0])
 }
 
 func TestBrokerRPC_Unsubscribe(t *testing.T) {
 	mock := &mockBrokerPlugin{}
 	client := startTestBrokerRPCServer(t, mock)
 
-	err := client.Unsubscribe("scion.grove.g1.agent.*.messages")
+	err := client.Unsubscribe("fabric.grove.g1.agent.*.messages")
 	require.NoError(t, err)
 
 	require.Len(t, mock.unsubscribed, 1)
@@ -175,7 +175,7 @@ func TestBrokerPluginAdapter_Publish(t *testing.T) {
 	adapter := NewBrokerPluginAdapter(client)
 
 	msg := messages.NewInstruction("user:alice", "agent:coder", "hello")
-	err := adapter.Publish(context.Background(), "scion.grove.g1.agent.coder.messages", msg)
+	err := adapter.Publish(context.Background(), "fabric.grove.g1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	require.Len(t, mock.published, 1)
@@ -186,7 +186,7 @@ func TestBrokerPluginAdapter_Subscribe(t *testing.T) {
 	client := startTestBrokerRPCServer(t, mock)
 	adapter := NewBrokerPluginAdapter(client)
 
-	sub, err := adapter.Subscribe("scion.grove.g1.agent.*.messages", func(ctx context.Context, topic string, msg *messages.StructuredMessage) {})
+	sub, err := adapter.Subscribe("fabric.grove.g1.agent.*.messages", func(ctx context.Context, topic string, msg *messages.StructuredMessage) {})
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 

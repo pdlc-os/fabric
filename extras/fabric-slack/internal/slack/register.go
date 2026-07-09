@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 const (
@@ -84,7 +84,7 @@ func (h *RegistrationHandler) StartRegistration(ctx context.Context, slackUserID
 		return "", fmt.Errorf("check user mapping: %w", err)
 	}
 	if existing != nil {
-		return "", fmt.Errorf("already registered as %s", existing.ScionEmail)
+		return "", fmt.Errorf("already registered as %s", existing.FabricEmail)
 	}
 
 	code, err := generateLinkingCode()
@@ -133,7 +133,7 @@ func (h *RegistrationHandler) Stop() {
 	}
 }
 
-// Unregister removes a user's Slack-to-Scion mapping.
+// Unregister removes a user's Slack-to-Fabric mapping.
 func (h *RegistrationHandler) Unregister(ctx context.Context, slackUserID string) error {
 	existing, err := h.store.GetUserMapping(ctx, slackUserID)
 	if err != nil {
@@ -192,8 +192,8 @@ func (h *RegistrationHandler) completeRegistration(reg *pendingSlackReg, statusR
 	mapping := &SlackUserMapping{
 		SlackUserID:   reg.SlackUserID,
 		SlackUsername: reg.SlackUsername,
-		ScionUserID:   statusResp.User.ID,
-		ScionEmail:    statusResp.User.Email,
+		FabricUserID:   statusResp.User.ID,
+		FabricEmail:    statusResp.User.Email,
 		LinkedAt:      time.Now(),
 	}
 
@@ -211,8 +211,8 @@ func (h *RegistrationHandler) completeRegistration(reg *pendingSlackReg, statusR
 
 	h.log.Info("User registered via hub linking",
 		"slack_user_id", reg.SlackUserID,
-		"scion_email", statusResp.User.Email,
-		"scion_user_id", statusResp.User.ID,
+		"fabric_email", statusResp.User.Email,
+		"fabric_user_id", statusResp.User.ID,
 	)
 }
 

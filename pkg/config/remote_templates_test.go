@@ -86,9 +86,9 @@ func TestParseGitHubURL(t *testing.T) {
 	}{
 		{
 			name:       "full tree URL with path",
-			uri:        "https://github.com/GoogleCloudPlatform/scion/tree/main/pkg/config/embeds",
-			wantOwner:  "GoogleCloudPlatform",
-			wantRepo:   "scion",
+			uri:        "https://github.com/pdlc-os/fabric/tree/main/pkg/config/embeds",
+			wantOwner:  "pdlc-os",
+			wantRepo:   "fabric",
 			wantBranch: "main",
 			wantPath:   "pkg/config/embeds",
 		},
@@ -110,11 +110,11 @@ func TestParseGitHubURL(t *testing.T) {
 		},
 		{
 			name:       "direct path without tree defaults to main",
-			uri:        "https://github.com/org/repo/some/path/.scion/templates",
+			uri:        "https://github.com/org/repo/some/path/.fabric/templates",
 			wantOwner:  "org",
 			wantRepo:   "repo",
 			wantBranch: "main",
-			wantPath:   "some/path/.scion/templates",
+			wantPath:   "some/path/.fabric/templates",
 		},
 		{
 			name:       "direct path single segment",
@@ -126,9 +126,9 @@ func TestParseGitHubURL(t *testing.T) {
 		},
 		{
 			name:       "trailing slash on tree URL path is stripped",
-			uri:        "https://github.com/GoogleCloudPlatform/scion/tree/main/harnesses/",
-			wantOwner:  "GoogleCloudPlatform",
-			wantRepo:   "scion",
+			uri:        "https://github.com/pdlc-os/fabric/tree/main/harnesses/",
+			wantOwner:  "pdlc-os",
+			wantRepo:   "fabric",
 			wantBranch: "main",
 			wantPath:   "harnesses",
 		},
@@ -187,9 +187,9 @@ func TestMatchBranchFromRefs(t *testing.T) {
 		},
 		{
 			name:       "branch with slash and path",
-			afterTree:  "scion/gh-copilot-harness-lead/harnesses/copilot",
-			refs:       map[string]bool{"main": true, "scion/gh-copilot-harness-lead": true},
-			wantBranch: "scion/gh-copilot-harness-lead",
+			afterTree:  "fabric/gh-copilot-harness-lead/harnesses/copilot",
+			refs:       map[string]bool{"main": true, "fabric/gh-copilot-harness-lead": true},
+			wantBranch: "fabric/gh-copilot-harness-lead",
 			wantPath:   "harnesses/copilot",
 			wantFound:  true,
 		},
@@ -203,9 +203,9 @@ func TestMatchBranchFromRefs(t *testing.T) {
 		},
 		{
 			name:       "prefers longest matching ref",
-			afterTree:  "scion/feature/test/path",
-			refs:       map[string]bool{"scion": true, "scion/feature": true, "scion/feature/test": true},
-			wantBranch: "scion/feature/test",
+			afterTree:  "fabric/feature/test/path",
+			refs:       map[string]bool{"fabric": true, "fabric/feature": true, "fabric/feature/test": true},
+			wantBranch: "fabric/feature/test",
 			wantPath:   "path",
 			wantFound:  true,
 		},
@@ -255,28 +255,28 @@ func TestNormalizeTemplateSourceURL(t *testing.T) {
 	}{
 		{
 			name:     "full https URL unchanged",
-			input:    "https://github.com/org/repo/tree/main/.scion/templates",
-			expected: "https://github.com/org/repo/tree/main/.scion/templates",
+			input:    "https://github.com/org/repo/tree/main/.fabric/templates",
+			expected: "https://github.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
 			name:     "scheme-less github domain gets https prefix",
-			input:    "github.com/org/repo/tree/main/.scion/templates",
-			expected: "https://github.com/org/repo/tree/main/.scion/templates",
+			input:    "github.com/org/repo/tree/main/.fabric/templates",
+			expected: "https://github.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
-			name:     "bare org/repo appends scion templates path",
+			name:     "bare org/repo appends fabric templates path",
 			input:    "https://github.com/org/repo",
-			expected: "https://github.com/org/repo/tree/main/.scion/templates",
+			expected: "https://github.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
-			name:     "scheme-less bare org/repo gets scheme and scion templates path",
+			name:     "scheme-less bare org/repo gets scheme and fabric templates path",
 			input:    "github.com/org/repo",
-			expected: "https://github.com/org/repo/tree/main/.scion/templates",
+			expected: "https://github.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
 			name:     "GitHub.com capitalized is normalized",
 			input:    "GitHub.com/org/repo",
-			expected: "https://GitHub.com/org/repo/tree/main/.scion/templates",
+			expected: "https://GitHub.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
 			name:     "rclone prefix left unchanged",
@@ -291,12 +291,12 @@ func TestNormalizeTemplateSourceURL(t *testing.T) {
 		{
 			name:     "whitespace trimmed",
 			input:    "  github.com/org/repo  ",
-			expected: "https://github.com/org/repo/tree/main/.scion/templates",
+			expected: "https://github.com/org/repo/tree/main/.fabric/templates",
 		},
 		{
 			name:     "deeper path not modified",
-			input:    "github.com/org/repo/.scion/templates/mytmpl",
-			expected: "https://github.com/org/repo/.scion/templates/mytmpl",
+			input:    "github.com/org/repo/.fabric/templates/mytmpl",
+			expected: "https://github.com/org/repo/.fabric/templates/mytmpl",
 		},
 	}
 
@@ -378,7 +378,7 @@ func TestDetectCommonRoot(t *testing.T) {
 		},
 		{
 			name:     "pax_global_header must be filtered before calling detectCommonRoot",
-			entries:  []string{"pax_global_header", "scion-main/harnesses/copilot/config.yaml"},
+			entries:  []string{"pax_global_header", "fabric-main/harnesses/copilot/config.yaml"},
 			expected: "",
 		},
 	}

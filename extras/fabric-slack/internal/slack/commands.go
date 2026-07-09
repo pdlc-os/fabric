@@ -9,8 +9,8 @@ import (
 
 	slackapi "github.com/slack-go/slack"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // HandleCommand dispatches a Slack slash command to the appropriate handler.
@@ -59,23 +59,23 @@ func HandleCommand(
 		postEphemeral(client, cmd.ChannelID, cmd.UserID, helpText())
 	default:
 		postEphemeral(client, cmd.ChannelID, cmd.UserID,
-			fmt.Sprintf("Unknown subcommand: `%s`. Use `/scion help` for available commands.", subcommand))
+			fmt.Sprintf("Unknown subcommand: `%s`. Use `/fabric help` for available commands.", subcommand))
 	}
 }
 
 func helpText() string {
-	return "*Scion Bot Commands*\n\n" +
-		"`/scion setup` — Link this channel to a Scion project\n" +
-		"`/scion unlink` — Unlink this channel from its project\n" +
-		"`/scion agents` — List agents in the linked project\n" +
-		"`/scion status <agent>` — Show agent status\n" +
-		"`/scion msg <agent> <text>` — Send a message to an agent\n" +
-		"`/scion default [agent]` — Set or show the default agent\n" +
-		"`/scion register` — Link your Slack account to Scion Hub\n" +
-		"`/scion unregister` — Unlink your Slack account\n" +
-		"`/scion settings` — Configure channel notification settings\n" +
-		"`/scion info` — Show your registration info\n" +
-		"`/scion help` — Show this help message\n\n" +
+	return "*Fabric Bot Commands*\n\n" +
+		"`/fabric setup` — Link this channel to a Fabric project\n" +
+		"`/fabric unlink` — Unlink this channel from its project\n" +
+		"`/fabric agents` — List agents in the linked project\n" +
+		"`/fabric status <agent>` — Show agent status\n" +
+		"`/fabric msg <agent> <text>` — Send a message to an agent\n" +
+		"`/fabric default [agent]` — Set or show the default agent\n" +
+		"`/fabric register` — Link your Slack account to Fabric Hub\n" +
+		"`/fabric unregister` — Unlink your Slack account\n" +
+		"`/fabric settings` — Configure channel notification settings\n" +
+		"`/fabric info` — Show your registration info\n" +
+		"`/fabric help` — Show this help message\n\n" +
 		"Mention the bot in a linked channel to send messages to agents."
 }
 
@@ -87,7 +87,7 @@ func handleSetup(ctx context.Context, client *slackapi.Client, store Store, hubC
 		return
 	}
 	if mapping == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Please link your Slack account first with `/scion register`.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Please link your Slack account first with `/fabric register`.")
 		return
 	}
 
@@ -99,13 +99,13 @@ func handleSetup(ctx context.Context, client *slackapi.Client, store Store, hubC
 	}
 	if link != nil && link.Active {
 		postEphemeral(client, cmd.ChannelID, cmd.UserID,
-			fmt.Sprintf("This channel is already linked to project *%s*.\nUse `/scion unlink` first to change it.", link.ProjectSlug))
+			fmt.Sprintf("This channel is already linked to project *%s*.\nUse `/fabric unlink` first to change it.", link.ProjectSlug))
 		return
 	}
 
 	var projects []ProjectOption
-	if mapping.ScionUserID != "" {
-		projects, err = hubClient.ListProjectsForUser(ctx, mapping.ScionUserID)
+	if mapping.FabricUserID != "" {
+		projects, err = hubClient.ListProjectsForUser(ctx, mapping.FabricUserID)
 		if err != nil {
 			log.Warn("Failed to list user projects", "error", err)
 		}
@@ -177,7 +177,7 @@ func handleUnlink(ctx context.Context, client *slackapi.Client, store Store, cmd
 func handleAgents(ctx context.Context, client *slackapi.Client, store Store, hubClient HubClient, cmd slackapi.SlashCommand, log *slog.Logger) {
 	link, err := store.GetChannelLink(ctx, cmd.ChannelID)
 	if err != nil || link == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/scion setup` first.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -211,14 +211,14 @@ func handleAgents(ctx context.Context, client *slackapi.Client, store Store, hub
 
 func handleStatus(ctx context.Context, client *slackapi.Client, store Store, hubClient HubClient, cmd slackapi.SlashCommand, args []string, log *slog.Logger) {
 	if len(args) == 0 {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Usage: `/scion status <agent>`")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Usage: `/fabric status <agent>`")
 		return
 	}
 	agentSlug := args[0]
 
 	link, err := store.GetChannelLink(ctx, cmd.ChannelID)
 	if err != nil || link == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/scion setup` first.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -255,7 +255,7 @@ func handleMsg(
 	log *slog.Logger,
 ) {
 	if len(args) < 2 {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Usage: `/scion msg <agent> <message>`")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Usage: `/fabric msg <agent> <message>`")
 		return
 	}
 	agentSlug := args[0]
@@ -263,7 +263,7 @@ func handleMsg(
 
 	link, err := store.GetChannelLink(ctx, cmd.ChannelID)
 	if err != nil || link == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/scion setup` first.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -274,12 +274,12 @@ func handleMsg(
 		return
 	}
 	if mapping == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Please link your Slack account first with `/scion register`.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "Please link your Slack account first with `/fabric register`.")
 		return
 	}
 
-	sender := "user:" + mapping.ScionEmail
-	if mapping.ScionEmail == "" {
+	sender := "user:" + mapping.FabricEmail
+	if mapping.FabricEmail == "" {
 		sender = "slack:" + mapping.SlackUsername
 	}
 
@@ -334,13 +334,13 @@ func handleDefault(ctx context.Context, client *slackapi.Client, store Store, hu
 		return
 	}
 	if link == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/scion setup` first.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
 	if len(args) == 0 {
 		if link.DefaultAgent == "" {
-			postEphemeral(client, cmd.ChannelID, cmd.UserID, "No default agent set. Use `/scion default <agent>` to set one.")
+			postEphemeral(client, cmd.ChannelID, cmd.UserID, "No default agent set. Use `/fabric default <agent>` to set one.")
 		} else {
 			postEphemeral(client, cmd.ChannelID, cmd.UserID,
 				fmt.Sprintf("Default agent: *%s*", link.DefaultAgent))
@@ -381,7 +381,7 @@ func handleRegister(ctx context.Context, client *slackapi.Client, store Store, r
 	if err != nil {
 		if strings.Contains(err.Error(), "already registered") {
 			postEphemeral(client, cmd.ChannelID, cmd.UserID,
-				fmt.Sprintf("You are %s. Use `/scion unregister` first to re-link.", err.Error()))
+				fmt.Sprintf("You are %s. Use `/fabric unregister` first to re-link.", err.Error()))
 			return
 		}
 		log.Error("Registration failed", "error", err, "user_id", cmd.UserID)
@@ -401,7 +401,7 @@ func handleUnregister(ctx context.Context, client *slackapi.Client, store Store,
 		return
 	}
 	if existing == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "You don't have a linked Scion account.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "You don't have a linked Fabric account.")
 		return
 	}
 
@@ -411,8 +411,8 @@ func handleUnregister(ctx context.Context, client *slackapi.Client, store Store,
 		return
 	}
 
-	postEphemeral(client, cmd.ChannelID, cmd.UserID, "Your Slack account has been unlinked from Scion.")
-	log.Info("User unregistered", "user_id", cmd.UserID, "scion_email", existing.ScionEmail)
+	postEphemeral(client, cmd.ChannelID, cmd.UserID, "Your Slack account has been unlinked from Fabric.")
+	log.Info("User unregistered", "user_id", cmd.UserID, "fabric_email", existing.FabricEmail)
 }
 
 func handleInfo(ctx context.Context, client *slackapi.Client, store Store, cmd slackapi.SlashCommand, log *slog.Logger) {
@@ -426,14 +426,14 @@ func handleInfo(ctx context.Context, client *slackapi.Client, store Store, cmd s
 	var sb strings.Builder
 	if mapping == nil {
 		sb.WriteString("*Registration:* Not registered\n")
-		sb.WriteString("Use `/scion register` to link your Slack account.")
+		sb.WriteString("Use `/fabric register` to link your Slack account.")
 	} else {
 		sb.WriteString("*Registration:* Linked\n")
-		if mapping.ScionEmail != "" {
-			fmt.Fprintf(&sb, "*Email:* %s\n", mapping.ScionEmail)
+		if mapping.FabricEmail != "" {
+			fmt.Fprintf(&sb, "*Email:* %s\n", mapping.FabricEmail)
 		}
-		if mapping.ScionUserID != "" {
-			fmt.Fprintf(&sb, "*User ID:* %s\n", mapping.ScionUserID)
+		if mapping.FabricUserID != "" {
+			fmt.Fprintf(&sb, "*User ID:* %s\n", mapping.FabricUserID)
 		}
 		fmt.Fprintf(&sb, "*Linked at:* %s\n", mapping.LinkedAt.UTC().Format(time.RFC3339))
 	}
@@ -457,7 +457,7 @@ func handleSettings(ctx context.Context, client *slackapi.Client, store Store, c
 		return
 	}
 	if link == nil {
-		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/scion setup` first.")
+		postEphemeral(client, cmd.ChannelID, cmd.UserID, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -584,7 +584,7 @@ func handleSetupCallback(ctx context.Context, client *slackapi.Client, store Sto
 		}
 
 		postEphemeral(client, channelID, userID,
-			fmt.Sprintf("Channel linked to project *%s*. Use `/scion default <agent>` to set a default agent.", projectID))
+			fmt.Sprintf("Channel linked to project *%s*. Use `/fabric default <agent>` to set a default agent.", projectID))
 		log.Info("Channel linked", "channel_id", channelID, "project_id", projectID)
 	}
 }
@@ -659,8 +659,8 @@ func handleAskOption(
 	if deliverInbound != nil {
 		sender := "slack:" + callback.User.ID
 		mapping, _ := store.GetUserMapping(ctx, callback.User.ID)
-		if mapping != nil && mapping.ScionEmail != "" {
-			sender = "user:" + mapping.ScionEmail
+		if mapping != nil && mapping.FabricEmail != "" {
+			sender = "user:" + mapping.FabricEmail
 		}
 
 		topic := projectcompat.AgentTopic(pending.ProjectID, pending.AgentSlug)

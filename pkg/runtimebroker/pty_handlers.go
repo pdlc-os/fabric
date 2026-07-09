@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
 	corev1 "k8s.io/api/core/v1"
@@ -47,7 +47,7 @@ const (
 	// tmux session for an interactive PTY stream. The TERM env
 	// prefix is required so tmux negotiates the right terminfo for
 	// xterm-style sequences from the web terminal client.
-	tmuxAttachCmd = "TERM=xterm-256color tmux attach-session -t scion"
+	tmuxAttachCmd = "TERM=xterm-256color tmux attach-session -t fabric"
 )
 
 // PTY endpoint configuration
@@ -56,19 +56,19 @@ const (
 )
 
 // sanitizeExecUser returns user if it matches runtime.ValidExecUserName,
-// otherwise returns "scion" and logs a warning. Callers default to
-// "scion" already when the value is empty, so passing an empty
+// otherwise returns "fabric" and logs a warning. Callers default to
+// "fabric" already when the value is empty, so passing an empty
 // string is harmless. The shared regex enforces the same
 // defense-in-depth check against shell injection from agent metadata
 // that KubernetesRuntime.Attach applies, so values flowing into
 // runtime.ExecAsUserCmd are validated by exactly one rule.
 func sanitizeExecUser(user string) string {
 	if user == "" {
-		return "scion"
+		return "fabric"
 	}
 	if !runtime.ValidExecUserName.MatchString(user) {
-		slog.Warn("Invalid exec user, falling back to 'scion'", "user", user)
-		return "scion"
+		slog.Warn("Invalid exec user, falling back to 'fabric'", "user", user)
+		return "fabric"
 	}
 	return user
 }
@@ -86,7 +86,7 @@ func queryTmuxActiveWindow(ctx context.Context, runtimeCmd, containerID, execUse
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, runtimeCmd, "exec", "--user", execUser, containerID,
-		"tmux", "display-message", "-t", "scion", "-p", "#{window_name}")
+		"tmux", "display-message", "-t", "fabric", "-p", "#{window_name}")
 	out, err := cmd.Output()
 	if err != nil {
 		slog.Debug("Failed to query tmux active window", "containerID", containerID, "error", err)
@@ -112,7 +112,7 @@ func queryTmuxActiveWindowK8s(ctx context.Context, config *rest.Config, clientse
 
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: "agent",
-		Command:   runtime.ExecAsUserCmd(execUser, "tmux display-message -t scion -p '#{window_name}'"),
+		Command:   runtime.ExecAsUserCmd(execUser, "tmux display-message -t fabric -p '#{window_name}'"),
 		Stdin:     false,
 		Stdout:    true,
 		Stderr:    false,
@@ -136,8 +136,8 @@ func queryTmuxActiveWindowK8s(ctx context.Context, config *rest.Config, clientse
 	return strings.TrimSpace(buf.String())
 }
 
-// waitForTmuxSession polls the container until the tmux session "scion" is
-// available. After starting a container, sciontool init needs time to set up
+// waitForTmuxSession polls the container until the tmux session "fabric" is
+// available. After starting a container, fabrictool init needs time to set up
 // the user, run pre-start hooks, and launch the tmux session. Without this
 // wait, an immediate attach would fail with "no sessions".
 func waitForTmuxSession(ctx context.Context, runtimeCmd, containerID, namespace, execUser string, k8sConfig *rest.Config, k8sClientset kubernetes.Interface) error {
@@ -158,11 +158,11 @@ func waitForTmuxSession(ctx context.Context, runtimeCmd, containerID, namespace,
 		case <-ticker.C:
 			var checkErr error
 			if isK8s && k8sConfig != nil && k8sClientset != nil {
-				// The tmux session runs as the scion user (via sciontool init privilege drop),
-				// so we must check as that user — root can't see scion's tmux socket.
-				checkErr = k8sExecCheck(ctx, k8sConfig, k8sClientset, namespace, containerID, runtime.ExecAsUserCmd(execUser, "tmux has-session -t scion"))
+				// The tmux session runs as the fabric user (via fabrictool init privilege drop),
+				// so we must check as that user — root can't see fabric's tmux socket.
+				checkErr = k8sExecCheck(ctx, k8sConfig, k8sClientset, namespace, containerID, runtime.ExecAsUserCmd(execUser, "tmux has-session -t fabric"))
 			} else {
-				cmd := exec.CommandContext(ctx, runtimeCmd, "exec", "--user", execUser, containerID, "tmux", "has-session", "-t", "scion")
+				cmd := exec.CommandContext(ctx, runtimeCmd, "exec", "--user", execUser, containerID, "tmux", "has-session", "-t", "fabric")
 				checkErr = cmd.Run()
 			}
 			if checkErr == nil {
@@ -304,7 +304,7 @@ type LocalPTYSession struct {
 	agentID     string
 	containerID string
 	runtimeCmd  string // Container runtime command (docker, container, kubernetes, etc.)
-	execUser    string // Container user for exec (e.g., "scion" or "root" for rootless Podman)
+	execUser    string // Container user for exec (e.g., "fabric" or "root" for rootless Podman)
 	namespace   string // Kubernetes namespace (empty for non-k8s runtimes)
 	conn        *websocket.Conn
 	cols        int
@@ -415,8 +415,8 @@ func (s *LocalPTYSession) runK8sExec() error {
 		Namespace(namespace).
 		SubResource("exec")
 
-	// Run as the configured exec user (default "scion"): the tmux
-	// session is owned by that user (sciontool init drops privileges),
+	// Run as the configured exec user (default "fabric"): the tmux
+	// session is owned by that user (fabrictool init drops privileges),
 	// so root can't see the session.
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: "agent",
@@ -541,7 +541,7 @@ func (s *LocalPTYSession) startDockerExec() error {
 		"-e", "TERM=xterm-256color",
 		"--user", s.execUser,
 		s.containerID,
-		"tmux", "attach-session", "-t", "scion",
+		"tmux", "attach-session", "-t", "fabric",
 	}
 
 	s.cmd = exec.CommandContext(s.ctx, s.runtimeCmd, args...)
@@ -646,7 +646,7 @@ type StreamPTYHandler struct {
 	slug        string
 	containerID string
 	runtimeCmd  string // Container runtime command (docker, container, kubernetes, etc.)
-	execUser    string // Container user for exec (e.g., "scion" or "root" for rootless Podman)
+	execUser    string // Container user for exec (e.g., "fabric" or "root" for rootless Podman)
 	namespace   string // Kubernetes namespace (empty for non-k8s runtimes)
 	cols        int
 	rows        int
@@ -767,8 +767,8 @@ func (h *StreamPTYHandler) runK8sExec() error {
 		Namespace(namespace).
 		SubResource("exec")
 
-	// Run as the configured exec user (default "scion"): the tmux
-	// session is owned by that user (sciontool init drops privileges),
+	// Run as the configured exec user (default "fabric"): the tmux
+	// session is owned by that user (fabrictool init drops privileges),
 	// so root can't see the session.
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: "agent",
@@ -926,7 +926,7 @@ func (h *StreamPTYHandler) startDockerExec() error {
 		"exec", "-it",
 		"--user", h.execUser,
 		h.containerID,
-		"tmux", "attach-session", "-t", "scion",
+		"tmux", "attach-session", "-t", "fabric",
 	}
 
 	h.cmd = exec.CommandContext(h.ctx, runtimeCmd, args...)

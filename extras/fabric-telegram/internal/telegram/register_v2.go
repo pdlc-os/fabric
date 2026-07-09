@@ -28,7 +28,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // RegistrationHandler manages the hub-verified code-based registration flow.
@@ -124,7 +124,7 @@ func (h *RegistrationHandler) HandleRegister(msg *TGMessage) {
 	if existing != nil {
 		h.sendReply(chatID, fmt.Sprintf(
 			"You are already registered as %s. Use /unregister first.",
-			existing.ScionEmail,
+			existing.FabricEmail,
 		))
 		return
 	}
@@ -167,7 +167,7 @@ func (h *RegistrationHandler) HandleRegister(msg *TGMessage) {
 
 	hubLink := fmt.Sprintf("%s/profile/telegram?code=%s", strings.TrimRight(h.hubURL, "/"), code)
 
-	text := "To link your Telegram and Scion accounts, tap and hold the button below and choose \"Open in ...\" your authenticated browser.\n\n" +
+	text := "To link your Telegram and Fabric accounts, tap and hold the button below and choose \"Open in ...\" your authenticated browser.\n\n" +
 		"(Link expires in 15 minutes.)"
 
 	keyboard := &InlineKeyboardMarkup{
@@ -268,7 +268,7 @@ func (h *RegistrationHandler) HandleUnregister(msg *TGMessage) {
 		return
 	}
 	if existing == nil {
-		h.sendReply(chatID, "You don't have a linked scion account. Send /register to link one.")
+		h.sendReply(chatID, "You don't have a linked fabric account. Send /register to link one.")
 		return
 	}
 
@@ -281,7 +281,7 @@ func (h *RegistrationHandler) HandleUnregister(msg *TGMessage) {
 	h.sendReply(chatID, "Your Telegram account has been unlinked.")
 	h.log.Info("User unregistered",
 		"telegram_user_id", telegramUserID,
-		"scion_email", existing.ScionEmail,
+		"fabric_email", existing.FabricEmail,
 	)
 }
 
@@ -301,13 +301,13 @@ func (h *RegistrationHandler) ImportV1Mappings(ctx context.Context, mappings map
 		}
 		if existing != nil {
 			h.log.Debug("Skipping v1 import for already-mapped user",
-				"telegram_user_id", telegramUserID, "existing_email", existing.ScionEmail)
+				"telegram_user_id", telegramUserID, "existing_email", existing.FabricEmail)
 			continue
 		}
 
 		mapping := &TelegramUserMapping{
 			TelegramUserID: telegramUserID,
-			ScionEmail:     email,
+			FabricEmail:     email,
 			LinkedAt:       time.Now(),
 		}
 		if err := h.store.SaveUserMapping(ctx, mapping); err != nil {
@@ -385,8 +385,8 @@ func (h *RegistrationHandler) completeRegistration(msg *TGMessage, reg *pendingL
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   reg.TelegramUserID,
 		TelegramUsername: username,
-		ScionUserID:      statusResp.User.ID,
-		ScionEmail:       statusResp.User.Email,
+		FabricUserID:      statusResp.User.ID,
+		FabricEmail:       statusResp.User.Email,
 		LinkedAt:         time.Now(),
 	}
 
@@ -406,8 +406,8 @@ func (h *RegistrationHandler) completeRegistration(msg *TGMessage, reg *pendingL
 	h.sendReply(reg.ChatID, fmt.Sprintf("Linked! You are %s", statusResp.User.Email))
 	h.log.Info("User registered via hub linking",
 		"telegram_user_id", reg.TelegramUserID,
-		"scion_email", statusResp.User.Email,
-		"scion_user_id", statusResp.User.ID,
+		"fabric_email", statusResp.User.Email,
+		"fabric_user_id", statusResp.User.ID,
 	)
 }
 
@@ -424,8 +424,8 @@ func (h *RegistrationHandler) completeRegistrationFromPoll(reg *pendingLinkReg, 
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   reg.TelegramUserID,
 		TelegramUsername: reg.TelegramUsername, // captured when user sent /register
-		ScionUserID:      statusResp.User.ID,
-		ScionEmail:       statusResp.User.Email,
+		FabricUserID:      statusResp.User.ID,
+		FabricEmail:       statusResp.User.Email,
 		LinkedAt:         time.Now(),
 	}
 
@@ -441,8 +441,8 @@ func (h *RegistrationHandler) completeRegistrationFromPoll(reg *pendingLinkReg, 
 	h.sendReply(reg.ChatID, fmt.Sprintf("Linked! You are %s", statusResp.User.Email))
 	h.log.Info("User registered via hub linking (auto-detected)",
 		"telegram_user_id", reg.TelegramUserID,
-		"scion_email", statusResp.User.Email,
-		"scion_user_id", statusResp.User.ID,
+		"fabric_email", statusResp.User.Email,
+		"fabric_user_id", statusResp.User.ID,
 	)
 }
 

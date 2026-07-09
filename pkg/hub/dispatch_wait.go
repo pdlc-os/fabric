@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ErrDispatchFailed is returned when a lifecycle dispatch rolling timeout

@@ -21,15 +21,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"gopkg.in/yaml.v3"
 )
 
 // Note: Settings files support YAML (preferred) and JSONC formats.
 // YAML files (.yaml/.yml) are checked first, then JSON (.json).
-// Environment variables with SCION_ prefix override top-level settings.
+// Environment variables with FABRIC_ prefix override top-level settings.
 
 type RuntimeConfig struct {
 	Host      string            `json:"broker,omitempty" yaml:"host,omitempty" koanf:"host"`
@@ -66,27 +66,27 @@ type ProfileConfig struct {
 
 // BucketConfig defines settings for cloud storage bucket persistence.
 // These settings can be set via environment variables:
-//   - SCION_BUCKET_PROVIDER: The cloud provider (e.g., "GCS")
-//   - SCION_BUCKET_NAME: The bucket name
-//   - SCION_BUCKET_PREFIX: The prefix/path within the bucket
+//   - FABRIC_BUCKET_PROVIDER: The cloud provider (e.g., "GCS")
+//   - FABRIC_BUCKET_NAME: The bucket name
+//   - FABRIC_BUCKET_PREFIX: The prefix/path within the bucket
 type BucketConfig struct {
 	Provider string `json:"provider,omitempty" yaml:"provider,omitempty" koanf:"provider"` // Cloud provider: "GCS", etc.
 	Name     string `json:"name,omitempty" yaml:"name,omitempty" koanf:"name"`             // Bucket name
 	Prefix   string `json:"prefix,omitempty" yaml:"prefix,omitempty" koanf:"prefix"`       // Prefix/path within the bucket
 }
 
-// HubClientConfig defines settings for connecting to a Scion Hub.
+// HubClientConfig defines settings for connecting to a Fabric Hub.
 // These settings can be set via environment variables:
-//   - SCION_HUB_ENDPOINT: The Hub API endpoint URL (e.g., "https://hub.scion.dev")
-//   - SCION_HUB_TOKEN: Bearer token for Hub authentication
-//   - SCION_HUB_API_KEY: API key for Hub authentication (alternative to token)
-//   - SCION_HUB_ENABLED: Set to "true" to enable Hub integration
+//   - FABRIC_HUB_ENDPOINT: The Hub API endpoint URL (e.g., "https://hub.fabric.dev")
+//   - FABRIC_HUB_TOKEN: Bearer token for Hub authentication
+//   - FABRIC_HUB_API_KEY: API key for Hub authentication (alternative to token)
+//   - FABRIC_HUB_ENABLED: Set to "true" to enable Hub integration
 type HubClientConfig struct {
 	// Enabled indicates whether Hub integration is enabled.
 	// When enabled and configured, agent operations are routed through the Hub.
 	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty" koanf:"enabled"`
 	// Linked indicates whether this project has been explicitly linked to the Hub
-	// via 'scion hub link'. This is separate from Enabled: a project can have hub
+	// via 'fabric hub link'. This is separate from Enabled: a project can have hub
 	// enabled for routing without being linked (status should not report linked
 	// until the user explicitly runs 'hub link').
 	Linked *bool `json:"linked,omitempty" yaml:"linked,omitempty" koanf:"linked"`
@@ -537,11 +537,11 @@ func UpdateSetting(projectPath string, key string, value string, global bool) er
 			return fmt.Errorf("project path required for local settings")
 		}
 		// Resolve through GetProjectConfigDir so that git projects with split
-		// storage write to the external config dir (~/.scion/project-configs/…)
+		// storage write to the external config dir (~/.fabric/project-configs/…)
 		// — the same location LoadSettingsKoanf reads from.
 		dir = GetProjectConfigDir(projectPath)
 
-		// Phase 5: Migrate .scion/grove-id to project-id if it exists.
+		// Phase 5: Migrate .fabric/grove-id to project-id if it exists.
 		// This ensures that subsequent reads prefer the new filename.
 		if projectPath != "" {
 			legacyIDFile := filepath.Join(projectPath, projectcompat.GroveIDFile)
@@ -567,9 +567,9 @@ func UpdateSetting(projectPath string, key string, value string, global bool) er
 			}
 			// Legacy format detected — auto-migrate to v1 before updating
 			fmt.Fprintf(os.Stderr, "Warning: settings file %s uses legacy format. Auto-migrating to v1 schema.\n", existingPath)
-			fmt.Fprintf(os.Stderr, "  You can also run 'scion config migrate' to migrate manually.\n")
+			fmt.Fprintf(os.Stderr, "  You can also run 'fabric config migrate' to migrate manually.\n")
 			if _, err := MigrateSettingsFile(dir, false); err != nil {
-				return fmt.Errorf("auto-migration of legacy settings failed: %w\n  Run 'scion config migrate' to migrate manually", err)
+				return fmt.Errorf("auto-migration of legacy settings failed: %w\n  Run 'fabric config migrate' to migrate manually", err)
 			}
 			return UpdateVersionedSetting(dir, key, value)
 		}
@@ -795,7 +795,7 @@ func (s *Settings) IsHubConfigured() bool {
 //     hub.enabled setting from config files. OR
 //  2. hub.enabled is explicitly set to true (without credentials).
 //
-// This allows users with SCION_HUB_TOKEN and SCION_HUB_ENDPOINT env vars
+// This allows users with FABRIC_HUB_TOKEN and FABRIC_HUB_ENDPOINT env vars
 // to interact with the hub without requiring an explicit hub.enabled=true,
 // even if a stale hub.enabled=false exists in a settings file.
 func (s *Settings) IsHubEnabled() bool {
@@ -811,7 +811,7 @@ func (s *Settings) IsHubEnabled() bool {
 }
 
 // IsHubLinked returns true if this project has been explicitly linked to the Hub
-// via 'scion hub link'. A project can be hub-enabled without being linked.
+// via 'fabric hub link'. A project can be hub-enabled without being linked.
 func (s *Settings) IsHubLinked() bool {
 	return s.Hub != nil && s.Hub.Linked != nil && *s.Hub.Linked
 }
@@ -843,7 +843,7 @@ func DeleteHubConnection(projectPath string, name string, global bool) error {
 			return fmt.Errorf("project path required for local settings")
 		}
 		// Resolve through GetProjectConfigDir so that git projects with split
-		// storage write to the external config dir (~/.scion/project-configs/…)
+		// storage write to the external config dir (~/.fabric/project-configs/…)
 		// — the same location LoadSettingsKoanf reads from.
 		dir = GetProjectConfigDir(projectPath)
 	}

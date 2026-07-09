@@ -20,7 +20,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // CreateSkillRegistryRequest is the request body for creating a skill registry.

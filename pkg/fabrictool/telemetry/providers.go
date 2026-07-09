@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package telemetry
@@ -58,46 +58,46 @@ func NewProviders(ctx context.Context, config *Config, batch bool) (*Providers, 
 // buildResource creates the OTel resource with service name and agent identifiers.
 func buildResource(ctx context.Context) (*resource.Resource, error) {
 	attrs := []resource.Option{
-		resource.WithAttributes(semconv.ServiceName("sciontool")),
+		resource.WithAttributes(semconv.ServiceName("fabrictool")),
 	}
-	if agentID := os.Getenv("SCION_AGENT_ID"); agentID != "" {
+	if agentID := os.Getenv("FABRIC_AGENT_ID"); agentID != "" {
 		attrs = append(attrs, resource.WithAttributes(semconv.ServiceInstanceID(agentID)))
 	}
-	legacyProjectID := os.Getenv("SCION_GROVE_ID")
-	projectID := os.Getenv("SCION_PROJECT_ID")
+	legacyProjectID := os.Getenv("FABRIC_GROVE_ID")
+	projectID := os.Getenv("FABRIC_PROJECT_ID")
 	if legacyProjectID != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.grove.id", legacyProjectID),
+			attribute.String("fabric.grove.id", legacyProjectID),
 		))
 	}
 	if projectID != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.project.id", projectID),
+			attribute.String("fabric.project.id", projectID),
 		))
 	}
 	// Ensure both are set if either is available for transition
 	if legacyProjectID == "" && projectID != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.grove.id", projectID),
+			attribute.String("fabric.grove.id", projectID),
 		))
 	} else if projectID == "" && legacyProjectID != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.project.id", legacyProjectID),
+			attribute.String("fabric.project.id", legacyProjectID),
 		))
 	}
-	if harness := os.Getenv("SCION_HARNESS"); harness != "" {
+	if harness := os.Getenv("FABRIC_HARNESS"); harness != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.harness", harness),
+			attribute.String("fabric.harness", harness),
 		))
 	}
-	if model := os.Getenv("SCION_MODEL"); model != "" {
+	if model := os.Getenv("FABRIC_MODEL"); model != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.model", model),
+			attribute.String("fabric.model", model),
 		))
 	}
-	if broker := os.Getenv("SCION_BROKER_NAME"); broker != "" {
+	if broker := os.Getenv("FABRIC_BROKER_NAME"); broker != "" {
 		attrs = append(attrs, resource.WithAttributes(
-			attribute.String("scion.broker", broker),
+			attribute.String("fabric.broker", broker),
 		))
 	}
 	res, err := resource.New(ctx, attrs...)

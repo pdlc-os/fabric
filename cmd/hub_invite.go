@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -42,10 +42,10 @@ Invite codes allow admins to generate time-limited links that new users
 can use to join the hub when invite-only mode is enabled.
 
 Examples:
-  scion hub invite create --expires 1h
-  scion hub invite list
-  scion hub invite revoke <id>
-  scion hub invite delete <id>`,
+  fabric hub invite create --expires 1h
+  fabric hub invite list
+  fabric hub invite revoke <id>
+  fabric hub invite delete <id>`,
 }
 
 var hubInviteCreateCmd = &cobra.Command{
@@ -56,9 +56,9 @@ var hubInviteCreateCmd = &cobra.Command{
 Expiration presets: 5m, 15m, 30m, 1h, 4h, 12h, 24h, 72h (3 days), 120h (5 days)
 
 Examples:
-  scion hub invite create --expires 1h
-  scion hub invite create --expires 24h --max-uses 5 --note "Workshop"
-  scion hub invite create --expires 120h --max-uses 0 --note "Open invite"`,
+  fabric hub invite create --expires 1h
+  fabric hub invite create --expires 24h --max-uses 5 --note "Workshop"
+  fabric hub invite create --expires 120h --max-uses 0 --note "Open invite"`,
 	RunE: runInviteCreate,
 }
 
@@ -68,8 +68,8 @@ var hubInviteListCmd = &cobra.Command{
 	Long: `List all invite codes.
 
 Examples:
-  scion hub invite list
-  scion hub invite list --json`,
+  fabric hub invite list
+  fabric hub invite list --json`,
 	Args: cobra.NoArgs,
 	RunE: runInviteList,
 }
@@ -80,7 +80,7 @@ var hubInviteRevokeCmd = &cobra.Command{
 	Long: `Revoke an active invite code so it can no longer be used.
 
 Examples:
-  scion hub invite revoke a1b2c3d4-e5f6-7890-abcd-ef1234567890`,
+  fabric hub invite revoke a1b2c3d4-e5f6-7890-abcd-ef1234567890`,
 	Args: cobra.ExactArgs(1),
 	RunE: runInviteRevoke,
 }
@@ -91,7 +91,7 @@ var hubInviteDeleteCmd = &cobra.Command{
 	Long: `Permanently delete an invite code.
 
 Examples:
-  scion hub invite delete a1b2c3d4-e5f6-7890-abcd-ef1234567890`,
+  fabric hub invite delete a1b2c3d4-e5f6-7890-abcd-ef1234567890`,
 	Args: cobra.ExactArgs(1),
 	RunE: runInviteDelete,
 }

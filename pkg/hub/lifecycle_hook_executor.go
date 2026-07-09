@@ -26,8 +26,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/lifecyclehooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/lifecyclehooks"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // Compile-time interface compliance check.

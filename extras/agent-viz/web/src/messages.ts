@@ -277,7 +277,7 @@ export class MessageRenderer {
     if (cached !== undefined) return cached;
 
     let s = content.trim().replace(/^```[a-zA-Z]*\n?/, '').replace(/\n?```$/, '').trim();
-    // Legacy scion state messages: "… has reached a state of COMPLETED: …"
+    // Legacy fabric state messages: "… has reached a state of COMPLETED: …"
     const stateMatch = s.match(/state of (\w+)/i);
     let result: string;
     if (stateMatch) {

@@ -21,7 +21,7 @@ Commit 65739619 changed hub-scoped secrets from a hardcoded `scope_id="hub"` to 
 
 ### 2. Keys not appearing in hub secret list
 
-Because the migration silently failed, no record existed under the current `scope_id`. The admin UI (`/settings`) and CLI (`scion hub secret list --scope hub`) query by `scope_id`, so the signing keys were invisible.
+Because the migration silently failed, no record existed under the current `scope_id`. The admin UI (`/settings`) and CLI (`fabric hub secret list --scope hub`) query by `scope_id`, so the signing keys were invisible.
 
 **Fix:** Same as above — successful migration makes them listable.
 
@@ -37,7 +37,7 @@ Server logs show `"Loaded existing signing key from store"` for both keys on res
 
 #### H2: Hostname-derived hub ID is unstable (RULED OUT)
 
-The server runs on a GCE VM (`scion-gteam`) with a stable hostname. `DefaultHubID()` uses `sha256(hostname)[:12]`, which is deterministic. Logs confirm the same hub ID (`a827a6646d3e`) across restarts.
+The server runs on a GCE VM (`fabric-gteam`) with a stable hostname. `DefaultHubID()` uses `sha256(hostname)[:12]`, which is deterministic. Logs confirm the same hub ID (`a827a6646d3e`) across restarts.
 
 #### H3: `base64.StdEncoding.DecodeString` silently fails after logging
 
@@ -45,7 +45,7 @@ The server runs on a GCE VM (`scion-gteam`) with a stable hostname. `DefaultHubI
 
 **Status:** Plausible but unlikely — the value was encoded with `EncodeToString` so it should be valid base64. Diagnostic logging now surfaces this case.
 
-#### H4: Session store (`/tmp/scion-sessions/`) is losing data
+#### H4: Session store (`/tmp/fabric-sessions/`) is losing data
 
 The web frontend stores JWTs in server-side filesystem sessions (gorilla/sessions `FilesystemStore`), not in browser localStorage. If session files were lost between restarts (e.g., `PrivateTmp=yes` in systemd), the JWT would be gone and the middleware would pass through without a Bearer header.
 
@@ -65,7 +65,7 @@ If the database has records for the same key name under different scope_ids (e.g
 
 #### H7: GCP Secret Manager interference
 
-The server has `SCION_SERVER_SECRETS_BACKEND=gcpsm`, but `ensureSigningKey()` runs during `New()` when `s.secretBackend` is nil (it's set later via `SetSecretBackend`). Signing keys always go through direct SQLite storage, never through GCP SM.
+The server has `FABRIC_SERVER_SECRETS_BACKEND=gcpsm`, but `ensureSigningKey()` runs during `New()` when `s.secretBackend` is nil (it's set later via `SetSecretBackend`). Signing keys always go through direct SQLite storage, never through GCP SM.
 
 **Status:** Ruled out.
 

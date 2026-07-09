@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Start a scion agent with a task
+# Start a fabric agent with a task
 # Usage: start-agent.sh <name> <task> [--type template] [--attach]
 
 if [ $# -lt 2 ]; then
@@ -26,5 +26,5 @@ shift
 TASK="$1"
 shift
 
-# Pass remaining args to scion
-scion start "$NAME" "$TASK" "$@"
+# Pass remaining args to fabric
+fabric start "$NAME" "$TASK" "$@"

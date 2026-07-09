@@ -3,7 +3,7 @@ title: Apple Container DNS Setup
 description: Manual steps to configure DNS for Apple Container runtime on macOS.
 ---
 
-When using Apple Container as your container runtime, Scion agents need to reach the Hub server. This requires a DNS rule that maps `host.containers.internal` to the loopback address.
+When using Apple Container as your container runtime, Fabric agents need to reach the Hub server. This requires a DNS rule that maps `host.containers.internal` to the loopback address.
 
 Apple Container's DNS rules persist across sessions but the underlying PF (packet filter) rules do not survive macOS reboots. You need to re-run this command after each reboot:
 
@@ -19,7 +19,7 @@ The DNS setup modifies macOS PF (packet filter) rules, which require root access
 
 Because the command requires root, it must be installed as a **system-level LaunchDaemon** (not a user LaunchAgent). User-level agents run without a terminal, so `sudo` cannot prompt for a password.
 
-Create `/Library/LaunchDaemons/org.scion.apple-container-dns.plist` as root:
+Create `/Library/LaunchDaemons/org.fabric.apple-container-dns.plist` as root:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -27,7 +27,7 @@ Create `/Library/LaunchDaemons/org.scion.apple-container-dns.plist` as root:
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>org.scion.apple-container-dns</string>
+    <string>org.fabric.apple-container-dns</string>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/homebrew/bin/container</string>
@@ -51,7 +51,7 @@ Adjust the path `/opt/homebrew/bin/container` if Apple Container is installed el
 Load the daemon (runs immediately and on every subsequent boot):
 
 ```bash
-sudo launchctl bootstrap system /Library/LaunchDaemons/org.scion.apple-container-dns.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/org.fabric.apple-container-dns.plist
 ```
 
 ## Verification

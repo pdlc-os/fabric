@@ -13,5 +13,5 @@ This release introduces a major overhaul of the agent authentication pipeline, a
 ## 🐛 Fixes
 * **Apple-Container Stability:** Resolved critical hangs during container removal on macOS by implementing automated cleanup and blocking of problematic debug symlinks (e.g., `.claude_debug`).
 * **Terminal UX & Reliability:** Improved error visibility by skipping terminal reset sequences on attachment failures.
-* **Workspace & Git Integrity:** Hardened workspace file collection by skipping symlinks and ensured `git clone` operations correctly use the `scion` user when the broker runs as root.
+* **Workspace & Git Integrity:** Hardened workspace file collection by skipping symlinks and ensured `git clone` operations correctly use the `fabric` user when the broker runs as root.
 * **Auth Precision & Validation:** Fixed several authentication regressions, including incorrect Vertex AI region projections, false API key requirements during environment gathering, and improper leakage of host settings into agent containers.

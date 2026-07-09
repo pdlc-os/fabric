@@ -24,12 +24,12 @@ import (
 	"bufio"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -40,15 +40,15 @@ var initImageRegistry string
 var projectCmd = &cobra.Command{
 	Use:     "project",
 	Aliases: []string{"grove", "group"},
-	Short:   "Manage scion projects (formerly groves)",
-	Long:    `A project is the grouping construct for a set of agents. The .scion folder represents a project.`,
+	Short:   "Manage fabric projects (formerly groves)",
+	Long:    `A project is the grouping construct for a set of agents. The .fabric folder represents a project.`,
 }
 
 // projectInitCmd represents the init subcommand for project
 var projectInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new project",
-	Long: `Initialize a new project by creating the .scion directory structure
+	Long: `Initialize a new project by creating the .fabric directory structure
 and seeding the default template. 
 
 By default, it initializes in:
@@ -61,7 +61,7 @@ With --global, it initializes in the user's home folder.`,
 
 		if globalInit || machineInit {
 			if !isJSONOutput() {
-				fmt.Println("Initializing global scion directory...")
+				fmt.Println("Initializing global fabric directory...")
 			}
 
 			// Resolve image registry: flag > existing settings > prompt > skip
@@ -94,19 +94,19 @@ With --global, it initializes in the user's home folder.`,
 				return outputJSON(ActionResult{
 					Status:  "success",
 					Command: "project init",
-					Message: "scion project successfully initialized.",
+					Message: "fabric project successfully initialized.",
 					Details: details,
 				})
 			}
 
-			fmt.Println("scion project successfully initialized.")
+			fmt.Println("fabric project successfully initialized.")
 			if registryValue != "" {
 				fmt.Printf("Image registry: %s\n", registryValue)
 			} else {
 				fmt.Println()
 				fmt.Println("Note: image_registry is not configured. Agents cannot start without it.")
 				fmt.Println("  Build images first — see image-build/README.md")
-				fmt.Println("  Then run: scion config set --global image_registry <your-registry>")
+				fmt.Println("  Then run: fabric config set --global image_registry <your-registry>")
 			}
 
 			// Prompt for Hub registration if Hub is configured
@@ -118,10 +118,10 @@ With --global, it initializes in the user's home folder.`,
 			return nil
 		}
 
-		// Check if ~/.scion/ exists; error if not since global project is required
+		// Check if ~/.fabric/ exists; error if not since global project is required
 		if globalDir, err := config.GetGlobalDir(); err == nil {
 			if _, err := os.Stat(globalDir); os.IsNotExist(err) {
-				return fmt.Errorf("global scion directory (~/.scion/) does not exist.\nRun 'scion init --machine' first to set up the global configuration")
+				return fmt.Errorf("global fabric directory (~/.fabric/) does not exist.\nRun 'fabric init --machine' first to set up the global configuration")
 			}
 		}
 
@@ -152,26 +152,26 @@ With --global, it initializes in the user's home folder.`,
 		if util.IsGitRepo() {
 			repoRoot, err := util.RepoRoot()
 			if err == nil && repoRoot != "" {
-				expectedTarget := filepath.Join(repoRoot, config.DotScion)
+				expectedTarget := filepath.Join(repoRoot, config.DotFabric)
 				if targetDir == expectedTarget && wd != repoRoot {
-					fmt.Printf("Note: Creating .scion at repository root (%s)\n", repoRoot)
+					fmt.Printf("Note: Creating .fabric at repository root (%s)\n", repoRoot)
 				}
 			}
 		}
 
 		if !isJSONOutput() {
-			fmt.Println("Initializing scion project...")
+			fmt.Println("Initializing fabric project...")
 		}
 		if err := config.InitProject("", embedOnlyHarnesses); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 
 		// Resolve the projectID and save it to settings.
-		// For non-git projects, targetDir (.scion) is now a marker file, so we must
+		// For non-git projects, targetDir (.fabric) is now a marker file, so we must
 		// resolve through it to the external config path. The projectID is already
 		// generated during InitProject — read it back rather than generating a new one.
 		var projectID string
-		markerPath := filepath.Join(filepath.Dir(targetDir), config.DotScion)
+		markerPath := filepath.Join(filepath.Dir(targetDir), config.DotFabric)
 		if config.IsProjectMarkerFile(markerPath) {
 			// Non-git project: read projectID from marker, save to external settings
 			marker, err := config.ReadProjectMarker(markerPath)
@@ -196,7 +196,7 @@ With --global, it initializes in the user's home folder.`,
 			return outputJSON(ActionResult{
 				Status:  "success",
 				Command: "project init",
-				Message: "scion project successfully initialized.",
+				Message: "fabric project successfully initialized.",
 				Details: map[string]interface{}{
 					"projectId": projectID,
 					"path":      targetDir,
@@ -204,7 +204,7 @@ With --global, it initializes in the user's home folder.`,
 			})
 		}
 
-		fmt.Println("scion project successfully initialized.")
+		fmt.Println("fabric project successfully initialized.")
 		fmt.Printf("Project ID: %s\n", projectID)
 
 		// Prompt for Hub registration if Hub is configured
@@ -406,7 +406,7 @@ func promptImageRegistry() string {
 	}
 
 	fmt.Println()
-	fmt.Println("Scion runs agents in containers. You need to build and push container images")
+	fmt.Println("Fabric runs agents in containers. You need to build and push container images")
 	fmt.Println("to a registry you control before starting agents.")
 	fmt.Println()
 	fmt.Println("  See: image-build/README.md for build instructions")

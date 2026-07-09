@@ -18,8 +18,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 func TestStopProjectContainers_StopsMatchingContainers(t *testing.T) {
@@ -29,25 +29,25 @@ func TestStopProjectContainers_StopsMatchingContainers(t *testing.T) {
 		{
 			ContainerID: "container-1",
 			Name:        "agent-a",
-			Labels:      map[string]string{"scion.name": "agent-a", "scion.grove": "myproject"},
+			Labels:      map[string]string{"fabric.name": "agent-a", "fabric.grove": "myproject"},
 		},
 		{
 			ContainerID: "container-2",
 			Name:        "agent-b",
-			Labels:      map[string]string{"scion.name": "agent-b", "scion.grove": "myproject"},
+			Labels:      map[string]string{"fabric.name": "agent-b", "fabric.grove": "myproject"},
 		},
 		{
 			ContainerID: "container-3",
 			Name:        "other-agent",
-			Labels:      map[string]string{"scion.name": "other-agent", "scion.grove": "myproject"},
+			Labels:      map[string]string{"fabric.name": "other-agent", "fabric.grove": "myproject"},
 		},
 	}
 
 	mock := &runtime.MockRuntime{
 		ListFunc: func(ctx context.Context, filter map[string]string) ([]api.AgentInfo, error) {
 			// The initial List call uses project filter; Delete's internal List
-			// uses scion.name filter to find the container by ID.
-			if name, ok := filter["scion.name"]; ok {
+			// uses fabric.name filter to find the container by ID.
+			if name, ok := filter["fabric.name"]; ok {
 				for _, c := range allContainers {
 					if c.ContainerID == name || c.Name == name {
 						return []api.AgentInfo{c}, nil
@@ -104,7 +104,7 @@ func TestStopProjectContainers_SkipsEmptyContainerID(t *testing.T) {
 				{
 					ContainerID: "", // no container ID (created but never started)
 					Name:        "agent-a",
-					Labels:      map[string]string{"scion.name": "agent-a"},
+					Labels:      map[string]string{"fabric.name": "agent-a"},
 				},
 			}, nil
 		},

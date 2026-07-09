@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/scion/extras/fs-watcher-tool
+module github.com/pdlc-os/fabric/extras/fs-watcher-tool
 
 go 1.25.4
 

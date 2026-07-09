@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // MessageChannel describes a registered broker channel.

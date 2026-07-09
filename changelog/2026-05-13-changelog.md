@@ -7,7 +7,7 @@ This release focuses on streamlining the administrative user experience and comp
     * Manage all users and access controls from a single interface.
     * Inline invite status tracking (active, expired, revoked, exhausted).
     * Integrated invite generation and revocation directly within the member list.
-* **[CLI]: Agent Wake-on-Message.** Introduced the `--wake` flag for the `scion message` command, allowing users to explicitly wake suspended agents when sending a message from the CLI.
+* **[CLI]: Agent Wake-on-Message.** Introduced the `--wake` flag for the `fabric message` command, allowing users to explicitly wake suspended agents when sending a message from the CLI.
 
 ## 🐛 Fixes
 * **[Core]: Grove to Project Finalization.** Completed the renaming of "Grove" terminology to "Project" across `hubclient`, `projectsync`, and `agent-viz`.

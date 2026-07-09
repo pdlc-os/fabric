@@ -23,10 +23,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 
-	harnessesEmbed "github.com/GoogleCloudPlatform/scion/harnesses"
+	harnessesEmbed "github.com/pdlc-os/fabric/harnesses"
 )
 
 // seedClaudeDir seeds the embedded Claude harness-config into a temp dir
@@ -78,7 +78,7 @@ func TestClaudeEmbedsSeedRootSupportFiles(t *testing.T) {
 
 // TestClaudeContainerScriptHarnessStagesScript verifies Provision() copies
 // the seeded provision.py into the agent bundle and writes a wrapper that
-// targets sciontool harness provision.
+// targets fabrictool harness provision.
 func TestClaudeContainerScriptHarnessStagesScript(t *testing.T) {
 	dir := seedClaudeDir(t)
 
@@ -96,7 +96,7 @@ func TestClaudeContainerScriptHarnessStagesScript(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	bundle := filepath.Join(agentHome, ".scion", "harness")
+	bundle := filepath.Join(agentHome, ".fabric", "harness")
 	stagedScript := filepath.Join(bundle, "provision.py")
 	if _, err := os.Stat(stagedScript); err != nil {
 		t.Fatalf("provision.py not staged into bundle: %v", err)
@@ -115,13 +115,13 @@ func TestClaudeContainerScriptHarnessStagesScript(t *testing.T) {
 		t.Error("staged provision.py differs from harness-config copy")
 	}
 
-	wrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	wrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	wrapperBytes, err := os.ReadFile(wrapper)
 	if err != nil {
 		t.Fatalf("hook wrapper missing: %v", err)
 	}
-	if !strings.Contains(string(wrapperBytes), "sciontool harness provision") {
-		t.Errorf("wrapper does not invoke sciontool harness provision: %s", wrapperBytes)
+	if !strings.Contains(string(wrapperBytes), "fabrictool harness provision") {
+		t.Errorf("wrapper does not invoke fabrictool harness provision: %s", wrapperBytes)
 	}
 }
 
@@ -143,7 +143,7 @@ func TestClaudeContainerScriptReconcilesMissingBundle(t *testing.T) {
 	agentHome := t.TempDir()
 
 	// Simulate an agent home created by the old builtin harness path:
-	// the config dir exists but there is no .scion/harness/ bundle.
+	// the config dir exists but there is no .fabric/harness/ bundle.
 	configDir := filepath.Join(agentHome, ".claude")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		t.Fatal(err)
@@ -153,7 +153,7 @@ func TestClaudeContainerScriptReconcilesMissingBundle(t *testing.T) {
 	}
 
 	// Confirm the hook wrapper does NOT exist yet.
-	hookWrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	hookWrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	if _, err := os.Stat(hookWrapper); err == nil {
 		t.Fatal("hook wrapper should not exist before reconciliation")
 	}
@@ -168,17 +168,17 @@ func TestClaudeContainerScriptReconcilesMissingBundle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hook wrapper not staged after reconciliation: %v", err)
 	}
-	if !strings.Contains(string(wrapperBytes), "sciontool harness provision") {
-		t.Errorf("wrapper does not invoke sciontool harness provision: %s", wrapperBytes)
+	if !strings.Contains(string(wrapperBytes), "fabrictool harness provision") {
+		t.Errorf("wrapper does not invoke fabrictool harness provision: %s", wrapperBytes)
 	}
 
 	// provision.py must be staged.
-	if _, err := os.Stat(filepath.Join(agentHome, ".scion", "harness", "provision.py")); err != nil {
+	if _, err := os.Stat(filepath.Join(agentHome, ".fabric", "harness", "provision.py")); err != nil {
 		t.Errorf("provision.py not staged: %v", err)
 	}
 
 	// manifest.json must be present.
-	if _, err := os.Stat(filepath.Join(agentHome, ".scion", "harness", "manifest.json")); err != nil {
+	if _, err := os.Stat(filepath.Join(agentHome, ".fabric", "harness", "manifest.json")); err != nil {
 		t.Errorf("manifest.json not staged: %v", err)
 	}
 
@@ -200,7 +200,7 @@ func TestClaudeProvisionScript_Integration_HappyPath(t *testing.T) {
 	scriptPath := filepath.Join(dir, "provision.py")
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -322,7 +322,7 @@ func TestClaudeProvisionScript_Integration_NoCreds(t *testing.T) {
 	scriptPath := filepath.Join(dir, "provision.py")
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -386,7 +386,7 @@ func TestClaudeProvisionScript_Integration_APIKeyApproval(t *testing.T) {
 	scriptPath := filepath.Join(dir, "provision.py")
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -489,7 +489,7 @@ func TestClaudeProvisionScript_Integration_VertexAI(t *testing.T) {
 	scriptPath := filepath.Join(dir, "provision.py")
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -600,7 +600,7 @@ func TestClaudeProvisionScript_Integration_VertexAI_NoADC(t *testing.T) {
 	scriptPath := filepath.Join(dir, "provision.py")
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -691,13 +691,13 @@ func TestClaudeProvisionScript_Integration_MCP(t *testing.T) {
 
 	dir := seedClaudeDir(t)
 	scriptPath := filepath.Join(dir, "provision.py")
-	// Stage scion_harness.py next to provision.py so the import resolves.
-	if err := os.WriteFile(filepath.Join(dir, "scion_harness.py"), SharedHarnessHelperSource(), 0644); err != nil {
+	// Stage fabric_harness.py next to provision.py so the import resolves.
+	if err := os.WriteFile(filepath.Join(dir, "fabric_harness.py"), SharedHarnessHelperSource(), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -708,7 +708,7 @@ func TestClaudeProvisionScript_Integration_MCP(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Stage the helper into the bundle too (mirrors production).
-	if err := os.WriteFile(filepath.Join(bundle, "scion_harness.py"), SharedHarnessHelperSource(), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(bundle, "fabric_harness.py"), SharedHarnessHelperSource(), 0644); err != nil {
 		t.Fatal(err)
 	}
 

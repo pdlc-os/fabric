@@ -1,6 +1,6 @@
 # Hermes Harness Bundle
 
-Scion harness configuration for [Hermes Agent](https://github.com/nousresearch/hermes-agent),
+Fabric harness configuration for [Hermes Agent](https://github.com/nousresearch/hermes-agent),
 Nous Research's AI coding agent (MIT license).
 
 ## Install
@@ -8,13 +8,13 @@ Nous Research's AI coding agent (MIT license).
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/hermes
+fabric harness-config install harnesses/hermes
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/hermes
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/hermes
 ```
 
 ## Auth Modes
@@ -32,7 +32,7 @@ hermes/
   config.yaml       # Harness configuration (provisioner, capabilities, auth)
   provision.py       # Container-side provisioner (pre-start hook)
   capture_auth.py    # Credential capture for no-auth flow
-  Dockerfile         # Image build (FROM scion-base)
+  Dockerfile         # Image build (FROM fabric-base)
   cloudbuild.yaml    # Cloud Build configuration
 ```
 
@@ -40,7 +40,7 @@ hermes/
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-hermes:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-hermes:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

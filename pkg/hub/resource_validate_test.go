@@ -21,8 +21,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func TestValidateStorage_HealthyTemplate(t *testing.T) {
@@ -30,7 +30,7 @@ func TestValidateStorage_HealthyTemplate(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "healthy", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# bashrc",
 	})
 	src := NewFSResourceSource(br)
@@ -72,7 +72,7 @@ func TestValidateStorage_MissingObject(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "broken", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# bashrc",
 	})
 	src := NewFSResourceSource(br)
@@ -119,7 +119,7 @@ func TestValidateStorage_MissingManifest(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "no-manifest", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()
@@ -170,7 +170,7 @@ func TestValidateStorage_ZeroFilesActive(t *testing.T) {
 		Scope:         "global",
 		ScopeID:       "",
 		Status:        store.TemplateStatusActive,
-		SourceURL:     "builtin://scion/dev/template/zero-files",
+		SourceURL:     "builtin://fabric/dev/template/zero-files",
 		StoragePath:   "templates/global/zero-files",
 		StorageBucket: stor.Bucket(),
 		StorageURI:    "gs://test-bucket/templates/global/zero-files",
@@ -205,7 +205,7 @@ func TestValidateStorage_ContentHashMismatch(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "hash-mismatch", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# original content",
 	})
 	src := NewFSResourceSource(br)
@@ -258,7 +258,7 @@ func TestRepairStorage_FixesHashMismatch(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "repair-hash", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# correct content",
 	})
 	src := NewFSResourceSource(br)
@@ -317,7 +317,7 @@ func TestValidateStorage_HarnessConfigPass(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindHarnessConfig, "healthy-hc", map[string]string{
-		"config.yaml":  "harness: claude\nimage: test:latest\nuser: scion\n",
+		"config.yaml":  "harness: claude\nimage: test:latest\nuser: fabric\n",
 		"home/.bashrc": "# bashrc",
 	})
 	src := NewFSResourceSource(br)
@@ -355,7 +355,7 @@ func TestRepairStorage_FixesMissingObjects(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "repairable", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# bashrc content",
 	})
 	src := NewFSResourceSource(br)
@@ -465,13 +465,13 @@ func TestPartialUpload_ResourceStaysPending(t *testing.T) {
 		Scope:         "global",
 		ScopeID:       "",
 		Status:        store.TemplateStatusPending,
-		SourceURL:     "builtin://scion/dev/template/partial",
+		SourceURL:     "builtin://fabric/dev/template/partial",
 		StoragePath:   "templates/global/partial",
 		StorageBucket: "test-bucket",
 		StorageURI:    "gs://test-bucket/templates/global/partial",
 		Visibility:    store.VisibilityPrivate,
 		Files: []store.TemplateFile{
-			{Path: "scion-agent.yaml", Size: 20},
+			{Path: "fabric-agent.yaml", Size: 20},
 		},
 	}
 	if err := s.CreateTemplate(ctx, tmpl); err != nil {
@@ -480,7 +480,7 @@ func TestPartialUpload_ResourceStaysPending(t *testing.T) {
 
 	// Bootstrap should re-upload and activate the pending resource
 	br := testBundledResource(storage.ResourceKindTemplate, "partial", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()

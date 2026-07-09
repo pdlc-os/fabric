@@ -21,74 +21,74 @@ import (
 	"testing"
 )
 
-func TestEnsureScionGitignore_AddsEntry(t *testing.T) {
+func TestEnsureFabricGitignore_AddsEntry(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupGitRepoDir(t, tmpDir)
 
 	// No .gitignore exists yet
-	if err := EnsureScionGitignore(tmpDir); err != nil {
-		t.Fatalf("EnsureScionGitignore failed: %v", err)
+	if err := EnsureFabricGitignore(tmpDir); err != nil {
+		t.Fatalf("EnsureFabricGitignore failed: %v", err)
 	}
 
 	content, err := os.ReadFile(filepath.Join(tmpDir, ".gitignore"))
 	if err != nil {
 		t.Fatalf("failed to read .gitignore: %v", err)
 	}
-	if string(content) != ".scion/agents/\n" {
-		t.Errorf("expected '.scion/agents/\\n', got %q", string(content))
+	if string(content) != ".fabric/agents/\n" {
+		t.Errorf("expected '.fabric/agents/\\n', got %q", string(content))
 	}
 }
 
-func TestEnsureScionGitignore_Idempotent(t *testing.T) {
+func TestEnsureFabricGitignore_Idempotent(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupGitRepoDir(t, tmpDir)
 
-	// Write .gitignore with .scion/ already present (covers agents/ too)
-	_ = os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte("node_modules/\n.scion/\n"), 0644)
+	// Write .gitignore with .fabric/ already present (covers agents/ too)
+	_ = os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte("node_modules/\n.fabric/\n"), 0644)
 
-	if err := EnsureScionGitignore(tmpDir); err != nil {
-		t.Fatalf("EnsureScionGitignore failed: %v", err)
+	if err := EnsureFabricGitignore(tmpDir); err != nil {
+		t.Fatalf("EnsureFabricGitignore failed: %v", err)
 	}
 
 	content, err := os.ReadFile(filepath.Join(tmpDir, ".gitignore"))
 	if err != nil {
 		t.Fatalf("failed to read .gitignore: %v", err)
 	}
-	if string(content) != "node_modules/\n.scion/\n" {
+	if string(content) != "node_modules/\n.fabric/\n" {
 		t.Errorf("expected no change, got %q", string(content))
 	}
 }
 
-func TestEnsureScionGitignore_AppendsToExisting(t *testing.T) {
+func TestEnsureFabricGitignore_AppendsToExisting(t *testing.T) {
 	tmpDir := t.TempDir()
 	setupGitRepoDir(t, tmpDir)
 
-	// Write .gitignore without trailing newline and without .scion coverage
+	// Write .gitignore without trailing newline and without .fabric coverage
 	_ = os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte("node_modules/"), 0644)
 
-	if err := EnsureScionGitignore(tmpDir); err != nil {
-		t.Fatalf("EnsureScionGitignore failed: %v", err)
+	if err := EnsureFabricGitignore(tmpDir); err != nil {
+		t.Fatalf("EnsureFabricGitignore failed: %v", err)
 	}
 
 	content, err := os.ReadFile(filepath.Join(tmpDir, ".gitignore"))
 	if err != nil {
 		t.Fatalf("failed to read .gitignore: %v", err)
 	}
-	if string(content) != "node_modules/\n.scion/agents/\n" {
-		t.Errorf("expected 'node_modules/\\n.scion/agents/\\n', got %q", string(content))
+	if string(content) != "node_modules/\n.fabric/agents/\n" {
+		t.Errorf("expected 'node_modules/\\n.fabric/agents/\\n', got %q", string(content))
 	}
 }
 
-func TestEnsureScionGitignore_RecognizesVariants(t *testing.T) {
-	// All of these patterns cause git check-ignore to report .scion/agents/ as ignored
-	for _, pattern := range []string{".scion", ".scion/", "/.scion", "/.scion/", ".scion/agents", ".scion/agents/"} {
+func TestEnsureFabricGitignore_RecognizesVariants(t *testing.T) {
+	// All of these patterns cause git check-ignore to report .fabric/agents/ as ignored
+	for _, pattern := range []string{".fabric", ".fabric/", "/.fabric", "/.fabric/", ".fabric/agents", ".fabric/agents/"} {
 		t.Run(pattern, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			setupGitRepoDir(t, tmpDir)
 			_ = os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte(pattern+"\n"), 0644)
 
-			if err := EnsureScionGitignore(tmpDir); err != nil {
-				t.Fatalf("EnsureScionGitignore failed for pattern %q: %v", pattern, err)
+			if err := EnsureFabricGitignore(tmpDir); err != nil {
+				t.Fatalf("EnsureFabricGitignore failed for pattern %q: %v", pattern, err)
 			}
 
 			content, err := os.ReadFile(filepath.Join(tmpDir, ".gitignore"))
@@ -111,26 +111,26 @@ func TestInitProject_NonGitCreatesMarkerAndExternalDir(t *testing.T) {
 
 	// Create a non-git project directory
 	projectDir := t.TempDir()
-	scionDir := filepath.Join(projectDir, ".scion")
+	fabricDir := filepath.Join(projectDir, ".fabric")
 
 	// Change to the project directory (non-git)
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(projectDir)
 
-	// InitProject with the .scion path as target
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	// InitProject with the .fabric path as target
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
-	// Verify .scion is a marker file (not a directory)
-	markerPath := filepath.Join(projectDir, ".scion")
+	// Verify .fabric is a marker file (not a directory)
+	markerPath := filepath.Join(projectDir, ".fabric")
 	info, err := os.Stat(markerPath)
 	if err != nil {
 		t.Fatalf("marker file does not exist: %v", err)
 	}
 	if info.IsDir() {
-		t.Fatal("expected .scion to be a file (marker), but it's a directory")
+		t.Fatal("expected .fabric to be a file (marker), but it's a directory")
 	}
 
 	// Read the marker and verify content
@@ -179,16 +179,16 @@ func TestInitProject_NonGitRejectsOldStyleDir(t *testing.T) {
 
 	mockRuntimeDetection(t, "docker")
 
-	// Create a non-git project with old-style .scion directory
+	// Create a non-git project with old-style .fabric directory
 	projectDir := t.TempDir()
-	scionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(scionDir, 0755)
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(fabricDir, 0755)
 
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(projectDir)
 
-	err := InitProject(scionDir, GetMockHarnesses())
+	err := InitProject(fabricDir, GetMockHarnesses())
 	if err == nil {
 		t.Fatal("expected error for old-style non-git project, got nil")
 	}
@@ -204,27 +204,27 @@ func TestInitProject_NonGitIdempotent(t *testing.T) {
 	mockRuntimeDetection(t, "docker")
 
 	projectDir := t.TempDir()
-	scionDir := filepath.Join(projectDir, ".scion")
+	fabricDir := filepath.Join(projectDir, ".fabric")
 
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(projectDir)
 
 	// First init
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("first InitProject failed: %v", err)
 	}
 
 	// Read marker from first init
-	marker1, _ := ReadProjectMarker(filepath.Join(projectDir, ".scion"))
+	marker1, _ := ReadProjectMarker(filepath.Join(projectDir, ".fabric"))
 
 	// Second init should succeed and use existing marker
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("second InitProject failed: %v", err)
 	}
 
 	// Read marker after second init — should be unchanged
-	marker2, _ := ReadProjectMarker(filepath.Join(projectDir, ".scion"))
+	marker2, _ := ReadProjectMarker(filepath.Join(projectDir, ".fabric"))
 	if marker1.ProjectID != marker2.ProjectID {
 		t.Errorf("project-id changed between inits: %q → %q", marker1.ProjectID, marker2.ProjectID)
 	}
@@ -240,28 +240,28 @@ func TestInitProject_GitCreatesProjectIDAndExternalDir(t *testing.T) {
 	_ = os.MkdirAll(projectDir, 0755)
 	setupGitRepoDir(t, projectDir)
 
-	scionDir := filepath.Join(projectDir, ".scion")
+	fabricDir := filepath.Join(projectDir, ".fabric")
 
 	// Change to the project directory
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(projectDir)
 
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
-	// Verify .scion is a directory (not a marker file, since it's a git project)
-	info, err := os.Stat(scionDir)
+	// Verify .fabric is a directory (not a marker file, since it's a git project)
+	info, err := os.Stat(fabricDir)
 	if err != nil {
-		t.Fatalf(".scion does not exist: %v", err)
+		t.Fatalf(".fabric does not exist: %v", err)
 	}
 	if !info.IsDir() {
-		t.Fatal("expected .scion to be a directory for git projects")
+		t.Fatal("expected .fabric to be a directory for git projects")
 	}
 
 	// Verify grove-id file was created
-	projectID, err := ReadProjectID(scionDir)
+	projectID, err := ReadProjectID(fabricDir)
 	if err != nil {
 		t.Fatalf("ReadProjectID failed: %v", err)
 	}
@@ -270,7 +270,7 @@ func TestInitProject_GitCreatesProjectIDAndExternalDir(t *testing.T) {
 	}
 
 	// Verify external agents directory was created
-	externalDir, err := GetGitProjectExternalAgentsDir(scionDir)
+	externalDir, err := GetGitProjectExternalAgentsDir(fabricDir)
 	if err != nil {
 		t.Fatalf("GetGitProjectExternalAgentsDir failed: %v", err)
 	}
@@ -282,7 +282,7 @@ func TestInitProject_GitCreatesProjectIDAndExternalDir(t *testing.T) {
 	}
 
 	// Verify settings.yaml is in the external config dir (machine-specific, not committed)
-	externalConfigDir, err := GetGitProjectExternalConfigDir(scionDir)
+	externalConfigDir, err := GetGitProjectExternalConfigDir(fabricDir)
 	if err != nil {
 		t.Fatalf("GetGitProjectExternalConfigDir failed: %v", err)
 	}
@@ -297,15 +297,15 @@ func TestInitProject_GitCreatesProjectIDAndExternalDir(t *testing.T) {
 	}
 
 	// Verify templates/ lives in-repo (committable) and settings.yaml is NOT in-repo
-	if _, err := os.Stat(filepath.Join(scionDir, "templates")); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(fabricDir, "templates")); os.IsNotExist(err) {
 		t.Error("expected templates/ to exist in-repo for git projects (committable)")
 	}
-	if _, err := os.Stat(filepath.Join(scionDir, "settings.yaml")); err == nil {
+	if _, err := os.Stat(filepath.Join(fabricDir, "settings.yaml")); err == nil {
 		t.Error("settings.yaml should not exist in-repo for git projects")
 	}
 
 	// Verify agents dir exists in-repo (for worktrees)
-	agentsDir := filepath.Join(scionDir, "agents")
+	agentsDir := filepath.Join(fabricDir, "agents")
 	if _, err := os.Stat(agentsDir); os.IsNotExist(err) {
 		t.Error("expected agents/ to exist in-repo for worktrees")
 	}
@@ -320,23 +320,23 @@ func TestInitProject_GitIdempotentProjectID(t *testing.T) {
 	_ = os.MkdirAll(projectDir, 0755)
 	setupGitRepoDir(t, projectDir)
 
-	scionDir := filepath.Join(projectDir, ".scion")
+	fabricDir := filepath.Join(projectDir, ".fabric")
 
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(projectDir)
 
 	// First init
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("first InitProject failed: %v", err)
 	}
-	projectID1, _ := ReadProjectID(scionDir)
+	projectID1, _ := ReadProjectID(fabricDir)
 
 	// Second init
-	if err := InitProject(scionDir, GetMockHarnesses()); err != nil {
+	if err := InitProject(fabricDir, GetMockHarnesses()); err != nil {
 		t.Fatalf("second InitProject failed: %v", err)
 	}
-	projectID2, _ := ReadProjectID(scionDir)
+	projectID2, _ := ReadProjectID(fabricDir)
 
 	if projectID1 != projectID2 {
 		t.Errorf("project-id changed between inits: %q → %q", projectID1, projectID2)
@@ -373,7 +373,7 @@ func TestInitProject_CreatesEmptyTemplatesDir(t *testing.T) {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
-	// Templates always live in the in-repo .scion/templates/ (for git projects) or
+	// Templates always live in the in-repo .fabric/templates/ (for git projects) or
 	// in the external config dir (for non-git projects). Since tests run inside a git repo,
 	// check tempDir directly.
 	templatesDir := filepath.Join(tempDir, "templates")

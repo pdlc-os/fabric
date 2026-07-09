@@ -17,7 +17,7 @@ package runtime
 import (
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // WorktreeModeEligible reports whether the host environment supports

@@ -24,15 +24,15 @@ import (
 )
 
 const (
-	CanonicalTopicPrefix = "scion.project"
-	LegacyTopicPrefix    = "scion.grove"
+	CanonicalTopicPrefix = "fabric.project"
+	LegacyTopicPrefix    = "fabric.grove"
 
-	LabelProjectID   = "scion.project_id"
-	LabelGroveID     = "scion.grove_id"
-	LabelProject     = "scion.project"
-	LabelGrove       = "scion.grove"
-	LabelProjectPath = "scion.project_path"
-	LabelGrovePath   = "scion.grove_path"
+	LabelProjectID   = "fabric.project_id"
+	LabelGroveID     = "fabric.grove_id"
+	LabelProject     = "fabric.project"
+	LabelGrove       = "fabric.grove"
+	LabelProjectPath = "fabric.project_path"
+	LabelGrovePath   = "fabric.grove_path"
 )
 
 type TopicKind string
@@ -84,7 +84,7 @@ func LegacyUserTopic(projectID, userID string) string {
 
 func ParseTopic(topic string) (Topic, error) {
 	parts := strings.Split(topic, ".")
-	if len(parts) < 4 || parts[0] != "scion" {
+	if len(parts) < 4 || parts[0] != "fabric" {
 		return Topic{}, fmt.Errorf("malformed topic %q", topic)
 	}
 

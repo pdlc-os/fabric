@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package messages defines structured message types for the Scion messaging system.
+// Package messages defines structured message types for the Fabric messaging system.
 package messages
 
 import (
@@ -63,7 +63,7 @@ const (
 // (e.g. thinking traces) in normal chat views.
 const (
 	// VisibilityNormal — always shown. Used for explicit agent→user
-	// messages (scion message, ask_user) and user→agent instructions.
+	// messages (fabric message, ask_user) and user→agent instructions.
 	VisibilityNormal = "normal"
 
 	// VisibilityVerbose — shown in verbose mode. Used for automatic
@@ -86,7 +86,7 @@ var validTypes = map[string]bool{
 	TypeGroupSet:       true,
 }
 
-// StructuredMessage represents a formatted Scion message.
+// StructuredMessage represents a formatted Fabric message.
 type StructuredMessage struct {
 	Version      int               `json:"version"`
 	Timestamp    string            `json:"timestamp"`
@@ -131,7 +131,7 @@ func (m *StructuredMessage) Validate() error {
 		return fmt.Errorf("msg field is required")
 	}
 	if len([]rune(m.Msg)) > MaxMessageLength {
-		return fmt.Errorf("message exceeds %d character limit (current: %d chars). Consider splitting into multiple messages using multiple scion message invocations", MaxMessageLength, len([]rune(m.Msg)))
+		return fmt.Errorf("message exceeds %d character limit (current: %d chars). Consider splitting into multiple messages using multiple fabric message invocations", MaxMessageLength, len([]rune(m.Msg)))
 	}
 	if len(m.Msg) > MaxMsgSize {
 		return fmt.Errorf("msg exceeds maximum size of %d bytes", MaxMsgSize)

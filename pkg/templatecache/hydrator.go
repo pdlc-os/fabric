@@ -24,7 +24,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // HubConnectivityError indicates the Hub is unreachable.
@@ -149,7 +149,7 @@ type HydratorConfig struct {
 // DefaultHydratorConfig returns the default hydrator configuration.
 func DefaultHydratorConfig() HydratorConfig {
 	return HydratorConfig{
-		CacheDir:        "", // Will be set based on ~/.scion/cache/templates
+		CacheDir:        "", // Will be set based on ~/.fabric/cache/templates
 		CacheMaxSize:    DefaultMaxSize,
 		DownloadTimeout: 5 * time.Minute,
 	}

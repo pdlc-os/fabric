@@ -36,8 +36,8 @@ import (
 const defaultOutputPath = "testdata/hub-v46-fixture.db"
 
 // defaultCacheDir is the shared-mount location where the fixture blob is cached
-// for reuse. Overridable via SCION_FIXTURE_CACHE_DIR.
-const defaultCacheDir = "/scion-volumes/scratchpad/postgres-integration/fixtures"
+// for reuse. Overridable via FABRIC_FIXTURE_CACHE_DIR.
+const defaultCacheDir = "/fabric-volumes/scratchpad/postgres-integration/fixtures"
 
 func main() {
 	if err := run(); err != nil {
@@ -70,7 +70,7 @@ func run() error {
 	// warning, not a hard failure, so the fixture can still be generated
 	// locally without the scratchpad.
 	cacheDir := defaultCacheDir
-	if v := os.Getenv("SCION_FIXTURE_CACHE_DIR"); v != "" {
+	if v := os.Getenv("FABRIC_FIXTURE_CACHE_DIR"); v != "" {
 		cacheDir = v
 	}
 	if cached, err := cacheBlob(outPath, cacheDir); err != nil {

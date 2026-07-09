@@ -32,7 +32,7 @@ func TestLoadProjectState_NonExistent(t *testing.T) {
 
 func TestSaveAndLoadProjectState_RoundTrip(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(projectPath, 0755))
 
 	// Save state
@@ -52,7 +52,7 @@ func TestSaveAndLoadProjectState_RoundTrip(t *testing.T) {
 
 func TestSaveProjectState_OverwritesExisting(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(projectPath, 0755))
 
 	// Save initial state
@@ -71,7 +71,7 @@ func TestSaveProjectState_OverwritesExisting(t *testing.T) {
 
 func TestSaveProjectState_CreatesDirectoryIfNeeded(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, "nested", "path", ".scion")
+	projectPath := filepath.Join(tmpDir, "nested", "path", ".fabric")
 
 	state := &ProjectState{LastSyncedAt: "2026-02-16T10:30:00Z"}
 	err := SaveProjectState(projectPath, state)
@@ -84,7 +84,7 @@ func TestSaveProjectState_CreatesDirectoryIfNeeded(t *testing.T) {
 
 func TestLoadProjectState_EmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(projectPath, 0755))
 
 	// Write empty file

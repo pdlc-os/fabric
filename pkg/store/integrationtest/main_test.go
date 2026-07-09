@@ -20,13 +20,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // TestMain provisions the per-package ephemeral Postgres database once (creating
 // it under a unique name so parallel `go test` invocations never collide) and
 // drops it when the package finishes. Both calls are no-ops when
-// SCION_TEST_POSTGRES_URL is unset, in which case every test skips.
+// FABRIC_TEST_POSTGRES_URL is unset, in which case every test skips.
 func TestMain(m *testing.M) {
 	enttest.MainSetup()
 	code := m.Run()

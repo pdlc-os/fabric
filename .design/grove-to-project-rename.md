@@ -2,13 +2,13 @@
 
 **Date:** 2026-05-09
 **Status:** Proposal
-**Author:** Scion Agent (rename-strategy)
+**Author:** Fabric Agent (rename-strategy)
 
 ---
 
 ## 1. Executive Summary
 
-Rename the internal concept "grove" to "project" across the Scion codebase. This affects ~20,700 references across ~696 files spanning Go backend, Ent ORM, SQLite schema, REST API paths, WebSocket protocol, CLI commands/flags, web frontend, container labels, environment variables, filesystem paths, telemetry attributes, docs, and design documents.
+Rename the internal concept "grove" to "project" across the Fabric codebase. This affects ~20,700 references across ~696 files spanning Go backend, Ent ORM, SQLite schema, REST API paths, WebSocket protocol, CLI commands/flags, web frontend, container labels, environment variables, filesystem paths, telemetry attributes, docs, and design documents.
 
 The rename is a high-risk, high-coordination change. The recommended approach is **phased incremental** — internal plumbing first (with backward-compatible shims), then API/CLI surface, then database, then docs — rather than a big-bang rewrite.
 
@@ -32,9 +32,9 @@ The rename is a high-risk, high-coordination change. The recommended approach is
 | SQLite schema (tables, columns, indexes, FKs) | 1 | ~100 | **Critical** |
 | SQLite migrations (V1–V40+) | 1 | ~50 | **Critical** |
 | Store interface & models | 22 | ~1,500 | High |
-| Container labels (`scion.grove*`) | ~6 | ~30 | High |
-| Environment variables (`SCION_GROVE*`) | ~10 vars | ~40 | **Critical** |
-| Filesystem paths (`groves/`, `grove-configs/`, `.scion/grove-id`) | ~20 refs | ~40 | High |
+| Container labels (`fabric.grove*`) | ~6 | ~30 | High |
+| Environment variables (`FABRIC_GROVE*`) | ~10 vars | ~40 | **Critical** |
+| Filesystem paths (`groves/`, `grove-configs/`, `.fabric/grove-id`) | ~20 refs | ~40 | High |
 | YAML/koanf config keys (`grove_id`, `groveId`) | ~8 | ~20 | **Critical** |
 | Hub client (`pkg/hubclient/groves.go`) | 18 | ~350 | High |
 | Web frontend (TypeScript/JS) | 55 | ~1,200 | Medium |
@@ -62,7 +62,7 @@ pkg/hubclient/groves.go
 pkg/store/sqlite/grove_sync_state.go (+ test)
 web/src/components/pages/grove-create.ts, grove-detail.ts,
     grove-schedules.ts, grove-settings.ts, groves.ts
-.scion/grove-id (marker file)
+.fabric/grove-id (marker file)
 ```
 
 ---
@@ -77,21 +77,21 @@ web/src/components/pages/grove-create.ts, grove-detail.ts,
 - Brokers must be updated to prefer `project` but fallback to `grove` for older Hubs.
 
 ### 3.2 Database Migration (Critical)
-**Risk:** SQLite `ALTER TABLE ... RENAME COLUMN` is only supported in versions 3.25.0+. Scion's `modernc.org/sqlite` supports it, but Ent's migration engine needs careful orchestration to avoid data loss during table renames.
+**Risk:** SQLite `ALTER TABLE ... RENAME COLUMN` is only supported in versions 3.25.0+. Fabric's `modernc.org/sqlite` supports it, but Ent's migration engine needs careful orchestration to avoid data loss during table renames.
 **Mitigation:**
 - Use a dedicated migration phase with hand-written SQL where Ent's default behavior is too aggressive (e.g., dropping and recreating tables).
 - Verify foreign key constraints are correctly updated across the schema.
 
 ### 3.3 Environment Variables & Container Labels (High)
-**Risk:** Tools like `sciontool` and the agent runtime rely on `SCION_GROVE_ID` and `scion.grove_id` for telemetry and discovery.
+**Risk:** Tools like `fabrictool` and the agent runtime rely on `FABRIC_GROVE_ID` and `fabric.grove_id` for telemetry and discovery.
 **Mitigation:**
 - Export both old and new variables/labels for a transition period.
-- Ensure `sciontool` probes for `SCION_PROJECT_ID` first, then `SCION_GROVE_ID`.
+- Ensure `fabrictool` probes for `FABRIC_PROJECT_ID` first, then `FABRIC_GROVE_ID`.
 
 ### 3.4 Filesystem State (High)
-**Risk:** Existing projects have `.scion/grove-id` files and `~/.scion/grove-configs/` directories.
+**Risk:** Existing projects have `.fabric/grove-id` files and `~/.fabric/grove-configs/` directories.
 **Mitigation:**
-- Add logic to `pkg/config` to look for `.scion/project-id` then `.scion/grove-id`.
+- Add logic to `pkg/config` to look for `.fabric/project-id` then `.fabric/grove-id`.
 - Auto-migrate local filesystem paths (or use symlinks) when a project is first accessed with the new version.
 
 ---
@@ -117,18 +117,18 @@ web/src/components/pages/grove-create.ts, grove-detail.ts,
 ### Phase 2: CLI User Interface
 - **Goal:** Expose the "Project" terminology to users.
 - **Tasks:**
-  - Rename `scion grove` → `scion project`.
+  - Rename `fabric grove` → `fabric project`.
   - Add `grove` as a hidden alias to all project commands.
   - Rename flags: `--grove` → `--project` (with hidden alias).
-  - Update help text, error messages, and `scion init` aliases.
-- **Definition of Done:** `scion project list` works. `scion grove list` still works but is hidden from help.
+  - Update help text, error messages, and `fabric init` aliases.
+- **Definition of Done:** `fabric project list` works. `fabric grove list` still works but is hidden from help.
 
 ### Phase 3: API Surface & Wire Protocol (Dual-Support)
 - **Goal:** Enable the new API while maintaining backward compatibility.
 - **Tasks:**
   - Hub: Register `/api/v1/projects/...` routes as clones of `/api/v1/groves/...`.
   - Types: Add `Project*` JSON tags to structs. Use custom `UnmarshalJSON` to accept either `groveId` or `projectId`.
-  - Environment: Set `SCION_PROJECT_ID` in addition to `SCION_GROVE_ID`.
+  - Environment: Set `FABRIC_PROJECT_ID` in addition to `FABRIC_GROVE_ID`.
 - **Definition of Done:** Hub responds to both `/api/v1/groves` and `/api/v1/projects`. Broker can connect to Hub using either.
 
 ### Phase 4: Database Schema Migration
@@ -141,10 +141,10 @@ web/src/components/pages/grove-create.ts, grove-detail.ts,
 ### Phase 5: Filesystem & Container Runtime
 - **Goal:** Update the on-disk and containerized naming.
 - **Tasks:**
-  - Update container labels: `scion.project_id` (primary), `scion.grove_id` (secondary).
-  - Update filesystem paths: `.scion/project-id` and `~/.scion/project-configs/`.
+  - Update container labels: `fabric.project_id` (primary), `fabric.grove_id` (secondary).
+  - Update filesystem paths: `.fabric/project-id` and `~/.fabric/project-configs/`.
   - Implement "lazy migration" for existing local projects.
-- **Definition of Done:** `scion init` creates a project with new path names. Existing groves are correctly discovered and handled.
+- **Definition of Done:** `fabric init` creates a project with new path names. Existing groves are correctly discovered and handled.
 
 ### Phase 6: Web Frontend & Documentation
 - **Goal:** Complete the user-facing rename.
@@ -161,8 +161,8 @@ Before starting implementation, the following deep-dives are required:
 
 1. **DB Migration Strategy:** Detailed SQL for SQLite table/column renames, including handling of foreign keys, indexes, and Ent ORM integration.
 2. **Wire Protocol Versioning:** Specific plan for JSON alias support and Broker ↔ Hub handshake compatibility during the transition.
-3. **Filesystem Migration Plan:** How to safely transition `~/.scion/grove-configs/` to `~/.scion/project-configs/` without breaking multi-version CLI usage.
-4. **CLI Alias & Deprecation Policy:** Timeline for how long `scion grove` aliases will be maintained (e.g., "until v1.0.0").
+3. **Filesystem Migration Plan:** How to safely transition `~/.fabric/grove-configs/` to `~/.fabric/project-configs/` without breaking multi-version CLI usage.
+4. **CLI Alias & Deprecation Policy:** Timeline for how long `fabric grove` aliases will be maintained (e.g., "until v1.0.0").
 
 ---
 
@@ -170,7 +170,7 @@ Before starting implementation, the following deep-dives are required:
 
 The rename is considered complete when:
 - [ ] `grep -r -i "grove"` returns 0 results (excluding the strategy doc and changelog).
-- [ ] A fresh user can install Scion and use the `project` command exclusively.
-- [ ] An existing user can upgrade Scion and their existing data is migrated or accessible.
+- [ ] A fresh user can install Fabric and use the `project` command exclusively.
+- [ ] An existing user can upgrade Fabric and their existing data is migrated or accessible.
 - [ ] All CI checks pass, including integration tests spanning CLI, Broker, and Hub.
 - [ ] The web UI and documentation are fully updated.

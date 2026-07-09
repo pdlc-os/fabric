@@ -17,8 +17,8 @@ package cmd
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	scionruntime "github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/config"
+	fabricruntime "github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func TestCloudRunLogicalBrokerIDIsDeterministic(t *testing.T) {
 			},
 		},
 	}
-	rt := &scionruntime.MockRuntime{NameFunc: func() string { return "cloudrun" }}
+	rt := &fabricruntime.MockRuntime{NameFunc: func() string { return "cloudrun" }}
 
 	id1, err1 := deriveCloudRunLogicalBrokerID(settings, rt)
 	assert.NoError(t, err1)

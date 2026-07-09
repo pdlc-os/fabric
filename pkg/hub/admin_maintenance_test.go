@@ -26,8 +26,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 func newTestServerWithStore(t *testing.T) (*Server, store.Store) {
@@ -537,7 +537,7 @@ func TestCheckForUpdates_NonAdmin(t *testing.T) {
 
 func TestListMaintenanceOperations_HidesContainerBinariesByDefault(t *testing.T) {
 	srv, _ := newTestServerWithStore(t)
-	t.Setenv("SCION_DEV_BINARIES", "")
+	t.Setenv("FABRIC_DEV_BINARIES", "")
 
 	admin := NewAuthenticatedUser("u1", "admin@example.com", "Admin", "admin", "cli")
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/maintenance/operations", nil)
@@ -560,14 +560,14 @@ func TestListMaintenanceOperations_HidesContainerBinariesByDefault(t *testing.T)
 
 	for _, op := range body.Operations {
 		if op.Key == "rebuild-container-binaries" {
-			t.Error("rebuild-container-binaries should be hidden when SCION_DEV_BINARIES is not set")
+			t.Error("rebuild-container-binaries should be hidden when FABRIC_DEV_BINARIES is not set")
 		}
 	}
 }
 
 func TestListMaintenanceOperations_ShowsContainerBinariesWhenEnvSet(t *testing.T) {
 	srv, _ := newTestServerWithStore(t)
-	t.Setenv("SCION_DEV_BINARIES", "/tmp/test-binaries")
+	t.Setenv("FABRIC_DEV_BINARIES", "/tmp/test-binaries")
 
 	admin := NewAuthenticatedUser("u1", "admin@example.com", "Admin", "admin", "cli")
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/maintenance/operations", nil)
@@ -596,6 +596,6 @@ func TestListMaintenanceOperations_ShowsContainerBinariesWhenEnvSet(t *testing.T
 		}
 	}
 	if !found {
-		t.Error("rebuild-container-binaries should be visible when SCION_DEV_BINARIES is set")
+		t.Error("rebuild-container-binaries should be visible when FABRIC_DEV_BINARIES is set")
 	}
 }

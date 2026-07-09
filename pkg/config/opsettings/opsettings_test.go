@@ -515,7 +515,7 @@ server:
       - "example.com"
   database:
     driver: postgres
-    url: "postgres://localhost/scion"
+    url: "postgres://localhost/fabric"
   github_app:
     app_id: 42
     api_base_url: "https://api.github.com"

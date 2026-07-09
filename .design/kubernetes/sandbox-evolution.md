@@ -18,7 +18,7 @@ Restoring the Sandbox architecture is feasible and desirable for the "Production
 Update the `SandboxClaim` definition (or contribute upstream) to support a `spec.overrides` field. This would allow safely injecting `env` and `command` into the generated Pod while retaining the sandbox's policy enforcement.
 
 ### 2. Dynamic Templates
-Refactor the CLI to generate a temporary, unique `SandboxTemplate` for each run (e.g., `scion-agent-template-<uuid>`) containing the specific config, and then link the Claim to that template. This is more "chatty" for the API server but works with the existing CRD structure.
+Refactor the CLI to generate a temporary, unique `SandboxTemplate` for each run (e.g., `fabric-agent-template-<uuid>`) containing the specific config, and then link the Claim to that template. This is more "chatty" for the API server but works with the existing CRD structure.
 
 ### 3. Auxiliary Resources
 If the CRD supports `envFrom`, the CLI could create a Kubernetes Secret containing the dynamic configuration first, then reference that Secret in the `SandboxTemplate` or `Claim`.

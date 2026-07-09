@@ -15,7 +15,7 @@ Telegram usernames. This caused two issues:
    routing to the default agent.
 
 2. **`resolveUserMentions`** could corrupt message text by replacing only the
-   entity-covered portion with a scion identity, leaving the hyphenated suffix
+   entity-covered portion with a fabric identity, leaving the hyphenated suffix
    dangling (e.g., `user:email-agent` instead of `@deploy-agent`).
 
 The text-based mention extraction (`extractAgentMentions`) already handled hyphens
@@ -35,9 +35,9 @@ Applied the check in:
 
 ## Files Changed
 
-- `extras/scion-telegram/internal/telegram/mentions.go` — added `isPartialMentionEntity`, fixed `hasNonBotUserMention`
-- `extras/scion-telegram/internal/telegram/broker_v2.go` — fixed `resolveUserMentions`
-- `extras/scion-telegram/internal/telegram/mentions_test.go` — 26 new tests
+- `extras/fabric-telegram/internal/telegram/mentions.go` — added `isPartialMentionEntity`, fixed `hasNonBotUserMention`
+- `extras/fabric-telegram/internal/telegram/broker_v2.go` — fixed `resolveUserMentions`
+- `extras/fabric-telegram/internal/telegram/mentions_test.go` — 26 new tests
 
 ## Testing
 

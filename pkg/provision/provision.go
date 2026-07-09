@@ -15,7 +15,7 @@
 // Package provision implements Tier-1 universal workspace provisioning.
 // It is a config-free leaf package that depends only on stdlib, pkg/api,
 // and pkg/store — deliberately avoiding pkg/config so that lean binaries
-// (e.g. sciontool) can invoke provisioning without pulling in
+// (e.g. fabrictool) can invoke provisioning without pulling in
 // filesystem-based project path resolution.
 package provision
 
@@ -29,14 +29,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ProvisionSentinelFile is the name of the sentinel file written atomically
 // after a successful workspace clone/setup. Its presence short-circuits
 // subsequent ProvisionShared calls — the workspace is already ready.
-const ProvisionSentinelFile = ".scion-provisioned"
+const ProvisionSentinelFile = ".fabric-provisioned"
 
 // provisionLockRetries is the number of times to retry acquiring the
 // per-project advisory lock before giving up. Each retry sleeps briefly
@@ -52,7 +52,7 @@ const provisionLockRetryDelay = 1 * time.Second
 type ResolvedWorkspace struct {
 	// HostPath is the absolute host-side path for the workspace.
 	// For localBackend this is the existing project path (e.g.
-	// ~/.scion.projects/<slug>/). For nfsBackend this is
+	// ~/.fabric.projects/<slug>/). For nfsBackend this is
 	// <MountRoot>/<shareID>/<ServerRelativePath>.
 	HostPath string
 
@@ -121,7 +121,7 @@ type ProvisionInput struct {
 	NFSGID int
 
 	// SentinelDir overrides the directory where the provisioning sentinel file
-	// (.scion-provisioned) is written and checked. When empty, defaults to
+	// (.fabric-provisioned) is written and checked. When empty, defaults to
 	// filepath.Dir(Resolved.HostPath) — the project root parent of the workspace
 	// dir. This is needed for k8s init containers where only the workspace dir
 	// itself is mounted (not its parent), so the sentinel must live inside the
@@ -136,7 +136,7 @@ type ProvisionInput struct {
 // The flow implements the first-access provisioning guard:
 //
 //  1. Acquire per-project advisory lock (try with retry — provisioning is short).
-//  2. If sentinel <projectRoot>/.scion-provisioned exists → done (reuse).
+//  2. If sentinel <projectRoot>/.fabric-provisioned exists → done (reuse).
 //  3. Else: mkdir -p, git clone, chown 1000:1000, mode 0770, write sentinel.
 //  4. Release lock.
 //
@@ -669,7 +669,7 @@ func resolveGID(in ProvisionInput) int {
 // that short-circuits re-provisioning.
 func writeSentinel(path string) error {
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".scion-provisioned-*")
+	tmp, err := os.CreateTemp(dir, ".fabric-provisioned-*")
 	if err != nil {
 		return fmt.Errorf("create temp sentinel: %w", err)
 	}

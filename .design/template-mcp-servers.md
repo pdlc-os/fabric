@@ -1,10 +1,10 @@
-# Universal MCP Server Configuration in Scion Templates
+# Universal MCP Server Configuration in Fabric Templates
 
 ## Motivation
 
-Today, configuring MCP servers for a scion template requires duplicating harness-specific configuration across every harness-config variant. The `web-dev` template illustrates this clearly: to give agents access to a Chrome DevTools MCP server, the template author must:
+Today, configuring MCP servers for a fabric template requires duplicating harness-specific configuration across every harness-config variant. The `web-dev` template illustrates this clearly: to give agents access to a Chrome DevTools MCP server, the template author must:
 
-1. Define a `chromium` service in `scion-agent.yaml` (harness-agnostic)
+1. Define a `chromium` service in `fabric-agent.yaml` (harness-agnostic)
 2. Add `mcpServers.chrome-devtools` to `harness-configs/claude-web/home/.claude.json` (Claude-specific JSON)
 3. Add `mcpServers.chrome-devtools` to `harness-configs/gemini-web/home/.gemini/settings.json` (Gemini-specific JSON)
 4. Know that OpenCode and Codex have different MCP configuration mechanisms
@@ -15,11 +15,11 @@ The MCP server definition itself is identical across harnesses — the same `com
 - **Drift**: A template author updates the Claude config but forgets the Gemini one. The harness variants silently diverge.
 - **Expertise barrier**: Template authors need to understand each harness's native config format, file locations, and JSON/YAML structure to add an MCP server.
 - **Incomplete coverage**: Harnesses added later (or community harness-configs) don't automatically inherit MCP servers defined in the template.
-- **No validation**: MCP server definitions embedded in raw JSON home files bypass scion's config validation and schema enforcement.
+- **No validation**: MCP server definitions embedded in raw JSON home files bypass fabric's config validation and schema enforcement.
 
 ### What We Want
 
-A single, harness-agnostic `mcp_servers` block in `scion-agent.yaml` that:
+A single, harness-agnostic `mcp_servers` block in `fabric-agent.yaml` that:
 
 1. Captures the full MCP server specification once, at the template level
 2. Is validated against a schema at config load time
@@ -29,7 +29,7 @@ A single, harness-agnostic `mcp_servers` block in `scion-agent.yaml` that:
 
 ## Proposed Schema
 
-### `scion-agent.yaml` Extension
+### `fabric-agent.yaml` Extension
 
 ```yaml
 # Existing fields
@@ -115,8 +115,8 @@ Not all harnesses distinguish between global and project scope. For harnesses th
 
 String values in `url`, `headers`, `args`, and `env` support `${VAR_NAME}` interpolation from the agent's resolved environment. This allows MCP server configs to reference:
 
-- Secrets injected via `scion-agent.yaml` `secrets` definitions
-- Environment variables set via `env` in `scion-agent.yaml` or harness-config
+- Secrets injected via `fabric-agent.yaml` `secrets` definitions
+- Environment variables set via `env` in `fabric-agent.yaml` or harness-config
 - Runtime-provided variables (e.g., `${AGENT_WORKSPACE}`)
 
 Unresolvable variables are left as literal strings (not an error), allowing harness-native variable expansion to handle them at runtime.
@@ -152,10 +152,10 @@ type MCPServerConfig struct {
 }
 ```
 
-Add to `ScionConfig`:
+Add to `FabricConfig`:
 
 ```go
-type ScionConfig struct {
+type FabricConfig struct {
     // ... existing fields ...
     Services   []ServiceSpec              `json:"services,omitempty" yaml:"services,omitempty"`
     MCPServers map[string]MCPServerConfig `json:"mcp_servers,omitempty" yaml:"mcp_servers,omitempty"` // NEW
@@ -165,7 +165,7 @@ type ScionConfig struct {
 
 ### Validation Rules
 
-Added to `ValidateScionConfig()` in `pkg/config/validate.go`:
+Added to `ValidateFabricConfig()` in `pkg/config/validate.go`:
 
 1. `transport` is required and must be one of `stdio`, `sse`, `streamable-http`
 2. `command` is required when `transport` is `stdio`; disallowed otherwise
@@ -178,9 +178,9 @@ Added to `ValidateScionConfig()` in `pkg/config/validate.go`:
 
 ### Config Merging
 
-`MCPServers` follows the same merge semantics as other map fields in `MergeScionConfig()`: entries from higher-priority layers override entries from lower-priority layers by key. An entry can be explicitly removed by setting it to a zero-value marker (TBD: `null` in YAML, or an `enabled: false` field).
+`MCPServers` follows the same merge semantics as other map fields in `MergeFabricConfig()`: entries from higher-priority layers override entries from lower-priority layers by key. An entry can be explicitly removed by setting it to a zero-value marker (TBD: `null` in YAML, or an `enabled: false` field).
 
-Harness-config `config.yaml` overrides use the **same universal `MCPServerConfig` format**, not the harness's native config format. Merging happens entirely at the scion-schema level before any translation to native format. The provisioning layer translates the final merged map once. This keeps translation logic in one place and means harness-config scripts only receive an already-merged universal config.
+Harness-config `config.yaml` overrides use the **same universal `MCPServerConfig` format**, not the harness's native config format. Merging happens entirely at the fabric-schema level before any translation to native format. The provisioning layer translates the final merged map once. This keeps translation logic in one place and means harness-config scripts only receive an already-merged universal config.
 
 ## Relationship to Services
 
@@ -189,9 +189,9 @@ MCP servers and services are related but distinct concepts:
 | Concern | `services` | `mcp_servers` |
 |---|---|---|
 | **What it defines** | A sidecar process to run inside the container | An MCP server the harness should connect to |
-| **Lifecycle** | Managed by sciontool (start, health check, restart) | Managed by the harness (or sciontool for stdio) |
-| **Where it runs** | Inside the container, supervised by sciontool | Inside the container (stdio) or external (sse/http) |
-| **Config target** | `scion-services.yaml` consumed by sciontool | Harness-native config files (`.claude.json`, `.gemini/settings.json`, etc.) |
+| **Lifecycle** | Managed by fabrictool (start, health check, restart) | Managed by the harness (or fabrictool for stdio) |
+| **Where it runs** | Inside the container, supervised by fabrictool | Inside the container (stdio) or external (sse/http) |
+| **Config target** | `fabric-services.yaml` consumed by fabrictool | Harness-native config files (`.claude.json`, `.gemini/settings.json`, etc.) |
 
 A common pattern combines both: a `service` runs a dependency (e.g., Chromium), and an `mcp_server` configures the harness to connect to it via an MCP bridge:
 
@@ -264,20 +264,20 @@ Each harness has its own native configuration format and file path for MCP serve
 ### Provisioning Flow
 
 ```
-scion-agent.yaml              (template author defines mcp_servers)
+fabric-agent.yaml              (template author defines mcp_servers)
        │
        ▼
-ScionConfig.MCPServers         (parsed and validated at config load)
+FabricConfig.MCPServers         (parsed and validated at config load)
        │
        ▼
 ContainerScriptHarness.Provision()   (host-side staging only — no file writes)
        │
-       ├──► writes inputs/mcp-servers.json to agent_home/.scion/harness/inputs/
+       ├──► writes inputs/mcp-servers.json to agent_home/.fabric/harness/inputs/
        │
-       └──► (existing) writes scion-services.yaml for sidecar services
+       └──► (existing) writes fabric-services.yaml for sidecar services
                │
                ▼ [container starts]
-       sciontool harness provision (pre-start lifecycle hook, inside container)
+       fabrictool harness provision (pre-start lifecycle hook, inside container)
                │
                ▼
        provision.py (inside container)
@@ -288,11 +288,11 @@ ContainerScriptHarness.Provision()   (host-side staging only — no file writes)
                └── Generic: reads inputs/mcp-servers.json, no-op or logs warning
 ```
 
-The critical point: **the host stages data; the container applies it.** There is no host-side Go code that writes harness-native MCP config files. The `MCPServers` map from `ScionConfig` is serialized to JSON and placed in the harness bundle as an input file, just as `telemetry.json` and `auth-candidates.json` are staged for other concerns.
+The critical point: **the host stages data; the container applies it.** There is no host-side Go code that writes harness-native MCP config files. The `MCPServers` map from `FabricConfig` is serialized to JSON and placed in the harness bundle as an input file, just as `telemetry.json` and `auth-candidates.json` are staged for other concerns.
 
 ### No Separate Go Interface Needed
 
-The original proposal included an `MCPProvisioner` Go interface on `Harness`. This is not needed in the container-script model. The host's responsibility is only to stage `inputs/mcp-servers.json` when `ScionConfig.MCPServers` is non-empty — a straightforward addition to `ContainerScriptHarness.Provision()`. The harness-specific translation logic lives entirely in `provision.py`.
+The original proposal included an `MCPProvisioner` Go interface on `Harness`. This is not needed in the container-script model. The host's responsibility is only to stage `inputs/mcp-servers.json` when `FabricConfig.MCPServers` is non-empty — a straightforward addition to `ContainerScriptHarness.Provision()`. The harness-specific translation logic lives entirely in `provision.py`.
 
 For built-in Go harnesses (Claude, Gemini) that are not yet migrated to container-script, a temporary `MCPProvisioner` optional interface could be added during the transition period. However, given that Phases 1–5 of the decoupled harness work are already complete (OpenCode and Codex have `provision.py`), the preferred path is to implement MCP support directly in the container-script model for any harness that already has a `provision.py`.
 
@@ -334,16 +334,16 @@ The manifest `inputs` block gains an `mcp_servers` entry:
 ```json
 {
   "inputs": {
-    "instructions": "$HOME/.scion/harness/inputs/instructions.md",
-    "system_prompt": "$HOME/.scion/harness/inputs/system-prompt.md",
-    "telemetry": "$HOME/.scion/harness/inputs/telemetry.json",
-    "auth_candidates": "$HOME/.scion/harness/inputs/auth-candidates.json",
-    "mcp_servers": "$HOME/.scion/harness/inputs/mcp-servers.json"
+    "instructions": "$HOME/.fabric/harness/inputs/instructions.md",
+    "system_prompt": "$HOME/.fabric/harness/inputs/system-prompt.md",
+    "telemetry": "$HOME/.fabric/harness/inputs/telemetry.json",
+    "auth_candidates": "$HOME/.fabric/harness/inputs/auth-candidates.json",
+    "mcp_servers": "$HOME/.fabric/harness/inputs/mcp-servers.json"
   }
 }
 ```
 
-Following the pattern established in Phases 4 and 5 for auth-candidates and telemetry: `provision.py` should read `mcp-servers.json` **by the well-known path** (`$HOME/.scion/harness/inputs/mcp-servers.json`) rather than from `manifest.Inputs.MCPServers`, because the manifest is written during `Provision()` but the input file is written by a separate staging call. A missing or empty file should be treated as "no MCP servers to configure" (not an error).
+Following the pattern established in Phases 4 and 5 for auth-candidates and telemetry: `provision.py` should read `mcp-servers.json` **by the well-known path** (`$HOME/.fabric/harness/inputs/mcp-servers.json`) rather than from `manifest.Inputs.MCPServers`, because the manifest is written during `Provision()` but the input file is written by a separate staging call. A missing or empty file should be treated as "no MCP servers to configure" (not an error).
 
 ### Extended `config.yaml` for Declarative MCP Mapping
 
@@ -357,13 +357,13 @@ mcp:
   project_config_file: .claude.json             # File for project-scope servers (may be same)
   project_config_path: "projects.{workspace}.mcpServers"  # {workspace} is substituted
   transport_field: type                         # Field name in the native server object
-  transport_map:                                # Scion transport name → native value
+  transport_map:                                # Fabric transport name → native value
     stdio: stdio
     sse: sse
     streamable-http: streamable-http
 ```
 
-The shipped `scion_harness.py` helper module (Phase 7) should include an `apply_mcp_servers(config, mcp_servers_path)` function that reads this declarative mapping and performs the merge, so harness `provision.py` scripts can handle MCP in a few lines rather than reimplementing JSON merge logic per harness.
+The shipped `fabric_harness.py` helper module (Phase 7) should include an `apply_mcp_servers(config, mcp_servers_path)` function that reads this declarative mapping and performs the merge, so harness `provision.py` scripts can handle MCP in a few lines rather than reimplementing JSON merge logic per harness.
 
 ## Integration with Decoupled Harness Implementation
 
@@ -375,7 +375,7 @@ The original section above was drafted before the decoupled harness implementati
 
 | Original assumption | Actual implementation |
 |---|---|
-| Scripts execute on the host during provisioning | Scripts execute **inside the container** via `sciontool harness provision` in a `pre-start` lifecycle hook |
+| Scripts execute on the host during provisioning | Scripts execute **inside the container** via `fabrictool harness provision` in a `pre-start` lifecycle hook |
 | A separate `provision-mcp` command in the manifest | No sub-command routing — `provision` handles everything; MCP config is an input file |
 | `MCPProvisioner` Go interface required | Not needed — staging + `provision.py` replaces it entirely |
 | `ScriptHarness` reads config and may skip the script for simple merges | `ContainerScriptHarness` always stages; the script (or a helper function) handles the merge inside the container |
@@ -383,15 +383,15 @@ The original section above was drafted before the decoupled harness implementati
 
 ### Implementation Path (Updated)
 
-The schema work (defining `MCPServerConfig`, adding `mcp_servers` to `ScionConfig`, validation) can proceed independently at any time.
+The schema work (defining `MCPServerConfig`, adding `mcp_servers` to `FabricConfig`, validation) can proceed independently at any time.
 
 Provisioning implementation should be sequenced with the decoupled harness work:
 
-1. **Schema only (can proceed now):** Add `MCPServerConfig` type, `mcp_servers` to `ScionConfig`, validation rules, and `mcp` capabilities block to `HarnessAdvancedCapabilities`. No staging, no provisioning. The field is parsed and stored.
+1. **Schema only (can proceed now):** Add `MCPServerConfig` type, `mcp_servers` to `FabricConfig`, validation rules, and `mcp` capabilities block to `HarnessAdvancedCapabilities`. No staging, no provisioning. The field is parsed and stored.
 2. **Staging (after Phase 5 is stable):** Add `mcp-servers.json` staging to `ContainerScriptHarness.Provision()`. Add `mcp_servers` input path to the manifest. No harness scripts yet — staging is a no-op from the harness's perspective.
-3. **Helper module (Phase 7):** Include `apply_mcp_servers()` in `scion_harness.py`. Document the declarative `mcp:` block in `config.yaml`.
+3. **Helper module (Phase 7):** Include `apply_mcp_servers()` in `fabric_harness.py`. Document the declarative `mcp:` block in `config.yaml`.
 4. **Per-harness implementation:** As each harness's `provision.py` is written or updated (Claude, Gemini in Phase 6; community harnesses in Phase 7), add MCP server application using the helper. Update harness `config.yaml` with `capabilities.mcp` and `mcp` declarative mapping.
-5. **Template cleanup:** Remove inline `mcpServers` from harness-config home files in templates. Templates use `mcp_servers` in `scion-agent.yaml` exclusively.
+5. **Template cleanup:** Remove inline `mcpServers` from harness-config home files in templates. Templates use `mcp_servers` in `fabric-agent.yaml` exclusively.
 
 ## Impact on Existing Templates
 
@@ -400,8 +400,8 @@ Provisioning implementation should be sequenced with the decoupled harness work:
 **Before** — MCP servers defined in each harness-config's home files:
 
 ```
-.scion/templates/web-dev/
-  scion-agent.yaml                        # services only
+.fabric/templates/web-dev/
+  fabric-agent.yaml                        # services only
   harness-configs/
     claude-web/
       home/.claude.json                   # mcpServers: chrome-devtools
@@ -411,11 +411,11 @@ Provisioning implementation should be sequenced with the decoupled harness work:
       home/.config/opencode/opencode.json # no MCP config (no support)
 ```
 
-**After** — MCP servers defined once in `scion-agent.yaml`:
+**After** — MCP servers defined once in `fabric-agent.yaml`:
 
 ```
-.scion/templates/web-dev/
-  scion-agent.yaml                        # services + mcp_servers
+.fabric/templates/web-dev/
+  fabric-agent.yaml                        # services + mcp_servers
   harness-configs/
     claude-web/
       home/.claude.json                   # no mcpServers (provisioned from template)
@@ -425,7 +425,7 @@ Provisioning implementation should be sequenced with the decoupled harness work:
       home/.config/opencode/opencode.json # no MCP config (harness warns)
 ```
 
-Updated `scion-agent.yaml`:
+Updated `fabric-agent.yaml`:
 ```yaml
 default_harness_config: claude-web
 
@@ -470,12 +470,12 @@ Should there be a formal mechanism to declare that an MCP server depends on a se
 
 ### Q3: MCP Servers That Are Also Services
 
-Some MCP servers run as long-lived HTTP services (SSE or streamable-http transport). Should these be implicitly added to the `services` list for lifecycle management by sciontool?
+Some MCP servers run as long-lived HTTP services (SSE or streamable-http transport). Should these be implicitly added to the `services` list for lifecycle management by fabrictool?
 
 **Options:**
 - **A**: Keep services and MCP servers fully separate. If an MCP server needs lifecycle management, define it in both places.
-- **B**: SSE/HTTP MCP servers are automatically registered as sciontool services with sensible defaults (restart: on-failure, ready_check based on URL).
-- **C**: Add an optional `service` sub-block to `MCPServerConfig` for SSE/HTTP servers that opts into sciontool management.
+- **B**: SSE/HTTP MCP servers are automatically registered as fabrictool services with sensible defaults (restart: on-failure, ready_check based on URL).
+- **C**: Add an optional `service` sub-block to `MCPServerConfig` for SSE/HTTP servers that opts into fabrictool management.
 
 **Decision:** Keep them separate. SSE/HTTP MCP servers that need lifecycle management are defined in the `services` block explicitly. No implicit registration.
 
@@ -492,12 +492,12 @@ When a template defines an MCP server with a transport the active harness doesn'
 
 ### Q5: Runtime MCP Server Management
 
-Should scion provide any runtime management of MCP servers (start, stop, health check) beyond what the harness natively provides?
+Should fabric provide any runtime management of MCP servers (start, stop, health check) beyond what the harness natively provides?
 
-**Decision:** Config only. Scion writes the MCP server configuration into the harness's native format and stops there. The harness owns MCP server lifecycle. Sidecar process management goes through the `services` block.
+**Decision:** Config only. Fabric writes the MCP server configuration into the harness's native format and stops there. The harness owns MCP server lifecycle. Sidecar process management goes through the `services` block.
 
 ## Summary
 
-This design introduces a universal `mcp_servers` block in `scion-agent.yaml` that lets template authors define MCP server configurations once, in a harness-agnostic format. The provisioning layer translates these definitions into each harness's native config format. The schema supports stdio, SSE, and streamable-http transports, covers the common configuration surface area (command, args, env, URL, headers, scope), and integrates cleanly with the existing `services` block for sidecar dependencies.
+This design introduces a universal `mcp_servers` block in `fabric-agent.yaml` that lets template authors define MCP server configurations once, in a harness-agnostic format. The provisioning layer translates these definitions into each harness's native config format. The schema supports stdio, SSE, and streamable-http transports, covers the common configuration surface area (command, args, env, URL, headers, scope), and integrates cleanly with the existing `services` block for sidecar dependencies.
 
 Implementation is deferred until the [decoupled harness implementation](decoupled-harness-implementation.md) is complete, at which point MCP provisioning becomes a natural `provision-mcp` command in `provision.py` scripts — or, for the common case, a declarative mapping in `config.yaml`.

@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // repoRoot returns the repository root directory. It walks up from the current
@@ -89,8 +89,8 @@ func TestBundleInstall_OpenCode(t *testing.T) {
 		}
 	}
 
-	// 4. Assert bundle root files (including vendored scion_harness.py).
-	for _, name := range []string{"config.yaml", "provision.py", "scion_harness.py"} {
+	// 4. Assert bundle root files (including vendored fabric_harness.py).
+	for _, name := range []string{"config.yaml", "provision.py", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(installDir, name)); err != nil {
 			t.Errorf("expected %s at bundle root: %v", name, err)
 		}
@@ -108,19 +108,19 @@ func TestBundleInstall_OpenCode(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	bundle := filepath.Join(agentHome, ".scion", "harness")
-	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "scion_harness.py"} {
+	bundle := filepath.Join(agentHome, ".fabric", "harness")
+	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(bundle, name)); err != nil {
 			t.Errorf("expected %s in staged bundle: %v", name, err)
 		}
 	}
-	hookWrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	hookWrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	wrapperBytes, err := os.ReadFile(hookWrapper)
 	if err != nil {
 		t.Fatalf("hook wrapper missing after provision: %v", err)
 	}
-	if !strings.Contains(string(wrapperBytes), "sciontool harness provision") {
-		t.Errorf("hook wrapper does not invoke sciontool harness provision")
+	if !strings.Contains(string(wrapperBytes), "fabrictool harness provision") {
+		t.Errorf("hook wrapper does not invoke fabrictool harness provision")
 	}
 }
 
@@ -156,7 +156,7 @@ func TestBundleInstall_Codex(t *testing.T) {
 	wantHomeFiles := []string{
 		"home/.bashrc",
 		"home/.codex/config.toml",
-		"home/.codex/scion_notify.sh",
+		"home/.codex/fabric_notify.sh",
 	}
 	for _, rel := range wantHomeFiles {
 		full := filepath.Join(installDir, filepath.FromSlash(rel))
@@ -165,8 +165,8 @@ func TestBundleInstall_Codex(t *testing.T) {
 		}
 	}
 
-	// 4. Assert bundle root files (including vendored scion_harness.py).
-	for _, name := range []string{"config.yaml", "provision.py", "scion_harness.py"} {
+	// 4. Assert bundle root files (including vendored fabric_harness.py).
+	for _, name := range []string{"config.yaml", "provision.py", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(installDir, name)); err != nil {
 			t.Errorf("expected %s at bundle root: %v", name, err)
 		}
@@ -183,13 +183,13 @@ func TestBundleInstall_Codex(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	bundle := filepath.Join(agentHome, ".scion", "harness")
-	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "scion_harness.py"} {
+	bundle := filepath.Join(agentHome, ".fabric", "harness")
+	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(bundle, name)); err != nil {
 			t.Errorf("expected %s in staged bundle: %v", name, err)
 		}
 	}
-	hookWrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	hookWrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	if _, err := os.Stat(hookWrapper); err != nil {
 		t.Fatalf("hook wrapper missing after provision: %v", err)
 	}
@@ -246,8 +246,8 @@ func TestBundleInstall_Antigravity(t *testing.T) {
 		t.Errorf("installed harness=%q want antigravity", installedHC.Config.Harness)
 	}
 
-	// 3. Assert bundle root files (including vendored scion_harness.py).
-	for _, name := range []string{"config.yaml", "provision.py", "dialect.yaml", "scion_harness.py"} {
+	// 3. Assert bundle root files (including vendored fabric_harness.py).
+	for _, name := range []string{"config.yaml", "provision.py", "dialect.yaml", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(installDir, name)); err != nil {
 			t.Errorf("expected %s at bundle root: %v", name, err)
 		}
@@ -269,8 +269,8 @@ func TestBundleInstall_Antigravity(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	bundle := filepath.Join(agentHome, ".scion", "harness")
-	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "scion_harness.py"} {
+	bundle := filepath.Join(agentHome, ".fabric", "harness")
+	for _, name := range []string{"provision.py", "config.yaml", "manifest.json", "fabric_harness.py"} {
 		if _, err := os.Stat(filepath.Join(bundle, name)); err != nil {
 			t.Errorf("expected %s in staged bundle: %v", name, err)
 		}
@@ -289,7 +289,7 @@ func TestBundleInstall_Antigravity(t *testing.T) {
 		t.Errorf("staged dialect.yaml does not contain expected 'dialect: antigravity' header")
 	}
 
-	hookWrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	hookWrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	if _, err := os.Stat(hookWrapper); err != nil {
 		t.Fatalf("hook wrapper missing after provision: %v", err)
 	}

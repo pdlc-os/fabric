@@ -23,9 +23,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/managedagent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/managedagent"
 )
 
 // ManagedAgentManager implements the Manager interface for cloud-managed agents.
@@ -44,7 +44,7 @@ func NewManagedAgentManager(backend managedagent.ManagedAgentBackend, stateDir s
 	}
 }
 
-func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	projectDir, err := config.GetResolvedProjectDir(opts.ProjectPath)
 	if err != nil {
 		return nil, fmt.Errorf("resolving project dir: %w", err)
@@ -55,13 +55,13 @@ func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptio
 		return nil, fmt.Errorf("creating agent directory: %w", err)
 	}
 
-	// Resolve template chain and build scion config
+	// Resolve template chain and build fabric config
 	templateName := opts.Template
 	if templateName == "" {
 		templateName = "default"
 	}
 
-	finalCfg := &api.ScionConfig{}
+	finalCfg := &api.FabricConfig{}
 
 	chain, err := config.GetTemplateChainInProject(templateName, opts.ProjectPath)
 	if err != nil {
@@ -72,12 +72,12 @@ func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptio
 			if loadErr != nil {
 				return nil, fmt.Errorf("loading template config %s: %w", tpl.Name, loadErr)
 			}
-			finalCfg = config.MergeScionConfig(finalCfg, tplCfg)
+			finalCfg = config.MergeFabricConfig(finalCfg, tplCfg)
 		}
 	}
 
 	if opts.InlineConfig != nil {
-		finalCfg = config.MergeScionConfig(finalCfg, opts.InlineConfig)
+		finalCfg = config.MergeFabricConfig(finalCfg, opts.InlineConfig)
 	}
 
 	projectName := config.GetProjectName(projectDir)
@@ -101,7 +101,7 @@ func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptio
 	if err != nil {
 		return nil, fmt.Errorf("marshaling agent config: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), cfgData, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), cfgData, 0644); err != nil {
 		return nil, fmt.Errorf("writing agent config: %w", err)
 	}
 
@@ -136,10 +136,10 @@ func (m *ManagedAgentManager) Start(ctx context.Context, opts api.StartOptions) 
 	}
 
 	// Resolve system instruction from template config.
-	scionJSON := filepath.Join(agentDir, "scion-agent.json")
+	fabricJSON := filepath.Join(agentDir, "fabric-agent.json")
 	var systemInstruction string
-	if data, readErr := os.ReadFile(scionJSON); readErr == nil {
-		var cfg api.ScionConfig
+	if data, readErr := os.ReadFile(fabricJSON); readErr == nil {
+		var cfg api.FabricConfig
 		if json.Unmarshal(data, &cfg) == nil {
 			systemInstruction = cfg.SystemPrompt
 			if systemInstruction == "" {
@@ -278,13 +278,13 @@ func (m *ManagedAgentManager) Delete(ctx context.Context, agentID string, delete
 func (m *ManagedAgentManager) List(ctx context.Context, filter map[string]string) ([]api.AgentInfo, error) {
 	var projectsToScan []string
 
-	projectPath := filter["scion.project_path"]
+	projectPath := filter["fabric.project_path"]
 	if projectPath == "" {
-		projectPath = filter["scion.grove_path"]
+		projectPath = filter["fabric.grove_path"]
 	}
 	if projectPath != "" {
 		projectsToScan = append(projectsToScan, projectPath)
-	} else if len(filter) == 0 || (len(filter) == 1 && filter["scion.agent"] == "true") {
+	} else if len(filter) == 0 || (len(filter) == 1 && filter["fabric.agent"] == "true") {
 		pd, _ := config.GetResolvedProjectDir("")
 		if pd != "" {
 			projectsToScan = append(projectsToScan, pd)

@@ -38,7 +38,7 @@ func EnableDebug() {
 // DebugEnabled returns true if debug mode is enabled.
 // Debug mode is enabled if:
 // - EnableDebug() was called (e.g., --debug flag)
-// - SCION_DEBUG environment variable is set
+// - FABRIC_DEBUG environment variable is set
 func DebugEnabled() bool {
 	debugMu.RLock()
 	if debugInitialized {
@@ -49,7 +49,7 @@ func DebugEnabled() bool {
 	debugMu.RUnlock()
 
 	// Not explicitly set, check environment
-	return os.Getenv("SCION_DEBUG") != ""
+	return os.Getenv("FABRIC_DEBUG") != ""
 }
 
 // Debugf prints a debug message to stderr if debug mode is enabled.

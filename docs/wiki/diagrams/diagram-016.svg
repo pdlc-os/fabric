@@ -31,15 +31,15 @@
 <polygon fill="lightblue" stroke="black" points="223.32,-366 94.82,-366 94.82,-330 223.32,-330 223.32,-366"/>
 <text xml:space="preserve" text-anchor="middle" x="159.07" y="-339.95" font-family="Times,serif" font-size="14.00">Agent / Harness</text>
 </g>
-<!-- Sciontool_Hook_Command -->
+<!-- Fabrictool_Hook_Command -->
 <g id="node2" class="node">
-<title>Sciontool_Hook_Command</title>
+<title>Fabrictool_Hook_Command</title>
 <polygon fill="lightblue" stroke="black" points="249.57,-284 68.57,-284 68.57,-248 249.57,-248 249.57,-284"/>
-<text xml:space="preserve" text-anchor="middle" x="159.07" y="-257.95" font-family="Times,serif" font-size="14.00">Sciontool Hook Command</text>
+<text xml:space="preserve" text-anchor="middle" x="159.07" y="-257.95" font-family="Times,serif" font-size="14.00">Fabrictool Hook Command</text>
 </g>
-<!-- Agent&#45;&gt;Sciontool_Hook_Command -->
+<!-- Agent&#45;&gt;Fabrictool_Hook_Command -->
 <g id="edge1" class="edge">
-<title>Agent&#45;&gt;Sciontool_Hook_Command</title>
+<title>Agent&#45;&gt;Fabrictool_Hook_Command</title>
 <path fill="none" stroke="black" d="M159.07,-329.64C159.07,-319.68 159.07,-306.93 159.07,-295.54"/>
 <polygon fill="black" stroke="black" points="162.57,-295.84 159.07,-285.84 155.57,-295.84 162.57,-295.84"/>
 <text xml:space="preserve" text-anchor="middle" x="226.57" y="-298.95" font-family="Times,serif" font-size="14.00">Emits Event (JSON)</text>
@@ -51,9 +51,9 @@
 <text xml:space="preserve" text-anchor="middle" x="159.07" y="-180.2" font-family="Times,serif" font-size="14.00">Event Normalizer</text>
 <text xml:space="preserve" text-anchor="middle" x="159.07" y="-169.7" font-family="Times,serif" font-size="14.00">(Dialects)</text>
 </g>
-<!-- Sciontool_Hook_Command&#45;&gt;Event_Normalizer -->
+<!-- Fabrictool_Hook_Command&#45;&gt;Event_Normalizer -->
 <g id="edge2" class="edge">
-<title>Sciontool_Hook_Command&#45;&gt;Event_Normalizer</title>
+<title>Fabrictool_Hook_Command&#45;&gt;Event_Normalizer</title>
 <path fill="none" stroke="black" d="M159.07,-247.82C159.07,-237.69 159.07,-224.6 159.07,-212.92"/>
 <polygon fill="black" stroke="black" points="162.57,-212.95 159.07,-202.95 155.57,-212.95 162.57,-212.95"/>
 <text xml:space="preserve" text-anchor="middle" x="204.07" y="-215.95" font-family="Times,serif" font-size="14.00">Parses Input</text>

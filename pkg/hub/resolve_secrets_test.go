@@ -21,8 +21,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func TestResolveSecrets(t *testing.T) {

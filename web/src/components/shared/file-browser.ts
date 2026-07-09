@@ -432,8 +432,8 @@ function formatFileSize(bytes: number): string {
   return `${size.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
-@customElement('scion-file-browser')
-export class ScionFileBrowser extends LitElement {
+@customElement('fabric-file-browser')
+export class FabricFileBrowser extends LitElement {
   /** Data source adapter — must be set by the parent. */
   @property({ attribute: false })
   dataSource: FileBrowserDataSource | null = null;
@@ -491,7 +491,7 @@ export class ScionFileBrowser extends LitElement {
 
     .toolbar-meta {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       white-space: nowrap;
     }
 
@@ -518,7 +518,7 @@ export class ScionFileBrowser extends LitElement {
       color: var(--sl-color-warning-700, #a16207);
       background: var(--sl-color-warning-50, #fefce8);
       border: 1px solid var(--sl-color-warning-200, #fde68a);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.25rem 0.625rem;
     }
 
@@ -529,29 +529,29 @@ export class ScionFileBrowser extends LitElement {
     .file-table-wrapper {
       max-height: 26rem;
       overflow-y: auto;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .file-table {
       width: 100%;
       border-collapse: collapse;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
     }
 
     .file-table th,
     .file-table td {
       padding: 0.625rem 1rem;
       text-align: left;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .file-table th {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f8fafc);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f8fafc);
       font-weight: 600;
       position: sticky;
       top: 0;
@@ -564,7 +564,7 @@ export class ScionFileBrowser extends LitElement {
     }
 
     .file-table th.sortable:hover {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .file-table .sort-indicator {
@@ -586,21 +586,21 @@ export class ScionFileBrowser extends LitElement {
     .empty-filter {
       padding: 1.5rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-align: center;
     }
 
     .file-list-truncated {
       padding: 0.5rem 1rem;
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-align: center;
-      background: var(--scion-bg-subtle, #f8fafc);
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .file-name {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
       display: flex;
       align-items: center;
@@ -608,14 +608,14 @@ export class ScionFileBrowser extends LitElement {
     }
 
     .file-name sl-icon {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       flex-shrink: 0;
     }
 
     .file-size,
     .file-date {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .file-actions {
@@ -631,20 +631,20 @@ export class ScionFileBrowser extends LitElement {
     .empty-state {
       text-align: center;
       padding: 2.5rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .empty-state > sl-icon {
       font-size: 2.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 0.75rem;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
       font-size: 0.875rem;
     }
@@ -655,7 +655,7 @@ export class ScionFileBrowser extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -668,7 +668,7 @@ export class ScionFileBrowser extends LitElement {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
       background: var(--sl-color-danger-50, #fef2f2);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .search-spinner {
@@ -1262,6 +1262,6 @@ export class ScionFileBrowser extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-file-browser': ScionFileBrowser;
+    'fabric-file-browser': FabricFileBrowser;
   }
 }

@@ -20,7 +20,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // NotificationChannel delivers notifications to external systems.

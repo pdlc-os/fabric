@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/maintenanceoperationrun"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/maintenanceoperationrun"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // MaintenanceOperationRunDelete is the builder for deleting a MaintenanceOperationRun entity.

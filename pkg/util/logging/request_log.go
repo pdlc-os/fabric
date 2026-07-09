@@ -32,10 +32,10 @@ import (
 )
 
 // Environment variable for request log file path.
-const EnvRequestLogPath = "SCION_SERVER_REQUEST_LOG_PATH"
+const EnvRequestLogPath = "FABRIC_SERVER_REQUEST_LOG_PATH"
 
 // RequestLogID is the Cloud Logging log ID used for HTTP request logs.
-const RequestLogID = "scion_request_log"
+const RequestLogID = "fabric_request_log"
 
 // HttpRequest mirrors google.logging.type.HttpRequest for structured JSON output.
 type HttpRequest struct {
@@ -159,11 +159,11 @@ func SetRequestBrokerID(ctx context.Context, brokerID string) {
 
 // RequestLoggerConfig configures the dedicated request logger.
 type RequestLoggerConfig struct {
-	FilePath    string         // From SCION_SERVER_REQUEST_LOG_PATH
+	FilePath    string         // From FABRIC_SERVER_REQUEST_LOG_PATH
 	CloudClient *gcplog.Client // Shared GCP client (nil if not enabled)
 	CircuitOpen func() bool    // Returns true when circuit breaker is open (nil = never open)
 	ProjectID   string         // For trace URL formatting
-	Component   string         // "scion-server", "scion-hub", "scion-broker"
+	Component   string         // "fabric-server", "fabric-hub", "fabric-broker"
 	UseGCP      bool           // Format output as GCP-compatible JSON
 	Foreground  bool           // If true, suppress stdout output
 	Level       slog.Level

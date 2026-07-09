@@ -6,7 +6,7 @@
 
 ## Summary
 
-Ported the lifecycle hook evaluator from the reference branch (`origin/scion/architect-lifecycle-hooks`) to main's event system, with mandatory adaptations for HA/multi-instance safety.
+Ported the lifecycle hook evaluator from the reference branch (`origin/fabric/architect-lifecycle-hooks`) to main's event system, with mandatory adaptations for HA/multi-instance safety.
 
 ## Files Changed
 

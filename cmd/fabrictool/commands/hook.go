@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -14,12 +14,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/dialects"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/handlers"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/telemetry"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks/dialects"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks/handlers"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/telemetry"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -44,16 +44,16 @@ harness format to use for parsing.
 
 Examples:
   # Process a Claude Code event from stdin
-  echo '{"hook_event_name": "PreToolUse", "tool_name": "Bash"}' | sciontool hook --dialect=claude
+  echo '{"hook_event_name": "PreToolUse", "tool_name": "Bash"}' | fabrictool hook --dialect=claude
 
   # Process a Gemini CLI event
-  echo '{"hook_event_name": "BeforeTool", "tool_name": "shell"}' | sciontool hook --dialect=gemini
+  echo '{"hook_event_name": "BeforeTool", "tool_name": "shell"}' | fabrictool hook --dialect=gemini
 
   # Use the ask_user subcommand
-  sciontool hook ask_user "What should I do next?"
+  fabrictool hook ask_user "What should I do next?"
 
   # Use the task_completed subcommand
-  sciontool hook task_completed "Implemented feature X"`,
+  fabrictool hook task_completed "Implemented feature X"`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
@@ -263,7 +263,7 @@ func runAskUser(message string) {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[sciontool] Agent asked: %s\n", message)
+	fmt.Fprintf(os.Stderr, "[fabrictool] Agent asked: %s\n", message)
 }
 
 // runTaskCompleted updates status to completed.
@@ -290,5 +290,5 @@ func runTaskCompleted(message string) {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "[sciontool] Agent completed: %s\n", message)
+	fmt.Fprintf(os.Stderr, "[fabrictool] Agent completed: %s\n", message)
 }

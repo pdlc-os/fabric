@@ -304,7 +304,7 @@ func TestAgentFromReply_WebhookMessage(t *testing.T) {
 
 func TestAgentFromReply_BotMessage(t *testing.T) {
 	ref := &discordgo.Message{
-		Author: &discordgo.User{ID: "BOT123", Username: "ScionBot"},
+		Author: &discordgo.User{ID: "BOT123", Username: "FabricBot"},
 	}
 	assert.Equal(t, "", agentFromReply(ref, "BOT123"))
 }

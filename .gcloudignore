@@ -4,7 +4,7 @@
 # files they need is:
 #   image-build/   — Dockerfiles, scripts
 #   harnesses/     — harness Dockerfiles and assets
-#   cmd/, pkg/     — Go source (compiled in scion-base)
+#   cmd/, pkg/     — Go source (compiled in fabric-base)
 #   resources/     — embedded resources
 #   web/*.go       — Go embed stubs only
 #   go.mod, go.sum
@@ -63,7 +63,7 @@ web/coverage/
 .design/
 .scratch/
 .tasks/
-.scion/
+.fabric/
 build/
 .build/
 testdata/

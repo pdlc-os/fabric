@@ -29,17 +29,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	stagedsecrets "github.com/GoogleCloudPlatform/scion/pkg/stagedsecrets"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	stagedsecrets "github.com/pdlc-os/fabric/pkg/stagedsecrets"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // Well-known secret name and env var for GCP telemetry credentials.
 const (
-	telemetryGCPCredentialsSecretName = "scion-telemetry-gcp-credentials"
-	telemetryGCPCredentialsEnvVar     = "SCION_OTEL_GCP_CREDENTIALS"
+	telemetryGCPCredentialsSecretName = "fabric-telemetry-gcp-credentials"
+	telemetryGCPCredentialsEnvVar     = "FABRIC_OTEL_GCP_CREDENTIALS"
 )
 
 // findGCPTelemetryCredentialPath scans the resolved secrets for the well-known
@@ -223,16 +223,16 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 			// Mount directly to /workspace so harnesses can trust a single path.
 			//
 			// Sibling agents share this exact mount, so per-agent state must not
-			// live under <workspace>/.scion/agents/ on the broker — that path
+			// live under <workspace>/.fabric/agents/ on the broker — that path
 			// would be visible to every container in the project. Provisioning
-			// relocates prompt.md and scion-agent.json to
-			// ~/.scion/project-configs/<slug>__<uuid>/.scion/agents/<name>/
+			// relocates prompt.md and fabric-agent.json to
+			// ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents/<name>/
 			// (config.GetAgentDir with sharedWorkspace=true), so there is
 			// nothing to leak through this mount. See
 			// .design/hub-shared-workspace-isolation.md (defense by absence).
 			// If the threat model ever requires in-container shadowing, mirror
-			// the /repo-root/.scion tmpfs pattern below at
-			// /workspace/.scion/agents.
+			// the /repo-root/.fabric tmpfs pattern below at
+			// /workspace/.fabric/agents.
 			registerMount(config.Workspace, "/workspace", false, true)
 			addArg("--workdir", "/workspace")
 		} else {
@@ -316,21 +316,21 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 			gid = 1000 // default stable NFS GID
 		}
 	}
-	addEnv("SCION_HOST_UID", fmt.Sprintf("%d", uid))
-	addEnv("SCION_HOST_GID", fmt.Sprintf("%d", gid))
+	addEnv("FABRIC_HOST_UID", fmt.Sprintf("%d", uid))
+	addEnv("FABRIC_HOST_GID", fmt.Sprintf("%d", gid))
 
-	// Expose the workspace backend to the container so sciontool init can
+	// Expose the workspace backend to the container so fabrictool init can
 	// skip the per-start recursive chown when backend=nfs (slow/racy over
 	// the network; ownership is set once by operator + provisioner).
 	if config.WorkspaceBackendName != "" {
-		addEnv("SCION_WORKSPACE_BACKEND", config.WorkspaceBackendName)
+		addEnv("FABRIC_WORKSPACE_BACKEND", config.WorkspaceBackendName)
 	}
 
 	// Phase 3 & 5: Project identity injection
-	addEnv("SCION_PROJECT", config.Project)
-	addEnv("SCION_GROVE", config.Project)
-	addEnv("SCION_PROJECT_ID", config.ProjectID)
-	addEnv("SCION_GROVE_ID", config.ProjectID)
+	addEnv("FABRIC_PROJECT", config.Project)
+	addEnv("FABRIC_GROVE", config.Project)
+	addEnv("FABRIC_PROJECT_ID", config.ProjectID)
+	addEnv("FABRIC_GROVE_ID", config.ProjectID)
 
 	// Mount gcloud config if it exists on the host (local mode only).
 	// In broker mode, credentials are projected via ResolvedSecrets;
@@ -366,14 +366,14 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 		}
 	}
 
-	// Dev-mode binary override: if SCION_DEV_BINARIES points to a local
-	// directory containing scion/sciontool binaries, bind-mount it to
-	// /opt/scion/bin which has highest PATH priority in the container.
+	// Dev-mode binary override: if FABRIC_DEV_BINARIES points to a local
+	// directory containing fabric/fabrictool binaries, bind-mount it to
+	// /opt/fabric/bin which has highest PATH priority in the container.
 	// This allows rapid iteration without rebuilding images.
-	if devBinDir := os.Getenv("SCION_DEV_BINARIES"); devBinDir != "" {
+	if devBinDir := os.Getenv("FABRIC_DEV_BINARIES"); devBinDir != "" {
 		if abs, err := filepath.Abs(devBinDir); err == nil {
 			if info, err := os.Stat(abs); err == nil && info.IsDir() {
-				registerMount(abs, "/opt/scion/bin", true, true)
+				registerMount(abs, "/opt/fabric/bin", true, true)
 			}
 		}
 	}
@@ -399,11 +399,11 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 		addArg("-v", volumeMap[tgt])
 	}
 
-	// Shadow the .scion directory with a tmpfs when the full repo root is
+	// Shadow the .fabric directory with a tmpfs when the full repo root is
 	// mounted into the container. This prevents agents from accessing other
 	// agents' home directories and secrets via the host filesystem.
 	if fullRepoRootMounted {
-		addArg("--mount", "type=tmpfs,destination=/repo-root/.scion")
+		addArg("--mount", "type=tmpfs,destination=/repo-root/.fabric")
 	}
 
 	// Add NET_ADMIN capability for iptables-based metadata server interception
@@ -421,7 +421,7 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 		addArg("--device", "/dev/fuse")
 		if data, err := json.Marshal(gcsVolumes); err == nil {
 			encoded := base64.StdEncoding.EncodeToString(data)
-			addArg("--label", fmt.Sprintf("scion.gcs_volumes=%s", encoded))
+			addArg("--label", fmt.Sprintf("fabric.gcs_volumes=%s", encoded))
 		}
 	}
 
@@ -443,7 +443,7 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 	}
 
 	if config.Template != "" {
-		addArg("--label", fmt.Sprintf("scion.template=%s", config.Template))
+		addArg("--label", fmt.Sprintf("fabric.template=%s", config.Template))
 	}
 
 	// Get command from harness.
@@ -467,7 +467,7 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 
 	// Wrap the harness in a shell that records its real exit code to a fixed
 	// file. The harness runs as a tmux grandchild, so its exit code is
-	// otherwise invisible to the `sciontool init` supervisor (which only sees
+	// otherwise invisible to the `fabrictool init` supervisor (which only sees
 	// the sh/container exit code). Writing $? lets init read the authoritative
 	// harness exit code and report crashes correctly. The whole wrapper is
 	// single-quoted again so tmux's command parser treats it as one word.
@@ -476,24 +476,24 @@ func buildCommonRunArgs(config RunConfig) ([]string, error) {
 	// Build tmux command: create session with "agent" window running the harness,
 	// then add a "shell" window and switch back to the agent window.
 	tmuxCmd := fmt.Sprintf(
-		"tmux new-session -d -s scion -n agent %s \\; set-option -g window-size latest \\; new-window -t scion -n shell \\; select-window -t scion:agent \\; attach-session -t scion",
+		"tmux new-session -d -s fabric -n agent %s \\; set-option -g window-size latest \\; new-window -t fabric -n shell \\; select-window -t fabric:agent \\; attach-session -t fabric",
 		agentWindowCmd,
 	)
 
 	if len(fuseMounts) > 0 {
 		// Pass tmuxCmd via env var to avoid double-shell quoting issues.
 		// The env var value is set by Docker/Podman without shell
-		// interpretation, then safely expanded by sh via "$SCION_START_CMD".
+		// interpretation, then safely expanded by sh via "$FABRIC_START_CMD".
 		// Must be added before the image name — Docker/Podman require all
 		// flags before the image argument.
-		addArg("-e", fmt.Sprintf("SCION_START_CMD=%s", tmuxCmd))
+		addArg("-e", fmt.Sprintf("FABRIC_START_CMD=%s", tmuxCmd))
 	}
 
 	args = append(args, config.Image)
 
 	if len(fuseMounts) > 0 {
 		mountCmds := strings.Join(fuseMounts, " && ")
-		wrapped := fmt.Sprintf(`%s && exec sh -c "$SCION_START_CMD"`, mountCmds)
+		wrapped := fmt.Sprintf(`%s && exec sh -c "$FABRIC_START_CMD"`, mountCmds)
 		args = append(args, "sh", "-c", wrapped)
 	} else {
 		args = append(args, "sh", "-c", tmuxCmd)
@@ -618,7 +618,7 @@ func expandTildeTarget(target, containerHome string) string {
 // ForceHostNetworkEnvVar, when set to a non-empty value in the broker's
 // environment, forces colocated Docker agents back onto host networking. It is
 // the escape hatch that reverts to the pre-bridge behavior without a redeploy.
-const ForceHostNetworkEnvVar = "SCION_FORCE_HOST_NETWORK"
+const ForceHostNetworkEnvVar = "FABRIC_FORCE_HOST_NETWORK"
 
 // forceHostNetworking reports whether the host-networking escape hatch is set.
 func forceHostNetworking() bool {
@@ -632,16 +632,16 @@ func forceHostNetworking() bool {
 // rewrites any bridge hostnames back to localhost in the env map. This avoids
 // the need for the server to bind to 0.0.0.0.
 //
-// When the SCION_FORCE_HOST_NETWORK escape hatch is set, host networking is
+// When the FABRIC_FORCE_HOST_NETWORK escape hatch is set, host networking is
 // forced for any runtime whenever a hub endpoint is configured, reverting to
 // the legacy behavior.
 //
 // For non-Docker runtimes (absent the escape hatch) or non-localhost endpoints,
 // returns "" (no override).
 func ResolveHostNetworking(runtimeName string, env map[string]string) string {
-	ep := env["SCION_HUB_ENDPOINT"]
+	ep := env["FABRIC_HUB_ENDPOINT"]
 	if ep == "" {
-		ep = env["SCION_HUB_URL"]
+		ep = env["FABRIC_HUB_URL"]
 	}
 	if ep == "" {
 		return ""
@@ -684,7 +684,7 @@ func ResolveHostNetworking(runtimeName string, env map[string]string) string {
 // the hub endpoint env vars back to localhost, since host networking makes the
 // host loopback reachable directly.
 func rewriteBridgeHostToLocalhost(env map[string]string) {
-	for _, key := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_URL"} {
+	for _, key := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL"} {
 		if v, ok := env[key]; ok {
 			v = strings.Replace(v, "host.docker.internal", "localhost", 1)
 			// host.containers.internal does not resolve under --network=host.
@@ -898,7 +898,7 @@ func serializeSecrets(containerHome string, secrets []api.ResolvedSecret) (strin
 	return encoded, nil
 }
 
-// DecodeStagedSecrets decodes the SCION_STAGED_SECRETS env var value.
+// DecodeStagedSecrets decodes the FABRIC_STAGED_SECRETS env var value.
 // Deprecated: Use stagedsecrets.Decode directly.
 func DecodeStagedSecrets(encoded string) (*StagedSecrets, error) {
 	return stagedsecrets.Decode(encoded)

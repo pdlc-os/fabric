@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package hooks
@@ -12,15 +12,15 @@ import (
 )
 
 func TestNewLifecycleManager_DefaultDir(t *testing.T) {
-	t.Setenv("SCION_HOOKS_DIR", "")
+	t.Setenv("FABRIC_HOOKS_DIR", "")
 	m := NewLifecycleManager()
-	if len(m.HooksDirs) != 1 || m.HooksDirs[0] != "/etc/scion/hooks" {
-		t.Fatalf("expected default /etc/scion/hooks, got %v", m.HooksDirs)
+	if len(m.HooksDirs) != 1 || m.HooksDirs[0] != "/etc/fabric/hooks" {
+		t.Fatalf("expected default /etc/fabric/hooks, got %v", m.HooksDirs)
 	}
 }
 
-func TestNewLifecycleManager_SciontoolHooksDirParsesColonList(t *testing.T) {
-	t.Setenv("SCION_HOOKS_DIR", "/a:/b: :/c")
+func TestNewLifecycleManager_FabrictoolHooksDirParsesColonList(t *testing.T) {
+	t.Setenv("FABRIC_HOOKS_DIR", "/a:/b: :/c")
 	m := NewLifecycleManager()
 	want := []string{"/a", "/b", "/c"}
 	if len(m.HooksDirs) != len(want) {
@@ -34,14 +34,14 @@ func TestNewLifecycleManager_SciontoolHooksDirParsesColonList(t *testing.T) {
 }
 
 func TestAddHooksDir_AppendsAndDedupes(t *testing.T) {
-	m := &LifecycleManager{HooksDirs: []string{"/etc/scion/hooks"}}
-	m.AddHooksDir("/agent/.scion/hooks")
-	m.AddHooksDir("/agent/.scion/hooks") // duplicate
+	m := &LifecycleManager{HooksDirs: []string{"/etc/fabric/hooks"}}
+	m.AddHooksDir("/agent/.fabric/hooks")
+	m.AddHooksDir("/agent/.fabric/hooks") // duplicate
 	m.AddHooksDir("")                    // ignored
 	if len(m.HooksDirs) != 2 {
 		t.Fatalf("expected 2 dirs, got %v", m.HooksDirs)
 	}
-	if m.HooksDirs[1] != "/agent/.scion/hooks" {
+	if m.HooksDirs[1] != "/agent/.fabric/hooks" {
 		t.Fatalf("expected per-agent dir appended, got %v", m.HooksDirs)
 	}
 }
@@ -147,7 +147,7 @@ func TestRunPreStart_AgentHomeOverridesHOMEInHooks(t *testing.T) {
 	mustWriteScript(t, filepath.Join(dir, "pre-start.d", "10-check-home"),
 		"#!/bin/sh\necho -n \"$HOME\" > "+marker+"\n")
 
-	agentHome := "/home/scion"
+	agentHome := "/home/fabric"
 	m := &LifecycleManager{
 		HooksDirs: []string{dir},
 		Handlers:  map[string][]Handler{},

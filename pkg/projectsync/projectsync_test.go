@@ -103,7 +103,7 @@ func TestDefaultExcludePatterns(t *testing.T) {
 	// Verify the default exclude patterns match what the hub WebDAV endpoint excludes
 	expected := []string{
 		".git/**",
-		".scion/**",
+		".fabric/**",
 		"node_modules/**",
 		"*.env",
 	}

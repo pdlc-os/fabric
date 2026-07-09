@@ -18,8 +18,8 @@ FROM ${BASE_IMAGE}
 
 ARG CODEX_CLI_VERSION=latest
 
-RUN mkdir -p /home/scion/.codex /home/scion/.codex/skills && \
-  chown -R scion:scion /home/scion/.codex
+RUN mkdir -p /home/fabric/.codex /home/fabric/.codex/skills && \
+  chown -R fabric:fabric /home/fabric/.codex
 
 # install codex, expose it on standard shell PATH, and clean up
 RUN npm install -g @openai/codex@${CODEX_CLI_VERSION} \

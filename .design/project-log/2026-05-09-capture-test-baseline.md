@@ -15,7 +15,7 @@ Captured the initial test baseline for the project to document the current state
 - `go test ./...` failed across multiple packages.
 - Total of 8 packages reported failures:
     - `cmd`
-    - `cmd/sciontool/commands`
+    - `cmd/fabrictool/commands`
     - `pkg/agent`
     - `pkg/config`
     - `pkg/harness`

@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# local-docker builder for the scion image build orchestrator.
+# local-docker builder for the fabric image build orchestrator.
 #
 # Implements the per-image builder contract on top of `docker buildx`.
 
 BUILDER_MODE="per-image"
-BUILDX_INSTANCE="scion-builder"
+BUILDX_INSTANCE="fabric-builder"
 
 builder_check() {
   if ! command -v docker >/dev/null 2>&1; then

@@ -2,10 +2,10 @@
 
 ## Status: Implemented
 
-**Implementation:** `pkg/sciontool/services/manager.go` (ServiceManager with 14 methods)
+**Implementation:** `pkg/fabrictool/services/manager.go` (ServiceManager with 14 methods)
 
 The design below has been fully implemented, including:
-- Service spec parsing from `scion-agent.yaml` (`pkg/api/types.go` ServiceSpec)
+- Service spec parsing from `fabric-agent.yaml` (`pkg/api/types.go` ServiceSpec)
 - Process lifecycle management (start, stop, restart on failure)
 - Consecutive failure tracking (max 3 failures before abandonment)
 - Log file management (stdout, stderr, lifecycle logs)
@@ -19,7 +19,7 @@ The design below has been fully implemented, including:
 
 Templates should be able to specify additional processes ("services") that start automatically alongside the main harness process inside the container. The motivating use case is MCP servers (e.g., Chrome DevTools MCP) and supporting daemons (e.g., Xvfb for headless browser rendering), but the mechanism should be general enough to support any background process an agent template needs.
 
-Today, `sciontool init` supervises exactly one child process (the harness command). This design extends that to support a set of named services defined in `scion-agent.yaml`, managed by sciontool with restart and lifecycle semantics.
+Today, `fabrictool init` supervises exactly one child process (the harness command). This design extends that to support a set of named services defined in `fabric-agent.yaml`, managed by fabrictool with restart and lifecycle semantics.
 
 ## Current Architecture
 
@@ -27,7 +27,7 @@ Today, `sciontool init` supervises exactly one child process (the harness comman
 
 ```
 Container entrypoint
-  └─ sciontool init -- <harness-command>
+  └─ fabrictool init -- <harness-command>
        ├─ StartReaper()           (zombie cleanup, critical for PID 1)
        ├─ setupHostUser()         (UID/GID sync)
        ├─ Initialize telemetry
@@ -44,11 +44,11 @@ Container entrypoint
 
 ### Relevant types
 
-- `api.ScionConfig` (`pkg/api/types.go:105`) — The struct backing `scion-agent.yaml`. Currently has `harness`, `env`, `volumes`, `command_args`, `model`, `image`, etc.
-- `supervisor.Supervisor` (`pkg/sciontool/supervisor/`) — Manages the child process lifecycle with signal forwarding, grace period shutdown, and UID/GID dropping.
-- Lifecycle hooks (`pkg/sciontool/hooks/`) — Pre-start, post-start, pre-stop, session-end events with registered handlers.
+- `api.FabricConfig` (`pkg/api/types.go:105`) — The struct backing `fabric-agent.yaml`. Currently has `harness`, `env`, `volumes`, `command_args`, `model`, `image`, etc.
+- `supervisor.Supervisor` (`pkg/fabrictool/supervisor/`) — Manages the child process lifecycle with signal forwarding, grace period shutdown, and UID/GID dropping.
+- Lifecycle hooks (`pkg/fabrictool/hooks/`) — Pre-start, post-start, pre-stop, session-end events with registered handlers.
 
-### Current scion-agent.yaml (minimal)
+### Current fabric-agent.yaml (minimal)
 
 ```yaml
 harness: claude
@@ -56,7 +56,7 @@ harness: claude
 
 ## Schema
 
-Add a `services` field to `scion-agent.yaml`:
+Add a `services` field to `fabric-agent.yaml`:
 
 ```yaml
 harness: claude
@@ -75,7 +75,7 @@ services:
       DISPLAY: ":99"
 ```
 
-Services are defined in `scion-agent.yaml` only — they travel with the template and are provisioned per-agent. No per-agent service overrides are supported; modifying services for a specific agent instance is handled through post-create agent editing.
+Services are defined in `fabric-agent.yaml` only — they travel with the template and are provisioned per-agent. No per-agent service overrides are supported; modifying services for a specific agent instance is handled through post-create agent editing.
 
 ### ServiceSpec fields
 
@@ -108,18 +108,18 @@ type ReadyCheck struct {
 
 ## Config Discovery
 
-The `scion-agent.yaml` file remains at the root of the template/agent definition. On agent creation, the host-side `scion` CLI copies the `services` block from `scion-agent.yaml` into a separate `scion-services.yaml` file in the agent's home directory (`$HOME/.scion/scion-services.yaml`). At container startup, `sciontool init` reads service definitions from this well-known path.
+The `fabric-agent.yaml` file remains at the root of the template/agent definition. On agent creation, the host-side `fabric` CLI copies the `services` block from `fabric-agent.yaml` into a separate `fabric-services.yaml` file in the agent's home directory (`$HOME/.fabric/fabric-services.yaml`). At container startup, `fabrictool init` reads service definitions from this well-known path.
 
-This separation keeps `scion-agent.yaml` as the source of truth for template configuration while giving `sciontool` a clean, dedicated file to consume without needing awareness of the full template config schema.
+This separation keeps `fabric-agent.yaml` as the source of truth for template configuration while giving `fabrictool` a clean, dedicated file to consume without needing awareness of the full template config schema.
 
 ## Lifecycle Semantics
 
 ### Startup order
 
-1. `sciontool init` runs pre-start hooks (existing)
-2. `sciontool` reads `scion-services.yaml` from the agent's home directory
+1. `fabrictool init` runs pre-start hooks (existing)
+2. `fabrictool` reads `fabric-services.yaml` from the agent's home directory
 3. Services are started in array order
-4. If a service has a `ready_check`, sciontool waits for it to pass before starting the next service
+4. If a service has a `ready_check`, fabrictool waits for it to pass before starting the next service
 5. After all services are running (or ready), the main harness process is started via the existing supervisor
 6. Post-start hooks run (existing)
 
@@ -127,7 +127,7 @@ This separation keeps `scion-agent.yaml` as the source of truth for template con
 
 - Services are monitored in a background goroutine (supervised sidecar model)
 - If a service exits and its restart policy allows, it is restarted with backoff
-- After 3 consecutive failed restarts, the service is abandoned (no further restart attempts). Failure events are logged to the service's sciontool lifecycle log
+- After 3 consecutive failed restarts, the service is abandoned (no further restart attempts). Failure events are logged to the service's fabrictool lifecycle log
 - The main process (harness) remains the "primary" — the container's exit code is determined by the main process, not services
 
 ### Shutdown
@@ -140,7 +140,7 @@ This separation keeps `scion-agent.yaml` as the source of truth for template con
 
 ### Process identity
 
-Services run with the same UID/GID as the main process (the `scion` user after `setupHostUser()`).
+Services run with the same UID/GID as the main process (the `fabric` user after `setupHostUser()`).
 
 ## Logging
 
@@ -151,18 +151,18 @@ Each service produces two log streams at well-known paths under the agent's home
 Service stdout and stderr are captured to per-service log files:
 
 ```
-~/.scion/services/logs/<name>.stdout.log
-~/.scion/services/logs/<name>.stderr.log
+~/.fabric/services/logs/<name>.stdout.log
+~/.fabric/services/logs/<name>.stderr.log
 ```
 
 These contain the raw output from the service process.
 
-### Sciontool lifecycle logs
+### Fabrictool lifecycle logs
 
-Sciontool writes its own per-service lifecycle log covering management events:
+Fabrictool writes its own per-service lifecycle log covering management events:
 
 ```
-~/.scion/services/logs/<name>.lifecycle.log
+~/.fabric/services/logs/<name>.lifecycle.log
 ```
 
 Events recorded include:
@@ -173,7 +173,7 @@ Events recorded include:
 - Ready check passed/failed
 - Service stopped during shutdown
 
-These lifecycle logs are also forwarded to the Hub logging endpoint via sciontool's existing OpenTelemetry logging integration, making service health visible in the hosted architecture without additional plumbing.
+These lifecycle logs are also forwarded to the Hub logging endpoint via fabrictool's existing OpenTelemetry logging integration, making service health visible in the hosted architecture without additional plumbing.
 
 ### Log access
 
@@ -183,25 +183,25 @@ When tmux is enabled, users can create a new tmux window and tail logs from thes
 
 ### New code
 
-- **`pkg/sciontool/services/manager.go`** — `ServiceManager` struct
+- **`pkg/fabrictool/services/manager.go`** — `ServiceManager` struct
   - `Start(specs []ServiceSpec, uid, gid int) error` — starts all services in order, honoring ready checks
   - `Shutdown(ctx context.Context) error` — graceful stop with timeout
   - Background goroutine per service for restart monitoring (max 3 consecutive failures)
-  - Per-service output logs written to `~/.scion/services/logs/<name>.{stdout,stderr}.log`
-  - Per-service lifecycle logs written to `~/.scion/services/logs/<name>.lifecycle.log`
+  - Per-service output logs written to `~/.fabric/services/logs/<name>.{stdout,stderr}.log`
+  - Per-service lifecycle logs written to `~/.fabric/services/logs/<name>.lifecycle.log`
 
 ### Modified code
 
-- **`pkg/api/types.go`** — Add `Services []ServiceSpec` to `ScionConfig`
-- **`cmd/sciontool/commands/init.go`** — Wire ServiceManager into `runInit()`:
-  1. After pre-start hooks, read `scion-services.yaml` from `$HOME/.scion/`
+- **`pkg/api/types.go`** — Add `Services []ServiceSpec` to `FabricConfig`
+- **`cmd/fabrictool/commands/init.go`** — Wire ServiceManager into `runInit()`:
+  1. After pre-start hooks, read `fabric-services.yaml` from `$HOME/.fabric/`
   2. Start ServiceManager
   3. Start main process via existing supervisor
   4. During shutdown, stop ServiceManager before session-end hooks
-- **Agent creation path** (host-side) — Extract `services` block from `scion-agent.yaml` and write it as `scion-services.yaml` into the agent's home directory during provisioning
+- **Agent creation path** (host-side) — Extract `services` block from `fabric-agent.yaml` and write it as `fabric-services.yaml` into the agent's home directory during provisioning
 
 ### Unchanged
 
 - The existing supervisor remains responsible for the main harness process only
 - Lifecycle hooks are unaffected
-- `scion-agent.yaml` schema gains the `services` field but remains at the template root
+- `fabric-agent.yaml` schema gains the `services` field but remains at the template root

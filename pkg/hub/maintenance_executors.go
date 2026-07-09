@@ -32,12 +32,12 @@ import (
 	cloudbuild "cloud.google.com/go/cloudbuild/apiv1/v2"
 	cloudbuildpb "cloud.google.com/go/cloudbuild/apiv1/v2/cloudbuildpb"
 	gcstorage "cloud.google.com/go/storage"
-	scionruntime "github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	fabricruntime "github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"gopkg.in/yaml.v3"
 )
@@ -184,7 +184,7 @@ func (e *PullImagesExecutor) Run(ctx context.Context, logger io.Writer, params m
 
 	runtimeBin := e.runtimeBin
 	if runtimeBin == "" {
-		runtimeBin = scionruntime.DetectContainerRuntime()
+		runtimeBin = fabricruntime.DetectContainerRuntime()
 	}
 	if runtimeBin == "" {
 		return fmt.Errorf("no container runtime found (tried docker, podman, container)")
@@ -206,7 +206,7 @@ func (e *PullImagesExecutor) Run(ctx context.Context, logger io.Writer, params m
 	pulled := 0
 	var lastErr error
 	for _, h := range harnesses {
-		image := fmt.Sprintf("%s/scion-%s:%s", registry, h, tag)
+		image := fmt.Sprintf("%s/fabric-%s:%s", registry, h, tag)
 		_, _ = fmt.Fprintf(logger, "Pulling %s ...\n", image)
 		log.Debug("Pulling image", "image", image)
 
@@ -234,10 +234,10 @@ func (e *PullImagesExecutor) Run(ctx context.Context, logger io.Writer, params m
 
 // RebuildServerExecutor rebuilds the server binary from git and restarts via systemd.
 type RebuildServerExecutor struct {
-	repoPath    string // path to scion source checkout
+	repoPath    string // path to fabric source checkout
 	repoBranch  string // git branch to checkout before building (empty = stay on current)
-	binaryDest  string // install path (e.g., /usr/local/bin/scion)
-	serviceName string // systemd service name (e.g., "scion-hub")
+	binaryDest  string // install path (e.g., /usr/local/bin/fabric)
+	serviceName string // systemd service name (e.g., "fabric-hub")
 }
 
 func (e *RebuildServerExecutor) Run(ctx context.Context, logger io.Writer, params map[string]string) error {
@@ -253,11 +253,11 @@ func (e *RebuildServerExecutor) Run(ctx context.Context, logger io.Writer, param
 	}
 	binaryDest := e.binaryDest
 	if binaryDest == "" {
-		binaryDest = "/usr/local/bin/scion"
+		binaryDest = "/usr/local/bin/fabric"
 	}
 	serviceName := e.serviceName
 	if serviceName == "" {
-		serviceName = "scion-hub"
+		serviceName = "fabric-hub"
 	}
 
 	// A "branch" param on the API request overrides the configured default.
@@ -272,13 +272,13 @@ func (e *RebuildServerExecutor) Run(ctx context.Context, logger io.Writer, param
 
 	// Build to a staging path inside the repo directory (where the service user
 	// has write access), then use "sudo install" to place it into the final
-	// destination (e.g., /usr/local/bin/scion). This avoids two problems:
+	// destination (e.g., /usr/local/bin/fabric). This avoids two problems:
 	//   1. ETXTBSY — writing directly to a running binary fails on Linux.
 	//   2. Permission denied — the service user typically cannot write to
 	//      /usr/local/bin/.
 	// Both the install and restart steps use sudo, backed by narrowly-scoped
 	// sudoers rules installed by the deploy script (gce-start-hub.sh).
-	stagingBinary := filepath.Join(repoPath, "scion.rebuild")
+	stagingBinary := filepath.Join(repoPath, "fabric.rebuild")
 
 	type step struct {
 		name string
@@ -305,7 +305,7 @@ func (e *RebuildServerExecutor) Run(ctx context.Context, logger io.Writer, param
 	}
 	steps = append(steps,
 		step{"Building web assets", "make", []string{"web"}, repoPath},
-		step{"Building server binary", "go", []string{"build", "-o", stagingBinary, "./cmd/scion"}, repoPath},
+		step{"Building server binary", "go", []string{"build", "-o", stagingBinary, "./cmd/fabric"}, repoPath},
 		step{"Installing server binary", "sudo", []string{"install", "-m", "755", stagingBinary, binaryDest}, ""},
 	)
 
@@ -359,7 +359,7 @@ func (e *RebuildServerExecutor) Run(ctx context.Context, logger io.Writer, param
 
 // RebuildWebExecutor rebuilds the web frontend assets from source.
 type RebuildWebExecutor struct {
-	repoPath   string // path to scion source checkout
+	repoPath   string // path to fabric source checkout
 	repoBranch string // git branch to checkout before building (empty = stay on current)
 }
 
@@ -430,8 +430,8 @@ func (e *RebuildWebExecutor) Run(ctx context.Context, logger io.Writer, params m
 	return nil
 }
 
-// RebuildContainerBinariesExecutor rebuilds scion and sciontool binaries
-// for bind-mounting into agent containers via SCION_DEV_BINARIES.
+// RebuildContainerBinariesExecutor rebuilds fabric and fabrictool binaries
+// for bind-mounting into agent containers via FABRIC_DEV_BINARIES.
 type RebuildContainerBinariesExecutor struct {
 	repoPath string
 }
@@ -443,10 +443,10 @@ func (e *RebuildContainerBinariesExecutor) Run(ctx context.Context, logger io.Wr
 		return fmt.Errorf("no repository path configured for rebuild-container-binaries")
 	}
 
-	devBinDir := os.Getenv("SCION_DEV_BINARIES")
-	_, _ = fmt.Fprintf(logger, "SCION_DEV_BINARIES=%s\n", devBinDir)
+	devBinDir := os.Getenv("FABRIC_DEV_BINARIES")
+	_, _ = fmt.Fprintf(logger, "FABRIC_DEV_BINARIES=%s\n", devBinDir)
 	if devBinDir == "" {
-		_, _ = fmt.Fprintln(logger, "WARNING: SCION_DEV_BINARIES is not set; built binaries will not be mounted into containers until it is configured.")
+		_, _ = fmt.Fprintln(logger, "WARNING: FABRIC_DEV_BINARIES is not set; built binaries will not be mounted into containers until it is configured.")
 	}
 
 	log.Debug("Starting rebuild-container-binaries", "repo_path", e.repoPath)
@@ -529,7 +529,7 @@ func (e *BuildHarnessConfigImageExecutor) Run(ctx context.Context, logger io.Wri
 		return fmt.Errorf("storage not configured")
 	}
 
-	tmpDir, err := os.MkdirTemp("", "scion-build-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-build-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -539,15 +539,15 @@ func (e *BuildHarnessConfigImageExecutor) Run(ctx context.Context, logger io.Wri
 		return err
 	}
 
-	baseImage := "scion-base:" + tag
+	baseImage := "fabric-base:" + tag
 	if registry != "" {
-		baseImage = registry + "/scion-base:" + tag
+		baseImage = registry + "/fabric-base:" + tag
 	}
 	_, _ = fmt.Fprintf(logger, "Base image: %s\n", baseImage)
 
 	runtimeBin := e.runtimeBin
 	if runtimeBin == "" {
-		runtimeBin = scionruntime.DetectContainerRuntime()
+		runtimeBin = fabricruntime.DetectContainerRuntime()
 	}
 	if runtimeBin == "" {
 		return fmt.Errorf("no container runtime found (tried docker, podman, container)")
@@ -710,7 +710,7 @@ func (e *CloudBuildHarnessConfigExecutor) Run(ctx context.Context, logger io.Wri
 	}
 
 	// Materialize harness-config files to a temp directory.
-	tmpDir, err := os.MkdirTemp("", "scion-cloudbuild-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-cloudbuild-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -729,7 +729,7 @@ func (e *CloudBuildHarnessConfigExecutor) Run(ctx context.Context, logger io.Wri
 
 	// Upload build context to the Cloud Build default staging bucket.
 	stagingBucket := e.gcpProject + "_cloudbuild"
-	objectName := fmt.Sprintf("source/scion-harness-%s-%d.tar.gz", hc.Name, time.Now().Unix())
+	objectName := fmt.Sprintf("source/fabric-harness-%s-%d.tar.gz", hc.Name, time.Now().Unix())
 	_, _ = fmt.Fprintf(logger, "Uploading build context to gs://%s/%s...\n", stagingBucket, objectName)
 
 	gcsClient, err := gcstorage.NewClient(ctx)
@@ -773,7 +773,7 @@ func (e *CloudBuildHarnessConfigExecutor) Run(ctx context.Context, logger io.Wri
 	if imageName == "" {
 		imageName = hc.Name
 	}
-	baseImage := registry + "/scion-base:" + tag
+	baseImage := registry + "/fabric-base:" + tag
 	outputImage := registry + "/" + imageName + ":" + tag
 
 	_, _ = fmt.Fprintf(logger, "Base image: %s\n", baseImage)

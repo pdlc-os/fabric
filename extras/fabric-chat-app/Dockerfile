@@ -25,12 +25,12 @@ COPY web/ web/
 COPY internal/ internal/
 
 # Copy the extras module
-COPY extras/scion-chat-app/ extras/scion-chat-app/
+COPY extras/fabric-chat-app/ extras/fabric-chat-app/
 
-WORKDIR /src/extras/scion-chat-app
+WORKDIR /src/extras/fabric-chat-app
 
 RUN go mod download
-RUN CGO_ENABLED=1 go build -o /scion-chat-app ./cmd/scion-chat-app/
+RUN CGO_ENABLED=1 go build -o /fabric-chat-app ./cmd/fabric-chat-app/
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -39,12 +39,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /scion-chat-app /usr/local/bin/scion-chat-app
+COPY --from=builder /fabric-chat-app /usr/local/bin/fabric-chat-app
 
 # Create data directory for SQLite
-RUN mkdir -p /var/lib/scion-chat-app
+RUN mkdir -p /var/lib/fabric-chat-app
 
 EXPOSE 8443 9090
 
-ENTRYPOINT ["scion-chat-app"]
-CMD ["--config", "/etc/scion-chat-app/config.yaml"]
+ENTRYPOINT ["fabric-chat-app"]
+CMD ["--config", "/etc/fabric-chat-app/config.yaml"]

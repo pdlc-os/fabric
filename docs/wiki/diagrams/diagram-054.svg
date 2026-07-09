@@ -79,15 +79,15 @@
 <polygon fill="black" stroke="black" points="388.02,-322.91 395.98,-315.93 385.4,-316.42 388.02,-322.91"/>
 <text xml:space="preserve" text-anchor="middle" x="391.48" y="-333.95" font-family="Times,serif" font-size="14.00">Gateway Events</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node5" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <polygon fill="lightblue" stroke="black" points="227.25,-226 143.75,-226 143.75,-190 227.25,-190 227.25,-226"/>
-<text xml:space="preserve" text-anchor="middle" x="185.5" y="-199.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="185.5" y="-199.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- Discord Bot Plugin&#45;&gt;Scion Hub -->
+<!-- Discord Bot Plugin&#45;&gt;Fabric Hub -->
 <g id="edge4" class="edge">
-<title>Discord Bot Plugin&#45;&gt;Scion Hub</title>
+<title>Discord Bot Plugin&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M161.59,-126.2C165.91,-140.77 172.17,-161.93 177.2,-178.95"/>
 <polygon fill="black" stroke="black" points="173.83,-179.88 180.02,-188.48 180.54,-177.9 173.83,-179.88"/>
 <text xml:space="preserve" text-anchor="middle" x="222.35" y="-149.95" font-family="Times,serif" font-size="14.00">go&#45;plugin RPC</text>
@@ -118,9 +118,9 @@
 <polygon fill="black" stroke="black" points="400.5,-43.95 409.18,-37.87 398.61,-37.21 400.5,-43.95"/>
 <text xml:space="preserve" text-anchor="middle" x="356.47" y="-55.95" font-family="Times,serif" font-size="14.00">Manages</text>
 </g>
-<!-- Discord Bot Standalone&#45;&gt;Scion Hub -->
+<!-- Discord Bot Standalone&#45;&gt;Fabric Hub -->
 <g id="edge6" class="edge">
-<title>Discord Bot Standalone&#45;&gt;Scion Hub</title>
+<title>Discord Bot Standalone&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M368.69,-281.29C364.23,-280.48 359.81,-279.71 355.5,-279 320.79,-273.24 224.91,-281.51 198.5,-258.25 192.44,-252.91 189.05,-245.11 187.19,-237.28"/>
 <polygon fill="black" stroke="black" points="190.68,-236.92 185.68,-227.58 183.76,-238 190.68,-236.92"/>
 <text xml:space="preserve" text-anchor="middle" x="213.5" y="-244.95" font-family="Times,serif" font-size="14.00">gRPC</text>
@@ -140,23 +140,23 @@
 <polygon fill="black" stroke="black" points="472.65,-49.1 470.33,-38.76 465.7,-48.29 472.65,-49.1"/>
 <text xml:space="preserve" text-anchor="middle" x="483.86" y="-149.95" font-family="Times,serif" font-size="14.00">Manages</text>
 </g>
-<!-- Scion Hub&#45;&gt;Discord Gateway/API -->
+<!-- Fabric Hub&#45;&gt;Discord Gateway/API -->
 <g id="edge8" class="edge">
-<title>Scion Hub&#45;&gt;Discord Gateway/API</title>
+<title>Fabric Hub&#45;&gt;Discord Gateway/API</title>
 <path fill="none" stroke="black" stroke-dasharray="5,2" d="M174.13,-226.3C161.62,-247.64 144.81,-284.78 157,-315 164.11,-332.59 177.98,-348.23 191.31,-360.24"/>
 <polygon fill="black" stroke="black" points="188.89,-362.77 198.77,-366.61 193.44,-357.45 188.89,-362.77"/>
 <text xml:space="preserve" text-anchor="middle" x="258.25" y="-288.95" font-family="Times,serif" font-size="14.00">Outbound StructuredMessages</text>
 </g>
-<!-- Scion Hub&#45;&gt;Discord Bot Plugin -->
+<!-- Fabric Hub&#45;&gt;Discord Bot Plugin -->
 <g id="edge5" class="edge">
-<title>Scion Hub&#45;&gt;Discord Bot Plugin</title>
+<title>Fabric Hub&#45;&gt;Discord Bot Plugin</title>
 <path fill="none" stroke="black" d="M143.49,-205.28C116.9,-201.75 84.36,-192.39 67,-168.5 55.28,-152.36 68.96,-139.32 88.88,-129.61"/>
 <polygon fill="black" stroke="black" points="90.28,-132.81 98.03,-125.58 87.46,-126.41 90.28,-132.81"/>
 <text xml:space="preserve" text-anchor="middle" x="115.75" y="-149.95" font-family="Times,serif" font-size="14.00">go&#45;plugin RPC</text>
 </g>
-<!-- Scion Hub&#45;&gt;Discord Bot Standalone -->
+<!-- Fabric Hub&#45;&gt;Discord Bot Standalone -->
 <g id="edge7" class="edge">
-<title>Scion Hub&#45;&gt;Discord Bot Standalone</title>
+<title>Fabric Hub&#45;&gt;Discord Bot Standalone</title>
 <path fill="none" stroke="black" d="M207.89,-226.4C222.65,-237.07 242.83,-250.19 262.5,-258.25 267.27,-260.2 313.4,-269.97 357.49,-279.08"/>
 <polygon fill="black" stroke="black" points="356.65,-282.48 367.15,-281.07 358.06,-275.62 356.65,-282.48"/>
 <text xml:space="preserve" text-anchor="middle" x="277.5" y="-244.95" font-family="Times,serif" font-size="14.00">gRPC</text>

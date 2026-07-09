@@ -17,7 +17,7 @@ Remaining in scope here: only **step 6** (optional identifier/layout cleanup).
 
 ## 1. Purpose
 
-Scion stores several *file-based resource types* — today **templates** and
+Fabric stores several *file-based resource types* — today **templates** and
 **harness-configs**, soon **skills** and likely others — as directories of files
 that are used when provisioning agents. We want the Hub to be a **stateless
 control plane**: the durable source of truth for these resources should live in a
@@ -64,9 +64,9 @@ locations** plus GCS, and only one of them is really a cache:
 
 | # | Location | Who writes it | Who reads it | Role |
 |---|----------|---------------|--------------|------|
-| A | **Import-source dir** — `~/.scion/templates/<name>/`, `.scion/templates/<name>/`, `~/.scion/harness-configs/<name>/`, template-bundled `harness-configs/` | Humans, `scion … import`, embeds seeding | Hub at bootstrap; co-located broker at provision | **Source / seed**, not a cache |
+| A | **Import-source dir** — `~/.fabric/templates/<name>/`, `.fabric/templates/<name>/`, `~/.fabric/harness-configs/<name>/`, template-bundled `harness-configs/` | Humans, `fabric … import`, embeds seeding | Hub at bootstrap; co-located broker at provision | **Source / seed**, not a cache |
 | B | **GCS** — `gs://<bucket>/templates/<scope>/<scopeId>/<slug>/…`, `…/harness-configs/<scope>/<scopeId>/<slug>/…` | Hub bootstrap/import upload; CLI push | Broker hydrator (templates); CLI pull | **Intended source of truth** |
-| C | **Broker hydration cache** — `~/.scion/cache/templates/<contentHash>/…` | `templatecache.Hydrator` | `hydrateTemplate` at provision | **Read-through cache** (templates only) |
+| C | **Broker hydration cache** — `~/.fabric/cache/templates/<contentHash>/…` | `templatecache.Hydrator` | `hydrateTemplate` at provision | **Read-through cache** (templates only) |
 
 The metadata/registry (UUID, slug, scope, `ContentHash`, file manifest, storage
 URI) lives in a fourth place: the **Hub database** (`store.Template`,
@@ -260,7 +260,7 @@ job to "avoid re-downloading from GCS on a remote broker."
 For that remaining hosted case, two viable directions; recommend **(a)** unless
 benchmarks justify the current machinery:
 
-- **(a) Thin CAS.** Keep `~/.scion/cache/<type>/<contentHash>/` as a simple
+- **(a) Thin CAS.** Keep `~/.fabric/cache/<type>/<contentHash>/` as a simple
   content-addressed store: `Get(contentHash) → path | miss`,
   `Put(contentHash, files) → path`, size-bounded LRU. Drop the secondary
   `templateID → hash` index (the Hub already returns `contentHash` with

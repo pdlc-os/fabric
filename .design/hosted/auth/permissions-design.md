@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies the authorization and access control system for the Scion Hub. The permissions system provides fine-grained access control for resources while maintaining operational simplicity and clear security boundaries.
+This document specifies the authorization and access control system for the Fabric Hub. The permissions system provides fine-grained access control for resources while maintaining operational simplicity and clear security boundaries.
 
 ### Goals
 

@@ -18,25 +18,25 @@ import (
 	"net"
 	"net/url"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 const redactedEnvValue = "<redacted>"
 
 var safeEnvLogKeys = map[string]struct{}{
-	"SCION_AGENT_ID":          {},
-	"SCION_AGENT_SLUG":        {},
-	"SCION_BROKER_ID":         {},
-	"SCION_BROKER_NAME":       {},
-	"SCION_CREATOR":           {},
-	"SCION_DEBUG":             {},
-	"SCION_GROVE_ID":          {},
-	"SCION_GROVE_PATH":        {},
-	"SCION_PROJECT_ID":        {},
-	"SCION_PROJECT_PATH":      {},
-	"SCION_HUB_ENDPOINT":      {},
-	"SCION_HUB_URL":           {},
-	"SCION_TELEMETRY_ENABLED": {},
+	"FABRIC_AGENT_ID":          {},
+	"FABRIC_AGENT_SLUG":        {},
+	"FABRIC_BROKER_ID":         {},
+	"FABRIC_BROKER_NAME":       {},
+	"FABRIC_CREATOR":           {},
+	"FABRIC_DEBUG":             {},
+	"FABRIC_GROVE_ID":          {},
+	"FABRIC_GROVE_PATH":        {},
+	"FABRIC_PROJECT_ID":        {},
+	"FABRIC_PROJECT_PATH":      {},
+	"FABRIC_HUB_ENDPOINT":      {},
+	"FABRIC_HUB_URL":           {},
+	"FABRIC_TELEMETRY_ENABLED": {},
 }
 
 func resolveHubEndpointForCreate(reqHubEndpoint, connectionHubEndpoint, brokerHubEndpoint string, resolvedEnv map[string]string, projectPath, containerHubEndpoint, runtimeName string) string {
@@ -65,7 +65,7 @@ func resolveHubEndpointForCreate(reqHubEndpoint, connectionHubEndpoint, brokerHu
 
 func resolveHubEndpointForStart(brokerHubEndpoint string, resolvedEnv map[string]string, projectPath, containerHubEndpoint, runtimeName string) string {
 	// Prefer the Hub-dispatched endpoint from resolved env — the Hub knows
-	// its own public URL and injects it via SCION_HUB_ENDPOINT. The broker's
+	// its own public URL and injects it via FABRIC_HUB_ENDPOINT. The broker's
 	// own HubEndpoint config may be a localhost address (e.g. combo server)
 	// which would incorrectly trigger the container bridge override.
 	hubEndpoint := hubEndpointFromResolvedEnv(resolvedEnv)
@@ -79,10 +79,10 @@ func resolveHubEndpointForStart(brokerHubEndpoint string, resolvedEnv map[string
 }
 
 func hubEndpointFromResolvedEnv(resolvedEnv map[string]string) string {
-	if ep, ok := resolvedEnv["SCION_HUB_ENDPOINT"]; ok && ep != "" {
+	if ep, ok := resolvedEnv["FABRIC_HUB_ENDPOINT"]; ok && ep != "" {
 		return ep
 	}
-	if ep, ok := resolvedEnv["SCION_HUB_URL"]; ok && ep != "" {
+	if ep, ok := resolvedEnv["FABRIC_HUB_URL"]; ok && ep != "" {
 		return ep
 	}
 	return ""

@@ -55,7 +55,7 @@ The current release workflow uses `ubuntu-latest` for all targets. Darwin builds
 - name: Sign binary
   if: startsWith(matrix.goos, 'darwin')
   run: |
-    codesign --force --options runtime --sign "${{ secrets.APPLE_DEVELOPER_ID }}" dist/scion
+    codesign --force --options runtime --sign "${{ secrets.APPLE_DEVELOPER_ID }}" dist/fabric
 
 - name: Notarize binary
   if: startsWith(matrix.goos, 'darwin')
@@ -64,8 +64,8 @@ The current release workflow uses `ubuntu-latest` for all targets. Darwin builds
     APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
     APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
   run: |
-    zip scion.zip dist/scion
-    xcrun notarytool submit scion.zip \
+    zip fabric.zip dist/fabric
+    xcrun notarytool submit fabric.zip \
       --apple-id "$APPLE_ID" \
       --team-id "$APPLE_TEAM_ID" \
       --password "$APPLE_APP_PASSWORD" \
@@ -79,7 +79,7 @@ The `--options runtime` flag enables the hardened runtime, which is required for
 These don't eliminate Gatekeeper warnings but reduce user friction:
 
 - **Homebrew tap** — users installing via `brew install` bypass Gatekeeper since Homebrew strips the quarantine attribute. Many open-source Go CLI projects use this approach.
-- **Manual bypass** — instruct users to run `xattr -d com.apple.quarantine ./scion` after downloading, or right-click and select Open.
+- **Manual bypass** — instruct users to run `xattr -d com.apple.quarantine ./fabric` after downloading, or right-click and select Open.
 - **`go install`** — builds locally so Gatekeeper is not involved, but cannot embed web assets (see Background above).
 
 ## Recommendation

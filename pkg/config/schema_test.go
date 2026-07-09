@@ -53,7 +53,7 @@ active_profile: local
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 `)
 	version, isLegacy := DetectSettingsFormat(data)
 	assert.Equal(t, "", version)
@@ -115,12 +115,12 @@ runtimes:
 harness_configs:
   gemini:
     harness: gemini
-    image: "us-central1-docker.pkg.dev/test/scion-gemini:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/test/fabric-gemini:latest"
+    user: fabric
   claude:
     harness: claude
-    image: "us-central1-docker.pkg.dev/test/scion-claude:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/test/fabric-claude:latest"
+    user: fabric
 profiles:
   local:
     runtime: container
@@ -188,7 +188,7 @@ schema_version: "1"
 harness_configs:
   test:
     image: test:latest
-    user: scion
+    user: fabric
 `)
 	errors, err := ValidateSettings(data, "1")
 	require.NoError(t, err)
@@ -291,7 +291,7 @@ harness_configs:
   gemini-custom:
     harness: gemini
     image: "example.com/gemini:v2"
-    user: scion
+    user: fabric
     model: "gemini-2.5-pro"
     args: ["--sandbox=strict"]
     env:
@@ -304,7 +304,7 @@ harness_configs:
     provisioner:
       type: builtin
       interface_version: 1
-      command: ["python3", "/home/scion/.scion/harness/provision.py"]
+      command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
       timeout: 30s
       lifecycle_events: ["pre-start"]
       required_image_tools: ["python3"]
@@ -401,7 +401,7 @@ func TestValidateAgentConfig_Valid(t *testing.T) {
 schema_version: "1"
 harness_config: gemini
 image: "example.com/gemini:latest"
-user: scion
+user: fabric
 model: "gemini-2.5-pro"
 max_turns: 50
 max_duration: "2h"
@@ -460,7 +460,7 @@ func TestGetSettingsSchemaJSON(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, data)
 	assert.Contains(t, string(data), `"$schema"`)
-	assert.Contains(t, string(data), `"Scion Settings"`)
+	assert.Contains(t, string(data), `"Fabric Settings"`)
 }
 
 func TestGetSettingsSchemaJSON_UnsupportedVersion(t *testing.T) {
@@ -472,7 +472,7 @@ func TestGetAgentSchemaJSON(t *testing.T) {
 	data, err := GetAgentSchemaJSON("1")
 	require.NoError(t, err)
 	assert.NotEmpty(t, data)
-	assert.Contains(t, string(data), `"Scion Agent Configuration"`)
+	assert.Contains(t, string(data), `"Fabric Agent Configuration"`)
 }
 
 func TestGetAgentSchemaJSON_UnsupportedVersion(t *testing.T) {
@@ -570,7 +570,7 @@ server:
       allowed_origins: ["*"]
   database:
     driver: postgres
-    url: "postgres://localhost:5432/scion"
+    url: "postgres://localhost:5432/fabric"
   auth:
     dev_mode: true
     dev_token: "dev-secret-token"
@@ -600,8 +600,8 @@ server:
         client_secret: "device-github-secret"
   storage:
     provider: gcs
-    bucket: "scion-templates"
-    local_path: "/var/scion/storage"
+    bucket: "fabric-templates"
+    local_path: "/var/fabric/storage"
   secrets:
     backend: gcpsm
     gcp_project_id: "my-project"
@@ -636,7 +636,7 @@ telemetry:
     report_interval: "30s"
   local:
     enabled: true
-    file: "/var/log/scion-telemetry.jsonl"
+    file: "/var/log/fabric-telemetry.jsonl"
     console: true
   filter:
     enabled: true
@@ -653,7 +653,7 @@ telemetry:
         "agent.start": 1.0
         "agent.heartbeat": 0.1
   resource:
-    "service.name": "scion"
+    "service.name": "fabric"
     "deployment.environment": "production"
 
 runtimes:
@@ -668,14 +668,14 @@ runtimes:
   k8s-prod:
     type: kubernetes
     context: "gke_project_zone_cluster"
-    namespace: "scion-agents"
+    namespace: "fabric-agents"
     gke: true
 
 harness_configs:
   gemini:
     harness: gemini
-    image: "us-central1-docker.pkg.dev/project/scion-gemini:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/project/fabric-gemini:latest"
+    user: fabric
     model: "gemini-2.5-pro"
     args: ["--sandbox=strict"]
     env:
@@ -696,8 +696,8 @@ harness_configs:
         target: /run/secrets/sa.json
   claude:
     harness: claude
-    image: "us-central1-docker.pkg.dev/project/scion-claude:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/project/fabric-claude:latest"
+    user: fabric
   opencode:
     harness: opencode
     image: "example.com/opencode:latest"
@@ -718,7 +718,7 @@ profiles:
     env:
       ENV: local
     volumes:
-      - source: /tmp/scion
+      - source: /tmp/fabric
         target: /workspace/tmp
     resources:
       requests:
@@ -760,12 +760,12 @@ func TestValidateAgentConfig_CompleteSchema(t *testing.T) {
 schema_version: "1"
 harness_config: gemini
 harness: gemini
-image: "us-central1-docker.pkg.dev/project/scion-gemini:latest"
-user: scion
+image: "us-central1-docker.pkg.dev/project/fabric-gemini:latest"
+user: fabric
 model: "gemini-2.5-pro"
 args: ["--sandbox=strict"]
 detached: true
-config_dir: "/home/scion/.config"
+config_dir: "/home/fabric/.config"
 command_args: ["--verbose"]
 max_turns: 100
 max_duration: "4h"
@@ -876,9 +876,9 @@ default_harness_config: gemini
 
 kubernetes:
   context: "gke_project_zone_cluster"
-  namespace: "scion-agents"
+  namespace: "fabric-agents"
   runtimeClassName: "gvisor"
-  serviceAccountName: "scion-agent-sa"
+  serviceAccountName: "fabric-agent-sa"
   resources:
     requests:
       cpu: "2"

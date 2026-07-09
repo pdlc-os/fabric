@@ -27,8 +27,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -77,7 +77,7 @@ func DefaultControlChannelConfig() ControlChannelConfig {
 type AgentLookupResult struct {
 	ContainerID string // Container/pod ID
 	RuntimeName string // Runtime that owns the agent (e.g., "docker", "kubernetes")
-	ExecUser    string // Container user for exec/attach (e.g., "scion" or "root" for rootless Podman)
+	ExecUser    string // Container user for exec/attach (e.g., "fabric" or "root" for rootless Podman)
 	Namespace   string // Kubernetes namespace (empty for non-k8s runtimes)
 
 	// K8sConfig and K8sClientset are set for kubernetes agents so that
@@ -290,7 +290,7 @@ func (c *ControlChannelClient) buildAuthHeaders() (http.Header, error) {
 
 	if len(c.config.SecretKey) == 0 {
 		// No auth configured
-		headers.Set("X-Scion-Broker-ID", c.config.BrokerID)
+		headers.Set("X-Fabric-Broker-ID", c.config.BrokerID)
 		return headers, nil
 	}
 
@@ -496,7 +496,7 @@ func (c *ControlChannelClient) handleRequest(data []byte) (retErr error) {
 
 	// Inject connection name header so the server can route to the correct hydrator
 	if c.connectionName != "" {
-		httpReq.Header.Set("X-Scion-Hub-Connection", c.connectionName)
+		httpReq.Header.Set("X-Fabric-Hub-Connection", c.connectionName)
 	}
 
 	// Execute through existing handlers

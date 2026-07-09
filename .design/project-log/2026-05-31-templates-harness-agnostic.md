@@ -6,7 +6,7 @@
 ## Summary
 
 Made templates strictly harness-agnostic by deprecating harness-specific fields
-(`image`, `model` as concrete name, `auth_selectedType`) in `scion-agent.yaml`
+(`image`, `model` as concrete name, `auth_selectedType`) in `fabric-agent.yaml`
 and introducing model size aliases (`small`, `medium`, `large`) for portable
 model selection.
 
@@ -44,8 +44,8 @@ model selection.
 
 ## Observations
 
-- The `docs-writer` template in `.scion/templates/` uses `model: "gemini-3.1-pro-preview"` —
+- The `docs-writer` template in `.fabric/templates/` uses `model: "gemini-3.1-pro-preview"` —
   a concrete name that ties it to Gemini. With this change, it could use `model: large`
-  instead to become portable. Left unmodified per project policy (`.scion/` managed manually).
+  instead to become portable. Left unmodified per project policy (`.fabric/` managed manually).
 - Pre-existing test failures in TestIsInsideProject, TestIsHubContext etc. are
   environment-dependent and unrelated to this change.

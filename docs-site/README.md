@@ -1,6 +1,6 @@
-# Scion Documentation Site
+# Fabric Documentation Site
 
-This is the documentation site for [Scion](https://github.com/GoogleCloudPlatform/scion), built using [Starlight](https://starlight.astro.build/).
+This is the documentation site for [Fabric](https://github.com/pdlc-os/fabric), built using [Starlight](https://starlight.astro.build/).
 
 ## 🚀 Project Structure
 
@@ -57,8 +57,8 @@ To build and run the container locally:
 
 ```bash
 # From the docs-site directory
-docker build -t scion-docs .
-docker run -p 8080:8080 scion-docs
+docker build -t fabric-docs .
+docker run -p 8080:8080 fabric-docs
 ```
 
 ### Cloud Build & Cloud Run
@@ -75,7 +75,7 @@ gcloud builds submit --config cloudbuild.yaml .
 The Cloud Build configuration:
 - Builds the image with `docs-site/Dockerfile`.
 - Pushes the image to Artifact Registry.
-- Deploys the image to a Cloud Run service named `scion-docs`.
+- Deploys the image to a Cloud Run service named `fabric-docs`.
 
 ## 📝 Writing Documentation
 
@@ -86,8 +86,8 @@ Documentation is written in Markdown (`.md`) or MDX (`.mdx`) in the `src/content
 You can include D2 diagrams directly in your documentation using `d2` code blocks:
 
 ```d2
-User -> Scion: Start Agent
-Scion -> Container: Run
+User -> Fabric: Start Agent
+Fabric -> Container: Run
 ```
 
 The diagrams will be automatically rendered as SVGs during the build process.

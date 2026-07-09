@@ -21,7 +21,7 @@ import (
 )
 
 func TestLoadAgentSettings(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-config-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-config-test")
 	if err != nil {
 		t.Fatal(err)
 	}

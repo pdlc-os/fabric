@@ -31,8 +31,8 @@ import type { ViewMode } from '../shared/view-toggle.js';
 import '../shared/status-badge.js';
 import '../shared/view-toggle.js';
 
-@customElement('scion-page-brokers')
-export class ScionPageBrokers extends LitElement {
+@customElement('fabric-page-brokers')
+export class FabricPageBrokers extends LitElement {
   /**
    * Page data from SSR
    */
@@ -78,9 +78,9 @@ export class ScionPageBrokers extends LitElement {
 
       .broker-version {
         font-size: 0.875rem;
-        color: var(--scion-text-muted, #64748b);
+        color: var(--fabric-text-muted, #64748b);
         margin-top: 0.25rem;
-        font-family: var(--scion-font-mono, monospace);
+        font-family: var(--fabric-font-mono, monospace);
       }
 
       .broker-details {
@@ -89,7 +89,7 @@ export class ScionPageBrokers extends LitElement {
         gap: 0.5rem;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid var(--scion-border, #e2e8f0);
+        border-top: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       .capability-tag {
@@ -97,11 +97,11 @@ export class ScionPageBrokers extends LitElement {
         align-items: center;
         gap: 0.25rem;
         padding: 0.25rem 0.5rem;
-        border-radius: var(--scion-radius, 0.5rem);
+        border-radius: var(--fabric-radius, 0.5rem);
         font-size: 0.75rem;
         font-weight: 500;
-        background: var(--scion-bg-subtle, #f1f5f9);
-        color: var(--scion-text-muted, #64748b);
+        background: var(--fabric-bg-subtle, #f1f5f9);
+        color: var(--fabric-text-muted, #64748b);
       }
 
       .capability-tag.enabled {
@@ -114,7 +114,7 @@ export class ScionPageBrokers extends LitElement {
         gap: 1.5rem;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid var(--scion-border, #e2e8f0);
+        border-top: 1px solid var(--fabric-border, #e2e8f0);
       }
 
       /* Table-specific inline capability tags */
@@ -130,7 +130,7 @@ export class ScionPageBrokers extends LitElement {
     super.connectedCallback();
 
     // Read persisted view mode
-    const stored = localStorage.getItem('scion-view-brokers') as ViewMode | null;
+    const stored = localStorage.getItem('fabric-view-brokers') as ViewMode | null;
     if (stored === 'grid' || stored === 'list') {
       this.viewMode = stored;
     }
@@ -241,11 +241,11 @@ export class ScionPageBrokers extends LitElement {
       <div class="header">
         <h1>Brokers</h1>
         <div class="header-actions">
-          <scion-view-toggle
+          <fabric-view-toggle
             .view=${this.viewMode}
-            storageKey="scion-view-brokers"
+            storageKey="fabric-view-brokers"
             @view-change=${this.onViewChange}
-          ></scion-view-toggle>
+          ></fabric-view-toggle>
         </div>
       </div>
 
@@ -319,12 +319,12 @@ export class ScionPageBrokers extends LitElement {
             </h3>
             ${broker.version ? html`<div class="broker-version">v${broker.version}</div>` : ''}
           </div>
-          <scion-status-badge
+          <fabric-status-badge
             status=${this.getStatusVariant(broker.status)}
             label=${broker.status}
             size="small"
           >
-          </scion-status-badge>
+          </fabric-status-badge>
         </div>
         ${broker.capabilities ? this.renderCapabilities(broker.capabilities) : ''}
         <div class="broker-meta">
@@ -401,11 +401,11 @@ export class ScionPageBrokers extends LitElement {
           ${broker.version ? html`<span class="mono-cell">v${broker.version}</span>` : '\u2014'}
         </td>
         <td>
-          <scion-status-badge
+          <fabric-status-badge
             status=${this.getStatusVariant(broker.status)}
             label=${broker.status}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </td>
         <td class="hide-mobile">
           ${broker.capabilities
@@ -431,6 +431,6 @@ export class ScionPageBrokers extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-brokers': ScionPageBrokers;
+    'fabric-page-brokers': FabricPageBrokers;
   }
 }

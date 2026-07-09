@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 // TestBuildCommonRunArgs_LocalBackend_HostUID verifies that backend=local
@@ -36,8 +36,8 @@ func TestBuildCommonRunArgs_LocalBackend_HostUID(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs: %v", err)
 	}
 
-	wantUID := fmt.Sprintf("SCION_HOST_UID=%d", os.Getuid())
-	wantGID := fmt.Sprintf("SCION_HOST_GID=%d", os.Getgid())
+	wantUID := fmt.Sprintf("FABRIC_HOST_UID=%d", os.Getuid())
+	wantGID := fmt.Sprintf("FABRIC_HOST_GID=%d", os.Getgid())
 
 	assertEnvInArgs(t, args, wantUID, "local backend should advertise host UID")
 	assertEnvInArgs(t, args, wantGID, "local backend should advertise host GID")
@@ -56,8 +56,8 @@ func TestBuildCommonRunArgs_NFSBackend_StableUID(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs: %v", err)
 	}
 
-	assertEnvInArgs(t, args, "SCION_HOST_UID=1000", "NFS backend should advertise stable UID 1000")
-	assertEnvInArgs(t, args, "SCION_HOST_GID=1000", "NFS backend should advertise stable GID 1000")
+	assertEnvInArgs(t, args, "FABRIC_HOST_UID=1000", "NFS backend should advertise stable UID 1000")
+	assertEnvInArgs(t, args, "FABRIC_HOST_GID=1000", "NFS backend should advertise stable GID 1000")
 }
 
 // TestBuildCommonRunArgs_NFSBackend_CustomUID verifies that NFS UID/GID
@@ -73,8 +73,8 @@ func TestBuildCommonRunArgs_NFSBackend_CustomUID(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs: %v", err)
 	}
 
-	assertEnvInArgs(t, args, "SCION_HOST_UID=2000", "NFS backend should use custom UID")
-	assertEnvInArgs(t, args, "SCION_HOST_GID=2000", "NFS backend should use custom GID")
+	assertEnvInArgs(t, args, "FABRIC_HOST_UID=2000", "NFS backend should use custom UID")
+	assertEnvInArgs(t, args, "FABRIC_HOST_GID=2000", "NFS backend should use custom GID")
 }
 
 // TestBuildCommonRunArgs_NFSBackend_DefaultUID verifies that zero NFS UID/GID
@@ -90,12 +90,12 @@ func TestBuildCommonRunArgs_NFSBackend_DefaultUID(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs: %v", err)
 	}
 
-	assertEnvInArgs(t, args, "SCION_HOST_UID=1000", "zero NFS UID should default to 1000")
-	assertEnvInArgs(t, args, "SCION_HOST_GID=1000", "zero NFS GID should default to 1000")
+	assertEnvInArgs(t, args, "FABRIC_HOST_UID=1000", "zero NFS UID should default to 1000")
+	assertEnvInArgs(t, args, "FABRIC_HOST_GID=1000", "zero NFS GID should default to 1000")
 }
 
 // TestBuildCommonRunArgs_NFSBackend_ExposesBackendEnv verifies that the
-// SCION_WORKSPACE_BACKEND env var is set when backend is "nfs", so sciontool
+// FABRIC_WORKSPACE_BACKEND env var is set when backend is "nfs", so fabrictool
 // init can skip the per-start recursive chown.
 func TestBuildCommonRunArgs_NFSBackend_ExposesBackendEnv(t *testing.T) {
 	cfg := minimalRunConfig()
@@ -108,12 +108,12 @@ func TestBuildCommonRunArgs_NFSBackend_ExposesBackendEnv(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs: %v", err)
 	}
 
-	assertEnvInArgs(t, args, "SCION_WORKSPACE_BACKEND=nfs",
-		"NFS backend should expose SCION_WORKSPACE_BACKEND for sciontool init")
+	assertEnvInArgs(t, args, "FABRIC_WORKSPACE_BACKEND=nfs",
+		"NFS backend should expose FABRIC_WORKSPACE_BACKEND for fabrictool init")
 }
 
 // TestBuildCommonRunArgs_LocalBackend_NoBackendEnv verifies that
-// SCION_WORKSPACE_BACKEND is not set when the backend is local (empty),
+// FABRIC_WORKSPACE_BACKEND is not set when the backend is local (empty),
 // preserving backward compatibility.
 func TestBuildCommonRunArgs_LocalBackend_NoBackendEnv(t *testing.T) {
 	cfg := minimalRunConfig()
@@ -125,8 +125,8 @@ func TestBuildCommonRunArgs_LocalBackend_NoBackendEnv(t *testing.T) {
 	}
 
 	for i, arg := range args {
-		if i > 0 && args[i-1] == "-e" && strings.HasPrefix(arg, "SCION_WORKSPACE_BACKEND=") {
-			t.Error("local backend should not set SCION_WORKSPACE_BACKEND env var")
+		if i > 0 && args[i-1] == "-e" && strings.HasPrefix(arg, "FABRIC_WORKSPACE_BACKEND=") {
+			t.Error("local backend should not set FABRIC_WORKSPACE_BACKEND env var")
 		}
 	}
 }
@@ -181,7 +181,7 @@ func minimalRunConfig() RunConfig {
 	return RunConfig{
 		Name:         "test-agent",
 		Image:        "test-image:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Harness:      &nfsTestHarness{},
 		Workspace:    "/tmp/test-workspace",
 	}

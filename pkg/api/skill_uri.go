@@ -22,7 +22,7 @@ import (
 
 // SkillURI is the parsed representation of a skill reference URI.
 type SkillURI struct {
-	Registry string // "scion", "registry.example.com", etc. Default: "scion"
+	Registry string // "fabric", "registry.example.com", etc. Default: "fabric"
 	Scope    string // "core", "global", "project", "user", or "" (search)
 	ScopeID  string // project ID or user ID; empty for core/global or search
 	Name     string // kebab-case skill name
@@ -32,7 +32,7 @@ type SkillURI struct {
 
 const (
 	skillURIScheme  = "skill://"
-	defaultRegistry = "scion"
+	defaultRegistry = "fabric"
 	defaultVersion  = "latest"
 	maxSkillNameLen = 64
 )
@@ -68,11 +68,11 @@ func ValidateSkillName(name string) error {
 
 // ParseSkillURI parses a skill URI string into its components.
 // Accepts all forms from the normative grammar:
-//   - Full:      skill://scion/core/scion@^1.0
-//   - No reg:    skill:///core/scion@^1.0
-//   - No ver:    skill://scion/core/scion
+//   - Full:      skill://fabric/core/fabric@^1.0
+//   - No reg:    skill:///core/fabric@^1.0
+//   - No ver:    skill://fabric/core/fabric
 //   - Alias:     skill://project/my-skill@latest
-//   - Bare:      scion
+//   - Bare:      fabric
 //
 // Returns an error for invalid URIs (empty name, invalid scope, bad chars).
 func ParseSkillURI(raw string) (*SkillURI, error) {
@@ -187,10 +187,10 @@ func parseScopedPath(raw string, uri *SkillURI, segments []string, version strin
 	case 0:
 		return nil, fmt.Errorf("invalid skill URI %q: missing skill name", raw)
 	case 1:
-		// skill://scion/my-skill — scope is empty (search order)
+		// skill://fabric/my-skill — scope is empty (search order)
 		uri.Name = segments[0]
 	case 2:
-		// skill://scion/core/my-skill — with scope keyword
+		// skill://fabric/core/my-skill — with scope keyword
 		scope := segments[0]
 		if !validScopes[scope] {
 			return nil, fmt.Errorf("invalid skill URI %q: unrecognized scope %q (must be core, global, project, or user)", raw, scope)
@@ -198,7 +198,7 @@ func parseScopedPath(raw string, uri *SkillURI, segments []string, version strin
 		uri.Scope = scope
 		uri.Name = segments[1]
 	case 3:
-		// skill://scion/project/my-proj-id/my-skill — with scope keyword and scope ID
+		// skill://fabric/project/my-proj-id/my-skill — with scope keyword and scope ID
 		scope := segments[0]
 		if !validScopes[scope] {
 			return nil, fmt.Errorf("invalid skill URI %q: unrecognized scope %q (must be core, global, project, or user)", raw, scope)

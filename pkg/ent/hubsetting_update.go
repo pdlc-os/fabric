@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/hubsetting"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/hubsetting"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // HubSettingUpdate is the builder for updating HubSetting entities.

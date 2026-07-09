@@ -51,8 +51,8 @@ interface ListResponse {
   serverTime?: string;
 }
 
-@customElement('scion-schedule-list')
-export class ScionScheduleList extends LitElement {
+@customElement('fabric-schedule-list')
+export class FabricScheduleList extends LitElement {
   @property() projectId = '';
   @property({ type: Boolean }) compact = false;
 
@@ -85,13 +85,13 @@ export class ScionScheduleList extends LitElement {
     .detail-row {
       padding: 0.375rem 0;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       line-height: 1.5;
     }
     .detail-row strong {
       display: inline-block;
       min-width: 100px;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-weight: 600;
       font-size: 0.8125rem;
     }
@@ -458,7 +458,7 @@ export class ScionScheduleList extends LitElement {
       <tr @click=${() => this.showDetail(sched)} style="cursor: pointer;">
         <td><strong>${sched.name}</strong></td>
         <td><span class="type-badge environment">${sched.eventType}</span></td>
-        <td><span class="meta-text" style="font-family: var(--scion-font-mono, monospace); font-size: 0.8125rem;">${sched.cronExpr}</span></td>
+        <td><span class="meta-text" style="font-family: var(--fabric-font-mono, monospace); font-size: 0.8125rem;">${sched.cronExpr}</span></td>
         <td><span class="meta-text">${nextRun}</span></td>
         <td><span class="badge ${this.statusBadgeClass(sched.status)}">${sched.status}</span></td>
         <td class="hide-mobile"><span class="meta-text">${sched.runCount}${sched.errorCount > 0 ? ` (${sched.errorCount} err)` : ''}</span></td>
@@ -618,7 +618,7 @@ export class ScionScheduleList extends LitElement {
         @sl-request-close=${this.closeDetail}
       >
         <div class="dialog-form">
-          <div class="detail-row"><strong>ID:</strong> <span style="font-family: var(--scion-font-mono, monospace); font-size: 0.8125rem;">${sched.id}</span></div>
+          <div class="detail-row"><strong>ID:</strong> <span style="font-family: var(--fabric-font-mono, monospace); font-size: 0.8125rem;">${sched.id}</span></div>
           <div class="detail-row"><strong>Status:</strong> <span class="badge ${this.statusBadgeClass(sched.status)}">${sched.status}</span></div>
           <div class="detail-row"><strong>Cron:</strong> ${sched.cronExpr}</div>
           <div class="detail-row"><strong>Event Type:</strong> ${sched.eventType}</div>
@@ -653,6 +653,6 @@ export class ScionScheduleList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-schedule-list': ScionScheduleList;
+    'fabric-schedule-list': FabricScheduleList;
   }
 }

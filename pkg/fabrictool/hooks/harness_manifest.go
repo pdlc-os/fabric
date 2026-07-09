@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package hooks
@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 )
 
-// HarnessManifestRequirement summarizes what sciontool init needs to know
+// HarnessManifestRequirement summarizes what fabrictool init needs to know
 // about a staged container-script harness manifest at startup. It is parsed
-// from agent_home/.scion/harness/manifest.json with only the fields needed
+// from agent_home/.fabric/harness/manifest.json with only the fields needed
 // to decide whether pre-start provisioning is required and where to find
 // the env overlay output.
 type HarnessManifestRequirement struct {
@@ -27,20 +27,20 @@ type HarnessManifestRequirement struct {
 	EnvOverlayPath string
 
 	// BundleDir is the staged bundle directory (typically
-	// agent_home/.scion/harness). Used as an allowedRoot for env overlay
+	// agent_home/.fabric/harness). Used as an allowedRoot for env overlay
 	// from_file resolution.
 	BundleDir string
 }
 
 // LoadHarnessManifestRequirement inspects the staged manifest at
-// agent_home/.scion/harness/manifest.json and returns the requirement
+// agent_home/.fabric/harness/manifest.json and returns the requirement
 // details. If the manifest is missing, returns a zero-value (Required=false)
 // and no error — that is the normal state for built-in harnesses.
 func LoadHarnessManifestRequirement(agentHome string) (HarnessManifestRequirement, error) {
 	if agentHome == "" {
 		return HarnessManifestRequirement{}, nil
 	}
-	bundleDir := filepath.Join(agentHome, ".scion", "harness")
+	bundleDir := filepath.Join(agentHome, ".fabric", "harness")
 	manifestPath := filepath.Join(bundleDir, "manifest.json")
 
 	data, err := os.ReadFile(manifestPath)
@@ -102,7 +102,7 @@ func LoadHarnessManifestRequirement(agentHome string) (HarnessManifestRequiremen
 // ResolveContainerPath rewrites a path that may begin with the literal
 // "$HOME/" prefix (as encoded in staged manifests) into an absolute path
 // rooted at the runtime $HOME. Other paths are returned unchanged. This
-// keeps the manifest container-portable while still letting sciontool init
+// keeps the manifest container-portable while still letting fabrictool init
 // open the file at runtime.
 func ResolveContainerPath(path, home string) string {
 	if path == "" || home == "" {

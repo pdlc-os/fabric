@@ -17,13 +17,13 @@
   "includeCoAuthoredBy": false,
   "gitAttribution": false,
   "hooks": {
-    "SessionStart": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "SessionEnd": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "UserPromptSubmit": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "Stop": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "SubagentStop": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "PreToolUse": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "PostToolUse": [{"matcher": "*", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}],
-    "Notification": [{"matcher": "ToolPermission", "hooks": [{"name": "scion-status", "type": "command", "command": "sciontool hook --dialect=claude"}]}]
+    "SessionStart": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "SessionEnd": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "UserPromptSubmit": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "Stop": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "SubagentStop": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "PreToolUse": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "PostToolUse": [{"matcher": "*", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}],
+    "Notification": [{"matcher": "ToolPermission", "hooks": [{"name": "fabric-status", "type": "command", "command": "fabrictool hook --dialect=claude"}]}]
   }
 }

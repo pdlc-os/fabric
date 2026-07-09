@@ -5,7 +5,7 @@
     "env_secret_files": {},
     "files": [],
     "file_secret_files": {
-      "OPENCODE_AUTH": "$HOME/.scion/harness/secrets/OPENCODE_AUTH"
+      "OPENCODE_AUTH": "$HOME/.fabric/harness/secrets/OPENCODE_AUTH"
     }
   },
   "harness_config": {}

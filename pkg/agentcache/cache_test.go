@@ -25,9 +25,9 @@ func TestGenerateCacheKey(t *testing.T) {
 		name        string
 		projectPath string
 	}{
-		{"simple path", "/home/user/project/.scion"},
-		{"path with spaces", "/home/user/my project/.scion"},
-		{"global project", "/home/user/.scion"},
+		{"simple path", "/home/user/project/.fabric"},
+		{"path with spaces", "/home/user/my project/.fabric"},
+		{"global project", "/home/user/.fabric"},
 	}
 
 	for _, tt := range tests {
@@ -54,8 +54,8 @@ func TestGenerateCacheKey(t *testing.T) {
 }
 
 func TestGenerateCacheKey_Uniqueness(t *testing.T) {
-	path1 := "/home/user/project1/.scion"
-	path2 := "/home/user/project2/.scion"
+	path1 := "/home/user/project1/.fabric"
+	path2 := "/home/user/project2/.fabric"
 
 	key1 := GenerateCacheKey(path1)
 	key2 := GenerateCacheKey(path2)
@@ -80,7 +80,7 @@ func TestReadWriteCache(t *testing.T) {
 	}
 
 	// Verify cache file exists
-	cachePath := filepath.Join(tmpDir, ".scion", "cache", "agent-names", cacheKey+".json")
+	cachePath := filepath.Join(tmpDir, ".fabric", "cache", "agent-names", cacheKey+".json")
 	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
 		t.Fatalf("cache file not created at %s", cachePath)
 	}
@@ -122,7 +122,7 @@ func TestReadCache_CorruptedFile(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	cacheKey := "corrupt-test"
-	cacheDir := filepath.Join(tmpDir, ".scion", "cache", "agent-names")
+	cacheDir := filepath.Join(tmpDir, ".fabric", "cache", "agent-names")
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		t.Fatalf("failed to create cache dir: %v", err)
 	}

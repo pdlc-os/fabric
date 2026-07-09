@@ -60,7 +60,7 @@
 <g id="node3" class="node">
 <title>ServerStart</title>
 <polygon fill="lightblue" stroke="black" points="537.5,-355.13 356.5,-355.13 356.5,-319.13 537.5,-319.13 537.5,-355.13"/>
-<text xml:space="preserve" text-anchor="middle" x="447" y="-334.33" font-family="Times,serif" font-size="14.00">scion server start</text>
+<text xml:space="preserve" text-anchor="middle" x="447" y="-334.33" font-family="Times,serif" font-size="14.00">fabric server start</text>
 <text xml:space="preserve" text-anchor="middle" x="447" y="-323.83" font-family="Times,serif" font-size="14.00">(cmd/server_daemon.go)</text>
 </g>
 <!-- OnboardingWizard&#45;&gt;ServerStart -->
@@ -88,7 +88,7 @@
 <g id="node5" class="node">
 <title>ServerStopForce</title>
 <polygon fill="lightblue" stroke="black" points="758.75,-355.13 555.25,-355.13 555.25,-319.13 758.75,-319.13 758.75,-355.13"/>
-<text xml:space="preserve" text-anchor="middle" x="657" y="-334.33" font-family="Times,serif" font-size="14.00">scion server stop &#45;&#45;force</text>
+<text xml:space="preserve" text-anchor="middle" x="657" y="-334.33" font-family="Times,serif" font-size="14.00">fabric server stop &#45;&#45;force</text>
 <text xml:space="preserve" text-anchor="middle" x="657" y="-323.83" font-family="Times,serif" font-size="14.00">(cmd/server_daemon.go)</text>
 </g>
 <!-- ServerStopForce&#45;&gt;PortProber -->

@@ -4,9 +4,9 @@ This period is marked by the stabilization of the new Telegram Broker V2, the fi
 
 ## ⚠️ BREAKING CHANGES
 * **[Core]: Architectural Rename (Grove → Project).** The migration of "Groves" to "Projects" is now complete across the API, CLI, and database.
-    * **CLI:** Legacy `scion grove` commands are deprecated in favor of `scion project`.
+    * **CLI:** Legacy `fabric grove` commands are deprecated in favor of `fabric project`.
     * **API:** Primary endpoints have transitioned to `/api/v1/projects/...`.
-    * **Environment:** `SCION_PROJECT_ID` is now the primary identifier, replacing `SCION_GROVE_ID`.
+    * **Environment:** `FABRIC_PROJECT_ID` is now the primary identifier, replacing `FABRIC_GROVE_ID`.
 * **[Database]: Mandatory Migrations.** Migrations V50 through V53 are required to handle terminology updates and unified allow-list management.
 
 ## 🚀 Features

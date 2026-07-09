@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Scion Hub image - extends scion-base to run the centralized hub/broker
-# server. The scion binary baked into scion-base already contains the
-# server subcommand (`scion server start`); this layer just sets the
+# Fabric Hub image - extends fabric-base to run the centralized hub/broker
+# server. The fabric binary baked into fabric-base already contains the
+# server subcommand (`fabric server start`); this layer just sets the
 # default entrypoint and prepares hub-specific filesystem state.
 
 ARG BASE_IMAGE
@@ -23,13 +23,13 @@ FROM ${BASE_IMAGE}
 
 USER root
 
-# Hub state lives under /home/scion/.scion (sqlite, templates, etc.).
-# scion-base already created this directory and chowned it; ensure it
+# Hub state lives under /home/fabric/.fabric (sqlite, templates, etc.).
+# fabric-base already created this directory and chowned it; ensure it
 # survives any image flattening here.
-RUN mkdir -p /home/scion/.scion && \
-  chown -R scion:scion /home/scion/.scion
+RUN mkdir -p /home/fabric/.fabric && \
+  chown -R fabric:fabric /home/fabric/.fabric
 
-# The scion-base ENTRYPOINT runs sciontool init -- <cmd>. Override the
+# The fabric-base ENTRYPOINT runs fabrictool init -- <cmd>. Override the
 # default CMD so the container, when started without arguments, runs the
 # hub server in the foreground.
-CMD ["scion", "server", "start", "--foreground", "--host", "0.0.0.0", "--enable-hub"]
+CMD ["fabric", "server", "start", "--foreground", "--host", "0.0.0.0", "--enable-hub"]

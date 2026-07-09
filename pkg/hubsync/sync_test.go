@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func TestEnsureHubReady_GlobalFallbackWithHubEnabled(t *testing.T) {
 	// Unset Hub context to avoid synthetic project root detection
-	for _, e := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_URL", "SCION_GROVE_ID", "SCION_HUB_GROVE_ID", "SCION_PROJECT_ID"} {
+	for _, e := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL", "FABRIC_GROVE_ID", "FABRIC_HUB_GROVE_ID", "FABRIC_PROJECT_ID"} {
 		if val, ok := os.LookupEnv(e); ok {
 			_ = os.Unsetenv(e)
 			defer func() { _ = os.Setenv(e, val) }()
@@ -68,9 +68,9 @@ func TestEnsureHubReady_GlobalFallbackWithHubEnabled(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Create a temp HOME with global .scion directory and hub-enabled settings
+	// Create a temp HOME with global .fabric directory and hub-enabled settings
 	tmpHome := t.TempDir()
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatalf("Failed to create global dir: %v", err)
 	}
@@ -89,10 +89,10 @@ hub:
 	// Override HOME so ResolveProjectPath("") falls back to our temp global dir
 	t.Setenv("HOME", tmpHome)
 	// Override hub endpoint via env var to ensure it points to our test server
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
 	// Use dev token for auth
-	t.Setenv("SCION_DEV_TOKEN", "test-dev-token")
-	t.Setenv("SCION_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "test-dev-token")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
 
 	// Change to tmpHome so FindProjectRoot() doesn't find the real project
 	origDir, _ := os.Getwd()
@@ -144,7 +144,7 @@ func TestEnsureHubReady_EndpointOverrideBeatsSettings(t *testing.T) {
 	defer server.Close()
 
 	tmpHome := t.TempDir()
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatalf("Failed to create global dir: %v", err)
 	}
@@ -159,9 +159,9 @@ hub:
 	}
 
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_DEV_TOKEN", "test-dev-token")
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "test-dev-token")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
 	origDir, _ := os.Getwd()
 	if err := os.Chdir(tmpHome); err != nil {
@@ -187,7 +187,7 @@ hub:
 
 func TestEnsureHubReady_GlobalFallbackWithHubDisabled(t *testing.T) {
 	// Unset Hub context to avoid synthetic project root detection
-	for _, e := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_URL", "SCION_GROVE_ID", "SCION_HUB_GROVE_ID", "SCION_PROJECT_ID"} {
+	for _, e := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL", "FABRIC_GROVE_ID", "FABRIC_HUB_GROVE_ID", "FABRIC_PROJECT_ID"} {
 		if val, ok := os.LookupEnv(e); ok {
 			_ = os.Unsetenv(e)
 			defer func() { _ = os.Setenv(e, val) }()
@@ -197,7 +197,7 @@ func TestEnsureHubReady_GlobalFallbackWithHubDisabled(t *testing.T) {
 	// enabled, EnsureHubReady should return (nil, nil) - same behavior as before.
 
 	tmpHome := t.TempDir()
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatalf("Failed to create global dir: %v", err)
 	}
@@ -232,7 +232,7 @@ func TestEnsureHubReady_GlobalFallbackWithHubDisabled(t *testing.T) {
 }
 
 func TestEnsureHubReady_HubContextEnvVars(t *testing.T) {
-	// When hub.enabled is NOT set in settings but SCION_HUB_ENDPOINT env var
+	// When hub.enabled is NOT set in settings but FABRIC_HUB_ENDPOINT env var
 	// is present (inside a hub-connected container), EnsureHubReady should
 	// return a valid hub context via the env var detection path.
 
@@ -250,9 +250,9 @@ func TestEnsureHubReady_HubContextEnvVars(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Create a temp HOME with global .scion directory but NO hub.enabled
+	// Create a temp HOME with global .fabric directory but NO hub.enabled
 	tmpHome := t.TempDir()
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatalf("Failed to create global dir: %v", err)
 	}
@@ -266,11 +266,11 @@ func TestEnsureHubReady_HubContextEnvVars(t *testing.T) {
 
 	t.Setenv("HOME", tmpHome)
 	// Simulate container env vars
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", projectID)
-	t.Setenv("SCION_AUTH_TOKEN", "test-agent-token")
-	t.Setenv("SCION_DEV_TOKEN", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", projectID)
+	t.Setenv("FABRIC_AUTH_TOKEN", "test-agent-token")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	// Change to tmpHome so FindProjectRoot() falls back to global
 	origDir, _ := os.Getwd()
@@ -286,7 +286,7 @@ func TestEnsureHubReady_HubContextEnvVars(t *testing.T) {
 		t.Fatalf("EnsureHubReady returned error: %v", err)
 	}
 	if hubCtx == nil {
-		t.Fatal("EnsureHubReady returned nil; expected hub context when SCION_HUB_ENDPOINT is set")
+		t.Fatal("EnsureHubReady returned nil; expected hub context when FABRIC_HUB_ENDPOINT is set")
 	}
 	if hubCtx.Endpoint != server.URL {
 		t.Errorf("Endpoint = %q, want %q", hubCtx.Endpoint, server.URL)
@@ -330,7 +330,7 @@ func TestEnsureHubReady_HubContextSkipsSyncAndRegistration(t *testing.T) {
 	defer server.Close()
 
 	tmpHome := t.TempDir()
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	if err := os.MkdirAll(globalDir, 0755); err != nil {
 		t.Fatalf("Failed to create global dir: %v", err)
 	}
@@ -341,11 +341,11 @@ func TestEnsureHubReady_HubContextSkipsSyncAndRegistration(t *testing.T) {
 	}
 
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", projectID)
-	t.Setenv("SCION_AUTH_TOKEN", "test-agent-token")
-	t.Setenv("SCION_DEV_TOKEN", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", projectID)
+	t.Setenv("FABRIC_AUTH_TOKEN", "test-agent-token")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	origDir, _ := os.Getwd()
 	if err := os.Chdir(tmpHome); err != nil {
@@ -373,9 +373,9 @@ func TestEnsureHubReady_HubContextSkipsSyncAndRegistration(t *testing.T) {
 }
 
 func TestEnsureHubReady_HubContextProjectIDEnvPriority(t *testing.T) {
-	// When SCION_GROVE_ID env var and settings.project_id both exist in hub
+	// When FABRIC_GROVE_ID env var and settings.project_id both exist in hub
 	// context, the env var should take priority. This is important for
-	// template-sync agents that clone an external repo whose .scion/settings
+	// template-sync agents that clone an external repo whose .fabric/settings
 	// contains the source repo's project_id.
 
 	envProjectID := "env-project-id-target"
@@ -393,24 +393,24 @@ func TestEnsureHubReady_HubContextProjectIDEnvPriority(t *testing.T) {
 	defer server.Close()
 
 	tmpHome := t.TempDir()
-	// Create a project directory with .scion that has a project_id in settings
+	// Create a project directory with .fabric that has a project_id in settings
 	projectDir := filepath.Join(tmpHome, "project")
-	scionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		t.Fatalf("Failed to create scion dir: %v", err)
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		t.Fatalf("Failed to create fabric dir: %v", err)
 	}
 
 	settingsContent := fmt.Sprintf("grove_id: %s\nruntime: docker\n", settingsProjectID)
-	if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 		t.Fatalf("Failed to write settings: %v", err)
 	}
 
 	t.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", envProjectID)
-	t.Setenv("SCION_AUTH_TOKEN", "test-agent-token")
-	t.Setenv("SCION_DEV_TOKEN", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", envProjectID)
+	t.Setenv("FABRIC_AUTH_TOKEN", "test-agent-token")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	origDir, _ := os.Getwd()
 	if err := os.Chdir(projectDir); err != nil {
@@ -428,7 +428,7 @@ func TestEnsureHubReady_HubContextProjectIDEnvPriority(t *testing.T) {
 		t.Fatal("EnsureHubReady returned nil")
 	}
 	if hubCtx.ProjectID != envProjectID {
-		t.Errorf("ProjectID = %q, want %q (SCION_GROVE_ID should take priority over settings.project_id in hub context)", hubCtx.ProjectID, envProjectID)
+		t.Errorf("ProjectID = %q, want %q (FABRIC_GROVE_ID should take priority over settings.project_id in hub context)", hubCtx.ProjectID, envProjectID)
 	}
 }
 
@@ -513,7 +513,7 @@ func TestGetLocalAgents(t *testing.T) {
 	if err := os.MkdirAll(agent1Dir, 0755); err != nil {
 		t.Fatalf("Failed to create agent1 dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(agent1Dir, "scion-agent.yaml"), []byte("harness: claude"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(agent1Dir, "fabric-agent.yaml"), []byte("harness: claude"), 0644); err != nil {
 		t.Fatalf("Failed to write agent1 config: %v", err)
 	}
 
@@ -522,7 +522,7 @@ func TestGetLocalAgents(t *testing.T) {
 	if err := os.MkdirAll(agent2Dir, 0755); err != nil {
 		t.Fatalf("Failed to create agent2 dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(agent2Dir, "scion-agent.json"), []byte("{}"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(agent2Dir, "fabric-agent.json"), []byte("{}"), 0644); err != nil {
 		t.Fatalf("Failed to write agent2 config: %v", err)
 	}
 
@@ -1300,11 +1300,11 @@ func TestCleanupProjectBrokerCredentials_NoFile(t *testing.T) {
 }
 
 func TestCreateHubClient_UsesAgentTokenFromEnv(t *testing.T) {
-	// Create a test server that checks for X-Scion-Agent-Token header
+	// Create a test server that checks for X-Fabric-Agent-Token header
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		agentToken := r.Header.Get("X-Scion-Agent-Token")
+		agentToken := r.Header.Get("X-Fabric-Agent-Token")
 		if agentToken != "test-agent-jwt" {
-			t.Errorf("expected X-Scion-Agent-Token 'test-agent-jwt', got %q", agentToken)
+			t.Errorf("expected X-Fabric-Agent-Token 'test-agent-jwt', got %q", agentToken)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -1319,10 +1319,10 @@ func TestCreateHubClient_UsesAgentTokenFromEnv(t *testing.T) {
 
 	// Use a clean HOME so no token file interferes
 	t.Setenv("HOME", t.TempDir())
-	// Set SCION_AUTH_TOKEN env var
-	t.Setenv("SCION_AUTH_TOKEN", "test-agent-jwt")
+	// Set FABRIC_AUTH_TOKEN env var
+	t.Setenv("FABRIC_AUTH_TOKEN", "test-agent-jwt")
 	// Clear any dev auth token so it doesn't interfere
-	t.Setenv("SCION_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	settings := &config.Settings{}
 	client, err := createHubClient(settings, server.URL)
@@ -1338,11 +1338,11 @@ func TestCreateHubClient_UsesAgentTokenFromEnv(t *testing.T) {
 }
 
 func TestCreateHubClient_PrefersTokenFileOverEnv(t *testing.T) {
-	// When a scion-token file exists, it should take precedence over SCION_AUTH_TOKEN env var.
+	// When a fabric-token file exists, it should take precedence over FABRIC_AUTH_TOKEN env var.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		agentToken := r.Header.Get("X-Scion-Agent-Token")
+		agentToken := r.Header.Get("X-Fabric-Agent-Token")
 		if agentToken != "file-token-value" {
-			t.Errorf("expected X-Scion-Agent-Token 'file-token-value', got %q", agentToken)
+			t.Errorf("expected X-Fabric-Agent-Token 'file-token-value', got %q", agentToken)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -1354,12 +1354,12 @@ func TestCreateHubClient_PrefersTokenFileOverEnv(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 	// Write a token file
-	scionDir := filepath.Join(tmpHome, ".scion")
-	_ = os.MkdirAll(scionDir, 0700)
-	_ = os.WriteFile(filepath.Join(scionDir, "scion-token"), []byte("file-token-value"), 0600)
+	fabricDir := filepath.Join(tmpHome, ".fabric")
+	_ = os.MkdirAll(fabricDir, 0700)
+	_ = os.WriteFile(filepath.Join(fabricDir, "fabric-token"), []byte("file-token-value"), 0600)
 	// Set a different value in env
-	t.Setenv("SCION_AUTH_TOKEN", "env-token-value")
-	t.Setenv("SCION_DEV_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "env-token-value")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	settings := &config.Settings{}
 	client, err := createHubClient(settings, server.URL)
@@ -1374,9 +1374,9 @@ func TestCreateHubClient_PrefersTokenFileOverEnv(t *testing.T) {
 }
 
 func TestCreateHubClient_PrefersOAuthOverAgentToken(t *testing.T) {
-	// When OAuth credentials exist, they should take precedence over SCION_AUTH_TOKEN.
+	// When OAuth credentials exist, they should take precedence over FABRIC_AUTH_TOKEN.
 	// We can't easily test this because credentials.GetAccessToken uses a global store,
-	// but we can verify that without OAuth, SCION_AUTH_TOKEN is picked up.
+	// but we can verify that without OAuth, FABRIC_AUTH_TOKEN is picked up.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Just verify the request arrives
 		w.Header().Set("Content-Type", "application/json")
@@ -1386,9 +1386,9 @@ func TestCreateHubClient_PrefersOAuthOverAgentToken(t *testing.T) {
 
 	// Use a clean HOME so no token file interferes
 	t.Setenv("HOME", t.TempDir())
-	// With SCION_AUTH_TOKEN set but no OAuth, agent token should be used
-	t.Setenv("SCION_AUTH_TOKEN", "agent-jwt")
-	t.Setenv("SCION_DEV_TOKEN", "")
+	// With FABRIC_AUTH_TOKEN set but no OAuth, agent token should be used
+	t.Setenv("FABRIC_AUTH_TOKEN", "agent-jwt")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
 
 	settings := &config.Settings{}
 	_, err := createHubClient(settings, server.URL)
@@ -1398,7 +1398,7 @@ func TestCreateHubClient_PrefersOAuthOverAgentToken(t *testing.T) {
 }
 
 func TestCreateHubClient_FallsBackToDevAuth(t *testing.T) {
-	// When neither OAuth nor SCION_AUTH_TOKEN is set, should fall back to dev auth
+	// When neither OAuth nor FABRIC_AUTH_TOKEN is set, should fall back to dev auth
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -1408,8 +1408,8 @@ func TestCreateHubClient_FallsBackToDevAuth(t *testing.T) {
 	// Use a clean HOME so no token file interferes
 	t.Setenv("HOME", t.TempDir())
 	// Clear both tokens
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN", "dev-token-123")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "dev-token-123")
 
 	settings := &config.Settings{}
 	client, err := createHubClient(settings, server.URL)
@@ -1618,21 +1618,21 @@ func TestGetLocalAgentInfo_FromAgentInfoJSON(t *testing.T) {
 	}
 }
 
-func TestGetLocalAgentInfo_FallbackToScionJSON(t *testing.T) {
+func TestGetLocalAgentInfo_FallbackToFabricJSON(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "hubsync-agentinfo-json-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	// Create agent directory with only scion-agent.json (no agent-info.json)
+	// Create agent directory with only fabric-agent.json (no agent-info.json)
 	agentDir := filepath.Join(tmpDir, "agents", "myagent")
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("Failed to create agent dir: %v", err)
 	}
 	cfg := `{"harness_config":"claude"}`
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(cfg), 0644); err != nil {
-		t.Fatalf("Failed to write scion-agent.json: %v", err)
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(cfg), 0644); err != nil {
+		t.Fatalf("Failed to write fabric-agent.json: %v", err)
 	}
 
 	result := getLocalAgentInfo(tmpDir, "myagent")
@@ -1644,21 +1644,21 @@ func TestGetLocalAgentInfo_FallbackToScionJSON(t *testing.T) {
 	}
 }
 
-func TestGetLocalAgentInfo_FallbackToScionYAML(t *testing.T) {
+func TestGetLocalAgentInfo_FallbackToFabricYAML(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "hubsync-agentinfo-yaml-*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
-	// Create agent directory with only scion-agent.yaml
+	// Create agent directory with only fabric-agent.yaml
 	agentDir := filepath.Join(tmpDir, "agents", "myagent")
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("Failed to create agent dir: %v", err)
 	}
 	cfg := "harness: gemini\nharness_config: gemini\n"
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.yaml"), []byte(cfg), 0644); err != nil {
-		t.Fatalf("Failed to write scion-agent.yaml: %v", err)
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.yaml"), []byte(cfg), 0644); err != nil {
+		t.Fatalf("Failed to write fabric-agent.yaml: %v", err)
 	}
 
 	result := getLocalAgentInfo(tmpDir, "myagent")
@@ -1827,9 +1827,9 @@ func TestCompareAgents_LocalOnlyStaleAfterWatermark(t *testing.T) {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
 
-	configPath := filepath.Join(agentDir, "scion-agent.json")
+	configPath := filepath.Join(agentDir, "fabric-agent.json")
 	if err := os.WriteFile(configPath, []byte(`{"harness":"claude"}`), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.json: %v", err)
+		t.Fatalf("failed to write fabric-agent.json: %v", err)
 	}
 	oldTime := watermark.Add(-time.Minute)
 	if err := os.Chtimes(configPath, oldTime, oldTime); err != nil {
@@ -1901,9 +1901,9 @@ func TestCompareAgents_PreviouslySyncedDeletedFromHub(t *testing.T) {
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	configPath := filepath.Join(agentDir, "scion-agent.json")
+	configPath := filepath.Join(agentDir, "fabric-agent.json")
 	if err := os.WriteFile(configPath, []byte(`{"harness":"claude"}`), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.json: %v", err)
+		t.Fatalf("failed to write fabric-agent.json: %v", err)
 	}
 	// Set mtime to AFTER watermark — this is the scenario that triggers the bug
 	newerTime := watermark.Add(time.Hour)
@@ -1977,9 +1977,9 @@ func TestCompareAgents_NewLocalAgentNotInSyncedList(t *testing.T) {
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	configPath := filepath.Join(agentDir, "scion-agent.json")
+	configPath := filepath.Join(agentDir, "fabric-agent.json")
 	if err := os.WriteFile(configPath, []byte(`{"harness":"claude"}`), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.json: %v", err)
+		t.Fatalf("failed to write fabric-agent.json: %v", err)
 	}
 
 	// Save state with SyncedAgents that does NOT include this agent
@@ -2096,9 +2096,9 @@ func TestStaleLocalAgentSurvivesSyncCycle(t *testing.T) {
 		if err := os.MkdirAll(agentDir, 0755); err != nil {
 			t.Fatalf("failed to create agent dir: %v", err)
 		}
-		configPath := filepath.Join(agentDir, "scion-agent.json")
+		configPath := filepath.Join(agentDir, "fabric-agent.json")
 		if err := os.WriteFile(configPath, []byte(`{"harness":"claude"}`), 0644); err != nil {
-			t.Fatalf("failed to write scion-agent.json: %v", err)
+			t.Fatalf("failed to write fabric-agent.json: %v", err)
 		}
 		// Set mtime after watermark so timestamp check alone would classify as ToRegister
 		newerTime := watermark.Add(time.Hour)
@@ -2191,8 +2191,8 @@ func TestCompareAgents_HubAgentDifferentBrokerMatchesLocal(t *testing.T) {
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.yaml"), []byte("harness: claude"), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.yaml: %v", err)
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.yaml"), []byte("harness: claude"), 0644); err != nil {
+		t.Fatalf("failed to write fabric-agent.yaml: %v", err)
 	}
 
 	var capturedQuery string

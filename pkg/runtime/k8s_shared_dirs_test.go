@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -26,8 +26,8 @@ import (
 )
 
 func TestSharedDirPVCName(t *testing.T) {
-	assert.Equal(t, "scion-shared-myproject-build-cache", sharedDirPVCName("myproject", "build-cache"))
-	assert.Equal(t, "scion-shared-test-artifacts", sharedDirPVCName("test", "artifacts"))
+	assert.Equal(t, "fabric-shared-myproject-build-cache", sharedDirPVCName("myproject", "build-cache"))
+	assert.Equal(t, "fabric-shared-test-artifacts", sharedDirPVCName("test", "artifacts"))
 }
 
 func TestBuildPod_SharedDirs_DefaultMount(t *testing.T) {
@@ -36,9 +36,9 @@ func TestBuildPod_SharedDirs_DefaultMount(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -59,22 +59,22 @@ func TestBuildPod_SharedDirs_DefaultMount(t *testing.T) {
 	require.Len(t, sharedVolumes, 2)
 
 	// Verify PVC claim names
-	assert.Equal(t, "scion-shared-myproject-build-cache", sharedVolumes[0].PersistentVolumeClaim.ClaimName)
+	assert.Equal(t, "fabric-shared-myproject-build-cache", sharedVolumes[0].PersistentVolumeClaim.ClaimName)
 	assert.False(t, sharedVolumes[0].PersistentVolumeClaim.ReadOnly)
-	assert.Equal(t, "scion-shared-myproject-artifacts", sharedVolumes[1].PersistentVolumeClaim.ClaimName)
+	assert.Equal(t, "fabric-shared-myproject-artifacts", sharedVolumes[1].PersistentVolumeClaim.ClaimName)
 	assert.True(t, sharedVolumes[1].PersistentVolumeClaim.ReadOnly)
 
 	// Verify mount paths
 	var sharedMounts []corev1.VolumeMount
 	for _, m := range pod.Spec.Containers[0].VolumeMounts {
-		if m.MountPath == "/scion-volumes/build-cache" || m.MountPath == "/scion-volumes/artifacts" {
+		if m.MountPath == "/fabric-volumes/build-cache" || m.MountPath == "/fabric-volumes/artifacts" {
 			sharedMounts = append(sharedMounts, m)
 		}
 	}
 	require.Len(t, sharedMounts, 2)
-	assert.Equal(t, "/scion-volumes/build-cache", sharedMounts[0].MountPath)
+	assert.Equal(t, "/fabric-volumes/build-cache", sharedMounts[0].MountPath)
 	assert.False(t, sharedMounts[0].ReadOnly)
-	assert.Equal(t, "/scion-volumes/artifacts", sharedMounts[1].MountPath)
+	assert.Equal(t, "/fabric-volumes/artifacts", sharedMounts[1].MountPath)
 	assert.True(t, sharedMounts[1].ReadOnly)
 }
 
@@ -84,9 +84,9 @@ func TestBuildPod_SharedDirs_InWorkspace(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "workspace-cache", InWorkspace: true},
@@ -99,12 +99,12 @@ func TestBuildPod_SharedDirs_InWorkspace(t *testing.T) {
 	// Verify in-workspace mount path
 	var found bool
 	for _, m := range pod.Spec.Containers[0].VolumeMounts {
-		if m.MountPath == "/workspace/.scion-volumes/workspace-cache" {
+		if m.MountPath == "/workspace/.fabric-volumes/workspace-cache" {
 			found = true
 			break
 		}
 	}
-	assert.True(t, found, "expected in-workspace mount at /workspace/.scion-volumes/workspace-cache")
+	assert.True(t, found, "expected in-workspace mount at /workspace/.fabric-volumes/workspace-cache")
 }
 
 func TestBuildPod_SharedDirs_SkipsLocalVolumesForSharedDirTargets(t *testing.T) {
@@ -113,9 +113,9 @@ func TestBuildPod_SharedDirs_SkipsLocalVolumesForSharedDirTargets(t *testing.T) 
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -123,7 +123,7 @@ func TestBuildPod_SharedDirs_SkipsLocalVolumesForSharedDirTargets(t *testing.T) 
 		// This volume would normally trigger a warning, but should be skipped
 		// because its target matches a shared dir.
 		Volumes: []api.VolumeMount{
-			{Source: "/host/path/build-cache", Target: "/scion-volumes/build-cache"},
+			{Source: "/host/path/build-cache", Target: "/fabric-volumes/build-cache"},
 		},
 	}
 
@@ -133,7 +133,7 @@ func TestBuildPod_SharedDirs_SkipsLocalVolumesForSharedDirTargets(t *testing.T) 
 	// The PVC volume should be present, but no duplicate volume for the local mount
 	pvcCount := 0
 	for _, v := range pod.Spec.Volumes {
-		if v.PersistentVolumeClaim != nil && v.PersistentVolumeClaim.ClaimName == "scion-shared-myproject-build-cache" {
+		if v.PersistentVolumeClaim != nil && v.PersistentVolumeClaim.ClaimName == "fabric-shared-myproject-build-cache" {
 			pvcCount++
 		}
 	}
@@ -146,9 +146,9 @@ func TestBuildPod_NoSharedDirs(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 	}
 
@@ -169,7 +169,7 @@ func TestCreateSharedDirPVCs(t *testing.T) {
 		Name:  "test-agent",
 		Image: "test:latest",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -189,8 +189,8 @@ func TestCreateSharedDirPVCs(t *testing.T) {
 	for _, pvc := range pvcList.Items {
 		pvcNames[pvc.Name] = true
 		// Verify labels
-		assert.Equal(t, "myproject", pvc.Labels["scion.grove"])
-		assert.NotEmpty(t, pvc.Labels["scion.shared-dir"])
+		assert.Equal(t, "myproject", pvc.Labels["fabric.grove"])
+		assert.NotEmpty(t, pvc.Labels["fabric.shared-dir"])
 		// Verify access mode
 		assert.Contains(t, pvc.Spec.AccessModes, corev1.ReadWriteMany)
 		// Verify default size
@@ -198,8 +198,8 @@ func TestCreateSharedDirPVCs(t *testing.T) {
 		assert.Equal(t, defaultSharedDirSize, storageReq.String())
 	}
 
-	assert.True(t, pvcNames["scion-shared-myproject-build-cache"])
-	assert.True(t, pvcNames["scion-shared-myproject-artifacts"])
+	assert.True(t, pvcNames["fabric-shared-myproject-build-cache"])
+	assert.True(t, pvcNames["fabric-shared-myproject-artifacts"])
 }
 
 func TestCreateSharedDirPVCs_CustomStorageClassAndSize(t *testing.T) {
@@ -210,7 +210,7 @@ func TestCreateSharedDirPVCs_CustomStorageClassAndSize(t *testing.T) {
 		Name:  "test-agent",
 		Image: "test:latest",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "data"},
@@ -224,7 +224,7 @@ func TestCreateSharedDirPVCs_CustomStorageClassAndSize(t *testing.T) {
 	err := rt.createSharedDirPVCs(ctx, "default", config)
 	require.NoError(t, err)
 
-	pvc, err := clientset.CoreV1().PersistentVolumeClaims("default").Get(ctx, "scion-shared-myproject-data", metav1.GetOptions{})
+	pvc, err := clientset.CoreV1().PersistentVolumeClaims("default").Get(ctx, "fabric-shared-myproject-data", metav1.GetOptions{})
 	require.NoError(t, err)
 
 	assert.Equal(t, "standard-rwx", *pvc.Spec.StorageClassName)
@@ -239,7 +239,7 @@ func TestCreateSharedDirPVCs_ReusesExisting(t *testing.T) {
 	// Pre-create a PVC
 	existingPVC := &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "scion-shared-myproject-build-cache",
+			Name:      "fabric-shared-myproject-build-cache",
 			Namespace: "default",
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -253,7 +253,7 @@ func TestCreateSharedDirPVCs_ReusesExisting(t *testing.T) {
 		Name:  "test-agent",
 		Image: "test:latest",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -278,7 +278,7 @@ func TestCreateSharedDirPVCs_NoSharedDirs(t *testing.T) {
 		Name:  "test-agent",
 		Image: "test:latest",
 		Labels: map[string]string{
-			"scion.grove": "myproject",
+			"fabric.grove": "myproject",
 		},
 	}
 
@@ -301,7 +301,7 @@ func TestCreateSharedDirPVCs_MissingProjectLabel(t *testing.T) {
 
 	err := rt.createSharedDirPVCs(ctx, "default", config)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "missing scion.project or scion.grove label")
+	assert.Contains(t, err.Error(), "missing fabric.project or fabric.grove label")
 }
 
 func TestCleanupSharedDirPVCs(t *testing.T) {
@@ -309,14 +309,14 @@ func TestCleanupSharedDirPVCs(t *testing.T) {
 	ctx := context.Background()
 
 	// Create PVCs with project labels
-	for _, name := range []string{"scion-shared-myproject-cache", "scion-shared-myproject-data"} {
+	for _, name := range []string{"fabric-shared-myproject-cache", "fabric-shared-myproject-data"} {
 		pvc := &corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: "default",
 				Labels: map[string]string{
-					"scion.grove":      "myproject",
-					"scion.shared-dir": "test",
+					"fabric.grove":      "myproject",
+					"fabric.shared-dir": "test",
 				},
 			},
 		}

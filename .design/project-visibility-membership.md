@@ -62,7 +62,7 @@ The existing membership plumbing already supports this with **one source of
 truth**:
 
 - The project "Members" panel in the web UI *is* the auto-created
-  `project:<slug>:members` group (`<scion-group-member-editor>` bound to that
+  `project:<slug>:members` group (`<fabric-group-member-editor>` bound to that
   group's ID). List/add/remove all go through `/api/v1/groups/{id}/members` →
   `GroupMembership`. No second collection to sync.
 - Groups can contain **other groups** (memberType="group", cycle-checked via

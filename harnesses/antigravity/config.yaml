@@ -1,12 +1,12 @@
 harness: antigravity
-image: scion-antigravity:latest
-user: scion
+image: fabric-antigravity:latest
+user: fabric
 
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -22,13 +22,13 @@ system_prompt_file: GEMINI.md
 system_prompt_mode: prepend_to_instructions
 
 command:
-  base: ["/home/scion/.scion/harness/agy-wrapper.sh"]
+  base: ["/home/fabric/.fabric/harness/agy-wrapper.sh"]
   task_flag: "-prompt-interactive"
   task_position: after_base_args
   resume_flag: "-continue"
 
 env_template:
-  SCION_AGENT_NAME: "{{ .AgentName }}"
+  FABRIC_AGENT_NAME: "{{ .AgentName }}"
 
 mcp:
   global_config_file: .gemini/config/mcp_config.json
@@ -63,7 +63,7 @@ no_auth:
     This agent started without credentials.
     Run: agy
     Complete the interactive login flow.
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 
 auth:
   default_type: oauth-token

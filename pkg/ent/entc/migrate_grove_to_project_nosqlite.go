@@ -19,7 +19,7 @@ package entc
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ProjectSlugResolver can look up a project by slug.

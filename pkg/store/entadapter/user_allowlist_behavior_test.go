@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -122,7 +122,7 @@ func TestInvite_IncrementUseCount(t *testing.T) {
 	mk := func(maxUses int, revoked bool, expires time.Time) string {
 		id := uuid.NewString()
 		require.NoError(t, as.CreateInviteCode(ctx, &store.InviteCode{
-			ID: id, CodeHash: "h-" + id, CodePrefix: "scion_in", MaxUses: maxUses,
+			ID: id, CodeHash: "h-" + id, CodePrefix: "fabric_in", MaxUses: maxUses,
 			Revoked: revoked, ExpiresAt: expires, CreatedBy: "admin",
 		}))
 		return id
@@ -164,7 +164,7 @@ func TestInvite_GetStats(t *testing.T) {
 	mk := func(maxUses, useCount int, revoked bool, expires time.Time) {
 		id := uuid.NewString()
 		require.NoError(t, as.CreateInviteCode(ctx, &store.InviteCode{
-			ID: id, CodeHash: "h-" + id, CodePrefix: "scion_in", MaxUses: maxUses,
+			ID: id, CodeHash: "h-" + id, CodePrefix: "fabric_in", MaxUses: maxUses,
 			UseCount: useCount, Revoked: revoked, ExpiresAt: expires, CreatedBy: "admin",
 		}))
 	}
@@ -192,7 +192,7 @@ func TestAllowList_WithInvites(t *testing.T) {
 
 	inviteID := uuid.NewString()
 	require.NoError(t, as.CreateInviteCode(ctx, &store.InviteCode{
-		ID: inviteID, CodeHash: "h-" + inviteID, CodePrefix: "scion_inv_abc",
+		ID: inviteID, CodeHash: "h-" + inviteID, CodePrefix: "fabric_inv_abc",
 		MaxUses: 10, UseCount: 4, ExpiresAt: time.Now().Add(time.Hour), CreatedBy: "admin",
 	}))
 	require.NoError(t, as.AddAllowListEntry(ctx, &store.AllowListEntry{
@@ -211,7 +211,7 @@ func TestAllowList_WithInvites(t *testing.T) {
 		byEmail[e.Email] = e
 	}
 	linked := byEmail["linked@example.com"]
-	assert.Equal(t, "scion_inv_abc", linked.InviteCodePrefix)
+	assert.Equal(t, "fabric_inv_abc", linked.InviteCodePrefix)
 	assert.Equal(t, 10, linked.InviteMaxUses)
 	assert.Equal(t, 4, linked.InviteUseCount)
 	assert.Empty(t, byEmail["unlinked@example.com"].InviteCodePrefix)

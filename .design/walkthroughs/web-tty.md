@@ -31,7 +31,7 @@ Ensure `HUB_API_URL` points to your Hub (defaults to `http://localhost:9810`).
 
 The WebSocket proxy resolves auth in this order:
 
-1. **Dev token** — set `SCION_DEV_TOKEN` env var, or ensure `~/.scion/dev-token` exists (Hub generates this on startup). This is the easiest path for local testing.
+1. **Dev token** — set `FABRIC_DEV_TOKEN` env var, or ensure `~/.fabric/dev-token` exists (Hub generates this on startup). This is the easiest path for local testing.
 2. **Session cookie** — log in via OAuth at `/auth/login`, which stores a Hub access token in the session.
 
 Verify auth is working by checking that `/api/agents` returns data (not 401).
@@ -43,10 +43,10 @@ Verify auth is working by checking that `/api/agents` returns data (not 401).
 **What**: The terminal route serves HTML without the app shell (full-screen layout).
 
 ```bash
-curl -s http://localhost:8080/agents/test-agent/terminal | grep scion-page-terminal
+curl -s http://localhost:8080/agents/test-agent/terminal | grep fabric-page-terminal
 ```
 
-**Expected**: Response contains `<scion-page-terminal>` tag, no `<scion-app>` wrapper.
+**Expected**: Response contains `<fabric-page-terminal>` tag, no `<fabric-app>` wrapper.
 
 ### 2. Agent Detail → Terminal Link
 
@@ -125,7 +125,7 @@ wscat -c "ws://localhost:8080/api/agents/{agentId}/pty?cols=80&rows=24"
 If auth is via session cookie, pass it explicitly:
 ```bash
 wscat -c "ws://localhost:8080/api/agents/{agentId}/pty?cols=80&rows=24" \
-  -H "Cookie: scion_sess=...; scion_sess.sig=..."
+  -H "Cookie: fabric_sess=...; fabric_sess.sig=..."
 ```
 
 **Expected**: Connection establishes, you receive `{"type":"data","data":"..."}` messages containing the tmux session output.
@@ -142,13 +142,13 @@ Open DevTools while using the terminal:
 
 - **Network → WS**: You should see a WebSocket connection to `/api/agents/{id}/pty?cols=...&rows=...`. Click it to inspect frames — you'll see JSON messages with `type: "data"` (I/O) and `type: "resize"` (on window resize).
 - **Console**: No errors. Look for `[Terminal] Could not load xterm CSS` — if present, the terminal may render without proper styling.
-- **Elements**: The `<scion-page-terminal>` shadow root should contain a `.toolbar` div and a `.terminal-container` div with xterm.js canvas elements inside it.
+- **Elements**: The `<fabric-page-terminal>` shadow root should contain a `.toolbar` div and a `.terminal-container` div with xterm.js canvas elements inside it.
 
 ## Troubleshooting
 
 | Symptom | Likely Cause |
 |---------|-------------|
-| 401 on WebSocket | No dev token and not logged in. Check `~/.scion/dev-token` exists. |
+| 401 on WebSocket | No dev token and not logged in. Check `~/.fabric/dev-token` exists. |
 | 502 on WebSocket | Hub is not reachable. Check `HUB_API_URL` and that Hub is running. |
 | Terminal connects but shows nothing | Broker not connected to Hub, or agent container not running. Check Hub logs for control channel status. |
 | Terminal text is garbled/unstyled | xterm.css failed to load into shadow DOM. Check console for the CSS warning. |

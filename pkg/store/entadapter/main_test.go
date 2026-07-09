@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // TestMain wires the enttest backend lifecycle so the Postgres integration

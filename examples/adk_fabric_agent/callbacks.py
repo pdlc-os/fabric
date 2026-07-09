@@ -12,41 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ADK lifecycle callbacks that bridge to scion status reporting.
+"""ADK lifecycle callbacks that bridge to fabric status reporting.
 
-Maps ADK agent callbacks to scion activity transitions by writing transient
+Maps ADK agent callbacks to fabric activity transitions by writing transient
 activities to $HOME/agent-info.json. Sticky activities (waiting_for_input,
-completed) are handled separately through the sciontool_status tool — not here.
+completed) are handled separately through the fabrictool_status tool — not here.
 
 All callbacks return None so they never interfere with ADK's execution flow.
 """
 
 import logging
 
-from . import sciontool
+from . import fabrictool
 
 logger = logging.getLogger(__name__)
 
 
 async def before_agent_callback(callback_context):
     """Agent starts processing — set activity to thinking."""
-    sciontool.write_agent_status("thinking")
+    fabrictool.write_agent_status("thinking")
     return None
 
 
 async def before_tool_callback(tool, args, tool_context):
     """Tool about to execute — set activity to executing."""
-    sciontool.write_agent_status("executing")
+    fabrictool.write_agent_status("executing")
     return None
 
 
 async def after_tool_callback(tool, args, tool_context, tool_response):
     """Tool finished — agent resumes thinking."""
-    sciontool.write_agent_status("thinking")
+    fabrictool.write_agent_status("thinking")
     return None
 
 
 async def after_agent_callback(callback_context):
     """Agent turn complete — set activity to working."""
-    sciontool.write_agent_status("working")
+    fabrictool.write_agent_status("working")
     return None

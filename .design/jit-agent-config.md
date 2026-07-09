@@ -12,7 +12,7 @@
 
 Today, agent configuration is assembled from a multi-layered composition of templates, harness configs, settings profiles, and CLI flags. To customize an agent beyond the available CLI flags, users must:
 
-1. Create a custom template directory with a `scion-agent.yaml`
+1. Create a custom template directory with a `fabric-agent.yaml`
 2. Optionally create a custom harness-config directory
 3. Reference these by name at agent creation time
 
@@ -24,14 +24,14 @@ The Hub web UI amplifies this problem: building a form that exposes all agent op
 
 Allow agents to be started with an **inline configuration object** — a self-contained document that can express the full range of agent configuration without requiring pre-existing template or harness-config artifacts on disk.
 
-Conceptually, this is "just-in-time" or "late-binding" configuration: the agent's settings are provided at creation time rather than being pre-staged as template artifacts. The implementation achieves this by evolving `ScionConfig` into a superset that absorbs fields currently scattered across harness-config entries, template content files, and CLI flags.
+Conceptually, this is "just-in-time" or "late-binding" configuration: the agent's settings are provided at creation time rather than being pre-staged as template artifacts. The implementation achieves this by evolving `FabricConfig` into a superset that absorbs fields currently scattered across harness-config entries, template content files, and CLI flags.
 
 ### Design Principles
 
 1. **Additive** — Inline config is a new input path, not a replacement. Templates and harness configs continue to work as before.
-2. **Superset via evolution** — `ScionConfig` itself is expanded to absorb fields that today live outside the config file (system prompt content, harness-config details). No new parallel config type is introduced.
+2. **Superset via evolution** — `FabricConfig` itself is expanded to absorb fields that today live outside the config file (system prompt content, harness-config details). No new parallel config type is introduced.
 3. **Explicit over composed** — When an inline config is provided, its values are authoritative. The multi-layer merge behavior is simplified: inline config is the "template equivalent," composed only with broker/runtime-level concerns.
-4. **Backwards compatible** — Existing `scion start --type my-template` workflows are unaffected. Existing `scion-agent.yaml` files remain valid.
+4. **Backwards compatible** — Existing `fabric start --type my-template` workflows are unaffected. Existing `fabric-agent.yaml` files remain valid.
 
 ---
 
@@ -41,11 +41,11 @@ Conceptually, this is "just-in-time" or "late-binding" configuration: the agent'
 
 ```
 Embedded defaults
-  -> Global settings (~/.scion/settings.yaml)
-    -> Grove settings (.scion/settings.yaml)
-      -> Template chain (scion-agent.yaml, inherited)
+  -> Global settings (~/.fabric/settings.yaml)
+    -> Grove settings (.fabric/settings.yaml)
+      -> Template chain (fabric-agent.yaml, inherited)
         -> Harness-config (config.yaml + home/ files)
-          -> Agent-persisted config (scion-agent.json)
+          -> Agent-persisted config (fabric-agent.json)
             -> CLI flags (--image, --enable-telemetry, etc.)
 ```
 
@@ -60,7 +60,7 @@ Embedded defaults
 | Agent instructions | Template directory file (`agents.md`) | Markdown file |
 | Model selection | Template or harness-config | `model: claude-opus-4-6` |
 | Auth method | Harness-config or settings profile | `auth_selected_type: api-key` |
-| Container user | Harness-config `config.yaml` | `user: scion` |
+| Container user | Harness-config `config.yaml` | `user: fabric` |
 | Volumes | Template, harness-config, settings | `volumes: [...]` |
 | Resources | Template or settings profile | `resources: {requests: ...}` |
 | Telemetry | Settings, template, or CLI flag | `telemetry: {enabled: true}` |
@@ -70,11 +70,11 @@ Embedded defaults
 
 ### Key Observation
 
-The current `ScionConfig` struct already captures most of these concerns. The gaps are:
+The current `FabricConfig` struct already captures most of these concerns. The gaps are:
 
-1. **System prompt and agent instructions** — stored as file references in `ScionConfig` (`system_prompt: system-prompt.md`) but the actual content lives as files alongside the template. The config references a filename, not inline content.
-2. **Harness-config details** — the container user, task flag, default CLI args, and auth method come from `HarnessConfigEntry`, not from `ScionConfig`. Notably, the `harness` field itself lives on `HarnessConfigEntry` and directs to the appropriate harness implementation in `pkg/harness`.
-3. **Home directory files** — harness-config `home/` directories provide files like `.claude.json`, `.bashrc`, etc. These are filesystem artifacts that can't be expressed inline. This is the trickiest gap to close, and we accept that templates and harness configs will remain the mechanism for home directory file provisioning. The goal is to capture as much of the common-denominator configuration as possible in the expanded `ScionConfig`.
+1. **System prompt and agent instructions** — stored as file references in `FabricConfig` (`system_prompt: system-prompt.md`) but the actual content lives as files alongside the template. The config references a filename, not inline content.
+2. **Harness-config details** — the container user, task flag, default CLI args, and auth method come from `HarnessConfigEntry`, not from `FabricConfig`. Notably, the `harness` field itself lives on `HarnessConfigEntry` and directs to the appropriate harness implementation in `pkg/harness`.
+3. **Home directory files** — harness-config `home/` directories provide files like `.claude.json`, `.bashrc`, etc. These are filesystem artifacts that can't be expressed inline. This is the trickiest gap to close, and we accept that templates and harness configs will remain the mechanism for home directory file provisioning. The goal is to capture as much of the common-denominator configuration as possible in the expanded `FabricConfig`.
 
 ### Existing Partial Precedent
 
@@ -89,31 +89,31 @@ type AgentConfigOverride struct {
 }
 ```
 
-And `hubclient.AgentConfig` similarly has `Image`, `HarnessConfig`, `HarnessAuth`, `Env`, `Model`, `Task`. These are narrow override surfaces that exist because `ScionConfig` wasn't expressive enough to serve as the inline config document. By expanding `ScionConfig` to cover these cases, we can replace `AgentConfigOverride` and thread a full `ScionConfig` through more of the agent creation process — eliminating the need for ad-hoc override structs.
+And `hubclient.AgentConfig` similarly has `Image`, `HarnessConfig`, `HarnessAuth`, `Env`, `Model`, `Task`. These are narrow override surfaces that exist because `FabricConfig` wasn't expressive enough to serve as the inline config document. By expanding `FabricConfig` to cover these cases, we can replace `AgentConfigOverride` and thread a full `FabricConfig` through more of the agent creation process — eliminating the need for ad-hoc override structs.
 
 ---
 
 ## 3. Proposed Design
 
-### 3.1 Expanded ScionConfig Schema
+### 3.1 Expanded FabricConfig Schema
 
-Rather than introducing a new parallel type, we expand `ScionConfig` itself with the fields that today require separate artifacts. This keeps a single authoritative config type and ensures that `scion-agent.yaml` files in templates immediately gain inline content support.
+Rather than introducing a new parallel type, we expand `FabricConfig` itself with the fields that today require separate artifacts. This keeps a single authoritative config type and ensures that `fabric-agent.yaml` files in templates immediately gain inline content support.
 
-New fields added to `ScionConfig`:
+New fields added to `FabricConfig`:
 
 ```go
-// Added to the existing ScionConfig struct in pkg/api/types.go
+// Added to the existing FabricConfig struct in pkg/api/types.go
 
 // === Content fields (inline instead of file references) ===
 // When set, these contain the actual content rather than a filename.
 // The content resolution logic checks: if the value is a file:/// URI,
 // treat it as a file reference; otherwise treat it as inline content.
 //
-// Note: system_prompt and agent_instructions already exist on ScionConfig
+// Note: system_prompt and agent_instructions already exist on FabricConfig
 // as file-reference fields. The change is in how the values are resolved,
 // not in the schema itself.
 
-// === Harness-config fields absorbed into ScionConfig ===
+// === Harness-config fields absorbed into FabricConfig ===
 User             string   `json:"user,omitempty" yaml:"user,omitempty"`             // Container unix user
 AuthSelectedType string   `json:"auth_selected_type,omitempty" yaml:"auth_selected_type,omitempty"`
 
@@ -124,7 +124,7 @@ Branch           string   `json:"branch,omitempty" yaml:"branch,omitempty"`
 
 #### Content Field Resolution
 
-The `system_prompt` and `agent_instructions` fields already exist on `ScionConfig` today, but only accept filenames. The key change is adopting a `file:///` URI convention to distinguish file references from inline content:
+The `system_prompt` and `agent_instructions` fields already exist on `FabricConfig` today, but only accept filenames. The key change is adopting a `file:///` URI convention to distinguish file references from inline content:
 
 ```go
 func ResolveContent(value string, configDir string) (string, error) {
@@ -160,41 +160,41 @@ For backwards compatibility with existing templates, the template content resolu
 - `file://relative/path/to/file.md` — relative to the config file's directory
 - Any other value — treated as inline content
 
-#### Pressure Testing: Why Expand ScionConfig Instead of a New Type?
+#### Pressure Testing: Why Expand FabricConfig Instead of a New Type?
 
 A separate `JITAgentConfig` type was considered and rejected. The single-type model is simpler, avoids conversion logic between parallel types, and means improvements to the schema automatically benefit both templates and inline configs.
 
 Key concerns and mitigations:
 
-- **Bloating `scion-agent.json`:** Fields like `task` and `branch` are small strings. Inline content for `system_prompt` replaces what would otherwise be a separate file on disk. The total data stored is comparable.
-- **Input format vs. resolved config:** `ScionConfig` serves as both user-facing input and persisted output. Persisting operational fields like `task` and `branch` is actually desirable — they serve as a durable artifact of what the agent was created with. The `agent-info` system handles mutable agent state on disk, and heartbeats update state on the Hub API, so `scion-agent.json` is the right place for creation-time parameters.
+- **Bloating `fabric-agent.json`:** Fields like `task` and `branch` are small strings. Inline content for `system_prompt` replaces what would otherwise be a separate file on disk. The total data stored is comparable.
+- **Input format vs. resolved config:** `FabricConfig` serves as both user-facing input and persisted output. Persisting operational fields like `task` and `branch` is actually desirable — they serve as a durable artifact of what the agent was created with. The `agent-info` system handles mutable agent state on disk, and heartbeats update state on the Hub API, so `fabric-agent.json` is the right place for creation-time parameters.
 - **Context-specific fields:** Templates can simply omit fields that don't apply. YAML/JSON `omitempty` handles this naturally.
 
-### 3.2 Threading ScionConfig Through Agent Creation
+### 3.2 Threading FabricConfig Through Agent Creation
 
-Today, agent creation involves assembling config from multiple sources into a `ScionConfig`, plus separately extracting `HarnessConfigEntry` fields and content files. With the expanded `ScionConfig`:
+Today, agent creation involves assembling config from multiple sources into a `FabricConfig`, plus separately extracting `HarnessConfigEntry` fields and content files. With the expanded `FabricConfig`:
 
-1. **`ScionConfig` becomes the single carrier** for configuration data through the creation pipeline. The provisioning code receives one `ScionConfig` rather than a `ScionConfig` plus side-channel overrides.
-2. **`AgentConfigOverride` is replaced.** The Hub API and `hubclient.AgentConfig` can accept a full `ScionConfig` instead of an ad-hoc subset of fields. This eliminates the need for `AgentConfigOverride` and its limited field set.
-3. **`HarnessConfigEntry` fields are resolved from `ScionConfig`.** When `user` or `auth_selected_type` is set on `ScionConfig`, those values are used. When not set, the harness-config defaults still apply. The `HarnessConfigEntry` struct remains for harness-config files (`config.yaml`), but its values are lower-precedence than `ScionConfig`.
+1. **`FabricConfig` becomes the single carrier** for configuration data through the creation pipeline. The provisioning code receives one `FabricConfig` rather than a `FabricConfig` plus side-channel overrides.
+2. **`AgentConfigOverride` is replaced.** The Hub API and `hubclient.AgentConfig` can accept a full `FabricConfig` instead of an ad-hoc subset of fields. This eliminates the need for `AgentConfigOverride` and its limited field set.
+3. **`HarnessConfigEntry` fields are resolved from `FabricConfig`.** When `user` or `auth_selected_type` is set on `FabricConfig`, those values are used. When not set, the harness-config defaults still apply. The `HarnessConfigEntry` struct remains for harness-config files (`config.yaml`), but its values are lower-precedence than `FabricConfig`.
 
 ```
 Precedence with inline config:
 
 Embedded defaults
   -> Global/Grove settings
-    -> Template scion-agent.yaml
+    -> Template fabric-agent.yaml
       -> Harness-config config.yaml (for user, auth, home/ files)
         -> Inline config (--config file) merged over template
           -> CLI flags (--image, etc.) merged over inline config
             -> Runtime concerns (env expansion, auth injection)
 ```
 
-Home directory files (`.claude.json`, `.bashrc`, etc.) remain the domain of harness-config `home/` directories. The `harness_config` field on `ScionConfig` can reference a harness-config by name to pick up these files, even when all other config is provided inline.
+Home directory files (`.claude.json`, `.bashrc`, etc.) remain the domain of harness-config `home/` directories. The `harness_config` field on `FabricConfig` can reference a harness-config by name to pick up these files, even when all other config is provided inline.
 
 ### 3.3 Harness Config Requirement and Merge Semantics
 
-A harness-config is **always required** for agent creation. The harness-config is the primary means for users to specify which harness to use — the `harness` field on `HarnessConfigEntry` directs to the appropriate harness implementation in `pkg/harness`. There is no mechanism to pass a `harness` value directly into `ScionConfig` without a harness-config.
+A harness-config is **always required** for agent creation. The harness-config is the primary means for users to specify which harness to use — the `harness` field on `HarnessConfigEntry` directs to the appropriate harness implementation in `pkg/harness`. There is no mechanism to pass a `harness` value directly into `FabricConfig` without a harness-config.
 
 The harness-config can be resolved from:
 1. The `--harness-config` CLI flag
@@ -219,29 +219,29 @@ When an inline config is provided **without** `--type`:
 When both `--type` and `--config` are provided:
 - Inline config fields override template fields when set
 - Template fields are preserved when the inline config field is empty
-- This matches existing `MergeScionConfig` behavior
+- This matches existing `MergeFabricConfig` behavior
 
 ### 3.4 CLI Interface
 
 ```bash
 # From a file
-scion start my-agent --config agent-config.yaml
+fabric start my-agent --config agent-config.yaml
 
 # From stdin (pipe from another tool)
-cat config.yaml | scion start my-agent --config -
+cat config.yaml | fabric start my-agent --config -
 
 # Combined with a base template (inline overrides template)
-scion start my-agent --type base-template --config overrides.yaml
+fabric start my-agent --type base-template --config overrides.yaml
 
 # CLI flags still override everything
-scion start my-agent --config config.yaml --image custom:latest
+fabric start my-agent --config config.yaml --image custom:latest
 ```
 
 The `--config` flag accepts a path to a YAML or JSON file. A value of `-` reads from stdin.
 
 #### CLI Flag Consolidation
 
-With `--config` available, recently added CLI flags that duplicate `ScionConfig` fields can be evaluated for removal. Flags that are simple pass-throughs to a single config field (e.g., `--model`, `--max-turns`) are candidates for deprecation in favor of `--config`, reducing CLI surface area. High-frequency flags like `--image` and `--type` should remain as conveniences.
+With `--config` available, recently added CLI flags that duplicate `FabricConfig` fields can be evaluated for removal. Flags that are simple pass-throughs to a single config field (e.g., `--model`, `--max-turns`) are candidates for deprecation in favor of `--config`, reducing CLI surface area. High-frequency flags like `--image` and `--type` should remain as conveniences.
 
 #### Config Help
 
@@ -249,17 +249,17 @@ The CLI should provide a way to discover and understand the config schema:
 
 ```bash
 # Show the full config schema with field descriptions
-scion start --config-help
+fabric start --config-help
 
 # Or as a subcommand
-scion config schema
+fabric config schema
 ```
 
-This outputs the available `ScionConfig` fields, their types, defaults, and descriptions — enabling users to construct config files without consulting external documentation.
+This outputs the available `FabricConfig` fields, their types, defaults, and descriptions — enabling users to construct config files without consulting external documentation.
 
 ### 3.5 Hub API Interface
 
-The existing `CreateAgentRequest` is extended to accept a full `ScionConfig`:
+The existing `CreateAgentRequest` is extended to accept a full `FabricConfig`:
 
 ```go
 // In pkg/hub/handlers.go
@@ -273,7 +273,7 @@ type CreateAgentRequest struct {
     // When set, this replaces the template as the primary config source.
     // If Template is also set, Config is merged over the template config.
     // This replaces the previous AgentConfigOverride approach.
-    Config        *ScionConfig  `json:"config,omitempty"`
+    Config        *FabricConfig  `json:"config,omitempty"`
 }
 ```
 
@@ -281,7 +281,7 @@ The Hub handler treats `Config` as a template-equivalent: it extracts the releva
 
 ### 3.6 Web UI Integration
 
-With inline config supported by the Hub API (Phase 2), the web UI can present a form for agent creation that serializes directly to a `ScionConfig` JSON object. The form would cover common fields (name, model, image, environment, system prompt, task) and send them as `config` in the create request — no template creation needed.
+With inline config supported by the Hub API (Phase 2), the web UI can present a form for agent creation that serializes directly to a `FabricConfig` JSON object. The form would cover common fields (name, model, image, environment, system prompt, task) and send them as `config` in the create request — no template creation needed.
 
 The detailed design for the web form is deferred to a separate design round once the API surface is stable.
 
@@ -289,14 +289,14 @@ The detailed design for the web form is deferred to a separate design round once
 
 ## 4. Implementation Approach
 
-### Phase 1: Expand ScionConfig and Add CLI `--config` Flag ✅ COMPLETE
+### Phase 1: Expand FabricConfig and Add CLI `--config` Flag ✅ COMPLETE
 
-**Scope:** Add the new fields to `ScionConfig`, implement content resolution for inline values, and add `--config <path>` to `scion start` and `scion create`.
+**Scope:** Add the new fields to `FabricConfig`, implement content resolution for inline values, and add `--config <path>` to `fabric start` and `fabric create`.
 
 **Changes:**
-- `pkg/api/types.go` — Add `user`, `auth_selected_type`, `task`, `branch` fields to `ScionConfig`. All fields persist to `scion-agent.json` (no `json:"-"` exclusions — these serve as a durable record of creation-time parameters).
-- `pkg/agent/provision.go` — Implement `file://` URI-based content resolution for `system_prompt` and `agent_instructions`. When `user` or `auth_selected_type` is set on `ScionConfig`, apply these during harness-config resolution.
-- `cmd/start.go` / `cmd/common.go` — Add `--config` flag, load file, parse as `ScionConfig`, merge into the provisioning flow. Add `--config-help` flag or `scion config schema` subcommand for discoverability. Evaluate recently added flags for potential consolidation.
+- `pkg/api/types.go` — Add `user`, `auth_selected_type`, `task`, `branch` fields to `FabricConfig`. All fields persist to `fabric-agent.json` (no `json:"-"` exclusions — these serve as a durable record of creation-time parameters).
+- `pkg/agent/provision.go` — Implement `file://` URI-based content resolution for `system_prompt` and `agent_instructions`. When `user` or `auth_selected_type` is set on `FabricConfig`, apply these during harness-config resolution.
+- `cmd/start.go` / `cmd/common.go` — Add `--config` flag, load file, parse as `FabricConfig`, merge into the provisioning flow. Add `--config-help` flag or `fabric config schema` subcommand for discoverability. Evaluate recently added flags for potential consolidation.
 
 **Key detail:** When `--config` is provided without `--type`, the provisioning path skips template loading and uses the inline config as the base. A harness-config must still be resolvable (via `--harness-config`, the config's `harness_config` field, or settings defaults) — otherwise agent creation fails with an error. The harness-config `home/` directory is still applied.
 
@@ -307,35 +307,35 @@ The detailed design for the web form is deferred to a separate design round once
 
 ### Phase 2: Hub API Support (Replace AgentConfigOverride) ✅ COMPLETE
 
-**Scope:** Extend Hub create-agent API to accept a full `ScionConfig`. Remove `AgentConfigOverride`.
+**Scope:** Extend Hub create-agent API to accept a full `FabricConfig`. Remove `AgentConfigOverride`.
 
 **Changes:**
-- `pkg/hub/handlers.go` — Accept `config` (`*ScionConfig`) in `CreateAgentRequest`; merge with template if both provided; pass through to dispatcher. Remove `AgentConfigOverride` — since phases will progress rapidly, there is no need for a compatibility shim.
-- `pkg/hub/httpdispatcher.go` — Include `ScionConfig` fields in `RemoteCreateAgentRequest`
-- `pkg/runtimebroker/handlers.go` — Accept and apply the full `ScionConfig` during agent provisioning
-- `pkg/runtimebroker/types.go` — Replace per-field overrides in `CreateAgentConfig` with a `ScionConfig` field
+- `pkg/hub/handlers.go` — Accept `config` (`*FabricConfig`) in `CreateAgentRequest`; merge with template if both provided; pass through to dispatcher. Remove `AgentConfigOverride` — since phases will progress rapidly, there is no need for a compatibility shim.
+- `pkg/hub/httpdispatcher.go` — Include `FabricConfig` fields in `RemoteCreateAgentRequest`
+- `pkg/runtimebroker/handlers.go` — Accept and apply the full `FabricConfig` during agent provisioning
+- `pkg/runtimebroker/types.go` — Replace per-field overrides in `CreateAgentConfig` with a `FabricConfig` field
 
-**Design decision:** The Hub resolves the `ScionConfig` into the existing `RemoteAgentConfig` fields, keeping the broker interface stable. The broker doesn't need to know whether config came from a template or inline. Option (B) from the original design — centralize conversion in the Hub.
+**Design decision:** The Hub resolves the `FabricConfig` into the existing `RemoteAgentConfig` fields, keeping the broker interface stable. The broker doesn't need to know whether config came from a template or inline. Option (B) from the original design — centralize conversion in the Hub.
 
 ### Phase 3: Web UI Form
 
-**Scope:** Add agent creation form to the Hub web UI that generates a `ScionConfig`. Deferred to a separate design round.
+**Scope:** Add agent creation form to the Hub web UI that generates a `FabricConfig`. Deferred to a separate design round.
 
 ### Phase 4: Config Export and Sharing
 
-**Scope:** Allow exporting an existing agent's resolved config as a `ScionConfig` file, enabling config sharing and reproduction.
+**Scope:** Allow exporting an existing agent's resolved config as a `FabricConfig` file, enabling config sharing and reproduction.
 
 ```bash
 # Export current agent config as a reusable config file
-scion config export my-agent > agent-config.yaml
+fabric config export my-agent > agent-config.yaml
 
 # Start a new agent with the same config
-scion start new-agent --config agent-config.yaml
+fabric start new-agent --config agent-config.yaml
 ```
 
 **Changes:**
 - `cmd/config.go` — Add `config export` subcommand
-- `pkg/agent/` — Read agent's `scion-agent.json` + content files, produce a complete `ScionConfig`
+- `pkg/agent/` — Read agent's `fabric-agent.json` + content files, produce a complete `FabricConfig`
 
 ---
 
@@ -343,11 +343,11 @@ scion start new-agent --config agent-config.yaml
 
 ### A: Separate JITAgentConfig Type (Original Draft Approach)
 
-Introduce a new `JITAgentConfig` type that is a superset of `ScionConfig`, with conversion methods (`ToScionConfig()`, `ToHarnessConfigEntry()`).
+Introduce a new `JITAgentConfig` type that is a superset of `FabricConfig`, with conversion methods (`ToFabricConfig()`, `ToHarnessConfigEntry()`).
 
 **Pros:**
 - Clean separation between user input format and resolved config
-- Clear boundary: `ScionConfig` is the resolved config, `JITAgentConfig` is the input
+- Clear boundary: `FabricConfig` is the resolved config, `JITAgentConfig` is the input
 
 **Cons:**
 - Two types that must stay in sync — every new field requires updates in both places
@@ -355,7 +355,7 @@ Introduce a new `JITAgentConfig` type that is a superset of `ScionConfig`, with 
 - The Hub, CLI, and broker all need to understand both types
 - `AgentConfigOverride` would still exist as a third type, or need its own migration
 
-**Verdict:** Rejected. The maintenance cost of two parallel config types outweighs the conceptual cleanliness. Persisting operational fields in `scion-agent.json` is actually beneficial as a durable artifact, and `agent-info` handles mutable state separately.
+**Verdict:** Rejected. The maintenance cost of two parallel config types outweighs the conceptual cleanliness. Persisting operational fields in `fabric-agent.json` is actually beneficial as a durable artifact, and `agent-info` handles mutable state separately.
 
 ### B: Templates-as-JSON via API (Ephemeral Templates)
 
@@ -382,7 +382,7 @@ Continue adding CLI flags for each new option (`--model`, `--max-turns`, `--syst
 - No new concepts
 
 **Cons:**
-- Doesn't scale — `ScionConfig` has 20+ fields, many with nested structure
+- Doesn't scale — `FabricConfig` has 20+ fields, many with nested structure
 - Each new field requires changes to `cmd/`, `StartOptions`, and all the plumbing
 - Can't express complex structures (telemetry config, services) via flags
 - Web UI still needs a different solution
@@ -416,7 +416,7 @@ The following questions were raised during review and have been resolved:
 
 ### Schema versioning
 
-**Decision:** The expanded `ScionConfig` uses the same `schema_version` field that already exists. Since this is a non-breaking, additive change, the version stays at `"1"`. Inline configs and template configs share the same schema version and evolve together.
+**Decision:** The expanded `FabricConfig` uses the same `schema_version` field that already exists. Since this is a non-breaking, additive change, the version stays at `"1"`. Inline configs and template configs share the same schema version and evolve together.
 
 ### Validation strictness for standalone inline config
 
@@ -424,15 +424,15 @@ The following questions were raised during review and have been resolved:
 
 ### Persistence of `task` and `branch`
 
-**Decision:** Include both in `scion-agent.json`. They serve as a durable record of what the agent was created with, useful for auditability and config export (Phase 4). The `task` field should also be persisted back into the agent's `prompt.md` file as originally intended.
+**Decision:** Include both in `fabric-agent.json`. They serve as a durable record of what the agent was created with, useful for auditability and config export (Phase 4). The `task` field should also be persisted back into the agent's `prompt.md` file as originally intended.
 
 ### Deprecation path for AgentConfigOverride
 
-**Decision:** Remove `AgentConfigOverride` directly in Phase 2 without a compatibility shim. Phases will progress rapidly, and `AgentConfigOverride` has limited external consumers. `hubclient.AgentConfig` ad-hoc fields are similarly removed and replaced with a `ScionConfig` field.
+**Decision:** Remove `AgentConfigOverride` directly in Phase 2 without a compatibility shim. Phases will progress rapidly, and `AgentConfigOverride` has limited external consumers. `hubclient.AgentConfig` ad-hoc fields are similarly removed and replaced with a `FabricConfig` field.
 
 ### Environment/secrets gathering
 
-**Decision:** `ScionConfig` participates fully in the env-gather flow. A `ScionConfig` can declare required environment variables or secrets by specifying a key with no value (empty string). The broker evaluates completeness the same way regardless of config source, prompting for or erroring on missing required values.
+**Decision:** `FabricConfig` participates fully in the env-gather flow. A `FabricConfig` can declare required environment variables or secrets by specifying a key with no value (empty string). The broker evaluates completeness the same way regardless of config source, prompting for or erroring on missing required values.
 
 ### Home directory files
 
@@ -444,14 +444,14 @@ The following questions were raised during review and have been resolved:
 
 ### No Breaking Changes
 
-- Existing `scion start --type <template>` continues to work identically
+- Existing `fabric start --type <template>` continues to work identically
 - Existing Hub API `CreateAgentRequest` without `config` is unchanged
-- Existing `scion-agent.yaml` template format is unchanged and gains inline content support for free
+- Existing `fabric-agent.yaml` template format is unchanged and gains inline content support for free
 
 ### Migration Path
 
-1. **Phase 1:** `ScionConfig` gains new fields. `--config` flag added to CLI. No API changes.
-2. **Phase 2:** Hub API gains `config` field. `AgentConfigOverride` and `hubclient.AgentConfig` ad-hoc fields removed and replaced with `ScionConfig`.
+1. **Phase 1:** `FabricConfig` gains new fields. `--config` flag added to CLI. No API changes.
+2. **Phase 2:** Hub API gains `config` field. `AgentConfigOverride` and `hubclient.AgentConfig` ad-hoc fields removed and replaced with `FabricConfig`.
 3. **Phase 3+:** Web UI form, config export.
 
 ---
@@ -474,7 +474,7 @@ telemetry:
 schema_version: "1"
 harness_config: claude-default
 model: claude-opus-4-6
-image: us-central1-docker.pkg.dev/my-project/scion/scion-claude:latest
+image: us-central1-docker.pkg.dev/my-project/fabric/fabric-claude:latest
 
 system_prompt: |
   You are a meticulous code reviewer. Focus on:
@@ -522,7 +522,7 @@ task: "Review the latest changes on this branch"
 ### Template-based with overrides
 
 ```yaml
-# Used with: scion start reviewer --type code-review --config this-file.yaml
+# Used with: fabric start reviewer --type code-review --config this-file.yaml
 schema_version: "1"
 model: claude-sonnet-4-6  # Override the template's default model
 env:

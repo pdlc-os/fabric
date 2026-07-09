@@ -17,7 +17,7 @@
 /**
  * Admin server configuration page.
  *
- * Full settings editor for ~/.scion/settings.yaml. Organized into
+ * Full settings editor for ~/.fabric/settings.yaml. Organized into
  * tabs matching the top-level sections of the settings schema.
  * Saves changes back to disk and reloads applicable runtime settings.
  */
@@ -183,9 +183,9 @@ interface ResourceSpec {
 }
 
 interface ServerConfigResponse {
-  scion_version?: string;
-  scion_commit?: string;
-  scion_build_time?: string;
+  fabric_version?: string;
+  fabric_commit?: string;
+  fabric_build_time?: string;
   schema_version: string;
   active_profile?: string;
   default_template?: string;
@@ -309,8 +309,8 @@ const KOANF_KEY_LABELS: Record<string, string> = {
   'server.notification_channels': 'Notification Channels',
 };
 
-@customElement('scion-page-admin-server-config')
-export class ScionPageAdminServerConfig extends LitElement {
+@customElement('fabric-page-admin-server-config')
+export class FabricPageAdminServerConfig extends LitElement {
   @state() private loading = true;
   @state() private saving = false;
   @state() private error: string | null = null;
@@ -319,9 +319,9 @@ export class ScionPageAdminServerConfig extends LitElement {
   @state() private reloadResult: ReloadResult | null = null;
 
   // ── Read-only server build info ──
-  @state() private scionVersion = '';
-  @state() private scionCommit = '';
-  @state() private scionBuildTime = '';
+  @state() private fabricVersion = '';
+  @state() private fabricCommit = '';
+  @state() private fabricBuildTime = '';
 
   // ── Update check state ──
   @state() private updateCheckLoading = false;
@@ -462,25 +462,25 @@ export class ScionPageAdminServerConfig extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .header-description {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0 0 1.5rem 0;
     }
 
     sl-tab-group {
-      --indicator-color: var(--scion-primary, #3b82f6);
+      --indicator-color: var(--fabric-primary, #3b82f6);
     }
 
     sl-tab-group::part(base) {
@@ -489,16 +489,16 @@ export class ScionPageAdminServerConfig extends LitElement {
 
     sl-tab::part(base) {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding: 0.75rem 1rem;
     }
 
     sl-tab::part(base):hover {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     sl-tab[active]::part(base) {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     sl-tab-panel::part(base) {
@@ -506,9 +506,9 @@ export class ScionPageAdminServerConfig extends LitElement {
     }
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -516,10 +516,10 @@ export class ScionPageAdminServerConfig extends LitElement {
     .section-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .form-grid {
@@ -547,12 +547,12 @@ export class ScionPageAdminServerConfig extends LitElement {
     .form-field label {
       font-size: 0.8125rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .form-field .hint {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .version-info {
@@ -570,23 +570,23 @@ export class ScionPageAdminServerConfig extends LitElement {
     .version-label {
       font-size: 0.75rem;
       font-weight: 500;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.025em;
     }
 
     .version-value {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .version-value code {
       font-family: var(--sl-font-mono, monospace);
       font-size: 0.8125rem;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
       padding: 0.125rem 0.375rem;
       border-radius: 0.25rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .version-actions {
@@ -625,7 +625,7 @@ export class ScionPageAdminServerConfig extends LitElement {
       font-size: 0.8125rem;
       font-family: var(--sl-font-mono, monospace);
       line-height: 1.5;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .update-commits .commit-hash {
@@ -642,7 +642,7 @@ export class ScionPageAdminServerConfig extends LitElement {
     .update-current {
       margin-top: 0.5rem;
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .update-error {
@@ -655,17 +655,17 @@ export class ScionPageAdminServerConfig extends LitElement {
     sl-select::part(combobox),
     sl-textarea::part(base) {
       font-size: 0.875rem;
-      border-color: var(--scion-border, #e2e8f0);
-      background: var(--scion-surface, #ffffff);
+      border-color: var(--fabric-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
     }
 
     sl-input::part(input),
     sl-textarea::part(textarea) {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     sl-switch {
-      --sl-color-primary-600: var(--scion-primary, #3b82f6);
+      --sl-color-primary-600: var(--fabric-primary, #3b82f6);
     }
 
     .actions {
@@ -673,7 +673,7 @@ export class ScionPageAdminServerConfig extends LitElement {
       align-items: center;
       gap: 1rem;
       padding: 1rem 0;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
       margin-top: 1rem;
     }
 
@@ -684,34 +684,34 @@ export class ScionPageAdminServerConfig extends LitElement {
     .status-message {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       margin-bottom: 1rem;
     }
 
     .status-message.success {
-      background: var(--scion-success-bg, #dcfce7);
-      color: var(--scion-success-text, #166534);
-      border: 1px solid var(--scion-success-border, #86efac);
+      background: var(--fabric-success-bg, #dcfce7);
+      color: var(--fabric-success-text, #166534);
+      border: 1px solid var(--fabric-success-border, #86efac);
     }
 
     .status-message.error {
-      background: var(--scion-error-bg, #fef2f2);
-      color: var(--scion-error-text, #991b1b);
-      border: 1px solid var(--scion-error-border, #fca5a5);
+      background: var(--fabric-error-bg, #fef2f2);
+      color: var(--fabric-error-text, #991b1b);
+      border: 1px solid var(--fabric-error-border, #fca5a5);
     }
 
     .reload-info {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.5rem;
     }
 
     .reload-info .applied {
-      color: var(--scion-success-text, #166534);
+      color: var(--fabric-success-text, #166534);
     }
 
     .reload-info .restart {
-      color: var(--scion-warning-text, #92400e);
+      color: var(--fabric-warning-text, #92400e);
     }
 
     .loading-container {
@@ -722,7 +722,7 @@ export class ScionPageAdminServerConfig extends LitElement {
     }
 
     .masked-value {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-style: italic;
       font-size: 0.8125rem;
     }
@@ -735,7 +735,7 @@ export class ScionPageAdminServerConfig extends LitElement {
       gap: 0.5rem;
       padding: 0.75rem 1rem;
       margin-bottom: 1.5rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       background: var(--sl-color-warning-50, #fffbeb);
       border: 1px solid var(--sl-color-warning-200, #fde68a);
       color: var(--sl-color-warning-800, #92400e);
@@ -794,7 +794,7 @@ export class ScionPageAdminServerConfig extends LitElement {
       flex-wrap: wrap;
       gap: 0.75rem;
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: -0.5rem;
       margin-bottom: 0.75rem;
     }
@@ -813,7 +813,7 @@ export class ScionPageAdminServerConfig extends LitElement {
 
     .ignored-keys-notice {
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       background: var(--sl-color-neutral-50, #f8fafc);
       border: 1px solid var(--sl-color-neutral-200, #e2e8f0);
       color: var(--sl-color-neutral-700, #334155);
@@ -861,9 +861,9 @@ export class ScionPageAdminServerConfig extends LitElement {
 
   private populateForm(data: ServerConfigResponse): void {
     // Server build info
-    this.scionVersion = data.scion_version || '';
-    this.scionCommit = data.scion_commit || '';
-    this.scionBuildTime = data.scion_build_time || '';
+    this.fabricVersion = data.fabric_version || '';
+    this.fabricCommit = data.fabric_commit || '';
+    this.fabricBuildTime = data.fabric_build_time || '';
 
     // General
     this.activeProfile = data.active_profile || '';
@@ -1364,28 +1364,28 @@ export class ScionPageAdminServerConfig extends LitElement {
   // ── Tab renderers ──
 
   private renderVersionInfo() {
-    if (!this.scionVersion && !this.scionCommit) return nothing;
+    if (!this.fabricVersion && !this.fabricCommit) return nothing;
     const r = this.updateCheckResult;
     return html`
       <div class="section">
-        <h3 class="section-title">Scion Server Version</h3>
+        <h3 class="section-title">Fabric Server Version</h3>
         <div class="version-info">
-          ${this.scionVersion
+          ${this.fabricVersion
             ? html`<div class="version-item">
                 <span class="version-label">Version</span>
-                <span class="version-value">${this.scionVersion}</span>
+                <span class="version-value">${this.fabricVersion}</span>
               </div>`
             : nothing}
-          ${this.scionCommit
+          ${this.fabricCommit
             ? html`<div class="version-item">
                 <span class="version-label">Git Commit</span>
-                <span class="version-value"><code>${this.scionCommit}</code></span>
+                <span class="version-value"><code>${this.fabricCommit}</code></span>
               </div>`
             : nothing}
-          ${this.scionBuildTime
+          ${this.fabricBuildTime
             ? html`<div class="version-item">
                 <span class="version-label">Build Time</span>
-                <span class="version-value">${this.scionBuildTime}</span>
+                <span class="version-value">${this.fabricBuildTime}</span>
               </div>`
             : nothing}
           <div class="version-actions">
@@ -2126,7 +2126,7 @@ export class ScionPageAdminServerConfig extends LitElement {
           <strong style="font-size: 0.875rem">${label}</strong>
           ${configured.map(
             (p) => html`
-              <div style="margin-left: 1rem; font-size: 0.8125rem; color: var(--scion-text-muted)">
+              <div style="margin-left: 1rem; font-size: 0.8125rem; color: var(--fabric-text-muted)">
                 ${p.name}: ${p.p?.client_id || ''} / <span class="masked-value">********</span>
               </div>
             `
@@ -2268,7 +2268,7 @@ export class ScionPageAdminServerConfig extends LitElement {
             ${this.renderEnvBadge('telemetry.local.file')}
             <sl-input
               value=${this.telemetryLocalFile}
-              placeholder="/var/log/scion/telemetry.log"
+              placeholder="/var/log/fabric/telemetry.log"
               @sl-input=${(e: Event) => {
                 this.telemetryLocalFile = (e.target as HTMLInputElement).value;
               }}
@@ -2289,7 +2289,7 @@ export class ScionPageAdminServerConfig extends LitElement {
           ? html`<div style="text-align: center; padding: 1rem;"><sl-spinner></sl-spinner></div>`
           : this.gcpQuotaData
             ? this.renderGCPQuotaContent()
-            : html`<p style="color: var(--scion-text-muted);">
+            : html`<p style="color: var(--fabric-text-muted);">
                   Click "Load Quota" to fetch current minting statistics.
                 </p>
                 <sl-button size="small" @click=${() => this.loadGCPQuota()}>
@@ -2305,7 +2305,7 @@ export class ScionPageAdminServerConfig extends LitElement {
 
     if (!q.minting_configured) {
       return html`
-        <p style="color: var(--scion-text-muted);">
+        <p style="color: var(--fabric-text-muted);">
           GCP service account minting is not configured on this Hub. Set
           <code>GCPProjectID</code> and ensure the Hub SA has
           <code>roles/iam.serviceAccountCreator</code> to enable minting.
@@ -2346,7 +2346,7 @@ export class ScionPageAdminServerConfig extends LitElement {
               ${q.projects.map(
                 (p) => html`
                   <div
-                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--scion-bg-subtle, #f8fafc); border: 1px solid var(--scion-border, #e2e8f0); border-radius: var(--scion-radius, 0.5rem);"
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--fabric-bg-subtle, #f8fafc); border: 1px solid var(--fabric-border, #e2e8f0); border-radius: var(--fabric-radius, 0.5rem);"
                   >
                     <sl-icon name="folder"></sl-icon>
                     <div style="flex: 1;">
@@ -2361,7 +2361,7 @@ export class ScionPageAdminServerConfig extends LitElement {
             </div>
           `
         : html`
-            <p style="color: var(--scion-text-muted); margin-top: 1rem;">
+            <p style="color: var(--fabric-text-muted); margin-top: 1rem;">
               No service accounts have been minted yet.
             </p>
           `}
@@ -2449,7 +2449,7 @@ export class ScionPageAdminServerConfig extends LitElement {
               }}
             ></sl-textarea>
             ${this.githubAppHasPrivateKey
-              ? html`<span style="font-size: 0.75rem; color: var(--scion-success-text, #166534);"
+              ? html`<span style="font-size: 0.75rem; color: var(--fabric-success-text, #166534);"
                   >Stored as hub secret: GITHUB_APP_PRIVATE_KEY</span
                 >`
               : ''}
@@ -2473,7 +2473,7 @@ export class ScionPageAdminServerConfig extends LitElement {
               }}
             ></sl-input>
             ${this.githubAppHasWebhookSecret
-              ? html`<span style="font-size: 0.75rem; color: var(--scion-success-text, #166534);"
+              ? html`<span style="font-size: 0.75rem; color: var(--fabric-success-text, #166534);"
                   >Stored as hub secret: GITHUB_APP_WEBHOOK_SECRET</span
                 >`
               : ''}
@@ -2531,10 +2531,10 @@ export class ScionPageAdminServerConfig extends LitElement {
             Save GitHub App Configuration
           </sl-button>
           ${this.githubAppConfigured
-            ? html`<span style="font-size: 0.75rem; color: var(--scion-success-text, #166534);"
+            ? html`<span style="font-size: 0.75rem; color: var(--fabric-success-text, #166534);"
                 >Configured</span
               >`
-            : html`<span style="font-size: 0.75rem; color: var(--scion-text-muted, #64748b);"
+            : html`<span style="font-size: 0.75rem; color: var(--fabric-text-muted, #64748b);"
                 >Not configured</span
               >`}
         </div>
@@ -2573,7 +2573,7 @@ export class ScionPageAdminServerConfig extends LitElement {
                     <sl-spinner></sl-spinner>
                   </div>`
                 : this.githubAppInstallations.length === 0
-                  ? html`<p style="color: var(--scion-text-muted);">
+                  ? html`<p style="color: var(--fabric-text-muted);">
                       No installations found. Click "Discover from GitHub" to sync.
                     </p>`
                   : html`
@@ -2581,14 +2581,14 @@ export class ScionPageAdminServerConfig extends LitElement {
                         ${this.githubAppInstallations.map(
                           (inst) => html`
                             <div
-                              style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--scion-bg-subtle, #f8fafc); border: 1px solid var(--scion-border, #e2e8f0); border-radius: var(--scion-radius, 0.5rem);"
+                              style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--fabric-bg-subtle, #f8fafc); border: 1px solid var(--fabric-border, #e2e8f0); border-radius: var(--fabric-radius, 0.5rem);"
                             >
                               <sl-icon
                                 name=${inst.account_type === 'Organization' ? 'building' : 'person'}
                               ></sl-icon>
                               <div style="flex: 1;">
                                 <strong>${inst.account_login}</strong>
-                                <div style="font-size: 0.75rem; color: var(--scion-text-muted);">
+                                <div style="font-size: 0.75rem; color: var(--fabric-text-muted);">
                                   ${inst.account_type} · ${inst.repositories?.length || 0} repos ·
                                   ID: ${inst.installation_id}
                                 </div>
@@ -2861,6 +2861,6 @@ export class ScionPageAdminServerConfig extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-server-config': ScionPageAdminServerConfig;
+    'fabric-page-admin-server-config': FabricPageAdminServerConfig;
   }
 }

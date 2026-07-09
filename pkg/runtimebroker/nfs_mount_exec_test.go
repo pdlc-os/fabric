@@ -73,7 +73,7 @@ func TestExecMountChecker_Mount_Success(t *testing.T) {
 		return nil, nil
 	}
 
-	err := checker.Mount("10.0.0.2", "/scion-ws", "/mnt/nfs/ws1", "vers=3,hard")
+	err := checker.Mount("10.0.0.2", "/fabric-ws", "/mnt/nfs/ws1", "vers=3,hard")
 	if err != nil {
 		t.Fatalf("Mount error: %v", err)
 	}
@@ -82,8 +82,8 @@ func TestExecMountChecker_Mount_Success(t *testing.T) {
 		t.Errorf("expected mount command, got %s", capturedName)
 	}
 
-	// Expected args: -t nfs -o vers=3,hard 10.0.0.2:/scion-ws /mnt/nfs/ws1
-	wantArgs := []string{"-t", "nfs", "-o", "vers=3,hard", "10.0.0.2:/scion-ws", "/mnt/nfs/ws1"}
+	// Expected args: -t nfs -o vers=3,hard 10.0.0.2:/fabric-ws /mnt/nfs/ws1
+	wantArgs := []string{"-t", "nfs", "-o", "vers=3,hard", "10.0.0.2:/fabric-ws", "/mnt/nfs/ws1"}
 	if len(capturedArgs) != len(wantArgs) {
 		t.Fatalf("args len = %d, want %d: %v", len(capturedArgs), len(wantArgs), capturedArgs)
 	}
@@ -101,7 +101,7 @@ func TestExecMountChecker_Mount_Failure(t *testing.T) {
 		return []byte("mount: permission denied"), fmt.Errorf("exit status 32")
 	}
 
-	err := checker.Mount("10.0.0.2", "/scion-ws", "/mnt/nfs/ws1", "vers=3,hard")
+	err := checker.Mount("10.0.0.2", "/fabric-ws", "/mnt/nfs/ws1", "vers=3,hard")
 	if err == nil {
 		t.Fatal("expected error from mount failure")
 	}

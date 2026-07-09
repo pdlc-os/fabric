@@ -17,8 +17,8 @@ import (
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 var botMentionRe = regexp.MustCompile(`<@[A-Z0-9]+>\s*`)
@@ -367,12 +367,12 @@ func (s *eventServer) deliverUserMessage(channelID, threadID, userID, text strin
 	}
 	if mapping == nil {
 		s.client.PostEphemeral(channelID, userID,
-			slackapi.MsgOptionText("Please use `/scion register` first to interact with agents.", false))
+			slackapi.MsgOptionText("Please use `/fabric register` first to interact with agents.", false))
 		return
 	}
 
-	sender := "user:" + mapping.ScionEmail
-	if mapping.ScionEmail == "" {
+	sender := "user:" + mapping.FabricEmail
+	if mapping.FabricEmail == "" {
 		sender = "slack:" + mapping.SlackUsername
 	}
 

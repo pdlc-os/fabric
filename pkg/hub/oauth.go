@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // OAuthProviderConfig holds OAuth credentials for a single provider.

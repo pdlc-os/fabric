@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func writeFile(t *testing.T, path, content string) {
@@ -39,11 +39,11 @@ func writeFile(t *testing.T, path, content string) {
 func newTestContainerScriptHarness(t *testing.T) (*ContainerScriptHarness, string) {
 	t.Helper()
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: scion-test:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: fabric-test:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 	entry := config.HarnessConfigEntry{
 		Harness:          "testharness",
-		Image:            "scion-test:latest",
+		Image:            "fabric-test:latest",
 		ConfigDir:        ".test",
 		SkillsDir:        ".test/skills",
 		InterruptKey:     "Escape",
@@ -53,7 +53,7 @@ func newTestContainerScriptHarness(t *testing.T) (*ContainerScriptHarness, strin
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 			Timeout:          "10s",
 			LifecycleEvents:  []string{"pre-start"},
 		},
@@ -102,18 +102,18 @@ func TestContainerScriptHarness_BasicGetters(t *testing.T) {
 
 func TestContainerScriptHarness_GetInterruptSequence(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: seqtest\nimage: scion-test:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: seqtest\nimage: fabric-test:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 
 	// No sequence configured — should return nil.
 	entry := config.HarnessConfigEntry{
 		Harness:      "seqtest",
-		Image:        "scion-test:latest",
+		Image:        "fabric-test:latest",
 		InterruptKey: "C-c",
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 		},
 	}
 	h, err := NewContainerScriptHarness(dir, entry)
@@ -154,9 +154,9 @@ func TestContainerScriptHarness_GetInterruptSequence(t *testing.T) {
 
 func TestContainerScriptHarness_GetEnvTemplating(t *testing.T) {
 	h, _ := newTestContainerScriptHarness(t)
-	env := h.GetEnv("agent42", "/home/scion", "scion")
-	if env["SCION_AGENT_NAME"] != "agent42" {
-		t.Errorf("SCION_AGENT_NAME=%q", env["SCION_AGENT_NAME"])
+	env := h.GetEnv("agent42", "/home/fabric", "fabric")
+	if env["FABRIC_AGENT_NAME"] != "agent42" {
+		t.Errorf("FABRIC_AGENT_NAME=%q", env["FABRIC_AGENT_NAME"])
 	}
 	if env["TEST_AGENT"] != "agent42" {
 		t.Errorf("TEST_AGENT=%q want agent42", env["TEST_AGENT"])
@@ -179,7 +179,7 @@ func TestContainerScriptHarness_StagesBundle(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	bundle := filepath.Join(agentHome, ".scion", "harness")
+	bundle := filepath.Join(agentHome, ".fabric", "harness")
 	for _, want := range []string{
 		"config.yaml",
 		"provision.py",
@@ -210,7 +210,7 @@ func TestContainerScriptHarness_StagesBundle(t *testing.T) {
 	if manifest.HarnessConfig.Provisioner == nil || manifest.HarnessConfig.Provisioner.Type != "container-script" {
 		t.Errorf("manifest.HarnessConfig.Provisioner unset or wrong type")
 	}
-	if !strings.HasPrefix(manifest.HarnessBundleDir, "$HOME/.scion/harness") {
+	if !strings.HasPrefix(manifest.HarnessBundleDir, "$HOME/.fabric/harness") {
 		t.Errorf("HarnessBundleDir=%q does not target $HOME", manifest.HarnessBundleDir)
 	}
 	if !strings.HasSuffix(manifest.Inputs.Instructions, "instructions.md") {
@@ -221,7 +221,7 @@ func TestContainerScriptHarness_StagesBundle(t *testing.T) {
 	}
 
 	// Hook wrapper should be staged and executable.
-	wrapper := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d", "20-harness-provision")
+	wrapper := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d", "20-harness-provision")
 	info, err := os.Stat(wrapper)
 	if err != nil {
 		t.Fatalf("missing hook wrapper: %v", err)
@@ -230,8 +230,8 @@ func TestContainerScriptHarness_StagesBundle(t *testing.T) {
 		t.Errorf("hook wrapper not executable: mode=%v", info.Mode())
 	}
 	wrapperData, _ := os.ReadFile(wrapper)
-	if !strings.Contains(string(wrapperData), "sciontool harness provision --manifest") {
-		t.Errorf("hook wrapper missing sciontool invocation: %s", wrapperData)
+	if !strings.Contains(string(wrapperData), "fabrictool harness provision --manifest") {
+		t.Errorf("hook wrapper missing fabrictool invocation: %s", wrapperData)
 	}
 
 	// Verify provision.py was copied (executable).
@@ -273,7 +273,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_WritesCandidates(t *testing.T)
 	if err := h.ApplyAuthSettings(agentHome, resolved); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(agentHome, ".scion", "harness", "inputs", "auth-candidates.json"))
+	data, err := os.ReadFile(filepath.Join(agentHome, ".fabric", "harness", "inputs", "auth-candidates.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,16 +289,16 @@ func TestContainerScriptHarness_ApplyAuthSettings_WritesCandidates(t *testing.T)
 func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets(t *testing.T) {
 	// Harness entry with a required_files declaration matching Codex auth-file.
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: codex\nimage: scion-codex:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: codex\nimage: fabric-codex:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 
 	entry := config.HarnessConfigEntry{
 		Harness: "codex",
-		Image:   "scion-codex:latest",
+		Image:   "fabric-codex:latest",
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 		},
 		Auth: &config.HarnessAuthMetadata{
 			Types: map[string]config.HarnessAuthTypeMetadata{
@@ -344,7 +344,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets(t *testing.T
 	}
 
 	// The secret file should be written at secrets/CODEX_AUTH with mode 0600.
-	secretPath := filepath.Join(agentHome, ".scion", "harness", "secrets", "CODEX_AUTH")
+	secretPath := filepath.Join(agentHome, ".fabric", "harness", "secrets", "CODEX_AUTH")
 	info, err := os.Stat(secretPath)
 	if err != nil {
 		t.Fatalf("staged secret not found at %s: %v", secretPath, err)
@@ -358,7 +358,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets(t *testing.T
 	}
 
 	// auth-candidates.json should have file_secret_files.CODEX_AUTH set.
-	data, err := os.ReadFile(filepath.Join(agentHome, ".scion", "harness", "inputs", "auth-candidates.json"))
+	data, err := os.ReadFile(filepath.Join(agentHome, ".fabric", "harness", "inputs", "auth-candidates.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -374,7 +374,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets(t *testing.T
 	if !ok || codexAuthPath == "" {
 		t.Errorf("file_secret_files.CODEX_AUTH missing or empty: %v", fsf)
 	}
-	if !strings.HasPrefix(codexAuthPath, "$HOME/.scion/harness/secrets/") {
+	if !strings.HasPrefix(codexAuthPath, "$HOME/.fabric/harness/secrets/") {
 		t.Errorf("file_secret_files.CODEX_AUTH=%q does not have expected prefix", codexAuthPath)
 	}
 
@@ -387,19 +387,19 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets(t *testing.T
 
 func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets_AbsolutePath(t *testing.T) {
 	// Identical harness setup to StagesFileSecrets, but the FileMapping uses an
-	// absolute container path (/home/scion/.codex/auth.json) instead of the
+	// absolute container path (/home/fabric/.codex/auth.json) instead of the
 	// tilde form (~/.codex/auth.json). HasSuffix matching must handle both.
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: codex\nimage: scion-codex:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: codex\nimage: fabric-codex:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 
 	entry := config.HarnessConfigEntry{
 		Harness: "codex",
-		Image:   "scion-codex:latest",
+		Image:   "fabric-codex:latest",
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 		},
 		Auth: &config.HarnessAuthMetadata{
 			Types: map[string]config.HarnessAuthTypeMetadata{
@@ -430,7 +430,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets_AbsolutePath
 		Method:  "container-script",
 		EnvVars: map[string]string{},
 		Files: []api.FileMapping{
-			{SourcePath: hostAuthFile, ContainerPath: "/home/scion/.codex/auth.json"},
+			{SourcePath: hostAuthFile, ContainerPath: "/home/fabric/.codex/auth.json"},
 		},
 	}
 
@@ -444,7 +444,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets_AbsolutePath
 	}
 
 	// Secret file should be written.
-	secretPath := filepath.Join(agentHome, ".scion", "harness", "secrets", "CODEX_AUTH")
+	secretPath := filepath.Join(agentHome, ".fabric", "harness", "secrets", "CODEX_AUTH")
 	content, err := os.ReadFile(secretPath)
 	if err != nil {
 		t.Fatalf("staged secret not found at %s: %v", secretPath, err)
@@ -454,7 +454,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_StagesFileSecrets_AbsolutePath
 	}
 
 	// auth-candidates.json must carry file_secret_files.CODEX_AUTH.
-	data, err := os.ReadFile(filepath.Join(agentHome, ".scion", "harness", "inputs", "auth-candidates.json"))
+	data, err := os.ReadFile(filepath.Join(agentHome, ".fabric", "harness", "inputs", "auth-candidates.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -498,7 +498,7 @@ func TestContainerScriptHarness_ApplyAuthSettings_NonFileCredentialKeptAsBindMou
 	}
 
 	// No secret should be staged.
-	secretDir := filepath.Join(agentHome, ".scion", "harness", "secrets")
+	secretDir := filepath.Join(agentHome, ".fabric", "harness", "secrets")
 	entries, _ := os.ReadDir(secretDir)
 	for _, e := range entries {
 		t.Errorf("unexpected secret staged: %s", e.Name())
@@ -523,7 +523,7 @@ func TestContainerScriptHarness_ApplyMCPSettings_WritesInput(t *testing.T) {
 	if err := h.ApplyMCPSettings(agentHome, servers); err != nil {
 		t.Fatal(err)
 	}
-	data, err := os.ReadFile(filepath.Join(agentHome, ".scion", "harness", "inputs", "mcp-servers.json"))
+	data, err := os.ReadFile(filepath.Join(agentHome, ".fabric", "harness", "inputs", "mcp-servers.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -549,42 +549,42 @@ func TestContainerScriptHarness_ApplyMCPSettings_NoOpEmpty(t *testing.T) {
 	if err := h.ApplyMCPSettings(agentHome, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(agentHome, ".scion", "harness", "inputs", "mcp-servers.json")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(agentHome, ".fabric", "harness", "inputs", "mcp-servers.json")); !os.IsNotExist(err) {
 		t.Errorf("empty mcp servers should not write file; stat err=%v", err)
 	}
 }
 
-func TestContainerScriptHarness_StagesScionHarnessHelper(t *testing.T) {
+func TestContainerScriptHarness_StagesFabricHarnessHelper(t *testing.T) {
 	h, _ := newTestContainerScriptHarness(t)
 	agentHome := t.TempDir()
 	if err := h.Provision(context.Background(), "agent1", agentHome, agentHome, "/workspace"); err != nil {
 		t.Fatal(err)
 	}
-	helper := filepath.Join(agentHome, ".scion", "harness", "scion_harness.py")
+	helper := filepath.Join(agentHome, ".fabric", "harness", "fabric_harness.py")
 	staged, err := os.ReadFile(helper)
 	if err != nil {
-		t.Fatalf("scion_harness.py not staged: %v", err)
+		t.Fatalf("fabric_harness.py not staged: %v", err)
 	}
 	if string(staged) != string(SharedHarnessHelperSource()) {
-		t.Errorf("staged scion_harness.py does not match embedded source")
+		t.Errorf("staged fabric_harness.py does not match embedded source")
 	}
 }
 
 func TestContainerScriptHarness_VendoredLibStagesFromConfigDir(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: scion-test:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: fabric-test:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
 	libContent := "# vendored lib\nLIB_VERSION = \"2026-07-05\"\n"
-	writeFile(t, filepath.Join(dir, "scion_harness.py"), libContent)
+	writeFile(t, filepath.Join(dir, "fabric_harness.py"), libContent)
 	entry := config.HarnessConfigEntry{
 		Harness:   "testharness",
-		Image:     "scion-test:latest",
+		Image:     "fabric-test:latest",
 		ConfigDir: ".test",
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
 			Lib:              "vendored",
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 			Timeout:          "10s",
 			LifecycleEvents:  []string{"pre-start"},
 		},
@@ -597,10 +597,10 @@ func TestContainerScriptHarness_VendoredLibStagesFromConfigDir(t *testing.T) {
 	if err := h.Provision(context.Background(), "agent1", agentHome, agentHome, "/workspace"); err != nil {
 		t.Fatal(err)
 	}
-	helper := filepath.Join(agentHome, ".scion", "harness", "scion_harness.py")
+	helper := filepath.Join(agentHome, ".fabric", "harness", "fabric_harness.py")
 	staged, err := os.ReadFile(helper)
 	if err != nil {
-		t.Fatalf("scion_harness.py not staged: %v", err)
+		t.Fatalf("fabric_harness.py not staged: %v", err)
 	}
 	if string(staged) != libContent {
 		t.Errorf("vendored lib: got %q, want %q", string(staged), libContent)
@@ -609,18 +609,18 @@ func TestContainerScriptHarness_VendoredLibStagesFromConfigDir(t *testing.T) {
 
 func TestContainerScriptHarness_VendoredLibMissingIsHardError(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: scion-test:latest\n")
+	writeFile(t, filepath.Join(dir, "config.yaml"), "harness: testharness\nimage: fabric-test:latest\n")
 	writeFile(t, filepath.Join(dir, "provision.py"), "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
-	// No scion_harness.py in the config dir.
+	// No fabric_harness.py in the config dir.
 	entry := config.HarnessConfigEntry{
 		Harness:   "testharness",
-		Image:     "scion-test:latest",
+		Image:     "fabric-test:latest",
 		ConfigDir: ".test",
 		Provisioner: &config.HarnessProvisionerConfig{
 			Type:             "container-script",
 			InterfaceVersion: 1,
 			Lib:              "vendored",
-			Command:          []string{"python3", "$HOME/.scion/harness/provision.py"},
+			Command:          []string{"python3", "$HOME/.fabric/harness/provision.py"},
 			Timeout:          "10s",
 			LifecycleEvents:  []string{"pre-start"},
 		},
@@ -651,7 +651,7 @@ func TestContainerScriptHarness_ProvisionReferencesMCPInputInManifest(t *testing
 	if err := h.Provision(context.Background(), "a", agentHome, agentHome, "/workspace"); err != nil {
 		t.Fatal(err)
 	}
-	manifestData, err := os.ReadFile(filepath.Join(agentHome, ".scion", "harness", "manifest.json"))
+	manifestData, err := os.ReadFile(filepath.Join(agentHome, ".fabric", "harness", "manifest.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -666,14 +666,14 @@ func TestContainerScriptHarness_ProvisionReferencesMCPInputInManifest(t *testing
 
 func TestResolve_ContainerScriptDispatch(t *testing.T) {
 	home := t.TempDir()
-	configsDir := filepath.Join(home, ".scion", "harness-configs")
+	configsDir := filepath.Join(home, ".fabric", "harness-configs")
 	hcDir := filepath.Join(configsDir, "scripted")
 	writeFile(t, filepath.Join(hcDir, "config.yaml"), `harness: scripted
-image: scion-test:latest
+image: fabric-test:latest
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
 `)
 	writeFile(t, filepath.Join(hcDir, "provision.py"), "#!/usr/bin/env python3\n")
 
@@ -709,10 +709,10 @@ func TestResolve_UnknownHarnessFallsToGeneric(t *testing.T) {
 
 func TestResolve_DeclarativeGenericFromConfig(t *testing.T) {
 	home := t.TempDir()
-	configsDir := filepath.Join(home, ".scion", "harness-configs")
+	configsDir := filepath.Join(home, ".fabric", "harness-configs")
 	hcDir := filepath.Join(configsDir, "custom-cli")
 	writeFile(t, filepath.Join(hcDir, "config.yaml"), `harness: custom-cli
-image: scion-base:latest
+image: fabric-base:latest
 config_dir: .custom
 command:
   base: ["customcli", "run"]
@@ -738,14 +738,14 @@ command:
 
 func TestResolve_LegacyBuiltinOpencode(t *testing.T) {
 	home := t.TempDir()
-	configsDir := filepath.Join(home, ".scion", "harness-configs")
+	configsDir := filepath.Join(home, ".fabric", "harness-configs")
 	hcDir := filepath.Join(configsDir, "opencode")
 
 	// Legacy opencode config with provisioner.type: builtin — now treated as
 	// container-script since provisioner.type is implicit.
 	writeFile(t, filepath.Join(hcDir, "config.yaml"), `harness: opencode
-image: scion-opencode:latest
-user: scion
+image: fabric-opencode:latest
+user: fabric
 provisioner:
   type: builtin
   interface_version: 1

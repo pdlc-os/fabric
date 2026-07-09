@@ -16,7 +16,7 @@
 ### N1-4B: nfsBackend.Provision implementation
 - Full first-access provisioning flow in `pkg/runtime/workspace_backend_nfs.go`:
   1. Acquire per-project advisory lock (retry loop, 30 attempts × 1s)
-  2. Check sentinel `.scion-provisioned` → short-circuit if present
+  2. Check sentinel `.fabric-provisioned` → short-circuit if present
   3. mkdir -p workspace + shared-dirs
   4. Git clone if project is git-backed
   5. chown to stable NFS UID/GID (one-time, non-fatal if unprivileged)

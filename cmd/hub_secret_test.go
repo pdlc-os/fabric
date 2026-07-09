@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -61,7 +61,7 @@ func (s secretTestState) restore() {
 // setupSecretProject creates a project directory with settings pointing to the given hub endpoint.
 func setupSecretProject(t *testing.T, home, endpoint string) string {
 	t.Helper()
-	projectDir := filepath.Join(home, "project", ".scion")
+	projectDir := filepath.Join(home, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	settings := map[string]interface{}{
@@ -145,7 +145,7 @@ func TestRunSecretList_WithResults(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
 
 	projectDir := setupSecretProject(t, tmpHome, server.URL)
 	projectPath = projectDir
@@ -167,7 +167,7 @@ func TestRunSecretList_Empty(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
 
 	projectDir := setupSecretProject(t, tmpHome, server.URL)
 	projectPath = projectDir
@@ -193,7 +193,7 @@ func TestRunSecretList_JSON(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
 
 	projectDir := setupSecretProject(t, tmpHome, server.URL)
 	projectPath = projectDir

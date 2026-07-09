@@ -47,42 +47,42 @@ func NewOTelGCPTokenMetrics(mp metric.MeterProvider) (*OTelGCPTokenMetrics, erro
 
 	var err error
 
-	if r.accessRequests, err = m.Int64Counter("scion.hub.gcp.token.access.requests",
+	if r.accessRequests, err = m.Int64Counter("fabric.hub.gcp.token.access.requests",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.access.requests counter: %w", err)
 	}
-	if r.accessSuccesses, err = m.Int64Counter("scion.hub.gcp.token.access.successes",
+	if r.accessSuccesses, err = m.Int64Counter("fabric.hub.gcp.token.access.successes",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.access.successes counter: %w", err)
 	}
-	if r.accessFailures, err = m.Int64Counter("scion.hub.gcp.token.access.failures",
+	if r.accessFailures, err = m.Int64Counter("fabric.hub.gcp.token.access.failures",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.access.failures counter: %w", err)
 	}
-	if r.idRequests, err = m.Int64Counter("scion.hub.gcp.token.identity.requests",
+	if r.idRequests, err = m.Int64Counter("fabric.hub.gcp.token.identity.requests",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.identity.requests counter: %w", err)
 	}
-	if r.idSuccesses, err = m.Int64Counter("scion.hub.gcp.token.identity.successes",
+	if r.idSuccesses, err = m.Int64Counter("fabric.hub.gcp.token.identity.successes",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.identity.successes counter: %w", err)
 	}
-	if r.idFailures, err = m.Int64Counter("scion.hub.gcp.token.identity.failures",
+	if r.idFailures, err = m.Int64Counter("fabric.hub.gcp.token.identity.failures",
 		metric.WithUnit("{request}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.identity.failures counter: %w", err)
 	}
-	if r.rateLimitRejects, err = m.Int64Counter("scion.hub.gcp.token.ratelimit.rejections",
+	if r.rateLimitRejects, err = m.Int64Counter("fabric.hub.gcp.token.ratelimit.rejections",
 		metric.WithUnit("{rejection}"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.token.ratelimit.rejections counter: %w", err)
 	}
-	if r.iamDuration, err = m.Float64Histogram("scion.hub.gcp.iam.duration",
+	if r.iamDuration, err = m.Float64Histogram("fabric.hub.gcp.iam.duration",
 		metric.WithUnit("ms"),
 	); err != nil {
 		return nil, fmt.Errorf("creating gcp.iam.duration histogram: %w", err)

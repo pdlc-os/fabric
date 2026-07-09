@@ -21,8 +21,8 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // v1Triggers is the set of authoritative phase transitions that fire lifecycle

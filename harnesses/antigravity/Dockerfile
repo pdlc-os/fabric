@@ -20,9 +20,9 @@ ARG TARGETARCH
 
 USER root
 
-RUN mkdir -p /home/scion/.gemini/antigravity-cli \
-  && mkdir -p /home/scion/.agents \
-  && chown -R scion:scion /home/scion/.gemini /home/scion/.agents
+RUN mkdir -p /home/fabric/.gemini/antigravity-cli \
+  && mkdir -p /home/fabric/.agents \
+  && chown -R fabric:fabric /home/fabric/.gemini /home/fabric/.agents
 
 # Pin the CLI to a specific release version.
 ARG AGY_VERSION=1.0.16

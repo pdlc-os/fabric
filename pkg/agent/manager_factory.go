@@ -17,9 +17,9 @@ package agent
 import (
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/managedagent/google"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/managedagent/google"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // NewManagerForProfile returns a Manager appropriate for the given profile.

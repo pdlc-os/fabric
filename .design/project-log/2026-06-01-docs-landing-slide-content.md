@@ -1,20 +1,20 @@
 # Docs Landing Page: Inline Slideshow Integration
 
 **Date:** 2026-06-01
-**PR:** https://github.com/ptone/scion/pull/117
-**Branch:** scion/dev-docs-landing
+**PR:** https://github.com/ptone/fabric/pull/117
+**Branch:** fabric/dev-docs-landing
 
 ## What Changed
 
-Integrated the full Scion explainer slide deck directly into the docs-site landing page (`docs-site/src/pages/landing.astro`) as an interactive inline slideshow component, replacing the previous iframe embed approach.
+Integrated the full Fabric explainer slide deck directly into the docs-site landing page (`docs-site/src/pages/landing.astro`) as an interactive inline slideshow component, replacing the previous iframe embed approach.
 
 ### Key Changes
 
-1. **Inline slideshow component** — All 7 slides from the hosted deck at `https://storage.googleapis.com/scion-intro-slides/index.html` are now rendered directly in the page. Includes keyboard/touch/click navigation, progress dots, and smooth CSS transitions. The slideshow is contained in a 16:9 aspect-ratio container scoped under `.scion-deck`.
+1. **Inline slideshow component** — All 7 slides from the hosted deck at `https://storage.googleapis.com/fabric-intro-slides/index.html` are now rendered directly in the page. Includes keyboard/touch/click navigation, progress dots, and smooth CSS transitions. The slideshow is contained in a 16:9 aspect-ratio container scoped under `.fabric-deck`.
 
 2. **Interactive widgets recreated inline** — The State Model Simulator, Collaborators Graph (with dynamic agent spawn/delete loop), Reactive Notification Wakeup flow, and Shared Filesystem Simulator are all fully functional with inline JS.
 
-3. **Scoped CSS** — All slideshow styles are namespaced under `.scion-deck` to avoid conflicts with the landing page's own design system (which uses different CSS variables).
+3. **Scoped CSS** — All slideshow styles are namespaced under `.fabric-deck` to avoid conflicts with the landing page's own design system (which uses different CSS variables).
 
 4. **Expanded feature cards** — Below the slideshow, detailed feature cards provide the text content from each slide topic (Agent Definition, Runtime, Collaborators, Notifications, Shared Filesystem, Harness Agnostic).
 

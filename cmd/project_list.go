@@ -19,7 +19,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -27,10 +27,10 @@ var projectListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List all known projects on this machine",
-	Long: `List all projects known to scion, including the global project and all project workspaces. Shows workspace path, type, agent count, and status for each project.
+	Long: `List all projects known to fabric, including the global project and all project workspaces. Shows workspace path, type, agent count, and status for each project.
 
 Orphaned projects (where the workspace no longer exists) are flagged.
-Use 'scion project prune' to clean them up.`,
+Use 'fabric project prune' to clean them up.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projects, err := config.DiscoverProjects()
 		if err != nil {
@@ -45,7 +45,7 @@ Use 'scion project prune' to clean them up.`,
 		}
 
 		if len(projects) == 0 {
-			fmt.Println("No projects found. Run 'scion init' to create one.")
+			fmt.Println("No projects found. Run 'fabric init' to create one.")
 			return nil
 		}
 

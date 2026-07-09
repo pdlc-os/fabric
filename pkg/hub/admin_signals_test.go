@@ -67,7 +67,7 @@ func TestAdminSignal_MarshalRoundTrip(t *testing.T) {
 }
 
 func TestAdminSignalChannel(t *testing.T) {
-	if adminSignalChannel != "scion_integration_admin" {
-		t.Errorf("channel name: got %q, want %q", adminSignalChannel, "scion_integration_admin")
+	if adminSignalChannel != "fabric_integration_admin" {
+		t.Errorf("channel name: got %q, want %q", adminSignalChannel, "fabric_integration_admin")
 	}
 }

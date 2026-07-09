@@ -1,7 +1,7 @@
 # Extras: grove→project Rename (Tier 1)
 
 **Date:** 2026-05-29
-**Scope:** `extras/` directory — fs-watcher-tool, scion-chat-app, scion-a2a-bridge, scion-broker-log
+**Scope:** `extras/` directory — fs-watcher-tool, fabric-chat-app, fabric-a2a-bridge, fabric-broker-log
 
 ## Summary
 
@@ -18,9 +18,9 @@ intentionally preserved.
 - `GroveDiscovery` → `ProjectDiscovery`, `NewGroveDiscovery` → `NewProjectDiscovery`
 - Config field `Grove` → `Project`, local var `grove` → `project`
 - Log prefix `[grove]` → `[project]`
-- **Kept:** `--grove` CLI flag name, `scion.grove=` Docker label filter
+- **Kept:** `--grove` CLI flag name, `fabric.grove=` Docker label filter
 
-### scion-chat-app
+### fabric-chat-app
 - **state.go:** `SpaceLink.GroveID` → `.ProjectID`, `.GroveSlug` → `.ProjectSlug`,
   `AgentSubscription.GroveID` → `.ProjectID`, function params `groveID` → `projectID`
 - **commands.go:** Updated all `client.Groves()` → `.Projects()`,
@@ -30,34 +30,34 @@ intentionally preserved.
   `link.GroveID` → `link.ProjectID`
 - **main.go:** `adminClient.Groves()` → `.Projects()`, `grovesResp` → `projectsResp`,
   comment and log updates
-- **Kept:** `scion.grove.` NATS topic strings, `parts[0] == "grove"` wire
+- **Kept:** `fabric.grove.` NATS topic strings, `parts[0] == "grove"` wire
   protocol check, SQL `grove_id`/`grove_slug` column names, `/api/v1/groves` URL
 
-### scion-a2a-bridge
+### fabric-a2a-bridge
 - **bridge.go:** `grovePattern` local var → `legacyPattern`
 - **server_test.go:** `[]GroveConfig{` → `[]ProjectConfig{`, comment updates
   ("wrong grove" → "wrong project", etc.)
 - **Kept:** `GroveConfig = ProjectConfig` type alias (backward compat for YAML),
-  `scion.grove.` topic strings, `/groves/` legacy URL routes, `SCION_GROVE_ID`
+  `fabric.grove.` topic strings, `/groves/` legacy URL routes, `FABRIC_GROVE_ID`
   env var fallback, `cfg.Groves` YAML field
 
-### scion-broker-log
+### fabric-broker-log
 - No grove references needing changes (already clean)
 
 ## Preserved (Wire Protocol / External Interface)
 
-- NATS topics: `scion.grove.<id>.user.<user>.messages`
-- Container labels: `scion.grove`, `scion.grove_id`
+- NATS topics: `fabric.grove.<id>.user.<user>.messages`
+- Container labels: `fabric.grove`, `fabric.grove_id`
 - SQL DDL/DML: `grove_id`, `grove_slug` column names
 - CLI flags: `--grove`
-- Environment variables: `SCION_GROVE_ID`
+- Environment variables: `FABRIC_GROVE_ID`
 - URL paths: `/api/v1/groves`, `/groves/{slug}/agents/{slug}/...`
 - YAML config keys: `groves:` (legacy field)
 - JSON struct tags: unchanged
 
 ## Pre-existing Issue
 
-`extras/scion-chat-app/internal/identity/identity_test.go` has a pre-existing
+`extras/fabric-chat-app/internal/identity/identity_test.go` has a pre-existing
 vet error (`NewMapper` call missing argument) unrelated to this rename. The
 error existed before the rename changes.
 

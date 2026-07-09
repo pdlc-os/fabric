@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // SkillRegistryService defines operations for skill registries.

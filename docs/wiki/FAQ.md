@@ -1,6 +1,6 @@
-# Scion FAQ
+# Fabric FAQ
 
-> Practical Q&A about what Scion is, how it runs agents, and how to integrate an
+> Practical Q&A about what Fabric is, how it runs agents, and how to integrate an
 > existing Claude Code–based harness with it.
 >
 > **Provenance:** distilled from the captured [Code Wiki](./README.md) plus direct
@@ -14,28 +14,28 @@
 
 ## Table of Contents
 
-- [1. What agentic runtime does Scion use?](#1-what-agentic-runtime-does-scion-use)
-- [2. What is the intent of Scion? How is it better than a harness built on AgentCore?](#2-what-is-the-intent-of-scion-how-is-it-better-than-a-harness-built-on-agentcore)
+- [1. What agentic runtime does Fabric use?](#1-what-agentic-runtime-does-fabric-use)
+- [2. What is the intent of Fabric? How is it better than a harness built on AgentCore?](#2-what-is-the-intent-of-fabric-how-is-it-better-than-a-harness-built-on-agentcore)
 - [3. Does it run on GCP, or can I run it on AWS / Lyzr AI?](#3-does-it-run-on-gcp-or-can-i-run-it-on-aws--lyzr-ai)
-- [4. I have multiple agents (own LLMs/tools/skills) running inside Claude Code. How does Scion wrap around this?](#4-i-have-multiple-agents-own-llmstoolsskills-running-inside-claude-code-how-does-scion-wrap-around-this)
-- [5. Does Scion offer a web UI to run agents? How do I interact with them?](#5-does-scion-offer-a-web-ui-to-run-agents-how-do-i-interact-with-them)
-- [6. In my harness, users interact with Claude. How do I do that inside Scion?](#6-in-my-harness-users-interact-with-claude-how-do-i-do-that-inside-scion)
+- [4. I have multiple agents (own LLMs/tools/skills) running inside Claude Code. How does Fabric wrap around this?](#4-i-have-multiple-agents-own-llmstoolsskills-running-inside-claude-code-how-does-fabric-wrap-around-this)
+- [5. Does Fabric offer a web UI to run agents? How do I interact with them?](#5-does-fabric-offer-a-web-ui-to-run-agents-how-do-i-interact-with-them)
+- [6. In my harness, users interact with Claude. How do I do that inside Fabric?](#6-in-my-harness-users-interact-with-claude-how-do-i-do-that-inside-fabric)
 - [7. Can multiple users share one live attached Claude Code session?](#7-can-multiple-users-share-one-live-attached-claude-code-session)
 - [8. How do I set up "multiple users collaborate with one shared Claude"?](#8-how-do-i-set-up-multiple-users-collaborate-with-one-shared-claude)
 - [9. Can I run Claude Code with `--dangerously-skip-permissions` and attach via the web terminal?](#9-can-i-run-claude-code-with---dangerously-skip-permissions-and-attach-via-the-web-terminal)
-- [10. I have a `jwn-claude` wrapper script (symlinked as `claude`). Can I keep it in Scion?](#10-i-have-a-jwn-claude-wrapper-script-symlinked-as-claude-can-i-keep-it-in-scion)
-- [11. What does each layer of the concentric harness stack (Scion → Claude Code → PDLC) do?](#11-what-does-each-layer-of-the-concentric-harness-stack-scion--claude-code--pdlc-do)
+- [10. I have a `jwn-claude` wrapper script (symlinked as `claude`). Can I keep it in Fabric?](#10-i-have-a-jwn-claude-wrapper-script-symlinked-as-claude-can-i-keep-it-in-fabric)
+- [11. What does each layer of the concentric harness stack (Fabric → Claude Code → PDLC) do?](#11-what-does-each-layer-of-the-concentric-harness-stack-fabric--claude-code--pdlc-do)
 - [12. Why keep the layers separate? Benefits and overlaps to manage](#12-why-keep-the-layers-separate-benefits-and-overlaps-to-manage)
 
 ---
 
-## 1. What agentic runtime does Scion use?
+## 1. What agentic runtime does Fabric use?
 
-"Agentic runtime" maps to **two different layers** in Scion — clarify which you mean.
+"Agentic runtime" maps to **two different layers** in Fabric — clarify which you mean.
 
 ### a) Agent harnesses (the actual LLM coding agents) — **[verified in source]**
 
-Scion is deliberately **harness-agnostic**; there is no single hardcoded agent. LLM
+Fabric is deliberately **harness-agnostic**; there is no single hardcoded agent. LLM
 agents are integrated as opt-in **harness bundles** under `harnesses/<name>/`:
 
 - **Gemini CLI** (`harnesses/gemini-cli`, first-class base image `image-build/gemini`)
@@ -45,15 +45,15 @@ agents are integrated as opt-in **harness bundles** under `harnesses/<name>/`:
 - **Antigravity** (`harnesses/antigravity`)
 - **OpenCode** (`harnesses/opencode`)
 - **Amp** (example: `examples/amp` — script-only harness, no core changes)
-- **ADK** (Agent Development Kit) (`examples/adk_scion_agent`)
+- **ADK** (Agent Development Kit) (`examples/adk_fabric_agent`)
 - **Hermes** (referenced in MCP translation)
 
 Each harness encapsulates that agent's env vars, command construction, auth, and MCP
-translation via `scion_harness.py`. The harness type is resolved at runtime
+translation via `fabric_harness.py`. The harness type is resolved at runtime
 (ContainerScript / declarative-generic / generic). Agent + model are selected per
 agent via **template + harness-config**.
 
-### b) Container runtime (what Scion internally calls "runtime") — **[verified in source]**
+### b) Container runtime (what Fabric internally calls "runtime") — **[verified in source]**
 
 The execution substrate for the agent container, abstracted in `pkg/runtime`:
 
@@ -64,9 +64,9 @@ The execution substrate for the agent container, abstracted in `pkg/runtime`:
 
 ---
 
-## 2. What is the intent of Scion? How is it better than a harness built on AgentCore?
+## 2. What is the intent of Fabric? How is it better than a harness built on AgentCore?
 
-### Scion's intent — **[design/general]**
+### Fabric's intent — **[design/general]**
 
 Orchestrate **many concurrent LLM *coding* agents**, each isolated in its own
 container with a dedicated git worktree, managing their full lifecycle across local
@@ -75,15 +75,15 @@ or distributed compute. Five stated goals: **parallelism, isolation
 templates), and interactivity (detach/attach with human-in-the-loop).**
 
 Load-bearing design choices, all serving *code agents at team scale*:
-- Git worktree per agent (`../.scion_worktrees/...` + feature branch) → N agents edit one repo without conflict.
+- Git worktree per agent (`../.fabric_worktrees/...` + feature branch) → N agents edit one repo without conflict.
 - Harness-agnostic (Gemini/Claude/Codex/Copilot/… behind one `Harness` interface).
 - Hub + Runtime Broker split → centralized state, distributed execution across machines/clusters.
 - Inter-agent messaging + orchestrator patterns (fan-out, sequential, coordinator-relay); a "lead agent" spawns sub-agents within its grove.
 - Container-runtime-agnostic.
 
-**One line:** Scion is a manager for a fleet of collaborating coding agents working on real git repos.
+**One line:** Fabric is a manager for a fleet of collaborating coding agents working on real git repos.
 
-### Scion vs. an AgentCore-built harness — **[general — AgentCore specifics not verified]**
+### Fabric vs. an AgentCore-built harness — **[general — AgentCore specifics not verified]**
 
 They are **not the same category**, which is the crux of the decision.
 
@@ -92,24 +92,24 @@ building blocks (serverless Runtime with session isolation, managed Memory, Gate
 for MCP tools, Identity, Observability, sandboxed Code Interpreter/Browser). Framework-
 agnostic; not opinionated about coding agents or git.
 
-| Dimension | Scion | Harness on AgentCore |
+| Dimension | Fabric | Harness on AgentCore |
 |---|---|---|
 | Sweet spot | Concurrent **coding** agents on git repos | Any agent workload; you define the shape |
 | Git/worktree isolation | First-class, built-in | You build it yourself |
 | Multi-harness (Claude/Gemini/Codex/…) | Built-in abstraction | You wire up each yourself |
 | Infra ops | You self-host Hub/Brokers (or K8s) | AWS-managed, scale-to-zero |
 | Vendor lock-in | None (self-hosted, OSS) | AWS |
-| Human-in-the-loop attach | `scion attach` into live tmux session | Build it |
+| Human-in-the-loop attach | `fabric attach` into live tmux session | Build it |
 | Maturity | Pre-release / alpha | GA managed service |
 
-- **Scion wins** when your problem *is* the coding-fleet problem: many agents, real
+- **Fabric wins** when your problem *is* the coding-fleet problem: many agents, real
   repos, worktree isolation, attach-to-debug, mixing agent vendors, self-hosted / no
   lock-in. It gives you that plumbing out of the box.
 - **AgentCore wins** for a **general** agent where you want someone else to run the
   infra (managed memory, autoscaling, identity/observability, native browser/code-
   interpreter tools, AWS integration).
 - Not mutually exclusive — you could even run a harness's agent process inside
-  AgentCore Runtime, since Scion is harness-agnostic.
+  AgentCore Runtime, since Fabric is harness-agnostic.
 
 ---
 
@@ -117,7 +117,7 @@ agnostic; not opinionated about coding agents or git.
 
 ### Core is cloud-agnostic — **[design/general]**
 
-Scion is a self-hosted Go binary + containers. Nothing forces GCP:
+Fabric is a self-hosted Go binary + containers. Nothing forces GCP:
 - **Runtimes:** Docker, Podman, Apple Container, Kubernetes (any cluster — EKS, GKE, on-prem).
 - **Hub state:** SQLite locally (Postgres for production). Not a GCP-only datastore.
 - **Deployment:** Hub + Runtime Brokers are just processes (wiki shows them under `systemd` on a plain VM — that VM can be EC2, GCE, or a laptop).
@@ -144,58 +144,58 @@ None are load-bearing for core orchestration — they're conveniences for GCP sh
 
 ### Lyzr AI — different category, won't work as a host — **[general — Lyzr specifics not verified]**
 
-Lyzr is an agent-**framework**/SaaS, **not** container/compute infrastructure. Scion
+Lyzr is an agent-**framework**/SaaS, **not** container/compute infrastructure. Fabric
 must own the container lifecycle (spawn containers, mount git worktrees, run
-`sciontool` as PID 1, exec/attach). Lyzr doesn't provide that primitive.
+`fabrictool` as PID 1, exec/attach). Lyzr doesn't provide that primitive.
 
-- **You cannot host Scion on Lyzr** the way you can on AWS/GCP/K8s.
-- Only viable relationship is *integration* (wrap a Lyzr agent as a Scion harness, or
-  have a Scion agent call a Lyzr API) — custom glue, not a supported path.
+- **You cannot host Fabric on Lyzr** the way you can on AWS/GCP/K8s.
+- Only viable relationship is *integration* (wrap a Lyzr agent as a Fabric harness, or
+  have a Fabric agent call a Lyzr API) — custom glue, not a supported path.
 
 ---
 
-## 4. I have multiple agents (own LLMs/tools/skills) running inside Claude Code. How does Scion wrap around this?
+## 4. I have multiple agents (own LLMs/tools/skills) running inside Claude Code. How does Fabric wrap around this?
 
 ### The key mismatch: two orchestration layers — **[design/general]**
 
-Scion's unit of orchestration is **1 Scion agent = 1 container = 1 Claude Code
+Fabric's unit of orchestration is **1 Fabric agent = 1 container = 1 Claude Code
 process** (via the `claude` harness). If your agents run *inside* one Claude Code
-process (Task-tool subagents / in-process SDK orchestration), Scion **cannot see or
-decompose them** — your whole harness looks like *one* agent to Scion. Two layers:
+process (Task-tool subagents / in-process SDK orchestration), Fabric **cannot see or
+decompose them** — your whole harness looks like *one* agent to Fabric. Two layers:
 
-- **Scion's layer** = multi-*container* (isolated, own worktree/creds, cross-container messaging).
+- **Fabric's layer** = multi-*container* (isolated, own worktree/creds, cross-container messaging).
 - **Your layer** = multi-*agent-in-one-process* (shared context/workspace, in-process handoff).
 
 This split gives two paths:
 
-### Path A — Wrap the whole harness as ONE Scion agent (little/no refactor)
-- Package your harness into a Claude Code container (`FROM scion-base`), one template.
+### Path A — Wrap the whole harness as ONE Fabric agent (little/no refactor)
+- Package your harness into a Claude Code container (`FROM fabric-base`), one template.
 - Your multi-agent logic runs unchanged inside it.
-- **Scion adds:** container isolation, git worktree at `/workspace`, lifecycle
-  (start/stop/resume/delete), `scion attach`, Hub visibility, resource limits,
+- **Fabric adds:** container isolation, git worktree at `/workspace`, lifecycle
+  (start/stop/resume/delete), `fabric attach`, Hub visibility, resource limits,
   secret/auth injection.
-- **Scion does NOT** orchestrate/visualize/message your *internal* agents individually.
+- **Fabric does NOT** orchestrate/visualize/message your *internal* agents individually.
 - **Use when** agents share context/workspace and in-process orchestration already works.
 
-### Path B — Make each agent a Scion agent (moderate refactor)
-- Express each agent as a template + wire orchestration to Scion primitives.
-- **Scion adds:** true parallelism, worktree-per-agent isolation, the orchestrator
+### Path B — Make each agent a Fabric agent (moderate refactor)
+- Express each agent as a template + wire orchestration to Fabric primitives.
+- **Fabric adds:** true parallelism, worktree-per-agent isolation, the orchestrator
   pattern (lead agent spawns/manages workers via CLI with
-  `ScopeAgentCreate`/`ScopeAgentLifecycle`), inter-agent `scion message`, per-agent
+  `ScopeAgentCreate`/`ScopeAgentLifecycle`), inter-agent `fabric message`, per-agent
   observability.
 - **Use when** agents are meant to be independent, parallel units on the same repo
-  (Scion's sweet spot).
+  (Fabric's sweet spot).
 
 ### What maps cleanly (either path — you don't rewrite agent logic)
 
-| Your artifact | Scion mapping | Effort |
+| Your artifact | Fabric mapping | Effort |
 |---|---|---|
 | Per-agent LLM/model | Template `model` field + harness-config (alias tiers / project defaults / CLI flag) | Low |
-| Tools (MCP servers) | Universal MCP config; `scion_harness.py` (`apply_mcp_servers_simple`) translates to Claude's native format | Low |
-| Skills | Keep as Claude Code skills in-container, OR convert to Scion `SKILL.md` (agentskills.io, auto-injected) | Low–Med |
-| System prompts / instructions | `system-prompt.md` (persona) + `agents.md` (behavior); projected into Claude's native file, preserving content outside Scion-managed blocks | Low |
+| Tools (MCP servers) | Universal MCP config; `fabric_harness.py` (`apply_mcp_servers_simple`) translates to Claude's native format | Low |
+| Skills | Keep as Claude Code skills in-container, OR convert to Fabric `SKILL.md` (agentskills.io, auto-injected) | Low–Med |
+| System prompts / instructions | `system-prompt.md` (persona) + `agents.md` (behavior); projected into Claude's native file, preserving content outside Fabric-managed blocks | Low |
 | Agent identity/role | Template dir per role, inheriting built-in `default` | Low |
-| In-process orchestration | Path A: unchanged. Path B: → `scion message` + orchestrator pattern | **The only real refactor** |
+| In-process orchestration | Path A: unchanged. Path B: → `fabric message` + orchestrator pattern | **The only real refactor** |
 
 The Claude harness also handles Claude-specific plumbing (OAuth token capture from
 tmux scrollback, iptables egress control, MCP translation) — you don't build that.
@@ -204,16 +204,16 @@ tmux scrollback, iptables egress control, MCP translation) — you don't build t
 tools, skills, per-agent LLM configs carry over). The only thing that changes is
 *who owns orchestration*. Deciding question: **are your agents isolated/parallel
 units (→ Path B) or in-process collaborators sharing one context (→ Path A)?**
-A hybrid (nested: a Scion `claude` agent internally runs Claude Code subagents) is
+A hybrid (nested: a Fabric `claude` agent internally runs Claude Code subagents) is
 also legitimate.
 
 ---
 
-## 5. Does Scion offer a web UI to run agents? How do I interact with them?
+## 5. Does Fabric offer a web UI to run agents? How do I interact with them?
 
 ### The Web UI — **[verified in source / design]**
 
-Scion ships a **Lit + Shoelace SPA** (`web/`), served by the Go `scion` binary when
+Fabric ships a **Lit + Shoelace SPA** (`web/`), served by the Go `fabric` binary when
 started with `--enable-web` (same binary that runs the Hub — no separate service).
 
 It lets you:
@@ -224,7 +224,7 @@ It lets you:
   **Configuration** (static: Identity, Harness & Model, Runtime Environment, Limits,
   Initial Task).
 - Use an **in-browser terminal** (WebSocket PTY to the container).
-- View logs/messages/files (`ScionAgentLogViewer`, `ScionAgentMessageViewer`, JSON
+- View logs/messages/files (`FabricAgentLogViewer`, `FabricAgentMessageViewer`, JSON
   browser, file browser/editor with syntax highlighting + Markdown).
 - Admin: groups, integrations, skill registries; light/dark theming.
 
@@ -233,23 +233,23 @@ It lets you:
 | Channel | How |
 |---|---|
 | Web UI | Create/start/stop, watch live status via SSE, in-browser terminal, view logs/messages/files |
-| CLI — attach | `scion attach <agent>` → live interactive session (local via runtime; Hub-managed via WebSocket into persistent tmux) |
-| CLI — messaging | `scion message` to `agent:<name>`, `user:<email>`, or a group; flags `--interrupt`, `--wake`, `--raw`, `--attach <file>`, scheduled `--in`/`--at` |
-| CLI — inspect | `scion look <agent>` (recent terminal/UI without attaching); `scion list` |
+| CLI — attach | `fabric attach <agent>` → live interactive session (local via runtime; Hub-managed via WebSocket into persistent tmux) |
+| CLI — messaging | `fabric message` to `agent:<name>`, `user:<email>`, or a group; flags `--interrupt`, `--wake`, `--raw`, `--attach <file>`, scheduled `--in`/`--at` |
+| CLI — inspect | `fabric look <agent>` (recent terminal/UI without attaching); `fabric list` |
 | CLI — lifecycle | `create` / `start` / `stop` / `resume` / `delete` / `cdw` |
-| Status signals (agent → you) | `ask_user`, `blocked`, `task_completed` via `sciontool status` → surface as notifications/prompts |
+| Status signals (agent → you) | `ask_user`, `blocked`, `task_completed` via `fabrictool status` → surface as notifications/prompts |
 | Chat bridges | Google Chat, Slack, Discord, Telegram — bidirectional agent↔chat + slash commands |
-| A2A / programmatic | `scion-a2a-bridge` (A2A endpoints); Hub REST API + WebSocket for custom |
+| A2A / programmatic | `fabric-a2a-bridge` (A2A endpoints); Hub REST API + WebSocket for custom |
 
 ### Caveats — **[design/general]**
 1. **Alpha maturity** — the UI is real but rough vs. a polished product, and evolving.
-2. The web UI orchestrates **Scion agents (containers)**, not your in-process sub-agents.
+2. The web UI orchestrates **Fabric agents (containers)**, not your in-process sub-agents.
    Path A → UI shows *one* agent; Path B → UI shows/controls each individually.
 3. **You host it** — served by your Hub via `--enable-web`; no hosted SaaS dashboard.
 
 ---
 
-## 6. In my harness, users interact with Claude. How do I do that inside Scion?
+## 6. In my harness, users interact with Claude. How do I do that inside Fabric?
 
 ### Mechanism — **[verified in source]**
 
@@ -258,28 +258,28 @@ session** in the agent container. Users connect to that session:
 
 | Surface | Experience | Nature |
 |---|---|---|
-| `scion attach <agent>` | Drops into Claude Code's live TUI — real prompt, like your harness today | **Synchronous direct chat** ✅ closest to your model |
+| `fabric attach <agent>` | Drops into Claude Code's live TUI — real prompt, like your harness today | **Synchronous direct chat** ✅ closest to your model |
 | Web UI terminal | WebSocket PTY into the same session — Claude TUI in the browser | Synchronous direct chat, in browser |
-| `scion message <agent> "..."` | Injected via tmux `send-keys`; `--raw` = literal keystrokes, `--interrupt` interrupts | Async / scripted |
+| `fabric message <agent> "..."` | Injected via tmux `send-keys`; `--raw` = literal keystrokes, `--interrupt` interrupts | Async / scripted |
 | Chat bridges | User chats from Slack/etc.; routed to agent, replies back | Async conversational |
 | `ask_user` signal | Claude signals it needs input → user notified → replies via message/attach → continues | Turn-based HITL |
 
-The direct-chat experience your users expect = **`scion attach` or the web terminal**.
-Running inside Scion does not strip Claude Code of its conversational UI.
+The direct-chat experience your users expect = **`fabric attach` or the web terminal**.
+Running inside Fabric does not strip Claude Code of its conversational UI.
 
 ### The tension — **[design/general]**
-Your harness assumes a user *drives* Claude turn-by-turn; Scion's model is
+Your harness assumes a user *drives* Claude turn-by-turn; Fabric's model is
 "give an agent a task, it runs, humans drop in when needed." Gaps:
-1. `scion attach` is a **terminal/PTY session**, not a branded chat widget.
+1. `fabric attach` is a **terminal/PTY session**, not a branded chat widget.
 2. Agents typically start *with* a task; a pure empty "waiting to chat" session is
    more the attach model (start the agent, then attach).
-3. `scion message` is **injection**, not a request/response chat protocol.
+3. `fabric message` is **injection**, not a request/response chat protocol.
 
 ### Which path — **[design/general]**
-- Users chat with *one* Claude → wrap harness as one Scion agent; interact via
-  `scion attach` / web terminal (near drop-in).
+- Users chat with *one* Claude → wrap harness as one Fabric agent; interact via
+  `fabric attach` / web terminal (near drop-in).
 - Users chat via your *own* front-end → build it on the **Hub REST API + WebSocket
-  PTY** (what the web terminal uses) or route through a chat bridge; Scion is the backend.
+  PTY** (what the web terminal uses) or route through a chat bridge; Fabric is the backend.
 - Users pick which of N agents to talk to → Path B (each agent visible individually).
 
 > **Caveat:** WebSocket PTY / Hub API endpoints are from the wiki snapshot; verify
@@ -291,14 +291,14 @@ Your harness assumes a user *drives* Claude turn-by-turn; Scion's model is
 
 **Yes.** — **[verified in source: `pkg/runtimebroker/pty_handlers.go`]**
 
-Every attach (CLI or web) runs `tmux attach-session -t scion` inside the container
+Every attach (CLI or web) runs `tmux attach-session -t fabric` inside the container
 (`pty_handlers.go:50, :544, :929`). tmux natively multiplexes many clients into one
-session. Scion spins up an **independent PTY per WebSocket connection** with **no
+session. Fabric spins up an **independent PTY per WebSocket connection** with **no
 single-client lock**, so:
 
 - Two users open the web terminal for the same agent → both share the same live
   Claude session; both see output; both can type.
-- Mix CLI `scion attach` + multiple browser terminals freely.
+- Mix CLI `fabric attach` + multiple browser terminals freely.
 - It's a genuine **shared collaborative terminal** (tmux shared-session model over WebSocket).
 
 ### Caveats (real) — **[verified in source]**
@@ -326,7 +326,7 @@ This is the **built-in default** — point N users at the same agent. — **[ver
 - **Web terminal (easiest):** start Hub with `--enable-web`; users open the agent's
   detail page → terminal tab. Each browser = authenticated WebSocket → own PTY → same
   tmux session. The attach syncs a toolbar via an OSC escape (`activeWindowOSC`).
-- **CLI:** `scion attach <agent>` (routes via Hub `attachViaHub` when configured, else
+- **CLI:** `fabric attach <agent>` (routes via Hub `attachViaHub` when configured, else
   local). Mix freely with web users.
 
 **Model:** one shared "collab" agent per session/room; share the URL, everyone joins.
@@ -339,7 +339,7 @@ The shipped `.tmux.conf`
 resizes to whichever client resized/attached most recently → jumpy display, truncated
 output for smaller clients. **This is the #1 thing that makes naive shared tmux feel broken.**
 
-**Fix:** add to that file (edit the *source embed*, not `.scion/`, per CLAUDE.md):
+**Fix:** add to that file (edit the *source embed*, not `.fabric/`, per CLAUDE.md):
 ```tmux
 set -g window-size smallest
 set -g aggressive-resize on
@@ -361,7 +361,7 @@ Sizes the session to the smallest attached client → consistent, fully-visible 
 3. Ship as-is if coordinated pairing is acceptable (everyone can type; teams self-coordinate).
 4. Add read-only observer mode / driver floor-control later if needed (bounded additions).
 
-This is squarely in Scion's wheelhouse — the attach/web-terminal design was built for
+This is squarely in Fabric's wheelhouse — the attach/web-terminal design was built for
 HITL on a persistent tmux session; sharing across users is a natural extension.
 
 ---
@@ -375,7 +375,7 @@ The Claude harness (`harnesses/claude/config.yaml:53`) launches:
 command:
   base: ["claude", "--no-chrome", "--dangerously-skip-permissions"]
 ```
-Confirmed in `cmd/sciontool/commands/init.go:1826` and asserted in
+Confirmed in `cmd/fabrictool/commands/init.go:1826` and asserted in
 `init_test.go:665`. It's a deliberate, consistent pattern:
 - **Codex** → `--dangerously-bypass-approvals-and-sandbox --sandbox danger-full-access` (`harnesses/codex/config.yaml:45`)
 - **Antigravity** → `exec agy --dangerously-skip-permissions` (`provision.py:353`)
@@ -392,17 +392,17 @@ to toggle.
    skip-permissions power, and there's no per-user PTY scoping — for a collaborative
    console that's expected, but everyone in the room is effectively an operator.
 2. **If you ever wanted it OFF:** override `command.base` in a custom harness-config
-   (edit source `harnesses/claude/config.yaml`, not `.scion/`). Note Claude Code only
-   allows the flag under conditions (non-root, sandboxed); Scion runs the agent as the
-   `scion` user (`user: scion`), which is why it works here.
+   (edit source `harnesses/claude/config.yaml`, not `.fabric/`). Note Claude Code only
+   allows the flag under conditions (non-root, sandboxed); Fabric runs the agent as the
+   `fabric` user (`user: fabric`), which is why it works here.
 
 ---
 
-## 10. I have a `jwn-claude` wrapper script (symlinked as `claude`). Can I keep it in Scion?
+## 10. I have a `jwn-claude` wrapper script (symlinked as `claude`). Can I keep it in Fabric?
 
 **Yes — it's easy.** — **[verified in source]**
 
-### How Scion launches Claude (relevant facts)
+### How Fabric launches Claude (relevant facts)
 - Command base is a **bare name**: `["claude", "--no-chrome", "--dangerously-skip-permissions"]`
   (`harnesses/claude/config.yaml:53`), resolved via **PATH inside the container**.
 - `claude` is installed via `npm install -g @anthropic-ai/claude-code` in
@@ -416,15 +416,15 @@ as it does on your machine.
 - **Option A — shadow `claude` with your wrapper (recommended, closest to today):**
   Extend `harnesses/claude/Dockerfile` to copy in `jwn-claude` and put a `claude`
   symlink → `jwn-claude` **earlier in PATH** than the npm global bin. Wrapper does its
-  env/telemetry/housekeeping, then `exec`s the real Claude. Scion still calls bare
-  `claude`, unaware. **No Scion config changes.**
+  env/telemetry/housekeeping, then `exec`s the real Claude. Fabric still calls bare
+  `claude`, unaware. **No Fabric config changes.**
 - **Option B — point the harness command at your wrapper:** set `command.base` to
   `["jwn-claude", ...]` in a custom harness-config and install `jwn-claude` on PATH.
-  Edit source `harnesses/claude/config.yaml` (not `.scion/`).
+  Edit source `harnesses/claude/config.yaml` (not `.fabric/`).
 
 ### ⚠️ Gotcha: don't break agent-process detection — **[verified in source]**
-Scion's in-container supervisor detects the agent process by **inspecting the tmux
-command line and matching on `claude`** (`cmd/sciontool/commands/init.go:1826` + tests).
+Fabric's in-container supervisor detects the agent process by **inspecting the tmux
+command line and matching on `claude`** (`cmd/fabrictool/commands/init.go:1826` + tests).
 The exit-detection hook in `.tmux.conf` keys off the `agent` window's command exiting
 to tear down the session.
 
@@ -436,37 +436,37 @@ to tear down the session.
 > Not yet fully traced: the exact match logic at `init.go:1826`. Confirm before relying
 > on Option B with a renamed binary. Option A is the safe default today.
 
-### You may be duplicating Scion — **[design/general]**
-Your wrapper "sets env vars + housekeeping + telemetry before invoking claude." Scion
+### You may be duplicating Fabric — **[design/general]**
+Your wrapper "sets env vars + housekeeping + telemetry before invoking claude." Fabric
 already has first-class hooks for all three, so parts may be redundant or conflict:
 - **Env vars** → harness `env:` block in `config.yaml` + auth/credential injection (`GatherAuth`).
 - **Pre-launch housekeeping** → `provision.py` **`pre-start` lifecycle hook** (runs in-container before Claude starts).
-- **Telemetry** → Scion's OTel/hook pipeline (`sciontool hook`, telemetry handlers) normalizes Claude events. Overlap risks double-counting.
+- **Telemetry** → Fabric's OTel/hook pipeline (`fabrictool hook`, telemetry handlers) normalizes Claude events. Overlap risks double-counting.
 
 Keep the wrapper for what's genuinely yours; move static env → `config.yaml` `env:`,
-housekeeping → `provision.py` pre-start, and check telemetry against Scion's OTel.
+housekeeping → `provision.py` pre-start, and check telemetry against Fabric's OTel.
 
 ### Recommendation
 - **Fastest, safest:** Option A — Dockerfile installs `jwn-claude`, `claude` symlink
   shadows it earlier in PATH, wrapper `exec`s real claude. Detection intact, no config changes.
-- **Then rationalize** env/housekeeping/telemetry against Scion's built-in hooks.
+- **Then rationalize** env/housekeeping/telemetry against Fabric's built-in hooks.
 
 ---
 
-## 11. What does each layer of the concentric harness stack (Scion → Claude Code → PDLC) do?
+## 11. What does each layer of the concentric harness stack (Fabric → Claude Code → PDLC) do?
 
-> **Provenance for this answer:** Scion = **[verified in Scion source]**; PDLC =
+> **Provenance for this answer:** Fabric = **[verified in Fabric source]**; PDLC =
 > **[verified in `../pdlc-os` source: README.md, agents/, skills/, hooks/]**; Claude
 > Code = **[general — well-known product behavior]**. Confirmed against the actual
 > PDLC fork at `/Users/xe4a/Projects/pdlc-os`.
 
-When you run PDLC under Scion, you get **three concentric harnesses**. The mental model:
+When you run PDLC under Fabric, you get **three concentric harnesses**. The mental model:
 each layer wraps the one inside it and makes a *net addition* — it does not replace or
 duplicate the inner layer's job. From outermost to innermost:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  SCION  — fleet orchestration & isolation (the "meta-harness")             │
+│  FABRIC  — fleet orchestration & isolation (the "meta-harness")             │
 │  • container + git-worktree per agent    • lifecycle (start/stop/resume)   │
 │  • Hub state + Runtime Brokers           • attach / web terminal / SSE UI  │
 │  • inter-agent messaging, multi-user     • auth/secret injection, limits,  │
@@ -493,7 +493,7 @@ duplicate the inner layer's job. From outermost to innermost:
 ```
 
 Read it as: **PDLC decides *what/how* a product gets built (and by which specialist
-role); Claude Code is the engine that *thinks and acts*; Scion runs *many such engines*
+role); Claude Code is the engine that *thinks and acts*; Fabric runs *many such engines*
 safely, in parallel, on real repos, with humans able to watch and join.**
 
 > **Key correction from the PDLC source:** PDLC is **itself a Claude Code plugin**, not
@@ -533,7 +533,7 @@ What it adds:
   (CONSTITUTION, INTENT, ROADMAP, DECISIONS, STATE, OVERVIEW, METRICS, episodes, PRDs,
   design docs, MOMs) committed to git as the team's shared brain, backed by the
   **Beads** task manager on a **Dolt** SQL DB. This is *product/feature* state —
-  orthogonal to Claude Code's conversation state and Scion's agent/container state.
+  orthogonal to Claude Code's conversation state and Fabric's agent/container state.
 - **Governance & safety** — a **Decision Registry** (`DECISIONS.md`, every ADR: who/
   when/why/impact), a **5-layer security model** (config → lifecycle stops like the
   Threat-Modeling Party → always-on Phantom → the **`hooks/pdlc-guardrails.js`** deploy
@@ -575,13 +575,13 @@ and the extension points.
 > **Nordstrom note:** `superclaude` (and the `jwn-claude` binary this fork wires in) is
 > a thin wrapper = `claude --permission-mode bypassPermissions "$@"`. PDLC's
 > `/night-shift` *requires* bypass mode. This is the same "skip permissions" posture
-> Scion's `claude` harness already launches with (Q9) — see the Q12 overlap note.
+> Fabric's `claude` harness already launches with (Q9) — see the Q12 overlap note.
 
-### Layer 3 (outermost) — Scion: fleet orchestration & isolation (the meta-harness)
+### Layer 3 (outermost) — Fabric: fleet orchestration & isolation (the meta-harness)
 
-**[verified in Scion source]**
+**[verified in Fabric source]**
 
-Scion wraps a *whole Claude-Code-running-PDLC process* as **one Scion agent = one
+Fabric wraps a *whole Claude-Code-running-PDLC process* as **one Fabric agent = one
 container** (`harnesses/claude`, `command.base` launches `claude`). It adds everything
 *around* a single agent that a single agent cannot give itself:
 
@@ -589,15 +589,15 @@ container** (`harnesses/claude`, `command.base` launches `claude`). It adds ever
   dedicated **git worktree** at `/workspace` on its own branch, so many
   PDLC-on-Claude-Code agents work the same repo concurrently without collision.
 - **Fleet lifecycle** — `create`/`start`/`stop`/`resume`/`delete`, resource limits
-  (`SCION_MAX_TURNS`/`_DURATION`/`_MODEL_CALLS`), auto-suspend/resume, crash handling
-  — supervised by `sciontool` (PID 1) in the container.
+  (`FABRIC_MAX_TURNS`/`_DURATION`/`_MODEL_CALLS`), auto-suspend/resume, crash handling
+  — supervised by `fabrictool` (PID 1) in the container.
 - **Distribution** — the **Hub** (central state: agents, projects, templates, secrets,
   policies) + **Runtime Brokers** (execute agents on local Docker/Podman/Apple/K8s),
   so the fleet spans machines/clusters.
-- **Human-in-the-loop & multi-user** — `scion attach` and the **web terminal** join the
+- **Human-in-the-loop & multi-user** — `fabric attach` and the **web terminal** join the
   agent's live tmux session; **multiple users can share one live Claude Code/PDLC
   session** (Q7/Q8).
-- **Inter-agent coordination** — `scion message` + orchestrator patterns (fan-out /
+- **Inter-agent coordination** — `fabric message` + orchestrator patterns (fan-out /
   sequential / coordinator-relay); a lead agent can spawn/manage sub-agents in its grove.
 - **Cross-cutting platform services** — auth/secret injection (`GatherAuth`, GCE
   metadata emulation), MCP server config translation, OTel telemetry normalization,
@@ -606,15 +606,15 @@ container** (`harnesses/claude`, `command.base` launches `claude`). It adds ever
   via SSE, logs/messages, the in-browser terminal.
 
 **Net add:** *scale, isolation, distribution, multi-user, and platform plumbing.*
-Scion is **methodology- and runtime-agnostic** — it doesn't care that the container is
-running Claude Code, or that Claude Code has the PDLC plugin loaded. To Scion it's "an
+Fabric is **methodology- and runtime-agnostic** — it doesn't care that the container is
+running Claude Code, or that Claude Code has the PDLC plugin loaded. To Fabric it's "an
 agent"; that opacity is exactly what lets it orchestrate *any* harness the same way.
 
 ### The clean separation of concerns (why "concentric" is the right word)
 
 | Layer | Owns | Unit of state | Agnostic to |
 |---|---|---|---|
-| **Scion** | Orchestration, isolation, distribution, multi-user, platform services | **Agent / container** state | *what* runtime or plugin runs inside |
+| **Fabric** | Orchestration, isolation, distribution, multi-user, platform services | **Agent / container** state | *what* runtime or plugin runs inside |
 | **Claude Code** | Model/tokens, REPL, tools, plugin+hook host, permissions, Agent Teams | **Conversation / session** state | *what domain* it's being used for |
 | **PDLC** | Product-dev method, 10-agent team, Party Mode, Beads/Dolt memory, decisions, security | **Feature / product** state (in `docs/pdlc/` + Beads) | *which* engine executes it |
 
@@ -627,7 +627,7 @@ Claude Code, not a separate process).
 
 ## 12. Why keep the layers separate? Benefits and overlaps to manage
 
-> **[design/general reasoning; overlap mechanics verified in both Scion and `../pdlc-os` source]**
+> **[design/general reasoning; overlap mechanics verified in both Fabric and `../pdlc-os` source]**
 
 ### Why the concentric arrangement is worth keeping
 
@@ -636,26 +636,26 @@ Claude Code, not a separate process).
    about, test, and change one without destabilizing the others.
 2. **Independent evolvability & substitutability.**
    - PDLC's methodology, agents, and Party Mode evolve via its own repo (`pdlc upgrade`)
-     without touching Scion or Claude Code. Its agent `model:` tiers (`opus`/`sonnet`/
+     without touching Fabric or Claude Code. Its agent `model:` tiers (`opus`/`sonnet`/
      `haiku`) auto-track new Anthropic models without a PDLC release.
    - Claude Code can be upgraded (new model, new tools) under a stable PDLC.
-   - Because Scion is **harness-agnostic**, you could run PDLC on a different host, run
-     Claude Code *without* PDLC, or run *other* harnesses beside PDLC in the same Scion
+   - Because Fabric is **harness-agnostic**, you could run PDLC on a different host, run
+     Claude Code *without* PDLC, or run *other* harnesses beside PDLC in the same Fabric
      fleet. No layer is welded to another.
-3. **You reuse, not rebuild.** Scion gives isolation/lifecycle/multi-user/distribution
+3. **You reuse, not rebuild.** Fabric gives isolation/lifecycle/multi-user/distribution
    for free; Claude Code gives the REPL/token/plugin/hook machinery for free; PDLC keeps
    being your differentiated IP (method + 10-agent team + memory bank). None of the
    three is worth reimplementing inside another.
 4. **Net-additive capability, not duplication.** PDLC (method + team + memory) → +
-   Claude Code (execution + plugin host) → + Scion (fleet/isolation/multi-user). The
+   Claude Code (execution + plugin host) → + Fabric (fleet/isolation/multi-user). The
    outcome — *many isolated, observable, human-joinable agents, each running your full
    PDLC team-and-method on its own git branch* — is something **no single layer can
    produce alone**.
 5. **Matches your goals from earlier questions.** Multi-user shared sessions (Q7/Q8),
    web UI + attach (Q5/Q6), skip-permissions autonomy (Q9), and keeping your wrapper
-   (Q10) are all **Scion-layer** concerns that drop in *without* changing PDLC or Claude
+   (Q10) are all **Fabric-layer** concerns that drop in *without* changing PDLC or Claude
    Code — precisely because the layers are separate.
-6. **Right layer for human-in-the-loop.** Humans join at the **Scion** layer (attach /
+6. **Right layer for human-in-the-loop.** Humans join at the **Fabric** layer (attach /
    web terminal) into the **Claude Code** REPL, while **PDLC** governs what the work
    *is* (phases, Party Mode approvals) — oversight, execution, and methodology each have
    a natural home. Note PDLC's own approval gates (Contract Party, `/decide`, `/override`)
@@ -668,7 +668,7 @@ Because **PDLC is a plugin *inside* Claude Code** (not a separate process), the 
 two layers share an address space — so these seams need explicit ownership:
 
 - **Permissions/autonomy (Claude Code ↔ PDLC gates) — REAL, verified both sides.**
-  Scion launches Claude Code with `--dangerously-skip-permissions`
+  Fabric launches Claude Code with `--dangerously-skip-permissions`
   (`harnesses/claude/config.yaml:53`); PDLC's `/night-shift` *also requires* bypass mode
   (`superclaude`/`jwn-claude`). So Claude Code's per-tool permission prompts are OFF by
   design — which means **PDLC's own guardrails become the real safety layer**:
@@ -676,52 +676,52 @@ two layers share an address space — so these seams need explicit ownership:
   model, Phantom `always_on`, `/override`. **Under `/night-shift` PDLC deliberately
   bypasses its own deploy gate** (`[night-shift bypass]` log) and relies on driver-agent
   discipline + contract abort_conditions + the three-layer production-deploy ban.
-  Containment therefore = **Scion's container/worktree/egress isolation + PDLC's
+  Containment therefore = **Fabric's container/worktree/egress isolation + PDLC's
   guardrails**, not Claude Code prompts. Make sure that's the intended posture.
-- **Hooks & sub-agents (PDLC ↔ Claude Code ↔ Scion supervisor).** PDLC registers
+- **Hooks & sub-agents (PDLC ↔ Claude Code ↔ Fabric supervisor).** PDLC registers
   `SessionStart`/`PreToolUse`/`PostToolUse`/`Stop`/`statusLine` hooks and requires
-  **Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`). In a Scion container these
+  **Agent Teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`). In a Fabric container these
   must be present and correctly registered at provision time (the `claude` harness image
   must have PDLC installed + hooks wired + Agent Teams enabled). Verify this is done in
   the harness `Dockerfile`/`provision.py`, not assumed from a developer's laptop.
-- **Env / housekeeping / telemetry (jwn-claude wrapper ↔ Scion ↔ PDLC).** As in Q10,
-  Scion provides env injection (`config.yaml env:` + `GatherAuth`), a `provision.py`
+- **Env / housekeeping / telemetry (jwn-claude wrapper ↔ Fabric ↔ PDLC).** As in Q10,
+  Fabric provides env injection (`config.yaml env:` + `GatherAuth`), a `provision.py`
   pre-start hook, and an OTel pipeline; PDLC has its own context-monitor + statusline +
   metrics. Decide one owner per concern (env, telemetry) to avoid drift/double-counting.
 - **Three different "resume/continue" semantics — must not be conflated:** PDLC
   `/pause`+`/continue` (feature state in `docs/pdlc/` + Beads reclaim + rebase-on-main),
-  Claude Code session/context, Scion agent suspend/resume + limits. Keep them distinct
-  in docs and UX; a Scion resume is not a PDLC `/continue`.
-- **Persistent state & multi-user (Beads/Dolt ↔ Scion worktrees ↔ shared sessions).**
+  Claude Code session/context, Fabric agent suspend/resume + limits. Keep them distinct
+  in docs and UX; a Fabric resume is not a PDLC `/continue`.
+- **Persistent state & multi-user (Beads/Dolt ↔ Fabric worktrees ↔ shared sessions).**
   PDLC's memory + Beads/Dolt task graph live **in the repo** (`docs/pdlc/`, `.beads/`).
-  With **Scion giving each agent its own git worktree/branch**, PDLC's multi-developer
+  With **Fabric giving each agent its own git worktree/branch**, PDLC's multi-developer
   model (shared `docs/pdlc/` via git, per-dev local hooks, roadmap-claim reconciliation
   through Beads) maps onto *per-agent worktrees* — confirm how Beads/Dolt state is shared
-  or isolated across concurrent Scion agents so two agents don't fork the task graph.
-  Separately, in a **shared multi-user Scion session (Q7/Q8)** many humans drive one
+  or isolated across concurrent Fabric agents so two agents don't fork the task graph.
+  Separately, in a **shared multi-user Fabric session (Q7/Q8)** many humans drive one
   Claude Code REPL — but PDLC's approval gates assume *one* interactive human; decide who
   "the human" is for Party Party approvals / `/override` in a shared session.
-- **Orchestration altitude (Scion fleet ↔ PDLC autonomous flows).** PDLC `/night-shift`
+- **Orchestration altitude (Fabric fleet ↔ PDLC autonomous flows).** PDLC `/night-shift`
   (Sentinel Stop-hook loop) orchestrates a *feature* Build→Ship *inside one agent*;
-  Scion orchestrates *many agents*. Both are legitimate but different altitudes — be
-  deliberate: one Scion agent running PDLC night-shift, vs. a Scion orchestrator fanning
+  Fabric orchestrates *many agents*. Both are legitimate but different altitudes — be
+  deliberate: one Fabric agent running PDLC night-shift, vs. a Fabric orchestrator fanning
   out several PDLC agents. Also note **PDLC never deploys to production** (three-layer
-  ban) — a Scion-level deploy path must respect that.
+  ban) — a Fabric-level deploy path must respect that.
 
 ### Bottom line
 
 Keep the layers concentric and orthogonal. **PDLC = the method + team + memory (what/how
 to build, by which role, with what recorded), Claude Code = the engine + plugin host
-(reason + act + tokens/REPL/hooks/Agent-Teams), Scion = the platform (isolate, scale,
+(reason + act + tokens/REPL/hooks/Agent-Teams), Fabric = the platform (isolate, scale,
 distribute, let humans watch/join).** Each is net-additive and runtime/domain-agnostic
 to its neighbors — which is what makes the stack upgradable, testable, and reusable. The
 one discipline required: **assign each cross-cutting concern (permissions, hooks/Agent-
 Teams, env, telemetry, resume-semantics, Beads/Dolt state, deploy authority) to a single
 owning layer** so the seams stay clean — paying special attention to the fact that PDLC
 lives *inside* Claude Code and its guardrails (not Claude Code prompts) are the real
-safety net once Scion runs it in skip-permissions mode.
+safety net once Fabric runs it in skip-permissions mode.
 
 ---
 
-*Generated from the Scion working session on 2026-07-08. For deep architecture, see
+*Generated from the Fabric working session on 2026-07-08. For deep architecture, see
 [`README.md`](./README.md) (the full Code Wiki) and the diagrams in [`diagrams/`](./diagrams/).*

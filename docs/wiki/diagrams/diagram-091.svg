@@ -109,7 +109,7 @@
 <title>CLI</title>
 <polygon fill="lightblue" stroke="black" points="482.25,-42 346.25,-42 346.25,-6 482.25,-6 482.25,-42"/>
 <text xml:space="preserve" text-anchor="middle" x="414.25" y="-21.2" font-family="Times,serif" font-size="14.00">CLI</text>
-<text xml:space="preserve" text-anchor="middle" x="414.25" y="-10.7" font-family="Times,serif" font-size="14.00">(scion messages)</text>
+<text xml:space="preserve" text-anchor="middle" x="414.25" y="-10.7" font-family="Times,serif" font-size="14.00">(fabric messages)</text>
 </g>
 <!-- Message Store&#45;&gt;CLI -->
 <g id="edge7" class="edge">

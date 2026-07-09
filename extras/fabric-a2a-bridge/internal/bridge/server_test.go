@@ -32,7 +32,7 @@ import (
 
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
 )
 
 // jsonRPCRequest is a test helper for constructing JSON-RPC requests.
@@ -91,7 +91,7 @@ func newTestServer(t *testing.T) (*Server, *httptest.Server, *state.Store) {
 	b := New(store, nil, nil, cfg, nil, log)
 
 	// Create a minimal SDK executor and handler for testing.
-	executor := NewScionExecutor(b, log)
+	executor := NewFabricExecutor(b, log)
 	routeAuth := RouteKeyAuthenticator()
 	innerStore := taskstore.NewInMemory(&taskstore.InMemoryStoreConfig{
 		Authenticator: routeAuth,
@@ -197,8 +197,8 @@ func TestWellKnownAgentCard(t *testing.T) {
 	var card map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&card)
 
-	if card["name"] != "scion-a2a-bridge" {
-		t.Errorf("name = %q, want %q", card["name"], "scion-a2a-bridge")
+	if card["name"] != "fabric-a2a-bridge" {
+		t.Errorf("name = %q, want %q", card["name"], "fabric-a2a-bridge")
 	}
 	if card["url"] != "https://a2a.test.example.com" {
 		t.Errorf("url = %q, want external URL", card["url"])

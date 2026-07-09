@@ -4,14 +4,14 @@
 
 ## Problem Statement
 
-Scion runs multiple LLM agents concurrently, each in its own Docker container with a bind-mounted worktree. Today there is no centralized visibility into which files each agent is creating, modifying, or deleting. Operators and the platform itself have no structured record of agent filesystem activity, which limits debugging, auditing, and downstream tooling (e.g. conflict detection between agents editing overlapping files).
+Fabric runs multiple LLM agents concurrently, each in its own Docker container with a bind-mounted worktree. Today there is no centralized visibility into which files each agent is creating, modifying, or deleting. Operators and the platform itself have no structured record of agent filesystem activity, which limits debugging, auditing, and downstream tooling (e.g. conflict detection between agents editing overlapping files).
 
 ## Goal
 
 Build a small, standalone Go utility that:
 
 1. Monitors a configurable set of host directories for file creates, edits, and deletes.
-2. Attributes each filesystem event to the originating agent by correlating the writing process's PID back to its Docker container and reading the container's `scion.name` label.
+2. Attributes each filesystem event to the originating agent by correlating the writing process's PID back to its Docker container and reading the container's `fabric.name` label.
 3. Writes structured, line-delimited JSON (NDJSON) logs containing the agent ID, file path, and action type.
 
 The utility is a **standalone binary** built as its own Go module in `./extras/fs-watcher-tool/`. It is **Linux + Docker only** — no macOS or other runtime support is required.
@@ -24,7 +24,7 @@ The utility is a **standalone binary** built as its own Go module in `./extras/f
 │                                                                  │
 │  ┌─────────────┐    fanotify     ┌──────────────────────────┐    │
 │  │  Worktree A  │◄──────────────►│                          │    │
-│  └─────────────┘                 │   scion-fs-watcher       │    │
+│  └─────────────┘                 │   fabric-fs-watcher       │    │
 │  ┌─────────────┐    fanotify     │                          │    │
 │  │  Worktree B  │◄──────────────►│  - fanotify listener     │    │
 │  └─────────────┘                 │  - PID → container map   │    │
@@ -69,11 +69,11 @@ When fanotify delivers an event, it includes the PID of the process that caused 
 
 1. **PID → Container ID**: Read `/proc/<pid>/cgroup` to extract the Docker container ID from the cgroup path. The cgroup v2 path typically contains the full container ID (e.g., `0::/.../docker-<container_id>.scope`). As a fallback, resolve via `/proc/<pid>/cpuset`.
 
-2. **Container ID → Agent ID**: Query the Docker daemon (via the Docker SDK) with `container.Inspect(containerID)` and read the `scion.name` label. This is the same label scion already sets on every agent container.
+2. **Container ID → Agent ID**: Query the Docker daemon (via the Docker SDK) with `container.Inspect(containerID)` and read the `fabric.name` label. This is the same label fabric already sets on every agent container.
 
 3. **Caching**: Maintain an in-memory map of `containerID → agentID` (and `PID → containerID` resolved via cgroup) with a TTL or invalidation on container stop events. Container labels are immutable for the container's lifetime, so the cache only needs invalidation when containers are removed.
 
-4. **Unresolvable PIDs**: Events from PIDs that don't map to a known container (host processes, non-scion containers) are either dropped or logged with `agent_id: ""` depending on configuration.
+4. **Unresolvable PIDs**: Events from PIDs that don't map to a known container (host processes, non-fabric containers) are either dropped or logged with `agent_id: ""` depending on configuration.
 
 ### Grove-Based Directory Discovery
 
@@ -81,7 +81,7 @@ In addition to explicit `--watch` paths, the watcher supports a `--grove` flag t
 
 When `--grove` is specified:
 
-1. **Discovery via Docker labels**: List all running Docker containers with the `scion.grove` label matching the specified grove ID. For each matching container, inspect its bind mounts to identify worktree directories. This is simpler than connecting to the hub API and leverages labels scion already sets.
+1. **Discovery via Docker labels**: List all running Docker containers with the `fabric.grove` label matching the specified grove ID. For each matching container, inspect its bind mounts to identify worktree directories. This is simpler than connecting to the hub API and leverages labels fabric already sets.
 
 2. **Dynamic updates**: Subscribe to Docker container lifecycle events (`start`, `die`) to automatically add/remove watched directories as agents are created or destroyed.
 
@@ -118,7 +118,7 @@ Fields:
 | Field      | Type   | Description |
 |------------|--------|-------------|
 | `ts`       | string | RFC 3339 timestamp with millisecond precision |
-| `agent_id` | string | Value of the `scion.name` Docker label, or `""` if unresolvable |
+| `agent_id` | string | Value of the `fabric.name` Docker label, or `""` if unresolvable |
 | `action`   | string | One of: `create`, `modify`, `delete`, `rename_from`, `rename_to` |
 | `path`     | string | Relative path from the watched root directory |
 | `size`     | int    | File size in bytes after the event (omitted for `delete` and `rename_from`) |
@@ -177,11 +177,11 @@ Not implemented. The watcher is designed for short, intentional sessions (the li
 The watcher is configured via CLI flags:
 
 ```
-sudo scion-fs-watcher \
+sudo fabric-fs-watcher \
   --grove my-project \
   --watch /extra/shared/dir \
-  --log /var/log/scion/fs-events.ndjson \
-  --label-key scion.name \
+  --log /var/log/fabric/fs-events.ndjson \
+  --label-key fabric.name \
   --ignore '.git/**' \
   --filter-file /path/to/fs-watcher-filter.txt \
   --debounce 300ms
@@ -192,7 +192,7 @@ sudo scion-fs-watcher \
 | `--grove`       | Grove ID — auto-discover agent directories via Docker labels | (none) |
 | `--watch`       | Directory to watch explicitly (repeatable) | (none) |
 | `--log`         | Output log file path (`-` for stdout) | stdout |
-| `--label-key`   | Docker label key to use as agent ID | `scion.name` |
+| `--label-key`   | Docker label key to use as agent ID | `fabric.name` |
 | `--ignore`      | Glob patterns to exclude (repeatable) | `.git/**` |
 | `--filter-file` | Path to `.gitignore`-style filter file | (none) |
 | `--debounce`    | Duration to collapse rapid edits to the same file | `300ms` |
@@ -256,7 +256,7 @@ func (w *Watcher) Run(ctx context.Context) error {
 
 ### Resolver Lifecycle
 
-- On startup, pre-populate the container cache by listing all running Docker containers with `scion.name` labels.
+- On startup, pre-populate the container cache by listing all running Docker containers with `fabric.name` labels.
 - Subscribe to Docker events (`container start`, `container die`) to keep the cache current without polling.
 - For each fanotify event PID, look up cgroup to get container ID, then look up cache for agent ID.
 - When `--grove` is specified, also use the Docker event stream to dynamically add/remove fanotify marks as agent containers start and stop.

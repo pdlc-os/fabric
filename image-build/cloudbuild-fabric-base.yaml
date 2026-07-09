@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Cloud Build configuration for building just the scion-base image
+# Cloud Build configuration for building just the fabric-base image
 # This builds on top of the existing core-base:<_TAG> image (defaults to core-base:latest)
-# Use this when you only need to update sciontool or scion-specific configuration
+# Use this when you only need to update fabrictool or fabric-specific configuration
 steps:
   # Pre-flight: verify push access to catch permission errors early
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -35,9 +35,9 @@ steps:
     env:
       - 'DOCKER_CLI_EXPERIMENTAL=enabled'
 
-  # Build and push scion-base image (uses existing core-base:<_TAG>)
+  # Build and push fabric-base image (uses existing core-base:<_TAG>)
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'build-scion-base'
+    id: 'build-fabric-base'
     args:
       - 'buildx'
       - 'build'
@@ -48,11 +48,11 @@ steps:
       - '--build-arg'
       - 'GIT_COMMIT=$_COMMIT_SHA'
       - '-t'
-      - '$_REGISTRY/scion-base:$_SHORT_SHA'
+      - '$_REGISTRY/fabric-base:$_SHORT_SHA'
       - '-t'
-      - '$_REGISTRY/scion-base:$_TAG'
+      - '$_REGISTRY/fabric-base:$_TAG'
       - '-f'
-      - 'image-build/scion-base/Dockerfile'
+      - 'image-build/fabric-base/Dockerfile'
       - '--pull'
       - '--push'
       - '.'

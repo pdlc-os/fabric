@@ -20,7 +20,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
@@ -59,7 +59,7 @@ func init() {
 			// maintenance is durable via DB but has no settings.yaml representation.
 			// It is runtime/API-owned state: absent DB row = compiled defaults
 			// (admin_mode=false). Seeding skips this section. The env var
-			// SCION_SERVER_ADMINMODE remains a per-node force-enable (design §3.4/§3.8).
+			// FABRIC_SERVER_ADMINMODE remains a per-node force-enable (design §3.4/§3.8).
 			Name:       "maintenance",
 			KoanfPaths: nil,
 			New:        func() any { return &MaintenanceSettings{} },

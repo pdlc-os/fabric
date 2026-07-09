@@ -170,14 +170,14 @@ export interface Project {
  * Check whether a project is a shared-workspace git project.
  */
 export function isSharedWorkspace(project: Project): boolean {
-  return !!project.gitRemote && project.labels?.['scion.dev/workspace-mode'] === 'shared';
+  return !!project.gitRemote && project.labels?.['fabric.dev/workspace-mode'] === 'shared';
 }
 
 /**
  * Check whether a project uses worktree-per-agent workspace mode.
  */
 export function isWorktreeWorkspace(project: Project): boolean {
-  return !!project.gitRemote && project.labels?.['scion.dev/workspace-mode'] === 'worktree-per-agent';
+  return !!project.gitRemote && project.labels?.['fabric.dev/workspace-mode'] === 'worktree-per-agent';
 }
 
 /**

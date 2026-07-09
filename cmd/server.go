@@ -72,8 +72,8 @@ const (
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Manage the Scion server components",
-	Long: `Commands for managing the Scion server components.
+	Short: "Manage the Fabric server components",
+	Long: `Commands for managing the Fabric server components.
 
 By default, the server runs in workstation mode: all components are enabled,
 dev-auth is on, and the server binds to 127.0.0.1 (loopback only). This is
@@ -94,12 +94,12 @@ and the standalone Hub listener is not started.`,
 // serverStartCmd represents the server start command
 var serverStartCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start the Scion server components",
-	Long: `Start the Scion server.
+	Short: "Start the Fabric server components",
+	Long: `Start the Fabric server.
 
 By default, the server runs in workstation mode: all components (Hub, Broker,
 Web) are enabled, dev-auth is on, auto-provide is enabled, and the server
-binds to 127.0.0.1 (loopback only). Just run 'scion server start' to get a
+binds to 127.0.0.1 (loopback only). Just run 'fabric server start' to get a
 fully functional workstation server with no flags needed.
 
 The server starts as a background daemon by default. Use --foreground to run
@@ -109,70 +109,70 @@ For multi-user deployments, use --hosted to switch to hosted mode where
 no components are enabled by default and the server binds to 0.0.0.0.
 
 Explicit flags always override workstation defaults. For example,
-'scion server start --host 0.0.0.0' uses workstation mode but binds to
+'fabric server start --host 0.0.0.0' uses workstation mode but binds to
 all interfaces.
 
 Configuration can be provided via:
-- Config file (--config flag or ~/.scion/server.yaml)
-- Environment variables (SCION_SERVER_* prefix)
+- Config file (--config flag or ~/.fabric/server.yaml)
+- Environment variables (FABRIC_SERVER_* prefix)
 - Command-line flags
 
 Examples:
   # Start in workstation mode (all components, dev-auth, loopback)
-  scion server start
+  fabric server start
 
   # Start in foreground (for systemd/launchd)
-  scion server start --foreground
+  fabric server start --foreground
 
   # Workstation mode but expose on all interfaces
-  scion server start --host 0.0.0.0
+  fabric server start --host 0.0.0.0
 
   # Hosted mode with explicit components
-  scion server start --hosted --enable-hub --enable-runtime-broker --enable-web
+  fabric server start --hosted --enable-hub --enable-runtime-broker --enable-web
 
   # Hosted mode, Hub with Web Frontend only
-  scion server start --hosted --enable-hub --enable-web`,
+  fabric server start --hosted --enable-hub --enable-web`,
 	RunE: runServerStartOrDaemon,
 }
 
 // serverStopCmd stops the server daemon
 var serverStopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "Stop the Scion server daemon",
-	Long: `Stop the Scion server daemon.
+	Short: "Stop the Fabric server daemon",
+	Long: `Stop the Fabric server daemon.
 
 This command stops the server if it's running as a daemon.
 If the server is running in foreground mode, use Ctrl+C to stop it.
 
 Examples:
   # Stop the server daemon
-  scion server stop`,
+  fabric server stop`,
 	RunE: runServerStop,
 }
 
 // serverRestartCmd restarts the server daemon
 var serverRestartCmd = &cobra.Command{
 	Use:   "restart",
-	Short: "Restart the Scion server daemon",
-	Long: `Restart the Scion server daemon.
+	Short: "Restart the Fabric server daemon",
+	Long: `Restart the Fabric server daemon.
 
 This command stops the currently running server daemon and starts a new one
-using the current scion binary. This is useful after installing a new version
-of scion to pick up the updated binary.
+using the current fabric binary. This is useful after installing a new version
+of fabric to pick up the updated binary.
 
 If the server is not running as a daemon, this command will return an error.
 
 Examples:
   # Restart the server daemon
-  scion server restart`,
+  fabric server restart`,
 	RunE: runServerRestart,
 }
 
 // serverStatusCmd shows the current server status
 var serverStatusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "Show Scion server status",
-	Long: `Show the current status of the Scion server.
+	Short: "Show Fabric server status",
+	Long: `Show the current status of the Fabric server.
 
 This command displays:
 - Whether the server is running (daemon or foreground)
@@ -181,10 +181,10 @@ This command displays:
 
 Examples:
   # Show server status
-  scion server status
+  fabric server status
 
   # Show server status in JSON format
-  scion server status --json`,
+  fabric server status --json`,
 	RunE: runServerStatus,
 }
 
@@ -193,9 +193,9 @@ var serverStatusJSON bool
 // serverInstallCmd generates a service file for the current platform
 var serverInstallCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Generate a system service file for Scion server",
+	Short: "Generate a system service file for Fabric server",
 	Long: `Generate a systemd (Linux) or launchd (macOS) service file for running
-the Scion server as a managed system service.
+the Fabric server as a managed system service.
 
 The generated file uses --foreground mode so the service manager handles
 lifecycle, logging, and restart. Workstation mode defaults apply unless
@@ -206,16 +206,16 @@ On macOS, generates a launchd plist file.
 
 Examples:
   # Generate a service file (prints to stdout)
-  scion server install
+  fabric server install
 
   # Install directly on Linux (systemd user service)
-  scion server install > ~/.config/systemd/user/scion-server.service
+  fabric server install > ~/.config/systemd/user/fabric-server.service
   systemctl --user daemon-reload
-  systemctl --user enable --now scion-server
+  systemctl --user enable --now fabric-server
 
   # Install directly on macOS (launchd user agent)
-  scion server install > ~/Library/LaunchAgents/io.scion.server.plist
-  launchctl load ~/Library/LaunchAgents/io.scion.server.plist`,
+  fabric server install > ~/Library/LaunchAgents/io.fabric.server.plist
+  launchctl load ~/Library/LaunchAgents/io.fabric.server.plist`,
 	RunE: runServerInstall,
 }
 
@@ -259,7 +259,7 @@ func init() {
 	serverStartCmd.Flags().StringVar(&storageDir, "storage-dir", "", "Local directory for template storage (alternative to GCS)")
 
 	// Template cache flags (for Runtime Broker)
-	serverStartCmd.Flags().StringVar(&templateCacheDir, "template-cache-dir", "", "Directory for caching templates from Hub (default: ~/.scion/cache/templates)")
+	serverStartCmd.Flags().StringVar(&templateCacheDir, "template-cache-dir", "", "Directory for caching templates from Hub (default: ~/.fabric/cache/templates)")
 	serverStartCmd.Flags().Int64Var(&templateCacheMax, "template-cache-max", 100*1024*1024, "Maximum template cache size in bytes (default: 100MB)")
 
 	// Testing flags
@@ -273,7 +273,7 @@ func init() {
 	serverStartCmd.Flags().IntVar(&webPort, "web-port", 8080, "Web frontend port")
 	serverStartCmd.Flags().StringVar(&webAssetsDir, "web-assets-dir", "", "Path to client assets directory (overrides embedded)")
 	serverStartCmd.Flags().StringVar(&webSessionSecret, "session-secret", "", "Session cookie signing secret (auto-generated if empty)")
-	serverStartCmd.Flags().StringVar(&webBaseURL, "base-url", "", "Public base URL for OAuth redirects (e.g., https://scion.example.com)")
+	serverStartCmd.Flags().StringVar(&webBaseURL, "base-url", "", "Public base URL for OAuth redirects (e.g., https://fabric.example.com)")
 
 	// Admin bootstrap flags
 	serverStartCmd.Flags().StringVar(&adminEmails, "admin-emails", "", "Comma-separated list of email addresses to auto-promote to admin role")

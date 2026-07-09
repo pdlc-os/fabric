@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# scripts/starter-hub/gce-start-hub.sh - Build and start Scion Hub on GCE with Caddy Reverse Proxy
+# scripts/starter-hub/gce-start-hub.sh - Build and start Fabric Hub on GCE with Caddy Reverse Proxy
 #
 # Usage: scripts/starter-hub/gce-start-hub.sh [--full] [--reset-db] [--branch <branch>]
 #
@@ -103,10 +103,10 @@ fi
 # Compute total steps based on mode
 if $FULL_DEPLOY; then
     TOTAL_STEPS=4  # push, upload, remote-session, remote-health
-    echo "=== Full Deploy: Scion Hub on ${INSTANCE_NAME} ==="
+    echo "=== Full Deploy: Fabric Hub on ${INSTANCE_NAME} ==="
 else
     TOTAL_STEPS=3  # push, remote-session, remote-health
-    echo "=== Fast Deploy: Scion Hub on ${INSTANCE_NAME} ==="
+    echo "=== Fast Deploy: Fabric Hub on ${INSTANCE_NAME} ==="
 fi
 
 # --- Step: Push ---
@@ -141,7 +141,7 @@ if $FULL_DEPLOY; then
     else
         DEFAULT_RUNTIME="docker"
     fi
-    cat <<SETTINGS_EOF > "$UPLOAD_DIR/scion-settings.yaml"
+    cat <<SETTINGS_EOF > "$UPLOAD_DIR/fabric-settings.yaml"
 schema_version: "1"
 default_runtime: ${DEFAULT_RUNTIME}
 server:
@@ -178,33 +178,33 @@ SETTINGS_EOF
     # The runtime (docker vs kubernetes) is controlled by settings.yaml, not this flag.
     BROKER_FLAGS=" --enable-runtime-broker --runtime-broker-port 9800"
     printf "[Unit]
-Description=Scion Hub API Server
+Description=Fabric Hub API Server
 After=network.target
 
 [Service]
-User=scion
-Group=scion
+User=fabric
+Group=fabric
 WorkingDirectory=%s
-EnvironmentFile=/home/scion/.scion/hub.env
+EnvironmentFile=/home/fabric/.fabric/hub.env
 Environment=\"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/google-cloud-sdk/bin\"
-Environment=\"HOME=/home/scion\"
+Environment=\"HOME=/home/fabric\"
 Environment=\"USE_GKE_GCLOUD_AUTH_PLUGIN=True\"
 # Public base URL dispatched to agents. This makes the broker route colocated
 # Docker agents through Caddy on the public domain so each runs under bridge
 # networking (own netns) instead of host networking, avoiding metadata-server
 # and telemetry port collisions between concurrent agents.
-Environment=\"SCION_SERVER_BASE_URL=https://${HUB_DOMAIN}\"
+Environment=\"FABRIC_SERVER_BASE_URL=https://${HUB_DOMAIN}\"
 # Use journald for log management
 StandardOutput=journal
 StandardError=journal
 ExecStartPre=/usr/bin/env
-ExecStart=%s --global server start --foreground --production --debug --enable-hub%s --enable-web --web-port 8080 --storage-bucket \${SCION_HUB_STORAGE_BUCKET} --session-secret \${SESSION_SECRET} --auto-provide
+ExecStart=%s --global server start --foreground --production --debug --enable-hub%s --enable-web --web-port 8080 --storage-bucket \${FABRIC_HUB_STORAGE_BUCKET} --session-secret \${SESSION_SECRET} --auto-provide
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-" "${REPO_DIR}" "${SCION_BIN}" "${BROKER_FLAGS}" > "$UPLOAD_DIR/scion-hub.service"
+" "${REPO_DIR}" "${FABRIC_BIN}" "${BROKER_FLAGS}" > "$UPLOAD_DIR/fabric-hub.service"
     substep "Prepared systemd unit file"
 
     # Caddyfile
@@ -235,9 +235,9 @@ if $FULL_DEPLOY; then
     PLACE_HUB_ENV=""
     if $HAS_HUB_ENV; then
         PLACE_HUB_ENV='
-        sudo mv /tmp/hub.env /home/scion/.scion/hub.env
-        sudo chown scion:scion /home/scion/.scion/hub.env
-        sudo chmod 600 /home/scion/.scion/hub.env
+        sudo mv /tmp/hub.env /home/fabric/.fabric/hub.env
+        sudo chown fabric:fabric /home/fabric/.fabric/hub.env
+        sudo chmod 600 /home/fabric/.fabric/hub.env
         echo "  -> Installed hub.env"'
     fi
 
@@ -245,11 +245,11 @@ if $FULL_DEPLOY; then
     # Place uploaded config files
     echo ""
     echo "==> Placing config files..."
-    sudo mkdir -p /home/scion/.scion
-    sudo chown scion:scion /home/scion/.scion
+    sudo mkdir -p /home/fabric/.fabric
+    sudo chown fabric:fabric /home/fabric/.fabric
     '"${PLACE_HUB_ENV}"'
-    sudo mv /tmp/scion-settings.yaml /home/scion/.scion/settings.yaml
-    sudo chown scion:scion /home/scion/.scion/settings.yaml
+    sudo mv /tmp/fabric-settings.yaml /home/fabric/.fabric/settings.yaml
+    sudo chown fabric:fabric /home/fabric/.fabric/settings.yaml
     echo "  -> Installed settings.yaml"
 
     # Ensure all build/runtime dependencies are present (cloud-init may have failed or not finished)
@@ -296,9 +296,9 @@ if $FULL_DEPLOY; then
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
         sudo systemctl enable docker
         sudo systemctl start docker
-        # Add scion user to docker group
-        if id scion &>/dev/null; then
-            sudo usermod -aG docker scion
+        # Add fabric user to docker group
+        if id fabric &>/dev/null; then
+            sudo usermod -aG docker fabric
         fi
     fi
 
@@ -326,8 +326,8 @@ if $FULL_DEPLOY; then
     # Update systemd unit file if changed
     echo ""
     echo "==> Installing infrastructure config..."
-    if ! diff -q /tmp/scion-hub.service /etc/systemd/system/scion-hub.service >/dev/null 2>&1; then
-        sudo mv /tmp/scion-hub.service /etc/systemd/system/scion-hub.service
+    if ! diff -q /tmp/fabric-hub.service /etc/systemd/system/fabric-hub.service >/dev/null 2>&1; then
+        sudo mv /tmp/fabric-hub.service /etc/systemd/system/fabric-hub.service
         echo "  -> Systemd unit file updated, reloading daemon..."
         sudo systemctl daemon-reload
     else
@@ -335,30 +335,30 @@ if $FULL_DEPLOY; then
     fi
 
     # Install sudoers rules for the "Rebuild Server from Git" maintenance task.
-    # The scion service user needs elevated privileges for two operations:
+    # The fabric service user needs elevated privileges for two operations:
     #   1. Installing the rebuilt binary into /usr/local/bin/
-    #   2. Restarting the scion-hub systemd service
+    #   2. Restarting the fabric-hub systemd service
     # Each rule is scoped to the exact command used by the executor.
-    SUDOERS_RULE="/etc/sudoers.d/scion-rebuild-server"
-    cat > /tmp/scion-rebuild-server <<SUDOERS_EOF
-# Scion rebuild-server maintenance task privileges.
-scion ALL=(root) NOPASSWD: /usr/bin/install -m 755 /home/scion/scion/scion.rebuild /usr/local/bin/scion
-scion ALL=(root) NOPASSWD: /usr/bin/systemctl restart scion-hub
+    SUDOERS_RULE="/etc/sudoers.d/fabric-rebuild-server"
+    cat > /tmp/fabric-rebuild-server <<SUDOERS_EOF
+# Fabric rebuild-server maintenance task privileges.
+fabric ALL=(root) NOPASSWD: /usr/bin/install -m 755 /home/fabric/fabric/fabric.rebuild /usr/local/bin/fabric
+fabric ALL=(root) NOPASSWD: /usr/bin/systemctl restart fabric-hub
 SUDOERS_EOF
-    if ! diff -q /tmp/scion-rebuild-server "$SUDOERS_RULE" >/dev/null 2>&1; then
-        sudo install -m 440 -o root -g root /tmp/scion-rebuild-server "$SUDOERS_RULE"
-        rm -f /tmp/scion-rebuild-server
-        echo "  -> Sudoers rules installed (scion user can install binary and restart service)"
+    if ! diff -q /tmp/fabric-rebuild-server "$SUDOERS_RULE" >/dev/null 2>&1; then
+        sudo install -m 440 -o root -g root /tmp/fabric-rebuild-server "$SUDOERS_RULE"
+        rm -f /tmp/fabric-rebuild-server
+        echo "  -> Sudoers rules installed (fabric user can install binary and restart service)"
     else
-        rm -f /tmp/scion-rebuild-server
+        rm -f /tmp/fabric-rebuild-server
         echo "  -> Sudoers rules unchanged"
     fi
 
     # Clean up legacy polkit rule if present (replaced by sudoers above).
     # Polkit 0.105 (common on Ubuntu) does not support JavaScript rules, so the
     # old .rules file was silently ignored.
-    if [ -f /etc/polkit-1/rules.d/50-scion-hub-restart.rules ]; then
-        sudo rm -f /etc/polkit-1/rules.d/50-scion-hub-restart.rules
+    if [ -f /etc/polkit-1/rules.d/50-fabric-hub-restart.rules ]; then
+        sudo rm -f /etc/polkit-1/rules.d/50-fabric-hub-restart.rules
         echo "  -> Removed legacy polkit rule (now using sudoers)"
     fi
 
@@ -413,11 +413,11 @@ gcloud compute ssh "${INSTANCE_NAME}" --zone="${ZONE}" --command '
         echo "==> Pulling latest code..."
     fi
     PULL_START=$SECONDS
-    sudo -u scion sh -c "cd /home/scion/scion && git fetch origin"
+    sudo -u fabric sh -c "cd /home/fabric/fabric && git fetch origin"
     if [[ -n "$BRANCH" ]]; then
-        sudo -u scion sh -c "cd /home/scion/scion && git checkout ${BRANCH} && git pull origin ${BRANCH}"
+        sudo -u fabric sh -c "cd /home/fabric/fabric && git checkout ${BRANCH} && git pull origin ${BRANCH}"
     else
-        sudo -u scion sh -c "cd /home/scion/scion && git pull"
+        sudo -u fabric sh -c "cd /home/fabric/fabric && git pull"
     fi
     echo "  -> Pull took $(( SECONDS - PULL_START ))s"
 
@@ -425,26 +425,26 @@ gcloud compute ssh "${INSTANCE_NAME}" --zone="${ZONE}" --command '
     echo ""
     echo "==> Building web assets..."
     WEB_START=$SECONDS
-    sudo -u scion sh -c "cd /home/scion/scion && make web"
+    sudo -u fabric sh -c "cd /home/fabric/fabric && make web"
     echo "  -> Web build took $(( SECONDS - WEB_START ))s"
 
     # Build binary
     echo ""
-    echo "==> Building scion binary..."
+    echo "==> Building fabric binary..."
     BUILD_START=$SECONDS
-    sudo -u scion sh -c "cd /home/scion/scion && /usr/local/go/bin/go build -o scion ./cmd/scion"
+    sudo -u fabric sh -c "cd /home/fabric/fabric && /usr/local/go/bin/go build -o fabric ./cmd/fabric"
     echo "  -> Binary build took $(( SECONDS - BUILD_START ))s"
 
     # Configure GKE credentials if full deploy with GKE enabled
     if [ "$FULL_DEPLOY" = "true" ] && [ "$ENABLE_GKE" = "true" ]; then
         echo ""
         echo "==> Configuring GKE credentials..."
-        sudo -u scion sh -c "gcloud container clusters get-credentials '"${CLUSTER_NAME}"' --region '"${REGION}"' --project '"${PROJECT_ID}"' || true"
+        sudo -u fabric sh -c "gcloud container clusters get-credentials '"${CLUSTER_NAME}"' --region '"${REGION}"' --project '"${PROJECT_ID}"' || true"
     fi
 
     # Stop existing service
-    if systemctl is-active --quiet scion-hub; then
-        sudo systemctl stop scion-hub
+    if systemctl is-active --quiet fabric-hub; then
+        sudo systemctl stop fabric-hub
         echo "  -> Service stopped"
     else
         echo "  -> Service was not running"
@@ -453,26 +453,26 @@ gcloud compute ssh "${INSTANCE_NAME}" --zone="${ZONE}" --command '
     # Reset database if requested
     if [ "$RESET_DB" = "true" ]; then
         echo "  -> Resetting hub database..."
-        sudo rm -f /home/scion/.scion/hub.db
+        sudo rm -f /home/fabric/.fabric/hub.db
         echo "  -> Database deleted"
     fi
 
     # Install binary
     echo "  -> Installing binary..."
-    sudo mv /home/scion/scion/scion /usr/local/bin/scion
-    sudo chmod +x /usr/local/bin/scion
+    sudo mv /home/fabric/fabric/fabric /usr/local/bin/fabric
+    sudo chmod +x /usr/local/bin/fabric
 
     '"${FULL_POST_INSTALL_COMMANDS}"'
 
     # Start service
     echo ""
-    echo "==> Starting scion-hub service..."
-    sudo systemctl enable scion-hub
-    sudo systemctl start scion-hub
+    echo "==> Starting fabric-hub service..."
+    sudo systemctl enable fabric-hub
+    sudo systemctl start fabric-hub
 
     # Wait for service to be active
     for i in {1..10}; do
-        if systemctl is-active --quiet scion-hub; then
+        if systemctl is-active --quiet fabric-hub; then
             echo "  -> Service is active"
             break
         fi
@@ -480,9 +480,9 @@ gcloud compute ssh "${INSTANCE_NAME}" --zone="${ZONE}" --command '
         sleep 2
     done
 
-    if ! systemctl is-active --quiet scion-hub; then
+    if ! systemctl is-active --quiet fabric-hub; then
         echo "Error: Service failed to start."
-        sudo journalctl -u scion-hub -n 20
+        sudo journalctl -u fabric-hub -n 20
         exit 1
     fi
 

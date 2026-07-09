@@ -9,36 +9,36 @@ When developing the Hub or Runtime Broker locally, you often need to test the lo
 
 ### Enable GCP-Format Logging Locally
 
-Set the `SCION_LOG_GCP` environment variable to output logs in GCP Cloud Logging format:
+Set the `FABRIC_LOG_GCP` environment variable to output logs in GCP Cloud Logging format:
 
 ```bash
 # Run hub with GCP-formatted logs
-SCION_LOG_GCP=true scion server start --enable-hub
+FABRIC_LOG_GCP=true fabric server start --enable-hub
 
 # Run broker with GCP-formatted logs
-SCION_LOG_GCP=true scion server start --enable-runtime-broker
+FABRIC_LOG_GCP=true fabric server start --enable-runtime-broker
 
 # Run both with debug logging enabled
-SCION_LOG_GCP=true SCION_LOG_LEVEL=debug scion server start --enable-hub --enable-runtime-broker
+FABRIC_LOG_GCP=true FABRIC_LOG_LEVEL=debug fabric server start --enable-hub --enable-runtime-broker
 ```
 
 ### Standard JSON Output
 
-Without `SCION_LOG_GCP`, logs use standard JSON format:
+Without `FABRIC_LOG_GCP`, logs use standard JSON format:
 
 ```json
 {
   "time": "2025-02-09T12:34:56Z",
   "level": "INFO",
   "msg": "Server started",
-  "component": "scion-hub",
+  "component": "fabric-hub",
   "port": 9810
 }
 ```
 
 ### GCP Cloud Logging Output
 
-With `SCION_LOG_GCP=true`, logs use GCP's expected format:
+With `FABRIC_LOG_GCP=true`, logs use GCP's expected format:
 
 ```json
 {
@@ -46,7 +46,7 @@ With `SCION_LOG_GCP=true`, logs use GCP's expected format:
   "message": "Server started",
   "timestamp": "2025-02-09T12:34:56Z",
   "logging.googleapis.com/labels": {
-    "component": "scion-hub",
+    "component": "fabric-hub",
     "hostname": "dev-machine"
   },
   "logging.googleapis.com/sourceLocation": {
@@ -62,14 +62,14 @@ With `SCION_LOG_GCP=true`, logs use GCP's expected format:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SCION_LOG_GCP` | Enable GCP Cloud Logging JSON format on stdout | `false` |
-| `SCION_LOG_LEVEL` | Log level (`debug`, `info`, `warn`, `error`) | `info` |
+| `FABRIC_LOG_GCP` | Enable GCP Cloud Logging JSON format on stdout | `false` |
+| `FABRIC_LOG_LEVEL` | Log level (`debug`, `info`, `warn`, `error`) | `info` |
 | `K_SERVICE` | Auto-enables GCP logging format (set by Cloud Run) | - |
-| `SCION_CLOUD_LOGGING` | Send logs directly to Cloud Logging via client library | `false` |
-| `SCION_CLOUD_LOGGING_LOG_ID` | Log name in Cloud Logging | `scion` |
-| `SCION_GCP_PROJECT_ID` | GCP project ID (priority 1 for Cloud Logging) | auto-detect |
+| `FABRIC_CLOUD_LOGGING` | Send logs directly to Cloud Logging via client library | `false` |
+| `FABRIC_CLOUD_LOGGING_LOG_ID` | Log name in Cloud Logging | `fabric` |
+| `FABRIC_GCP_PROJECT_ID` | GCP project ID (priority 1 for Cloud Logging) | auto-detect |
 | `GOOGLE_CLOUD_PROJECT` | GCP project ID (priority 2 for Cloud Logging) | - |
-| `SCION_SERVER_REQUEST_LOG_PATH` | Write HTTP request logs to a file at this path | (disabled) |
+| `FABRIC_SERVER_REQUEST_LOG_PATH` | Write HTTP request logs to a file at this path | (disabled) |
 
 ## Sending Logs to GCP from Local Machine
 
@@ -85,9 +85,9 @@ For development, you can pipe logs directly to GCP Cloud Logging using the `gclo
 
 ```bash
 # Create a custom log stream for development
-SCION_LOG_GCP=true scion server start --enable-hub 2>&1 | \
+FABRIC_LOG_GCP=true fabric server start --enable-hub 2>&1 | \
   while read line; do
-    echo "$line" | gcloud logging write scion-dev-hub --payload-type=json
+    echo "$line" | gcloud logging write fabric-dev-hub --payload-type=json
   done
 ```
 
@@ -97,15 +97,15 @@ For long-running development sessions:
 
 ```bash
 # Create a named pipe
-mkfifo /tmp/scion-logs
+mkfifo /tmp/fabric-logs
 
 # Start log forwarder in background
-cat /tmp/scion-logs | while read line; do
-  echo "$line" | gcloud logging write scion-dev-hub --payload-type=json
+cat /tmp/fabric-logs | while read line; do
+  echo "$line" | gcloud logging write fabric-dev-hub --payload-type=json
 done &
 
 # Run server with logs to pipe
-SCION_LOG_GCP=true scion server start --enable-hub > /tmp/scion-logs 2>&1
+FABRIC_LOG_GCP=true fabric server start --enable-hub > /tmp/fabric-logs 2>&1
 ```
 
 ### View Logs in GCP Console
@@ -113,7 +113,7 @@ SCION_LOG_GCP=true scion server start --enable-hub > /tmp/scion-logs 2>&1
 Navigate to **Logging > Logs Explorer** in the GCP Console and filter by:
 
 ```
-logName="projects/YOUR_PROJECT/logs/scion-dev-hub"
+logName="projects/YOUR_PROJECT/logs/fabric-dev-hub"
 ```
 
 ## Direct Cloud Logging
@@ -131,31 +131,31 @@ Instead of piping stdout to `gcloud` or running a full OTel pipeline, you can se
 2. Set the required environment variables and start the server:
 
     ```bash
-    export SCION_CLOUD_LOGGING=true
-    export SCION_GCP_PROJECT_ID="your-project-id"
+    export FABRIC_CLOUD_LOGGING=true
+    export FABRIC_GCP_PROJECT_ID="your-project-id"
 
     # Start Hub with direct Cloud Logging
-    scion server start --enable-hub
+    fabric server start --enable-hub
 
     # Or start Broker
-    scion server start --enable-runtime-broker
+    fabric server start --enable-runtime-broker
 
     # Or both
-    scion server start --enable-hub --enable-runtime-broker
+    fabric server start --enable-hub --enable-runtime-broker
     ```
 
-3. Optionally customize the log name (defaults to `scion`):
+3. Optionally customize the log name (defaults to `fabric`):
 
     ```bash
-    export SCION_CLOUD_LOGGING_LOG_ID="scion-dev"
+    export FABRIC_CLOUD_LOGGING_LOG_ID="fabric-dev"
     ```
 
 ### How It Works
 
-When `SCION_CLOUD_LOGGING=true`, the server creates a `cloud.google.com/go/logging` client that sends structured log entries to Cloud Logging as a background handler. Logs continue to appear on stdout as normal — Cloud Logging is additive, not a replacement.
+When `FABRIC_CLOUD_LOGGING=true`, the server creates a `cloud.google.com/go/logging` client that sends structured log entries to Cloud Logging as a background handler. Logs continue to appear on stdout as normal — Cloud Logging is additive, not a replacement.
 
 The project ID is resolved in this order:
-1. `SCION_GCP_PROJECT_ID` environment variable
+1. `FABRIC_GCP_PROJECT_ID` environment variable
 2. `GOOGLE_CLOUD_PROJECT` environment variable
 3. Auto-detected from the environment (e.g., metadata server on GCE/Cloud Run)
 
@@ -164,14 +164,14 @@ The project ID is resolved in this order:
 Logs appear in **Logging > Logs Explorer** in the GCP Console. Filter by log name:
 
 ```
-logName="projects/YOUR_PROJECT/logs/scion-server"
+logName="projects/YOUR_PROJECT/logs/fabric-server"
 ```
 
 Or filter by component label:
 
 ```
-logName="projects/YOUR_PROJECT/logs/scion-server"
-labels.component="scion-hub"
+logName="projects/YOUR_PROJECT/logs/fabric-server"
+labels.component="fabric-hub"
 ```
 
 ### Combining with Other Log Backends
@@ -180,11 +180,11 @@ Direct Cloud Logging can be used alongside other logging backends:
 
 ```bash
 # Cloud Logging + GCP-formatted stdout + debug level
-SCION_CLOUD_LOGGING=true \
-SCION_GCP_PROJECT_ID="your-project-id" \
-SCION_LOG_GCP=true \
-SCION_LOG_LEVEL=debug \
-scion server start --enable-hub
+FABRIC_CLOUD_LOGGING=true \
+FABRIC_GCP_PROJECT_ID="your-project-id" \
+FABRIC_LOG_GCP=true \
+FABRIC_LOG_LEVEL=debug \
+fabric server start --enable-hub
 ```
 
 All three backends (stdout, OTel, Cloud Logging) operate independently and can be enabled simultaneously.
@@ -195,25 +195,25 @@ For more advanced setups, you can export logs via OpenTelemetry to GCP:
 
 ```bash
 # Enable OTel log bridging
-export SCION_OTEL_LOG_ENABLED=true
-export SCION_OTEL_ENDPOINT="monitoring.googleapis.com:443"
+export FABRIC_OTEL_LOG_ENABLED=true
+export FABRIC_OTEL_ENDPOINT="monitoring.googleapis.com:443"
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
 
-scion server start --enable-hub
+fabric server start --enable-hub
 ```
 
-See the [Observability guide](/scion/hosted/single-node/observability/) for full OTel configuration.
+See the [Observability guide](/fabric/hosted/single-node/observability/) for full OTel configuration.
 
 ## Log Levels
 
-Use `--debug` flag or `SCION_LOG_LEVEL=debug` for verbose output during development:
+Use `--debug` flag or `FABRIC_LOG_LEVEL=debug` for verbose output during development:
 
 ```bash
 # Via flag
-scion server start --enable-hub --debug
+fabric server start --enable-hub --debug
 
 # Via environment
-SCION_LOG_LEVEL=debug scion server start --enable-hub
+FABRIC_LOG_LEVEL=debug fabric server start --enable-hub
 ```
 
 Debug logging includes:
@@ -227,9 +227,9 @@ The log `component` field reflects the server mode:
 
 | Mode | Component |
 |------|-----------|
-| Hub only | `scion-hub` |
-| Broker only | `scion-broker` |
-| Both | `scion-server` |
+| Hub only | `fabric-hub` |
+| Broker only | `fabric-broker` |
+| Both | `fabric-server` |
 
 ### Subsystem Attribute
 
@@ -237,15 +237,15 @@ In addition to `component`, each log entry includes a `subsystem` field that ide
 
 ```bash
 # Filter local GCP-formatted logs by subsystem with jq
-SCION_LOG_GCP=true scion server start --enable-hub 2>&1 | \
+FABRIC_LOG_GCP=true fabric server start --enable-hub 2>&1 | \
   jq 'select(.subsystem == "hub.auth")'
 
 # Show all subsystem values in the log stream
-SCION_LOG_GCP=true scion server start --enable-hub --enable-runtime-broker 2>&1 | \
+FABRIC_LOG_GCP=true fabric server start --enable-hub --enable-runtime-broker 2>&1 | \
   jq -r '.subsystem // empty' | sort -u
 ```
 
-See the [Observability guide](/scion/hosted/single-node/observability/#querying-logs-by-subsystem) for the full list of subsystems and Cloud Logging query examples.
+See the [Observability guide](/fabric/hosted/single-node/observability/#querying-logs-by-subsystem) for the full list of subsystems and Cloud Logging query examples.
 
 ## HTTP Request Logging
 
@@ -257,8 +257,8 @@ Request logs are routed based on the server's configuration:
 
 | Condition | Destination |
 |-----------|-------------|
-| `SCION_SERVER_REQUEST_LOG_PATH` is set | JSON lines written to the specified file |
-| `SCION_CLOUD_LOGGING=true` | Sent to Cloud Logging under log name `scion_request_log` (separate from application logs in `scion-server`) |
+| `FABRIC_SERVER_REQUEST_LOG_PATH` is set | JSON lines written to the specified file |
+| `FABRIC_CLOUD_LOGGING=true` | Sent to Cloud Logging under log name `fabric_request_log` (separate from application logs in `fabric-server`) |
 | Background / piped mode (no file, no cloud) | Written to stdout as JSON |
 | `--foreground` mode (no file, no cloud) | **Suppressed** — request logs do not appear on stdout in foreground mode to reduce noise |
 
@@ -269,7 +269,7 @@ You can combine file and Cloud Logging output. When `--foreground` is set, file 
 To write request logs to a file:
 
 ```bash
-SCION_SERVER_REQUEST_LOG_PATH=/var/log/scion/requests.log scion server start
+FABRIC_SERVER_REQUEST_LOG_PATH=/var/log/fabric/requests.log fabric server start
 ```
 
 Each line is a JSON object:
@@ -284,7 +284,7 @@ Each line is a JSON object:
     "requestUrl": "/api/v1/projects/my-project/agents",
     "status": 200,
     "responseSize": 1234,
-    "userAgent": "scion-cli/0.1.0",
+    "userAgent": "fabric-cli/0.1.0",
     "remoteIp": "192.168.1.1:54321",
     "latency": "0.045s",
     "protocol": "HTTP/1.1"
@@ -329,23 +329,23 @@ log.Info("Processing agent", "name", agentName)
 
 ### Cloud Logging Queries
 
-When Cloud Logging is enabled, request logs appear under a separate log name (`scion_request_log`) from application logs (`scion-server`). This allows independent filtering:
+When Cloud Logging is enabled, request logs appear under a separate log name (`fabric_request_log`) from application logs (`fabric-server`). This allows independent filtering:
 
 ```
 -- All HTTP request logs
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 
 -- Slow requests (latency > 1s)
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 httpRequest.latency > "1s"
 
 -- Failed requests to a specific project
-logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 httpRequest.status >= 400
 labels.project_id = "my-project"
 
 -- Correlate a request with its application logs
-logName="projects/YOUR_PROJECT/logs/scion-server" OR logName="projects/YOUR_PROJECT/logs/scion_request_log"
+logName="projects/YOUR_PROJECT/logs/fabric-server" OR logName="projects/YOUR_PROJECT/logs/fabric_request_log"
 jsonPayload.request_id = "550e8400-e29b-41d4-a716-446655440000"
 ```
 
@@ -353,16 +353,16 @@ jsonPayload.request_id = "550e8400-e29b-41d4-a716-446655440000"
 
 ```bash
 # Pretty-print request logs from file
-cat /var/log/scion/requests.log | jq .
+cat /var/log/fabric/requests.log | jq .
 
 # Show only failed requests
-cat /var/log/scion/requests.log | jq 'select(.httpRequest.status >= 400)'
+cat /var/log/fabric/requests.log | jq 'select(.httpRequest.status >= 400)'
 
 # Top endpoints by request count
-cat /var/log/scion/requests.log | jq -r '.httpRequest.requestUrl' | sort | uniq -c | sort -rn | head
+cat /var/log/fabric/requests.log | jq -r '.httpRequest.requestUrl' | sort | uniq -c | sort -rn | head
 
 # Average latency per endpoint
-cat /var/log/scion/requests.log | jq -r '[.httpRequest.requestUrl, .httpRequest.latency] | @tsv'
+cat /var/log/fabric/requests.log | jq -r '[.httpRequest.requestUrl, .httpRequest.latency] | @tsv'
 ```
 
 ## Testing Log Output
@@ -371,26 +371,26 @@ To verify your logging configuration without sending to GCP:
 
 ```bash
 # Pretty-print GCP-formatted logs with jq
-SCION_LOG_GCP=true scion server start --enable-hub 2>&1 | jq .
+FABRIC_LOG_GCP=true fabric server start --enable-hub 2>&1 | jq .
 
 # Filter for specific severity
-SCION_LOG_GCP=true scion server start --enable-hub 2>&1 | \
+FABRIC_LOG_GCP=true fabric server start --enable-hub 2>&1 | \
   jq 'select(.severity == "ERROR")'
 
 # Extract just messages
-SCION_LOG_GCP=true scion server start --enable-hub 2>&1 | \
+FABRIC_LOG_GCP=true fabric server start --enable-hub 2>&1 | \
   jq -r '.message'
 ```
 
 ## PTY Escape Sequence Debugging
 
-When troubleshooting complex terminal interactions (such as shifted keys or mouse reporting in the web UI), Scion includes built-in PTY logging capabilities.
+When troubleshooting complex terminal interactions (such as shifted keys or mouse reporting in the web UI), Fabric includes built-in PTY logging capabilities.
 
 To capture raw escape sequences sent and received by the agent's PTY pipeline:
 
 ```bash
 # Start the broker with debug logging enabled
-SCION_LOG_LEVEL=debug scion server start --enable-runtime-broker
+FABRIC_LOG_LEVEL=debug fabric server start --enable-runtime-broker
 ```
 
 In debug mode, the broker logs detailed hexadecimal representations of all input and output sequences. This is essential for:
@@ -400,7 +400,7 @@ In debug mode, the broker logs detailed hexadecimal representations of all input
 
 ## Related Guides
 
-- [Observability](/scion/hosted/single-node/observability/) - Full telemetry pipeline setup
-- [Metrics](/scion/hosted/single-node/metrics/) - OpenTelemetry metrics configuration
-- [Hub Server](/scion/hosted/single-node/hub-server/) - Hub deployment and configuration
-- [Runtime Broker](/scion/hosted/ha/runtime-broker/) - Broker setup
+- [Observability](/fabric/hosted/single-node/observability/) - Full telemetry pipeline setup
+- [Metrics](/fabric/hosted/single-node/metrics/) - OpenTelemetry metrics configuration
+- [Hub Server](/fabric/hosted/single-node/hub-server/) - Hub deployment and configuration
+- [Runtime Broker](/fabric/hosted/ha/runtime-broker/) - Broker setup

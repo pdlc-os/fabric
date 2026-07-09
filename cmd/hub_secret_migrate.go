@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
 	"github.com/spf13/cobra"
 )
 
@@ -51,16 +51,16 @@ This operation is idempotent - existing GCP SM secrets will be overwritten.
 
 Examples:
   # Dry run to see what would be migrated
-  scion hub secret migrate --project=my-project --dry-run
+  fabric hub secret migrate --project=my-project --dry-run
 
   # Perform the migration
-  scion hub secret migrate --project=my-project
+  fabric hub secret migrate --project=my-project
 
   # With explicit credentials
-  scion hub secret migrate --project=my-project --credentials=/path/to/creds.json
+  fabric hub secret migrate --project=my-project --credentials=/path/to/creds.json
 
   # Force re-migration of already-migrated secrets (e.g., after naming scheme change)
-  scion hub secret migrate --project=my-project --force`,
+  fabric hub secret migrate --project=my-project --force`,
 	RunE: runSecretMigrate,
 }
 

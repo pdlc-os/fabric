@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/gcpserviceaccount"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/gcpserviceaccount"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // GCPServiceAccountUpdate is the builder for updating GCPServiceAccount entities.

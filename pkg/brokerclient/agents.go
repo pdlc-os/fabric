@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/runtimebroker"
 )
 
 // AgentService handles agent operations on a runtime broker.

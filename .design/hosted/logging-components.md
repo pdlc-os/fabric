@@ -5,12 +5,12 @@
 
 ## Problem
 
-All server-side logs currently share a single `component` field value determined at startup: `scion-server` (combo mode), `scion-hub` (hub-only), or `scion-broker` (broker-only). This makes it impossible to filter, aggregate, or alert on logs from specific subsystems.
+All server-side logs currently share a single `component` field value determined at startup: `fabric-server` (combo mode), `fabric-hub` (hub-only), or `fabric-broker` (broker-only). This makes it impossible to filter, aggregate, or alert on logs from specific subsystems.
 
 In practice, this means:
 - A noisy heartbeat cycle drowns out important notification dispatch failures in the same log stream.
 - Debugging an auth issue requires manually scanning through unrelated agent lifecycle and template hydration logs.
-- In combo server mode, broker-side logs are tagged `scion-server` rather than identifying their broker origin, losing the distinction entirely.
+- In combo server mode, broker-side logs are tagged `fabric-server` rather than identifying their broker origin, losing the distinction entirely.
 - Cloud Logging queries and alerts cannot target specific subsystems without fragile text matching on log messages.
 
 ## Current Architecture
@@ -18,11 +18,11 @@ In practice, this means:
 Logging is initialized in `cmd/server.go:186-200`:
 
 ```go
-component := "scion-server"
+component := "fabric-server"
 if enableHub && !enableRuntimeBroker {
-    component = "scion-hub"
+    component = "fabric-hub"
 } else if !enableHub && enableRuntimeBroker {
-    component = "scion-broker"
+    component = "fabric-broker"
 }
 ```
 
@@ -52,7 +52,7 @@ Use a **dotted hierarchy** rooted at the server role: `hub.<subsystem>` or `brok
 - Natural Cloud Logging filter patterns: `labels.component =~ "hub\\..*"` for all hub logs.
 - Room for future depth (e.g., `hub.auth.oauth`) without a naming redesign.
 
-The top-level `component` field on the root logger remains as-is (`scion-server`, `scion-hub`, `scion-broker`) for backward compatibility. Subsystem loggers add a **`subsystem`** attribute alongside it.
+The top-level `component` field on the root logger remains as-is (`fabric-server`, `fabric-hub`, `fabric-broker`) for backward compatibility. Subsystem loggers add a **`subsystem`** attribute alongside it.
 
 ### New Attribute
 
@@ -67,7 +67,7 @@ These subsystems are operationally critical, high-volume, or difficult to debug 
 | Subsystem | Code Location | Rationale |
 |---|---|---|
 | `hub.notifications` | `pkg/hub/notifications.go`, `handlers_notifications.go` | Event-driven dispatch with subscription matching, dedup, and cross-agent messaging. Failures here are silent without dedicated filtering. |
-| `hub.messages` | `pkg/hub/handlers.go` (message dispatch), `httpdispatcher.go` | Routes `scion message` through control channel to brokers. Should capture `sender` and `recipient` as structured fields for traceability. |
+| `hub.messages` | `pkg/hub/handlers.go` (message dispatch), `httpdispatcher.go` | Routes `fabric message` through control channel to brokers. Should capture `sender` and `recipient` as structured fields for traceability. |
 | `broker.messages` | `pkg/runtimebroker/handlers.go` (sendMessage) | Broker-side message injection into agent tmux sessions. Same `sender`/`recipient` fields. |
 | `hub.control-channel` | `pkg/hub/controlchannel.go` | WebSocket lifecycle for broker connections — connect, disconnect, heartbeat, stream proxy. Already has extensive logging but no component tag. Critical for diagnosing broker connectivity. |
 | `broker.control-channel` | `pkg/runtimebroker/controlchannel.go` | Broker-side of the WebSocket connection to the hub. Same rationale. |
@@ -199,14 +199,14 @@ The `hub.messages` and `broker.messages` subsystems should capture structured fi
 
 ## Combo Server Considerations
 
-In combo server mode, both `hub.*` and `broker.*` subsystem logs appear in the same stream. This is intentional and desirable — the dotted prefix makes them distinguishable without needing separate processes. The root `component` field remains `scion-server` for combo mode, while `subsystem` provides the granularity.
+In combo server mode, both `hub.*` and `broker.*` subsystem logs appear in the same stream. This is intentional and desirable — the dotted prefix makes them distinguishable without needing separate processes. The root `component` field remains `fabric-server` for combo mode, while `subsystem` provides the granularity.
 
 Example log line in combo mode:
 ```json
 {
   "level": "INFO",
   "msg": "Broker control channel connected",
-  "component": "scion-server",
+  "component": "fabric-server",
   "subsystem": "hub.control-channel",
   "brokerID": "broker-1",
   "sessionID": "abc123"
@@ -243,8 +243,8 @@ In addition to subsystem-level application logs, the server produces a dedicated
 
 ### Routing
 
-- **File**: `SCION_SERVER_REQUEST_LOG_PATH` env var directs request logs to a file (JSON lines).
-- **Cloud Logging**: When `SCION_CLOUD_LOGGING=true`, request logs are sent to a separate log name (`scion_request_log`) using the same GCP client as application logs.
+- **File**: `FABRIC_SERVER_REQUEST_LOG_PATH` env var directs request logs to a file (JSON lines).
+- **Cloud Logging**: When `FABRIC_CLOUD_LOGGING=true`, request logs are sent to a separate log name (`fabric_request_log`) using the same GCP client as application logs.
 - **Stdout**: In background/piped mode without file or cloud targets. Suppressed in `--foreground` mode to reduce noise.
 
 ### Trace Context Propagation

@@ -19,9 +19,9 @@
 package grpcbroker
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	brokerv1 "github.com/GoogleCloudPlatform/scion/proto/broker/v1"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
 )
 
 // StructuredMessageToProto converts a Go StructuredMessage to its proto representation.
@@ -144,7 +144,7 @@ func PluginInfoToProto(info *plugin.PluginInfo) *brokerv1.GetInfoResponse {
 	resp := &brokerv1.GetInfoResponse{
 		Name:            info.Name,
 		Version:         info.Version,
-		MinScionVersion: info.MinScionVersion,
+		MinFabricVersion: info.MinFabricVersion,
 		ChannelId:       info.ChannelID,
 	}
 	if len(info.Capabilities) > 0 {
@@ -162,7 +162,7 @@ func ProtoToPluginInfo(pb *brokerv1.GetInfoResponse) *plugin.PluginInfo {
 	info := &plugin.PluginInfo{
 		Name:            pb.Name,
 		Version:         pb.Version,
-		MinScionVersion: pb.MinScionVersion,
+		MinFabricVersion: pb.MinFabricVersion,
 		ChannelID:       pb.ChannelId,
 	}
 	if len(pb.Capabilities) > 0 {

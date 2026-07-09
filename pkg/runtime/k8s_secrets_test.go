@@ -21,8 +21,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -45,7 +45,7 @@ func TestBuildPod_FallbackSecrets_Environment(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "API_KEY", Type: "environment", Target: "API_KEY", Value: "sk-123", Source: "user"},
 			{Name: "DB_PASS", Type: "environment", Target: "DATABASE_PASSWORD", Value: "secret", Source: "project"},
@@ -63,8 +63,8 @@ func TestBuildPod_FallbackSecrets_Environment(t *testing.T) {
 			if env.ValueFrom == nil || env.ValueFrom.SecretKeyRef == nil {
 				t.Fatal("API_KEY should have ValueFrom.SecretKeyRef")
 			}
-			if env.ValueFrom.SecretKeyRef.Name != "scion-agent-test-agent" {
-				t.Errorf("expected secret name scion-agent-test-agent, got %s", env.ValueFrom.SecretKeyRef.Name)
+			if env.ValueFrom.SecretKeyRef.Name != "fabric-agent-test-agent" {
+				t.Errorf("expected secret name fabric-agent-test-agent, got %s", env.ValueFrom.SecretKeyRef.Name)
 			}
 			if env.ValueFrom.SecretKeyRef.Key != "API_KEY" {
 				t.Errorf("expected key API_KEY, got %s", env.ValueFrom.SecretKeyRef.Key)
@@ -90,7 +90,7 @@ func TestBuildPod_FallbackSecrets_File(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "TLS_CERT", Type: "file", Target: "/etc/ssl/cert.pem", Value: "cert-data", Source: "user"},
 			{Name: "SSH_KEY", Type: "file", Target: "~/.ssh/id_rsa", Value: "key-data", Source: "user"},
@@ -104,8 +104,8 @@ func TestBuildPod_FallbackSecrets_File(t *testing.T) {
 	for _, v := range pod.Spec.Volumes {
 		if v.Name == "agent-secrets" {
 			foundVolume = true
-			if v.Secret == nil || v.Secret.SecretName != "scion-agent-test-agent" {
-				t.Errorf("expected Secret volume with name scion-agent-test-agent")
+			if v.Secret == nil || v.Secret.SecretName != "fabric-agent-test-agent" {
+				t.Errorf("expected Secret volume with name fabric-agent-test-agent")
 			}
 		}
 	}
@@ -126,7 +126,7 @@ func TestBuildPod_FallbackSecrets_File(t *testing.T) {
 				t.Error("expected ReadOnly mount")
 			}
 		}
-		if vm.Name == "agent-secrets" && vm.MountPath == "/home/scion/.ssh/id_rsa" {
+		if vm.Name == "agent-secrets" && vm.MountPath == "/home/fabric/.ssh/id_rsa" {
 			foundSSH = true
 			if vm.SubPath != "SSH_KEY" {
 				t.Errorf("expected SubPath SSH_KEY, got %s", vm.SubPath)
@@ -137,7 +137,7 @@ func TestBuildPod_FallbackSecrets_File(t *testing.T) {
 		t.Error("expected volume mount for TLS_CERT at /etc/ssl/cert.pem")
 	}
 	if !foundSSH {
-		t.Error("expected volume mount for SSH_KEY at /home/scion/.ssh/id_rsa (tilde expanded)")
+		t.Error("expected volume mount for SSH_KEY at /home/fabric/.ssh/id_rsa (tilde expanded)")
 	}
 }
 
@@ -147,7 +147,7 @@ func TestBuildPod_FallbackSecrets_Variable(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "CONFIG", Type: "variable", Target: "config", Value: `{"key":"val"}`, Source: "user"},
 		},
@@ -171,7 +171,7 @@ func TestBuildPod_FallbackSecrets_Variable(t *testing.T) {
 	for _, vm := range pod.Spec.Containers[0].VolumeMounts {
 		if vm.Name == "agent-secrets" && vm.SubPath == "secrets.json" {
 			foundMount = true
-			expectedPath := "/home/scion/.scion/secrets.json"
+			expectedPath := "/home/fabric/.fabric/secrets.json"
 			if vm.MountPath != expectedPath {
 				t.Errorf("expected MountPath %s, got %s", expectedPath, vm.MountPath)
 			}
@@ -189,7 +189,7 @@ func TestBuildPod_GKESecrets_Environment(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "API_KEY", Type: "environment", Target: "API_KEY", Value: "sk-123", Source: "user", Ref: "projects/my-project/secrets/api-key"},
 		},
@@ -208,8 +208,8 @@ func TestBuildPod_GKESecrets_Environment(t *testing.T) {
 			if v.CSI.Driver != "secrets-store.csi.x-k8s.io" {
 				t.Errorf("expected CSI driver secrets-store.csi.x-k8s.io, got %s", v.CSI.Driver)
 			}
-			if v.CSI.VolumeAttributes["secretProviderClass"] != "scion-agent-test-agent" {
-				t.Errorf("expected secretProviderClass scion-agent-test-agent, got %s", v.CSI.VolumeAttributes["secretProviderClass"])
+			if v.CSI.VolumeAttributes["secretProviderClass"] != "fabric-agent-test-agent" {
+				t.Errorf("expected secretProviderClass fabric-agent-test-agent, got %s", v.CSI.VolumeAttributes["secretProviderClass"])
 			}
 		}
 	}
@@ -218,7 +218,7 @@ func TestBuildPod_GKESecrets_Environment(t *testing.T) {
 	}
 
 	// Environment secrets should reference the -env K8s Secret
-	envSecretName := "scion-agent-test-agent-env"
+	envSecretName := "fabric-agent-test-agent-env"
 	foundEnv := false
 	for _, env := range pod.Spec.Containers[0].Env {
 		if env.Name == "API_KEY" {
@@ -254,7 +254,7 @@ func TestBuildPod_GKESecrets_File(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "TLS_CERT", Type: "file", Target: "/etc/ssl/cert.pem", Value: "cert-data", Source: "user", Ref: "projects/my-project/secrets/tls-cert"},
 		},
@@ -288,7 +288,7 @@ func TestBuildPod_GKEFallback_NoRefs(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ResolvedSecrets: []api.ResolvedSecret{
 			{Name: "API_KEY", Type: "environment", Target: "API_KEY", Value: "sk-123", Source: "user"},
 		},
@@ -303,14 +303,14 @@ func TestBuildPod_GKEFallback_NoRefs(t *testing.T) {
 		}
 	}
 
-	// Should use fallback secretKeyRef to scion-agent-test-agent
+	// Should use fallback secretKeyRef to fabric-agent-test-agent
 	for _, env := range pod.Spec.Containers[0].Env {
 		if env.Name == "API_KEY" {
 			if env.ValueFrom == nil || env.ValueFrom.SecretKeyRef == nil {
 				t.Fatal("API_KEY should have ValueFrom.SecretKeyRef")
 			}
-			if env.ValueFrom.SecretKeyRef.Name != "scion-agent-test-agent" {
-				t.Errorf("expected fallback secret name scion-agent-test-agent, got %s", env.ValueFrom.SecretKeyRef.Name)
+			if env.ValueFrom.SecretKeyRef.Name != "fabric-agent-test-agent" {
+				t.Errorf("expected fallback secret name fabric-agent-test-agent, got %s", env.ValueFrom.SecretKeyRef.Name)
 			}
 		}
 	}
@@ -322,7 +322,7 @@ func TestBuildPod_NoSecrets(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, _ := rt.buildPod("default", config)
@@ -354,17 +354,17 @@ func TestCreateAgentSecret(t *testing.T) {
 	}
 
 	labels := map[string]string{
-		"scion.name":  "test-agent",
-		"scion.grove": "test-project",
-		"app":         "other", // Non-scion label should not be copied
+		"fabric.name":  "test-agent",
+		"fabric.grove": "test-project",
+		"app":         "other", // Non-fabric label should not be copied
 	}
 
 	name, err := rt.createAgentSecret(ctx, "default", "test-agent", secrets, labels)
 	if err != nil {
 		t.Fatalf("createAgentSecret failed: %v", err)
 	}
-	if name != "scion-agent-test-agent" {
-		t.Errorf("expected secret name scion-agent-test-agent, got %s", name)
+	if name != "fabric-agent-test-agent" {
+		t.Errorf("expected secret name fabric-agent-test-agent, got %s", name)
 	}
 
 	// Verify the K8s Secret was created
@@ -394,17 +394,17 @@ func TestCreateAgentSecret(t *testing.T) {
 	}
 
 	// Check labels
-	if secret.Labels["scion.agent"] != "test-agent" {
-		t.Errorf("expected scion.agent=test-agent label")
+	if secret.Labels["fabric.agent"] != "test-agent" {
+		t.Errorf("expected fabric.agent=test-agent label")
 	}
-	if secret.Labels["scion.name"] != "test-agent" {
-		t.Errorf("expected scion.name label propagated")
+	if secret.Labels["fabric.name"] != "test-agent" {
+		t.Errorf("expected fabric.name label propagated")
 	}
-	if secret.Labels["scion.grove"] != "test-project" {
-		t.Errorf("expected scion.grove label propagated")
+	if secret.Labels["fabric.grove"] != "test-project" {
+		t.Errorf("expected fabric.grove label propagated")
 	}
 	if _, ok := secret.Labels["app"]; ok {
-		t.Error("non-scion label should not be copied to secret")
+		t.Error("non-fabric label should not be copied to secret")
 	}
 }
 
@@ -429,7 +429,7 @@ func TestDeleteCleansUpSecrets(t *testing.T) {
 	secrets := []api.ResolvedSecret{
 		{Name: "KEY", Type: "environment", Target: "KEY", Value: "val", Source: "user"},
 	}
-	labels := map[string]string{"scion.name": "test-agent"}
+	labels := map[string]string{"fabric.name": "test-agent"}
 	_, err := rt.createAgentSecret(ctx, "default", "test-agent", secrets, labels)
 	if err != nil {
 		t.Fatalf("createAgentSecret failed: %v", err)
@@ -437,7 +437,7 @@ func TestDeleteCleansUpSecrets(t *testing.T) {
 
 	// Verify secret exists
 	secretList, err := clientset.CoreV1().Secrets("default").List(ctx, metav1.ListOptions{
-		LabelSelector: "scion.agent=test-agent",
+		LabelSelector: "fabric.agent=test-agent",
 	})
 	if err != nil {
 		t.Fatalf("failed to list secrets: %v", err)
@@ -451,7 +451,7 @@ func TestDeleteCleansUpSecrets(t *testing.T) {
 
 	// Verify secret was deleted
 	secretList, err = clientset.CoreV1().Secrets("default").List(ctx, metav1.ListOptions{
-		LabelSelector: "scion.agent=test-agent",
+		LabelSelector: "fabric.agent=test-agent",
 	})
 	if err != nil {
 		t.Fatalf("failed to list secrets after cleanup: %v", err)
@@ -486,15 +486,15 @@ func TestCreateSecretProviderClass(t *testing.T) {
 	}
 
 	labels := map[string]string{
-		"scion.name": "test-agent",
+		"fabric.name": "test-agent",
 	}
 
 	name, err := rt.createSecretProviderClass(ctx, "default", "test-agent", secrets, labels)
 	if err != nil {
 		t.Fatalf("createSecretProviderClass failed: %v", err)
 	}
-	if name != "scion-agent-test-agent" {
-		t.Errorf("expected SPC name scion-agent-test-agent, got %s", name)
+	if name != "fabric-agent-test-agent" {
+		t.Errorf("expected SPC name fabric-agent-test-agent, got %s", name)
 	}
 
 	// Verify the SPC was created via dynamic client
@@ -544,8 +544,8 @@ func TestCreateSecretProviderClass(t *testing.T) {
 
 	// Check labels
 	labels2 := spc.GetLabels()
-	if labels2["scion.agent"] != "test-agent" {
-		t.Errorf("expected scion.agent label on SPC")
+	if labels2["fabric.agent"] != "test-agent" {
+		t.Errorf("expected fabric.agent label on SPC")
 	}
 }
 
@@ -556,7 +556,7 @@ func TestCreateAgentSecret_AlreadyExists(t *testing.T) {
 	secrets := []api.ResolvedSecret{
 		{Name: "KEY", Type: "environment", Target: "KEY", Value: "old-val", Source: "user"},
 	}
-	labels := map[string]string{"scion.name": "test-agent"}
+	labels := map[string]string{"fabric.name": "test-agent"}
 
 	// Create the secret the first time
 	_, err := rt.createAgentSecret(ctx, "default", "test-agent", secrets, labels)
@@ -572,7 +572,7 @@ func TestCreateAgentSecret_AlreadyExists(t *testing.T) {
 	}
 
 	// Verify the secret has the new value
-	s, err := clientset.CoreV1().Secrets("default").Get(ctx, "scion-agent-test-agent", metav1.GetOptions{})
+	s, err := clientset.CoreV1().Secrets("default").Get(ctx, "fabric-agent-test-agent", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("failed to get secret: %v", err)
 	}
@@ -591,8 +591,8 @@ func TestCreateAuthFileSecret_AlreadyExists(t *testing.T) {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
 
-	files := []api.FileMapping{{SourcePath: tmpFile, ContainerPath: "/home/scion/.auth"}}
-	labels := map[string]string{"scion.name": "test-agent"}
+	files := []api.FileMapping{{SourcePath: tmpFile, ContainerPath: "/home/fabric/.auth"}}
+	labels := map[string]string{"fabric.name": "test-agent"}
 
 	// Create the first time
 	err := rt.createAuthFileSecret(ctx, "default", "test-agent", files, labels)
@@ -610,7 +610,7 @@ func TestCreateAuthFileSecret_AlreadyExists(t *testing.T) {
 	}
 
 	// Verify the secret has the new content
-	s, err := clientset.CoreV1().Secrets("default").Get(ctx, "scion-auth-test-agent", metav1.GetOptions{})
+	s, err := clientset.CoreV1().Secrets("default").Get(ctx, "fabric-auth-test-agent", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("failed to get auth secret: %v", err)
 	}
@@ -627,7 +627,7 @@ func TestDelete_PodNotFound_StillCleansSecrets(t *testing.T) {
 	secrets := []api.ResolvedSecret{
 		{Name: "KEY", Type: "environment", Target: "KEY", Value: "val", Source: "user"},
 	}
-	labels := map[string]string{"scion.name": "test-agent"}
+	labels := map[string]string{"fabric.name": "test-agent"}
 	_, err := rt.createAgentSecret(ctx, "default", "test-agent", secrets, labels)
 	if err != nil {
 		t.Fatalf("createAgentSecret failed: %v", err)
@@ -641,7 +641,7 @@ func TestDelete_PodNotFound_StillCleansSecrets(t *testing.T) {
 
 	// Verify secrets were still cleaned up
 	secretList, err := clientset.CoreV1().Secrets("default").List(ctx, metav1.ListOptions{
-		LabelSelector: "scion.agent=test-agent",
+		LabelSelector: "fabric.agent=test-agent",
 	})
 	if err != nil {
 		t.Fatalf("failed to list secrets: %v", err)

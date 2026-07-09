@@ -20,12 +20,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestCreateTemplate(t *testing.T) {
 	// Setup a temporary directory for the test
-	tmpDir, err := os.MkdirTemp("", "scion-test-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestCreateTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Create a mock project structure
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestCreateTemplate(t *testing.T) {
 
 	// Verify key agnostic template files exist
 	files := []string{
-		"scion-agent.yaml",
+		"fabric-agent.yaml",
 		"agents.md",
 		"system-prompt.md",
 	}
@@ -95,7 +95,7 @@ func TestCreateTemplate(t *testing.T) {
 
 func TestDeleteTemplate(t *testing.T) {
 	// Setup a temporary directory for the test
-	tmpDir, err := os.MkdirTemp("", "scion-test-delete-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-delete-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestDeleteTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Create a mock project structure
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestDeleteTemplate(t *testing.T) {
 
 func TestUpdateDefaultTemplates(t *testing.T) {
 	// Setup a temporary directory for the test
-	tmpDir, err := os.MkdirTemp("", "scion-test-update-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-update-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,8 +172,8 @@ func TestUpdateDefaultTemplates(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	globalDefaultDir := filepath.Join(tmpDir, DotScion, "templates", "default")
-	defaultScionYAML := filepath.Join(globalDefaultDir, "scion-agent.yaml")
+	globalDefaultDir := filepath.Join(tmpDir, DotFabric, "templates", "default")
+	defaultFabricYAML := filepath.Join(globalDefaultDir, "fabric-agent.yaml")
 
 	// First call: no existing default template, should succeed without force
 	if err := UpdateDefaultTemplates(false, GetMockHarnesses()); err != nil {
@@ -181,13 +181,13 @@ func TestUpdateDefaultTemplates(t *testing.T) {
 	}
 
 	// Verify the default agnostic template was created
-	data, err := os.ReadFile(defaultScionYAML)
+	data, err := os.ReadFile(defaultFabricYAML)
 	if err != nil {
-		t.Fatalf("expected scion-agent.yaml to exist after update: %v", err)
+		t.Fatalf("expected fabric-agent.yaml to exist after update: %v", err)
 	}
 	originalContent := string(data)
 	if originalContent == "" {
-		t.Fatal("expected scion-agent.yaml to have content")
+		t.Fatal("expected fabric-agent.yaml to have content")
 	}
 
 	// Second call without force: should fail because default already exists
@@ -201,7 +201,7 @@ func TestUpdateDefaultTemplates(t *testing.T) {
 
 	// Corrupt the file to verify force actually overwrites
 	corruptContent := "CORRUPT"
-	if err := os.WriteFile(defaultScionYAML, []byte(corruptContent), 0644); err != nil {
+	if err := os.WriteFile(defaultFabricYAML, []byte(corruptContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -211,91 +211,91 @@ func TestUpdateDefaultTemplates(t *testing.T) {
 	}
 
 	// Verify the default agnostic template was restored
-	data, err = os.ReadFile(defaultScionYAML)
+	data, err = os.ReadFile(defaultFabricYAML)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if string(data) == corruptContent {
-		t.Error("expected scion-agent.yaml to be overwritten, but it still contains corrupt content")
+		t.Error("expected fabric-agent.yaml to be overwritten, but it still contains corrupt content")
 	}
 }
 
-func TestMergeScionConfig(t *testing.T) {
+func TestMergeFabricConfig(t *testing.T) {
 	trueVal := true
 	falseVal := false
 
 	tests := []struct {
 		name      string
-		base      *api.ScionConfig
-		override  *api.ScionConfig
+		base      *api.FabricConfig
+		override  *api.FabricConfig
 		wantPhase string
 	}{
 		{
 			name:      "override phase",
-			base:      &api.ScionConfig{Info: &api.AgentInfo{Phase: "created"}},
-			override:  &api.ScionConfig{Info: &api.AgentInfo{Phase: "running"}},
+			base:      &api.FabricConfig{Info: &api.AgentInfo{Phase: "created"}},
+			override:  &api.FabricConfig{Info: &api.AgentInfo{Phase: "running"}},
 			wantPhase: "running",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MergeScionConfig(tt.base, tt.override)
+			got := MergeFabricConfig(tt.base, tt.override)
 			if got.Info == nil || got.Info.Phase != tt.wantPhase {
-				t.Errorf("MergeScionConfig() Phase = %v, want %v", got.Info.Phase, tt.wantPhase)
+				t.Errorf("MergeFabricConfig() Phase = %v, want %v", got.Info.Phase, tt.wantPhase)
 			}
 		})
 	}
 
 	t.Run("model merge", func(t *testing.T) {
-		base := &api.ScionConfig{Model: "flash"}
-		override := &api.ScionConfig{Model: "pro"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Model: "flash"}
+		override := &api.FabricConfig{Model: "pro"}
+		got := MergeFabricConfig(base, override)
 		if got.Model != "pro" {
 			t.Errorf("expected model to be pro, got %v", got.Model)
 		}
 	})
 
 	t.Run("detached merge", func(t *testing.T) {
-		base := &api.ScionConfig{Detached: &trueVal}
-		override := &api.ScionConfig{Detached: &falseVal}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Detached: &trueVal}
+		override := &api.FabricConfig{Detached: &falseVal}
+		got := MergeFabricConfig(base, override)
 		if got.Detached == nil || *got.Detached != false {
 			t.Errorf("expected detached to be false, got %v", got.Detached)
 		}
 	})
 
 	t.Run("max_turns override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxTurns: 10}
-		override := &api.ScionConfig{MaxTurns: 50}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxTurns: 10}
+		override := &api.FabricConfig{MaxTurns: 50}
+		got := MergeFabricConfig(base, override)
 		if got.MaxTurns != 50 {
 			t.Errorf("expected MaxTurns=50, got %d", got.MaxTurns)
 		}
 	})
 
 	t.Run("max_turns zero override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxTurns: 10}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxTurns: 10}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.MaxTurns != 10 {
 			t.Errorf("expected MaxTurns=10, got %d", got.MaxTurns)
 		}
 	})
 
 	t.Run("max_duration override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxDuration: "1h"}
-		override := &api.ScionConfig{MaxDuration: "2h"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxDuration: "1h"}
+		override := &api.FabricConfig{MaxDuration: "2h"}
+		got := MergeFabricConfig(base, override)
 		if got.MaxDuration != "2h" {
 			t.Errorf("expected MaxDuration=2h, got %s", got.MaxDuration)
 		}
 	})
 
 	t.Run("max_duration empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxDuration: "1h"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxDuration: "1h"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.MaxDuration != "1h" {
 			t.Errorf("expected MaxDuration=1h, got %s", got.MaxDuration)
 		}
@@ -304,7 +304,7 @@ func TestMergeScionConfig(t *testing.T) {
 
 func TestCloneTemplate(t *testing.T) {
 	// Setup a temporary directory for the test
-	tmpDir, err := os.MkdirTemp("", "scion-test-clone-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-clone-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -316,7 +316,7 @@ func TestCloneTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
 	// Create a mock project structure
-	projectDir := filepath.Join(tmpDir, "project", DotScion)
+	projectDir := filepath.Join(tmpDir, "project", DotFabric)
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -348,7 +348,7 @@ func TestCloneTemplate(t *testing.T) {
 
 	// Verify key agnostic template files exist in destination
 	files := []string{
-		"scion-agent.yaml",
+		"fabric-agent.yaml",
 		"agents.md",
 		"system-prompt.md",
 	}
@@ -382,7 +382,7 @@ func TestCloneTemplate(t *testing.T) {
 
 func TestLoadConfigInvalidVolumes(t *testing.T) {
 	t.Run("volumes as object instead of array", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-invalid-volumes-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-invalid-volumes-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -393,7 +393,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 			"harness": "gemini",
 			"volumes": {"source": "/foo", "target": "/bar"}
 		}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -407,7 +407,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 	})
 
 	t.Run("volume missing target", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-invalid-volumes-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-invalid-volumes-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -417,7 +417,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 			"harness": "gemini",
 			"volumes": [{"source": "/foo"}]
 		}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -432,7 +432,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 	})
 
 	t.Run("valid nfs volume", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-nfs-volumes-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-nfs-volumes-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -440,9 +440,9 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 
 		configContent := `{
 			"harness": "gemini",
-			"volumes": [{"source": "/scion-workspaces", "target": "/workspace", "type": "nfs", "server": "10.0.0.2"}]
+			"volumes": [{"source": "/fabric-workspaces", "target": "/workspace", "type": "nfs", "server": "10.0.0.2"}]
 		}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -463,7 +463,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 	})
 
 	t.Run("volume with invalid type", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-invalid-volumes-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-invalid-volumes-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -473,7 +473,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 			"harness": "gemini",
 			"volumes": [{"source": "/foo", "target": "/bar", "type": "bogus"}]
 		}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -489,7 +489,7 @@ func TestLoadConfigInvalidVolumes(t *testing.T) {
 }
 
 func TestFindTemplateInProjectPath(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-test-project-path-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-project-path-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -500,7 +500,7 @@ func TestFindTemplateInProjectPath(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	// Set CWD to tmpDir so CWD-based resolution won't find any .scion
+	// Set CWD to tmpDir so CWD-based resolution won't find any .fabric
 	origWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(tmpDir)
@@ -513,7 +513,7 @@ func TestFindTemplateInProjectPath(t *testing.T) {
 	}
 
 	// Create a project with its own template
-	projectPath := filepath.Join(tmpDir, "some-project", DotScion)
+	projectPath := filepath.Join(tmpDir, "some-project", DotFabric)
 	projectTemplatesDir := filepath.Join(projectPath, "templates")
 	projectTplDir := filepath.Join(projectTemplatesDir, "my-tpl")
 	if err := os.MkdirAll(projectTplDir, 0755); err != nil {
@@ -547,7 +547,7 @@ func TestFindTemplateInProjectPath(t *testing.T) {
 	})
 
 	t.Run("falls back to FindTemplate when projectPath is empty", func(t *testing.T) {
-		// With empty projectPath and CWD having no .scion, should fall back to global
+		// With empty projectPath and CWD having no .fabric, should fall back to global
 		tpl, err := FindTemplateInProjectPath("my-tpl", "")
 		if err != nil {
 			t.Fatalf("FindTemplateInProjectPath failed: %v", err)
@@ -582,15 +582,15 @@ func TestFindTemplateInProjectPath_GitGroveInRepoTemplates(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// Simulate a git project: in-repo .scion/ with grove-id and templates/ in-repo.
+	// Simulate a git project: in-repo .fabric/ with grove-id and templates/ in-repo.
 	// Templates live in-repo so they can be committed to the repository.
-	projectDir := filepath.Join(t.TempDir(), "my-git-project", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-git-project", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	if err := WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000"); err != nil {
 		t.Fatal(err)
 	}
 
-	// Templates are stored in the in-repo .scion/templates/ directory
+	// Templates are stored in the in-repo .fabric/templates/ directory
 	inRepoTplDir := filepath.Join(projectDir, "templates", "my-tpl")
 	if err := os.MkdirAll(inRepoTplDir, 0755); err != nil {
 		t.Fatal(err)
@@ -609,7 +609,7 @@ func TestFindTemplateInProjectPath_GitGroveInRepoTemplates(t *testing.T) {
 }
 
 func TestGetTemplateChainInProject(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-test-chain-project-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-chain-project-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -624,7 +624,7 @@ func TestGetTemplateChainInProject(t *testing.T) {
 	_ = os.Chdir(tmpDir)
 
 	// Create project template
-	projectPath := filepath.Join(tmpDir, "project", DotScion)
+	projectPath := filepath.Join(tmpDir, "project", DotFabric)
 	projectTplDir := filepath.Join(projectPath, "templates", "test-tpl")
 	if err := os.MkdirAll(projectTplDir, 0755); err != nil {
 		t.Fatal(err)
@@ -643,7 +643,7 @@ func TestGetTemplateChainInProject(t *testing.T) {
 }
 
 func TestGetTemplateChainInProjectWithDefault(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-test-chain-default-*")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-chain-default-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -657,7 +657,7 @@ func TestGetTemplateChainInProjectWithDefault(t *testing.T) {
 	defer func() { _ = os.Chdir(origWd) }()
 	_ = os.Chdir(tmpDir)
 
-	projectPath := filepath.Join(tmpDir, "project", DotScion)
+	projectPath := filepath.Join(tmpDir, "project", DotFabric)
 
 	// Create both default and custom templates in the project
 	defaultTplDir := filepath.Join(projectPath, "templates", "default")
@@ -698,7 +698,7 @@ func TestGetTemplateChainInProjectWithDefault(t *testing.T) {
 }
 
 func TestImageFieldLoadingAndMerging(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-test-image-field")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-image-field")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -709,7 +709,7 @@ func TestImageFieldLoadingAndMerging(t *testing.T) {
 		"image": "custom-image:v1",
 		"harness": "test-harness"
 	}`
-	configPath := filepath.Join(tmpDir, "scion-agent.json")
+	configPath := filepath.Join(tmpDir, "fabric-agent.json")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
@@ -724,41 +724,41 @@ func TestImageFieldLoadingAndMerging(t *testing.T) {
 		t.Errorf("expected Image to be 'custom-image:v1', got '%s'", cfg.Image)
 	}
 
-	// 2. Test MergeScionConfig
-	base := &api.ScionConfig{
+	// 2. Test MergeFabricConfig
+	base := &api.FabricConfig{
 		Image: "base-image:v1",
 	}
-	override := &api.ScionConfig{
+	override := &api.FabricConfig{
 		Image: "override-image:v1",
 	}
 
-	result := MergeScionConfig(base, override)
+	result := MergeFabricConfig(base, override)
 	if result.Image != "override-image:v1" {
-		t.Errorf("MergeScionConfig: expected 'override-image:v1', got '%s'", result.Image)
+		t.Errorf("MergeFabricConfig: expected 'override-image:v1', got '%s'", result.Image)
 	}
 
 	// Test merge with empty override
-	overrideEmpty := &api.ScionConfig{}
-	resultEmpty := MergeScionConfig(base, overrideEmpty)
+	overrideEmpty := &api.FabricConfig{}
+	resultEmpty := MergeFabricConfig(base, overrideEmpty)
 	if resultEmpty.Image != "base-image:v1" {
-		t.Errorf("MergeScionConfig (empty override): expected 'base-image:v1', got '%s'", resultEmpty.Image)
+		t.Errorf("MergeFabricConfig (empty override): expected 'base-image:v1', got '%s'", resultEmpty.Image)
 	}
 }
 
-func TestMergeScionConfigServices(t *testing.T) {
+func TestMergeFabricConfigServices(t *testing.T) {
 	t.Run("override replaces base services", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Services: []api.ServiceSpec{
 				{Name: "svc1", Command: []string{"cmd1"}},
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Services: []api.ServiceSpec{
 				{Name: "svc2", Command: []string{"cmd2"}},
 				{Name: "svc3", Command: []string{"cmd3"}},
 			},
 		}
-		result := MergeScionConfig(base, override)
+		result := MergeFabricConfig(base, override)
 		if len(result.Services) != 2 {
 			t.Fatalf("expected 2 services, got %d", len(result.Services))
 		}
@@ -768,62 +768,62 @@ func TestMergeScionConfigServices(t *testing.T) {
 	})
 
 	t.Run("nil override preserves base services", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Services: []api.ServiceSpec{
 				{Name: "svc1", Command: []string{"cmd1"}},
 			},
 		}
-		override := &api.ScionConfig{}
-		result := MergeScionConfig(base, override)
+		override := &api.FabricConfig{}
+		result := MergeFabricConfig(base, override)
 		if len(result.Services) != 1 || result.Services[0].Name != "svc1" {
 			t.Errorf("expected base services preserved, got %v", result.Services)
 		}
 	})
 
 	t.Run("override with empty slice clears services", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Services: []api.ServiceSpec{
 				{Name: "svc1", Command: []string{"cmd1"}},
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Services: []api.ServiceSpec{},
 		}
-		result := MergeScionConfig(base, override)
+		result := MergeFabricConfig(base, override)
 		if len(result.Services) != 0 {
 			t.Errorf("expected empty services, got %v", result.Services)
 		}
 	})
 
 	t.Run("no base services with override", func(t *testing.T) {
-		base := &api.ScionConfig{}
-		override := &api.ScionConfig{
+		base := &api.FabricConfig{}
+		override := &api.FabricConfig{
 			Services: []api.ServiceSpec{
 				{Name: "svc1", Command: []string{"cmd1"}},
 			},
 		}
-		result := MergeScionConfig(base, override)
+		result := MergeFabricConfig(base, override)
 		if len(result.Services) != 1 || result.Services[0].Name != "svc1" {
 			t.Errorf("expected override services, got %v", result.Services)
 		}
 	})
 }
 
-func TestMergeScionConfigMCPServers(t *testing.T) {
+func TestMergeFabricConfigMCPServers(t *testing.T) {
 	t.Run("override merges by key with base", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			MCPServers: map[string]api.MCPServerConfig{
 				"a": {Transport: api.MCPTransportStdio, Command: "a-cmd"},
 				"b": {Transport: api.MCPTransportStdio, Command: "b-cmd"},
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			MCPServers: map[string]api.MCPServerConfig{
 				"b": {Transport: api.MCPTransportStdio, Command: "b-override"},
 				"c": {Transport: api.MCPTransportStdio, Command: "c-cmd"},
 			},
 		}
-		result := MergeScionConfig(base, override)
+		result := MergeFabricConfig(base, override)
 		if len(result.MCPServers) != 3 {
 			t.Fatalf("expected 3 entries, got %d", len(result.MCPServers))
 		}
@@ -839,26 +839,26 @@ func TestMergeScionConfigMCPServers(t *testing.T) {
 	})
 
 	t.Run("nil override preserves base", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			MCPServers: map[string]api.MCPServerConfig{
 				"a": {Transport: api.MCPTransportStdio, Command: "a-cmd"},
 			},
 		}
-		override := &api.ScionConfig{}
-		result := MergeScionConfig(base, override)
+		override := &api.FabricConfig{}
+		result := MergeFabricConfig(base, override)
 		if len(result.MCPServers) != 1 || result.MCPServers["a"].Command != "a-cmd" {
 			t.Errorf("expected base preserved, got %v", result.MCPServers)
 		}
 	})
 
 	t.Run("base nil, override sets", func(t *testing.T) {
-		base := &api.ScionConfig{}
-		override := &api.ScionConfig{
+		base := &api.FabricConfig{}
+		override := &api.FabricConfig{
 			MCPServers: map[string]api.MCPServerConfig{
 				"a": {Transport: api.MCPTransportStdio, Command: "a-cmd"},
 			},
 		}
-		result := MergeScionConfig(base, override)
+		result := MergeFabricConfig(base, override)
 		if len(result.MCPServers) != 1 || result.MCPServers["a"].Command != "a-cmd" {
 			t.Errorf("expected override set, got %v", result.MCPServers)
 		}
@@ -867,7 +867,7 @@ func TestMergeScionConfigMCPServers(t *testing.T) {
 
 func TestLoadConfigMCPServers(t *testing.T) {
 	tmp := t.TempDir()
-	good := filepath.Join(tmp, "scion-agent.yaml")
+	good := filepath.Join(tmp, "fabric-agent.yaml")
 	if err := os.WriteFile(good, []byte(`schema_version: "1"
 mcp_servers:
   chrome-devtools:
@@ -892,7 +892,7 @@ mcp_servers:
 		t.Errorf("expected remote_api URL, got %q", cfg.MCPServers["remote_api"].URL)
 	}
 
-	bad := filepath.Join(tmp, "scion-agent.yaml")
+	bad := filepath.Join(tmp, "fabric-agent.yaml")
 	if err := os.WriteFile(bad, []byte(`schema_version: "1"
 mcp_servers:
   bad:
@@ -906,7 +906,7 @@ mcp_servers:
 }
 
 func TestValidateAgnosticTemplate_RejectsHarnessField(t *testing.T) {
-	cfg := &api.ScionConfig{Harness: "claude"}
+	cfg := &api.FabricConfig{Harness: "claude"}
 	err := ValidateAgnosticTemplate(cfg)
 	if err == nil {
 		t.Fatal("expected error when harness field is set, got nil")
@@ -917,7 +917,7 @@ func TestValidateAgnosticTemplate_RejectsHarnessField(t *testing.T) {
 }
 
 func TestValidateAgnosticTemplate_ValidTemplate(t *testing.T) {
-	cfg := &api.ScionConfig{
+	cfg := &api.FabricConfig{
 		DefaultHarnessConfig: "gemini",
 		AgentInstructions:    "agents.md",
 		SystemPrompt:         "system-prompt.md",
@@ -928,9 +928,9 @@ func TestValidateAgnosticTemplate_ValidTemplate(t *testing.T) {
 	}
 }
 
-func TestMergeScionConfig_NewFields(t *testing.T) {
+func TestMergeFabricConfig_NewFields(t *testing.T) {
 	t.Run("kubernetes override merges all supported fields", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Kubernetes: &api.KubernetesConfig{
 				Context:            "base-ctx",
 				Namespace:          "base-ns",
@@ -947,7 +947,7 @@ func TestMergeScionConfig_NewFields(t *testing.T) {
 				SharedDirSize:         "10Gi",
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Kubernetes: &api.KubernetesConfig{
 				Context:            "override-ctx",
 				Namespace:          "override-ns",
@@ -965,7 +965,7 @@ func TestMergeScionConfig_NewFields(t *testing.T) {
 			},
 		}
 
-		got := MergeScionConfig(base, override)
+		got := MergeFabricConfig(base, override)
 		if got.Kubernetes == nil {
 			t.Fatal("expected Kubernetes config to be present")
 		}
@@ -1011,7 +1011,7 @@ func TestMergeScionConfig_NewFields(t *testing.T) {
 	})
 
 	t.Run("kubernetes empty override keeps base values", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Kubernetes: &api.KubernetesConfig{
 				ServiceAccountName:    "base-sa",
 				ImagePullPolicy:       "Never",
@@ -1020,7 +1020,7 @@ func TestMergeScionConfig_NewFields(t *testing.T) {
 			},
 		}
 
-		got := MergeScionConfig(base, &api.ScionConfig{Kubernetes: &api.KubernetesConfig{}})
+		got := MergeFabricConfig(base, &api.FabricConfig{Kubernetes: &api.KubernetesConfig{}})
 		if got.Kubernetes == nil {
 			t.Fatal("expected Kubernetes config to be preserved")
 		}
@@ -1039,201 +1039,201 @@ func TestMergeScionConfig_NewFields(t *testing.T) {
 	})
 
 	t.Run("agent_instructions override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{AgentInstructions: "base-agents.md"}
-		override := &api.ScionConfig{AgentInstructions: "override-agents.md"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{AgentInstructions: "base-agents.md"}
+		override := &api.FabricConfig{AgentInstructions: "override-agents.md"}
+		got := MergeFabricConfig(base, override)
 		if got.AgentInstructions != "override-agents.md" {
 			t.Errorf("expected AgentInstructions='override-agents.md', got %q", got.AgentInstructions)
 		}
 	})
 
 	t.Run("agent_instructions empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{AgentInstructions: "base-agents.md"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{AgentInstructions: "base-agents.md"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.AgentInstructions != "base-agents.md" {
 			t.Errorf("expected AgentInstructions='base-agents.md', got %q", got.AgentInstructions)
 		}
 	})
 
 	t.Run("system_prompt override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{SystemPrompt: "base-prompt.md"}
-		override := &api.ScionConfig{SystemPrompt: "override-prompt.md"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{SystemPrompt: "base-prompt.md"}
+		override := &api.FabricConfig{SystemPrompt: "override-prompt.md"}
+		got := MergeFabricConfig(base, override)
 		if got.SystemPrompt != "override-prompt.md" {
 			t.Errorf("expected SystemPrompt='override-prompt.md', got %q", got.SystemPrompt)
 		}
 	})
 
 	t.Run("system_prompt empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{SystemPrompt: "base-prompt.md"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{SystemPrompt: "base-prompt.md"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.SystemPrompt != "base-prompt.md" {
 			t.Errorf("expected SystemPrompt='base-prompt.md', got %q", got.SystemPrompt)
 		}
 	})
 
 	t.Run("default_harness_config override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{DefaultHarnessConfig: "gemini"}
-		override := &api.ScionConfig{DefaultHarnessConfig: "claude"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{DefaultHarnessConfig: "gemini"}
+		override := &api.FabricConfig{DefaultHarnessConfig: "claude"}
+		got := MergeFabricConfig(base, override)
 		if got.DefaultHarnessConfig != "claude" {
 			t.Errorf("expected DefaultHarnessConfig='claude', got %q", got.DefaultHarnessConfig)
 		}
 	})
 
 	t.Run("default_harness_config empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{DefaultHarnessConfig: "gemini"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{DefaultHarnessConfig: "gemini"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.DefaultHarnessConfig != "gemini" {
 			t.Errorf("expected DefaultHarnessConfig='gemini', got %q", got.DefaultHarnessConfig)
 		}
 	})
 
 	t.Run("hub endpoint override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{Hub: &api.AgentHubConfig{Endpoint: "https://base-hub.example.com"}}
-		override := &api.ScionConfig{Hub: &api.AgentHubConfig{Endpoint: "https://override-hub.example.com"}}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Hub: &api.AgentHubConfig{Endpoint: "https://base-hub.example.com"}}
+		override := &api.FabricConfig{Hub: &api.AgentHubConfig{Endpoint: "https://override-hub.example.com"}}
+		got := MergeFabricConfig(base, override)
 		if got.Hub == nil || got.Hub.Endpoint != "https://override-hub.example.com" {
 			t.Errorf("expected Hub.Endpoint='https://override-hub.example.com', got %v", got.Hub)
 		}
 	})
 
 	t.Run("hub nil override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{Hub: &api.AgentHubConfig{Endpoint: "https://base-hub.example.com"}}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Hub: &api.AgentHubConfig{Endpoint: "https://base-hub.example.com"}}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.Hub == nil || got.Hub.Endpoint != "https://base-hub.example.com" {
 			t.Errorf("expected Hub.Endpoint='https://base-hub.example.com', got %v", got.Hub)
 		}
 	})
 
 	t.Run("hub override on nil base", func(t *testing.T) {
-		base := &api.ScionConfig{}
-		override := &api.ScionConfig{Hub: &api.AgentHubConfig{Endpoint: "https://new-hub.example.com"}}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{}
+		override := &api.FabricConfig{Hub: &api.AgentHubConfig{Endpoint: "https://new-hub.example.com"}}
+		got := MergeFabricConfig(base, override)
 		if got.Hub == nil || got.Hub.Endpoint != "https://new-hub.example.com" {
 			t.Errorf("expected Hub.Endpoint='https://new-hub.example.com', got %v", got.Hub)
 		}
 	})
 }
 
-func TestMergeScionConfig_TaskFlag(t *testing.T) {
+func TestMergeFabricConfig_TaskFlag(t *testing.T) {
 	t.Run("task_flag override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{TaskFlag: "--task"}
-		override := &api.ScionConfig{TaskFlag: "--input"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{TaskFlag: "--task"}
+		override := &api.FabricConfig{TaskFlag: "--input"}
+		got := MergeFabricConfig(base, override)
 		if got.TaskFlag != "--input" {
 			t.Errorf("expected TaskFlag='--input', got %q", got.TaskFlag)
 		}
 	})
 
 	t.Run("task_flag empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{TaskFlag: "--input"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{TaskFlag: "--input"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.TaskFlag != "--input" {
 			t.Errorf("expected TaskFlag='--input', got %q", got.TaskFlag)
 		}
 	})
 
 	t.Run("task_flag set on nil base", func(t *testing.T) {
-		got := MergeScionConfig(nil, &api.ScionConfig{TaskFlag: "--input"})
+		got := MergeFabricConfig(nil, &api.FabricConfig{TaskFlag: "--input"})
 		if got.TaskFlag != "--input" {
 			t.Errorf("expected TaskFlag='--input', got %q", got.TaskFlag)
 		}
 	})
 }
 
-func TestMergeScionConfig_InlineConfigFields(t *testing.T) {
+func TestMergeFabricConfig_InlineConfigFields(t *testing.T) {
 	t.Run("user override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{User: "root"}
-		override := &api.ScionConfig{User: "scion"}
-		got := MergeScionConfig(base, override)
-		if got.User != "scion" {
-			t.Errorf("expected User='scion', got %q", got.User)
+		base := &api.FabricConfig{User: "root"}
+		override := &api.FabricConfig{User: "fabric"}
+		got := MergeFabricConfig(base, override)
+		if got.User != "fabric" {
+			t.Errorf("expected User='fabric', got %q", got.User)
 		}
 	})
 
 	t.Run("user empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{User: "scion"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
-		if got.User != "scion" {
-			t.Errorf("expected User='scion', got %q", got.User)
+		base := &api.FabricConfig{User: "fabric"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
+		if got.User != "fabric" {
+			t.Errorf("expected User='fabric', got %q", got.User)
 		}
 	})
 
 	t.Run("task override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{Task: "old task"}
-		override := &api.ScionConfig{Task: "new task"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Task: "old task"}
+		override := &api.FabricConfig{Task: "new task"}
+		got := MergeFabricConfig(base, override)
 		if got.Task != "new task" {
 			t.Errorf("expected Task='new task', got %q", got.Task)
 		}
 	})
 
 	t.Run("task empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{Task: "existing task"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Task: "existing task"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.Task != "existing task" {
 			t.Errorf("expected Task='existing task', got %q", got.Task)
 		}
 	})
 
 	t.Run("branch override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{Branch: "main"}
-		override := &api.ScionConfig{Branch: "feature-branch"}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Branch: "main"}
+		override := &api.FabricConfig{Branch: "feature-branch"}
+		got := MergeFabricConfig(base, override)
 		if got.Branch != "feature-branch" {
 			t.Errorf("expected Branch='feature-branch', got %q", got.Branch)
 		}
 	})
 
 	t.Run("branch empty override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{Branch: "develop"}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{Branch: "develop"}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.Branch != "develop" {
 			t.Errorf("expected Branch='develop', got %q", got.Branch)
 		}
 	})
 
 	t.Run("max_model_calls override replaces base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxModelCalls: 100}
-		override := &api.ScionConfig{MaxModelCalls: 200}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxModelCalls: 100}
+		override := &api.FabricConfig{MaxModelCalls: 200}
+		got := MergeFabricConfig(base, override)
 		if got.MaxModelCalls != 200 {
 			t.Errorf("expected MaxModelCalls=200, got %d", got.MaxModelCalls)
 		}
 	})
 
 	t.Run("max_model_calls zero override keeps base", func(t *testing.T) {
-		base := &api.ScionConfig{MaxModelCalls: 150}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		base := &api.FabricConfig{MaxModelCalls: 150}
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.MaxModelCalls != 150 {
 			t.Errorf("expected MaxModelCalls=150, got %d", got.MaxModelCalls)
 		}
 	})
 
 	t.Run("full inline config merge over template", func(t *testing.T) {
-		template := &api.ScionConfig{
+		template := &api.FabricConfig{
 			Model:         "claude-sonnet-4-6",
 			MaxTurns:      100,
 			HarnessConfig: "claude-default",
 			User:          "root",
 		}
-		inline := &api.ScionConfig{
+		inline := &api.FabricConfig{
 			Model:  "claude-opus-4-6",
 			Task:   "Review the code",
 			Branch: "review-branch",
-			User:   "scion",
+			User:   "fabric",
 		}
-		got := MergeScionConfig(template, inline)
+		got := MergeFabricConfig(template, inline)
 		if got.Model != "claude-opus-4-6" {
 			t.Errorf("expected Model='claude-opus-4-6', got %q", got.Model)
 		}
@@ -1249,8 +1249,8 @@ func TestMergeScionConfig_InlineConfigFields(t *testing.T) {
 		if got.Branch != "review-branch" {
 			t.Errorf("expected Branch='review-branch', got %q", got.Branch)
 		}
-		if got.User != "scion" {
-			t.Errorf("expected User='scion', got %q", got.User)
+		if got.User != "fabric" {
+			t.Errorf("expected User='fabric', got %q", got.User)
 		}
 	})
 }
@@ -1258,10 +1258,10 @@ func TestMergeScionConfig_InlineConfigFields(t *testing.T) {
 func boolP(b bool) *bool          { return &b }
 func float64P(f float64) *float64 { return &f }
 
-func TestMergeScionConfigTelemetry(t *testing.T) {
+func TestMergeFabricConfigTelemetry(t *testing.T) {
 	t.Run("override on nil base", func(t *testing.T) {
-		base := &api.ScionConfig{}
-		override := &api.ScionConfig{
+		base := &api.FabricConfig{}
+		override := &api.FabricConfig{
 			Telemetry: &api.TelemetryConfig{
 				Enabled: boolP(false),
 				Cloud: &api.TelemetryCloudConfig{
@@ -1269,7 +1269,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 				},
 			},
 		}
-		got := MergeScionConfig(base, override)
+		got := MergeFabricConfig(base, override)
 		if got.Telemetry == nil {
 			t.Fatal("expected Telemetry to be set")
 		}
@@ -1282,7 +1282,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 	})
 
 	t.Run("nil override preserves base", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Telemetry: &api.TelemetryConfig{
 				Enabled: boolP(true),
 				Cloud: &api.TelemetryCloudConfig{
@@ -1291,8 +1291,8 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 				},
 			},
 		}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if got.Telemetry == nil {
 			t.Fatal("expected Telemetry to be preserved")
 		}
@@ -1302,7 +1302,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 	})
 
 	t.Run("partial override merges fields", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Telemetry: &api.TelemetryConfig{
 				Enabled: boolP(true),
 				Cloud: &api.TelemetryCloudConfig{
@@ -1340,7 +1340,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 				},
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Telemetry: &api.TelemetryConfig{
 				Cloud: &api.TelemetryCloudConfig{
 					Endpoint: "https://override.example.com",
@@ -1370,7 +1370,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 			},
 		}
 
-		got := MergeScionConfig(base, override)
+		got := MergeFabricConfig(base, override)
 		if got.Telemetry == nil {
 			t.Fatal("expected Telemetry")
 		}
@@ -1446,7 +1446,7 @@ func TestMergeScionConfigTelemetry(t *testing.T) {
 
 func TestLoadConfigYAMLKeyNormalization(t *testing.T) {
 	t.Run("harness-config hyphen maps to harness_config", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-yaml-normalize-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-yaml-normalize-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1454,7 +1454,7 @@ func TestLoadConfigYAMLKeyNormalization(t *testing.T) {
 
 		configContent := `harness-config: claude-web
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -1470,7 +1470,7 @@ func TestLoadConfigYAMLKeyNormalization(t *testing.T) {
 	})
 
 	t.Run("default-harness-config hyphen maps to default_harness_config", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-yaml-normalize-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-yaml-normalize-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1478,7 +1478,7 @@ func TestLoadConfigYAMLKeyNormalization(t *testing.T) {
 
 		configContent := `default-harness-config: gemini-experimental
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -1494,7 +1494,7 @@ func TestLoadConfigYAMLKeyNormalization(t *testing.T) {
 	})
 
 	t.Run("underscore keys still work", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-yaml-normalize-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-yaml-normalize-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1505,7 +1505,7 @@ default_harness_config: gemini
 command_args:
   - "--verbose"
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -1527,7 +1527,7 @@ command_args:
 	})
 
 	t.Run("env map keys are not normalized", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-yaml-normalize-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-yaml-normalize-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1537,7 +1537,7 @@ command_args:
   MY-CUSTOM-VAR: hello
   NORMAL_VAR: world
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -1559,7 +1559,7 @@ command_args:
 	})
 
 	t.Run("full template with mixed hyphen keys", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "scion-test-yaml-normalize-*")
+		tmpDir, err := os.MkdirTemp("", "fabric-test-yaml-normalize-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1573,7 +1573,7 @@ services:
       - "chromium"
       - "--headless"
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -1603,7 +1603,7 @@ default-harness-config: gemini
 command-args:
   - "--verbose"
 `
-		var cfg api.ScionConfig
+		var cfg api.FabricConfig
 		if err := unmarshalYAMLNormalized([]byte(input), &cfg); err != nil {
 			t.Fatalf("unmarshalYAMLNormalized failed: %v", err)
 		}
@@ -1623,7 +1623,7 @@ command-args:
 		input := `image: my-registry/my-image:latest
 model: gemini-pro
 `
-		var cfg api.ScionConfig
+		var cfg api.FabricConfig
 		if err := unmarshalYAMLNormalized([]byte(input), &cfg); err != nil {
 			t.Fatalf("unmarshalYAMLNormalized failed: %v", err)
 		}
@@ -1667,8 +1667,8 @@ func TestFriendlyTemplateName(t *testing.T) {
 		{"empty", "", ""},
 		{"simple name", "claude", "claude"},
 		{"simple name with dash", "my-template", "my-template"},
-		{"absolute path", "/home/user/.scion/templates/cache/abc123", "abc123"},
-		{"cache path", "/tmp/.scion_cache/templates/my-template", "my-template"},
+		{"absolute path", "/home/user/.fabric/templates/cache/abc123", "abc123"},
+		{"cache path", "/tmp/.fabric_cache/templates/my-template", "my-template"},
 		{"http URI", "https://example.com/my-template.tar.gz", "my-template"},
 		{"github URI", "https://github.com/user/repo/tree/main/templates/claude", "claude"},
 		{"rclone path", ":gcs:bucket/path/to/template", "template"},
@@ -1759,7 +1759,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("no warnings for clean template", func(t *testing.T) {
-		cfg := &api.ScionConfig{
+		cfg := &api.FabricConfig{
 			AgentInstructions:    "agents.md",
 			SystemPrompt:         "system-prompt.md",
 			DefaultHarnessConfig: "gemini",
@@ -1771,7 +1771,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("no warning for size alias model", func(t *testing.T) {
-		cfg := &api.ScionConfig{Model: "large"}
+		cfg := &api.FabricConfig{Model: "large"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 0 {
 			t.Errorf("expected no warnings for model alias 'large', got %v", warnings)
@@ -1779,7 +1779,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("no warning for xl shorthand", func(t *testing.T) {
-		cfg := &api.ScionConfig{Model: "xl"}
+		cfg := &api.FabricConfig{Model: "xl"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 0 {
 			t.Errorf("expected no warnings for model alias 'xl', got %v", warnings)
@@ -1787,7 +1787,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("no warning for uppercase alias", func(t *testing.T) {
-		cfg := &api.ScionConfig{Model: "LARGE"}
+		cfg := &api.FabricConfig{Model: "LARGE"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 0 {
 			t.Errorf("expected no warnings for model alias 'LARGE', got %v", warnings)
@@ -1795,7 +1795,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("warns about image", func(t *testing.T) {
-		cfg := &api.ScionConfig{Image: "custom-image:v1"}
+		cfg := &api.FabricConfig{Image: "custom-image:v1"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 1 {
 			t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
@@ -1806,7 +1806,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("warns about auth_selectedType", func(t *testing.T) {
-		cfg := &api.ScionConfig{AuthSelectedType: "api-key"}
+		cfg := &api.FabricConfig{AuthSelectedType: "api-key"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 1 {
 			t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
@@ -1817,7 +1817,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("warns about concrete model name", func(t *testing.T) {
-		cfg := &api.ScionConfig{Model: "gemini-pro"}
+		cfg := &api.FabricConfig{Model: "gemini-pro"}
 		warnings := WarnDeprecatedTemplateFields(cfg)
 		if len(warnings) != 1 {
 			t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
@@ -1828,7 +1828,7 @@ func TestWarnDeprecatedTemplateFields(t *testing.T) {
 	})
 
 	t.Run("multiple deprecated fields produce multiple warnings", func(t *testing.T) {
-		cfg := &api.ScionConfig{
+		cfg := &api.FabricConfig{
 			Image:            "custom:v1",
 			Model:            "gemini-pro",
 			AuthSelectedType: "api-key",
@@ -1929,42 +1929,42 @@ func TestResolveContentInChain(t *testing.T) {
 	})
 }
 
-func TestMergeScionConfig_Skills(t *testing.T) {
+func TestMergeFabricConfig_Skills(t *testing.T) {
 	t.Run("base has skills, override has none", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Skills: []api.SkillReference{
-				{URI: "skill://scion/core/scion@^1.0"},
+				{URI: "skill://fabric/core/fabric@^1.0"},
 			},
 		}
-		override := &api.ScionConfig{}
-		got := MergeScionConfig(base, override)
+		override := &api.FabricConfig{}
+		got := MergeFabricConfig(base, override)
 		if len(got.Skills) != 1 {
 			t.Fatalf("expected 1 skill, got %d", len(got.Skills))
 		}
-		if got.Skills[0].URI != "skill://scion/core/scion@^1.0" {
+		if got.Skills[0].URI != "skill://fabric/core/fabric@^1.0" {
 			t.Errorf("expected base skill preserved, got %q", got.Skills[0].URI)
 		}
 	})
 
 	t.Run("both have skills - concatenated", func(t *testing.T) {
-		base := &api.ScionConfig{
+		base := &api.FabricConfig{
 			Skills: []api.SkillReference{
-				{URI: "skill://scion/core/scion@^1.0"},
+				{URI: "skill://fabric/core/fabric@^1.0"},
 			},
 		}
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Skills: []api.SkillReference{
-				{URI: "skill://scion/core/security-audit@latest", Optional: true},
+				{URI: "skill://fabric/core/security-audit@latest", Optional: true},
 			},
 		}
-		got := MergeScionConfig(base, override)
+		got := MergeFabricConfig(base, override)
 		if len(got.Skills) != 2 {
 			t.Fatalf("expected 2 skills, got %d", len(got.Skills))
 		}
-		if got.Skills[0].URI != "skill://scion/core/scion@^1.0" {
+		if got.Skills[0].URI != "skill://fabric/core/fabric@^1.0" {
 			t.Errorf("first skill = %q, want base skill", got.Skills[0].URI)
 		}
-		if got.Skills[1].URI != "skill://scion/core/security-audit@latest" {
+		if got.Skills[1].URI != "skill://fabric/core/security-audit@latest" {
 			t.Errorf("second skill = %q, want override skill", got.Skills[1].URI)
 		}
 		if !got.Skills[1].Optional {
@@ -1973,16 +1973,16 @@ func TestMergeScionConfig_Skills(t *testing.T) {
 	})
 
 	t.Run("base nil, override has skills", func(t *testing.T) {
-		override := &api.ScionConfig{
+		override := &api.FabricConfig{
 			Skills: []api.SkillReference{
-				{URI: "scion", As: "my-scion"},
+				{URI: "fabric", As: "my-fabric"},
 			},
 		}
-		got := MergeScionConfig(nil, override)
+		got := MergeFabricConfig(nil, override)
 		if len(got.Skills) != 1 {
 			t.Fatalf("expected 1 skill, got %d", len(got.Skills))
 		}
-		if got.Skills[0].As != "my-scion" {
+		if got.Skills[0].As != "my-fabric" {
 			t.Errorf("expected As field preserved, got %q", got.Skills[0].As)
 		}
 	})

@@ -177,7 +177,7 @@ func TestRefreshTokenEntry_JSON(t *testing.T) {
 func TestRefreshTokenEntry_JSON_OmitAudience(t *testing.T) {
 	entry := RefreshTokenEntry{
 		Layer:     "app",
-		Type:      "scion_access",
+		Type:      "fabric_access",
 		Value:     "token-value",
 		ExpiresIn: 36000,
 	}

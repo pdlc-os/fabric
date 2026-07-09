@@ -64,7 +64,7 @@ This maps well to the chat message transport use case:
 | User sends @mention to agent | Plugin receives from chat platform → POSTs to Hub inbound API |
 | Grove broadcast to chat | Hub calls `Publish()` on broadcast topic → plugin delivers |
 
-The topic-based routing is natural: a chat plugin subscribes to `scion.grove.<id>.agent.*.messages` and `scion.grove.<id>.user.*.messages` for linked groves. When an agent message arrives, the plugin translates it to a chat-platform card and sends it to the linked space.
+The topic-based routing is natural: a chat plugin subscribes to `fabric.grove.<id>.agent.*.messages` and `fabric.grove.<id>.user.*.messages` for linked groves. When an agent message arrives, the plugin translates it to a chat-platform card and sends it to the linked space.
 
 ### What's missing
 
@@ -170,7 +170,7 @@ The `ChannelRegistry` remains for simple one-way integrations (webhook, email). 
 
 ### The problem
 
-When a user types `/scion start my-agent` in chat, something needs to call `AgentService.Start()` on the Hub. This requires:
+When a user types `/fabric start my-agent` in chat, something needs to call `AgentService.Start()` on the Hub. This requires:
 
 1. **User identity resolution** — map the chat user to a Hub user
 2. **Authorization** — make the API call with the mapped user's permissions
@@ -227,7 +227,7 @@ Combining the three verdicts with Option C (single binary):
         │ dialogs, @mentions with intent)   │ update cards)
         ▼                                   ▲
 ┌───────────────────────────────────────────────────────────────┐
-│              scion-chat-app (standalone process)              │
+│              fabric-chat-app (standalone process)              │
 │                                                               │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
 │  │ Command      │  │ User Identity │  │ Dialog/Modal        │ │
@@ -242,7 +242,7 @@ Combining the three verdicts with Option C (single binary):
                            │ HTTPS
                            ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                        Scion Hub                              │
+│                        Fabric Hub                              │
 │                                                               │
 │  ┌──────────────────────────────────────────────────────┐     │
 │  │ MessageBrokerProxy                                    │     │
@@ -250,7 +250,7 @@ Combining the three verdicts with Option C (single binary):
 │  └──────────┬───────────────────────────────────────────┘     │
 │             │                                                 │
 │  ┌──────────▼───────────────────────────────────────────┐     │
-│  │ scion-plugin-googlechat (broker plugin)               │     │
+│  │ fabric-plugin-googlechat (broker plugin)               │     │
 │  │                                                       │     │
 │  │  Publish(topic, msg) → render card → Chat API send    │     │
 │  │  Inbound chat msg   → POST /api/v1/broker/inbound     │     │
@@ -361,14 +361,14 @@ This is a small change to `notifications.go` (lines 285-297). The `ChannelRegist
 
 ## Implementation Impact
 
-### On the chat app (`scion-chat-app`)
+### On the chat app (`fabric-chat-app`)
 
 - Simpler than the pure-standalone design: no SSE subscription for agent messages, no notification relay logic
 - Still owns: webhook handling, command router, identity mapper, dialog state, space-grove linking
 - Sends user→agent messages via Hub API (which routes through broker)
 - Receives command results directly from Hub API and renders responses
 
-### On the plugin (`scion-plugin-googlechat`)
+### On the plugin (`fabric-plugin-googlechat`)
 
 - Implements `MessageBrokerPluginInterface` with `PublishWithContext` support
 - Contains all Google Chat API rendering logic (Cards V2)
@@ -384,7 +384,7 @@ This is a small change to `notifications.go` (lines 285-297). The `ChannelRegist
 
 ### On the Slack implementation (future)
 
-The same split applies. `scion-plugin-slack` handles Block Kit rendering and Slack API delivery. `scion-chat-app` already has the platform adapter abstraction for webhook handling, so the Slack adapter slots in alongside the Google Chat adapter in the same standalone process.
+The same split applies. `fabric-plugin-slack` handles Block Kit rendering and Slack API delivery. `fabric-chat-app` already has the platform adapter abstraction for webhook handling, so the Slack adapter slots in alongside the Google Chat adapter in the same standalone process.
 
 ---
 

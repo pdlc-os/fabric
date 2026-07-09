@@ -9,10 +9,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -31,9 +31,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "scion",
+	Use:   "fabric",
 	Short: "A container-based orchestration tool for managing concurrent LLM agents",
-	Long: `Scion is a container-based orchestration tool for managing
+	Long: `Fabric is a container-based orchestration tool for managing
 concurrent LLM agents. It enables parallel execution of specialized
 sub-agents with isolated identities, credentials, and workspaces.
 
@@ -54,7 +54,7 @@ return an error instead of blocking.`,
 		}
 
 		// Detect agent container context without a reachable Hub endpoint.
-		// SCION_HOST_UID is set by the runtime when launching agent containers.
+		// FABRIC_HOST_UID is set by the runtime when launching agent containers.
 		// If present but no non-localhost Hub endpoint is configured, the CLI
 		// cannot do anything useful — warn the agent and abort.
 		if err := checkAgentContainerContext(cmd); err != nil {
@@ -91,7 +91,7 @@ return an error instead of blocking.`,
 		case "init":
 			// Both top-level init and project init don't require existing project
 			requiresProject = false
-		case "scion":
+		case "fabric":
 			// Root command itself doesn't require project
 			requiresProject = false
 		}
@@ -236,7 +236,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&outputFormat, "format", "", "Output format (e.g., json)")
 
 	// Hub integration flags
-	rootCmd.PersistentFlags().StringVar(&hubEndpoint, "hub", "", "Hub API endpoint URL (overrides SCION_HUB_ENDPOINT)")
+	rootCmd.PersistentFlags().StringVar(&hubEndpoint, "hub", "", "Hub API endpoint URL (overrides FABRIC_HUB_ENDPOINT)")
 	rootCmd.PersistentFlags().BoolVar(&noHub, "no-hub", false, "Disable Hub integration for this invocation (local-only mode)")
 
 	// Confirmation and non-interactive flags
@@ -244,7 +244,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&nonInteractive, "non-interactive", false, "Non-interactive mode: implies --yes, errors on ambiguous prompts")
 
 	// Debug mode flag
-	rootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false, "Enable debug output (equivalent to SCION_DEBUG=1)")
+	rootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false, "Enable debug output (equivalent to FABRIC_DEBUG=1)")
 }
 
 // GetHubEndpoint returns the effective Hub endpoint based on flags, settings,
@@ -265,10 +265,10 @@ func GetHubEndpoint(settings interface{ GetHubEndpoint() string }) string {
 	// Fall back to env vars — covers the case where settings loading didn't
 	// populate the Hub struct (e.g., inside a hub-connected container where
 	// the project path resolves to a synthetic/empty directory).
-	if ep := os.Getenv("SCION_HUB_ENDPOINT"); ep != "" {
+	if ep := os.Getenv("FABRIC_HUB_ENDPOINT"); ep != "" {
 		return ep
 	}
-	if ep := os.Getenv("SCION_HUB_URL"); ep != "" {
+	if ep := os.Getenv("FABRIC_HUB_URL"); ep != "" {
 		return ep
 	}
 	return ""
@@ -325,7 +325,7 @@ func printDevAuthWarningIfNeeded(projectPath string) {
 		}
 	}
 
-	// Check if OAuth credentials are available (from scion hub auth login)
+	// Check if OAuth credentials are available (from fabric hub auth login)
 	endpoint := GetHubEndpoint(settings)
 	if endpoint != "" && credentials.IsAuthenticated(endpoint) {
 		// OAuth credentials available, not using dev auth
@@ -340,10 +340,10 @@ func printDevAuthWarningIfNeeded(projectPath string) {
 	}
 
 	// Only warn if the dev token is explicitly set via environment variable,
-	// or if the hub endpoint is a local address. A stale ~/.scion/dev-token file
+	// or if the hub endpoint is a local address. A stale ~/.fabric/dev-token file
 	// should not trigger a warning when connecting to a remote hub, since
 	// the remote hub likely doesn't use dev-auth.
-	if devTokenSource != "SCION_DEV_TOKEN env var" {
+	if devTokenSource != "FABRIC_DEV_TOKEN env var" {
 		if !isLocalEndpoint(endpoint) {
 			return
 		}
@@ -355,20 +355,20 @@ func printDevAuthWarningIfNeeded(projectPath string) {
 }
 
 // checkAgentContainerContext detects when the CLI is running inside an agent
-// container (SCION_HOST_UID is set) but has no reachable Hub endpoint. In that
+// container (FABRIC_HOST_UID is set) but has no reachable Hub endpoint. In that
 // scenario the CLI cannot manage agents, projects, or any other resources, so we
 // print a prominent banner and return an error to prevent confusion.
 // A small set of informational commands (version, help, completion, doctor,
 // config) are exempted so the agent can still inspect its environment.
 func checkAgentContainerContext(cmd *cobra.Command) error {
-	if os.Getenv("SCION_HOST_UID") == "" {
+	if os.Getenv("FABRIC_HOST_UID") == "" {
 		// Not inside an agent container — nothing to check.
 		return nil
 	}
 
 	cmdName := cmd.Name()
 	switch cmdName {
-	case "help", "version", "completion", "doctor", "config", "whoami", "scion":
+	case "help", "version", "completion", "doctor", "config", "whoami", "fabric":
 		return nil
 	}
 	if cmd.Parent() != nil && cmd.Parent().Name() == "config" {
@@ -379,10 +379,10 @@ func checkAgentContainerContext(cmd *cobra.Command) error {
 	// load cleanly inside a container, so check env vars directly too).
 	endpoint := hubEndpoint
 	if endpoint == "" {
-		endpoint = os.Getenv("SCION_HUB_ENDPOINT")
+		endpoint = os.Getenv("FABRIC_HUB_ENDPOINT")
 	}
 	if endpoint == "" {
-		endpoint = os.Getenv("SCION_HUB_URL")
+		endpoint = os.Getenv("FABRIC_HUB_URL")
 	}
 
 	if endpoint != "" && !isLocalEndpoint(endpoint) {
@@ -392,7 +392,7 @@ func checkAgentContainerContext(cmd *cobra.Command) error {
 
 	// With --network=host, the container shares the host's network namespace,
 	// so localhost endpoints are reachable.
-	if endpoint != "" && os.Getenv("SCION_NETWORK_MODE") == "host" {
+	if endpoint != "" && os.Getenv("FABRIC_NETWORK_MODE") == "host" {
 		return nil
 	}
 
@@ -403,14 +403,14 @@ func checkAgentContainerContext(cmd *cobra.Command) error {
 
 	return fmt.Errorf(
 		"%s%s╔══════════════════════════════════════════════════════════════════╗%s\n"+
-			"%s%s║  SCION CLI — Running inside an agent container                 ║%s\n"+
+			"%s%s║  FABRIC CLI — Running inside an agent container                 ║%s\n"+
 			"%s%s╠══════════════════════════════════════════════════════════════════╣%s\n"+
 			"%s%s║                                                                  ║%s\n"+
-			"%s%s║  The scion CLI cannot be used from within an agent container     ║%s\n"+
+			"%s%s║  The fabric CLI cannot be used from within an agent container     ║%s\n"+
 			"%s%s║  because %s.%s\n"+
 			"%s%s║                                                                  ║%s\n"+
 			"%s%s║  To use the CLI, configure a reachable Hub endpoint:             ║%s\n"+
-			"%s%s║    • Set SCION_HUB_ENDPOINT to a non-localhost URL               ║%s\n"+
+			"%s%s║    • Set FABRIC_HUB_ENDPOINT to a non-localhost URL               ║%s\n"+
 			"%s%s║    • Or pass --hub <url> on the command line                     ║%s\n"+
 			"%s%s║                                                                  ║%s\n"+
 			"%s%s║  Allowed commands: version, help, doctor, config                 ║%s\n"+

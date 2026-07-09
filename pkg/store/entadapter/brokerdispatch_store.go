@@ -18,11 +18,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/brokerdispatch"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/message"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/brokerdispatch"
+	"github.com/pdlc-os/fabric/pkg/ent/message"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // BrokerDispatchStore is the Ent-backed store for the broker_dispatch durable

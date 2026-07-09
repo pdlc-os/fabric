@@ -19,23 +19,23 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"gopkg.in/yaml.v3"
 )
 
-// WriteTemplate creates a scion template directory from an ImportedAgent.
-// For scion-format templates, it performs a direct copy. For harness-specific
+// WriteTemplate creates a fabric template directory from an ImportedAgent.
+// For fabric-format templates, it performs a direct copy. For harness-specific
 // formats, it seeds the base agnostic template, then overwrites the instruction
-// file with the imported system prompt and updates scion-agent.yaml with the
+// file with the imported system prompt and updates fabric-agent.yaml with the
 // model from the import.
 // Returns the path to the created template directory.
 func WriteTemplate(agent *ImportedAgent, templatesDir string, force bool) (string, error) {
 	templateDir := filepath.Join(templatesDir, agent.Name)
 
-	// Scion-format templates are copied directly
-	if agent.ScionFormat && agent.SourcePath != "" {
-		return CopyScionTemplate(agent.SourcePath, templateDir, force)
+	// Fabric-format templates are copied directly
+	if agent.FabricFormat && agent.SourcePath != "" {
+		return CopyFabricTemplate(agent.SourcePath, templateDir, force)
 	}
 
 	// Check if template already exists
@@ -68,10 +68,10 @@ func WriteTemplate(agent *ImportedAgent, templatesDir string, force bool) (strin
 		}
 	}
 
-	// Update scion-agent.yaml with model and default_harness_config
+	// Update fabric-agent.yaml with model and default_harness_config
 	if agent.Model != "" || agent.Harness != "" {
-		if err := updateScionAgentConfig(templateDir, agent); err != nil {
-			return "", fmt.Errorf("failed to update scion-agent.yaml: %w", err)
+		if err := updateFabricAgentConfig(templateDir, agent); err != nil {
+			return "", fmt.Errorf("failed to update fabric-agent.yaml: %w", err)
 		}
 	}
 
@@ -91,17 +91,17 @@ func getInstructionFilePath(harnessName, templateDir string) string {
 	}
 }
 
-// updateScionAgentConfig reads the existing scion-agent.yaml, updates the model
+// updateFabricAgentConfig reads the existing fabric-agent.yaml, updates the model
 // and default_harness_config fields, and writes it back.
-func updateScionAgentConfig(templateDir string, agent *ImportedAgent) error {
-	configPath := filepath.Join(templateDir, "scion-agent.yaml")
+func updateFabricAgentConfig(templateDir string, agent *ImportedAgent) error {
+	configPath := filepath.Join(templateDir, "fabric-agent.yaml")
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
 
-	var cfg api.ScionConfig
+	var cfg api.FabricConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return err
 	}

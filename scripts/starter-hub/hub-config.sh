@@ -28,7 +28,7 @@
 # --- Primary Configuration ---
 # HUB_NAME drives all resource naming. Defaults to "demo".
 HUB_NAME="${HUB_NAME:-demo}"
-BASE_DOMAIN="${BASE_DOMAIN:-scion-ai.dev}"
+BASE_DOMAIN="${BASE_DOMAIN:-fabric-ai.dev}"
 
 # --- Feature Flags ---
 # Set to "false" to skip GKE cluster creation, credential setup, and
@@ -36,17 +36,17 @@ BASE_DOMAIN="${BASE_DOMAIN:-scion-ai.dev}"
 ENABLE_GKE="${ENABLE_GKE:-false}"
 
 # --- Derived: GCP Resources ---
-INSTANCE_NAME="${INSTANCE_NAME:-scion-${HUB_NAME}}"
-SERVICE_ACCOUNT_NAME="${SERVICE_ACCOUNT_NAME:-scion-${HUB_NAME}-sa}"
-FIREWALL_RULE="${FIREWALL_RULE:-scion-${HUB_NAME}-allow-http-https}"
-CLUSTER_NAME="${CLUSTER_NAME:-scion-${HUB_NAME}-cluster}"
+INSTANCE_NAME="${INSTANCE_NAME:-fabric-${HUB_NAME}}"
+SERVICE_ACCOUNT_NAME="${SERVICE_ACCOUNT_NAME:-fabric-${HUB_NAME}-sa}"
+FIREWALL_RULE="${FIREWALL_RULE:-fabric-${HUB_NAME}-allow-http-https}"
+CLUSTER_NAME="${CLUSTER_NAME:-fabric-${HUB_NAME}-cluster}"
 
 # --- Derived: Domain & DNS ---
-# CERT_DOMAIN is the zone used for wildcard certs (e.g., "demo.scion-ai.dev")
+# CERT_DOMAIN is the zone used for wildcard certs (e.g., "demo.fabric-ai.dev")
 CERT_DOMAIN="${CERT_DOMAIN:-${HUB_NAME}.${BASE_DOMAIN}}"
-# HUB_DOMAIN is the full hostname for the hub (e.g., "hub.demo.scion-ai.dev")
+# HUB_DOMAIN is the full hostname for the hub (e.g., "hub.demo.fabric-ai.dev")
 HUB_DOMAIN="${HUB_DOMAIN:-hub.${CERT_DOMAIN}}"
-# DNS_ZONE_NAME is the Cloud DNS managed zone name (e.g., "demo-scion-ai-dev")
+# DNS_ZONE_NAME is the Cloud DNS managed zone name (e.g., "demo-fabric-ai-dev")
 DNS_ZONE_NAME="${DNS_ZONE_NAME:-$(echo "${CERT_DOMAIN}" | tr '.' '-')}"
 
 # --- Derived: Region / Zone ---
@@ -58,11 +58,11 @@ PROJECT_ID="${PROJECT_ID:-$(gcloud config get-value project 2>/dev/null || true)
 
 # --- Derived: Paths ---
 HUB_ENV_FILE="${HUB_ENV_FILE:-.scratch/hub-${HUB_NAME}.env}"
-REPO_DIR="${REPO_DIR:-/home/scion/scion}"
-SCION_BIN="${SCION_BIN:-/usr/local/bin/scion}"
+REPO_DIR="${REPO_DIR:-/home/fabric/fabric}"
+FABRIC_BIN="${FABRIC_BIN:-/usr/local/bin/fabric}"
 
 # --- Shared Defaults ---
-GITHUB_REPO="${GITHUB_REPO:-GoogleCloudPlatform/scion}"
+GITHUB_REPO="${GITHUB_REPO:-pdlc-os/fabric}"
 CERT_EMAIL="${CERT_EMAIL:-ptone@google.com}"
 CLOUD_INIT_FILE="${CLOUD_INIT_FILE:-scripts/starter-hub/gce-demo-cloud-init.yaml}"
 

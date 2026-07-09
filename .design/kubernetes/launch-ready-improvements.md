@@ -42,7 +42,7 @@ However, compared to local runtimes, there are major parity and production-readi
 
 ### Sync modes
 - `tar` snapshot sync to/from pod is implemented over `pods/exec` streaming.
-- GCS volume sync metadata (`scion.gcs_volumes`) is supported for `sync to/from`.
+- GCS volume sync metadata (`fabric.gcs_volumes`) is supported for `sync to/from`.
 ### Runtime operations
 - `List`, `GetLogs`, `Attach`, `Exec`, `Delete`, `Stop`, `GetWorkspacePath` exist and are wired.
 - Attach includes terminal raw mode and resize support.
@@ -217,7 +217,7 @@ Deliverables:
 - `ListAllNamespaces` field on `KubernetesRuntime` (configured via `V1RuntimeConfig.ListAllNamespaces`).
 - `List()` queries all namespaces when `ListAllNamespaces` is true (empty namespace = all).
 - `resolveNamespace()` helper looks up pod annotations for namespace, with cross-namespace search fallback.
-- `scion.namespace` annotation persisted at pod creation for lifecycle operations.
+- `fabric.namespace` annotation persisted at pod creation for lifecycle operations.
 - `Delete`, `GetLogs`, `Attach`, `Exec`, `GetWorkspacePath` all support `namespace/pod` ID format.
 - `Delete`, `GetLogs`, `Attach`, `Exec`, `GetWorkspacePath` all use `resolveNamespace` for annotation-based lookup.
 - `Sync` already had namespace resolution via agent annotations.
@@ -243,11 +243,11 @@ Goal: ship a predictable, documented, supportable Kubernetes runtime.
 
 Deliverables:
 1. CLI/user experience polish — **Done**
-- `scion doctor` command implemented with runtime-aware diagnostic checks.
+- `fabric doctor` command implemented with runtime-aware diagnostic checks.
 - Kubernetes diagnostics verify: cluster connectivity, namespace access, pod CRUD/exec permissions, secret permissions.
 - GKE-mode diagnostics verify: SecretProviderClass CRD, Secrets Store CSI driver, GCS FUSE CSI driver.
 - Error messages throughout the runtime include direct remediation hints (image pull, scheduling, config, resource parsing).
-- `scion doctor --format json` for machine-readable output.
+- `fabric doctor --format json` for machine-readable output.
 
 2. Context support wiring — **Done**
 - `NewClientWithContext()` added to k8s client, supporting explicit context selection.
@@ -273,7 +273,7 @@ Deliverables:
   - Cleanup: pod + secret + SecretProviderClass deletion with namespace resolution.
 
 Acceptance checks:
-- Unit tests for `scion doctor` diagnostic checks (connectivity, namespace, permissions, GKE CRDs).
+- Unit tests for `fabric doctor` diagnostic checks (connectivity, namespace, permissions, GKE CRDs).
 - Unit tests for context wiring (`NewClientWithContext` with specific context, fallback, invalid context).
 - Unit tests for error message quality (actionable field names, valid options listed).
 - Unit tests for full Stage 3 config integration (all features applied to pod spec).

@@ -34,10 +34,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 const (
@@ -372,14 +372,14 @@ func (b *TelegramBrokerV2) DeregisterWebhook() error {
 // It registers separate command lists for private chats and group chats.
 func (b *TelegramBrokerV2) registerBotCommands(ctx context.Context) {
 	privateCommands := []BotCommand{
-		{Command: "register", Description: "Link your Telegram account to your scion hub identity"},
+		{Command: "register", Description: "Link your Telegram account to your fabric hub identity"},
 		{Command: "unregister", Description: "Remove your Telegram account link"},
 		{Command: "status", Description: "Show linked groups and registration status"},
 		{Command: "notifications", Description: "Manage agent notification subscriptions"},
 		{Command: "help", Description: "Show available commands"},
 	}
 	groupCommands := []BotCommand{
-		{Command: "setup", Description: "Link this group to a scion project"},
+		{Command: "setup", Description: "Link this group to a fabric project"},
 		{Command: "agents", Description: "List agents in the linked project"},
 		{Command: "default", Description: "Set the default agent"},
 		{Command: "settings", Description: "Configure group settings (observer mode, notifications)"},
@@ -503,7 +503,7 @@ func (b *TelegramBrokerV2) importV1UserMappings(ctx context.Context, mappingsJSO
 }
 
 // parseTopicComponents extracts projectID and agentSlug from a broker topic.
-// Legacy scion.grove topics are accepted by projectcompat at this adapter boundary.
+// Legacy fabric.grove topics are accepted by projectcompat at this adapter boundary.
 func parseTopicComponents(topic string) (projectID, agentSlug string) {
 	parsed, err := projectcompat.ParseTopic(topic)
 	if err == nil {
@@ -696,7 +696,7 @@ func (b *TelegramBrokerV2) Publish(ctx context.Context, topic string, msg *messa
 		return b.publishInputNeeded(ctx, api, sq, chatIDs, msg, agentSlug, projectID)
 	}
 
-	// File attachment: check msg.Attachments (scion CLI --attach flag convention)
+	// File attachment: check msg.Attachments (fabric CLI --attach flag convention)
 	// first, then fall back to telegram_attachment_path metadata key.
 	if msg != nil {
 		attachPath := ""
@@ -706,7 +706,7 @@ func (b *TelegramBrokerV2) Publish(ctx context.Context, topic string, msg *messa
 			attachPath = msg.Metadata["telegram_attachment_path"]
 		}
 		if attachPath != "" {
-			// Translate /workspace/<file> → /home/scion/.scion/projects/<projectSlug>/<file>
+			// Translate /workspace/<file> → /home/fabric/.fabric/projects/<projectSlug>/<file>
 			// Agent containers mount the hub's project directory as /workspace.
 			attachPath = b.resolveAttachmentPath(ctx, store, attachPath, projectID)
 			return b.publishAttachment(ctx, api, chatIDs, msg, agentSlug, attachPath)
@@ -720,7 +720,7 @@ func (b *TelegramBrokerV2) Publish(ctx context.Context, topic string, msg *messa
 		if strings.HasPrefix(msg.Recipient, "user:") {
 			recipientUsername = b.resolveRecipientUsername(ctx, store, msg.Recipient)
 		}
-		// Fallback: extract user ID from topic (scion.grove.<id>.user.<userid>.messages)
+		// Fallback: extract user ID from topic (fabric.grove.<id>.user.<userid>.messages)
 		if recipientUsername == "" {
 			if userID := extractUserIDFromTopic(topic); userID != "" {
 				recipientUsername = b.resolveRecipientUsername(ctx, store, "user:"+userID)
@@ -730,7 +730,7 @@ func (b *TelegramBrokerV2) Publish(ctx context.Context, topic string, msg *messa
 			"recipient", msg.Recipient, "topic", topic, "username", recipientUsername)
 	}
 
-	// Replace scion user emails with Telegram @mentions in the message body.
+	// Replace fabric user emails with Telegram @mentions in the message body.
 	if msg != nil && store != nil {
 		msg.Msg = resolveOutboundMentions(ctx, store, msg.Msg)
 	}
@@ -832,7 +832,7 @@ func (b *TelegramBrokerV2) resolveRecipientUsername(ctx context.Context, store S
 	if strings.Contains(val, "@") {
 		mapping, _ = store.GetUserMappingByEmail(ctx, val)
 	} else {
-		mapping, _ = store.GetUserMappingByScionUserID(ctx, val)
+		mapping, _ = store.GetUserMappingByFabricUserID(ctx, val)
 	}
 	if mapping != nil && mapping.TelegramUsername != "" {
 		return mapping.TelegramUsername
@@ -842,7 +842,7 @@ func (b *TelegramBrokerV2) resolveRecipientUsername(ctx context.Context, store S
 
 var outboundEmailRe = regexp.MustCompile(`(?:user:)?[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
 
-// resolveOutboundMentions scans text for scion user emails (with optional
+// resolveOutboundMentions scans text for fabric user emails (with optional
 // "user:" prefix) and replaces them with Telegram @mentions when the user
 // is registered and has a username.
 func resolveOutboundMentions(ctx context.Context, store Store, text string) string {
@@ -1028,7 +1028,7 @@ func (b *TelegramBrokerV2) publishStateChangeDM(ctx context.Context, api *Telegr
 	if strings.Contains(recipientVal, "@") {
 		mapping, err = store.GetUserMappingByEmail(ctx, recipientVal)
 	} else {
-		mapping, err = store.GetUserMappingByScionUserID(ctx, recipientVal)
+		mapping, err = store.GetUserMappingByFabricUserID(ctx, recipientVal)
 		if err == nil && mapping == nil {
 			mapping, err = store.GetUserMappingByEmail(ctx, recipientVal)
 		}
@@ -1108,7 +1108,7 @@ func (b *TelegramBrokerV2) publishInputNeededDM(ctx context.Context, api *Telegr
 	if strings.Contains(recipientVal, "@") {
 		mapping, err = store.GetUserMappingByEmail(ctx, recipientVal)
 	} else {
-		mapping, err = store.GetUserMappingByScionUserID(ctx, recipientVal)
+		mapping, err = store.GetUserMappingByFabricUserID(ctx, recipientVal)
 		if err == nil && mapping == nil {
 			mapping, err = store.GetUserMappingByEmail(ctx, recipientVal)
 		}
@@ -1182,8 +1182,8 @@ func (b *TelegramBrokerV2) publishInputNeededDM(ctx context.Context, api *Telegr
 }
 
 // resolveAttachmentPath translates an agent-relative /workspace path to the
-// corresponding host-side path under /home/scion/.scion/projects/<slug>/.
-// Agent containers mount /home/scion/.scion/projects/<slug> as /workspace.
+// corresponding host-side path under /home/fabric/.fabric/projects/<slug>/.
+// Agent containers mount /home/fabric/.fabric/projects/<slug> as /workspace.
 // Accepts "/workspace/file", "/workspace", "workspace/file", "workspace",
 // and bare relative paths like "file.png". Falls back to the original path
 // if translation is not possible.
@@ -1230,7 +1230,7 @@ func (b *TelegramBrokerV2) resolveAttachmentPath(ctx context.Context, store Stor
 		return attachPath
 	}
 
-	projectDir := filepath.Join("/home/scion/.scion/projects", slug)
+	projectDir := filepath.Join("/home/fabric/.fabric/projects", slug)
 	var hostPath string
 	if relPath == "." {
 		hostPath = projectDir
@@ -1722,7 +1722,7 @@ func (b *TelegramBrokerV2) handleGroupMessage(tgMsg *TGMessage) {
 	// Skip when the message leads with (offset=0) an @mention of another
 	// Telegram user — that's a user-to-user message. Mentions embedded
 	// later (offset>0) do not block default routing; resolveUserMentions
-	// injects the resolved scion identity for those.
+	// injects the resolved fabric identity for those.
 	if len(targets) == 0 && effectiveDefault != "" {
 		hasAttachment := tgMsg.Photo != nil || tgMsg.Document != nil
 		text := strings.TrimSpace(tgMsg.Text)
@@ -1791,12 +1791,12 @@ func (b *TelegramBrokerV2) handleGroupMessage(tgMsg *TGMessage) {
 		}
 	}
 
-	// Check for scion identity mapping — unregistered users cannot route messages.
+	// Check for fabric identity mapping — unregistered users cannot route messages.
 	if senderID != "" {
 		mapping, err := b.store.GetUserMapping(ctx, senderID)
 		if err == nil && mapping != nil {
-			if mapping.ScionEmail != "" {
-				sender = "user:" + mapping.ScionEmail
+			if mapping.FabricEmail != "" {
+				sender = "user:" + mapping.FabricEmail
 			}
 		} else if mapping == nil {
 			b.log.Debug("Unregistered user tried to mention agent", "sender_id", senderID)
@@ -1805,7 +1805,7 @@ func (b *TelegramBrokerV2) handleGroupMessage(tgMsg *TGMessage) {
 		}
 	}
 
-	// Resolve @username mentions to scion user identities and replace
+	// Resolve @username mentions to fabric user identities and replace
 	// text_mention display names with "user:email" in the message text.
 	resolvedText, resolvedMentionsJSON := b.resolveUserMentions(ctx, tgMsg)
 
@@ -1978,7 +1978,7 @@ func (b *TelegramBrokerV2) downloadTelegramFile(ctx context.Context, tgMsg *TGMe
 	timestamp := time.Now().Unix()
 	destName := fmt.Sprintf("tg_%d_%s", timestamp, fileName)
 
-	hostDir := filepath.Join("/home/scion/.scion/projects", projectSlug, "downloads")
+	hostDir := filepath.Join("/home/fabric/.fabric/projects", projectSlug, "downloads")
 	if err := os.MkdirAll(hostDir, 0o755); err != nil {
 		return "", "", fmt.Errorf("create downloads dir: %w", err)
 	}
@@ -2049,16 +2049,16 @@ func (b *TelegramBrokerV2) resolveUserMentions(ctx context.Context, tgMsg *TGMes
 				b.log.Warn("Failed to look up mention username", "username", username, "error", err)
 				continue
 			}
-			if mapping == nil || mapping.ScionEmail == "" {
+			if mapping == nil || mapping.FabricEmail == "" {
 				continue
 			}
-			scionIdentity := "user:" + mapping.ScionEmail
-			resolved[mention] = scionIdentity
+			fabricIdentity := "user:" + mapping.FabricEmail
+			resolved[mention] = fabricIdentity
 			if ent.Offset > 0 {
 				replacements = append(replacements, textReplacement{
 					offset:      ent.Offset,
 					length:      ent.Length,
-					replacement: scionIdentity,
+					replacement: fabricIdentity,
 				})
 			}
 		case "text_mention":
@@ -2071,20 +2071,20 @@ func (b *TelegramBrokerV2) resolveUserMentions(ctx context.Context, tgMsg *TGMes
 				b.log.Warn("Failed to look up text_mention user", "telegram_user_id", tgUserID, "error", err)
 				continue
 			}
-			if mapping == nil || mapping.ScionEmail == "" {
+			if mapping == nil || mapping.FabricEmail == "" {
 				continue
 			}
 			displayName := ent.User.FirstName
 			if ent.User.Username != "" {
 				displayName = ent.User.Username
 			}
-			scionIdentity := "user:" + mapping.ScionEmail
-			resolved["@"+displayName] = scionIdentity
+			fabricIdentity := "user:" + mapping.FabricEmail
+			resolved["@"+displayName] = fabricIdentity
 			if ent.Offset > 0 {
 				replacements = append(replacements, textReplacement{
 					offset:      ent.Offset,
 					length:      ent.Length,
-					replacement: scionIdentity,
+					replacement: fabricIdentity,
 				})
 			}
 		case "code":
@@ -2168,8 +2168,8 @@ func (b *TelegramBrokerV2) handleCallbackQuery(ctx context.Context, cb *Callback
 		}
 
 		mapping, mErr := b.store.GetUserMapping(ctx, senderID)
-		if mErr == nil && mapping != nil && mapping.ScionEmail != "" {
-			sender = "user:" + mapping.ScionEmail
+		if mErr == nil && mapping != nil && mapping.FabricEmail != "" {
+			sender = "user:" + mapping.FabricEmail
 		}
 	}
 
@@ -2295,7 +2295,7 @@ func (b *TelegramBrokerV2) deliverInbound(topic string, msg *messages.Structured
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	if brokerID != "" && hmacKey != "" {
 		if err := signInboundRequest(req, brokerID, hmacKey); err != nil {
@@ -2387,7 +2387,7 @@ func (b *TelegramBrokerV2) deliverInboundWithFeedback(ctx context.Context, topic
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	if brokerID != "" && hmacKey != "" {
 		if err := signInboundRequest(req, brokerID, hmacKey); err != nil {
@@ -2512,7 +2512,7 @@ func FormatMessageV2(msg *messages.StructuredMessage, agentSlug string, recipien
 }
 
 // extractUserIDFromTopic extracts the user ID from a topic of the form
-// scion.grove.<id>.user.<userid>.messages or scion.project.<id>.user.<userid>.messages.
+// fabric.grove.<id>.user.<userid>.messages or fabric.project.<id>.user.<userid>.messages.
 func extractUserIDFromTopic(topic string) string {
 	parts := strings.Split(topic, ".")
 	for i, p := range parts {

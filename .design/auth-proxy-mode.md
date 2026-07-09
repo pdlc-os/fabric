@@ -12,7 +12,7 @@ the IAP / Cloud Run-invoker front door (generalizing PR #307).
 The hub supports two human auth modes today:
 
 1. **Developer / local-workstation auth** — single-user; auth is short-circuited
-   through a locally-minted dev token (`scion_dev_*`). See `pkg/hub/devauth.go`,
+   through a locally-minted dev token (`fabric_dev_*`). See `pkg/hub/devauth.go`,
    `pkg/hub/auth.go:163`.
 2. **OAuth login** — full browser/CLI/device flows against Google and GitHub
    (plus a partial custom OIDC provider). The hub exchanges an authorization code
@@ -173,8 +173,8 @@ removing the duplication. The proxy middleware calls the same method.
 Add a proxy step to `UnifiedAuthMiddleware` (`pkg/hub/auth.go`). Precedence,
 highest first:
 
-1. Agent token (`X-Scion-Agent-Token` / agent JWT) — unchanged.
-2. Broker HMAC (`X-Scion-Broker-ID`) — unchanged.
+1. Agent token (`X-Fabric-Agent-Token` / agent JWT) — unchanged.
+2. Broker HMAC (`X-Fabric-Broker-ID`) — unchanged.
 3. Bearer token (dev / UAT / user JWT) — unchanged.
 4. **Proxy authenticator** (new) — runs when configured and no higher-priority
    credential matched. Replaces the current IP-only `extractProxyUser` branch.
@@ -211,7 +211,7 @@ auth:
   transport:
     mode: iap                # none | cloudrun_invoker | iap
     oidcAudience: ""         # IAP client ID (iap) or hub URL (invoker); empty = derive
-    platformAuthSA: "scion-transport-auth@PROJECT.iam.gserviceaccount.com"
+    platformAuthSA: "fabric-transport-auth@PROJECT.iam.gserviceaccount.com"
   # reuses existing knobs for provisioning:
   userAccessMode: domain_restricted
   authorizedDomains: ["example.com"]
@@ -254,12 +254,12 @@ returns empty/unavailable in proxy mode.
 
 Agents do **not** need a separate non-proxied ingress. They traverse the same
 front door using a two-layer credential, generalizing the Cloud Run pattern from
-[PR #307](https://github.com/GoogleCloudPlatform/scion/pull/307):
+[PR #307](https://github.com/pdlc-os/fabric/pull/307):
 
 - **Outer (platform) layer** — `Authorization: Bearer <Google OIDC identity token>`,
-  fetched from the GCE metadata server by `pkg/sciontool/hub/oidc.go`. This
+  fetched from the GCE metadata server by `pkg/fabrictool/hub/oidc.go`. This
   satisfies the platform guard (Cloud Run invoker IAM, or IAP programmatic access).
-- **App layer** — `X-Scion-Agent-Token: <scion JWT>`, the existing hub agent auth.
+- **App layer** — `X-Fabric-Agent-Token: <fabric JWT>`, the existing hub agent auth.
   Because it's a custom header, it never collides with the outer `Authorization`.
 
 The two scenarios differ **only in the OIDC audience**:
@@ -268,7 +268,7 @@ The two scenarios differ **only in the OIDC audience**:
 - **IAP:** `aud` = the **IAP OAuth client ID**. IAP validates the token, then
   injects `X-Goog-IAP-JWT-Assertion` asserting the *service account's* identity.
 
-`oidc.go` already supports this via `SCION_HUB_OIDC_AUDIENCE`. Generalization work:
+`oidc.go` already supports this via `FABRIC_HUB_OIDC_AUDIENCE`. Generalization work:
 formalize audience selection so an IAP deployment sets the IAP client ID (config /
 env), rather than defaulting to the hub URL. No three-layer case to handle — per
 the deployment owner, when IAP and invoker guards are both present the IAP service
@@ -276,7 +276,7 @@ agent carries the invoker role, so the agent still sends a single outer token.
 
 **Hub-side consequence (important precedence rule):** an agent request arriving
 through IAP carries *both* `X-Goog-IAP-JWT-Assertion` (the service account) *and*
-`X-Scion-Agent-Token`. The middleware checks the agent token **first** (Step 1),
+`X-Fabric-Agent-Token`. The middleware checks the agent token **first** (Step 1),
 so the request is identified as the agent. When any app-layer credential
 (agent/broker/bearer) is present, the proxy assertion is treated as **transport
 only** and is **not** used to provision a user — we never create user records for
@@ -284,8 +284,8 @@ service-account identities. The proxy authenticator runs only when no app-layer
 credential matched (i.e. genuine human IAP traffic). This is already the ordering
 in §3.
 
-**One residual nuance to be aware of:** `Authorization`-based *scion* credentials
-(user JWT, `scion_pat_` UAT) cannot coexist with an outer Google OIDC token behind
+**One residual nuance to be aware of:** `Authorization`-based *fabric* credentials
+(user JWT, `fabric_pat_` UAT) cannot coexist with an outer Google OIDC token behind
 a Cloud Run invoker, because there is only one `Authorization` header. This only
 affects a human CLI hitting an invoker-guarded hub directly; it does not affect
 agents (custom header) or IAP human traffic (assertion header). Out of initial
@@ -322,7 +322,7 @@ and we don't want another keyfile to manage).
 
 An earlier draft of this section over-claimed that "you can't refresh the
 front-door key through the front door." That is wrong for steady state, and the
-agent's own scion JWT already proves it: sciontool refreshes the scion JWT by
+agent's own fabric JWT already proves it: fabrictool refreshes the fabric JWT by
 calling the **hub directly** (not the broker), and it works because the refresh
 happens while the *current* credential is still valid — a sliding window. The
 same applies to the outer OIDC token:
@@ -334,7 +334,7 @@ same applies to the outer OIDC token:
 
 So the side channel is required **only for the genuinely cold case** — the very
 first token, before the agent has ever connected. Everything after that rides the
-front door, exactly like the scion JWT.
+front door, exactly like the fabric JWT.
 
 Two distinct phases:
 
@@ -342,20 +342,20 @@ Two distinct phases:
    it cannot call the hub. The hub mints the initial OIDC token at dispatch
    (impersonating the hub-managed SA) and includes it in the **dispatch payload**,
    which already flows hub → broker → agent env injection alongside
-   `SCION_AUTH_TOKEN` (`cmd/hub.go:449`). That path is hub-originated and not behind
+   `FABRIC_AUTH_TOKEN` (`cmd/hub.go:449`). That path is hub-originated and not behind
    IAP. One-time, no chicken-egg.
 2. **Steady-state refresh (warm — through the hub).** The agent maintains a rolling
    OIDC via a background ticker that refreshes well before the ~1h expiry. Simplest
-   surface: **piggyback on the existing scion-JWT refresh** — the refresh response
-   returns both a new scion access token *and* a fresh OIDC token, sliding both
-   layers in one call. The refresh is authenticated by the agent's scion identity,
+   surface: **piggyback on the existing fabric-JWT refresh** — the refresh response
+   returns both a new fabric access token *and* a fresh OIDC token, sliding both
+   layers in one call. The refresh is authenticated by the agent's fabric identity,
    so only legitimately-connected agents get fresh platform tokens. No broker
-   involvement; matches how the scion JWT already works.
+   involvement; matches how the fabric JWT already works.
 
 Google ID tokens are fixed ~1h with no refresh-token concept, so the background
 ticker (sub-1h cadence) is what keeps a long-running *idle* agent from ever
 letting the OIDC lapse. A stopped/restarted agent simply re-bootstraps via dispatch
-(phase 1) — the same way it re-acquires its scion token.
+(phase 1) — the same way it re-acquires its fabric token.
 
 ### Options for who holds the minting capability
 
@@ -403,15 +403,15 @@ client ID, or hub URL for invoker).
 
 ### Generalized token refresh (array payload)
 
-The agent refresh endpoint is refactored from "return a scion access/refresh token"
+The agent refresh endpoint is refactored from "return a fabric access/refresh token"
 to "return the set of credentials this deployment requires the client to maintain."
 
 ```jsonc
 // Response from the agent token refresh endpoint
 {
   "tokens": [
-    { "layer": "app",       "type": "scion_access",   "value": "...", "expiresIn": 900 },
-    { "layer": "app",       "type": "scion_refresh",  "value": "...", "expiresIn": 604800 },
+    { "layer": "app",       "type": "fabric_access",   "value": "...", "expiresIn": 900 },
+    { "layer": "app",       "type": "fabric_refresh",  "value": "...", "expiresIn": 604800 },
     // present only when transport auth is configured (IAP / Cloud Run invoker):
     { "layer": "transport", "type": "google_oidc",    "value": "...",
       "audience": "<iap-client-id|hub-url>", "expiresIn": 3600 }
@@ -423,7 +423,7 @@ to "return the set of credentials this deployment requires the client to maintai
   the deployment's transport mode (e.g. `none` / `cloudrun_invoker` / `iap`), so the
   same client binary works across deployments without per-mode flags.
 - The client applies each entry to the right place by `layer`/`type`: app tokens to
-  the scion-token store; `transport: google_oidc` to the OIDC transport's token
+  the fabric-token store; `transport: google_oidc` to the OIDC transport's token
   source (`oidc.go`), which sets `Authorization: Bearer` on outbound hub requests.
 - A `transport` token is minted by the hub via the dedicated SA with the configured
   audience. The background ticker drives refresh on the shortest-lived entry.
@@ -479,7 +479,7 @@ to "return the set of credentials this deployment requires the client to maintai
    `auth.transport` config; mint the initial token into the dispatch payload.
 7. Refactor the agent token refresh response to the `tokens[]` array shape, driven
    by `auth.transport.mode`; same shape reused for the dispatch payload.
-8. Agent-side (`pkg/sciontool/hub/oidc.go`): consume the `transport` token from the
+8. Agent-side (`pkg/fabrictool/hub/oidc.go`): consume the `transport` token from the
    refresh/dispatch array (pluggable source vs the PR #307 metadata source);
    background ticker refreshes on the shortest-lived entry.
 
@@ -498,5 +498,5 @@ built in parallel once Phase 0 lands; Phase 2 builds on PR #307.
 - `pkg/config/hub_config.go`, `pkg/config/settings_v1.go` — `Auth.Proxy` config.
 - `cmd/server_foreground.go` — wiring into `ServerConfig`/`AuthConfig`.
 - `pkg/hub/web.go` — proxy-mode login-UI flag; logout semantics.
-- `pkg/sciontool/hub/oidc.go` — agent-side dual-layer transport; audience
+- `pkg/fabrictool/hub/oidc.go` — agent-side dual-layer transport; audience
   selection for IAP (builds on PR #307).

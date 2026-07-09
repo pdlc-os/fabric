@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 278)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-278 306.64,-278 306.64,4 -4,4"/>
-<!-- ScionAgents -->
+<!-- FabricAgents -->
 <g id="node1" class="node">
-<title>ScionAgents</title>
+<title>FabricAgents</title>
 <polygon fill="lightblue" stroke="black" points="203.96,-274 97.96,-274 97.96,-238 203.96,-238 203.96,-274"/>
-<text xml:space="preserve" text-anchor="middle" x="150.96" y="-247.95" font-family="Times,serif" font-size="14.00">Scion Agents</text>
+<text xml:space="preserve" text-anchor="middle" x="150.96" y="-247.95" font-family="Times,serif" font-size="14.00">Fabric Agents</text>
 </g>
 <!-- OTLP_Pipeline -->
 <g id="node2" class="node">
@@ -37,9 +37,9 @@
 <polygon fill="lightblue" stroke="black" points="207.71,-192 94.21,-192 94.21,-156 207.71,-156 207.71,-192"/>
 <text xml:space="preserve" text-anchor="middle" x="150.96" y="-165.95" font-family="Times,serif" font-size="14.00">OTLP Pipeline</text>
 </g>
-<!-- ScionAgents&#45;&gt;OTLP_Pipeline -->
+<!-- FabricAgents&#45;&gt;OTLP_Pipeline -->
 <g id="edge1" class="edge">
-<title>ScionAgents&#45;&gt;OTLP_Pipeline</title>
+<title>FabricAgents&#45;&gt;OTLP_Pipeline</title>
 <path fill="none" stroke="black" d="M150.96,-237.64C150.96,-227.68 150.96,-214.93 150.96,-203.54"/>
 <polygon fill="black" stroke="black" points="154.46,-203.84 150.96,-193.84 147.46,-203.84 154.46,-203.84"/>
 <text xml:space="preserve" text-anchor="middle" x="210.96" y="-206.95" font-family="Times,serif" font-size="14.00">Telemetry &amp; Logs</text>
@@ -57,15 +57,15 @@
 <path fill="none" stroke="black" d="M133.28,-155.81C124.47,-147.24 113.64,-136.71 103.91,-127.24"/>
 <polygon fill="black" stroke="black" points="106.41,-124.79 96.8,-120.33 101.53,-129.81 106.41,-124.79"/>
 </g>
-<!-- ScionHub -->
+<!-- FabricHub -->
 <g id="node4" class="node">
-<title>ScionHub</title>
+<title>FabricHub</title>
 <polygon fill="lightblue" stroke="black" points="267.71,-119 184.21,-119 184.21,-83 267.71,-83 267.71,-119"/>
-<text xml:space="preserve" text-anchor="middle" x="225.96" y="-92.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="225.96" y="-92.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- OTLP_Pipeline&#45;&gt;ScionHub -->
+<!-- OTLP_Pipeline&#45;&gt;FabricHub -->
 <g id="edge3" class="edge">
-<title>OTLP_Pipeline&#45;&gt;ScionHub</title>
+<title>OTLP_Pipeline&#45;&gt;FabricHub</title>
 <path fill="none" stroke="black" d="M169.11,-155.81C178.26,-147.16 189.51,-136.5 199.59,-126.96"/>
 <polygon fill="black" stroke="black" points="201.75,-129.73 206.61,-120.32 196.94,-124.65 201.75,-129.73"/>
 </g>
@@ -87,16 +87,16 @@
 <polygon fill="lightblue" stroke="black" points="259.46,-36 198.46,-36 198.46,0 259.46,0 259.46,-36"/>
 <text xml:space="preserve" text-anchor="middle" x="228.96" y="-9.95" font-family="Times,serif" font-size="14.00">Web UI</text>
 </g>
-<!-- ScionHub&#45;&gt;WebUI -->
+<!-- FabricHub&#45;&gt;WebUI -->
 <g id="edge4" class="edge">
-<title>ScionHub&#45;&gt;WebUI</title>
+<title>FabricHub&#45;&gt;WebUI</title>
 <path fill="none" stroke="black" d="M226.59,-82.82C226.97,-72.69 227.45,-59.6 227.88,-47.92"/>
 <polygon fill="black" stroke="black" points="231.38,-48.07 228.25,-37.95 224.39,-47.81 231.38,-48.07"/>
 <text xml:space="preserve" text-anchor="middle" x="265.14" y="-50.95" font-family="Times,serif" font-size="14.00">Log Viewer</text>
 </g>
-<!-- ScionHub&#45;&gt;AgentViz -->
+<!-- FabricHub&#45;&gt;AgentViz -->
 <g id="edge5" class="edge">
-<title>ScionHub&#45;&gt;AgentViz</title>
+<title>FabricHub&#45;&gt;AgentViz</title>
 <path fill="none" stroke="black" d="M183.88,-82.58C172.02,-77.17 159.27,-70.88 147.96,-64.25 137.33,-58.02 126.29,-50.39 116.52,-43.18"/>
 <polygon fill="black" stroke="black" points="118.91,-40.59 108.81,-37.37 114.69,-46.18 118.91,-40.59"/>
 <text xml:space="preserve" text-anchor="middle" x="185.46" y="-50.95" font-family="Times,serif" font-size="14.00">Log Events</text>

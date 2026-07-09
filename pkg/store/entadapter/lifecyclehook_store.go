@@ -22,11 +22,11 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/lifecyclehook"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/lifecyclehookagentphase"
-	entschema "github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehook"
+	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehookagentphase"
+	entschema "github.com/pdlc-os/fabric/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // LifecycleHookStore implements store.LifecycleHookStore using Ent ORM.

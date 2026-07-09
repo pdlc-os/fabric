@@ -15,13 +15,13 @@
 //go:build integration
 
 // This file implements the Postgres test backend. It is compiled only with the
-// `integration` build tag and is active only when SCION_TEST_POSTGRES_URL is
+// `integration` build tag and is active only when FABRIC_TEST_POSTGRES_URL is
 // set; otherwise NewClient transparently falls back to SQLite so the suite still
 // runs under `go test -tags integration ./...`.
 //
 //	go test -tags integration -run TestCompositeStore_CRUDParity \
 //	  ./pkg/store/... \
-//	  with SCION_TEST_POSTGRES_URL=postgres://user:pass@host:5432/db?sslmode=require
+//	  with FABRIC_TEST_POSTGRES_URL=postgres://user:pass@host:5432/db?sslmode=require
 //
 // Isolation model:
 //   - One ephemeral database is created per test package (MainSetup) and dropped
@@ -44,8 +44,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
 
 	// pgx stdlib driver registration ("pgx"). entc/driver_postgres.go also
 	// imports it, but we keep it explicit so this file is self-describing.
@@ -55,7 +55,7 @@ import (
 // postgresURL is the operator-supplied connection string for the Postgres
 // server. When empty, the backend is inactive and NewClient falls back to
 // SQLite.
-var postgresURL = os.Getenv("SCION_TEST_POSTGRES_URL")
+var postgresURL = os.Getenv("FABRIC_TEST_POSTGRES_URL")
 
 var (
 	// active reports whether a per-package ephemeral database was provisioned.
@@ -84,7 +84,7 @@ func setup() {
 		log.Fatalf("enttest: pinging postgres server: %v", err)
 	}
 
-	pkgDBName = "scion_test_" + hexID()
+	pkgDBName = "fabric_test_" + hexID()
 	if _, err := server.Exec("CREATE DATABASE " + pkgDBName); err != nil {
 		log.Fatalf("enttest: creating ephemeral database %s: %v", pkgDBName, err)
 	}
@@ -162,7 +162,7 @@ func newClient(t *testing.T) *ent.Client {
 }
 
 // Active reports whether a per-package ephemeral Postgres database was
-// provisioned (i.e. SCION_TEST_POSTGRES_URL was set and MainSetup succeeded).
+// provisioned (i.e. FABRIC_TEST_POSTGRES_URL was set and MainSetup succeeded).
 // Integration tests that exercise Postgres-only behavior use it to skip cleanly
 // when run without a live database.
 func Active() bool { return active }
@@ -181,7 +181,7 @@ func Active() bool { return active }
 func NewSchemaURL(t *testing.T) string {
 	t.Helper()
 	if !active {
-		t.Skip("enttest: SCION_TEST_POSTGRES_URL not set; skipping Postgres-only integration test")
+		t.Skip("enttest: FABRIC_TEST_POSTGRES_URL not set; skipping Postgres-only integration test")
 	}
 
 	schema := "t_" + hexID()

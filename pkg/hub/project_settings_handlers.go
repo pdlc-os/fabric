@@ -18,34 +18,34 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // Annotation keys for project settings stored in project annotations.
 const (
-	projectSettingDefaultTemplate      = "scion.io/default-template"
-	projectSettingDefaultHarnessConfig = "scion.io/default-harness-config"
-	projectSettingDefaultModel         = "scion.io/default-model"
-	projectSettingTelemetryEnabled     = "scion.io/telemetry-enabled"
-	projectSettingActiveProfile        = "scion.io/active-profile"
+	projectSettingDefaultTemplate      = "fabric.io/default-template"
+	projectSettingDefaultHarnessConfig = "fabric.io/default-harness-config"
+	projectSettingDefaultModel         = "fabric.io/default-model"
+	projectSettingTelemetryEnabled     = "fabric.io/telemetry-enabled"
+	projectSettingActiveProfile        = "fabric.io/active-profile"
 
 	// Default agent limits
-	projectSettingDefaultMaxTurns      = "scion.io/default-max-turns"
-	projectSettingDefaultMaxModelCalls = "scion.io/default-max-model-calls"
-	projectSettingDefaultMaxDuration   = "scion.io/default-max-duration"
+	projectSettingDefaultMaxTurns      = "fabric.io/default-max-turns"
+	projectSettingDefaultMaxModelCalls = "fabric.io/default-max-model-calls"
+	projectSettingDefaultMaxDuration   = "fabric.io/default-max-duration"
 
 	// Default GCP identity
-	projectSettingDefaultGCPIdentityMode = "scion.io/default-gcp-identity-mode"
-	projectSettingDefaultGCPIdentitySAID = "scion.io/default-gcp-identity-service-account-id"
+	projectSettingDefaultGCPIdentityMode = "fabric.io/default-gcp-identity-mode"
+	projectSettingDefaultGCPIdentitySAID = "fabric.io/default-gcp-identity-service-account-id"
 
 	// Default resource spec (flat keys)
-	projectSettingDefaultResourcesCPUReq = "scion.io/default-resources-cpu-request"
-	projectSettingDefaultResourcesMemReq = "scion.io/default-resources-memory-request"
-	projectSettingDefaultResourcesCPULim = "scion.io/default-resources-cpu-limit"
-	projectSettingDefaultResourcesMemLim = "scion.io/default-resources-memory-limit"
-	projectSettingDefaultResourcesDisk   = "scion.io/default-resources-disk"
+	projectSettingDefaultResourcesCPUReq = "fabric.io/default-resources-cpu-request"
+	projectSettingDefaultResourcesMemReq = "fabric.io/default-resources-memory-request"
+	projectSettingDefaultResourcesCPULim = "fabric.io/default-resources-cpu-limit"
+	projectSettingDefaultResourcesMemLim = "fabric.io/default-resources-memory-limit"
+	projectSettingDefaultResourcesDisk   = "fabric.io/default-resources-disk"
 )
 
 // handleProjectSettings handles GET/PUT on /api/v1/projects/{projectId}/settings.
@@ -288,7 +288,7 @@ func applyProjectDefaults(ac *store.AgentAppliedConfig, project *store.Project) 
 
 	// Ensure InlineConfig exists
 	if ac.InlineConfig == nil {
-		ac.InlineConfig = &api.ScionConfig{}
+		ac.InlineConfig = &api.FabricConfig{}
 	}
 
 	// Apply limit defaults (only if not already set)

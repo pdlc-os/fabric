@@ -21,37 +21,37 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"gopkg.in/yaml.v3"
 )
 
-const scionConfigFile = "scion-agent.yaml"
+const fabricConfigFile = "fabric-agent.yaml"
 
-// IsScionTemplate returns true if the directory contains a scion-agent.yaml file,
-// indicating it is a native scion template.
-func IsScionTemplate(dir string) bool {
-	info, err := os.Stat(filepath.Join(dir, scionConfigFile))
+// IsFabricTemplate returns true if the directory contains a fabric-agent.yaml file,
+// indicating it is a native fabric template.
+func IsFabricTemplate(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, fabricConfigFile))
 	return err == nil && !info.IsDir()
 }
 
-// IsScionTemplatesDir returns true if the directory contains subdirectories
-// that are scion templates (i.e., contain scion-agent.yaml).
-func IsScionTemplatesDir(dir string) bool {
+// IsFabricTemplatesDir returns true if the directory contains subdirectories
+// that are fabric templates (i.e., contain fabric-agent.yaml).
+func IsFabricTemplatesDir(dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return false
 	}
 	for _, e := range entries {
-		if e.IsDir() && IsScionTemplate(filepath.Join(dir, e.Name())) {
+		if e.IsDir() && IsFabricTemplate(filepath.Join(dir, e.Name())) {
 			return true
 		}
 	}
 	return false
 }
 
-// DiscoverScionTemplates scans a directory for scion-format template subdirectories.
-// Each subdirectory containing scion-agent.yaml is treated as a template.
-func DiscoverScionTemplates(dir string) ([]*ImportedAgent, error) {
+// DiscoverFabricTemplates scans a directory for fabric-format template subdirectories.
+// Each subdirectory containing fabric-agent.yaml is treated as a template.
+func DiscoverFabricTemplates(dir string) ([]*ImportedAgent, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read directory: %w", err)
@@ -63,11 +63,11 @@ func DiscoverScionTemplates(dir string) ([]*ImportedAgent, error) {
 			continue
 		}
 		templateDir := filepath.Join(dir, e.Name())
-		if !IsScionTemplate(templateDir) {
+		if !IsFabricTemplate(templateDir) {
 			continue
 		}
 
-		agent, err := parseScionTemplate(templateDir, e.Name())
+		agent, err := parseFabricTemplate(templateDir, e.Name())
 		if err != nil {
 			continue // skip templates that fail to parse
 		}
@@ -76,29 +76,29 @@ func DiscoverScionTemplates(dir string) ([]*ImportedAgent, error) {
 	return agents, nil
 }
 
-// ParseScionTemplate reads a single scion-format template directory and returns
-// an ImportedAgent with metadata from scion-agent.yaml.
-func ParseScionTemplate(dir string) (*ImportedAgent, error) {
-	return parseScionTemplate(dir, filepath.Base(dir))
+// ParseFabricTemplate reads a single fabric-format template directory and returns
+// an ImportedAgent with metadata from fabric-agent.yaml.
+func ParseFabricTemplate(dir string) (*ImportedAgent, error) {
+	return parseFabricTemplate(dir, filepath.Base(dir))
 }
 
-// scionTemplateConfig extends ScionConfig with the description field that is
-// present in scion-agent.yaml but not mapped in the API struct.
-type scionTemplateConfig struct {
-	api.ScionConfig `yaml:",inline"`
+// fabricTemplateConfig extends FabricConfig with the description field that is
+// present in fabric-agent.yaml but not mapped in the API struct.
+type fabricTemplateConfig struct {
+	api.FabricConfig `yaml:",inline"`
 	Description     string `yaml:"description"`
 }
 
-func parseScionTemplate(dir, name string) (*ImportedAgent, error) {
-	configPath := filepath.Join(dir, scionConfigFile)
+func parseFabricTemplate(dir, name string) (*ImportedAgent, error) {
+	configPath := filepath.Join(dir, fabricConfigFile)
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read %s: %w", scionConfigFile, err)
+		return nil, fmt.Errorf("failed to read %s: %w", fabricConfigFile, err)
 	}
 
-	var cfg scionTemplateConfig
+	var cfg fabricTemplateConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse %s: %w", scionConfigFile, err)
+		return nil, fmt.Errorf("failed to parse %s: %w", fabricConfigFile, err)
 	}
 
 	harness := cfg.DefaultHarnessConfig
@@ -106,12 +106,12 @@ func parseScionTemplate(dir, name string) (*ImportedAgent, error) {
 		harness = cfg.Harness
 	}
 	if harness == "" {
-		harness = "scion"
+		harness = "fabric"
 	}
 
 	description := cfg.Description
 	if description == "" {
-		description = "Scion template"
+		description = "Fabric template"
 	}
 
 	return &ImportedAgent{
@@ -120,12 +120,12 @@ func parseScionTemplate(dir, name string) (*ImportedAgent, error) {
 		Harness:     harness,
 		Model:       cfg.Model,
 		SourcePath:  dir,
-		ScionFormat: true,
+		FabricFormat: true,
 	}, nil
 }
 
-// CopyScionTemplate copies a scion template directory tree to the destination.
-func CopyScionTemplate(srcDir, destDir string, force bool) (string, error) {
+// CopyFabricTemplate copies a fabric template directory tree to the destination.
+func CopyFabricTemplate(srcDir, destDir string, force bool) (string, error) {
 	if !force {
 		if _, err := os.Stat(destDir); err == nil {
 			return "", fmt.Errorf("template '%s' already exists at %s (use --force to overwrite)", filepath.Base(destDir), destDir)

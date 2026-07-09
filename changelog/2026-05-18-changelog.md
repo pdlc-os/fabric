@@ -4,9 +4,9 @@ This period is dominated by a foundational architectural shift, renaming the pri
 
 ## ⚠️ BREAKING CHANGES
 * **[Core]: Architectural Rename (Grove → Project).** A comprehensive migration has renamed "Groves" to "Projects" throughout the codebase, API, database, and CLI. 
-    * **CLI:** Commands like `scion grove` are now `scion project` (though `grove` remains as a hidden alias for backward compatibility).
+    * **CLI:** Commands like `fabric grove` are now `fabric project` (though `grove` remains as a hidden alias for backward compatibility).
     * **API:** Primary endpoints have moved from `/api/v1/groves` to `/api/v1/projects`. Legacy paths are supported with deprecation warnings.
-    * **Environment Variables:** New variables like `SCION_PROJECT_ID` have been introduced. Legacy `SCION_GROVE_ID` is still exported for compatibility during this transition.
+    * **Environment Variables:** New variables like `FABRIC_PROJECT_ID` have been introduced. Legacy `FABRIC_GROVE_ID` is still exported for compatibility during this transition.
     * **Database:** Migrations (V48-V53) are required to update schema references.
 * **[Database]: Mandatory Migrations.** Migrations V50 and V53 are required for Hub operation. These migrations handle the project rename and unify allow-list management.
 
@@ -14,7 +14,7 @@ This period is dominated by a foundational architectural shift, renaming the pri
 * **[Chat]: Telegram Integration.** Added official support for Telegram chat, expanding the platform's multi-channel communication capabilities.
 * **[Messaging]: Enhanced Targeting and Wake Control.**
     * Introduced `set[]` composite recipients, allowing messages to be sent to multiple targets simultaneously.
-    * Added the `--wake` flag to the `scion message` command, providing more control over agent engagement.
+    * Added the `--wake` flag to the `fabric message` command, providing more control over agent engagement.
 * **[Web UI]: ZIP Downloads for Shared Directories.** Users can now download the entire contents of a shared directory as a single ZIP archive.
 * **[Harness]: MappingDialect and Type Passthrough.** Enhanced harness flexibility by introducing `MappingDialect`, allowing for more complex data transformations and direct type passthrough.
 * **[UX]: Relative Activity Timestamps.** The agent activity badge now displays relative timestamps (e.g., "3 minutes ago"), providing better real-time context for agent operations.

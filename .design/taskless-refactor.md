@@ -1,8 +1,8 @@
-# Taskless Refactor: Remove Task Requirement from `scion start`
+# Taskless Refactor: Remove Task Requirement from `fabric start`
 
 ## Overview
 
-The `scion start` command currently treats a task (prompt) as conditionally required — it errors when no task is provided unless the `--attach` flag is set or a `prompt.md` file already has content. This behavior is obsolete. The `--attach` flow already demonstrates the desired behavior: agents should be able to start without an explicit task, relying on their template's built-in prompt, an existing `prompt.md`, or plain interactive use.
+The `fabric start` command currently treats a task (prompt) as conditionally required — it errors when no task is provided unless the `--attach` flag is set or a `prompt.md` file already has content. This behavior is obsolete. The `--attach` flow already demonstrates the desired behavior: agents should be able to start without an explicit task, relying on their template's built-in prompt, an existing `prompt.md`, or plain interactive use.
 
 This refactor removes the task requirement from the start path and simplifies the conditional logic that currently checks for the attach flag as an exception to that requirement.
 

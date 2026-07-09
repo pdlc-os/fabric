@@ -5,11 +5,11 @@
 
 ## Summary
 
-Migrate the scion-a2a-bridge from a hand-rolled A2A protocol implementation to
+Migrate the fabric-a2a-bridge from a hand-rolled A2A protocol implementation to
 the official `a2a-go` SDK (`github.com/a2aproject/a2a-go/v2`). This replaces
 our custom JSON-RPC handling, task lifecycle management, and streaming
 infrastructure with the SDK's spec-compliant implementations while preserving
-our Scion Hub routing core.
+our Fabric Hub routing core.
 
 ## Motivation
 
@@ -35,19 +35,19 @@ HTTP Request → server.go (JSON-RPC dispatch) → bridge.go (task management)
 
 ```
 HTTP Request → auth middleware → route extraction → SDK JSONRPC Handler
-    → SDK RequestHandler → SDK task lifecycle → ScionExecutor.Execute()
+    → SDK RequestHandler → SDK task lifecycle → FabricExecutor.Execute()
     → bridge.go (Hub routing) → Broker → waiter channel → SDK events
     → SDK response serialization → HTTP response
 ```
 
 ### Key Components
 
-**ScionExecutor** (`executor.go`): Implements `a2asrv.AgentExecutor`. The bridge
-between the SDK's event-driven model and our Scion Hub message routing.
+**FabricExecutor** (`executor.go`): Implements `a2asrv.AgentExecutor`. The bridge
+between the SDK's event-driven model and our Fabric Hub message routing.
 
-- `Execute()`: Translates SDK message → Scion StructuredMessage, sends to Hub,
+- `Execute()`: Translates SDK message → Fabric StructuredMessage, sends to Hub,
   waits for broker response, yields SDK events.
-- `Cancel()`: Sends interrupt to Scion agent, yields canceled status event.
+- `Cancel()`: Sends interrupt to Fabric agent, yields canceled status event.
 
 **Server** (`server.go`): Simplified HTTP routing layer. Handles:
 - Multi-project/agent URL routing (`/projects/{p}/agents/{a}/jsonrpc`)
@@ -61,9 +61,9 @@ between the SDK's event-driven model and our Scion Hub message routing.
 - SQLite store retained for context mapping and broker correlation
 
 **Translate** (`translate.go`): Added SDK-compatible translation functions:
-- `TranslateA2APartsToScion()`: SDK `a2a.ContentParts` → Scion message
-- `TranslateScionToA2AParts()`: Scion message → SDK `a2a.Message` + `a2a.Artifact`
-- `MapActivityToSDKTaskState()`: Scion activity → SDK `a2a.TaskState`
+- `TranslateA2APartsToFabric()`: SDK `a2a.ContentParts` → Fabric message
+- `TranslateFabricToA2AParts()`: Fabric message → SDK `a2a.Message` + `a2a.Artifact`
+- `MapActivityToSDKTaskState()`: Fabric activity → SDK `a2a.TaskState`
 - Original functions retained for backward compatibility
 
 ## What Changed
@@ -113,7 +113,7 @@ between the SDK's event-driven model and our Scion Hub message routing.
    store; context lookups use SQLite.
 
 2. **Broker correlation**: The SDK doesn't know about our broker. Response
-   correlation happens inside `ScionExecutor.Execute()` using the same waiter
+   correlation happens inside `FabricExecutor.Execute()` using the same waiter
    channel pattern.
 
 3. **Push notification gap**: SDK has `push.Sender` interface but we haven't

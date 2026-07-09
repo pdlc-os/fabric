@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/lockloop"
+	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -86,12 +86,12 @@ CREATE TABLE IF NOT EXISTS telegram_project_agents (
 CREATE TABLE IF NOT EXISTS telegram_user_mappings (
 	telegram_user_id   TEXT PRIMARY KEY,
 	telegram_username  TEXT NOT NULL DEFAULT '',
-	scion_user_id      TEXT NOT NULL DEFAULT '',
-	scion_email        TEXT NOT NULL DEFAULT '',
+	fabric_user_id      TEXT NOT NULL DEFAULT '',
+	fabric_email        TEXT NOT NULL DEFAULT '',
 	linked_at          TIMESTAMPTZ NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_telegram_user_mappings_email ON telegram_user_mappings(scion_email);
+CREATE INDEX IF NOT EXISTS idx_telegram_user_mappings_email ON telegram_user_mappings(fabric_email);
 CREATE INDEX IF NOT EXISTS idx_telegram_user_mappings_username ON telegram_user_mappings(telegram_username);
 
 CREATE TABLE IF NOT EXISTS telegram_pending_ask_users (
@@ -316,38 +316,38 @@ func (s *postgresStore) GetProjectAgents(ctx context.Context, projectID string) 
 
 func (s *postgresStore) SaveUserMapping(ctx context.Context, mapping *TelegramUserMapping) error {
 	const q = `
-INSERT INTO telegram_user_mappings (telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at)
+INSERT INTO telegram_user_mappings (telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT(telegram_user_id) DO UPDATE SET
-	telegram_username=EXCLUDED.telegram_username, scion_user_id=EXCLUDED.scion_user_id,
-	scion_email=EXCLUDED.scion_email, linked_at=EXCLUDED.linked_at`
+	telegram_username=EXCLUDED.telegram_username, fabric_user_id=EXCLUDED.fabric_user_id,
+	fabric_email=EXCLUDED.fabric_email, linked_at=EXCLUDED.linked_at`
 	_, err := s.db.ExecContext(ctx, q,
 		mapping.TelegramUserID, mapping.TelegramUsername,
-		mapping.ScionUserID, mapping.ScionEmail,
+		mapping.FabricUserID, mapping.FabricEmail,
 		mapping.LinkedAt.UTC())
 	return err
 }
 
 func (s *postgresStore) GetUserMapping(ctx context.Context, telegramUserID string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM telegram_user_mappings WHERE telegram_user_id = $1`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM telegram_user_mappings WHERE telegram_user_id = $1`
 	row := s.db.QueryRowContext(ctx, q, telegramUserID)
 	return pgScanUserMapping(row)
 }
 
 func (s *postgresStore) GetUserMappingByEmail(ctx context.Context, email string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM telegram_user_mappings WHERE scion_email = $1`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM telegram_user_mappings WHERE fabric_email = $1`
 	row := s.db.QueryRowContext(ctx, q, email)
 	return pgScanUserMapping(row)
 }
 
 func (s *postgresStore) GetUserMappingByUsername(ctx context.Context, username string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM telegram_user_mappings WHERE LOWER(telegram_username) = LOWER($1)`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM telegram_user_mappings WHERE LOWER(telegram_username) = LOWER($1)`
 	row := s.db.QueryRowContext(ctx, q, username)
 	return pgScanUserMapping(row)
 }
 
-func (s *postgresStore) GetUserMappingByScionUserID(ctx context.Context, userID string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM telegram_user_mappings WHERE scion_user_id = $1`
+func (s *postgresStore) GetUserMappingByFabricUserID(ctx context.Context, userID string) (*TelegramUserMapping, error) {
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM telegram_user_mappings WHERE fabric_user_id = $1`
 	row := s.db.QueryRowContext(ctx, q, userID)
 	return pgScanUserMapping(row)
 }
@@ -358,7 +358,7 @@ func (s *postgresStore) DeleteUserMapping(ctx context.Context, telegramUserID st
 }
 
 func (s *postgresStore) GetAllUserMappings(ctx context.Context) ([]*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM telegram_user_mappings`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM telegram_user_mappings`
 	rows, err := s.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -368,7 +368,7 @@ func (s *postgresStore) GetAllUserMappings(ctx context.Context) ([]*TelegramUser
 	var mappings []*TelegramUserMapping
 	for rows.Next() {
 		var m TelegramUserMapping
-		if err := rows.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.ScionUserID, &m.ScionEmail, &m.LinkedAt); err != nil {
+		if err := rows.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.FabricUserID, &m.FabricEmail, &m.LinkedAt); err != nil {
 			return nil, err
 		}
 		mappings = append(mappings, &m)
@@ -632,7 +632,7 @@ func pgScanGroupLinks(rows *sql.Rows) ([]*GroupLink, error) {
 
 func pgScanUserMapping(row *sql.Row) (*TelegramUserMapping, error) {
 	var m TelegramUserMapping
-	err := row.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.ScionUserID, &m.ScionEmail, &m.LinkedAt)
+	err := row.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.FabricUserID, &m.FabricEmail, &m.LinkedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

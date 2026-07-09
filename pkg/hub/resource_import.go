@@ -25,10 +25,10 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/templateimport"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/templateimport"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // resourceImportConcurrency bounds how many resources import in parallel within
@@ -123,14 +123,14 @@ func emit(progress importProgressFunc, ev ResourceImportEvent) {
 // resourceImportKind bundles the per-kind knobs the shared import driver needs.
 // Construct one via Server.templateImportKind / Server.harnessConfigImportKind.
 type resourceImportKind struct {
-	// noun names the kind in log lines and "no scion <noun> found" errors
+	// noun names the kind in log lines and "no fabric <noun> found" errors
 	// (e.g. "templates", "harness-configs").
 	noun string
-	// marker names the kind's marker file (scion-agent.yaml / config.yaml); used
+	// marker names the kind's marker file (fabric-agent.yaml / config.yaml); used
 	// in skipped-folder reasons.
 	marker string
 	// isResourceDir reports whether a directory is a resource of this kind, by
-	// checking for the kind's marker file (scion-agent.yaml / config.yaml).
+	// checking for the kind's marker file (fabric-agent.yaml / config.yaml).
 	isResourceDir func(dir string) bool
 	// newStore builds the ResourceStore that persists a directory of this kind.
 	// For harness-configs this loads config.yaml to resolve the harness type, so
@@ -142,8 +142,8 @@ type resourceImportKind struct {
 func (s *Server) templateImportKind() resourceImportKind {
 	return resourceImportKind{
 		noun:          "templates",
-		marker:        "scion-agent.yaml",
-		isResourceDir: templateimport.IsScionTemplate,
+		marker:        "fabric-agent.yaml",
+		isResourceDir: templateimport.IsFabricTemplate,
 		newStore:      func(string) (*ResourceStore, error) { return s.templateStore(), nil },
 	}
 }
@@ -191,12 +191,12 @@ func (s *Server) importFromRemote(ctx context.Context, projectID, sourceURL, sco
 		return nil, err
 	}
 	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no scion %s found at %s", kind.noun, sourceURL)
+		return nil, fmt.Errorf("no fabric %s found at %s", kind.noun, sourceURL)
 	}
 
 	dirs, skipped = applyNameFilter(dirs, skipped, nameFilter)
 	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no scion %s matched the requested names", kind.noun)
+		return nil, fmt.Errorf("no fabric %s matched the requested names", kind.noun)
 	}
 
 	return s.importResourceDirs(ctx, dirs, skipped, scope, projectID, kind, progress), nil
@@ -204,7 +204,7 @@ func (s *Server) importFromRemote(ctx context.Context, projectID, sourceURL, sco
 
 // importFromWorkspace imports resources of the given kind from a path within the
 // project's workspace filesystem. workspacePath is relative to the project's
-// workspace root (e.g. "/.scion/templates"). When progress is non-nil,
+// workspace root (e.g. "/.fabric/templates"). When progress is non-nil,
 // lifecycle events are emitted as the import proceeds.
 //
 // When nameFilter is non-nil and non-empty, only resources whose names appear in
@@ -246,12 +246,12 @@ func (s *Server) importFromWorkspace(ctx context.Context, project *store.Project
 		return nil, err
 	}
 	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no scion %s found at workspace path %s", kind.noun, workspacePath)
+		return nil, fmt.Errorf("no fabric %s found at workspace path %s", kind.noun, workspacePath)
 	}
 
 	dirs, skipped = applyNameFilter(dirs, skipped, nameFilter)
 	if len(dirs) == 0 {
-		return nil, fmt.Errorf("no scion %s matched the requested names", kind.noun)
+		return nil, fmt.Errorf("no fabric %s matched the requested names", kind.noun)
 	}
 
 	return s.importResourceDirs(ctx, dirs, skipped, scope, project.ID, kind, progress), nil
@@ -332,7 +332,7 @@ func discoverResourceDirs(root, sourceURL string, kind resourceImportKind) ([]re
 		if !entry.IsDir() {
 			continue
 		}
-		// Skip hidden/system directories (e.g. .git, .github, .scion). These are
+		// Skip hidden/system directories (e.g. .git, .github, .fabric). These are
 		// never resources and reporting them as "skipped (no marker)" would be
 		// noise, so drop them silently.
 		if strings.HasPrefix(entry.Name(), ".") {
@@ -510,7 +510,7 @@ func (s *Server) discoverFromRemote(ctx context.Context, projectID, sourceURL st
 		return nil, nil, err
 	}
 	if len(dirs) == 0 {
-		return nil, nil, fmt.Errorf("no scion %s found at %s", kind.noun, sourceURL)
+		return nil, nil, fmt.Errorf("no fabric %s found at %s", kind.noun, sourceURL)
 	}
 
 	names := make([]string, len(dirs))
@@ -556,7 +556,7 @@ func (s *Server) discoverFromWorkspace(ctx context.Context, project *store.Proje
 		return nil, nil, err
 	}
 	if len(dirs) == 0 {
-		return nil, nil, fmt.Errorf("no scion %s found at workspace path %s", kind.noun, workspacePath)
+		return nil, nil, fmt.Errorf("no fabric %s found at workspace path %s", kind.noun, workspacePath)
 	}
 
 	names := make([]string, len(dirs))

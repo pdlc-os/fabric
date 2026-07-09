@@ -233,7 +233,7 @@ func (rs *registrationServer) sendConfirmation(reg *pendingRegistration, email s
 		return
 	}
 
-	text := fmt.Sprintf("Registration complete! Your Telegram account is now linked to scion user: %s", email)
+	text := fmt.Sprintf("Registration complete! Your Telegram account is now linked to fabric user: %s", email)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if _, err := api.SendMessage(ctx, reg.ChatID, text, ""); err != nil {
@@ -241,7 +241,7 @@ func (rs *registrationServer) sendConfirmation(reg *pendingRegistration, email s
 	}
 }
 
-// setUserMapping stores a Telegram user ID → scion email mapping.
+// setUserMapping stores a Telegram user ID → fabric email mapping.
 func (b *TelegramBroker) setUserMapping(telegramUserID, email string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -258,7 +258,7 @@ func (b *TelegramBroker) removeUserMapping(telegramUserID string) {
 	delete(b.userMappings, telegramUserID)
 }
 
-// getUserMapping returns the scion email for a Telegram user ID, if mapped.
+// getUserMapping returns the fabric email for a Telegram user ID, if mapped.
 func (b *TelegramBroker) getUserMapping(telegramUserID string) (string, bool) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -351,7 +351,7 @@ func (b *TelegramBroker) handleRegisterCommand(tgMsg *TGMessage) {
 
 	// Check if already registered
 	if email, ok := b.getUserMapping(senderID); ok {
-		b.replyToChat(tgMsg.Chat.ID, fmt.Sprintf("You are already linked to scion user: %s\nTo unlink, send /unregister", email))
+		b.replyToChat(tgMsg.Chat.ID, fmt.Sprintf("You are already linked to fabric user: %s\nTo unlink, send /unregister", email))
 		return
 	}
 
@@ -374,7 +374,7 @@ func (b *TelegramBroker) handleRegisterCommand(tgMsg *TGMessage) {
 	link := fmt.Sprintf("%s/register?token=%s", registerURL, token)
 
 	b.replyToChat(tgMsg.Chat.ID,
-		fmt.Sprintf("Click here to link your Telegram account to scion:\n%s\n\nThis link expires in 10 minutes.", link))
+		fmt.Sprintf("Click here to link your Telegram account to fabric:\n%s\n\nThis link expires in 10 minutes.", link))
 }
 
 func (b *TelegramBroker) handleUnregisterCommand(tgMsg *TGMessage) {
@@ -386,7 +386,7 @@ func (b *TelegramBroker) handleUnregisterCommand(tgMsg *TGMessage) {
 
 	email, ok := b.getUserMapping(senderID)
 	if !ok {
-		b.replyToChat(tgMsg.Chat.ID, "You don't have a linked scion account. Send /register to link one.")
+		b.replyToChat(tgMsg.Chat.ID, "You don't have a linked fabric account. Send /register to link one.")
 		return
 	}
 
@@ -401,7 +401,7 @@ func (b *TelegramBroker) handleUnregisterCommand(tgMsg *TGMessage) {
 		}
 	}
 
-	b.replyToChat(tgMsg.Chat.ID, fmt.Sprintf("Your account has been unlinked from scion user: %s", email))
+	b.replyToChat(tgMsg.Chat.ID, fmt.Sprintf("Your account has been unlinked from fabric user: %s", email))
 }
 
 // replyToChat sends a text message to a Telegram chat.
@@ -431,7 +431,7 @@ func generateToken() string {
 
 var registerFormTemplate = template.Must(template.New("form").Parse(`<!DOCTYPE html>
 <html>
-<head><title>Link Telegram to Scion</title>
+<head><title>Link Telegram to Fabric</title>
 <style>
 body { font-family: sans-serif; max-width: 480px; margin: 40px auto; padding: 0 20px; }
 h1 { color: #333; }
@@ -443,13 +443,13 @@ button:hover { background: #006da3; }
 </style>
 </head>
 <body>
-<h1>Link Telegram to Scion</h1>
-<p>Linking Telegram user <strong>{{.Username}}</strong> to your scion account.</p>
+<h1>Link Telegram to Fabric</h1>
+<p>Linking Telegram user <strong>{{.Username}}</strong> to your fabric account.</p>
 <form method="POST" action="/register">
 <input type="hidden" name="token" value="{{.Token}}">
-<label for="email">Scion account email:</label>
+<label for="email">Fabric account email:</label>
 <input type="email" id="email" name="email" required placeholder="you@example.com">
-<p class="info">Enter the email address associated with your scion hub account.</p>
+<p class="info">Enter the email address associated with your fabric hub account.</p>
 <button type="submit">Link Account</button>
 </form>
 </body>
@@ -465,7 +465,7 @@ h1 { color: #2e7d32; }
 </head>
 <body>
 <h1>Registration Complete</h1>
-<p>Your Telegram account is now linked to scion user: <strong>{{.Email}}</strong></p>
+<p>Your Telegram account is now linked to fabric user: <strong>{{.Email}}</strong></p>
 <p>You can close this page and return to Telegram.</p>
 </body>
 </html>`))

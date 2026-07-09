@@ -46,7 +46,7 @@ Determine the image names per harness by looking at how `pull-containers.sh` (`i
 
 In `pkg/hub/system_handlers.go`:
 - Body: `{ "harnesses": ["claude", ...] }` (subset of what was seeded in Phase 2)
-- Reads `image_registry` from settings (the pre-seeded `ghcr.io/homebrew-scion` or user-configured value)
+- Reads `image_registry` from settings (the pre-seeded `ghcr.io/homebrew-fabric` or user-configured value)
 - Starts a background pull job, assigns a `jobId` (UUID)
 - Streams `PullResult` events on the existing `/events` SSE stream under subject `system.images.<jobId>`
 - Returns immediately: `{ "jobId": "..." }`

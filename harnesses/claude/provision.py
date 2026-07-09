@@ -15,12 +15,12 @@
 """Claude Code container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Written inputs/auth-candidates.json with the env-var names + paths to
-    secret-value files under $HOME/.scion/harness/secrets/<NAME>.
+    secret-value files under $HOME/.fabric/harness/secrets/<NAME>.
   * Mounted any auth file (e.g. ~/.claude/.credentials.json) at the declared
     container_path, when auth-file mode is in use.
   * Mounted ADC credentials when vertex-ai mode is in use.
@@ -54,25 +54,25 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness
+import fabric_harness
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    "scion_harness.py INTERFACE_VERSION is too old "
-    f"(got {scion_harness.INTERFACE_VERSION}, need >= 2); "
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    "fabric_harness.py INTERFACE_VERSION is too old "
+    f"(got {fabric_harness.INTERFACE_VERSION}, need >= 2); "
     "this is a staging bug — the host should have staged a compatible library"
 )
 
 CLAUDE_JSON_FILE = "~/.claude.json"
 CLAUDE_AUTH_FILE = "~/.claude/.credentials.json"
 
-AUTH = scion_harness.AuthSpec(
+AUTH = fabric_harness.AuthSpec(
     harness="claude",
     methods=[
-        scion_harness.env_method("api-key", any_of=["ANTHROPIC_API_KEY"]),
-        scion_harness.env_method("oauth-token", any_of=["CLAUDE_CODE_OAUTH_TOKEN"],
+        fabric_harness.env_method("api-key", any_of=["ANTHROPIC_API_KEY"]),
+        fabric_harness.env_method("oauth-token", any_of=["CLAUDE_CODE_OAUTH_TOKEN"],
                                  hint="set CLAUDE_CODE_OAUTH_TOKEN (generate with `claude setup-token`)"),
-        scion_harness.file_method("auth-file", path=CLAUDE_AUTH_FILE, secret_key="CLAUDE_AUTH"),
-        scion_harness.env_method("vertex-ai",
+        fabric_harness.file_method("auth-file", path=CLAUDE_AUTH_FILE, secret_key="CLAUDE_AUTH"),
+        fabric_harness.env_method("vertex-ai",
                                  all_of=["GOOGLE_CLOUD_PROJECT"],
                                  any_of=["GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_REGION"],
                                  hint="provide GOOGLE_CLOUD_PROJECT + GOOGLE_CLOUD_LOCATION/GOOGLE_CLOUD_REGION "
@@ -87,20 +87,20 @@ CLAUDE_MCP_MAPPING = {
         "sse": "sse",
         "streamable-http": "streamable-http",
     },
-    "global_config_file": scion_harness.expand_path(CLAUDE_JSON_FILE),
+    "global_config_file": fabric_harness.expand_path(CLAUDE_JSON_FILE),
     "global_config_path": "mcpServers",
-    "project_config_file": scion_harness.expand_path(CLAUDE_JSON_FILE),
+    "project_config_file": fabric_harness.expand_path(CLAUDE_JSON_FILE),
     "project_config_path": "projects.{workspace}.mcpServers",
 }
 
 
-def _resolve(ctx: scion_harness.ProvisionContext, name: str) -> str:
+def _resolve(ctx: fabric_harness.ProvisionContext, name: str) -> str:
     """Read a secret value, falling back to a ${VAR} placeholder."""
     val = ctx.read_secret(name)
     return val if val else "${" + name + "}"
 
 
-def _apply_api_key_approval(ctx: scion_harness.ProvisionContext, api_key: str) -> None:
+def _apply_api_key_approval(ctx: fabric_harness.ProvisionContext, api_key: str) -> None:
     """Pre-approve the API key in .claude.json.
 
     Writes the last 20 characters of the key as a fingerprint in
@@ -111,12 +111,12 @@ def _apply_api_key_approval(ctx: scion_harness.ProvisionContext, api_key: str) -
         return
 
     fingerprint = api_key[-20:] if len(api_key) > 20 else api_key
-    claude_json_path = scion_harness.expand_path(CLAUDE_JSON_FILE)
+    claude_json_path = fabric_harness.expand_path(CLAUDE_JSON_FILE)
 
     cfg: dict[str, Any] = {}
     if os.path.isfile(claude_json_path):
         try:
-            cfg = scion_harness.load_json(claude_json_path) or {}
+            cfg = fabric_harness.load_json(claude_json_path) or {}
         except (OSError, json.JSONDecodeError):
             cfg = {}
     if not isinstance(cfg, dict):
@@ -127,22 +127,22 @@ def _apply_api_key_approval(ctx: scion_harness.ProvisionContext, api_key: str) -
         "rejected": [],
     }
 
-    scion_harness.atomic_write_json(claude_json_path, cfg)
+    fabric_harness.atomic_write_json(claude_json_path, cfg)
 
 
-def _update_project_paths(ctx: scion_harness.ProvisionContext) -> None:
+def _update_project_paths(ctx: fabric_harness.ProvisionContext) -> None:
     """Update .claude.json project paths to point at the container workspace.
 
     Mirrors ClaudeCode.provisionClaudeJSON in claude_code.go. Takes the first
     existing project entry's settings and re-keys it to the container workspace
     path. If no project entries exist, creates a default settings map.
     """
-    claude_json_path = scion_harness.expand_path(CLAUDE_JSON_FILE)
+    claude_json_path = fabric_harness.expand_path(CLAUDE_JSON_FILE)
 
     cfg: dict[str, Any] = {}
     if os.path.isfile(claude_json_path):
         try:
-            cfg = scion_harness.load_json(claude_json_path) or {}
+            cfg = fabric_harness.load_json(claude_json_path) or {}
         except (OSError, json.JSONDecodeError):
             cfg = {}
     if not isinstance(cfg, dict):
@@ -172,10 +172,10 @@ def _update_project_paths(ctx: scion_harness.ProvisionContext) -> None:
         }
 
     cfg["projects"] = {ctx.workspace: project_settings}
-    scion_harness.atomic_write_json(claude_json_path, cfg)
+    fabric_harness.atomic_write_json(claude_json_path, cfg)
 
 
-def _build_env_overlay(ctx: scion_harness.ProvisionContext, auth: scion_harness.ResolvedAuth) -> dict[str, str]:
+def _build_env_overlay(ctx: fabric_harness.ProvisionContext, auth: fabric_harness.ResolvedAuth) -> dict[str, str]:
     """Build the env vars overlay for outputs/env.json."""
     if auth.method == "api-key" and auth.env_key:
         return {auth.env_key: _resolve(ctx, auth.env_key)}
@@ -191,13 +191,13 @@ def _build_env_overlay(ctx: scion_harness.ProvisionContext, auth: scion_harness.
     return {}
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     auth = ctx.select_auth(AUTH)
 
     try:
         _update_project_paths(ctx)
     except OSError as exc:
-        raise scion_harness.ProvisionError(f"failed to update project paths: {exc}") from exc
+        raise fabric_harness.ProvisionError(f"failed to update project paths: {exc}") from exc
 
     if auth.method == "api-key" and auth.env_key:
         api_key_value = ctx.read_secret(auth.env_key)
@@ -216,7 +216,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
     mcp_mapping = dict(CLAUDE_MCP_MAPPING)
     mcp_mapping["project_config_path"] = f"projects.{ctx.workspace}.mcpServers"
     try:
-        count = scion_harness.apply_mcp_servers_simple(ctx.bundle_dir, mcp_mapping, ctx.workspace)
+        count = fabric_harness.apply_mcp_servers_simple(ctx.bundle_dir, mcp_mapping, ctx.workspace)
     except (OSError, ValueError) as exc:
         ctx.warn(f"mcp merge failed: {exc}")
         count = 0
@@ -225,4 +225,4 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
 
 if __name__ == "__main__":
-    scion_harness.run("claude", provision)
+    fabric_harness.run("claude", provision)

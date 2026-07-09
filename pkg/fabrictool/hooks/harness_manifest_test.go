@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package hooks
@@ -22,7 +22,7 @@ func TestLoadHarnessManifestRequirement_NoManifestNotRequired(t *testing.T) {
 
 func TestLoadHarnessManifestRequirement_ContainerScriptIsRequired(t *testing.T) {
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func TestLoadHarnessManifestRequirement_ContainerScriptIsRequired(t *testing.T) 
 		"harness_config": {
 			"provisioner": {"type": "container-script", "interface_version": 1}
 		},
-		"outputs": {"env": "$HOME/.scion/harness/outputs/env.json"}
+		"outputs": {"env": "$HOME/.fabric/harness/outputs/env.json"}
 	}`
 	if err := os.WriteFile(filepath.Join(bundle, "manifest.json"), []byte(manifest), 0644); err != nil {
 		t.Fatal(err)
@@ -44,7 +44,7 @@ func TestLoadHarnessManifestRequirement_ContainerScriptIsRequired(t *testing.T) 
 	if !got.Required {
 		t.Fatal("expected Required=true for container-script provisioner")
 	}
-	if got.EnvOverlayPath != "$HOME/.scion/harness/outputs/env.json" {
+	if got.EnvOverlayPath != "$HOME/.fabric/harness/outputs/env.json" {
 		t.Fatalf("unexpected env overlay path: %q", got.EnvOverlayPath)
 	}
 	if got.BundleDir != bundle {
@@ -54,7 +54,7 @@ func TestLoadHarnessManifestRequirement_ContainerScriptIsRequired(t *testing.T) 
 
 func TestLoadHarnessManifestRequirement_LifecycleEventsHonored(t *testing.T) {
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func TestLoadHarnessManifestRequirement_LifecycleEventsHonored(t *testing.T) {
 
 func TestLoadHarnessManifestRequirement_BuiltinNotRequired(t *testing.T) {
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestLoadHarnessManifestRequirement_BuiltinNotRequired(t *testing.T) {
 
 func TestLoadHarnessManifestRequirement_MalformedManifestFails(t *testing.T) {
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestResolveContainerPath(t *testing.T) {
 		home string
 		want string
 	}{
-		{"home prefix", "$HOME/.scion/harness/outputs/env.json", "/agent", "/agent/.scion/harness/outputs/env.json"},
+		{"home prefix", "$HOME/.fabric/harness/outputs/env.json", "/agent", "/agent/.fabric/harness/outputs/env.json"},
 		{"absolute path", "/tmp/x", "/agent", "/tmp/x"},
 		{"empty path", "", "/agent", ""},
 		{"home alone", "$HOME", "/agent", "/agent"},

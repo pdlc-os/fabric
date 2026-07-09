@@ -1,7 +1,7 @@
 # Telegram Bot Message Broker Plugin (Issue #43)
 
 **Date:** 2026-05-13
-**Branch:** scion/fix-issue-43
+**Branch:** fabric/fix-issue-43
 **Agent:** fix-issue-43
 
 ## What was done
@@ -17,7 +17,7 @@ Implemented a complete Telegram bot message broker plugin following the existing
 - `pkg/plugin/telegram/telegram.go` — Core TelegramBroker implementing MessageBrokerPluginInterface
 - `pkg/plugin/telegram/telegram_test.go` — Comprehensive unit tests
 - `pkg/plugin/telegram/plugin_integration_test.go` — RPC integration tests
-- `cmd/scion-plugin-telegram/main.go` — Plugin binary entry point
+- `cmd/fabric-plugin-telegram/main.go` — Plugin binary entry point
 
 ### Design decisions
 
@@ -25,7 +25,7 @@ Implemented a complete Telegram bot message broker plugin following the existing
 
 2. **No external dependencies** — Used `net/http` directly for Telegram Bot API calls. No third-party Telegram SDK needed.
 
-3. **Chat-to-topic routing** — Three-tier routing: (1) direct via `telegram_chat_id` metadata, (2) configured `chat_routes` JSON map, (3) default topic `scion.telegram.chat.<chatID>.messages`. Reply routing works via metadata passthrough.
+3. **Chat-to-topic routing** — Three-tier routing: (1) direct via `telegram_chat_id` metadata, (2) configured `chat_routes` JSON map, (3) default topic `fabric.telegram.chat.<chatID>.messages`. Reply routing works via metadata passthrough.
 
 4. **Non-blocking test infrastructure** — Avoided blocking channel-based update delivery in tests (caused httptest.Server hangs). Used setUpdates() with non-blocking queue pattern instead.
 

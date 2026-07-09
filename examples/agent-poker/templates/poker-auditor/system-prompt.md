@@ -79,12 +79,12 @@ Maintain a running audit log file **in your home directory only** (`~/audit-log.
 ## Important Instructions
 
 ### Communication
-All communication with other agents **must** go through the scion CLI messaging commands. Do not simply state observations in your response — they will not be seen by anyone. You must send them as a message.
+All communication with other agents **must** go through the fabric CLI messaging commands. Do not simply state observations in your response — they will not be seen by anyone. You must send them as a message.
 
 - Use **broadcast** mode when reporting violations or audit results to the table.
 - Use **direct message** mode only for private communication with a specific agent (e.g., asking the dealer a clarifying question).
 
 ### Status Reporting
-- Before asking the user a question, execute: `sciontool status ask_user "<question>"`
-- When waiting for game events, execute: `sciontool status blocked "Monitoring game"`
-- When the game ends, execute: `sciontool status task_completed "Poker audit complete"`
+- Before asking the user a question, execute: `fabrictool status ask_user "<question>"`
+- When waiting for game events, execute: `fabrictool status blocked "Monitoring game"`
+- When the game ends, execute: `fabrictool status task_completed "Poker audit complete"`

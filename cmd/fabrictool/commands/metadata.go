@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package commands
@@ -15,8 +15,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/metadata"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/metadata"
 )
 
 var metadataCmd = &cobra.Command{
@@ -51,12 +51,12 @@ func runMetadataStatus() int {
 		name     string
 		required bool
 	}{
-		{"SCION_METADATA_MODE", true},
+		{"FABRIC_METADATA_MODE", true},
 		{"GCE_METADATA_HOST", true},
 		{"GCE_METADATA_ROOT", true},
-		{"SCION_METADATA_PORT", false},
-		{"SCION_METADATA_SA_EMAIL", false},
-		{"SCION_METADATA_PROJECT_ID", false},
+		{"FABRIC_METADATA_PORT", false},
+		{"FABRIC_METADATA_SA_EMAIL", false},
+		{"FABRIC_METADATA_PROJECT_ID", false},
 	}
 
 	fmt.Println("=== Environment ===")
@@ -78,7 +78,7 @@ func runMetadataStatus() int {
 	fmt.Println("\n=== Configuration ===")
 	cfg := metadata.ConfigFromEnv()
 	if cfg == nil {
-		fmt.Println("[FAIL] SCION_METADATA_MODE not set — metadata server is not configured")
+		fmt.Println("[FAIL] FABRIC_METADATA_MODE not set — metadata server is not configured")
 		return 1
 	}
 	fmt.Printf("[ OK ] Mode: %s\n", cfg.Mode)

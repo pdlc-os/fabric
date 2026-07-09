@@ -21,8 +21,8 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 

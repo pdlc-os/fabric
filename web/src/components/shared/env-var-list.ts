@@ -31,8 +31,8 @@ import type { EnvVar, ResourceScope, InjectionMode } from '../../shared/types.js
 import { apiFetch, extractApiError } from '../../client/api.js';
 import { resourceStyles } from './resource-styles.js';
 
-@customElement('scion-env-var-list')
-export class ScionEnvVarList extends LitElement {
+@customElement('fabric-env-var-list')
+export class FabricEnvVarList extends LitElement {
   @property() scope: ResourceScope = 'user';
   @property() scopeId = '';
   @property() apiBasePath = '/api/v1';
@@ -513,6 +513,6 @@ export class ScionEnvVarList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-env-var-list': ScionEnvVarList;
+    'fabric-env-var-list': FabricEnvVarList;
   }
 }

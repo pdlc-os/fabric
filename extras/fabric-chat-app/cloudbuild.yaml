@@ -22,7 +22,7 @@ steps:
       - '-t'
       - '${_REGISTRY}/${_SERVICE_NAME}:latest'
       - '-f'
-      - 'extras/scion-chat-app/Dockerfile'
+      - 'extras/fabric-chat-app/Dockerfile'
       - '.'
 
   # Push the container image
@@ -58,8 +58,8 @@ steps:
       - '--no-allow-unauthenticated'
 
 substitutions:
-  _REGISTRY: us-central1-docker.pkg.dev/${PROJECT_ID}/scion
-  _SERVICE_NAME: scion-chat-app
+  _REGISTRY: us-central1-docker.pkg.dev/${PROJECT_ID}/fabric
+  _SERVICE_NAME: fabric-chat-app
   _REGION: us-central1
   _GIT_SHA: ${SHORT_SHA}
 

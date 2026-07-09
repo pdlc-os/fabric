@@ -2,11 +2,11 @@
 
 **Date:** 2026-05-31
 **Issue:** #92
-**Branch:** scion/cleanup-server-mode-vocab
+**Branch:** fabric/cleanup-server-mode-vocab
 
 ## Summary
 
-Renamed the `scion server` command group's non-workstation mode from "production" to "hosted" to align with the canonical vocabulary:
+Renamed the `fabric server` command group's non-workstation mode from "production" to "hosted" to align with the canonical vocabulary:
 
 - **Workstation mode** — single-tenant, loopback, all components enabled
 - **Hosted mode** — multi-user deployment, explicit component selection
@@ -24,7 +24,7 @@ Renamed the `scion server` command group's non-workstation mode from "production
 ### Help Text
 - "Production mode" → "Hosted mode" throughout
 - "local server" → "workstation server" in `serverStartCmd` long description
-- Install descriptions: "Scion Server (Production)" → "Scion Server (Hosted)"
+- Install descriptions: "Fabric Server (Production)" → "Fabric Server (Hosted)"
 
 ### Config Layer
 - Comments updated: `"workstation" (default) or "hosted"` with backward-compat note

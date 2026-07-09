@@ -1,7 +1,7 @@
 # Project Log: Phase 4 - Database Migration (V48)
 
 **Date:** 2026-05-09
-**Agent:** developer (scion-gteam)
+**Agent:** developer (fabric-gteam)
 **Task:** Add migration V48 for grove-to-project rename
 
 ## Work Completed

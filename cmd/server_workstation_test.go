@@ -22,7 +22,7 @@ import (
 	goruntime "runtime"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -53,7 +53,7 @@ func TestWorkstationModeDefaults(t *testing.T) {
 	// Reset flags after test to avoid leaking into other tests
 	t.Cleanup(resetServerFlags)
 
-	// Parse with no flags — simulates bare "scion server start"
+	// Parse with no flags — simulates bare "fabric server start"
 	resetServerFlags()
 	require.NoError(t, serverStartCmd.ParseFlags([]string{}))
 
@@ -222,7 +222,7 @@ func TestBrokerDelegationExplicitHostKeepsValue(t *testing.T) {
 func TestPrintWorkstationQuickstart(t *testing.T) {
 	// Create a temp dir with a dev-token file
 	dir := t.TempDir()
-	token := "scion_dev_abc123"
+	token := "fabric_dev_abc123"
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "dev-token"), []byte(token+"\n"), 0600))
 
 	// Capture stdout
@@ -240,7 +240,7 @@ func TestPrintWorkstationQuickstart(t *testing.T) {
 	output := buf.String()
 
 	assert.Contains(t, output, "http://127.0.0.1:8080", "should show web UI URL")
-	assert.Contains(t, output, "export SCION_DEV_TOKEN="+token, "should show dev token export")
+	assert.Contains(t, output, "export FABRIC_DEV_TOKEN="+token, "should show dev token export")
 }
 
 func TestPrintWorkstationQuickstart_NoWeb(t *testing.T) {
@@ -260,7 +260,7 @@ func TestPrintWorkstationQuickstart_NoWeb(t *testing.T) {
 	output := buf.String()
 
 	assert.NotContains(t, output, "Web UI", "should not show web UI when disabled")
-	assert.NotContains(t, output, "SCION_DEV_TOKEN", "should not show token when dev-auth disabled")
+	assert.NotContains(t, output, "FABRIC_DEV_TOKEN", "should not show token when dev-auth disabled")
 }
 
 func TestPrintWorkstationQuickstart_WildcardHost(t *testing.T) {
@@ -292,7 +292,7 @@ func TestGenerateSystemdUnit(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := generateSystemdUnit("/usr/local/bin/scion", false)
+	err := generateSystemdUnit("/usr/local/bin/fabric", false)
 	require.NoError(t, err)
 
 	_ = w.Close()
@@ -303,8 +303,8 @@ func TestGenerateSystemdUnit(t *testing.T) {
 	output := buf.String()
 
 	assert.Contains(t, output, "[Unit]")
-	assert.Contains(t, output, "Scion Workstation Server")
-	assert.Contains(t, output, "ExecStart=/usr/local/bin/scion server start --foreground")
+	assert.Contains(t, output, "Fabric Workstation Server")
+	assert.Contains(t, output, "ExecStart=/usr/local/bin/fabric server start --foreground")
 	assert.NotContains(t, output, "--hosted")
 	assert.Contains(t, output, "[Install]")
 }
@@ -318,7 +318,7 @@ func TestGenerateSystemdUnit_Hosted(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := generateSystemdUnit("/usr/local/bin/scion", true)
+	err := generateSystemdUnit("/usr/local/bin/fabric", true)
 	require.NoError(t, err)
 
 	_ = w.Close()
@@ -328,7 +328,7 @@ func TestGenerateSystemdUnit_Hosted(t *testing.T) {
 	_, _ = io.Copy(&buf, r)
 	output := buf.String()
 
-	assert.Contains(t, output, "Scion Server (Hosted)")
+	assert.Contains(t, output, "Fabric Server (Hosted)")
 	assert.Contains(t, output, "--hosted")
 }
 
@@ -341,7 +341,7 @@ func TestGenerateLaunchdPlist(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := generateLaunchdPlist("/usr/local/bin/scion", false)
+	err := generateLaunchdPlist("/usr/local/bin/fabric", false)
 	require.NoError(t, err)
 
 	_ = w.Close()
@@ -351,8 +351,8 @@ func TestGenerateLaunchdPlist(t *testing.T) {
 	_, _ = io.Copy(&buf, r)
 	output := buf.String()
 
-	assert.Contains(t, output, "io.scion.server")
-	assert.Contains(t, output, "<string>/usr/local/bin/scion</string>")
+	assert.Contains(t, output, "io.fabric.server")
+	assert.Contains(t, output, "<string>/usr/local/bin/fabric</string>")
 	assert.Contains(t, output, "<string>--foreground</string>")
 	assert.NotContains(t, output, "--hosted")
 }

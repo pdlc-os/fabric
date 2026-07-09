@@ -1,10 +1,10 @@
 # Kubernetes Runtime Design
 
 ## Overview
-This document outlines the design for adding a Kubernetes (K8s) runtime to the `scion-agent` CLI. This will allow agents to execute as Pods in a remote or local Kubernetes cluster, enabling scalability, resource management, and isolation superior to local Docker execution.
+This document outlines the design for adding a Kubernetes (K8s) runtime to the `fabric-agent` CLI. This will allow agents to execute as Pods in a remote or local Kubernetes cluster, enabling scalability, resource management, and isolation superior to local Docker execution.
 
 ## Goals
-- Allow `scion run` to execute agents in a Kubernetes cluster.
+- Allow `fabric run` to execute agents in a Kubernetes cluster.
 - Maintain a developer experience (DX) as close as possible to the local `docker` runtime.
 - Support "Agent Sandbox" technologies for secure execution.
 - Solve the challenges of remote file system access and user identity using the unified Harness abstraction.
@@ -12,11 +12,11 @@ This document outlines the design for adding a Kubernetes (K8s) runtime to the `
 
 ## Architecture
 
-The `scion` CLI will act as a Kubernetes client, interacting directly with the Kubernetes API (using `client-go`) to manage the lifecycle of agents.
+The `fabric` CLI will act as a Kubernetes client, interacting directly with the Kubernetes API (using `client-go`) to manage the lifecycle of agents.
 
 ```mermaid
 graph TD
-    CLI[Scion CLI] -->|KubeConfig| API[Kubernetes API Server]
+    CLI[Fabric CLI] -->|KubeConfig| API[Kubernetes API Server]
     API -->|Schedule| Node[K8s Node]
     Node -->|Run| Pod[Agent Pod]
     CLI -->|Stream Logs/Exec| Pod
@@ -39,8 +39,8 @@ We will use a "Snapshot" approach for the MVP to align with the "run this task" 
 
 #### Data Synchronization (Sync-Back)
 Since the workspace is ephemeral, changes made by the agent must be explicitly retrieved.
-*   **Manual Sync:** A new command `scion sync <agent-name>` will stream files from the Pod's `/workspace` back to the local directory.
-*   **On Stop:** When `scion stop <agent-name>` is called, the CLI will prompt (or accept a flag `--sync`) to pull changes before destroying the Pod.
+*   **Manual Sync:** A new command `fabric sync <agent-name>` will stream files from the Pod's `/workspace` back to the local directory.
+*   **On Stop:** When `fabric stop <agent-name>` is called, the CLI will prompt (or accept a flag `--sync`) to pull changes before destroying the Pod.
     *   *Mechanism:* `kubectl exec -i <pod> -- tar -cz -C /workspace . | tar -xz -C ./local/path`
 *   **Future improvement** Use mutagen for live sync
 
@@ -52,7 +52,7 @@ The `KubernetesRuntime` will rely on the `harness.Harness` interface to discover
 
 *   **Auth Discovery:** The runtime will call `Harness.DiscoverAuth(agentHome)` to identify necessary credentials (e.g., API keys, default credentials).
 *   **Environment:** `Harness.GetEnv` will provide necessary environment variables (including API keys), which will be injected into the Pod definition.
-*   **Volume Projection:** The runtime will iterate over volumes returned by `Harness.GetVolumes` and those defined in `scion-agent.json`.
+*   **Volume Projection:** The runtime will iterate over volumes returned by `Harness.GetVolumes` and those defined in `fabric-agent.json`.
     *   **Mechanism:** For **local files** (e.g., `~/.config/gcloud`, `~/.anthropic`), the CLI will create ephemeral **Kubernetes Secrets** containing these files and mount them into the Pod at the target locations.
     *   *Note:* Care must be taken with large directories. For MVP, we may restrict support to small credential files.
 
@@ -65,34 +65,34 @@ The `KubernetesRuntime` will support a https://github.com/kubernetes-sigs/agent-
 Even though agents run remotely, their "handle" must remain local to maintain a consistent CLI experience.
 
 ### Directory Structure
-We will retain the `.scion/agents/<agent-name>/` directory for every agent, regardless of runtime.
+We will retain the `.fabric/agents/<agent-name>/` directory for every agent, regardless of runtime.
 
-*   **`.scion/agents/<agent-name>/scion-agent.json`**:
+*   **`.fabric/agents/<agent-name>/fabric-agent.json`**:
     *   **`harness`**: `"claude-code"` (or `"gemini-cli"`)
     *   **`runtime`**: `"kubernetes"`
     *   **`kubernetes`**: (Read-only metadata)
         *   `cluster`: "my-cluster-context"
-        *   `namespace`: "scion-agents"
-        *   `podName`: "scion-agent-xyz-123"
+        *   `namespace`: "fabric-agents"
+        *   `podName`: "fabric-agent-xyz-123"
         *   `syncedAt`: Timestamp of last sync.
-*   **`.scion/agents/<agent-name>/pod.yaml`**: The generated Pod specification used to create the agent.
+*   **`.fabric/agents/<agent-name>/pod.yaml`**: The generated Pod specification used to create the agent.
 
 ### State Management
-*   **Listing:** `scion list` will iterate through `.scion/agents/`. For K8s agents, it will perform a lightweight API check (e.g., `GetPod`) to update the status (Running/Completed/Error).
-*   **Orphaned Pods:** If a local agent directory is deleted, the CLI should eventually allow "garbage collection" of managed Pods in the cluster via labels (`managed-by=scion`).
+*   **Listing:** `fabric list` will iterate through `.fabric/agents/`. For K8s agents, it will perform a lightweight API check (e.g., `GetPod`) to update the status (Running/Completed/Error).
+*   **Orphaned Pods:** If a local agent directory is deleted, the CLI should eventually allow "garbage collection" of managed Pods in the cluster via labels (`managed-by=fabric`).
 
 ## Grove Configuration
 
-A "Grove" (the current project context) needs to define where its remote agents should live. This configuration can be provided via an optional `kubernetes-config.json` in the project's `.scion/` directory.
+A "Grove" (the current project context) needs to define where its remote agents should live. This configuration can be provided via an optional `kubernetes-config.json` in the project's `.fabric/` directory.
 
 ### Configuration Schema (`kubernetes-config.json`)
 
-We will rely on the user's standard `~/.kube/config` for authentication and endpoint details, avoiding the need to manage sensitive credentials within Scion itself.
+We will rely on the user's standard `~/.kube/config` for authentication and endpoint details, avoiding the need to manage sensitive credentials within Fabric itself.
 
 ```json
 {
   "context": "minikube",        // Optional: specific kubeconfig context to use
-  "namespace": "scion-dev",     // Optional: target namespace (default: default)
+  "namespace": "fabric-dev",     // Optional: target namespace (default: default)
   "runtimeClassName": "gvisor", // Optional: for sandboxing
   "resources": {                // Optional: default resource requests/limits
     "requests": { "cpu": "500m", "memory": "512Mi" },
@@ -106,15 +106,15 @@ We will rely on the user's standard `~/.kube/config` for authentication and endp
 To ensure maximum flexibility, the choice between `docker` and `kubernetes` runtimes follows a strict resolution hierarchy.
 
 ### Resolution Hierarchy (Precedence)
-1.  **Command-line Flag:** `scion run --runtime kubernetes` (One-time override).
-2.  **Agent State:** `.scion/agents/<name>/scion-agent.json` (Locked to the runtime chosen at creation).
-3.  **Template Config:** `templates/<name>/scion-agent.json` (Specific to an agent type/requirement).
-4.  **Grove (Project) Preference:** `.scion/settings.json` (Project-wide defaults).
-5.  **Global Preference:** `~/.scion/settings.json` (User-wide defaults).
+1.  **Command-line Flag:** `fabric run --runtime kubernetes` (One-time override).
+2.  **Agent State:** `.fabric/agents/<name>/fabric-agent.json` (Locked to the runtime chosen at creation).
+3.  **Template Config:** `templates/<name>/fabric-agent.json` (Specific to an agent type/requirement).
+4.  **Grove (Project) Preference:** `.fabric/settings.json` (Project-wide defaults).
+5.  **Global Preference:** `~/.fabric/settings.json` (User-wide defaults).
 6.  **Default:** `docker`.
 
 ### Sticky Runtimes
-Once an agent is created, its runtime is **immutable** and stored in its local `scion-agent.json`. Subsequent `start`, `stop`, or `attach` commands will always use the runtime specified in the agent's state, regardless of changes to global or grove settings.
+Once an agent is created, its runtime is **immutable** and stored in its local `fabric-agent.json`. Subsequent `start`, `stop`, or `attach` commands will always use the runtime specified in the agent's state, regardless of changes to global or grove settings.
 
 ## Implementation Plan
 

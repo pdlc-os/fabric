@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# local-podman builder for the scion image build orchestrator.
+# local-podman builder for the fabric image build orchestrator.
 #
 # Wraps `podman build`. Native arch only by default; multi-arch --platform
 # values are rejected with an actionable error (QEMU binfmt setup is the

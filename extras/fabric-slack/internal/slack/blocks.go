@@ -7,7 +7,7 @@ import (
 
 	slackapi "github.com/slack-go/slack"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 const (

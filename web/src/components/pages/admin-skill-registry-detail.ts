@@ -33,8 +33,8 @@ interface PinnedHash {
   hash: string;
 }
 
-@customElement('scion-page-admin-skill-registry-detail')
-export class ScionPageAdminSkillRegistryDetail extends LitElement {
+@customElement('fabric-page-admin-skill-registry-detail')
+export class FabricPageAdminSkillRegistryDetail extends LitElement {
   @state() private loading = true;
   @state() private registry: SkillRegistry | null = null;
   @state() private error: string | null = null;
@@ -63,12 +63,12 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
-    .back-link:hover { color: var(--scion-primary, #3b82f6); }
+    .back-link:hover { color: var(--fabric-primary, #3b82f6); }
 
     .header {
       display: flex;
@@ -80,7 +80,7 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
       display: flex;
       align-items: center;
@@ -93,9 +93,9 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     }
 
     .card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -105,12 +105,12 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       justify-content: space-between;
       margin-bottom: 1rem;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
     .card-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -122,17 +122,17 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     .info-item { display: flex; flex-direction: column; }
     .info-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
     }
     .info-value {
       font-size: 1rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
     .info-value.mono {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
     }
 
@@ -162,7 +162,7 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       display: block;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.375rem;
@@ -174,9 +174,9 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     }
 
     .pin-table {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
     .pin-table table { width: 100%; border-collapse: collapse; }
@@ -187,15 +187,15 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
     .pin-table td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
     .pin-table tr:last-child td { border-bottom: none; }
@@ -203,7 +203,7 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     .empty-pins {
       text-align: center;
       padding: 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -213,16 +213,16 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
     .loading-state sl-spinner { font-size: 2rem; margin-bottom: 1rem; }
 
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
     .error-state sl-icon {
       font-size: 3rem;
@@ -231,15 +231,15 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
     }
     .error-state h2 {
       font-size: 1.25rem; font-weight: 600;
-      color: var(--scion-text, #1e293b); margin: 0 0 0.5rem 0;
+      color: var(--fabric-text, #1e293b); margin: 0 0 0.5rem 0;
     }
-    .error-state p { color: var(--scion-text-muted, #64748b); margin: 0 0 1rem 0; }
+    .error-state p { color: var(--fabric-text-muted, #64748b); margin: 0 0 1rem 0; }
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -251,7 +251,7 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
   `;
@@ -542,11 +542,11 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
           <div class="info-item">
             <span class="info-label">Status</span>
             <span class="info-value">
-              <scion-status-badge
+              <fabric-status-badge
                 status=${r.status === 'active' ? 'success' : 'danger'}
                 label=${r.status}
                 size="small"
-              ></scion-status-badge>
+              ></fabric-status-badge>
             </span>
           </div>
           ${r.description ? html`
@@ -675,8 +675,8 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
               <tbody>
                 ${this.pinnedHashes.map((p) => html`
                   <tr>
-                    <td style="font-family: var(--scion-font-mono, monospace); font-size: 0.875rem;">${p.uri}</td>
-                    <td><scion-hash-display .hash=${p.hash} max-width="20ch"></scion-hash-display></td>
+                    <td style="font-family: var(--fabric-font-mono, monospace); font-size: 0.875rem;">${p.uri}</td>
+                    <td><fabric-hash-display .hash=${p.hash} max-width="20ch"></fabric-hash-display></td>
                     <td style="text-align: right">
                       <sl-button size="small" variant="danger" outline @click=${() => this.handleUnpin(p.uri)}>
                         Unpin
@@ -762,6 +762,6 @@ export class ScionPageAdminSkillRegistryDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-skill-registry-detail': ScionPageAdminSkillRegistryDetail;
+    'fabric-page-admin-skill-registry-detail': FabricPageAdminSkillRegistryDetail;
   }
 }

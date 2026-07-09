@@ -1,11 +1,11 @@
 # Kubernetes Agent Deployment Flow
 
-This document traces the code path and logic for deploying a scion agent to a Kubernetes cluster using the `remote` or `k8s` runtime.
+This document traces the code path and logic for deploying a fabric agent to a Kubernetes cluster using the `remote` or `k8s` runtime.
 
 ## Process Flow
 
 ### 1. Initiation
-- **Command**: `scion start <agent-name>` or `scion resume <agent-name>`.
+- **Command**: `fabric start <agent-name>` or `fabric resume <agent-name>`.
 - **Entry Point**: `cmd/start.go` (or `cmd/resume.go`) triggers the `RunE` function.
 - **Common Logic**: Calls `RunAgent(cmd, args, resumeBool)` in `cmd/common.go`.
 
@@ -14,7 +14,7 @@ This document traces the code path and logic for deploying a scion agent to a Ku
 - **Logic (`pkg/runtime/factory.go`)**:
     1.  **Env Check**: Checks `GEMINI_SANDBOX` environment variable.
     2.  **Agent Settings**: Checks `config.GetAgentSettings()` for `Tools.Sandbox`.
-    3.  **Global Settings**: Checks `.scion/settings.json` (resolved via `config.LoadSettings`) for `DefaultRuntime`.
+    3.  **Global Settings**: Checks `.fabric/settings.json` (resolved via `config.LoadSettings`) for `DefaultRuntime`.
     4.  **Resolution**: Maps `remote` to `kubernetes`.
 - **Instantiation**:
     -   If `kubernetes`, calls `k8s.NewClient(os.Getenv("KUBECONFIG"))` (`pkg/k8s/client.go`).
@@ -24,7 +24,7 @@ This document traces the code path and logic for deploying a scion agent to a Ku
 - **Location**: `cmd/common.go` (`RunAgent`).
 - **Config Resolution**: Calls `GetAgent` to setup directories and config.
     -   **Paths**: Resolves `agentsDir`, `agentHome`, and `agentWorkspace`.
-    -   **Templates**: Uses `config.GetTemplateChain` and `config.MergeScionConfig` to build the final `api.ScionConfig`.
+    -   **Templates**: Uses `config.GetTemplateChain` and `config.MergeFabricConfig` to build the final `api.FabricConfig`.
 - **Harness**: Instantiates the harness (e.g., `gemini`) via `harness.New`.
 - **Auth**: Calls `h.DiscoverAuth(agentHome)` to load credentials (e.g., API keys) into an `api.AuthConfig` object.
 - **RunConfig**: Constructs an `api.RunConfig` object containing `Name`, `Image`, `Env`, `Auth`, `Workspace`, etc.
@@ -32,10 +32,10 @@ This document traces the code path and logic for deploying a scion agent to a Ku
 ### 4. Kubernetes Resource Provisioning
 - **Entry**: `RunAgent` calls `rt.Run(ctx, runCfg)`.
 - **Logic (`pkg/runtime/kubernetes/runtime.go` -> `Run`)**:
-    1.  **Namespace**: Selected from labels (`scion.namespace` or `namespace`), defaulting to `default` or the runtime's configured default.
+    1.  **Namespace**: Selected from labels (`fabric.namespace` or `namespace`), defaulting to `default` or the runtime's configured default.
     2.  **Claim Construction**: Builds a `v1alpha1.SandboxClaim` struct.
         -   `Metadata.Name`: set to `runCfg.Name`.
-        -   `Spec.TemplateRef.Name`: set to `runCfg.Template` (defaults to `default-scion-agent`).
+        -   `Spec.TemplateRef.Name`: set to `runCfg.Template` (defaults to `default-fabric-agent`).
     3.  **Creation**: Calls `r.Client.CreateSandboxClaim` to submit the resource to the API server.
     4.  **Wait**: Calls `waitForReady`.
         -   **Polling**: Loops every 2 seconds calling `GetSandboxClaim`.
@@ -53,7 +53,7 @@ This document traces the code path and logic for deploying a scion agent to a Ku
     3.  **Transport**: Uses `remotecommand.NewSPDYExecutor` to pipe the local stdout (tar stream) to the remote command's stdin.
 
 ### 6. Finalization
-- **Status Update**: `RunAgent` calls `UpdateAgentStatus` to write `"status": "running"` (or `"resumed"`) to the agent's `scion-agent.json`.
+- **Status Update**: `RunAgent` calls `UpdateAgentStatus` to write `"status": "running"` (or `"resumed"`) to the agent's `fabric-agent.json`.
 - **Attach (Optional)**: If not detached, calls `rt.Attach(ctx, id)`.
     -   **Logic**: Starts a remote shell (`/bin/sh`) using SPDY executor, connecting `os.Stdin/Stdout/Stderr` to the Pod.
 
@@ -63,12 +63,12 @@ This document traces the code path and logic for deploying a scion agent to a Ku
 
 ### 1. Incomplete Context Sync
 - **Observation**: `syncContext` only synchronizes the `Workspace` directory.
-- **Flaw**: The `HomeDir` (containing `scion-agent.json`, `gemini.md`, and system prompts) is **not** synchronized to the Pod. Most harnesses expect these files in the container's home directory to function correctly.
+- **Flaw**: The `HomeDir` (containing `fabric-agent.json`, `gemini.md`, and system prompts) is **not** synchronized to the Pod. Most harnesses expect these files in the container's home directory to function correctly.
 
 ### 2. Missing Configuration Propagation
 - **Observation**: `KubernetesRuntime.Run` completely ignores several fields in `api.RunConfig`:
     -   `Env`: Environment variables prepared in `RunAgent` are dropped.
-    -   `Volumes`: Volume mounts defined in `scion-agent.json` are dropped.
+    -   `Volumes`: Volume mounts defined in `fabric-agent.json` are dropped.
     -   `Auth`: Credentials discovered by `DiscoverAuth` are dropped.
     -   `Image`: The resolved image is ignored; the runtime relies entirely on the `SandboxTemplate` referenced by `TemplateRef`.
 - **Flaw**: There is no mechanism in the current `SandboxClaim` to pass these per-agent overrides to the underlying Pod.

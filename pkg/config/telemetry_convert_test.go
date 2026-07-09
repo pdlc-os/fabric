@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestConvertV1TelemetryToAPI_Nil(t *testing.T) {
@@ -81,7 +81,7 @@ func TestConvertV1TelemetryToAPI_Full(t *testing.T) {
 				Hash:   []string{"session_id"},
 			},
 		},
-		Resource: map[string]string{"service.name": "scion-agent"},
+		Resource: map[string]string{"service.name": "fabric-agent"},
 	}
 
 	result := ConvertV1TelemetryToAPI(v1)
@@ -172,7 +172,7 @@ func TestConvertV1TelemetryToAPI_Full(t *testing.T) {
 	}
 
 	// Resource
-	if result.Resource["service.name"] != "scion-agent" {
+	if result.Resource["service.name"] != "fabric-agent" {
 		t.Errorf("Resource = %v", result.Resource)
 	}
 }
@@ -269,42 +269,42 @@ func TestTelemetryConfigToEnv_Full(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		"SCION_TELEMETRY_ENABLED":                   "true",
-		"SCION_TELEMETRY_CLOUD_ENABLED":             "true",
-		"SCION_OTEL_ENDPOINT":                       "otel.example.com:4317",
-		"SCION_OTEL_PROTOCOL":                       "grpc",
-		"SCION_OTEL_INSECURE":                       "false",
-		"SCION_OTEL_CA_FILE":                        "/etc/ssl/certs/custom-root.pem",
-		"SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE":      "256",
-		"SCION_TELEMETRY_CLOUD_BATCH_TIMEOUT":       "10s",
-		"SCION_TELEMETRY_CLOUD_PROVIDER":            "gcp",
-		"SCION_TELEMETRY_HUB_ENABLED":               "true",
-		"SCION_TELEMETRY_HUB_REPORT_INTERVAL":       "60s",
-		"SCION_TELEMETRY_LOCAL_ENABLED":             "true",
-		"SCION_TELEMETRY_DEBUG":                     "true",
-		"SCION_TELEMETRY_LOCAL_FILE":                "/var/log/telemetry.jsonl",
-		"SCION_TELEMETRY_LOCAL_CONSOLE":             "true",
-		"SCION_TELEMETRY_FILTER_ENABLED":            "true",
-		"SCION_TELEMETRY_FILTER_RESPECT_DEBUG_MODE": "false",
-		"SCION_TELEMETRY_FILTER_INCLUDE":            "agent.tool.call,agent.turn",
-		"SCION_TELEMETRY_FILTER_EXCLUDE":            "agent.user.prompt",
-		"SCION_TELEMETRY_REDACT":                    "prompt,user.email",
-		"SCION_TELEMETRY_HASH":                      "session_id",
+		"FABRIC_TELEMETRY_ENABLED":                   "true",
+		"FABRIC_TELEMETRY_CLOUD_ENABLED":             "true",
+		"FABRIC_OTEL_ENDPOINT":                       "otel.example.com:4317",
+		"FABRIC_OTEL_PROTOCOL":                       "grpc",
+		"FABRIC_OTEL_INSECURE":                       "false",
+		"FABRIC_OTEL_CA_FILE":                        "/etc/ssl/certs/custom-root.pem",
+		"FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE":      "256",
+		"FABRIC_TELEMETRY_CLOUD_BATCH_TIMEOUT":       "10s",
+		"FABRIC_TELEMETRY_CLOUD_PROVIDER":            "gcp",
+		"FABRIC_TELEMETRY_HUB_ENABLED":               "true",
+		"FABRIC_TELEMETRY_HUB_REPORT_INTERVAL":       "60s",
+		"FABRIC_TELEMETRY_LOCAL_ENABLED":             "true",
+		"FABRIC_TELEMETRY_DEBUG":                     "true",
+		"FABRIC_TELEMETRY_LOCAL_FILE":                "/var/log/telemetry.jsonl",
+		"FABRIC_TELEMETRY_LOCAL_CONSOLE":             "true",
+		"FABRIC_TELEMETRY_FILTER_ENABLED":            "true",
+		"FABRIC_TELEMETRY_FILTER_RESPECT_DEBUG_MODE": "false",
+		"FABRIC_TELEMETRY_FILTER_INCLUDE":            "agent.tool.call,agent.turn",
+		"FABRIC_TELEMETRY_FILTER_EXCLUDE":            "agent.user.prompt",
+		"FABRIC_TELEMETRY_REDACT":                    "prompt,user.email",
+		"FABRIC_TELEMETRY_HASH":                      "session_id",
 	}
 
 	// Check headers JSON separately since map ordering is non-deterministic
-	headersJSON := env["SCION_OTEL_HEADERS"]
+	headersJSON := env["FABRIC_OTEL_HEADERS"]
 	if headersJSON == "" {
-		t.Error("SCION_OTEL_HEADERS not set")
+		t.Error("FABRIC_OTEL_HEADERS not set")
 	} else {
 		var headers map[string]string
 		if err := json.Unmarshal([]byte(headersJSON), &headers); err != nil {
-			t.Errorf("SCION_OTEL_HEADERS is not valid JSON: %v", err)
+			t.Errorf("FABRIC_OTEL_HEADERS is not valid JSON: %v", err)
 		} else if headers["X-Key"] != "val" {
-			t.Errorf("SCION_OTEL_HEADERS[X-Key] = %q, want %q", headers["X-Key"], "val")
+			t.Errorf("FABRIC_OTEL_HEADERS[X-Key] = %q, want %q", headers["X-Key"], "val")
 		}
 	}
-	delete(env, "SCION_OTEL_HEADERS")
+	delete(env, "FABRIC_OTEL_HEADERS")
 
 	for k, want := range expected {
 		got, ok := env[k]
@@ -344,8 +344,8 @@ func TestTelemetryConfigToEnv_OnlyNonZero(t *testing.T) {
 	if len(env) != 1 {
 		t.Errorf("expected 1 env var, got %d: %v", len(env), env)
 	}
-	if env["SCION_TELEMETRY_ENABLED"] != "true" {
-		t.Errorf("SCION_TELEMETRY_ENABLED = %q, want %q", env["SCION_TELEMETRY_ENABLED"], "true")
+	if env["FABRIC_TELEMETRY_ENABLED"] != "true" {
+		t.Errorf("FABRIC_TELEMETRY_ENABLED = %q, want %q", env["FABRIC_TELEMETRY_ENABLED"], "true")
 	}
 
 	// Cloud with empty endpoint/protocol should not emit those vars
@@ -371,8 +371,8 @@ func TestTelemetryConfigToEnv_ProviderNotEmittedWhenEmpty(t *testing.T) {
 	}
 
 	env := TelemetryConfigToEnv(cfg)
-	if _, ok := env["SCION_TELEMETRY_CLOUD_PROVIDER"]; ok {
-		t.Error("SCION_TELEMETRY_CLOUD_PROVIDER should not be set when Provider is empty")
+	if _, ok := env["FABRIC_TELEMETRY_CLOUD_PROVIDER"]; ok {
+		t.Error("FABRIC_TELEMETRY_CLOUD_PROVIDER should not be set when Provider is empty")
 	}
 }
 
@@ -388,11 +388,11 @@ func TestTelemetryConfigToEnv_BoolFormat(t *testing.T) {
 	}
 
 	env := TelemetryConfigToEnv(cfg)
-	if env["SCION_TELEMETRY_ENABLED"] != "true" {
-		t.Errorf("true bool should emit %q, got %q", "true", env["SCION_TELEMETRY_ENABLED"])
+	if env["FABRIC_TELEMETRY_ENABLED"] != "true" {
+		t.Errorf("true bool should emit %q, got %q", "true", env["FABRIC_TELEMETRY_ENABLED"])
 	}
-	if env["SCION_TELEMETRY_CLOUD_ENABLED"] != "false" {
-		t.Errorf("false bool should emit %q, got %q", "false", env["SCION_TELEMETRY_CLOUD_ENABLED"])
+	if env["FABRIC_TELEMETRY_CLOUD_ENABLED"] != "false" {
+		t.Errorf("false bool should emit %q, got %q", "false", env["FABRIC_TELEMETRY_CLOUD_ENABLED"])
 	}
 }
 
@@ -410,14 +410,14 @@ func TestTelemetryConfigToEnv_CSVFormat(t *testing.T) {
 	}
 
 	env := TelemetryConfigToEnv(cfg)
-	if env["SCION_TELEMETRY_FILTER_INCLUDE"] != "a,b,c" {
-		t.Errorf("CSV include = %q, want %q", env["SCION_TELEMETRY_FILTER_INCLUDE"], "a,b,c")
+	if env["FABRIC_TELEMETRY_FILTER_INCLUDE"] != "a,b,c" {
+		t.Errorf("CSV include = %q, want %q", env["FABRIC_TELEMETRY_FILTER_INCLUDE"], "a,b,c")
 	}
-	if env["SCION_TELEMETRY_REDACT"] != "x" {
-		t.Errorf("CSV redact = %q, want %q", env["SCION_TELEMETRY_REDACT"], "x")
+	if env["FABRIC_TELEMETRY_REDACT"] != "x" {
+		t.Errorf("CSV redact = %q, want %q", env["FABRIC_TELEMETRY_REDACT"], "x")
 	}
-	if env["SCION_TELEMETRY_HASH"] != "y,z" {
-		t.Errorf("CSV hash = %q, want %q", env["SCION_TELEMETRY_HASH"], "y,z")
+	if env["FABRIC_TELEMETRY_HASH"] != "y,z" {
+		t.Errorf("CSV hash = %q, want %q", env["FABRIC_TELEMETRY_HASH"], "y,z")
 	}
 }
 
@@ -432,9 +432,9 @@ func TestTelemetryConfigToEnv_HeadersJSON(t *testing.T) {
 	}
 
 	env := TelemetryConfigToEnv(cfg)
-	raw := env["SCION_OTEL_HEADERS"]
+	raw := env["FABRIC_OTEL_HEADERS"]
 	if raw == "" {
-		t.Fatal("SCION_OTEL_HEADERS not set")
+		t.Fatal("FABRIC_OTEL_HEADERS not set")
 	}
 
 	var parsed map[string]string

@@ -28,17 +28,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	scionrt "github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/templatecache"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	fabricrt "github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/templatecache"
 )
 
 // matchesAgent checks whether an agent matches the given id and optional projectID.
@@ -221,14 +221,14 @@ func (s *Server) listAgents(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	filter := map[string]string{
-		"scion.agent": "true",
+		"fabric.agent": "true",
 	}
 
 	// Add optional filters — support both projectId and legacy groveId.
 	if projectID := query.Get("projectId"); projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	} else if projectID := query.Get("groveId"); projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	}
 	if status := query.Get("status"); status != "" {
 		filter["status"] = status
@@ -641,7 +641,7 @@ func (s *Server) createAgent(w http.ResponseWriter, r *http.Request) {
 	// If WorkspaceStoragePath is set, download workspace from GCS (non-git bootstrap)
 	if req.WorkspaceStoragePath != "" {
 		// For hub-managed projects (ProjectSlug set), use the conventional path
-		// ~/.scion.groves/<slug>/ instead of the worktree-based path.
+		// ~/.fabric.groves/<slug>/ instead of the worktree-based path.
 		var workspaceDir string
 		if req.ProjectSlug != "" {
 			globalDir, err := config.GetGlobalDir()
@@ -1058,7 +1058,7 @@ func (s *Server) getAgent(w http.ResponseWriter, r *http.Request, id, projectID 
 	// Resolve the correct manager (checks auxiliary runtimes if needed)
 	mgr := s.resolveManagerForAgent(ctx, id, projectID)
 
-	agents, err := mgr.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := mgr.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err != nil {
 		RuntimeError(w, "Failed to list agents: "+err.Error())
 		return
@@ -1087,7 +1087,7 @@ func (s *Server) deleteAgent(w http.ResponseWriter, r *http.Request, id, project
 
 	// Get the agent's project path and project ID before stopping (needed for file deletion and logging)
 	var projectPath, agentProjectID string
-	agents, err := mgr.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := mgr.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err == nil {
 		for _, a := range agents {
 			if matchesAgent(a, id, projectID) {
@@ -1103,9 +1103,9 @@ func (s *Server) deleteAgent(w http.ResponseWriter, r *http.Request, id, project
 
 	// If no project path was found (container missing or no annotation), check
 	// hub-managed project directories for the agent's files. Without this,
-	// agents in hub-managed projects (~/.scion.projects/<slug>/) are silently
+	// agents in hub-managed projects (~/.fabric.projects/<slug>/) are silently
 	// skipped during file cleanup because the default filesystem scan only
-	// checks the CWD-resolved project dir and global ~/.scion.
+	// checks the CWD-resolved project dir and global ~/.fabric.
 	if projectPath == "" && deleteFiles {
 		if resolved := findAgentInHubManagedProjects(id); resolved != "" {
 			projectPath = resolved
@@ -1202,7 +1202,7 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 		HarnessConfig   string               `json:"harnessConfig"`
 		ResolvedEnv     map[string]string    `json:"resolvedEnv"`
 		ResolvedSecrets []api.ResolvedSecret `json:"resolvedSecrets,omitempty"`
-		InlineConfig    *api.ScionConfig     `json:"inlineConfig,omitempty"`
+		InlineConfig    *api.FabricConfig     `json:"inlineConfig,omitempty"`
 		SharedDirs      []api.SharedDir      `json:"sharedDirs,omitempty"`
 		// SharedWorkspace must be re-sent on every start: hub-project agents
 		// share a single git checkout instead of being given a worktree, and
@@ -1243,7 +1243,7 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 	// explicit token rather than relying on the resolvedEnv-kept fallback. The
 	// precedence in buildStartContext step 3 keeps this token regardless, but
 	// setting it here makes the start path behave like create.
-	startContextAgentToken := startReq.ResolvedEnv["SCION_AUTH_TOKEN"]
+	startContextAgentToken := startReq.ResolvedEnv["FABRIC_AUTH_TOKEN"]
 
 	sc, err := s.buildStartContext(ctx, startContextInputs{
 		Name:            id,
@@ -1265,7 +1265,7 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 
 	// If project path wasn't in the request, fall back to looking up from an existing container
 	if startReq.ProjectPath == "" && startReq.ProjectSlug == "" && opts.ProjectPath == "" {
-		agents, err := s.manager.List(ctx, map[string]string{"scion.agent": "true"})
+		agents, err := s.manager.List(ctx, map[string]string{"fabric.agent": "true"})
 		if err != nil {
 			RuntimeError(w, "Failed to list agents: "+err.Error())
 			return
@@ -1280,7 +1280,7 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 		}
 	}
 
-	// Apply updated InlineConfig to scion-agent.json before starting.
+	// Apply updated InlineConfig to fabric-agent.json before starting.
 	if startReq.InlineConfig != nil && opts.ProjectPath != "" {
 		s.applyInlineConfigUpdate(id, opts.ProjectPath, startReq.InlineConfig, startReq.SharedWorkspace)
 	}
@@ -1330,35 +1330,35 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 }
 
 // applyInlineConfigUpdate merges the updated InlineConfig into the agent's
-// scion-agent.json. This ensures config changes made via the Hub (e.g. limits
+// fabric-agent.json. This ensures config changes made via the Hub (e.g. limits
 // set in the web configure form) are applied before the agent starts.
 //
 // sharedWorkspace branches the path: shared-workspace agents store
-// scion-agent.json externally (~/.scion.project-configs/<slug>__<uuid>/.scion/
+// fabric-agent.json externally (~/.fabric.project-configs/<slug>__<uuid>/.fabric/
 // agents/<name>/) so siblings cannot read it via /workspace.
-func (s *Server) applyInlineConfigUpdate(agentName, projectPath string, inlineConfig *api.ScionConfig, sharedWorkspace bool) {
+func (s *Server) applyInlineConfigUpdate(agentName, projectPath string, inlineConfig *api.FabricConfig, sharedWorkspace bool) {
 	projectDir, err := config.GetResolvedProjectDir(projectPath)
 	if err != nil {
 		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to resolve project dir", "agent", agentName, "error", err)
 		return
 	}
 	agentDir := config.GetAgentDir(projectDir, agentName, sharedWorkspace)
-	cfgPath := filepath.Join(agentDir, "scion-agent.json")
+	cfgPath := filepath.Join(agentDir, "fabric-agent.json")
 
 	// Load existing config
 	data, err := os.ReadFile(cfgPath)
 	if err != nil {
-		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to read scion-agent.json", "agent", agentName, "path", cfgPath, "error", err)
+		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to read fabric-agent.json", "agent", agentName, "path", cfgPath, "error", err)
 		return
 	}
-	var existing api.ScionConfig
+	var existing api.FabricConfig
 	if err := json.Unmarshal(data, &existing); err != nil {
-		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to parse scion-agent.json", "agent", agentName, "error", err)
+		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to parse fabric-agent.json", "agent", agentName, "error", err)
 		return
 	}
 
 	// Merge inline config over existing
-	merged := config.MergeScionConfig(&existing, inlineConfig)
+	merged := config.MergeFabricConfig(&existing, inlineConfig)
 
 	// Write back
 	updated, err := json.MarshalIndent(merged, "", "  ")
@@ -1367,7 +1367,7 @@ func (s *Server) applyInlineConfigUpdate(agentName, projectPath string, inlineCo
 		return
 	}
 	if err := os.WriteFile(cfgPath, updated, 0644); err != nil {
-		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to write scion-agent.json", "agent", agentName, "error", err)
+		s.agentLifecycleLog.Warn("applyInlineConfigUpdate: failed to write fabric-agent.json", "agent", agentName, "error", err)
 		return
 	}
 	if s.config.Debug {
@@ -1401,7 +1401,7 @@ func isContainerStopTolerable(err error) bool {
 // different project. Only when no projectID is supplied does it degrade to the
 // original id for backward compatibility (solo/CLI mode, unlabeled containers).
 // agentsWithoutProjectLabel returns the subset of agents that carry no project
-// label (neither scion.grove_id nor scion.project_id). The project-scoped
+// label (neither fabric.grove_id nor fabric.project_id). The project-scoped
 // lookups fall back to a slug-only search for backward compatibility with
 // pre-existing / solo-mode containers that predate project labels; that
 // fallback must only match such genuinely unlabeled containers. A container
@@ -1410,7 +1410,7 @@ func isContainerStopTolerable(err error) bool {
 func agentsWithoutProjectLabel(agents []api.AgentInfo) []api.AgentInfo {
 	filtered := make([]api.AgentInfo, 0, len(agents))
 	for _, a := range agents {
-		if a.Labels["scion.grove_id"] == "" && a.Labels["scion.project_id"] == "" {
+		if a.Labels["fabric.grove_id"] == "" && a.Labels["fabric.project_id"] == "" {
 			filtered = append(filtered, a)
 		}
 	}
@@ -1489,7 +1489,7 @@ func (s *Server) restartAgent(w http.ResponseWriter, r *http.Request, id, projec
 	// Look up agent to get its name and project path
 	agentName := id
 	var projectPath string
-	agents, err := s.manager.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := s.manager.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err == nil {
 		for i := range agents {
 			if matchesAgent(agents[i], id, projectID) {
@@ -1664,7 +1664,7 @@ func (s *Server) execCommand(w http.ResponseWriter, r *http.Request, id, project
 	// Resolve the project-scoped container identifier (container ID for
 	// docker/podman, pod name for k8s) and exec against that rather than the
 	// bare slug. Without this, rt.Exec resolves the slug to a container across
-	// all projects and can target the wrong agent — e.g. "scion look
+	// all projects and can target the wrong agent — e.g. "fabric look
 	// coordinator" in project A showing project B's terminal. Mirrors the
 	// project-scoped lookup used by the PTY attach handler.
 	// LookupContainerID can return an empty identifier without an error (e.g.
@@ -1702,7 +1702,7 @@ func (s *Server) execCommand(w http.ResponseWriter, r *http.Request, id, project
 }
 
 // resetAuth writes a fresh token into a running agent's container and signals
-// sciontool init (PID 1) to restart its token refresh loop via SIGUSR2.
+// fabrictool init (PID 1) to restart its token refresh loop via SIGUSR2.
 func (s *Server) resetAuth(w http.ResponseWriter, r *http.Request, id, projectID string) {
 	ctx := r.Context()
 
@@ -1729,10 +1729,10 @@ func (s *Server) resetAuth(w http.ResponseWriter, r *http.Request, id, projectID
 	// Pass the token as part of the script using a heredoc pattern to avoid
 	// exposing it in argv (visible in /proc).
 	writeCmd := []string{"sh", "-c",
-		"TOKEN_DIR=\"$(getent passwd scion 2>/dev/null | cut -d: -f6 || echo /home/scion)/.scion\" && " +
+		"TOKEN_DIR=\"$(getent passwd fabric 2>/dev/null | cut -d: -f6 || echo /home/fabric)/.fabric\" && " +
 			"mkdir -p \"$TOKEN_DIR\" && " +
-			"cat <<'SCION_TOKEN_EOF' > \"$TOKEN_DIR/scion-token.tmp\"\n" + req.Token + "\nSCION_TOKEN_EOF\n" +
-			"mv \"$TOKEN_DIR/scion-token.tmp\" \"$TOKEN_DIR/scion-token\"",
+			"cat <<'FABRIC_TOKEN_EOF' > \"$TOKEN_DIR/fabric-token.tmp\"\n" + req.Token + "\nFABRIC_TOKEN_EOF\n" +
+			"mv \"$TOKEN_DIR/fabric-token.tmp\" \"$TOKEN_DIR/fabric-token\"",
 	}
 
 	if _, err := rt.Exec(ctx, target, writeCmd); err != nil {
@@ -1741,11 +1741,11 @@ func (s *Server) resetAuth(w http.ResponseWriter, r *http.Request, id, projectID
 		return
 	}
 
-	// Signal sciontool init (PID 1) to re-read the token and restart its refresh
+	// Signal fabrictool init (PID 1) to re-read the token and restart its refresh
 	// loop immediately. The token was already written above, and the agent also
 	// polls the token file as a UID-safe fallback, so it recovers within a few
 	// seconds even if this signal fails. In rootless containers the broker execs
-	// as the scion user and `kill -USR2 1` against the root-owned PID 1 fails
+	// as the fabric user and `kill -USR2 1` against the root-owned PID 1 fails
 	// with EPERM — this is expected and not an error since the token is on disk.
 	signalCmd := []string{"kill", "-USR2", "1"}
 	signaled := true
@@ -1774,7 +1774,7 @@ func (s *Server) getLogs(w http.ResponseWriter, r *http.Request, id, projectID s
 	mgr := s.resolveManagerForAgent(ctx, id, projectID)
 
 	// Try to read agent.log from the filesystem first (preferred source).
-	agents, err := mgr.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := mgr.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err != nil {
 		RuntimeError(w, "Failed to list agents: "+err.Error())
 		return
@@ -1845,7 +1845,7 @@ func (s *Server) checkAgentPrompt(w http.ResponseWriter, r *http.Request, id, pr
 	ctx := r.Context()
 
 	// Find the agent to get its project path
-	agents, err := s.manager.List(ctx, map[string]string{"scion.agent": "true"})
+	agents, err := s.manager.List(ctx, map[string]string{"fabric.agent": "true"})
 	if err != nil {
 		RuntimeError(w, "Failed to list agents: "+err.Error())
 		return
@@ -1917,7 +1917,7 @@ func (s *Server) extractRequiredEnvKeys(req CreateAgentRequest, hydratedHarnessC
 	var settings *config.VersionedSettings
 	settingsPath := req.ProjectPath
 	if settingsPath == "" {
-		// Fall back to the broker's global .scion directory for settings
+		// Fall back to the broker's global .fabric directory for settings
 		// resolution. This matches what agent.Start → GetResolvedProjectDir("")
 		// does when projectPath is empty (e.g., hub-only git projects without a
 		// linked local path on the broker).
@@ -2471,9 +2471,9 @@ func (s *Server) finalizeEnv(w http.ResponseWriter, r *http.Request, id string) 
 // projectID scopes the lookup to a specific project to prevent cross-project collision.
 func (s *Server) resolveManagerForAgent(ctx context.Context, id, projectID string) agent.Manager {
 	slug := strings.ToLower(id)
-	filter := map[string]string{"scion.name": slug}
+	filter := map[string]string{"fabric.name": slug}
 	if projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	}
 
 	// Try the default manager first
@@ -2499,9 +2499,9 @@ func (s *Server) resolveManagerForAgent(ctx context.Context, id, projectID strin
 
 	// If project-scoped lookup found nothing, retry without project filter.
 	// This handles backward compatibility with containers that lack the
-	// scion.grove_id label (pre-existing agents or solo/CLI mode).
+	// fabric.grove_id label (pre-existing agents or solo/CLI mode).
 	if projectID != "" {
-		fallbackFilter := map[string]string{"scion.name": slug}
+		fallbackFilter := map[string]string{"fabric.name": slug}
 		agents, err = s.manager.List(ctx, fallbackFilter)
 		if err == nil && len(agents) > 0 {
 			return s.manager
@@ -2524,11 +2524,11 @@ func (s *Server) resolveManagerForAgent(ctx context.Context, id, projectID strin
 // to auxiliary runtimes. This is needed for operations that call runtime
 // methods directly (e.g. Exec, GetLogs) rather than going through the manager.
 // projectID scopes the lookup to a specific project to prevent cross-project collision.
-func (s *Server) resolveRuntimeForAgent(ctx context.Context, id, projectID string) scionrt.Runtime {
+func (s *Server) resolveRuntimeForAgent(ctx context.Context, id, projectID string) fabricrt.Runtime {
 	slug := strings.ToLower(id)
-	filter := map[string]string{"scion.name": slug}
+	filter := map[string]string{"fabric.name": slug}
 	if projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	}
 
 	// Try the default manager first
@@ -2554,7 +2554,7 @@ func (s *Server) resolveRuntimeForAgent(ctx context.Context, id, projectID strin
 
 	// Backward compatibility: retry without project filter for pre-existing containers
 	if projectID != "" {
-		fallbackFilter := map[string]string{"scion.name": slug}
+		fallbackFilter := map[string]string{"fabric.name": slug}
 		agents, err = s.manager.List(ctx, fallbackFilter)
 		if err == nil && len(agents) > 0 {
 			return s.runtime
@@ -2644,14 +2644,14 @@ func (s *Server) resolveManagerForOpts(opts api.StartOptions) agent.Manager {
 // Helper functions
 
 // resolveProjectSettingsDir returns the directory containing settings.yaml for a project.
-// For linked projects, projectPath already points to the .scion directory.
+// For linked projects, projectPath already points to the .fabric directory.
 // For hub-managed projects, projectPath is the workspace parent, so settings
-// live in the .scion subdirectory.
+// live in the .fabric subdirectory.
 func resolveProjectSettingsDir(projectPath string) string {
 	if config.GetSettingsPath(projectPath) != "" {
 		return projectPath
 	}
-	candidate := filepath.Join(projectPath, ".scion")
+	candidate := filepath.Join(projectPath, ".fabric")
 	if config.GetSettingsPath(candidate) != "" {
 		return candidate
 	}
@@ -2764,13 +2764,13 @@ func (s *Server) deleteProject(w http.ResponseWriter, r *http.Request, slug stri
 }
 
 // findAgentInHubManagedProjects scans hub-managed project directories
-// (~/.scion.projects/<slug>/.scion/) for an agent directory matching the given
-// name. Returns the .scion dir path if found, or empty string.
+// (~/.fabric.projects/<slug>/.fabric/) for an agent directory matching the given
+// name. Returns the .fabric dir path if found, or empty string.
 // This is used as a fallback when the container is missing and the agent's
 // project path can't be determined from container labels.
 //
 // Probes both the in-project location (worktree-mode agents) and the external
-// per-agent state dir under ~/.scion.project-configs/ (shared-workspace agents,
+// per-agent state dir under ~/.fabric.project-configs/ (shared-workspace agents,
 // whose state lives external to the shared checkout).
 func findAgentInHubManagedProjects(agentName string) string {
 	globalDir, err := config.GetGlobalDir()
@@ -2787,16 +2787,16 @@ func findAgentInHubManagedProjects(agentName string) string {
 			if !entry.IsDir() {
 				continue
 			}
-			scionDir := filepath.Join(baseDir, entry.Name(), ".scion")
-			agentDir := filepath.Join(scionDir, "agents", agentName)
+			fabricDir := filepath.Join(baseDir, entry.Name(), ".fabric")
+			agentDir := filepath.Join(fabricDir, "agents", agentName)
 			if _, err := os.Stat(agentDir); err == nil {
-				return scionDir
+				return fabricDir
 			}
 			// Shared-workspace agents have no in-project agentDir — probe the
 			// external split-storage path.
-			if extDir, err := config.GetGitProjectExternalAgentsDir(scionDir); err == nil && extDir != "" {
+			if extDir, err := config.GetGitProjectExternalAgentsDir(fabricDir); err == nil && extDir != "" {
 				if _, err := os.Stat(filepath.Join(extDir, agentName)); err == nil {
-					return scionDir
+					return fabricDir
 				}
 			}
 		}

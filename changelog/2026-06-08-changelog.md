@@ -9,11 +9,11 @@ A major day for infrastructure and reliability: Kubernetes worktree-per-agent su
 * **[Docs]:** Comprehensive agent lifecycle documentation covering suspend/resume, crash recovery, error phase semantics, and auto-suspend behavior (#358).
 
 ## 🐛 Fixes
-* **[Auth]:** Restored GCP auth on agent resume by always starting the token refresh loop even when the persisted token has expired, and enhanced `sciontool doctor` to verify end-to-end GCP token acquisition (#360).
+* **[Auth]:** Restored GCP auth on agent resume by always starting the token refresh loop even when the persisted token has expired, and enhanced `fabrictool doctor` to verify end-to-end GCP token acquisition (#360).
 * **[Auth]:** Routed metadata server GCP token requests through the hub client instead of direct HTTP, fixing OIDC transport auth conflicts on Cloud Run/IAP deployments (#364).
 * **[Auth]:** Fixed hub client initialization race — `hubClient` is now created before the metadata server starts, eliminating a data race on concurrent HTTP handler goroutines (#366).
-* **[Auth]:** Skip OIDC metadata mode when the scion metadata server is active, preventing timeout loops caused by the iptables redirect making the real GCE metadata endpoint unreachable (#367).
-* **[Runtime]:** Metadata server port reclamation on resume — added `/_scion/shutdown` endpoint and retry-with-backoff logic so a fresh init cycle can reclaim port 18380 from a stale instance (#368).
+* **[Auth]:** Skip OIDC metadata mode when the fabric metadata server is active, preventing timeout loops caused by the iptables redirect making the real GCE metadata endpoint unreachable (#367).
+* **[Runtime]:** Metadata server port reclamation on resume — added `/_fabric/shutdown` endpoint and retry-with-backoff logic so a fresh init cycle can reclaim port 18380 from a stale instance (#368).
 * **[Runtime]:** Made metadata server `Stop()` synchronous and added same-process reclaim via Go reference, fixing cases where the HTTP shutdown endpoint returns 404 on older binaries (#369).
 * **[Runtime]:** Treat signal-killed child process as clean exit during intentional shutdown, preventing agents from cycling through PhaseError before reaching their intended stopped/suspended state (#370).
 * **[Runtime]:** Removed unconditional auto-suspend handler that bypassed the admin toggle, consolidating auto-suspend into the single toggle-gated path (#365).

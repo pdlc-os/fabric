@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -54,7 +54,7 @@ func TestVersionedSettings_YAMLRoundTrip(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 				Model:   "gemini-2.5-pro",
 				Args:    []string{"--sandbox=strict"},
 			},
@@ -101,7 +101,7 @@ func TestLoadVersionedSettings_DefaultsOnly(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	vs, err := LoadVersionedSettings(projectDir)
@@ -123,18 +123,18 @@ func TestLoadVersionedSettings_GlobalOverride(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	globalSettings := `
 schema_version: "1"
 active_profile: prod
 default_template: claude
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
@@ -150,18 +150,18 @@ func TestLoadVersionedSettings_GroveOverride(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	globalSettings := `
 schema_version: "1"
 active_profile: prod
 default_template: claude
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	projectSettings := `
 schema_version: "1"
@@ -184,15 +184,15 @@ func TestLoadVersionedSettings_EnvOverrides(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Set environment variable overrides
-	_ = os.Setenv("SCION_ACTIVE_PROFILE", "remote")
-	defer func() { _ = os.Unsetenv("SCION_ACTIVE_PROFILE") }()
+	_ = os.Setenv("FABRIC_ACTIVE_PROFILE", "remote")
+	defer func() { _ = os.Unsetenv("FABRIC_ACTIVE_PROFILE") }()
 
-	_ = os.Setenv("SCION_DEFAULT_TEMPLATE", "opencode")
-	defer func() { _ = os.Unsetenv("SCION_DEFAULT_TEMPLATE") }()
+	_ = os.Setenv("FABRIC_DEFAULT_TEMPLATE", "opencode")
+	defer func() { _ = os.Unsetenv("FABRIC_DEFAULT_TEMPLATE") }()
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
@@ -208,15 +208,15 @@ func TestLoadVersionedSettings_HubEnvVars(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	// Test SCION_HUB_GROVE_ID maps correctly (regression test)
-	_ = os.Setenv("SCION_HUB_GROVE_ID", "my-grove-id")
-	defer func() { _ = os.Unsetenv("SCION_HUB_GROVE_ID") }()
+	// Test FABRIC_HUB_GROVE_ID maps correctly (regression test)
+	_ = os.Setenv("FABRIC_HUB_GROVE_ID", "my-grove-id")
+	defer func() { _ = os.Unsetenv("FABRIC_HUB_GROVE_ID") }()
 
-	_ = os.Setenv("SCION_HUB_LOCAL_ONLY", "true")
-	defer func() { _ = os.Unsetenv("SCION_HUB_LOCAL_ONLY") }()
+	_ = os.Setenv("FABRIC_HUB_LOCAL_ONLY", "true")
+	defer func() { _ = os.Unsetenv("FABRIC_HUB_LOCAL_ONLY") }()
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
@@ -232,14 +232,14 @@ func TestLoadVersionedSettings_CLIEnvVars(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	_ = os.Setenv("SCION_CLI_AUTOHELP", "false")
-	defer func() { _ = os.Unsetenv("SCION_CLI_AUTOHELP") }()
+	_ = os.Setenv("FABRIC_CLI_AUTOHELP", "false")
+	defer func() { _ = os.Unsetenv("FABRIC_CLI_AUTOHELP") }()
 
-	_ = os.Setenv("SCION_CLI_INTERACTIVE_DISABLED", "true")
-	defer func() { _ = os.Unsetenv("SCION_CLI_INTERACTIVE_DISABLED") }()
+	_ = os.Setenv("FABRIC_CLI_INTERACTIVE_DISABLED", "true")
+	defer func() { _ = os.Unsetenv("FABRIC_CLI_INTERACTIVE_DISABLED") }()
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
@@ -254,11 +254,11 @@ func TestLoadVersionedSettings_JSONFallback(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	// Write JSON settings (should load via JSON fallback)
 	globalJSON := `{
@@ -266,7 +266,7 @@ func TestLoadVersionedSettings_JSONFallback(t *testing.T) {
 		"active_profile": "json-profile",
 		"default_template": "json-template"
 	}`
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.json"), []byte(globalJSON), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.json"), []byte(globalJSON), 0644))
 
 	vs, err := LoadVersionedSettings(projectDir)
 	require.NoError(t, err)
@@ -282,7 +282,7 @@ func TestLoadVersionedSettings_NewFields(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	projectSettings := `
@@ -291,7 +291,7 @@ harness_configs:
   gemini-custom:
     harness: gemini
     image: example.com/gemini:v2
-    user: scion
+    user: fabric
     model: gemini-2.5-pro
     args: ["--sandbox=strict", "--verbose"]
 runtimes:
@@ -351,8 +351,8 @@ func TestAdaptLegacySettings_FullMapping(t *testing.T) {
 			"container": {},
 		},
 		Harnesses: map[string]HarnessConfig{
-			"gemini": {Image: "example.com/gemini:latest", User: "scion"},
-			"claude": {Image: "example.com/claude:latest", User: "scion"},
+			"gemini": {Image: "example.com/gemini:latest", User: "fabric"},
+			"claude": {Image: "example.com/claude:latest", User: "fabric"},
 		},
 		Profiles: map[string]ProfileConfig{
 			"local": {Runtime: "container"},
@@ -513,7 +513,7 @@ func TestConvertVersionedToLegacy(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 				Model:   "gemini-2.5-pro",
 				Args:    []string{"--sandbox"},
 			},
@@ -592,7 +592,7 @@ func TestLoadEffectiveSettings_VersionedFileRouting(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Write versioned project settings
@@ -603,7 +603,7 @@ harness_configs:
   gemini:
     harness: gemini
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 `
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "settings.yaml"), []byte(projectSettings), 0644))
 
@@ -621,7 +621,7 @@ func TestLoadEffectiveSettings_LegacyFileRouting(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Write legacy project settings (has harnesses, no schema_version)
@@ -630,7 +630,7 @@ active_profile: legacy-profile
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 profiles:
   legacy-profile:
     runtime: docker
@@ -652,7 +652,7 @@ func TestLoadEffectiveSettings_NoUserFiles(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// No settings files — should use defaults via legacy path
@@ -737,7 +737,7 @@ func TestAdapterRoundTripConsistency(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Load via legacy path
@@ -782,9 +782,9 @@ func TestResolveEffectiveProjectPath_Global(t *testing.T) {
 }
 
 func TestResolveEffectiveProjectPath_Explicit(t *testing.T) {
-	// A plain .scion path with no grove-id → returned as-is (non-git grove)
-	result := resolveEffectiveProjectPath("/some/path/.scion")
-	assert.Equal(t, "/some/path/.scion", result)
+	// A plain .fabric path with no grove-id → returned as-is (non-git grove)
+	result := resolveEffectiveProjectPath("/some/path/.fabric")
+	assert.Equal(t, "/some/path/.fabric", result)
 }
 
 func TestResolveEffectiveProjectPath_GitProject(t *testing.T) {
@@ -792,13 +792,13 @@ func TestResolveEffectiveProjectPath_GitProject(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	// Simulate a git grove with grove-id → should redirect to external config dir
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
 	result := resolveEffectiveProjectPath(projectDir)
 
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric")
 	assert.Equal(t, want, result)
 }
 
@@ -809,16 +809,16 @@ func TestVersionedEnvKeyMapper(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"SCION_ACTIVE_PROFILE", "active_profile"},
-		{"SCION_DEFAULT_TEMPLATE", "default_template"},
-		{"SCION_HUB_ENDPOINT", "hub.endpoint"},
-		{"SCION_HUB_GROVE_ID", "hub.grove_id"},
-		{"SCION_HUB_LOCAL_ONLY", "hub.local_only"},
-		{"SCION_HUB_ENABLED", "hub.enabled"},
-		{"SCION_CLI_AUTOHELP", "cli.autohelp"},
-		{"SCION_CLI_INTERACTIVE_DISABLED", "cli.interactive_disabled"},
-		{"SCION_SERVER_ENV", "server.env"},
-		{"SCION_SERVER_LOG_LEVEL", "server.log_level"},
+		{"FABRIC_ACTIVE_PROFILE", "active_profile"},
+		{"FABRIC_DEFAULT_TEMPLATE", "default_template"},
+		{"FABRIC_HUB_ENDPOINT", "hub.endpoint"},
+		{"FABRIC_HUB_GROVE_ID", "hub.grove_id"},
+		{"FABRIC_HUB_LOCAL_ONLY", "hub.local_only"},
+		{"FABRIC_HUB_ENABLED", "hub.enabled"},
+		{"FABRIC_CLI_AUTOHELP", "cli.autohelp"},
+		{"FABRIC_CLI_INTERACTIVE_DISABLED", "cli.interactive_disabled"},
+		{"FABRIC_SERVER_ENV", "server.env"},
+		{"FABRIC_SERVER_LOG_LEVEL", "server.log_level"},
 	}
 
 	for _, tt := range tests {
@@ -842,13 +842,13 @@ func TestDetectHierarchyFormat_Versioned(t *testing.T) {
 	defer func() { _ = os.Chdir(originalWd) }()
 	_ = os.Chdir(tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	versionedSettings := `schema_version: "1"
 active_profile: local
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(versionedSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(versionedSettings), 0644))
 
 	assert.True(t, detectHierarchyFormat(""))
 }
@@ -864,15 +864,15 @@ func TestDetectHierarchyFormat_Legacy(t *testing.T) {
 	defer func() { _ = os.Chdir(originalWd) }()
 	_ = os.Chdir(tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	legacySettings := `active_profile: local
 harnesses:
   gemini:
     image: test
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(legacySettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(legacySettings), 0644))
 
 	assert.False(t, detectHierarchyFormat(""))
 }
@@ -902,19 +902,19 @@ func TestDetectHierarchyFormat_GroveVersioned(t *testing.T) {
 	defer func() { _ = os.Chdir(originalWd) }()
 	_ = os.Chdir(tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Global is legacy, project is versioned
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	legacySettings := `active_profile: local
 harnesses:
   gemini:
     image: test
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(legacySettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(legacySettings), 0644))
 
 	versionedSettings := `schema_version: "1"
 active_profile: custom
@@ -933,7 +933,7 @@ func TestResolveHarnessConfig_Default(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 			},
 		},
 		Profiles: map[string]V1ProfileConfig{
@@ -944,7 +944,7 @@ func TestResolveHarnessConfig_Default(t *testing.T) {
 	hc, err := vs.ResolveHarnessConfig("", "gemini")
 	require.NoError(t, err)
 	assert.Equal(t, "example.com/gemini:latest", hc.Image)
-	assert.Equal(t, "scion", hc.User)
+	assert.Equal(t, "fabric", hc.User)
 	assert.Equal(t, "gemini", hc.Harness)
 }
 
@@ -955,7 +955,7 @@ func TestResolveHarnessConfig_Named(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 			},
 			"gemini-high-security": {
 				Harness: "gemini",
@@ -984,7 +984,7 @@ func TestResolveHarnessConfig_WithProfileOverrides(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 				Env:     map[string]string{"BASE_KEY": "base_value"},
 			},
 		},
@@ -1006,7 +1006,7 @@ func TestResolveHarnessConfig_WithProfileOverrides(t *testing.T) {
 	hc, err := vs.ResolveHarnessConfig("", "gemini")
 	require.NoError(t, err)
 	assert.Equal(t, "example.com/gemini:staging", hc.Image, "image should be overridden by profile")
-	assert.Equal(t, "scion", hc.User, "user should remain from base config")
+	assert.Equal(t, "fabric", hc.User, "user should remain from base config")
 	assert.Equal(t, "base_value", hc.Env["BASE_KEY"], "base env should be preserved")
 	assert.Equal(t, "profile_value", hc.Env["PROFILE_KEY"], "profile env should be merged")
 	assert.Equal(t, "override_value", hc.Env["OVERRIDE_KEY"], "override env should be merged")
@@ -1060,7 +1060,7 @@ func TestResolveHarnessConfig_ProfileNotFound(t *testing.T) {
 	vs := &VersionedSettings{
 		ActiveProfile: "missing-profile",
 		HarnessConfigs: map[string]HarnessConfigEntry{
-			"gemini": {Harness: "gemini", Image: "test", User: "scion"},
+			"gemini": {Harness: "gemini", Image: "test", User: "fabric"},
 		},
 		Profiles: map[string]V1ProfileConfig{},
 	}
@@ -1068,7 +1068,7 @@ func TestResolveHarnessConfig_ProfileNotFound(t *testing.T) {
 	hc, err := vs.ResolveHarnessConfig("", "gemini")
 	require.NoError(t, err)
 	assert.Equal(t, "test", hc.Image)
-	assert.Equal(t, "scion", hc.User)
+	assert.Equal(t, "fabric", hc.User)
 }
 
 // --- ResolveRuntime tests ---
@@ -1097,7 +1097,7 @@ func TestResolveRuntime_WithType(t *testing.T) {
 		Runtimes: map[string]V1RuntimeConfig{
 			"my-remote-cluster": {
 				Type:      "kubernetes",
-				Namespace: "scion",
+				Namespace: "fabric",
 				Context:   "prod-cluster",
 			},
 		},
@@ -1109,7 +1109,7 @@ func TestResolveRuntime_WithType(t *testing.T) {
 	rtConfig, runtimeType, err := vs.ResolveRuntime("")
 	require.NoError(t, err)
 	assert.Equal(t, "kubernetes", runtimeType, "should use explicit Type field")
-	assert.Equal(t, "scion", rtConfig.Namespace)
+	assert.Equal(t, "fabric", rtConfig.Namespace)
 	assert.Equal(t, "prod-cluster", rtConfig.Context)
 }
 
@@ -1264,7 +1264,7 @@ func TestLegacyAndVersionedResolution_SameResult(t *testing.T) {
 		Harnesses: map[string]HarnessConfig{
 			"gemini": {
 				Image: "example.com/gemini:latest",
-				User:  "scion",
+				User:  "fabric",
 				Env:   map[string]string{"KEY1": "val1"},
 				Volumes: []api.VolumeMount{
 					{Source: "/host/path", Target: "/container/path"},
@@ -1569,7 +1569,7 @@ func TestLoadGlobalConfig_FromSettingsYAML(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	// Write settings.yaml with server key
@@ -1617,7 +1617,7 @@ func TestLoadGlobalConfig_TelemetryEnabledFromSettingsYAML(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	// Write settings.yaml with top-level telemetry section (separate from server)
@@ -1649,7 +1649,7 @@ func TestLoadGlobalConfig_TelemetryDisabledFromSettingsYAML(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	settingsContent := `
@@ -1675,7 +1675,7 @@ func TestLoadGlobalConfig_NoTelemetrySectionLeavesNil(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	settingsContent := `
@@ -1698,7 +1698,7 @@ func TestLoadGlobalConfig_SettingsYAMLPreferredOverServerYAML(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	// Write settings.yaml with server key
@@ -1734,7 +1734,7 @@ func TestLoadGlobalConfig_FallsBackToServerYAML(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	// Write settings.yaml WITHOUT server key
@@ -1803,47 +1803,47 @@ func TestVersionedEnvKeyMapper_DeepServerNesting(t *testing.T) {
 		expected string
 	}{
 		// Basic server keys
-		{"SCION_SERVER_ENV", "server.env"},
-		{"SCION_SERVER_LOG_LEVEL", "server.log_level"},
-		{"SCION_SERVER_LOG_FORMAT", "server.log_format"},
+		{"FABRIC_SERVER_ENV", "server.env"},
+		{"FABRIC_SERVER_LOG_LEVEL", "server.log_level"},
+		{"FABRIC_SERVER_LOG_FORMAT", "server.log_format"},
 		// Hub server keys
-		{"SCION_SERVER_HUB_PORT", "server.hub.port"},
-		{"SCION_SERVER_HUB_HOST", "server.hub.host"},
-		{"SCION_SERVER_HUB_PUBLIC_URL", "server.hub.public_url"},
-		{"SCION_SERVER_HUB_READ_TIMEOUT", "server.hub.read_timeout"},
-		{"SCION_SERVER_HUB_WRITE_TIMEOUT", "server.hub.write_timeout"},
+		{"FABRIC_SERVER_HUB_PORT", "server.hub.port"},
+		{"FABRIC_SERVER_HUB_HOST", "server.hub.host"},
+		{"FABRIC_SERVER_HUB_PUBLIC_URL", "server.hub.public_url"},
+		{"FABRIC_SERVER_HUB_READ_TIMEOUT", "server.hub.read_timeout"},
+		{"FABRIC_SERVER_HUB_WRITE_TIMEOUT", "server.hub.write_timeout"},
 		// Broker keys
-		{"SCION_SERVER_BROKER_PORT", "server.broker.port"},
-		{"SCION_SERVER_BROKER_HOST", "server.broker.host"},
-		{"SCION_SERVER_BROKER_BROKER_ID", "server.broker.broker_id"},
-		{"SCION_SERVER_BROKER_BROKER_NAME", "server.broker.broker_name"},
-		{"SCION_SERVER_BROKER_BROKER_NICKNAME", "server.broker.broker_nickname"},
-		{"SCION_SERVER_BROKER_BROKER_TOKEN", "server.broker.broker_token"},
-		{"SCION_SERVER_BROKER_HUB_ENDPOINT", "server.broker.hub_endpoint"},
+		{"FABRIC_SERVER_BROKER_PORT", "server.broker.port"},
+		{"FABRIC_SERVER_BROKER_HOST", "server.broker.host"},
+		{"FABRIC_SERVER_BROKER_BROKER_ID", "server.broker.broker_id"},
+		{"FABRIC_SERVER_BROKER_BROKER_NAME", "server.broker.broker_name"},
+		{"FABRIC_SERVER_BROKER_BROKER_NICKNAME", "server.broker.broker_nickname"},
+		{"FABRIC_SERVER_BROKER_BROKER_TOKEN", "server.broker.broker_token"},
+		{"FABRIC_SERVER_BROKER_HUB_ENDPOINT", "server.broker.hub_endpoint"},
 		// Database keys
-		{"SCION_SERVER_DATABASE_DRIVER", "server.database.driver"},
-		{"SCION_SERVER_DATABASE_URL", "server.database.url"},
+		{"FABRIC_SERVER_DATABASE_DRIVER", "server.database.driver"},
+		{"FABRIC_SERVER_DATABASE_URL", "server.database.url"},
 		// Auth keys
-		{"SCION_SERVER_AUTH_DEV_MODE", "server.auth.dev_mode"},
-		{"SCION_SERVER_AUTH_DEV_TOKEN", "server.auth.dev_token"},
-		{"SCION_SERVER_AUTH_DEV_TOKEN_FILE", "server.auth.dev_token_file"},
-		{"SCION_SERVER_AUTH_AUTHORIZED_DOMAINS", "server.auth.authorized_domains"},
+		{"FABRIC_SERVER_AUTH_DEV_MODE", "server.auth.dev_mode"},
+		{"FABRIC_SERVER_AUTH_DEV_TOKEN", "server.auth.dev_token"},
+		{"FABRIC_SERVER_AUTH_DEV_TOKEN_FILE", "server.auth.dev_token_file"},
+		{"FABRIC_SERVER_AUTH_AUTHORIZED_DOMAINS", "server.auth.authorized_domains"},
 		// OAuth keys
-		{"SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENT_ID", "server.oauth.web.google.client_id"},
-		{"SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENT_SECRET", "server.oauth.web.google.client_secret"},
-		{"SCION_SERVER_OAUTH_CLI_GITHUB_CLIENT_ID", "server.oauth.cli.github.client_id"},
+		{"FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENT_ID", "server.oauth.web.google.client_id"},
+		{"FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENT_SECRET", "server.oauth.web.google.client_secret"},
+		{"FABRIC_SERVER_OAUTH_CLI_GITHUB_CLIENT_ID", "server.oauth.cli.github.client_id"},
 		// Storage keys
-		{"SCION_SERVER_STORAGE_PROVIDER", "server.storage.provider"},
-		{"SCION_SERVER_STORAGE_LOCAL_PATH", "server.storage.local_path"},
+		{"FABRIC_SERVER_STORAGE_PROVIDER", "server.storage.provider"},
+		{"FABRIC_SERVER_STORAGE_LOCAL_PATH", "server.storage.local_path"},
 		// Secrets keys
-		{"SCION_SERVER_SECRETS_BACKEND", "server.secrets.backend"},
-		{"SCION_SERVER_SECRETS_GCP_PROJECT_ID", "server.secrets.gcp_project_id"},
-		{"SCION_SERVER_SECRETS_GCP_CREDENTIALS", "server.secrets.gcp_credentials"},
+		{"FABRIC_SERVER_SECRETS_BACKEND", "server.secrets.backend"},
+		{"FABRIC_SERVER_SECRETS_GCP_PROJECT_ID", "server.secrets.gcp_project_id"},
+		{"FABRIC_SERVER_SECRETS_GCP_CREDENTIALS", "server.secrets.gcp_credentials"},
 		// CORS keys (nested under hub or broker)
-		{"SCION_SERVER_HUB_CORS_ENABLED", "server.hub.cors.enabled"},
-		{"SCION_SERVER_HUB_CORS_ALLOWED_ORIGINS", "server.hub.cors.allowed_origins"},
-		{"SCION_SERVER_HUB_CORS_MAX_AGE", "server.hub.cors.max_age"},
-		{"SCION_SERVER_BROKER_CORS_ENABLED", "server.broker.cors.enabled"},
+		{"FABRIC_SERVER_HUB_CORS_ENABLED", "server.hub.cors.enabled"},
+		{"FABRIC_SERVER_HUB_CORS_ALLOWED_ORIGINS", "server.hub.cors.allowed_origins"},
+		{"FABRIC_SERVER_HUB_CORS_MAX_AGE", "server.hub.cors.max_age"},
+		{"FABRIC_SERVER_BROKER_CORS_ENABLED", "server.broker.cors.enabled"},
 	}
 
 	for _, tt := range tests {
@@ -1902,7 +1902,7 @@ func TestSaveVersionedSettings(t *testing.T) {
 			"gemini": {
 				Harness: "gemini",
 				Image:   "example.com/gemini:latest",
-				User:    "scion",
+				User:    "fabric",
 			},
 		},
 		Runtimes: map[string]V1RuntimeConfig{
@@ -1942,10 +1942,10 @@ default_template: gemini
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
   claude:
     image: example.com/claude:latest
-    user: scion
+    user: fabric
 runtimes:
   docker:
     host: tcp://localhost:2375
@@ -1998,7 +1998,7 @@ func TestMigrateSettingsFile_LegacyJSON(t *testing.T) {
 		"harnesses": {
 			"gemini": {
 				"image": "example.com/gemini:latest",
-				"user": "scion"
+				"user": "fabric"
 			}
 		},
 		"runtimes": {
@@ -2068,7 +2068,7 @@ active_profile: local
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2128,7 +2128,7 @@ active_profile: local
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2161,7 +2161,7 @@ default_template: gemini
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2198,7 +2198,7 @@ hub:
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 bucket:
   provider: GCS
   name: my-bucket
@@ -2246,7 +2246,7 @@ default_template: gemini
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2320,7 +2320,7 @@ hub:
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2369,7 +2369,7 @@ active_profile: local
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2416,7 +2416,7 @@ active_profile: local
 harnesses:
   gemini:
     image: example.com/gemini:latest
-    user: scion
+    user: fabric
 runtimes:
   docker: {}
 profiles:
@@ -2452,17 +2452,17 @@ runtimes:
     kubernetes: {}
 harnesses:
     claude:
-        image: us-central1-docker.pkg.dev/example-project/scion-images/scion-claude:latest
-        user: scion
+        image: us-central1-docker.pkg.dev/example-project/fabric-images/fabric-claude:latest
+        user: fabric
     codex:
-        image: us-central1-docker.pkg.dev/example-project/scion-images/scion-codex:latest
-        user: scion
+        image: us-central1-docker.pkg.dev/example-project/fabric-images/fabric-codex:latest
+        user: fabric
     gemini:
-        image: us-central1-docker.pkg.dev/example-project/scion-images/scion-gemini:latest
-        user: scion
+        image: us-central1-docker.pkg.dev/example-project/fabric-images/fabric-gemini:latest
+        user: fabric
     opencode:
-        image: us-central1-docker.pkg.dev/example-project/scion-images/scion-opencode:latest
-        user: scion
+        image: us-central1-docker.pkg.dev/example-project/fabric-images/fabric-opencode:latest
+        user: fabric
 profiles:
     local:
         runtime: container
@@ -2474,9 +2474,9 @@ profiles:
             GIT_COMMITTER_NAME: Test User
         volumes:
             - source: ${GOPATH}/pkg
-              target: /home/scion/go/pkg
+              target: /home/fabric/go/pkg
             - source: /home/dev/.cache/go-build
-              target: /home/scion/.cache/go-build
+              target: /home/fabric/.cache/go-build
     remote:
         runtime: kubernetes
         tmux: true
@@ -2537,7 +2537,7 @@ profiles:
 	assert.Equal(t, "gemini", vs.HarnessConfigs["gemini"].Harness)
 	assert.Equal(t, "codex", vs.HarnessConfigs["codex"].Harness)
 	assert.Equal(t, "opencode", vs.HarnessConfigs["opencode"].Harness)
-	assert.Contains(t, vs.HarnessConfigs["gemini"].Image, "scion-gemini")
+	assert.Contains(t, vs.HarnessConfigs["gemini"].Image, "fabric-gemini")
 
 	// Profiles
 	assert.Len(t, vs.Profiles, 2)
@@ -2581,11 +2581,11 @@ runtimes:
     kubernetes: {}
 harnesses:
     claude:
-        image: example.com/scion-claude:latest
-        user: scion
+        image: example.com/fabric-claude:latest
+        user: fabric
     gemini:
-        image: example.com/scion-gemini:latest
-        user: scion
+        image: example.com/fabric-gemini:latest
+        user: fabric
 profiles:
     local:
         runtime: container
@@ -2636,7 +2636,7 @@ func TestUpdateSetting_PreservesV1Format(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Write a v1 versioned settings file
@@ -2680,7 +2680,7 @@ func TestUpdateSetting_V1HubEnabled(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -2711,7 +2711,7 @@ func TestUpdateSetting_V1BrokerIdMapsToServerBroker(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -2751,7 +2751,7 @@ func TestUpdateSetting_V1BrokerTokenMapsToServerBroker(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -2780,7 +2780,7 @@ func TestUpdateSetting_V1DeprecatedKeysSkipSilently(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -2809,7 +2809,7 @@ func TestUpdateSetting_V1MultipleUpdatesPreserveFormat(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -2861,7 +2861,7 @@ func TestUpdateSetting_LegacyFormatAutoMigrates(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Write legacy format (no schema_version)
@@ -2928,7 +2928,7 @@ func TestUpdateSetting_V1GlobalScope(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 
 	v1Content := `schema_version: "1"
@@ -3002,7 +3002,7 @@ telemetry:
       rates:
         "agent.tool.call": 0.1
   resource:
-    service.name: "scion-agent"
+    service.name: "fabric-agent"
     deployment.env: "staging"
 `)
 	// Validate against schema
@@ -3066,7 +3066,7 @@ telemetry:
 	assert.Equal(t, 0.5, *vs.Telemetry.Filter.Sampling.Default)
 	assert.Equal(t, 0.1, vs.Telemetry.Filter.Sampling.Rates["agent.tool.call"])
 
-	assert.Equal(t, "scion-agent", vs.Telemetry.Resource["service.name"])
+	assert.Equal(t, "fabric-agent", vs.Telemetry.Resource["service.name"])
 	assert.Equal(t, "staging", vs.Telemetry.Resource["deployment.env"])
 }
 
@@ -3107,9 +3107,9 @@ telemetry:
 }
 
 func TestLoadVersionedSettings_TelemetryHierarchyMerge(t *testing.T) {
-	// Unset all SCION_ environment variables to avoid pollution
+	// Unset all FABRIC_ environment variables to avoid pollution
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "SCION_") {
+		if strings.HasPrefix(e, "FABRIC_") {
 			key := strings.SplitN(e, "=", 2)[0]
 			val := os.Getenv(key)
 			_ = os.Unsetenv(key)
@@ -3128,8 +3128,8 @@ func TestLoadVersionedSettings_TelemetryHierarchyMerge(t *testing.T) {
 	defer func() { _ = os.Chdir(originalWd) }()
 
 	// Create global settings with telemetry defaults
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	globalSettings := `schema_version: "1"
 telemetry:
@@ -3146,12 +3146,12 @@ telemetry:
       exclude:
         - "agent.user.prompt"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	// Create project with overrides
 	projectDir := filepath.Join(tmpDir, "myproject")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	require.NoError(t, os.MkdirAll(projectScionDir, 0755))
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	require.NoError(t, os.MkdirAll(projectFabricDir, 0755))
 	_ = os.Chdir(projectDir)
 
 	projectSettings := `schema_version: "1"
@@ -3161,10 +3161,10 @@ telemetry:
   hub:
     enabled: false
 `
-	require.NoError(t, os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(projectSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(projectSettings), 0644))
 
 	// Load merged settings
-	vs, err := LoadVersionedSettings(projectScionDir)
+	vs, err := LoadVersionedSettings(projectFabricDir)
 	require.NoError(t, err)
 	require.NotNil(t, vs.Telemetry)
 
@@ -3193,26 +3193,26 @@ func TestVersionedEnvKeyMapper_Telemetry(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"SCION_TELEMETRY_ENABLED", "telemetry.enabled"},
-		{"SCION_TELEMETRY_CLOUD_ENABLED", "telemetry.cloud.enabled"},
-		{"SCION_TELEMETRY_CLOUD_ENDPOINT", "telemetry.cloud.endpoint"},
-		{"SCION_TELEMETRY_CLOUD_PROTOCOL", "telemetry.cloud.protocol"},
-		{"SCION_TELEMETRY_CLOUD_TLS_INSECURE_SKIP_VERIFY", "telemetry.cloud.tls.insecure_skip_verify"},
-		{"SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE", "telemetry.cloud.batch.max_size"},
-		{"SCION_TELEMETRY_CLOUD_BATCH_TIMEOUT", "telemetry.cloud.batch.timeout"},
-		{"SCION_TELEMETRY_HUB_ENABLED", "telemetry.hub.enabled"},
-		{"SCION_TELEMETRY_HUB_REPORT_INTERVAL", "telemetry.hub.report_interval"},
-		{"SCION_TELEMETRY_LOCAL_ENABLED", "telemetry.local.enabled"},
-		{"SCION_TELEMETRY_LOCAL_FILE", "telemetry.local.file"},
-		{"SCION_TELEMETRY_LOCAL_CONSOLE", "telemetry.local.console"},
-		{"SCION_TELEMETRY_FILTER_ENABLED", "telemetry.filter.enabled"},
-		{"SCION_TELEMETRY_FILTER_RESPECT_DEBUG_MODE", "telemetry.filter.respect_debug_mode"},
+		{"FABRIC_TELEMETRY_ENABLED", "telemetry.enabled"},
+		{"FABRIC_TELEMETRY_CLOUD_ENABLED", "telemetry.cloud.enabled"},
+		{"FABRIC_TELEMETRY_CLOUD_ENDPOINT", "telemetry.cloud.endpoint"},
+		{"FABRIC_TELEMETRY_CLOUD_PROTOCOL", "telemetry.cloud.protocol"},
+		{"FABRIC_TELEMETRY_CLOUD_TLS_INSECURE_SKIP_VERIFY", "telemetry.cloud.tls.insecure_skip_verify"},
+		{"FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE", "telemetry.cloud.batch.max_size"},
+		{"FABRIC_TELEMETRY_CLOUD_BATCH_TIMEOUT", "telemetry.cloud.batch.timeout"},
+		{"FABRIC_TELEMETRY_HUB_ENABLED", "telemetry.hub.enabled"},
+		{"FABRIC_TELEMETRY_HUB_REPORT_INTERVAL", "telemetry.hub.report_interval"},
+		{"FABRIC_TELEMETRY_LOCAL_ENABLED", "telemetry.local.enabled"},
+		{"FABRIC_TELEMETRY_LOCAL_FILE", "telemetry.local.file"},
+		{"FABRIC_TELEMETRY_LOCAL_CONSOLE", "telemetry.local.console"},
+		{"FABRIC_TELEMETRY_FILTER_ENABLED", "telemetry.filter.enabled"},
+		{"FABRIC_TELEMETRY_FILTER_RESPECT_DEBUG_MODE", "telemetry.filter.respect_debug_mode"},
 		// OTEL env vars map to telemetry.cloud.*
-		{"SCION_OTEL_ENDPOINT", "telemetry.cloud.endpoint"},
-		{"SCION_OTEL_PROTOCOL", "telemetry.cloud.protocol"},
-		{"SCION_OTEL_HEADERS", "telemetry.cloud.headers"},
-		{"SCION_OTEL_INSECURE", "telemetry.cloud.tls.insecure_skip_verify"},
-		{"SCION_OTEL_CA_FILE", "telemetry.cloud.tls.ca_file"},
+		{"FABRIC_OTEL_ENDPOINT", "telemetry.cloud.endpoint"},
+		{"FABRIC_OTEL_PROTOCOL", "telemetry.cloud.protocol"},
+		{"FABRIC_OTEL_HEADERS", "telemetry.cloud.headers"},
+		{"FABRIC_OTEL_INSECURE", "telemetry.cloud.tls.insecure_skip_verify"},
+		{"FABRIC_OTEL_CA_FILE", "telemetry.cloud.tls.ca_file"},
 	}
 
 	for _, tt := range tests {
@@ -3224,9 +3224,9 @@ func TestVersionedEnvKeyMapper_Telemetry(t *testing.T) {
 }
 
 func TestLoadVersionedSettings_TelemetryEnvOverride(t *testing.T) {
-	// Unset all SCION_ environment variables to avoid pollution
+	// Unset all FABRIC_ environment variables to avoid pollution
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "SCION_") {
+		if strings.HasPrefix(e, "FABRIC_") {
 			key := strings.SplitN(e, "=", 2)[0]
 			val := os.Getenv(key)
 			_ = os.Unsetenv(key)
@@ -3245,8 +3245,8 @@ func TestLoadVersionedSettings_TelemetryEnvOverride(t *testing.T) {
 	_ = os.Chdir(tmpDir)
 
 	// Create global settings with telemetry
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
 	globalSettings := `schema_version: "1"
 telemetry:
@@ -3254,10 +3254,10 @@ telemetry:
   cloud:
     endpoint: "https://yaml-endpoint.example.com"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	// Set env var override
-	t.Setenv("SCION_TELEMETRY_ENABLED", "false")
+	t.Setenv("FABRIC_TELEMETRY_ENABLED", "false")
 
 	vs, err := LoadVersionedSettings("")
 	require.NoError(t, err)
@@ -3282,19 +3282,19 @@ func TestRewriteImageRegistry(t *testing.T) {
 		want        string
 	}{
 		{
-			name:        "fully qualified scion image preserved",
-			fullImage:   "us-central1-docker.pkg.dev/example-project/scion-images/scion-claude:latest",
+			name:        "fully qualified fabric image preserved",
+			fullImage:   "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-claude:latest",
 			newRegistry: "ghcr.io/myorg",
-			want:        "us-central1-docker.pkg.dev/example-project/scion-images/scion-claude:latest",
+			want:        "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-claude:latest",
 		},
 		{
-			name:        "fully qualified scion image preserved with trailing slash",
-			fullImage:   "us-central1-docker.pkg.dev/example-project/scion-images/scion-gemini:latest",
+			name:        "fully qualified fabric image preserved with trailing slash",
+			fullImage:   "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-gemini:latest",
 			newRegistry: "ghcr.io/myorg/",
-			want:        "us-central1-docker.pkg.dev/example-project/scion-images/scion-gemini:latest",
+			want:        "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-gemini:latest",
 		},
 		{
-			name:        "bare non-scion image rewritten",
+			name:        "bare non-fabric image rewritten",
 			fullImage:   "ubuntu:22.04",
 			newRegistry: "ghcr.io/myorg",
 			want:        "ghcr.io/myorg/ubuntu:22.04",
@@ -3313,9 +3313,9 @@ func TestRewriteImageRegistry(t *testing.T) {
 		},
 		{
 			name:        "empty registry returns original",
-			fullImage:   "us-central1-docker.pkg.dev/example-project/scion-images/scion-claude:latest",
+			fullImage:   "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-claude:latest",
 			newRegistry: "",
-			want:        "us-central1-docker.pkg.dev/example-project/scion-images/scion-claude:latest",
+			want:        "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-claude:latest",
 		},
 		{
 			name:        "empty image returns empty",
@@ -3324,46 +3324,46 @@ func TestRewriteImageRegistry(t *testing.T) {
 			want:        "",
 		},
 		{
-			name:        "fully qualified scion-base image preserved",
-			fullImage:   "us-central1-docker.pkg.dev/example-project/scion-images/scion-base:v2",
+			name:        "fully qualified fabric-base image preserved",
+			fullImage:   "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-base:v2",
 			newRegistry: "docker.io/myuser",
-			want:        "us-central1-docker.pkg.dev/example-project/scion-images/scion-base:v2",
+			want:        "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-base:v2",
 		},
 		{
 			name:        "fully qualified preserves tag",
-			fullImage:   "us-central1-docker.pkg.dev/example-project/scion-images/scion-opencode:sha-abc123",
+			fullImage:   "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-opencode:sha-abc123",
 			newRegistry: "ghcr.io/myorg",
-			want:        "us-central1-docker.pkg.dev/example-project/scion-images/scion-opencode:sha-abc123",
+			want:        "us-central1-docker.pkg.dev/example-project/fabric-images/fabric-opencode:sha-abc123",
 		},
 		{
 			name:        "bare image name (no registry prefix)",
-			fullImage:   "scion-claude:latest",
+			fullImage:   "fabric-claude:latest",
 			newRegistry: "ghcr.io/myorg",
-			want:        "ghcr.io/myorg/scion-claude:latest",
+			want:        "ghcr.io/myorg/fabric-claude:latest",
 		},
 		{
 			name:        "bare image name empty registry",
-			fullImage:   "scion-gemini:latest",
+			fullImage:   "fabric-gemini:latest",
 			newRegistry: "",
-			want:        "scion-gemini:latest",
+			want:        "fabric-gemini:latest",
 		},
 		{
 			name:        "explicit registry preserved",
-			fullImage:   "ghcr.io/myorg/scion-elixir:latest",
+			fullImage:   "ghcr.io/myorg/fabric-elixir:latest",
 			newRegistry: "docker.io/other",
-			want:        "ghcr.io/myorg/scion-elixir:latest",
+			want:        "ghcr.io/myorg/fabric-elixir:latest",
 		},
 		{
 			name:        "port-based registry preserved",
-			fullImage:   "localhost:5000/scion-test:latest",
+			fullImage:   "localhost:5000/fabric-test:latest",
 			newRegistry: "ghcr.io/myorg",
-			want:        "localhost:5000/scion-test:latest",
+			want:        "localhost:5000/fabric-test:latest",
 		},
 		{
 			name:        "docker hub path rewritten",
-			fullImage:   "myuser/scion-custom:latest",
+			fullImage:   "myuser/fabric-custom:latest",
 			newRegistry: "ghcr.io/myorg",
-			want:        "ghcr.io/myorg/scion-custom:latest",
+			want:        "ghcr.io/myorg/fabric-custom:latest",
 		},
 	}
 
@@ -3712,19 +3712,19 @@ server:
       shares:
         - id: share-1
           server: "10.0.0.2"
-          export: /scion-workspaces
-          pv_name: scion-workspaces-pv
+          export: /fabric-workspaces
+          pv_name: fabric-workspaces-pv
 `
 	tmpDir := t.TempDir()
 	originalHome := os.Getenv("HOME")
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalDir := filepath.Join(tmpDir, ".scion")
+	globalDir := filepath.Join(tmpDir, ".fabric")
 	require.NoError(t, os.MkdirAll(globalDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(globalDir, "settings.yaml"), []byte(yamlInput), 0644))
 
-	projectDir := filepath.Join(tmpDir, "project", ".scion")
+	projectDir := filepath.Join(tmpDir, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	vs, err := LoadVersionedSettings(projectDir)
@@ -3744,8 +3744,8 @@ server:
 	require.Len(t, ws.NFS.Shares, 1)
 	assert.Equal(t, "share-1", ws.NFS.Shares[0].ID)
 	assert.Equal(t, "10.0.0.2", ws.NFS.Shares[0].Server)
-	assert.Equal(t, "/scion-workspaces", ws.NFS.Shares[0].Export)
-	assert.Equal(t, "scion-workspaces-pv", ws.NFS.Shares[0].PVName)
+	assert.Equal(t, "/fabric-workspaces", ws.NFS.Shares[0].Export)
+	assert.Equal(t, "fabric-workspaces-pv", ws.NFS.Shares[0].PVName)
 }
 
 func TestWorkspaceStorageConfig_JSONRoundTrip(t *testing.T) {
@@ -3758,7 +3758,7 @@ func TestWorkspaceStorageConfig_JSONRoundTrip(t *testing.T) {
 			GID:          1000,
 			SubPathRoot:  "projects",
 			Shares: []V1NFSShare{
-				{ID: "main", Server: "10.0.0.2", Export: "/scion-workspaces", PVName: "scion-ws-pv"},
+				{ID: "main", Server: "10.0.0.2", Export: "/fabric-workspaces", PVName: "fabric-ws-pv"},
 			},
 		},
 	}

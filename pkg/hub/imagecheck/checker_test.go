@@ -45,7 +45,7 @@ func TestChecker_ValidLocal(t *testing.T) {
 	c := NewChecker(
 		WithLocalChecker(&mockLocalChecker{exists: true}),
 	)
-	result := c.Check(context.Background(), "scion-claude:latest")
+	result := c.Check(context.Background(), "fabric-claude:latest")
 	if result.Status != "valid" {
 		t.Errorf("expected status valid, got %s", result.Status)
 	}
@@ -59,7 +59,7 @@ func TestChecker_ValidRemote(t *testing.T) {
 		WithLocalChecker(&mockLocalChecker{exists: false}),
 		WithHTTPClient(newMockHTTPClient(http.StatusOK, nil)),
 	)
-	result := c.Check(context.Background(), "ghcr.io/myorg/scion-claude:latest")
+	result := c.Check(context.Background(), "ghcr.io/myorg/fabric-claude:latest")
 	if result.Status != "valid" {
 		t.Errorf("expected status valid, got %s", result.Status)
 	}
@@ -84,7 +84,7 @@ func TestChecker_ErrorNetwork(t *testing.T) {
 		WithLocalChecker(&mockLocalChecker{exists: false}),
 		WithHTTPClient(newMockHTTPClient(0, fmt.Errorf("connection refused"))),
 	)
-	result := c.Check(context.Background(), "ghcr.io/myorg/scion-claude:latest")
+	result := c.Check(context.Background(), "ghcr.io/myorg/fabric-claude:latest")
 	if result.Status != "error" {
 		t.Errorf("expected status error, got %s", result.Status)
 	}
@@ -98,7 +98,7 @@ func TestChecker_ErrorUnauthorized(t *testing.T) {
 		WithLocalChecker(&mockLocalChecker{exists: false}),
 		WithHTTPClient(newMockHTTPClient(http.StatusUnauthorized, nil)),
 	)
-	result := c.Check(context.Background(), "ghcr.io/myorg/scion-claude:latest")
+	result := c.Check(context.Background(), "ghcr.io/myorg/fabric-claude:latest")
 	if result.Status != "error" {
 		t.Errorf("expected status error, got %s", result.Status)
 	}
@@ -119,7 +119,7 @@ func TestChecker_LocalFoundSkipsRemote(t *testing.T) {
 		WithLocalChecker(&mockLocalChecker{exists: true}),
 		WithHTTPClient(client),
 	)
-	result := c.Check(context.Background(), "ghcr.io/myorg/scion-claude:latest")
+	result := c.Check(context.Background(), "ghcr.io/myorg/fabric-claude:latest")
 	if result.Status != "valid" {
 		t.Errorf("expected status valid, got %s", result.Status)
 	}
@@ -135,7 +135,7 @@ func TestChecker_NoLocalFallsToRemote(t *testing.T) {
 	c := NewChecker(
 		WithHTTPClient(newMockHTTPClient(http.StatusOK, nil)),
 	)
-	result := c.Check(context.Background(), "ghcr.io/myorg/scion-claude:latest")
+	result := c.Check(context.Background(), "ghcr.io/myorg/fabric-claude:latest")
 	if result.Status != "valid" {
 		t.Errorf("expected status valid, got %s", result.Status)
 	}
@@ -217,7 +217,7 @@ func TestIsBareImageName(t *testing.T) {
 		{"cogo:latest", true},
 		{"cogo", true},
 		{"myorg/myimage:v2", true},
-		{"ghcr.io/myorg/scion-claude:latest", false},
+		{"ghcr.io/myorg/fabric-claude:latest", false},
 		{"us-docker.pkg.dev/proj/repo/img:v1", false},
 		{"localhost:5000/myimage:latest", false},
 	}
@@ -237,10 +237,10 @@ func TestParseImageRef(t *testing.T) {
 		repo     string
 		tag      string
 	}{
-		{"scion-claude:latest", "docker.io", "library/scion-claude", "latest"},
-		{"ghcr.io/myorg/scion-claude:latest", "ghcr.io", "myorg/scion-claude", "latest"},
+		{"fabric-claude:latest", "docker.io", "library/fabric-claude", "latest"},
+		{"ghcr.io/myorg/fabric-claude:latest", "ghcr.io", "myorg/fabric-claude", "latest"},
 		{"us-docker.pkg.dev/proj/repo/img:v1", "us-docker.pkg.dev", "proj/repo/img", "v1"},
-		{"scion-claude", "docker.io", "library/scion-claude", "latest"},
+		{"fabric-claude", "docker.io", "library/fabric-claude", "latest"},
 		{"myorg/myimage:v2", "docker.io", "myorg/myimage", "v2"},
 	}
 

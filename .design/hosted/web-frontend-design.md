@@ -1,11 +1,11 @@
-# Scion Web Frontend Design
+# Fabric Web Frontend Design
 
 ## Status
 **Proposed**
 
 ## 1. Overview
 
-The Scion Web Frontend provides a browser-based dashboard for managing agents, groves, and monitoring system status. It is built as a modern server-rendered web application using Lit web components with server-side rendering (SSR) via Koa and `@lit-labs/ssr`.
+The Fabric Web Frontend provides a browser-based dashboard for managing agents, groves, and monitoring system status. It is built as a modern server-rendered web application using Lit web components with server-side rendering (SSR) via Koa and `@lit-labs/ssr`.
 
 ### Design Goals
 
@@ -476,7 +476,7 @@ export function getHtmlTemplate(opts: HtmlTemplateOptions): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${opts.title} - Scion</title>
+  <title>${opts.title} - Fabric</title>
 
   <!-- Web Awesome / Shoelace -->
   <link rel="stylesheet" href="https://cdn.webawesome.com/dist/themes/default.css">
@@ -486,7 +486,7 @@ export function getHtmlTemplate(opts: HtmlTemplateOptions): string {
   ${opts.styles.map(s => `<link rel="stylesheet" href="${s}">`).join('\n  ')}
 
   <!-- Initial state for hydration -->
-  <script id="__SCION_DATA__" type="application/json">
+  <script id="__FABRIC_DATA__" type="application/json">
     ${JSON.stringify(opts.initialData)}
   </script>
 </head>
@@ -754,8 +754,8 @@ import './pages/agent-list';
 import './pages/agent-detail';
 import './pages/terminal';
 
-@customElement('scion-app')
-export class ScionApp extends LitElement {
+@customElement('fabric-app')
+export class FabricApp extends LitElement {
   @property({ type: Object }) user: User | null = null;
   @state() private currentRoute = '';
 
@@ -798,12 +798,12 @@ export class ScionApp extends LitElement {
     if (outlet) {
       const router = new Router(outlet);
       router.setRoutes([
-        { path: '/', component: 'scion-dashboard' },
-        { path: '/groves', component: 'scion-grove-list' },
-        { path: '/groves/:groveId', component: 'scion-grove-detail' },
-        { path: '/groves/:groveId/agents', component: 'scion-agent-list' },
-        { path: '/agents/:agentId', component: 'scion-agent-detail' },
-        { path: '/agents/:agentId/terminal', component: 'scion-terminal' },
+        { path: '/', component: 'fabric-dashboard' },
+        { path: '/groves', component: 'fabric-grove-list' },
+        { path: '/groves/:groveId', component: 'fabric-grove-detail' },
+        { path: '/groves/:groveId/agents', component: 'fabric-agent-list' },
+        { path: '/agents/:agentId', component: 'fabric-agent-detail' },
+        { path: '/agents/:agentId/terminal', component: 'fabric-terminal' },
       ]);
     }
   }
@@ -811,12 +811,12 @@ export class ScionApp extends LitElement {
   render() {
     return html`
       <aside class="sidebar">
-        <scion-nav .user=${this.user}></scion-nav>
+        <fabric-nav .user=${this.user}></fabric-nav>
       </aside>
       <main class="main">
         <header class="header">
-          <scion-breadcrumb></scion-breadcrumb>
-          <scion-user-menu .user=${this.user}></scion-user-menu>
+          <fabric-breadcrumb></fabric-breadcrumb>
+          <fabric-user-menu .user=${this.user}></fabric-user-menu>
         </header>
         <div class="content">
           <div id="outlet"></div>
@@ -835,7 +835,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import type { Agent } from '../types';
 
-@customElement('scion-agent-card')
+@customElement('fabric-agent-card')
 export class AgentCard extends LitElement {
   @property({ type: Object }) agent!: Agent;
 
@@ -1223,8 +1223,8 @@ import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 
-@customElement('scion-terminal')
-export class ScionTerminal extends LitElement {
+@customElement('fabric-terminal')
+export class FabricTerminal extends LitElement {
   @property({ type: String }) agentId = '';
   @state() private connected = false;
   @state() private error: string | null = null;
@@ -1466,7 +1466,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Template } from '../types';
 
-@customElement('scion-template-list')
+@customElement('fabric-template-list')
 export class TemplateList extends LitElement {
   @property({ type: String }) scope: 'global' | 'grove' | 'user' | 'all' = 'all';
   @property({ type: String }) groveId?: string;
@@ -1547,10 +1547,10 @@ export class TemplateList extends LitElement {
       ` : html`
         <div class="template-grid">
           ${this.templates.map(template => html`
-            <scion-template-card
+            <fabric-template-card
               .template=${template}
               @template-action=${this.handleTemplateAction}
-            ></scion-template-card>
+            ></fabric-template-card>
           `)}
         </div>
       `}
@@ -1563,7 +1563,7 @@ export class TemplateList extends LitElement {
 
 ```typescript
 // src/components/shared/template-card.ts
-@customElement('scion-template-card')
+@customElement('fabric-template-card')
 export class TemplateCard extends LitElement {
   @property({ type: Object }) template!: Template;
 
@@ -1629,7 +1629,7 @@ Template upload uses a multi-step wizard with signed URL uploads.
 
 ```typescript
 // src/components/pages/template-upload.ts
-@customElement('scion-template-upload')
+@customElement('fabric-template-upload')
 export class TemplateUpload extends LitElement {
   @state() private step: 'metadata' | 'files' | 'confirm' = 'metadata';
   @state() private metadata: Partial<Template> = {};
@@ -1697,11 +1697,11 @@ export class TemplateUpload extends LitElement {
 
   private renderFilesStep() {
     return html`
-      <scion-file-upload
+      <fabric-file-upload
         multiple
         accept=".yaml,.yml,.md,.txt,.json,.sh"
         @files-selected=${this.handleFilesSelected}
-      ></scion-file-upload>
+      ></fabric-file-upload>
 
       ${this.files.length > 0 ? html`
         <ul class="file-list">
@@ -1775,7 +1775,7 @@ export class TemplateUpload extends LitElement {
 
 ```typescript
 // src/components/pages/user-list.ts
-@customElement('scion-user-list')
+@customElement('fabric-user-list')
 export class UserList extends LitElement {
   @state() private users: User[] = [];
   @state() private loading = true;
@@ -1805,7 +1805,7 @@ export class UserList extends LitElement {
             <wa-table-row>
               <wa-table-cell>
                 <div class="user-cell">
-                  <scion-user-avatar .user=${user}></scion-user-avatar>
+                  <fabric-user-avatar .user=${user}></fabric-user-avatar>
                   <span>${user.displayName}</span>
                 </div>
               </wa-table-cell>
@@ -1849,7 +1849,7 @@ export class UserList extends LitElement {
 
 ```typescript
 // src/components/pages/group-list.ts
-@customElement('scion-group-list')
+@customElement('fabric-group-list')
 export class GroupList extends LitElement {
   @state() private groups: Group[] = [];
 
@@ -1900,7 +1900,7 @@ export class GroupList extends LitElement {
 
 ```typescript
 // src/components/pages/group-detail.ts
-@customElement('scion-group-detail')
+@customElement('fabric-group-detail')
 export class GroupDetail extends LitElement {
   @property({ type: String }) groupId = '';
   @state() private group: Group | null = null;
@@ -1914,7 +1914,7 @@ export class GroupDetail extends LitElement {
         <div class="title-row">
           <wa-icon name="users"></wa-icon>
           <h1>${this.group.name}</h1>
-          <scion-group-badge .group=${this.group}></scion-group-badge>
+          <fabric-group-badge .group=${this.group}></fabric-group-badge>
         </div>
         <p>${this.group.description}</p>
       </div>
@@ -1933,18 +1933,18 @@ export class GroupDetail extends LitElement {
             </wa-button>
           </div>
 
-          <scion-member-list
+          <fabric-member-list
             .members=${this.members}
             @member-remove=${this.handleRemoveMember}
             @member-role-change=${this.handleRoleChange}
-          ></scion-member-list>
+          ></fabric-member-list>
         </wa-tab-panel>
 
         <wa-tab-panel name="policies">
-          <scion-policy-list
+          <fabric-policy-list
             scopeType="group"
             scopeId=${this.groupId}
-          ></scion-policy-list>
+          ></fabric-policy-list>
         </wa-tab-panel>
 
         <wa-tab-panel name="settings">
@@ -1964,7 +1964,7 @@ export class GroupDetail extends LitElement {
 
 ```typescript
 // src/components/pages/policy-list.ts
-@customElement('scion-policy-list')
+@customElement('fabric-policy-list')
 export class PolicyList extends LitElement {
   @property({ type: String }) scopeType?: string;
   @property({ type: String }) scopeId?: string;
@@ -2051,7 +2051,7 @@ export class PolicyList extends LitElement {
 
 ```typescript
 // src/components/shared/policy-editor.ts
-@customElement('scion-policy-editor')
+@customElement('fabric-policy-editor')
 export class PolicyEditor extends LitElement {
   @property({ type: Object }) policy: Partial<Policy> = {};
   @state() private selectedPrincipals: { type: string; id: string }[] = [];
@@ -2084,11 +2084,11 @@ export class PolicyEditor extends LitElement {
         </wa-select>
 
         ${this.policy.scopeType !== 'hub' ? html`
-          <scion-scope-selector
+          <fabric-scope-selector
             .scopeType=${this.policy.scopeType}
             .scopeId=${this.policy.scopeId}
             @scope-change=${this.handleScopeChange}
-          ></scion-scope-selector>
+          ></fabric-scope-selector>
         ` : ''}
 
         <wa-select
@@ -2127,10 +2127,10 @@ export class PolicyEditor extends LitElement {
 
         <fieldset>
           <legend>Principals</legend>
-          <scion-principal-selector
+          <fabric-principal-selector
             .selected=${this.selectedPrincipals}
             @principals-change=${this.handlePrincipalsChange}
-          ></scion-principal-selector>
+          ></fabric-principal-selector>
         </fieldset>
 
         <div class="actions">
@@ -2147,7 +2147,7 @@ export class PolicyEditor extends LitElement {
 
 ```typescript
 // src/components/shared/access-evaluator.ts
-@customElement('scion-access-evaluator')
+@customElement('fabric-access-evaluator')
 export class AccessEvaluator extends LitElement {
   @state() private principal: { type: string; id: string } | null = null;
   @state() private resource: { type: string; id: string } | null = null;
@@ -2161,11 +2161,11 @@ export class AccessEvaluator extends LitElement {
         <h3 slot="header">Access Evaluation (Debug)</h3>
 
         <div class="eval-form">
-          <scion-principal-selector
+          <fabric-principal-selector
             single
             label="Principal"
             @principal-select=${this.handlePrincipalSelect}
-          ></scion-principal-selector>
+          ></fabric-principal-selector>
 
           <wa-select
             label="Resource Type"
@@ -2257,7 +2257,7 @@ export class AccessEvaluator extends LitElement {
 
 ```typescript
 // src/components/pages/settings-env.ts
-@customElement('scion-settings-env')
+@customElement('fabric-settings-env')
 export class SettingsEnv extends LitElement {
   @property({ type: String }) scope: 'user' | 'grove' | 'runtime_broker' = 'user';
   @property({ type: String }) scopeId?: string;
@@ -2268,11 +2268,11 @@ export class SettingsEnv extends LitElement {
     return html`
       <div class="header">
         <h1>Environment & Secrets</h1>
-        <scion-scope-selector
+        <fabric-scope-selector
           .scope=${this.scope}
           .scopeId=${this.scopeId}
           @scope-change=${this.handleScopeChange}
-        ></scion-scope-selector>
+        ></fabric-scope-selector>
       </div>
 
       <wa-tabs>
@@ -2364,7 +2364,7 @@ export class SettingsEnv extends LitElement {
 
 ```typescript
 // src/components/shared/env-var-editor.ts
-@customElement('scion-env-var-editor')
+@customElement('fabric-env-var-editor')
 export class EnvVarEditor extends LitElement {
   @property({ type: Object }) envVar?: EnvVar;
   @property({ type: Boolean }) isSecret = false;
@@ -2432,7 +2432,7 @@ export class EnvVarEditor extends LitElement {
 
 ```typescript
 // src/components/pages/api-keys.ts
-@customElement('scion-api-keys')
+@customElement('fabric-api-keys')
 export class ApiKeys extends LitElement {
   @state() private keys: ApiKey[] = [];
   @state() private newKey: { key: string; name: string } | null = null;
@@ -2448,7 +2448,7 @@ export class ApiKeys extends LitElement {
       </div>
 
       <wa-alert variant="info" open>
-        API keys provide programmatic access to the Scion Hub API.
+        API keys provide programmatic access to the Fabric Hub API.
         Keep them secure and never share them publicly.
       </wa-alert>
 
@@ -2983,7 +2983,7 @@ export interface SessionConfig {
 export function getSessionConfig(): SessionConfig {
   return {
     // Note: Cookie names cannot contain colons per RFC 6265
-    key: 'scion_sess',
+    key: 'fabric_sess',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -2995,10 +2995,10 @@ export function getSessionConfig(): SessionConfig {
 
 ### 13.4 Debug Mode
 
-When `SCION_DEBUG=true`, the web frontend enables:
+When `FABRIC_DEBUG=true`, the web frontend enables:
 
 1. **Debug Logging:** Detailed console output for session, auth, and API proxy middleware
-2. **Debug Panel:** A UI component (`scion-debug-panel`) that displays:
+2. **Debug Panel:** A UI component (`fabric-debug-panel`) that displays:
    - Current authentication state (session user, state user)
    - Session info (exists, isNew, keys)
    - Cookie presence and names
@@ -3037,8 +3037,8 @@ COPY --from=builder /app/package.json ./
 
 # Non-root user
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S scion -u 1001
-USER scion
+RUN adduser -S fabric -u 1001
+USER fabric
 
 ENV NODE_ENV=production
 ENV PORT=8080
@@ -3055,9 +3055,9 @@ CMD ["node", "dist/server/index.js"]
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: scion-web
+  name: fabric-web
   labels:
-    app: scion
+    app: fabric
     component: web-frontend
 spec:
   template:
@@ -3071,33 +3071,33 @@ spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       containers:
-        - image: gcr.io/PROJECT_ID/scion-web:latest
+        - image: gcr.io/PROJECT_ID/fabric-web:latest
           ports:
             - containerPort: 8080
           env:
             - name: NODE_ENV
               value: production
             - name: HUB_API_URL
-              value: http://scion-hub:9810
+              value: http://fabric-hub:9810
             - name: NATS_URL
               valueFrom:
                 secretKeyRef:
-                  name: scion-secrets
+                  name: fabric-secrets
                   key: nats-url
             - name: SESSION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: scion-secrets
+                  name: fabric-secrets
                   key: session-secret
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: scion-secrets
+                  name: fabric-secrets
                   key: google-client-id
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: scion-secrets
+                  name: fabric-secrets
                   key: google-client-secret
           resources:
             limits:

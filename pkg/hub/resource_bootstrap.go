@@ -23,10 +23,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 // BootstrapBundledResources iterates all built-in bundled resources and
@@ -124,7 +124,7 @@ func resolveHarnessType(r resources.BundledResource) (string, error) {
 // were originally bootstrapped from bundled resources but whose bundled source
 // no longer exists in the current binary. This prevents stale configs (e.g. a
 // removed harness like "gemini") from persisting indefinitely via local disk
-// copies at ~/.scion/harness-configs/.
+// copies at ~/.fabric/harness-configs/.
 func (s *Server) ArchiveObsoleteBundledHarnessConfigs(ctx context.Context) error {
 	bundledNames := make(map[string]struct{})
 	for _, name := range resources.BuiltinHarnessConfigNames() {
@@ -183,7 +183,7 @@ func (s *Server) checkAndUpdateImageStatus(ctx context.Context, hcID, image stri
 
 // resolveImageRegistry returns the configured image registry from the
 // server's in-memory config, which includes environment variable overrides
-// applied at startup. Falls back to SCION_IMAGE_REGISTRY env var if the
+// applied at startup. Falls back to FABRIC_IMAGE_REGISTRY env var if the
 // maintenance config value is empty.
 //
 // TODO: use an internal settings API that returns fully-resolved settings
@@ -196,7 +196,7 @@ func (s *Server) resolveImageRegistry() string {
 	if r != "" {
 		return r
 	}
-	return os.Getenv("SCION_IMAGE_REGISTRY")
+	return os.Getenv("FABRIC_IMAGE_REGISTRY")
 }
 
 // RecheckAllImageStatuses is a no-op. Remote registry checks are now

@@ -29,8 +29,8 @@ func TestFormatFlagCheck(t *testing.T) {
 	origFormat := outputFormat
 	defer func() { outputFormat = origFormat }()
 
-	// Clear SCION_HOST_UID so the agent-container check doesn't interfere
-	t.Setenv("SCION_HOST_UID", "")
+	// Clear FABRIC_HOST_UID so the agent-container check doesn't interfere
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	// Bypass the git and workspace checks for this specific test
 	origGlobal := globalMode
@@ -92,7 +92,7 @@ func TestFormatFlagCheck(t *testing.T) {
 			cmd:           fakeAttachCmd,
 			format:        "json",
 			expectError:   true,
-			errorContains: "--format json is not supported for 'scion attach'",
+			errorContains: "--format json is not supported for 'fabric attach'",
 		},
 	}
 
@@ -149,12 +149,12 @@ func TestHubAuthLoginDoesNotRequireImageRegistry(t *testing.T) {
 		autoConfirm = origAutoConfirm
 	}()
 
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	if err := os.MkdirAll(filepath.Join(tmpHome, ".scion"), 0755); err != nil {
-		t.Fatalf("failed to create test global scion dir: %v", err)
+	if err := os.MkdirAll(filepath.Join(tmpHome, ".fabric"), 0755); err != nil {
+		t.Fatalf("failed to create test global fabric dir: %v", err)
 	}
 
 	globalMode = true
@@ -188,13 +188,13 @@ func TestServerStartDoesNotRequireImageRegistry(t *testing.T) {
 		autoConfirm = origAutoConfirm
 	}()
 
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
-	// Create a temp home with a global .scion dir but NO image_registry
+	// Create a temp home with a global .fabric dir but NO image_registry
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
-	if err := os.MkdirAll(filepath.Join(tmpHome, ".scion"), 0755); err != nil {
-		t.Fatalf("failed to create test global scion dir: %v", err)
+	if err := os.MkdirAll(filepath.Join(tmpHome, ".fabric"), 0755); err != nil {
+		t.Fatalf("failed to create test global fabric dir: %v", err)
 	}
 
 	globalMode = true
@@ -228,13 +228,13 @@ func TestDevAuthWarning(t *testing.T) {
 	// Create a temp directory for test settings
 	tmpDir := t.TempDir()
 	_ = os.Setenv("HOME", tmpDir)
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		t.Fatalf("failed to create test .scion dir: %v", err)
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		t.Fatalf("failed to create test .fabric dir: %v", err)
 	}
 
 	// Create settings.yaml with hub enabled
-	settingsPath := filepath.Join(scionDir, "settings.yaml")
+	settingsPath := filepath.Join(fabricDir, "settings.yaml")
 	settingsContent := `
 hub:
   enabled: true
@@ -261,7 +261,7 @@ hub:
 			name:          "Local hub endpoint with dev token env var",
 			noHubFlag:     false,
 			hubEndpoint:   "http://localhost:9810",
-			devTokenEnv:   "scion_dev_testtoken123",
+			devTokenEnv:   "fabric_dev_testtoken123",
 			expectWarning: true,
 		},
 		{
@@ -274,22 +274,22 @@ hub:
 		{
 			name:          "Remote hub with dev token env var warns",
 			noHubFlag:     false,
-			hubEndpoint:   "https://hub.demo.scion-ai.dev/",
-			devTokenEnv:   "scion_dev_testtoken123",
+			hubEndpoint:   "https://hub.demo.fabric-ai.dev/",
+			devTokenEnv:   "fabric_dev_testtoken123",
 			expectWarning: true,
 		},
 		{
 			name:          "Remote hub with dev token file does not warn",
 			noHubFlag:     false,
-			hubEndpoint:   "https://hub.demo.scion-ai.dev/",
-			devTokenFile:  "scion_dev_testtoken123",
+			hubEndpoint:   "https://hub.demo.fabric-ai.dev/",
+			devTokenFile:  "fabric_dev_testtoken123",
 			expectWarning: false,
 		},
 		{
 			name:          "Local hub with dev token file warns",
 			noHubFlag:     false,
 			hubEndpoint:   "http://localhost:9810",
-			devTokenFile:  "scion_dev_testtoken123",
+			devTokenFile:  "fabric_dev_testtoken123",
 			expectWarning: true,
 		},
 	}
@@ -302,19 +302,19 @@ hub:
 
 			// Set environment
 			if tt.devTokenEnv != "" {
-				_ = os.Setenv("SCION_DEV_TOKEN", tt.devTokenEnv)
-				defer func() { _ = os.Unsetenv("SCION_DEV_TOKEN") }()
+				_ = os.Setenv("FABRIC_DEV_TOKEN", tt.devTokenEnv)
+				defer func() { _ = os.Unsetenv("FABRIC_DEV_TOKEN") }()
 			} else {
-				_ = os.Unsetenv("SCION_DEV_TOKEN")
+				_ = os.Unsetenv("FABRIC_DEV_TOKEN")
 			}
-			_ = os.Unsetenv("SCION_DEV_TOKEN_FILE")
+			_ = os.Unsetenv("FABRIC_DEV_TOKEN_FILE")
 			// Clear v1 settings env var to prevent it from leaking dev auth
-			origServerAuthToken := os.Getenv("SCION_AUTH_TOKEN")
-			_ = os.Unsetenv("SCION_AUTH_TOKEN")
-			defer func() { _ = os.Setenv("SCION_AUTH_TOKEN", origServerAuthToken) }()
+			origServerAuthToken := os.Getenv("FABRIC_AUTH_TOKEN")
+			_ = os.Unsetenv("FABRIC_AUTH_TOKEN")
+			defer func() { _ = os.Setenv("FABRIC_AUTH_TOKEN", origServerAuthToken) }()
 
 			// Write dev token file if specified
-			devTokenPath := filepath.Join(scionDir, "dev-token")
+			devTokenPath := filepath.Join(fabricDir, "dev-token")
 			if tt.devTokenFile != "" {
 				_ = os.WriteFile(devTokenPath, []byte(tt.devTokenFile+"\n"), 0600)
 				defer func() { _ = os.Remove(devTokenPath) }()
@@ -360,7 +360,7 @@ func TestNonInteractiveImpliesAutoConfirm(t *testing.T) {
 	}()
 
 	// Ensure agent-mode auto-enable doesn't interfere with flag-level tests
-	t.Setenv("SCION_CLI_MODE", "human")
+	t.Setenv("FABRIC_CLI_MODE", "human")
 
 	t.Run("nonInteractive sets autoConfirm true", func(t *testing.T) {
 		autoConfirm = false
@@ -368,7 +368,7 @@ func TestNonInteractiveImpliesAutoConfirm(t *testing.T) {
 		outputFormat = ""
 
 		// Run PersistentPreRunE - it should set autoConfirm = true
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.True(t, autoConfirm, "autoConfirm should be true when nonInteractive is set")
 		assert.True(t, IsAutoConfirm(), "IsAutoConfirm() should return true")
@@ -380,7 +380,7 @@ func TestNonInteractiveImpliesAutoConfirm(t *testing.T) {
 		nonInteractive = false
 		outputFormat = ""
 
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.True(t, autoConfirm, "autoConfirm should remain true")
 		assert.True(t, IsAutoConfirm(), "IsAutoConfirm() should return true")
@@ -392,7 +392,7 @@ func TestNonInteractiveImpliesAutoConfirm(t *testing.T) {
 		nonInteractive = false
 		outputFormat = ""
 
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.False(t, autoConfirm, "autoConfirm should remain false")
 		assert.False(t, IsAutoConfirm(), "IsAutoConfirm() should return false")
@@ -411,36 +411,36 @@ func TestAgentModeImpliesNonInteractive(t *testing.T) {
 	}()
 
 	t.Run("agent mode auto-enables non-interactive", func(t *testing.T) {
-		t.Setenv("SCION_CLI_MODE", "agent")
+		t.Setenv("FABRIC_CLI_MODE", "agent")
 		autoConfirm = false
 		nonInteractive = false
 		outputFormat = ""
 
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.True(t, nonInteractive, "nonInteractive should be auto-enabled in agent mode")
 		assert.True(t, autoConfirm, "autoConfirm should be implied by nonInteractive")
 	})
 
 	t.Run("assistant mode does not auto-enable non-interactive", func(t *testing.T) {
-		t.Setenv("SCION_CLI_MODE", "assistant")
+		t.Setenv("FABRIC_CLI_MODE", "assistant")
 		autoConfirm = false
 		nonInteractive = false
 		outputFormat = ""
 
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.False(t, nonInteractive, "nonInteractive should not be auto-enabled in assistant mode")
 		assert.False(t, autoConfirm, "autoConfirm should remain false in assistant mode")
 	})
 
 	t.Run("skipped when already non-interactive", func(t *testing.T) {
-		t.Setenv("SCION_CLI_MODE", "agent")
+		t.Setenv("FABRIC_CLI_MODE", "agent")
 		autoConfirm = false
 		nonInteractive = true
 		outputFormat = ""
 
-		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "scion"}, []string{})
+		_ = rootCmd.PersistentPreRunE(&cobra.Command{Use: "fabric"}, []string{})
 
 		assert.True(t, nonInteractive, "nonInteractive should remain true")
 		assert.True(t, autoConfirm, "autoConfirm should be set by the flag-level check")
@@ -516,8 +516,8 @@ func TestCheckAgentContainerContext(t *testing.T) {
 		name        string
 		hostUID     string
 		hubEndpoint string // flag value
-		hubEnv      string // SCION_HUB_ENDPOINT env var
-		networkMode string // SCION_NETWORK_MODE env var
+		hubEnv      string // FABRIC_HUB_ENDPOINT env var
+		networkMode string // FABRIC_NETWORK_MODE env var
 		cmdName     string
 		expectError bool
 		errContains string
@@ -562,14 +562,14 @@ func TestCheckAgentContainerContext(t *testing.T) {
 		{
 			name:        "in container, remote hub — no error",
 			hostUID:     "1000",
-			hubEnv:      "https://hub.scion.dev",
+			hubEnv:      "https://hub.fabric.dev",
 			cmdName:     "list",
 			expectError: false,
 		},
 		{
 			name:        "in container, remote hub via flag — no error",
 			hostUID:     "1000",
-			hubEndpoint: "https://hub.scion.dev",
+			hubEndpoint: "https://hub.fabric.dev",
 			cmdName:     "list",
 			expectError: false,
 		},
@@ -600,7 +600,7 @@ func TestCheckAgentContainerContext(t *testing.T) {
 		{
 			name:        "in container, root command exempt",
 			hostUID:     "1000",
-			cmdName:     "scion",
+			cmdName:     "fabric",
 			expectError: false,
 		},
 	}
@@ -609,24 +609,24 @@ func TestCheckAgentContainerContext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set env vars
 			if tt.hostUID != "" {
-				t.Setenv("SCION_HOST_UID", tt.hostUID)
+				t.Setenv("FABRIC_HOST_UID", tt.hostUID)
 			} else {
-				t.Setenv("SCION_HOST_UID", "")
-				_ = os.Unsetenv("SCION_HOST_UID")
+				t.Setenv("FABRIC_HOST_UID", "")
+				_ = os.Unsetenv("FABRIC_HOST_UID")
 			}
 			if tt.hubEnv != "" {
-				t.Setenv("SCION_HUB_ENDPOINT", tt.hubEnv)
+				t.Setenv("FABRIC_HUB_ENDPOINT", tt.hubEnv)
 			} else {
-				t.Setenv("SCION_HUB_ENDPOINT", "")
-				_ = os.Unsetenv("SCION_HUB_ENDPOINT")
+				t.Setenv("FABRIC_HUB_ENDPOINT", "")
+				_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
 			}
-			t.Setenv("SCION_HUB_URL", "")
-			_ = os.Unsetenv("SCION_HUB_URL")
+			t.Setenv("FABRIC_HUB_URL", "")
+			_ = os.Unsetenv("FABRIC_HUB_URL")
 			if tt.networkMode != "" {
-				t.Setenv("SCION_NETWORK_MODE", tt.networkMode)
+				t.Setenv("FABRIC_NETWORK_MODE", tt.networkMode)
 			} else {
-				t.Setenv("SCION_NETWORK_MODE", "")
-				_ = os.Unsetenv("SCION_NETWORK_MODE")
+				t.Setenv("FABRIC_NETWORK_MODE", "")
+				_ = os.Unsetenv("FABRIC_NETWORK_MODE")
 			}
 
 			// Set flag
@@ -648,11 +648,11 @@ func TestCheckAgentContainerContext(t *testing.T) {
 }
 
 func TestCheckAgentContainerContextConfigSubcommand(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "1000")
-	t.Setenv("SCION_HUB_ENDPOINT", "")
-	_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-	t.Setenv("SCION_HUB_URL", "")
-	_ = os.Unsetenv("SCION_HUB_URL")
+	t.Setenv("FABRIC_HOST_UID", "1000")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
+	_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+	t.Setenv("FABRIC_HUB_URL", "")
+	_ = os.Unsetenv("FABRIC_HUB_URL")
 
 	origHubEndpoint := hubEndpoint
 	hubEndpoint = ""
@@ -676,7 +676,7 @@ func TestIsLocalEndpoint(t *testing.T) {
 		{"http://127.0.0.1:9810", true},
 		{"http://[::1]:9810", true},
 		{"http://0.0.0.0:9810", true},
-		{"https://hub.demo.scion-ai.dev/", false},
+		{"https://hub.demo.fabric-ai.dev/", false},
 		{"https://example.com", false},
 		{"", false},
 	}

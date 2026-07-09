@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package telemetry
@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 	"go.opentelemetry.io/otel/attribute"
 	otelmetric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/noop"
@@ -270,7 +270,7 @@ func (p *Pipeline) handleSpans(ctx context.Context, resourceSpans []*tracepb.Res
 		log.Debug("Exported %d spans to cloud", spanCount)
 	} else {
 		p.spansDropWarned.Do(func() {
-			log.Error("Received %d spans but cloud exporter is not configured — spans will be dropped. Set SCION_GCP_PROJECT_ID or configure telemetry.cloud", spanCount)
+			log.Error("Received %d spans but cloud exporter is not configured — spans will be dropped. Set FABRIC_GCP_PROJECT_ID or configure telemetry.cloud", spanCount)
 		})
 	}
 
@@ -338,7 +338,7 @@ func (p *Pipeline) handleMetrics(ctx context.Context, resourceMetrics []*metricp
 			}
 		}
 		p.metricsDropWarned.Do(func() {
-			log.Error("Received %d metrics but cloud exporter is not configured — metrics will be dropped. Set SCION_GCP_PROJECT_ID or configure telemetry.cloud", metricCount)
+			log.Error("Received %d metrics but cloud exporter is not configured — metrics will be dropped. Set FABRIC_GCP_PROJECT_ID or configure telemetry.cloud", metricCount)
 		})
 	}
 
@@ -571,7 +571,7 @@ func (p *Pipeline) handleLogs(ctx context.Context, resourceLogs []*logspb.Resour
 		log.Debug("Exported %d log records to cloud", logCount)
 	} else {
 		p.logsDropWarned.Do(func() {
-			log.Error("Received %d log records but cloud exporter is not configured — logs will be dropped. Set SCION_GCP_PROJECT_ID or configure telemetry.cloud", logCount)
+			log.Error("Received %d log records but cloud exporter is not configured — logs will be dropped. Set FABRIC_GCP_PROJECT_ID or configure telemetry.cloud", logCount)
 		})
 	}
 
@@ -594,10 +594,10 @@ func (p *Pipeline) initSelfMetrics(ctx context.Context) {
 		if providers.LoggerProvider != nil {
 			_ = providers.LoggerProvider.Shutdown(ctx)
 		}
-		p.meter = providers.MeterProvider.Meter("github.com/GoogleCloudPlatform/scion/pkg/sciontool/telemetry")
+		p.meter = providers.MeterProvider.Meter("github.com/pdlc-os/fabric/pkg/fabrictool/telemetry")
 	}
 
-	p.exportErrors, err = p.meter.Int64Counter("scion.telemetry.export.errors",
+	p.exportErrors, err = p.meter.Int64Counter("fabric.telemetry.export.errors",
 		otelmetric.WithDescription("Count of telemetry export failures by signal type"),
 		otelmetric.WithUnit("{error}"),
 	)
@@ -608,10 +608,10 @@ func (p *Pipeline) initSelfMetrics(ctx context.Context) {
 	p.startHealthGauge(ctx, providers)
 }
 
-// startHealthGauge registers the scion.telemetry.pipeline.status gauge and
+// startHealthGauge registers the fabric.telemetry.pipeline.status gauge and
 // starts a background ticker that reports value 1 every 60 seconds.
 func (p *Pipeline) startHealthGauge(ctx context.Context, providers *Providers) {
-	gauge, err := p.meter.Int64Gauge("scion.telemetry.pipeline.status",
+	gauge, err := p.meter.Int64Gauge("fabric.telemetry.pipeline.status",
 		otelmetric.WithDescription("Pipeline health status (1=running)"),
 		otelmetric.WithUnit("{status}"),
 	)
@@ -624,8 +624,8 @@ func (p *Pipeline) startHealthGauge(ctx context.Context, providers *Providers) {
 	}
 
 	attrs := otelmetric.WithAttributes(
-		attribute.String("scion.telemetry.provider", p.config.CloudProvider),
-		attribute.String("scion.telemetry.project_id", p.config.ProjectID),
+		attribute.String("fabric.telemetry.provider", p.config.CloudProvider),
+		attribute.String("fabric.telemetry.project_id", p.config.ProjectID),
 	)
 
 	healthCtx, cancel := context.WithCancel(ctx)

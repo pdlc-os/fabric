@@ -7,7 +7,7 @@ description: Set up a GitHub repository as a Hub-managed project and dispatch ag
 
 ## Local Worktrees vs. Hub Clones
 
-Before diving in, it's important to understand the two workspace models Scion offers for git repositories:
+Before diving in, it's important to understand the two workspace models Fabric offers for git repositories:
 
 | | Local Worktrees | Hub Clones (Git Projects) |
 | :--- | :--- | :--- |
@@ -21,13 +21,13 @@ Before diving in, it's important to understand the two workspace models Scion of
 
 **Key takeaway**: When a project is managed by the Hub — whether created from a URL or linked from a local directory — agents always use **HTTPS clone-based provisioning**. Local worktrees are a local-mode feature only. This is intentional: the Hub enforces a consistent workspace strategy across all brokers and users.
 
-For the full technical details on workspace strategies, see [About Workspaces](/scion/local/workspace/).
+For the full technical details on workspace strategies, see [About Workspaces](/fabric/local/workspace/).
 
 ---
 
 ## Prerequisites
 
-- A running Scion Hub that you are connected to (see [Connecting to Hub](/scion/hosted/user/hosted-user/))
+- A running Fabric Hub that you are connected to (see [Connecting to Hub](/fabric/hosted/user/hosted-user/))
 - A GitHub repository (public or private) you want agents to work on
 - A GitHub account with permission to create fine-grained Personal Access Tokens
 
@@ -35,25 +35,25 @@ For the full technical details on workspace strategies, see [About Workspaces](/
 
 ## Step 1: Set Up Authentication
 
-Scion provides two ways to authenticate with GitHub for your projects:
+Fabric provides two ways to authenticate with GitHub for your projects:
 
 1. **GitHub App Integration (Recommended)**: An automated, secure way to provide agents with short-lived installation tokens. If your Hub Administrator has configured this, authentication is automatic.
 2. **Personal Access Tokens (PATs)**: Manual token management using a `GITHUB_TOKEN` secret. Use this if the GitHub App is not configured or for repositories outside its scope.
 
 ### Option A: GitHub App Integration
 
-When creating a project, Scion automatically associates it with the corresponding GitHub App installation. The system maintains a background refresh loop for installation tokens, and the `sciontool` credential helper provides fresh tokens to `git` on-demand inside the agent container. No manual setup is required.
+When creating a project, Fabric automatically associates it with the corresponding GitHub App installation. The system maintains a background refresh loop for installation tokens, and the `fabrictool` credential helper provides fresh tokens to `git` on-demand inside the agent container. No manual setup is required.
 
 ### Option B: Personal Access Tokens
 
-Scion uses a GitHub **fine-grained Personal Access Token (PAT)** to clone repositories over HTTPS inside agent containers. Fine-grained PATs are preferred over classic tokens because they can be scoped to specific repositories.
+Fabric uses a GitHub **fine-grained Personal Access Token (PAT)** to clone repositories over HTTPS inside agent containers. Fine-grained PATs are preferred over classic tokens because they can be scoped to specific repositories.
 
 ### Generate the Token
 
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**.
 2. Click **Generate new token**.
 3. Configure:
-   - **Token name**: Something descriptive, e.g. `scion-agents-acme-backend`
+   - **Token name**: Something descriptive, e.g. `fabric-agents-acme-backend`
    - **Expiration**: Choose an appropriate lifetime
    - **Repository access**: Select **Only select repositories** and pick the repo(s) your agents will work on
    - **Permissions**:
@@ -73,10 +73,10 @@ GitHub only shows the token value once. If you lose it, you'll need to regenerat
 Create a project on the Hub from your repository URL:
 
 ```bash
-scion hub project create https://github.com/acme/backend.git
+fabric hub project create https://github.com/acme/backend.git
 ```
 
-Scion will auto-detect the default branch and derive a slug from the repository name:
+Fabric will auto-detect the default branch and derive a slug from the repository name:
 
 ```
 Project created:
@@ -94,10 +94,10 @@ Project IDs are always randomly generated UUIDs (v4). A git remote is associated
 
 ```bash
 # Specify a branch (useful for long-lived feature branches)
-scion hub project create https://github.com/acme/backend.git --branch develop
+fabric hub project create https://github.com/acme/backend.git --branch develop
 
 # Override the auto-generated slug
-scion hub project create https://github.com/acme/backend.git --slug my-backend
+fabric hub project create https://github.com/acme/backend.git --slug my-backend
 ```
 
 :::note[Multiple projects per remote]
@@ -127,7 +127,7 @@ If you are using the Personal Access Token method, store your PAT as a project-s
 Store the GitHub PAT as a project-scoped secret so that all agents in this project can authenticate:
 
 ```bash
-scion hub secret set --project acme-backend GITHUB_TOKEN github_pat_xxxxxxxx
+fabric hub secret set --project acme-backend GITHUB_TOKEN github_pat_xxxxxxxx
 ```
 
 Secrets are **write-only** — the value is encrypted and can never be read back via the CLI or API. It is only decrypted at runtime and injected into the agent container as an environment variable.
@@ -138,10 +138,10 @@ You can also set `GITHUB_TOKEN` at the **user scope** if your token covers multi
 
 ```bash
 # User-scoped: available to all your agents across all projects
-scion hub secret set GITHUB_TOKEN github_pat_xxxxxxxx
+fabric hub secret set GITHUB_TOKEN github_pat_xxxxxxxx
 ```
 
-Project-scoped secrets take priority over user-scoped ones (see [Secret Management](/scion/hosted/user/secrets/) for the full resolution hierarchy).
+Project-scoped secrets take priority over user-scoped ones (see [Secret Management](/fabric/hosted/user/secrets/) for the full resolution hierarchy).
 
 ### Web Dashboard Alternative
 
@@ -157,7 +157,7 @@ You can also upload secrets through the Web Dashboard:
 With the project and token in place, start an agent targeting the project:
 
 ```bash
-scion start my-agent --project acme-backend "add input validation to the /users endpoint"
+fabric start my-agent --project acme-backend "add input validation to the /users endpoint"
 ```
 
 You'll see the agent go through the clone-based startup:
@@ -174,8 +174,8 @@ Agent 'my-agent' starting on broker 'us-west-01'...
 
 ### What happens inside the container
 
-1. The workspace is provisioned using a `git init` + `git fetch` strategy, which can handle workspaces that already contain `.scion` metadata or `.scion-volumes` directories
-2. A feature branch `scion/my-agent` is created and checked out
+1. The workspace is provisioned using a `git init` + `git fetch` strategy, which can handle workspaces that already contain `.fabric` metadata or `.fabric-volumes` directories
+2. A feature branch `fabric/my-agent` is created and checked out
 3. Git identity is configured automatically
 4. The agent's harness (Claude, Gemini, etc.) starts with the task prompt
 
@@ -185,12 +185,12 @@ Hub-linked projects use a robust `git init` + `git fetch` approach rather than a
 
 ### Running multiple agents
 
-Each agent gets its own clone and its own `scion/<agent-name>` branch, so you can run several in parallel on the same project:
+Each agent gets its own clone and its own `fabric/<agent-name>` branch, so you can run several in parallel on the same project:
 
 ```bash
-scion start agent-auth    --project acme-backend "add OAuth2 support"
-scion start agent-tests   --project acme-backend "increase test coverage for pkg/api"
-scion start agent-docs    --project acme-backend "update the API documentation"
+fabric start agent-auth    --project acme-backend "add OAuth2 support"
+fabric start agent-tests   --project acme-backend "increase test coverage for pkg/api"
+fabric start agent-docs    --project acme-backend "update the API documentation"
 ```
 
 ---
@@ -200,7 +200,7 @@ scion start agent-docs    --project acme-backend "update the API documentation"
 ### Check agent status
 
 ```bash
-scion list --project acme-backend
+fabric list --project acme-backend
 ```
 
 ### Attach to an agent
@@ -208,7 +208,7 @@ scion list --project acme-backend
 If an agent is waiting for input or you want to observe it:
 
 ```bash
-scion attach my-agent --project acme-backend
+fabric attach my-agent --project acme-backend
 ```
 
 ### Retrieve the code
@@ -216,8 +216,8 @@ scion attach my-agent --project acme-backend
 Since agents push their branches to the remote, you can pull their work from any machine:
 
 ```bash
-git fetch origin scion/my-agent
-git log origin/scion/my-agent
+git fetch origin fabric/my-agent
+git log origin/fabric/my-agent
 ```
 
 Or create a Pull Request directly from the branch on GitHub.
@@ -226,7 +226,7 @@ Or create a Pull Request directly from the branch on GitHub.
 
 ## Linked Projects: When Local Becomes Remote
 
-If you already have a local checkout linked to the Hub via `scion hub link`, be aware that **the workspace strategy changes**. Once linked, even if the broker machine has the repository on disk, agents use clone-based provisioning — not local worktrees.
+If you already have a local checkout linked to the Hub via `fabric hub link`, be aware that **the workspace strategy changes**. Once linked, even if the broker machine has the repository on disk, agents use clone-based provisioning — not local worktrees.
 
 This means you need a `GITHUB_TOKEN` secret set on the project, just like a project created from a URL.
 
@@ -234,10 +234,10 @@ To temporarily fall back to local worktree mode:
 
 ```bash
 # Disable hub for a single command
-scion start my-agent --no-hub "quick local fix"
+fabric start my-agent --no-hub "quick local fix"
 
 # Or disable hub integration entirely
-scion hub disable
+fabric hub disable
 ```
 
 ---
@@ -248,7 +248,7 @@ scion hub disable
 
 - Verify a `GITHUB_TOKEN` is set on the project or at user scope:
   ```bash
-  scion hub secret get --project acme-backend
+  fabric hub secret get --project acme-backend
   ```
 - Ensure the token has **Contents: Read** permission at minimum.
 - Check that the token has not expired.
@@ -259,7 +259,7 @@ scion hub disable
 Use the `--branch` flag when creating the project to set the default:
 
 ```bash
-scion hub project create https://github.com/acme/backend.git --branch develop
+fabric hub project create https://github.com/acme/backend.git --branch develop
 ```
 
 ### Agent needs full git history

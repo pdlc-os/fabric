@@ -16,22 +16,22 @@
 set -e
 
 # Build the binary
-echo "Building scion..."
-go build -buildvcs=false -o scion ./cmd/scion
+echo "Building fabric..."
+go build -buildvcs=false -o fabric ./cmd/fabric
 
 # Check if binary exists
-if [ ! -f ./scion ]; then
-    echo "Build failed, ./scion not found"
+if [ ! -f ./fabric ]; then
+    echo "Build failed, ./fabric not found"
     exit 1
 fi
 
 # Run help
-echo "Running scion --help..."
-./scion --help
+echo "Running fabric --help..."
+./fabric --help
 
 # Run version (if available, assuming 'version' or similar command exists, 
 # but help is guaranteed by Cobra usually)
-# ./scion version
+# ./fabric version
 
 echo "Smoke test passed!"
-rm ./scion
+rm ./fabric

@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/harness"
 )
 
 func TestSerializeSecrets(t *testing.T) {
@@ -44,7 +44,7 @@ func TestSerializeSecrets(t *testing.T) {
 		{
 			Name:   "SSH_KEY",
 			Type:   "file",
-			Target: "/home/scion/.ssh/id_rsa",
+			Target: "/home/fabric/.ssh/id_rsa",
 			Value:  "raw-value-not-base64",
 			Source: "project",
 		},
@@ -64,7 +64,7 @@ func TestSerializeSecrets(t *testing.T) {
 		},
 	}
 
-	encoded, err := serializeSecrets("/home/scion", secrets)
+	encoded, err := serializeSecrets("/home/fabric", secrets)
 	if err != nil {
 		t.Fatalf("serializeSecrets failed: %v", err)
 	}
@@ -87,8 +87,8 @@ func TestSerializeSecrets(t *testing.T) {
 	if staged.FileSecrets[0].Target != "/etc/ssl/cert.pem" {
 		t.Errorf("expected target /etc/ssl/cert.pem, got %s", staged.FileSecrets[0].Target)
 	}
-	if staged.FileSecrets[1].Target != "/home/scion/.ssh/id_rsa" {
-		t.Errorf("expected target /home/scion/.ssh/id_rsa, got %s", staged.FileSecrets[1].Target)
+	if staged.FileSecrets[1].Target != "/home/fabric/.ssh/id_rsa" {
+		t.Errorf("expected target /home/fabric/.ssh/id_rsa, got %s", staged.FileSecrets[1].Target)
 	}
 
 	// Verify base64-encoded values are decodable
@@ -126,7 +126,7 @@ func TestSerializeSecrets_NoFileOrVariableSecrets(t *testing.T) {
 		{Name: "KEY", Type: "environment", Target: "KEY", Value: "val"},
 	}
 
-	encoded, err := serializeSecrets("/home/scion", secrets)
+	encoded, err := serializeSecrets("/home/fabric", secrets)
 	if err != nil {
 		t.Fatalf("serializeSecrets failed: %v", err)
 	}
@@ -177,7 +177,7 @@ func TestSerializeSecrets_DuplicateTargetKeepsLater(t *testing.T) {
 		{Name: "CERT_V2", Type: "file", Target: "/etc/cert.pem", Value: base64.StdEncoding.EncodeToString([]byte("v2")), Source: "project"},
 	}
 
-	encoded, err := serializeSecrets("/home/scion", secrets)
+	encoded, err := serializeSecrets("/home/fabric", secrets)
 	if err != nil {
 		t.Fatalf("serializeSecrets failed: %v", err)
 	}
@@ -268,7 +268,7 @@ func TestWriteStagedSecrets_VariableSecrets(t *testing.T) {
 	}
 
 	// Verify secrets.json was written
-	data, err := os.ReadFile(filepath.Join(homeDir, ".scion", "secrets.json"))
+	data, err := os.ReadFile(filepath.Join(homeDir, ".fabric", "secrets.json"))
 	if err != nil {
 		t.Fatalf("failed to read secrets.json: %v", err)
 	}
@@ -289,7 +289,7 @@ func TestWriteStagedSecrets_VariableSecrets(t *testing.T) {
 	}
 
 	// Verify file permissions
-	info, err := os.Stat(filepath.Join(homeDir, ".scion", "secrets.json"))
+	info, err := os.Stat(filepath.Join(homeDir, ".fabric", "secrets.json"))
 	if err != nil {
 		t.Fatalf("failed to stat secrets.json: %v", err)
 	}
@@ -308,7 +308,7 @@ func TestWriteStagedSecrets_NoVariables(t *testing.T) {
 	}
 
 	// secrets.json should NOT be created when there are no variable secrets
-	if _, err := os.Stat(filepath.Join(homeDir, ".scion", "secrets.json")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(homeDir, ".fabric", "secrets.json")); !os.IsNotExist(err) {
 		t.Error("expected secrets.json to not be created when no variable secrets exist")
 	}
 }
@@ -381,7 +381,7 @@ func TestSerializeAndWriteRoundTrip(t *testing.T) {
 	}
 
 	// Verify variable secret
-	data, err := os.ReadFile(filepath.Join(homeDir, ".scion", "secrets.json"))
+	data, err := os.ReadFile(filepath.Join(homeDir, ".fabric", "secrets.json"))
 	if err != nil {
 		t.Fatalf("failed to read secrets.json: %v", err)
 	}
@@ -401,7 +401,7 @@ func TestExpandTildeTarget(t *testing.T) {
 		expected      string
 	}{
 		{"~/.ssh/id_rsa", "/home/gemini", "/home/gemini/.ssh/id_rsa"},
-		{"~/config.json", "/home/scion", "/home/scion/config.json"},
+		{"~/config.json", "/home/fabric", "/home/fabric/config.json"},
 		{"/etc/ssl/cert.pem", "/home/gemini", "/etc/ssl/cert.pem"},
 		{"~", "/home/gemini", "~"}, // bare ~ without / is not expanded
 	}
@@ -416,10 +416,10 @@ func TestExpandTildeTarget(t *testing.T) {
 func TestFindGCPTelemetryCredentialPath_Present(t *testing.T) {
 	secrets := []api.ResolvedSecret{
 		{Name: "other-secret", Type: "file", Target: "/etc/other", Value: "data"},
-		{Name: "scion-telemetry-gcp-credentials", Type: "file", Target: "/etc/gcp/sa.json", Value: "key-data"},
+		{Name: "fabric-telemetry-gcp-credentials", Type: "file", Target: "/etc/gcp/sa.json", Value: "key-data"},
 	}
 
-	got := findGCPTelemetryCredentialPath(secrets, "/home/scion")
+	got := findGCPTelemetryCredentialPath(secrets, "/home/fabric")
 	want := "/etc/gcp/sa.json"
 	if got != want {
 		t.Errorf("findGCPTelemetryCredentialPath() = %q, want %q", got, want)
@@ -431,7 +431,7 @@ func TestFindGCPTelemetryCredentialPath_Absent(t *testing.T) {
 		{Name: "other-secret", Type: "file", Target: "/etc/other", Value: "data"},
 	}
 
-	got := findGCPTelemetryCredentialPath(secrets, "/home/scion")
+	got := findGCPTelemetryCredentialPath(secrets, "/home/fabric")
 	if got != "" {
 		t.Errorf("findGCPTelemetryCredentialPath() = %q, want empty string", got)
 	}
@@ -439,10 +439,10 @@ func TestFindGCPTelemetryCredentialPath_Absent(t *testing.T) {
 
 func TestFindGCPTelemetryCredentialPath_WrongType(t *testing.T) {
 	secrets := []api.ResolvedSecret{
-		{Name: "scion-telemetry-gcp-credentials", Type: "environment", Target: "GCP_CREDS", Value: "key-data"},
+		{Name: "fabric-telemetry-gcp-credentials", Type: "environment", Target: "GCP_CREDS", Value: "key-data"},
 	}
 
-	got := findGCPTelemetryCredentialPath(secrets, "/home/scion")
+	got := findGCPTelemetryCredentialPath(secrets, "/home/fabric")
 	if got != "" {
 		t.Errorf("findGCPTelemetryCredentialPath() = %q, want empty string for environment type", got)
 	}
@@ -450,7 +450,7 @@ func TestFindGCPTelemetryCredentialPath_WrongType(t *testing.T) {
 
 func TestFindGCPTelemetryCredentialPath_TildeExpansion(t *testing.T) {
 	secrets := []api.ResolvedSecret{
-		{Name: "scion-telemetry-gcp-credentials", Type: "file", Target: "~/.config/gcp/sa.json", Value: "key-data"},
+		{Name: "fabric-telemetry-gcp-credentials", Type: "file", Target: "~/.config/gcp/sa.json", Value: "key-data"},
 	}
 
 	got := findGCPTelemetryCredentialPath(secrets, "/home/gemini")
@@ -517,7 +517,7 @@ func TestInsertVolumeFlags(t *testing.T) {
 func TestInsertVolumeFlags_SecretMountsBeforeImage(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Image:        "test-image:latest",
 		Harness:      harness.New("gemini"),
 	}
@@ -562,7 +562,7 @@ func TestBuildCommonRunArgs_EnvironmentSecrets(t *testing.T) {
 
 	config := RunConfig{
 		Name:            "test-agent",
-		UnixUsername:    "scion",
+		UnixUsername:    "fabric",
 		Image:           "test:latest",
 		Harness:         harness.New("gemini"),
 		ResolvedSecrets: secrets,

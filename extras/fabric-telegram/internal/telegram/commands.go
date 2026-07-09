@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // AgentInfo holds an agent's slug and current activity state.
@@ -33,7 +33,7 @@ type AgentInfo struct {
 	Activity string `json:"activity,omitempty"`
 }
 
-// HubClient provides access to the Scion hub API for project and agent listing.
+// HubClient provides access to the Fabric hub API for project and agent listing.
 type HubClient interface {
 	ListProjects(ctx context.Context) ([]ProjectOption, error)
 	ListProjectsFresh(ctx context.Context) ([]ProjectOption, error)
@@ -154,13 +154,13 @@ func (h *CommandHandler) handleSetup(msg *TGMessage) {
 		if mapErr != nil {
 			h.log.Warn("Failed to check user mapping for /setup filtering", "error", mapErr)
 		}
-		if mapping != nil && mapping.ScionUserID != "" {
-			userProjects, userErr := h.hubClient.ListProjectsForUser(ctx, mapping.ScionUserID)
+		if mapping != nil && mapping.FabricUserID != "" {
+			userProjects, userErr := h.hubClient.ListProjectsForUser(ctx, mapping.FabricUserID)
 			if userErr != nil {
 				h.log.Warn("Failed to list user projects, falling back to all", "error", userErr)
 			} else if len(userProjects) > 0 {
 				projects = userProjects
-				h.log.Debug("Using user-filtered project list for /setup", "user_id", mapping.ScionUserID, "count", len(projects))
+				h.log.Debug("Using user-filtered project list for /setup", "user_id", mapping.FabricUserID, "count", len(projects))
 			}
 		}
 	}
@@ -340,12 +340,12 @@ func (h *CommandHandler) handleHelp(msg *TGMessage) {
 			"Send /help in a DM to the bot for account management commands.")
 	} else {
 		h.reply(chatID, "Available commands (DM):\n"+
-			"/register — Link your Telegram account to your scion hub identity\n"+
+			"/register — Link your Telegram account to your fabric hub identity\n"+
 			"/unregister — Remove your Telegram account link\n"+
 			"/status — Show linked groups and registration status\n"+
 			"/notifications — Manage per-agent notification subscriptions\n"+
 			"/help — Show this help message\n\n"+
-			"Add me to a group and use /setup there to link it to a scion project.")
+			"Add me to a group and use /setup there to link it to a fabric project.")
 	}
 }
 
@@ -408,10 +408,10 @@ func (h *CommandHandler) handleStatus(msg *TGMessage) {
 	if msg.From != nil {
 		senderID := strconv.FormatInt(msg.From.ID, 10)
 		if m, _ := h.store.GetUserMapping(ctx, senderID); m != nil {
-			if m.ScionEmail != "" {
-				regStatus = "Registered as " + m.ScionEmail
-			} else if m.ScionUserID != "" {
-				regStatus = "Registered (user ID: " + m.ScionUserID + ")"
+			if m.FabricEmail != "" {
+				regStatus = "Registered as " + m.FabricEmail
+			} else if m.FabricUserID != "" {
+				regStatus = "Registered (user ID: " + m.FabricUserID + ")"
 			}
 		}
 	}
@@ -608,7 +608,7 @@ func isGroupChat(chatID int64) bool { return chatID < 0 }
 
 // --- httpHubClient ---
 
-// httpHubClient implements HubClient using HTTP calls to the Scion hub API.
+// httpHubClient implements HubClient using HTTP calls to the Fabric hub API.
 type httpHubClient struct {
 	hubURL     string
 	hmacKey    string
@@ -616,7 +616,7 @@ type httpHubClient struct {
 	httpClient *http.Client
 }
 
-// NewHTTPHubClient creates a new HubClient that calls the Scion hub API.
+// NewHTTPHubClient creates a new HubClient that calls the Fabric hub API.
 func NewHTTPHubClient(hubURL, hmacKey, brokerID string) HubClient {
 	return &httpHubClient{
 		hubURL:     hubURL,

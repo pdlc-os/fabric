@@ -23,8 +23,8 @@ import (
 )
 
 func TestExecAsUserCmd_Shape(t *testing.T) {
-	user := "scion"
-	cmd := "tmux has-session -t scion"
+	user := "fabric"
+	cmd := "tmux has-session -t fabric"
 	got := ExecAsUserCmd(user, cmd)
 
 	// The vector is [sh, -c, <script>, "exec-as-user", <user>, <cmd>].
@@ -70,8 +70,8 @@ func TestExecAsUserCmd_PreservesShellQuoting(t *testing.T) {
 	// (`'#{window_name}'`) — they must survive the helper untouched
 	// because cmd is passed verbatim as a positional shell argument
 	// rather than interpolated through any quoting layer.
-	cmd := `tmux display-message -t scion -p '#{window_name}'`
-	got := ExecAsUserCmd("scion", cmd)
+	cmd := `tmux display-message -t fabric -p '#{window_name}'`
+	got := ExecAsUserCmd("fabric", cmd)
 	if got[5] != cmd {
 		t.Errorf("expected cmd to be passed verbatim as got[5], got %q want %q", got[5], cmd)
 	}
@@ -138,7 +138,7 @@ func TestExecAsUserCmd_RuntimeWhoamiBranch(t *testing.T) {
 // the inner shell does the parsing.
 //
 // The two PTY attach call sites in pty_handlers.go pass
-// "TERM=xterm-256color tmux attach-session -t scion", so this
+// "TERM=xterm-256color tmux attach-session -t fabric", so this
 // test prevents regressions there.
 func TestExecAsUserCmd_EnvPrefixedCmd(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -243,10 +243,10 @@ func TestValidExecUserName(t *testing.T) {
 		in   string
 		want bool
 	}{
-		{name: "scion accepted", in: "scion", want: true},
+		{name: "fabric accepted", in: "fabric", want: true},
 		{name: "alphanumeric with hyphen and underscore accepted", in: "agent-1_x", want: true},
 		{name: "empty rejected", in: "", want: false},
-		{name: "shell metachar rejected", in: "scion;rm -rf /", want: false},
+		{name: "shell metachar rejected", in: "fabric;rm -rf /", want: false},
 		{name: "command substitution rejected", in: "$(whoami)", want: false},
 		{name: "embedded space rejected", in: "two words", want: false},
 	}

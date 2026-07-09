@@ -19,7 +19,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // AllowListService handles allow list operations.

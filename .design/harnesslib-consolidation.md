@@ -1,7 +1,7 @@
-# Harness Provisioner Consolidation: `scion_harness.py` as a Real Library
+# Harness Provisioner Consolidation: `fabric_harness.py` as a Real Library
 
 Status: IMPLEMENTED — all work packages (WP-0 through WP-5) landed on
-branch `scion/harnesslib-refactor`. See commit log for per-WP details.
+branch `fabric/harnesslib-refactor`. See commit log for per-WP details.
 Author: fable-arch agent
 Date: 2026-07-05
 Baseline: main @ 83128b8
@@ -11,9 +11,9 @@ Baseline: main @ 83128b8
 Seven harness bundles (`harnesses/{antigravity,claude,codex,copilot,gemini-cli,hermes,opencode}`)
 each ship a `provision.py` (358–928 lines) and a `capture_auth.py` (~179 lines),
 all stdlib-only, run inside the container by
-`sciontool harness provision --manifest ~/.scion/harness/manifest.json`.
+`fabrictool harness provision --manifest ~/.fabric/harness/manifest.json`.
 
-A shared helper **already exists**: `pkg/harness/embeds/scion_harness.py`
+A shared helper **already exists**: `pkg/harness/embeds/fabric_harness.py`
 (214 lines). The Go host (`ContainerScriptHarness.Provision` →
 `writeSharedHarnessHelper`) stages it next to `provision.py` in the bundle at
 provision time, and every provision.py does:
@@ -21,9 +21,9 @@ provision time, and every provision.py does:
 ```python
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
-    import scion_harness
+    import fabric_harness
 except ImportError:
-    scion_harness = None   # + inline fallback code paths
+    fabric_harness = None   # + inline fallback code paths
 ```
 
 So the injection mechanism the refactor needs is already in place — the
@@ -54,9 +54,9 @@ Divergences found that look accidental rather than intentional:
 | Secret trailing-whitespace | claude: `.strip()`; codex/opencode/hermes: `rstrip("\r\n")`; copilot/antigravity additionally fall back to `os.environ` |
 | No-auth gate | claude/gemini/codex/opencode/antigravity: `if not candidates`; hermes: `if not env_keys`; copilot: `if not env_keys` **plus** a fallback-to-none on `ValueError` |
 | env.json secret policy | claude/gemini write `${VAR}` placeholders; copilot/hermes/opencode write **raw secret values** into env.json |
-| Managed-block markers | codex/hermes: `<!-- BEGIN SCION MANAGED <NAME> INSTRUCTIONS -->`; copilot: `<!-- SCION_MANAGED_BEGIN -->` with different merge semantics; antigravity: plain `shutil.copy2`, no managed block at all |
+| Managed-block markers | codex/hermes: `<!-- BEGIN FABRIC MANAGED <NAME> INSTRUCTIONS -->`; copilot: `<!-- FABRIC_MANAGED_BEGIN -->` with different merge semantics; antigravity: plain `shutil.copy2`, no managed block at all |
 | Instruction projection | codex and hermes contain ~120 identical lines; copilot a third divergent implementation |
-| Workspace resolution | claude/gemini: manifest `agent_workspace`; copilot: `SCION_WORKSPACE` env in one function and `SCION_AGENT_WORKSPACE` in another (likely a bug) |
+| Workspace resolution | claude/gemini: manifest `agent_workspace`; copilot: `FABRIC_WORKSPACE` env in one function and `FABRIC_AGENT_WORKSPACE` in another (likely a bug) |
 | resolved-auth.json keys | ad-hoc per harness (`auth_file_written`, `vertex_ai`, `vertex_project_env`, …) |
 
 Each of these is a place where a bug fixed in one harness silently stays broken
@@ -64,7 +64,7 @@ in the other six.
 
 ### 2.3 The optional-import anti-pattern
 
-Every script guards `import scion_harness` with try/except and carries an
+Every script guards `import fabric_harness` with try/except and carries an
 inline fallback (`_read_mcp_servers_inline`, inline MCP merge in claude). But
 the host **always** stages the lib; an ImportError means the staging contract
 was violated and should be a loud provisioning failure, not a silent switch to
@@ -86,7 +86,7 @@ file re-invents its own fixtures.
 
 ### 2.6 Version skew is unmanaged
 
-`scion_harness.py` ships with the **scion binary** (Go embed), while
+`fabric_harness.py` ships with the **fabric binary** (Go embed), while
 `provision.py` ships with the **installed harness-config** (which may have
 been installed from an older bundle or directly from GitHub main). Today the
 lib surface is small enough that skew is harmless; as soon as it becomes a
@@ -97,7 +97,7 @@ feature-detection convention.
 
 ## 3. Proposal
 
-### 3.1 One library, injected — grow `scion_harness.py` into the real API
+### 3.1 One library, injected — grow `fabric_harness.py` into the real API
 
 Keep a **single source file** (stdlib-only, one file, no package). Grow it
 from 214 lines into a layered toolkit, so a provision.py shrinks to only
@@ -105,7 +105,7 @@ harness-native logic:
 
 ```python
 # provision.py after refactor (shape)
-import scion_harness as sh
+import fabric_harness as sh
 
 AUTH = sh.AuthSpec(
     harness="claude",
@@ -178,7 +178,7 @@ code, no silently-diverging fallbacks.
   in config.yaml so the Go host can refuse/warn on mismatch.
 - provision.py asserts once at import:
   `assert sh.INTERFACE_VERSION >= 2`, producing an actionable error
-  ("scion binary too old for this harness bundle — upgrade scion or reinstall
+  ("fabric binary too old for this harness bundle — upgrade fabric or reinstall
   the bundle").
 - Host writes the staged lib version into `manifest.json` for diagnostics.
 
@@ -186,28 +186,28 @@ code, no silently-diverging fallbacks.
 
 Decision (2026-07-05): bundles must be **self-contained at the directory
 level**, because (a) a harness can be installed from a direct URL to its
-subdirectory (e.g. `github.com/GoogleCloudPlatform/scion/tree/main/harnesses/codex`)
+subdirectory (e.g. `github.com/pdlc-os/fabric/tree/main/harnesses/codex`)
 and (b) third-party harness implementations in external repos (e.g.
-`ptone/cogo`) copy `scion_harness.py` into their own tree. So the model is
+`ptone/cogo`) copy `fabric_harness.py` into their own tree. So the model is
 **vendored copies, generated from one canonical source**:
 
-- **Canonical source:** `harnesses/scion_harness.py` (moved from
+- **Canonical source:** `harnesses/fabric_harness.py` (moved from
   `pkg/harness/embeds/`). This is the only file humans edit; it carries the
   unit tests, `INTERFACE_VERSION`, and a `LIB_VERSION` (date-stamped) marker.
-- **Vendored copies:** `harnesses/<name>/scion_harness.py`, one per bundle,
+- **Vendored copies:** `harnesses/<name>/fabric_harness.py`, one per bundle,
   regenerated by a `go generate` / make target that byte-copies the canonical
-  file (plus a `# GENERATED — do not edit; source: harnesses/scion_harness.py`
+  file (plus a `# GENERATED — do not edit; source: harnesses/fabric_harness.py`
   header).
 - **Drift gate:** a Go test (files are already embedded via `harnesses/embed.go`)
   asserts every vendored copy is byte-identical to the canonical source.
   A stale copy fails CI; the fix is re-running the generator.
 - **Staging precedence in the host:** if the installed harness-config dir
-  contains `scion_harness.py`, stage *that* copy (bundle wins — preserves
+  contains `fabric_harness.py`, stage *that* copy (bundle wins — preserves
   self-containment and deterministic third-party behavior); otherwise fall
   back to the binary-embedded copy (legacy installs keep working).
 - **Third-party contract:** external harnesses pin whatever copy they vendored.
   The additive-only policy within an `INTERFACE_VERSION` (§3.3) is what makes
-  an old vendored lib safe to run under a newer scion binary — the binary
+  an old vendored lib safe to run under a newer fabric binary — the binary
   never *imports* the lib, it only stages and executes the bundle as a unit,
   so the only hard compatibility surface is the manifest/inputs/outputs file
   contract, which is versioned by `provisioner.interface_version` in
@@ -276,14 +276,14 @@ applies it (no other WP may change these behaviors):
    plus copilot's graceful fallback-on-ValueError **as an opt-in flag**
    (`fallback_to_none_on_error`) in the AuthSpec (a real requirement for
    hub-registered configs). Lib behavior in WP-1; per-harness in WP-3x.
-4. Managed-block markers: one marker pair, `<!-- BEGIN SCION MANAGED -->` /
-   `<!-- END SCION MANAGED -->`, with the lib accepting legacy variants when
-   stripping (`<!-- BEGIN SCION MANAGED CODEX INSTRUCTIONS -->`,
-   `<!-- BEGIN SCION MANAGED HERMES INSTRUCTIONS -->`,
-   `<!-- SCION_MANAGED_BEGIN -->`) so reprovision of existing agents stays
+4. Managed-block markers: one marker pair, `<!-- BEGIN FABRIC MANAGED -->` /
+   `<!-- END FABRIC MANAGED -->`, with the lib accepting legacy variants when
+   stripping (`<!-- BEGIN FABRIC MANAGED CODEX INSTRUCTIONS -->`,
+   `<!-- BEGIN FABRIC MANAGED HERMES INSTRUCTIONS -->`,
+   `<!-- FABRIC_MANAGED_BEGIN -->`) so reprovision of existing agents stays
    clean. Lib in WP-1; adopted in WP-3d/e/f.
 5. Workspace: manifest `agent_workspace` is the single source; env fallback
-   removed (fixes copilot's SCION_WORKSPACE/SCION_AGENT_WORKSPACE split).
+   removed (fixes copilot's FABRIC_WORKSPACE/FABRIC_AGENT_WORKSPACE split).
    Lands in WP-3e.
 
 ## 5. Implementation work packages
@@ -298,18 +298,18 @@ conversation — this document plus the repo is the full input.
 
 - Harness bundles live in `harnesses/<name>/` (antigravity, claude, codex,
   copilot, gemini-cli, hermes, opencode). Each has `config.yaml`,
-  `provision.py`, `capture_auth.py`, and is embedded into the scion binary via
+  `provision.py`, `capture_auth.py`, and is embedded into the fabric binary via
   `harnesses/embed.go`.
 - At agent start, the Go host (`pkg/harness/container_script_harness.go`)
-  stages the bundle into the container at `$HOME/.scion/harness/` — including
-  `provision.py`, `config.yaml`, the shared helper `scion_harness.py`
-  (currently from `pkg/harness/embeds/scion_harness.py` via
-  `pkg/harness/scion_harness_embed.go`), a `manifest.json`, and inputs
+  stages the bundle into the container at `$HOME/.fabric/harness/` — including
+  `provision.py`, `config.yaml`, the shared helper `fabric_harness.py`
+  (currently from `pkg/harness/embeds/fabric_harness.py` via
+  `pkg/harness/fabric_harness_embed.go`), a `manifest.json`, and inputs
   (`inputs/auth-candidates.json`, `inputs/mcp-servers.json`,
   `inputs/telemetry.json`, `inputs/instructions.md`,
   `inputs/system-prompt.md`, `inputs/capture-auth-config.json`) and staged
   secrets under `secrets/<NAME>`.
-- The container runs `python3 $HOME/.scion/harness/provision.py --manifest
+- The container runs `python3 $HOME/.fabric/harness/provision.py --manifest
   .../manifest.json`. The script writes `outputs/resolved-auth.json` and
   `outputs/env.json`. Exit codes: 0 ok, 1 error, 2 unsupported command.
 - Scripts must remain **Python 3 stdlib-only, single-file** — they run in
@@ -361,12 +361,12 @@ annotated. No production code changed.
 
 ### WP-1 — Grow the canonical library
 
-**Goal:** expand `pkg/harness/embeds/scion_harness.py` (keep this path for
+**Goal:** expand `pkg/harness/embeds/fabric_harness.py` (keep this path for
 now; WP-2 moves it) from 214 lines of helpers into the full API of §3.1,
 purely additively, with stdlib-only unit tests.
 
 **Steps:**
-1. Add to `scion_harness.py` (single file, stdlib-only, `from __future__
+1. Add to `fabric_harness.py` (single file, stdlib-only, `from __future__
    import annotations`):
    - `INTERFACE_VERSION = 2`, `LIB_VERSION = "<YYYY-MM-DD>"`.
    - `run(harness_name, provision_fn)` — argparse (`--manifest`), manifest
@@ -406,14 +406,14 @@ purely additively, with stdlib-only unit tests.
    - `read_json_skipping_comment_lines(path)` (copilot config.json).
    - `capture_auth_main(argv=None)` — port of the (identical) capture_auth
      logic, exit codes 0/1/2/3 preserved.
-2. Unit tests in `pkg/harness/embeds/scion_harness_test.py` (plain
+2. Unit tests in `pkg/harness/embeds/fabric_harness_test.py` (plain
    `unittest`, no third-party deps), table-driven over the auth engine
    (explicit/precedence/no-auth/errors), outputs writer, projection
    (compose + strip + legacy markers + unclosed-marker guard), TOML strip,
    secret whitespace policy.
 3. Wire the Python unit tests into CI via a small Go test that shells out to
    `python3 -m unittest` (skip when python3 absent), e.g. in
-   `pkg/harness/scion_harness_embed_test.go`.
+   `pkg/harness/fabric_harness_embed_test.go`.
 
 **Constraints:** additive only — existing functions keep exact signatures and
 behavior; no harness `provision.py` is modified; WP-0 goldens (if already
@@ -424,37 +424,37 @@ merged) stay green.
 
 ### WP-2 — Vendoring infrastructure + declared lib mode
 
-**Goal:** implement §3.4: canonical file at `harnesses/scion_harness.py`,
+**Goal:** implement §3.4: canonical file at `harnesses/fabric_harness.py`,
 generated per-bundle copies, drift gate, and the explicit
 `provisioner.lib: vendored | injected` staging behavior.
 
 **Steps:**
-1. `git mv pkg/harness/embeds/scion_harness.py harnesses/scion_harness.py`
+1. `git mv pkg/harness/embeds/fabric_harness.py harnesses/fabric_harness.py`
    (and its unit test alongside); point
-   `pkg/harness/scion_harness_embed.go`'s embed at the new location (embed
+   `pkg/harness/fabric_harness_embed.go`'s embed at the new location (embed
    directives can't reference parent dirs — either move the embed var into
    package `harnesses` next to `harnesses/embed.go` and reference it from
    `pkg/harness`, or add a tiny embed shim package; keep
    `writeSharedHarnessHelper`'s behavior identical).
 2. Generator: `go run ./harnesses/gen` (or a Makefile target invoked the
    same way CI does) that copies the canonical file into each
-   `harnesses/<name>/scion_harness.py`, prepending
-   `# GENERATED FILE — DO NOT EDIT. Source: harnesses/scion_harness.py`.
+   `harnesses/<name>/fabric_harness.py`, prepending
+   `# GENERATED FILE — DO NOT EDIT. Source: harnesses/fabric_harness.py`.
    Commit the generated copies.
 3. Drift-gate test (Go, e.g. `harnesses/vendored_lib_test.go`): every
-   `harnesses/*/scion_harness.py` == canonical + header, byte-exact.
+   `harnesses/*/fabric_harness.py` == canonical + header, byte-exact.
 4. config.yaml schema: add `provisioner.lib` (`vendored` | `injected`;
    absent → `injected`) in `pkg/config` (see `settings_v1.go` and wherever
    `provisioner.*` is parsed). Set `lib: vendored` in all 7 bundle
    config.yaml files.
 5. Staging precedence in `ContainerScriptHarness.Provision`:
-   - `vendored`: stage `<config_dir>/scion_harness.py`; if missing → hard
+   - `vendored`: stage `<config_dir>/fabric_harness.py`; if missing → hard
      provisioning error naming the file and the `provisioner.lib` setting.
    - `injected` (or absent): stage the binary-embedded copy (today's
      behavior, unchanged).
    - Both: log staged source + `LIB_VERSION` (parse the
      `LIB_VERSION = "..."` line) at info level.
-6. Ensure `scion harness-config install` copies `scion_harness.py` as part
+6. Ensure `fabric harness-config install` copies `fabric_harness.py` as part
    of the bundle dir (verify against `pkg/harness/bundle_install*.go`; it
    should already, since it copies the directory — add a test).
 
@@ -472,8 +472,8 @@ Common contract for every WP-3x:
   (`_expand`, `_load_json`, `_write_json`, `_present_env_keys`,
   `_present_file_paths`, `_env_secret_files`, `_file_secret_files`,
   `_read_secret`, `_read_mcp_servers_inline`, inline MCP merges, the
-  argparse/`main`/`_dispatch` scaffold). Import `scion_harness` directly;
-  add `assert scion_harness.INTERFACE_VERSION >= 2` with an actionable
+  argparse/`main`/`_dispatch` scaffold). Import `fabric_harness` directly;
+  add `assert fabric_harness.INTERFACE_VERSION >= 2` with an actionable
   message.
 - Keep: everything harness-native, as local functions taking `ctx`.
 - Apply the §4 normalizations that name your harness; update the WP-0
@@ -492,7 +492,7 @@ Per-harness notes:
 | 3b | claude | 556 | Native: project-path rewrite, customApiKeyResponses fingerprint, MCP mapping dict (keep `apply_mcp_servers_simple`). §4.1 applies (secret whitespace). |
 | 3c | opencode | 496 | Native: MCP local/remote translation (`apply_mcp_translated`). §4.2 applies: vertex env overlay switches raw values → placeholders. Preserve the `gcp_metadata_mode` reserved guard as a spec flag or documented TODO. |
 | 3d | hermes | 534 | Native: `~/.hermes/.env` writer, HERMES_* env overlay, model_resolution passthrough, mcp.json (incl. stale-file removal), instruction projection → lib call. §4.2 applies (env.json). Has `provision_test.py` — port to lib API. |
-| 3e | copilot | 627 | Native: copilot-instructions.md target, mcp-config.json, settings/config.json defaults. Fixes: §4.5 workspace (use `ctx.workspace`, delete `SCION_WORKSPACE`/`SCION_AGENT_WORKSPACE` reads), §4.2 (token → placeholder IF the runtime env projection delivers the var to the copilot process — verify against `pkg/harness` env plumbing first; if copilot only receives it via env.json, document the exception in provision.py and keep raw+0600), §4.3 (its fallback-on-error becomes `fallback_to_none_on_error=True`). Keep the os.environ candidate fallback as an explicit spec option (hub-registered configs need it). |
+| 3e | copilot | 627 | Native: copilot-instructions.md target, mcp-config.json, settings/config.json defaults. Fixes: §4.5 workspace (use `ctx.workspace`, delete `FABRIC_WORKSPACE`/`FABRIC_AGENT_WORKSPACE` reads), §4.2 (token → placeholder IF the runtime env projection delivers the var to the copilot process — verify against `pkg/harness` env plumbing first; if copilot only receives it via env.json, document the exception in provision.py and keep raw+0600), §4.3 (its fallback-on-error becomes `fallback_to_none_on_error=True`). Keep the os.environ candidate fallback as an explicit spec option (hub-registered configs need it). |
 | 3f | codex | 928 | Largest. Native: auth.json writers (apikey + CODEX_AUTH secret), otel TOML build (use lib TOML helpers + `strip_toml_sections`), `[mcp_servers.*]` emission, instruction projection → lib call. Has `provision_test.py` — port. Byte-equivalence of config.toml output with the Go implementation (`codex_config.go`) must be preserved — the goldens cover it. |
 | 3g | antigravity | 731 | Partial migration only: adopt run/ctx/select_auth/write_outputs and delete duplicated helpers; keyring wrapper generation, onboarding pre-staging, hooks.json, chown logic stay native and untouched. Its `AGY_TOKEN`/os.environ special cases become spec flags (`env_fallback`) rather than ad-hoc code where the lib supports it. |
 
@@ -502,8 +502,8 @@ Per-harness notes:
 
 **Steps:** replace the six identical `harnesses/{claude,codex,copilot,
 gemini-cli,hermes,opencode}/capture_auth.py` with the same ~10-line shim:
-shebang + license + `import scion_harness; sys.exit(
-scion_harness.capture_auth_main())` (bundle-dir sys.path insert as in
+shebang + license + `import fabric_harness; sys.exit(
+fabric_harness.capture_auth_main())` (bundle-dir sys.path insert as in
 provision.py). Antigravity keeps its keyring-aware script but rebases its
 generic half on `capture_auth_main` where trivial. Verify the Go side stages
 capture_auth.py from the bundle dir unchanged
@@ -522,7 +522,7 @@ shim with a fixture `capture-auth-config.json` asserting exit codes 0/2/3.
    `harnesses/*/provision.py` matches `def _expand(`, `def _load_json(`,
    `def _write_json(`, `def _read_secret(`, `def _present_env_keys(`,
    `_read_mcp_servers_inline`, or `except ImportError` around
-   `scion_harness`.
+   `fabric_harness`.
 2. Rewrite `harnesses/README.md`: add a "Writing a new harness" guide —
    bundle layout, the provision.py skeleton on the lib API, the vendoring
    generator, `provisioner.lib` semantics, INTERFACE_VERSION /
@@ -541,16 +541,16 @@ tested in exactly one place; drift structurally prevented.
 ## 6. Decision log (all resolved — implementers should treat these as final)
 
 1. Distribution model — RESOLVED 2026-07-05: vendored per-bundle copies
-   generated from a canonical `harnesses/scion_harness.py`, CI drift gate,
+   generated from a canonical `harnesses/fabric_harness.py`, CI drift gate,
    explicit `provisioner.lib: vendored | injected` with vendored-but-missing
    as a hard error (§3.4). Owner: WP-2.
-2. Name — RESOLVED: keep `scion_harness.py` (renaming to `harnesslib.py`
+2. Name — RESOLVED: keep `fabric_harness.py` (renaming to `harnesslib.py`
    would break the staged import name for existing installs for zero
    functional gain).
 3. env.json raw→placeholder timing — RESOLVED 2026-07-05: rides the WP-3
    per-harness migration; no expedited standalone fix (§4.2).
 4. capture_auth distribution — RESOLVED: vendored thin shim per bundle
-   calling `scion_harness.capture_auth_main()` (self-contained for
+   calling `fabric_harness.capture_auth_main()` (self-contained for
    direct-URL installs), superseding the earlier host-staged-default idea.
    Owner: WP-4.
 

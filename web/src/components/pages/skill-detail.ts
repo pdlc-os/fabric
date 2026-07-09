@@ -31,8 +31,8 @@ import '../shared/status-badge.js';
 import '../shared/hash-display.js';
 import '../shared/skill-publish-dialog.js';
 
-@customElement('scion-page-skill-detail')
-export class ScionPageSkillDetail extends LitElement {
+@customElement('fabric-page-skill-detail')
+export class FabricPageSkillDetail extends LitElement {
   @property({ type: Object }) pageData: PageData | null = null;
   @property({ type: String }) skillId = '';
 
@@ -66,12 +66,12 @@ export class ScionPageSkillDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
-    .back-link:hover { color: var(--scion-primary, #3b82f6); }
+    .back-link:hover { color: var(--fabric-primary, #3b82f6); }
 
     .header {
       display: flex;
@@ -88,13 +88,13 @@ export class ScionPageSkillDetail extends LitElement {
       margin-bottom: 0.5rem;
     }
     .header-title sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
     .header-meta {
@@ -109,13 +109,13 @@ export class ScionPageSkillDetail extends LitElement {
       flex-shrink: 0;
     }
 
-    sl-tab-group { --track-color: var(--scion-border, #e2e8f0); }
+    sl-tab-group { --track-color: var(--fabric-border, #e2e8f0); }
     sl-tab-group::part(body) { padding-top: 1.5rem; }
 
     .card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -125,12 +125,12 @@ export class ScionPageSkillDetail extends LitElement {
       justify-content: space-between;
       margin-bottom: 1rem;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
     .card-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -142,17 +142,17 @@ export class ScionPageSkillDetail extends LitElement {
     .info-item { display: flex; flex-direction: column; }
     .info-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
     }
     .info-value {
       font-size: 1rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
     .info-value.mono {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
     }
 
@@ -165,10 +165,10 @@ export class ScionPageSkillDetail extends LitElement {
       display: inline-block;
       font-size: 0.75rem;
       padding: 0.125rem 0.5rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 9999px;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .scope-badge, .visibility-badge {
@@ -180,35 +180,35 @@ export class ScionPageSkillDetail extends LitElement {
       font-weight: 500;
     }
     .scope-badge {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
     .visibility-badge.public {
       background: var(--sl-color-success-100, #dcfce7);
       color: var(--sl-color-success-700, #15803d);
     }
     .visibility-badge.private {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .uri-copy {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
       padding: 0.25rem 0.5rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
       cursor: pointer;
     }
     .uri-copy:hover {
-      background: var(--scion-border, #e2e8f0);
+      background: var(--fabric-border, #e2e8f0);
     }
     .uri-copy sl-icon {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .edit-field { margin-bottom: 1rem; }
@@ -216,7 +216,7 @@ export class ScionPageSkillDetail extends LitElement {
       display: block;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.375rem;
@@ -228,9 +228,9 @@ export class ScionPageSkillDetail extends LitElement {
     }
 
     .version-table {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
     .version-table table { width: 100%; border-collapse: collapse; }
@@ -241,24 +241,24 @@ export class ScionPageSkillDetail extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
     .version-table td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
     .version-table tr:last-child td { border-bottom: none; }
     .version-table .actions-cell { text-align: right; white-space: nowrap; }
 
     .file-table {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
     .file-table table { width: 100%; border-collapse: collapse; }
@@ -269,15 +269,15 @@ export class ScionPageSkillDetail extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
     .file-table td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
     .file-table tr:last-child td { border-bottom: none; }
@@ -292,16 +292,16 @@ export class ScionPageSkillDetail extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
     .loading-state sl-spinner { font-size: 2rem; margin-bottom: 1rem; }
 
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
     .error-state sl-icon {
       font-size: 3rem;
@@ -310,15 +310,15 @@ export class ScionPageSkillDetail extends LitElement {
     }
     .error-state h2 {
       font-size: 1.25rem; font-weight: 600;
-      color: var(--scion-text, #1e293b); margin: 0 0 0.5rem 0;
+      color: var(--fabric-text, #1e293b); margin: 0 0 0.5rem 0;
     }
-    .error-state p { color: var(--scion-text-muted, #64748b); margin: 0 0 1rem 0; }
+    .error-state p { color: var(--fabric-text-muted, #64748b); margin: 0 0 1rem 0; }
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -326,7 +326,7 @@ export class ScionPageSkillDetail extends LitElement {
     .empty-versions {
       text-align: center;
       padding: 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
   `;
@@ -624,10 +624,10 @@ export class ScionPageSkillDetail extends LitElement {
           <div class="header-title">
             <sl-icon name="lightning-charge"></sl-icon>
             <h1>${skill.name}</h1>
-            <scion-status-badge
+            <fabric-status-badge
               status=${skill.status as StatusType}
               label=${skill.status}
-            ></scion-status-badge>
+            ></fabric-status-badge>
           </div>
           <div class="header-meta">
             <span class="scope-badge">${skill.scope}</span>
@@ -699,7 +699,7 @@ export class ScionPageSkillDetail extends LitElement {
           </div>
           <div class="info-item">
             <span class="info-label">Description</span>
-            <span class="info-value">${skill.description || html`<span style="color: var(--scion-text-muted);">No description</span>`}</span>
+            <span class="info-value">${skill.description || html`<span style="color: var(--fabric-text-muted);">No description</span>`}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Scope</span>
@@ -726,13 +726,13 @@ export class ScionPageSkillDetail extends LitElement {
             <span class="info-value">
               ${skill.tags?.length
                 ? html`<div class="tag-list">${skill.tags.map((t) => html`<span class="tag-item">${t}</span>`)}</div>`
-                : html`<span style="color: var(--scion-text-muted);">No tags</span>`}
+                : html`<span style="color: var(--fabric-text-muted);">No tags</span>`}
             </span>
           </div>
           <div class="info-item">
             <span class="info-label">Status</span>
             <span class="info-value">
-              <scion-status-badge status=${skill.status as StatusType} label=${skill.status} size="small"></scion-status-badge>
+              <fabric-status-badge status=${skill.status as StatusType} label=${skill.status} size="small"></fabric-status-badge>
             </span>
           </div>
           <div class="info-item">
@@ -837,15 +837,15 @@ export class ScionPageSkillDetail extends LitElement {
       <tr>
         <td><strong>${v.version}</strong></td>
         <td>
-          <scion-status-badge
+          <fabric-status-badge
             status=${this.versionStatusType(v.status)}
             label=${v.status}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </td>
         <td class="hide-mobile">
           ${v.contentHash
-            ? html`<scion-hash-display .hash=${v.contentHash} max-width="14ch"></scion-hash-display>`
+            ? html`<fabric-hash-display .hash=${v.contentHash} max-width="14ch"></fabric-hash-display>`
             : '—'}
         </td>
         <td class="hide-mobile">${v.files?.length ?? 0} files</td>
@@ -885,7 +885,7 @@ export class ScionPageSkillDetail extends LitElement {
           ${published.map((v) => html`<sl-option value=${v.version}>v${v.version}</sl-option>`)}
         </sl-select>
         ${!this.filesLoading && this.fileUrls.length > 0 ? html`
-          <span style="font-size: 0.875rem; color: var(--scion-text-muted, #64748b);">${this.fileUrls.length} file${this.fileUrls.length !== 1 ? 's' : ''}</span>
+          <span style="font-size: 0.875rem; color: var(--fabric-text-muted, #64748b);">${this.fileUrls.length} file${this.fileUrls.length !== 1 ? 's' : ''}</span>
         ` : nothing}
       </div>
 
@@ -921,7 +921,7 @@ export class ScionPageSkillDetail extends LitElement {
                   <td>${this.formatFileSize(f.size)}</td>
                   <td class="hide-mobile">
                     ${f.hash
-                      ? html`<scion-hash-display .hash=${f.hash} max-width="14ch"></scion-hash-display>`
+                      ? html`<fabric-hash-display .hash=${f.hash} max-width="14ch"></fabric-hash-display>`
                       : '—'}
                   </td>
                   <td style="text-align: right">
@@ -989,13 +989,13 @@ export class ScionPageSkillDetail extends LitElement {
 
   private renderPublishDialog() {
     return html`
-      <scion-skill-publish-dialog
+      <fabric-skill-publish-dialog
         .skillId=${this.skillId}
         ?open=${this.publishDialogOpen}
         .latestVersion=${this.latestPublishedVersion}
         @sl-after-hide=${() => { this.publishDialogOpen = false; }}
         @skill-version-published=${() => { this.publishDialogOpen = false; void this.loadData(); }}
-      ></scion-skill-publish-dialog>
+      ></fabric-skill-publish-dialog>
     `;
   }
 
@@ -1030,6 +1030,6 @@ export class ScionPageSkillDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-skill-detail': ScionPageSkillDetail;
+    'fabric-page-skill-detail': FabricPageSkillDetail;
   }
 }

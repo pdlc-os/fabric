@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-# Pull all scion container images from a registry.
+# Pull all fabric container images from a registry.
 #
 # Usage:
 #   pull-containers.sh --registry <registry> [--tag <tag>] [runtime]
@@ -58,12 +58,12 @@ fi
 REGISTRY="${REGISTRY%/}"
 
 IMAGES=(
-  "${REGISTRY}/scion-base:${TAG}"
-  "${REGISTRY}/scion-hub:${TAG}"
+  "${REGISTRY}/fabric-base:${TAG}"
+  "${REGISTRY}/fabric-hub:${TAG}"
 )
 while IFS= read -r dockerfile; do
   harness="$(basename "$(dirname "${dockerfile}")")"
-  IMAGES+=("${REGISTRY}/scion-${harness}:${TAG}")
+  IMAGES+=("${REGISTRY}/fabric-${harness}:${TAG}")
 done < <(find "${REPO_ROOT}/harnesses" -mindepth 2 -maxdepth 2 -name Dockerfile -print | sort)
 
 detect_runtime() {

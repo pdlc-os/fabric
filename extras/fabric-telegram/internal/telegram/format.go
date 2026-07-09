@@ -21,7 +21,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 const (
@@ -98,7 +98,7 @@ const maxSlugDisplayLength = 64
 // before HTML escaping.
 const maxProjectDisplayLength = 100
 
-// stateEmoji maps agent states to display emoji matching the scion web UI.
+// stateEmoji maps agent states to display emoji matching the fabric web UI.
 var stateEmoji = map[string]string{
 	"created":      "🆕",
 	"provisioning": "📦",

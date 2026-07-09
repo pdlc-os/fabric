@@ -1,5 +1,5 @@
 // Command apitest drives API-level multi-hub integration/stress traffic against
-// two running Scion hubs that share one CloudSQL Postgres instance. It validates
+// two running Fabric hubs that share one CloudSQL Postgres instance. It validates
 // the connection-pool / keepalive fixes and multi-replica behavior through the
 // real HTTP API. Run it ON a hub VM so it reaches both hubs over the fast
 // internal network. Not part of the product.

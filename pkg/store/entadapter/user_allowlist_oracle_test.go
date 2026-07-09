@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/storetest"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/storetest"
 )
 
 // entUserAllowStore is a test-only store that routes the user and

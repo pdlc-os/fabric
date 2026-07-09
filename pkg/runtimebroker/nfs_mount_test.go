@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // mockMountChecker is a test double for MountChecker that records calls and
@@ -109,7 +109,7 @@ func testNFSConfig() *config.V1NFSConfig {
 		MountOptions: "vers=3,hard,nconnect=4,_netdev",
 		SubPathRoot:  "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 }
@@ -134,8 +134,8 @@ func TestReconcile_MountAbsent_MkdirAndMount(t *testing.T) {
 		t.Fatalf("mountCalls = %d, want 1", len(mc.mountCalls))
 	}
 	call := mc.mountCalls[0]
-	if call.Server != "10.0.0.2" || call.Export != "/scion-workspaces" || call.Target != wantTarget {
-		t.Errorf("mount call = %+v, want server=10.0.0.2, export=/scion-workspaces, target=%s",
+	if call.Server != "10.0.0.2" || call.Export != "/fabric-workspaces" || call.Target != wantTarget {
+		t.Errorf("mount call = %+v, want server=10.0.0.2, export=/fabric-workspaces, target=%s",
 			call, wantTarget)
 	}
 	if call.Options != "vers=3,hard,nconnect=4,_netdev" {
@@ -151,7 +151,7 @@ func TestReconcile_MountAbsent_MkdirAndMount(t *testing.T) {
 func TestReconcile_AlreadyMountedCorrectly_NoOp(t *testing.T) {
 	mc := newMockMountChecker()
 	target := filepath.Join("/mnt/nfs", "ws1")
-	mc.mountpoints[target] = "10.0.0.2:/scion-workspaces"
+	mc.mountpoints[target] = "10.0.0.2:/fabric-workspaces"
 
 	cfg := testNFSConfig()
 	r := NewNFSMountReconciler(cfg, mc, nil)
@@ -195,7 +195,7 @@ func TestReconcile_WrongServerExport_Remount(t *testing.T) {
 		t.Fatalf("mountCalls = %d, want 1 (remount)", len(mc.mountCalls))
 	}
 	call := mc.mountCalls[0]
-	if call.Server != "10.0.0.2" || call.Export != "/scion-workspaces" {
+	if call.Server != "10.0.0.2" || call.Export != "/fabric-workspaces" {
 		t.Errorf("remount call = %+v, want correct server:export", call)
 	}
 
@@ -373,7 +373,7 @@ func TestReconcile_DefaultMountOptions(t *testing.T) {
 		MountRoot:    "/mnt/nfs",
 		MountOptions: "", // should use default
 		Shares: []config.V1NFSShare{
-			{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 	r := NewNFSMountReconciler(cfg, mc, nil)

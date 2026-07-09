@@ -1,7 +1,7 @@
 # Extract provisionUser — Phase 0 auth-proxy-mode
 
 **Date**: 2026-06-05
-**Branch**: scion/auth-proxy-mode
+**Branch**: fabric/auth-proxy-mode
 **Commit**: refactor(hub): extract provisionUser, dedupe OAuth find-or-create
 
 ## What changed

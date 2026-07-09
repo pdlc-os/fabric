@@ -44,7 +44,7 @@ type ProviderConfig struct {
 	URL          string `yaml:"url"`
 }
 
-// HubConfig holds connection details for the Scion Hub.
+// HubConfig holds connection details for the Fabric Hub.
 type HubConfig struct {
 	Endpoint         string `yaml:"endpoint"`
 	User             string `yaml:"user"`

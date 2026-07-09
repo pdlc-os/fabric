@@ -37,14 +37,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/yaml.v3"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/bridge"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/identity"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/bridge"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/identity"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func main() {
-	configPath := flag.String("config", "scion-a2a-bridge.yaml", "Path to configuration file")
+	configPath := flag.String("config", "fabric-a2a-bridge.yaml", "Path to configuration file")
 	flag.Parse()
 
 	cfg, err := loadConfig(*configPath)
@@ -60,12 +60,12 @@ func main() {
 	}
 
 	log := initLogger(cfg.Logging)
-	log.Info("scion-a2a-bridge starting")
+	log.Info("fabric-a2a-bridge starting")
 
 	// Initialize SQLite state database.
 	dbPath := cfg.State.Database
 	if dbPath == "" {
-		dbPath = "scion-a2a-bridge.db"
+		dbPath = "fabric-a2a-bridge.db"
 	}
 	store, err := state.New(dbPath)
 	if err != nil {
@@ -143,7 +143,7 @@ func main() {
 	// Use a route-key authenticator so the in-memory task store associates tasks
 	// with the correct project/agent pair, and a ScopedTaskStore wrapper that
 	// enforces ownership on Get/Update to prevent cross-tenant access.
-	executor := bridge.NewScionExecutor(b, log.With("component", "executor"))
+	executor := bridge.NewFabricExecutor(b, log.With("component", "executor"))
 	routeAuthenticator := bridge.RouteKeyAuthenticator()
 	innerTaskStore := taskstore.NewInMemory(&taskstore.InMemoryStoreConfig{
 		Authenticator: routeAuthenticator,
@@ -194,7 +194,7 @@ func main() {
 		}
 	}()
 
-	log.Info("scion-a2a-bridge ready",
+	log.Info("fabric-a2a-bridge ready",
 		"transport", "JSON-RPC",
 		"sdk", "a2a-go/v2",
 	)
@@ -220,7 +220,7 @@ func main() {
 	// Drain background goroutines before closing the store.
 	b.Shutdown()
 
-	log.Info("scion-a2a-bridge stopped")
+	log.Info("fabric-a2a-bridge stopped")
 }
 
 func loadConfig(path string) (*bridge.Config, error) {
@@ -234,8 +234,8 @@ func loadConfig(path string) (*bridge.Config, error) {
 	var missing []string
 	expanded := os.Expand(string(data), func(name string) string {
 		v, ok := os.LookupEnv(name)
-		if !ok && name == "SCION_PROJECT_ID" {
-			v, ok = os.LookupEnv("SCION_GROVE_ID")
+		if !ok && name == "FABRIC_PROJECT_ID" {
+			v, ok = os.LookupEnv("FABRIC_GROVE_ID")
 		}
 		if !ok {
 			missing = append(missing, name)

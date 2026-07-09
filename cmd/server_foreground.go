@@ -32,31 +32,31 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/opsettings"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dispatchmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/hubmetrics"
-	scionplugin "github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin/grpcbroker"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtimebroker"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
-	"github.com/GoogleCloudPlatform/scion/web"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/opsettings"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hub"
+	"github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/hubmetrics"
+	fabricplugin "github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/plugin/grpcbroker"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/runtimebroker"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
+	"github.com/pdlc-os/fabric/web"
 	"github.com/knadh/koanf/v2"
 	"github.com/spf13/cobra"
 )
@@ -79,11 +79,11 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 
 	// 3. Resolve admin mode settings
 	adminMode := cfg.AdminMode
-	if v := os.Getenv("SCION_SERVER_ADMIN_MODE"); v != "" {
+	if v := os.Getenv("FABRIC_SERVER_ADMIN_MODE"); v != "" {
 		adminMode = v == "true" || v == "1" || v == "yes"
 	}
 	maintenanceMessage := cfg.MaintenanceMessage
-	if v := os.Getenv("SCION_SERVER_MAINTENANCE_MESSAGE"); v != "" {
+	if v := os.Getenv("FABRIC_SERVER_MAINTENANCE_MESSAGE"); v != "" {
 		maintenanceMessage = v
 	}
 
@@ -93,14 +93,14 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get global directory: %w", err)
 	}
 	if _, err := os.Stat(globalDir); os.IsNotExist(err) {
-		log.Println("Initializing global scion directory...")
+		log.Println("Initializing global fabric directory...")
 		if err := config.InitGlobal(harness.EmbedOnlyHarnesses()); err != nil {
 			return fmt.Errorf("failed to initialize global config: %w", err)
 		}
 	} else if !hostedMode {
 		// In workstation mode, refresh the default template and harness-configs
 		// from the binary's embeds. Hosted mode bootstraps directly into the Hub
-		// via BootstrapBundledResources, bypassing local ~/.scion materialization.
+		// via BootstrapBundledResources, bypassing local ~/.fabric materialization.
 		if err := config.UpdateDefaultTemplates(true, harness.EmbedOnlyHarnesses()); err != nil {
 			log.Printf("Warning: failed to refresh default templates: %v", err)
 		}
@@ -119,7 +119,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 		log.Printf("Global mode: changed working directory to %s", home)
 	}
 
-	// Warn if running from within a project directory instead of the global (~/.scion) context.
+	// Warn if running from within a project directory instead of the global (~/.fabric) context.
 	if projectDir, ok := config.FindProjectRoot(); ok {
 		if projectDir != globalDir {
 			parentDir := filepath.Dir(projectDir)
@@ -400,7 +400,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 			}
 
 			for _, bt := range brokerTypes {
-				if !pluginMgr.HasPlugin(scionplugin.PluginTypeBroker, bt) {
+				if !pluginMgr.HasPlugin(fabricplugin.PluginTypeBroker, bt) {
 					log.Printf("Warning: broker plugin %q not loaded, skipping", bt)
 					continue
 				}
@@ -413,7 +413,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 				// Inject hub credentials into hub-managed broker plugins so they
 				// can authenticate back to the Hub API. Self-managed plugins
 				// handle their own credential lifecycle.
-				if !pluginMgr.IsSelfManaged(scionplugin.PluginTypeBroker, bt) && hubSrv != nil && s != nil {
+				if !pluginMgr.IsSelfManaged(fabricplugin.PluginTypeBroker, bt) && hubSrv != nil && s != nil {
 					// Use the same deterministic UUIDv5 as the α migration so the
 					// broker entity created here matches the migrated ID.
 					pluginBrokerNS := uuid.MustParse("5c104390-a1d0-5e9a-9b1e-5c104390a1d0")
@@ -430,7 +430,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 								Version:         "0.1.0",
 								Status:          store.BrokerStatusOnline,
 								ConnectionState: "embedded",
-								Labels:          map[string]string{"scion.io/plugin": bt},
+								Labels:          map[string]string{"fabric.io/plugin": bt},
 								Created:         time.Now(),
 								Updated:         time.Now(),
 							}
@@ -470,7 +470,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 							// Inject chat integration secrets from the secret backend.
 							// Pass the plugin's merged config so secrets are only injected
 							// when not already set by file or inline config.
-							brokerCfg := pluginMgr.GetPluginConfig(scionplugin.PluginTypeBroker, bt)
+							brokerCfg := pluginMgr.GetPluginConfig(fabricplugin.PluginTypeBroker, bt)
 							injectPluginSecrets(ctx, secretBackend, bt, brokerCfg, hubCreds)
 							if cfgErr := pluginMgr.ConfigureBroker(bt, hubCreds); cfgErr != nil {
 								log.Printf("Warning: failed to inject hub credentials into broker plugin %q: %v", bt, cfgErr)
@@ -504,7 +504,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 
 	// 15. Print startup banner
 	if !hostedMode {
-		log.Println("Scion server ready (workstation mode)")
+		log.Println("Fabric server ready (workstation mode)")
 		if enableWeb {
 			displayHost := cfg.Hub.Host
 			if displayHost == "0.0.0.0" || displayHost == "" {
@@ -513,7 +513,7 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 			log.Printf("Web UI: http://%s:%d", displayHost, webPort)
 		}
 		if devAuthToken != "" {
-			log.Printf("Developer token: export SCION_DEV_TOKEN=%s", devAuthToken)
+			log.Printf("Developer token: export FABRIC_DEV_TOKEN=%s", devAuthToken)
 		}
 	}
 
@@ -530,19 +530,19 @@ func runServerStart(cmd *cobra.Command, args []string) error {
 
 // initServerLogging initializes all logging subsystems and returns cleanup functions.
 func initServerLogging(cmd *cobra.Command) (cleanups []func(), requestLogger *slog.Logger, messageLogger *slog.Logger, err error) {
-	useGCP := os.Getenv("SCION_LOG_GCP") == "true"
+	useGCP := os.Getenv("FABRIC_LOG_GCP") == "true"
 	if os.Getenv("K_SERVICE") != "" {
 		useGCP = true
 	}
-	if !hostedMode && os.Getenv("SCION_LOG_GCP") == "" {
+	if !hostedMode && os.Getenv("FABRIC_LOG_GCP") == "" {
 		useGCP = false
 	}
 
-	component := "scion-server"
+	component := "fabric-server"
 	if enableHub && !enableRuntimeBroker {
-		component = "scion-hub"
+		component = "fabric-hub"
 	} else if !enableHub && enableRuntimeBroker {
-		component = "scion-broker"
+		component = "fabric-broker"
 	}
 
 	// Initialize OTel logging
@@ -684,14 +684,14 @@ func loadAndReconcileConfig(cmd *cobra.Command) (*config.GlobalConfig, error) {
 
 	// Standalone broker in hosted mode: default to loopback when host
 	// is not explicitly set. The broker needs to start on loopback so that
-	// `scion broker register` can reach it locally before HMAC keys exist.
+	// `fabric broker register` can reach it locally before HMAC keys exist.
 	if hostedMode && !cmd.Flags().Changed("host") && cfg.RuntimeBroker.Enabled && !enableHub {
 		cfg.RuntimeBroker.Host = "127.0.0.1"
 	}
 
 	// Fallback to legacy environment variable
 	if cfg.Storage.Bucket == "" && hostedMode {
-		if val := os.Getenv("SCION_HUB_STORAGE_BUCKET"); val != "" {
+		if val := os.Getenv("FABRIC_HUB_STORAGE_BUCKET"); val != "" {
 			cfg.Storage.Bucket = val
 			if cfg.Storage.Provider == "local" || cfg.Storage.Provider == "" {
 				cfg.Storage.Provider = "gcs"
@@ -735,7 +735,7 @@ func validateHostedBasic(cfg *config.GlobalConfig) {
 		return
 	}
 	if strings.TrimSpace(resolveSessionSecret()) == "" {
-		log.Println("Warning: no session secret set; sessions will not survive restarts. Set --session-secret or SCION_SERVER_SESSION_SECRET for durable sessions.")
+		log.Println("Warning: no session secret set; sessions will not survive restarts. Set --session-secret or FABRIC_SERVER_SESSION_SECRET for durable sessions.")
 	}
 }
 
@@ -756,7 +756,7 @@ func validateHostedHAPreflight(cfg *config.GlobalConfig) error {
 	}
 
 	if strings.TrimSpace(resolveSessionSecret()) == "" {
-		return fmt.Errorf("hosted HA deployment requires a durable session/signing secret; set --session-secret or SCION_SERVER_SESSION_SECRET")
+		return fmt.Errorf("hosted HA deployment requires a durable session/signing secret; set --session-secret or FABRIC_SERVER_SESSION_SECRET")
 	}
 
 	if cfg.Auth.Mode != "proxy" {
@@ -813,8 +813,8 @@ func checkServerPorts(cfg *config.GlobalConfig) error {
 	if enableHub && !enableWeb {
 		status := checkPort(cfg.Hub.Host, cfg.Hub.Port)
 		if status.inUse {
-			if status.isScionServer {
-				return fmt.Errorf("a scion server is already running on port %d\nUse 'scion server status' to check or 'scion server stop' to stop it", cfg.Hub.Port)
+			if status.isFabricServer {
+				return fmt.Errorf("a fabric server is already running on port %d\nUse 'fabric server status' to check or 'fabric server stop' to stop it", cfg.Hub.Port)
 			}
 			return fmt.Errorf("hub port %d is already in use by another process", cfg.Hub.Port)
 		}
@@ -822,8 +822,8 @@ func checkServerPorts(cfg *config.GlobalConfig) error {
 	if cfg.RuntimeBroker.Enabled {
 		status := checkPort(cfg.RuntimeBroker.Host, cfg.RuntimeBroker.Port)
 		if status.inUse {
-			if status.isScionServer {
-				return fmt.Errorf("a scion server is already running on port %d\nUse 'scion server status' to check or 'scion server stop' to stop it", cfg.RuntimeBroker.Port)
+			if status.isFabricServer {
+				return fmt.Errorf("a fabric server is already running on port %d\nUse 'fabric server status' to check or 'fabric server stop' to stop it", cfg.RuntimeBroker.Port)
 			}
 			return fmt.Errorf("runtime broker port %d is already in use by another process", cfg.RuntimeBroker.Port)
 		}
@@ -835,8 +835,8 @@ func checkServerPorts(cfg *config.GlobalConfig) error {
 		}
 		status := checkPort(webHost, webPort)
 		if status.inUse {
-			if status.isScionServer {
-				return fmt.Errorf("a scion server is already running on port %d\nUse 'scion server status' to check or 'scion server stop' to stop it", webPort)
+			if status.isFabricServer {
+				return fmt.Errorf("a fabric server is already running on port %d\nUse 'fabric server status' to check or 'fabric server stop' to stop it", webPort)
 			}
 			return fmt.Errorf("web frontend port %d is already in use by another process", webPort)
 		}
@@ -1014,12 +1014,12 @@ func initDevAuth(cfg *config.GlobalConfig, globalDir string) (string, error) {
 		return "", fmt.Errorf("failed to initialize dev auth: %w", err)
 	}
 
-	_ = os.Setenv("SCION_DEV_TOKEN", devAuthToken)
-	_ = os.Setenv("SCION_AUTH_TOKEN", devAuthToken)
+	_ = os.Setenv("FABRIC_DEV_TOKEN", devAuthToken)
+	_ = os.Setenv("FABRIC_AUTH_TOKEN", devAuthToken)
 
 	log.Printf("Developer token: %s", devAuthToken)
 	log.Printf("To authenticate CLI commands, run:")
-	log.Printf("  export SCION_DEV_TOKEN=%s", devAuthToken)
+	log.Printf("  export FABRIC_DEV_TOKEN=%s", devAuthToken)
 
 	return devAuthToken, nil
 }
@@ -1046,20 +1046,20 @@ func resolveHubEndpoint(cfg *config.GlobalConfig, brokerSettings *config.Setting
 		return hubEndpoint
 	}
 
-	if baseURL := os.Getenv("SCION_SERVER_BASE_URL"); baseURL != "" {
+	if baseURL := os.Getenv("FABRIC_SERVER_BASE_URL"); baseURL != "" {
 		hubEndpoint := strings.TrimRight(baseURL, "/")
 		if enableDebug {
-			log.Printf("Hub endpoint resolved from SCION_SERVER_BASE_URL: %s", hubEndpoint)
+			log.Printf("Hub endpoint resolved from FABRIC_SERVER_BASE_URL: %s", hubEndpoint)
 		}
 		return hubEndpoint
 	}
 
-	// Check settings (e.g. SCION_HUB_ENDPOINT env var) before falling back
+	// Check settings (e.g. FABRIC_HUB_ENDPOINT env var) before falling back
 	// to localhost. On combo servers the settings-level endpoint is typically
 	// the public URL and should be used for agent dispatch.
 	if hubEndpoint := brokerSettings.GetHubEndpoint(); hubEndpoint != "" {
 		if enableDebug {
-			log.Printf("Hub endpoint resolved from settings (SCION_HUB_ENDPOINT): %s", hubEndpoint)
+			log.Printf("Hub endpoint resolved from settings (FABRIC_HUB_ENDPOINT): %s", hubEndpoint)
 		}
 		return hubEndpoint
 	}
@@ -1095,14 +1095,14 @@ func parseAdminEmails(cfg *config.GlobalConfig) []string {
 }
 
 // resolveSessionSecret resolves the deployment-wide session secret from the
-// --session-secret flag, falling back to the SCION_SERVER_SESSION_SECRET env
+// --session-secret flag, falling back to the FABRIC_SERVER_SESSION_SECRET env
 // var (then SESSION_SECRET for compatibility). The same value backs both the
 // web session cookie store and the hub JWT signing keys so that all replicas
 // behind the load balancer agree.
 func resolveSessionSecret() string {
 	secret := webSessionSecret
 	if secret == "" {
-		secret = os.Getenv("SCION_SERVER_SESSION_SECRET")
+		secret = os.Getenv("FABRIC_SERVER_SESSION_SECRET")
 	}
 	if secret == "" {
 		secret = os.Getenv("SESSION_SECRET")
@@ -1114,7 +1114,7 @@ func resolveSessionSecret() string {
 }
 
 // initHubServer creates and configures the Hub server.
-func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store, entClient *ent.Client, hubEndpoint, devAuthToken string, adminEmailList []string, adminMode bool, maintenanceMessage string, requestLogger, messageLogger *slog.Logger, globalDir string, pluginMgr *scionplugin.Manager, secretBackend secret.SecretBackend) (*hub.Server, error) {
+func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store, entClient *ent.Client, hubEndpoint, devAuthToken string, adminEmailList []string, adminMode bool, maintenanceMessage string, requestLogger, messageLogger *slog.Logger, globalDir string, pluginMgr *fabricplugin.Manager, secretBackend secret.SecretBackend) (*hub.Server, error) {
 	hubCfg := hub.ServerConfig{
 		HubID:                 cfg.Hub.ResolveHubID(),
 		Port:                  cfg.Hub.Port,
@@ -1196,12 +1196,12 @@ func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store,
 		// HubID. Without this, a JWT minted by one replica fails validation on
 		// another (cross-replica "session_expired" login loop).
 		SharedSigningSecret: resolveSessionSecret(),
-		// When SCION_REQUIRE_STABLE_SIGNING_KEY is truthy, the hub refuses to
+		// When FABRIC_REQUIRE_STABLE_SIGNING_KEY is truthy, the hub refuses to
 		// start rather than silently mint a new signing key it cannot resolve
 		// (which would invalidate every live token after, e.g., a redeploy onto a
 		// new host that changed the HubID). Operators enabling this must supply a
 		// session secret or pre-provision the signing keys.
-		RequireStableSigningKey: os.Getenv("SCION_REQUIRE_STABLE_SIGNING_KEY") == "true",
+		RequireStableSigningKey: os.Getenv("FABRIC_REQUIRE_STABLE_SIGNING_KEY") == "true",
 	}
 
 	// In hosted mode every replica must share the same session secret for
@@ -1210,7 +1210,7 @@ func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store,
 	// breaks session persistence and causes login loops.
 	if hostedMode && hubCfg.SharedSigningSecret == "" {
 		log.Println("WARNING: hosted mode is enabled but no session secret is configured. " +
-			"Set --session-secret or SCION_SERVER_SESSION_SECRET to avoid cross-replica session failures.")
+			"Set --session-secret or FABRIC_SERVER_SESSION_SECRET to avoid cross-replica session failures.")
 	}
 
 	// Construct proxy authenticator when auth mode is "proxy"
@@ -1336,7 +1336,7 @@ func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store,
 	if hostedMode {
 		// Hosted mode: bootstrap bundled resources directly into the Hub from
 		// the binary's embedded catalog. This removes the dependency on local
-		// ~/.scion directories and ensures every replica converges on the same
+		// ~/.fabric directories and ensures every replica converges on the same
 		// DB + storage state.
 		if err := hubSrv.BootstrapBundledResources(ctx, hub.BootstrapOptions{
 			RepairStorage:   true,
@@ -1346,7 +1346,7 @@ func initHubServer(ctx context.Context, cfg *config.GlobalConfig, s store.Store,
 			log.Printf("Warning: bundled resource bootstrap failed: %v", err)
 		}
 	} else {
-		// Workstation mode: import from local ~/.scion directories. These were
+		// Workstation mode: import from local ~/.fabric directories. These were
 		// refreshed from embeds earlier in the startup sequence.
 		globalTemplatesDir := filepath.Join(globalDir, "templates")
 		if err := hubSrv.BootstrapTemplatesFromDir(ctx, globalTemplatesDir); err != nil {
@@ -1446,7 +1446,7 @@ func initOperationalSettings(ctx context.Context, cfg *config.GlobalConfig, hubS
 
 	// --- WARN log for env-overridden Layer-1 keys (§3.4) ---
 	if envKeys := ops.EnvOverriddenKeys(); len(envKeys) > 0 {
-		slog.Warn("Layer-1 settings overridden by SCION_SERVER_* env vars on this node — these values diverge from the shared DB",
+		slog.Warn("Layer-1 settings overridden by FABRIC_SERVER_* env vars on this node — these values diverge from the shared DB",
 			"keys", envKeys)
 	}
 
@@ -1522,7 +1522,7 @@ func seedHubSettingsIfNeeded(ctx context.Context, s store.HubSettingStore, fileK
 // initHubStorage initializes the storage backend for the Hub server.
 // It always ensures a storage backend is configured: if the explicitly
 // configured backend (GCS or local) fails, it falls back to a local
-// filesystem storage at ~/.scion/storage so that template bootstrap
+// filesystem storage at ~/.fabric/storage so that template bootstrap
 // and other storage-dependent features still work.
 func initHubStorage(ctx context.Context, hubSrv *hub.Server, cfg *config.GlobalConfig, globalDir string) error {
 	if storageBucket != "" {
@@ -1605,7 +1605,7 @@ func newEventPublisher(ctx context.Context, cfg *config.GlobalConfig, dbRec dbme
 }
 
 // newCommandBus selects the command bus backend. With Postgres it returns a
-// PostgresCommandBus (LISTEN/NOTIFY on scion_broker_cmd); otherwise it returns
+// PostgresCommandBus (LISTEN/NOTIFY on fabric_broker_cmd); otherwise it returns
 // a no-op bus (single-process SQLite always owns all brokers locally).
 func newCommandBus(ctx context.Context, cfg *config.GlobalConfig, hubSrv *hub.Server) hub.CommandBus {
 	if !strings.EqualFold(cfg.Database.Driver, "postgres") {
@@ -1623,7 +1623,7 @@ func newCommandBus(ctx context.Context, cfg *config.GlobalConfig, hubSrv *hub.Se
 		log.Printf("WARNING: failed to start Postgres command bus (%v); falling back to no-op. Cross-replica dispatch signals will not work.", err)
 		return hub.NoopCommandBus{}
 	}
-	log.Printf("Using Postgres command bus on channel scion_broker_cmd")
+	log.Printf("Using Postgres command bus on channel fabric_broker_cmd")
 	return bus
 }
 
@@ -1640,7 +1640,7 @@ func initWebServer(ctx context.Context, cfg *config.GlobalConfig, hubSrv *hub.Se
 	sessionSecret := resolveSessionSecret()
 	baseURL := webBaseURL
 	if baseURL == "" {
-		baseURL = os.Getenv("SCION_SERVER_BASE_URL")
+		baseURL = os.Getenv("FABRIC_SERVER_BASE_URL")
 	}
 	if baseURL == "" {
 		baseURL = fmt.Sprintf("http://localhost:%d", webPort)
@@ -1838,7 +1838,7 @@ func startRuntimeBroker(ctx context.Context, cmd *cobra.Command, cfg *config.Glo
 	// and telemetry (:4317) port collisions that --network=host causes for
 	// concurrent agents. We fall back to the legacy host.docker.internal (host
 	// networking) path when:
-	//   - the escape hatch SCION_FORCE_HOST_NETWORK is set,
+	//   - the escape hatch FABRIC_FORCE_HOST_NETWORK is set,
 	//   - the Docker daemon lacks host-gateway support, or
 	//   - no public domain is configured (can't reach Caddy without one).
 	containerHubEndpoint := cfg.RuntimeBroker.ContainerHubEndpoint
@@ -1867,7 +1867,7 @@ func startRuntimeBroker(ctx context.Context, cmd *cobra.Command, cfg *config.Glo
 				containerHubEndpoint = computed
 				if isDocker && !forceHost {
 					// publicDomain == "" here: no domain configured to reach Caddy.
-					log.Printf("WARNING: no public domain configured for colocated Docker agents; falling back to host networking. Set SCION_SERVER_BASE_URL=https://<domain> to enable per-agent bridge networking.")
+					log.Printf("WARNING: no public domain configured for colocated Docker agents; falling back to host networking. Set FABRIC_SERVER_BASE_URL=https://<domain> to enable per-agent bridge networking.")
 				}
 				log.Printf("Auto-computed ContainerHubEndpoint for %s runtime: %s", rt.Name(), containerHubEndpoint)
 			}
@@ -1883,7 +1883,7 @@ func startRuntimeBroker(ctx context.Context, cmd *cobra.Command, cfg *config.Glo
 		} else {
 			log.Printf("Apple Container runtime detected. To enable agent connectivity, run once:\n"+
 				"  sudo container system dns create %s --localhost %s\n"+
-				"  See: https://googlecloudplatform.github.io/scion/",
+				"  See: https://pdlc-os.github.io/fabric/",
 				runtime.AppleDNSHostname, runtime.AppleDNSIP)
 		}
 	}
@@ -1977,13 +1977,13 @@ func startRuntimeBroker(ctx context.Context, cmd *cobra.Command, cfg *config.Glo
 // pluginChannelID returns the channel identifier reported by a broker plugin
 // via GetInfo().ChannelID. Returns "" if the plugin does not report one, in
 // which case the bus Name is used for channel routing.
-func pluginChannelID(pluginMgr *scionplugin.Manager, name string) string {
-	raw, err := pluginMgr.Get(scionplugin.PluginTypeBroker, name)
+func pluginChannelID(pluginMgr *fabricplugin.Manager, name string) string {
+	raw, err := pluginMgr.Get(fabricplugin.PluginTypeBroker, name)
 	if err != nil {
 		return ""
 	}
 	type infoer interface {
-		GetInfo() (*scionplugin.PluginInfo, error)
+		GetInfo() (*fabricplugin.PluginInfo, error)
 	}
 	rpc, ok := raw.(infoer)
 	if !ok {
@@ -1999,11 +1999,11 @@ func pluginChannelID(pluginMgr *scionplugin.Manager, name string) string {
 // isObserverBroker determines whether a broker plugin should be treated as an
 // observer (fire-and-forget on publish errors). It checks the plugin's
 // capabilities first, then falls back to a name-based heuristic.
-func isObserverBroker(pluginMgr *scionplugin.Manager, name string) bool {
-	raw, err := pluginMgr.Get(scionplugin.PluginTypeBroker, name)
+func isObserverBroker(pluginMgr *fabricplugin.Manager, name string) bool {
+	raw, err := pluginMgr.Get(fabricplugin.PluginTypeBroker, name)
 	if err == nil {
 		type infoer interface {
-			GetInfo() (*scionplugin.PluginInfo, error)
+			GetInfo() (*fabricplugin.PluginInfo, error)
 		}
 		if rpc, ok := raw.(infoer); ok {
 			if info, infoErr := rpc.GetInfo(); infoErr == nil && info != nil {
@@ -2022,9 +2022,9 @@ func isObserverBroker(pluginMgr *scionplugin.Manager, name string) bool {
 }
 
 // initPluginManager creates and loads a plugin manager from versioned settings.
-func initPluginManager() *scionplugin.Manager {
+func initPluginManager() *fabricplugin.Manager {
 	logger := logging.Subsystem("plugin")
-	mgr := scionplugin.NewManager(logger)
+	mgr := fabricplugin.NewManager(logger)
 	mgr.NewGRPCBrokerAdapter = grpcbroker.NewAdapterFromEntry
 
 	vs, err := config.LoadVersionedSettings("")
@@ -2032,15 +2032,15 @@ func initPluginManager() *scionplugin.Manager {
 		return mgr
 	}
 
-	pluginsDir, err := scionplugin.DefaultPluginsDir()
+	pluginsDir, err := fabricplugin.DefaultPluginsDir()
 	if err != nil {
 		log.Printf("Warning: failed to resolve plugins directory: %v", err)
 		return mgr
 	}
 
 	// Convert V1PluginsConfig to plugin.PluginsConfig
-	pluginsCfg := scionplugin.PluginsConfig{
-		Broker: make(map[string]scionplugin.PluginEntry),
+	pluginsCfg := fabricplugin.PluginsConfig{
+		Broker: make(map[string]fabricplugin.PluginEntry),
 	}
 	for name, entry := range vs.Server.Plugins.Broker {
 		// Merge config_file contents with inline config (inline overrides file).
@@ -2049,7 +2049,7 @@ func initPluginManager() *scionplugin.Manager {
 			log.Printf("Warning: failed to load config file for plugin %q: %v", name, mergeErr)
 			mergedConfig = entry.Config
 		}
-		pluginsCfg.Broker[name] = scionplugin.PluginEntry{
+		pluginsCfg.Broker[name] = fabricplugin.PluginEntry{
 			Path:          entry.Path,
 			Config:        mergedConfig,
 			ConfigFile:    entry.ConfigFile,
@@ -2171,8 +2171,8 @@ func resolveHubEndpointForBroker(cfg *config.GlobalConfig, settings *config.Sett
 // and environment variables.
 func resolveMaintenanceConfig(cfg *config.GlobalConfig) hub.MaintenanceConfig {
 	mc := hub.MaintenanceConfig{
-		ServiceName: "scion-hub",
-		BinaryDest:  "/usr/local/bin/scion",
+		ServiceName: "fabric-hub",
+		BinaryDest:  "/usr/local/bin/fabric",
 	}
 
 	// Pull from versioned settings if available.
@@ -2188,17 +2188,17 @@ func resolveMaintenanceConfig(cfg *config.GlobalConfig) hub.MaintenanceConfig {
 	}
 
 	// Environment variable overrides.
-	if v := os.Getenv("SCION_MAINTENANCE_IMAGE_REGISTRY"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_IMAGE_REGISTRY"); v != "" {
 		mc.ImageRegistry = v
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_IMAGE_TAG"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_IMAGE_TAG"); v != "" {
 		mc.ImageTag = v
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_RUNTIME"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_RUNTIME"); v != "" {
 		mc.RuntimeBin = v
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_REPO_PATH"); v != "" {
-		// Support "path@branch" syntax: /home/scion/scion@feature-branch
+	if v := os.Getenv("FABRIC_MAINTENANCE_REPO_PATH"); v != "" {
+		// Support "path@branch" syntax: /home/fabric/fabric@feature-branch
 		if path, branch, ok := strings.Cut(v, "@"); ok {
 			mc.RepoPath = path
 			mc.RepoBranch = branch
@@ -2206,13 +2206,13 @@ func resolveMaintenanceConfig(cfg *config.GlobalConfig) hub.MaintenanceConfig {
 			mc.RepoPath = v
 		}
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_REPO_BRANCH"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_REPO_BRANCH"); v != "" {
 		mc.RepoBranch = v
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_BINARY_DEST"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_BINARY_DEST"); v != "" {
 		mc.BinaryDest = v
 	}
-	if v := os.Getenv("SCION_MAINTENANCE_SERVICE_NAME"); v != "" {
+	if v := os.Getenv("FABRIC_MAINTENANCE_SERVICE_NAME"); v != "" {
 		mc.ServiceName = v
 	}
 

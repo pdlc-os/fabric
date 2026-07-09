@@ -115,8 +115,8 @@ async function loadLanguageSupport(lang: string): Promise<CMModule | null> {
 // Component
 // ────────────────────────────────────────────────────────────
 
-@customElement('scion-code-editor')
-export class ScionCodeEditor extends LitElement {
+@customElement('fabric-code-editor')
+export class FabricCodeEditor extends LitElement {
   /** Initial content to load into the editor. */
   @property({ type: String })
   content = '';
@@ -143,8 +143,8 @@ export class ScionCodeEditor extends LitElement {
     }
 
     .editor-container {
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
       min-height: 200px;
     }
@@ -154,7 +154,7 @@ export class ScionCodeEditor extends LitElement {
       min-height: 200px;
       max-height: calc(100vh - 16rem);
       font-size: 0.875rem;
-      font-family: var(--scion-font-mono, 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace);
+      font-family: var(--fabric-font-mono, 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace);
     }
 
     .editor-container .cm-editor.cm-focused {
@@ -170,7 +170,7 @@ export class ScionCodeEditor extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 3rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -303,13 +303,13 @@ export class ScionCodeEditor extends LitElement {
         // Theme: match our design system colors
         EditorView.theme({
           '&': {
-            backgroundColor: 'var(--scion-surface, #ffffff)',
-            color: 'var(--scion-text, #1e293b)',
+            backgroundColor: 'var(--fabric-surface, #ffffff)',
+            color: 'var(--fabric-text, #1e293b)',
           },
           '.cm-gutters': {
-            backgroundColor: 'var(--scion-bg-subtle, #f8fafc)',
-            color: 'var(--scion-text-muted, #64748b)',
-            borderRight: '1px solid var(--scion-border, #e2e8f0)',
+            backgroundColor: 'var(--fabric-bg-subtle, #f8fafc)',
+            color: 'var(--fabric-text-muted, #64748b)',
+            borderRight: '1px solid var(--fabric-border, #e2e8f0)',
           },
           '.cm-activeLineGutter': {
             backgroundColor: isDark
@@ -430,6 +430,6 @@ export class ScionCodeEditor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-code-editor': ScionCodeEditor;
+    'fabric-code-editor': FabricCodeEditor;
   }
 }

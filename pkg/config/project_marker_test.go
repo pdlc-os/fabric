@@ -65,7 +65,7 @@ func TestProjectMarker_ExternalProjectPath(t *testing.T) {
 		t.Fatalf("ExternalProjectPath() error: %v", err)
 	}
 
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-project__550e8400", ".scion")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-project__550e8400", ".fabric")
 	if got != want {
 		t.Errorf("ExternalProjectPath() = %q, want %q", got, want)
 	}
@@ -73,7 +73,7 @@ func TestProjectMarker_ExternalProjectPath(t *testing.T) {
 
 func TestWriteAndReadProjectMarker(t *testing.T) {
 	tmpDir := t.TempDir()
-	markerPath := filepath.Join(tmpDir, ".scion")
+	markerPath := filepath.Join(tmpDir, ".fabric")
 
 	original := &ProjectMarker{
 		ProjectID:   "550e8400-e29b-41d4-a716-446655440000",
@@ -113,7 +113,7 @@ func TestWriteAndReadProjectMarker(t *testing.T) {
 
 func TestReadProjectMarker_InvalidContent(t *testing.T) {
 	tmpDir := t.TempDir()
-	markerPath := filepath.Join(tmpDir, ".scion")
+	markerPath := filepath.Join(tmpDir, ".fabric")
 
 	// Write invalid marker (missing required fields)
 	_ = os.WriteFile(markerPath, []byte("grove-name: test\n"), 0644)
@@ -129,7 +129,7 @@ func TestResolveProjectMarker(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	tmpDir := t.TempDir()
-	markerPath := filepath.Join(tmpDir, ".scion")
+	markerPath := filepath.Join(tmpDir, ".fabric")
 
 	marker := &ProjectMarker{
 		ProjectID:   "abcdef12-3456-7890-abcd-ef1234567890",
@@ -143,7 +143,7 @@ func TestResolveProjectMarker(t *testing.T) {
 		t.Fatalf("ResolveProjectMarker failed: %v", err)
 	}
 
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-app__abcdef12", ".scion")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-app__abcdef12", ".fabric")
 	if resolved != want {
 		t.Errorf("ResolveProjectMarker() = %q, want %q", resolved, want)
 	}
@@ -178,36 +178,36 @@ func TestIsOldStyleNonGitProject(t *testing.T) {
 	_ = os.Setenv("HOME", tmpHome)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	// Create global .scion — should NOT be flagged
-	globalDir := filepath.Join(tmpHome, ".scion")
+	// Create global .fabric — should NOT be flagged
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	_ = os.MkdirAll(globalDir, 0755)
 	if IsOldStyleNonGitProject(globalDir) {
-		t.Error("global ~/.scion should NOT be flagged as old-style")
+		t.Error("global ~/.fabric should NOT be flagged as old-style")
 	}
 
-	// Create a non-git project .scion dir — SHOULD be flagged
+	// Create a non-git project .fabric dir — SHOULD be flagged
 	nonGitDir := t.TempDir()
-	scionDir := filepath.Join(nonGitDir, ".scion")
-	_ = os.MkdirAll(scionDir, 0755)
-	if !IsOldStyleNonGitProject(scionDir) {
-		t.Error("non-git .scion directory should be flagged as old-style")
+	fabricDir := filepath.Join(nonGitDir, ".fabric")
+	_ = os.MkdirAll(fabricDir, 0755)
+	if !IsOldStyleNonGitProject(fabricDir) {
+		t.Error("non-git .fabric directory should be flagged as old-style")
 	}
 
-	// Create a git project .scion dir — should NOT be flagged
+	// Create a git project .fabric dir — should NOT be flagged
 	gitDir := t.TempDir()
 	_ = os.MkdirAll(filepath.Join(gitDir, ".git"), 0755)
-	gitScionDir := filepath.Join(gitDir, ".scion")
-	_ = os.MkdirAll(gitScionDir, 0755)
-	if IsOldStyleNonGitProject(gitScionDir) {
-		t.Error("git .scion directory should NOT be flagged as old-style")
+	gitFabricDir := filepath.Join(gitDir, ".fabric")
+	_ = os.MkdirAll(gitFabricDir, 0755)
+	if IsOldStyleNonGitProject(gitFabricDir) {
+		t.Error("git .fabric directory should NOT be flagged as old-style")
 	}
 
-	// .scion as a file — should NOT be flagged
+	// .fabric as a file — should NOT be flagged
 	fileDir := t.TempDir()
-	markerFile := filepath.Join(fileDir, ".scion")
+	markerFile := filepath.Join(fileDir, ".fabric")
 	_ = os.WriteFile(markerFile, []byte("grove-id: test"), 0644)
 	if IsOldStyleNonGitProject(markerFile) {
-		t.Error(".scion file should NOT be flagged as old-style")
+		t.Error(".fabric file should NOT be flagged as old-style")
 	}
 }
 
@@ -234,14 +234,14 @@ func TestFindProjectRoot_MarkerFile(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// Create a project directory with a .scion marker file
+	// Create a project directory with a .fabric marker file
 	projectDir := t.TempDir()
 	marker := &ProjectMarker{
 		ProjectID:   "550e8400-e29b-41d4-a716-446655440000",
 		ProjectName: "test-project",
 		ProjectSlug: "test-project",
 	}
-	_ = WriteProjectMarker(filepath.Join(projectDir, ".scion"), marker)
+	_ = WriteProjectMarker(filepath.Join(projectDir, ".fabric"), marker)
 
 	// Create the external directory so resolution works
 	externalPath, _ := marker.ExternalProjectPath()
@@ -263,15 +263,15 @@ func TestFindProjectRoot_MarkerFile(t *testing.T) {
 
 func TestWriteAndReadProjectID(t *testing.T) {
 	tmpDir := t.TempDir()
-	scionDir := filepath.Join(tmpDir, ".scion")
-	_ = os.MkdirAll(scionDir, 0755)
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	_ = os.MkdirAll(fabricDir, 0755)
 
 	projectID := "550e8400-e29b-41d4-a716-446655440000"
-	if err := WriteProjectID(scionDir, projectID); err != nil {
+	if err := WriteProjectID(fabricDir, projectID); err != nil {
 		t.Fatalf("WriteProjectID failed: %v", err)
 	}
 
-	got, err := ReadProjectID(scionDir)
+	got, err := ReadProjectID(fabricDir)
 	if err != nil {
 		t.Fatalf("ReadProjectID failed: %v", err)
 	}
@@ -295,7 +295,7 @@ func TestGetGitProjectExternalConfigDir(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
@@ -304,7 +304,7 @@ func TestGetGitProjectExternalConfigDir(t *testing.T) {
 		t.Fatalf("GetGitProjectExternalConfigDir failed: %v", err)
 	}
 
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric")
 	if got != want {
 		t.Errorf("GetGitProjectExternalConfigDir() = %q, want %q", got, want)
 	}
@@ -314,7 +314,7 @@ func TestGetGitProjectExternalConfigDir_NoProjectID(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 
 	got, err := GetGitProjectExternalConfigDir(projectDir)
@@ -330,8 +330,8 @@ func TestGetGitProjectExternalAgentsDir(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// Create a simulated git project .scion dir with grove-id
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	// Create a simulated git project .fabric dir with grove-id
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
@@ -340,7 +340,7 @@ func TestGetGitProjectExternalAgentsDir(t *testing.T) {
 		t.Fatalf("GetGitProjectExternalAgentsDir failed: %v", err)
 	}
 
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion", "agents")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric", "agents")
 	if got != want {
 		t.Errorf("GetGitProjectExternalAgentsDir() = %q, want %q", got, want)
 	}
@@ -350,8 +350,8 @@ func TestGetGitProjectExternalAgentsDir_NoProjectID(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// Create a .scion dir without grove-id
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	// Create a .fabric dir without grove-id
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 
 	got, err := GetGitProjectExternalAgentsDir(projectDir)
@@ -368,12 +368,12 @@ func TestGetAgentHomePath_GitProjectSplitStorage(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	// Create a git project with grove-id (split storage)
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
 	got := GetAgentHomePath(projectDir, "test-agent")
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion", "agents", "test-agent", "home")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric", "agents", "test-agent", "home")
 	if got != want {
 		t.Errorf("GetAgentHomePath() = %q, want %q", got, want)
 	}
@@ -383,8 +383,8 @@ func TestGetAgentHomePath_NoProjectID(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// Create a .scion dir without grove-id (fallback to in-repo)
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	// Create a .fabric dir without grove-id (fallback to in-repo)
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 
 	got := GetAgentHomePath(projectDir, "test-agent")
@@ -399,12 +399,12 @@ func TestGetAgentDir_SharedWorkspaceUsesExternal(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	// Git project with grove-id (split storage)
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
 	got := GetAgentDir(projectDir, "test-agent", true)
-	want := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion", "agents", "test-agent")
+	want := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric", "agents", "test-agent")
 	if got != want {
 		t.Errorf("GetAgentDir(sharedWorkspace=true) = %q, want %q", got, want)
 	}
@@ -415,7 +415,7 @@ func TestGetAgentDir_WorktreeModeStaysInProject(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	// Git project with grove-id (split storage), but caller is NOT shared-workspace
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
@@ -430,8 +430,8 @@ func TestGetAgentDir_SharedWorkspaceWithoutProjectIDFallsBack(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	// .scion dir without grove-id — split storage not initialized
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	// .fabric dir without grove-id — split storage not initialized
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 
 	got := GetAgentDir(projectDir, "test-agent", true)
@@ -441,21 +441,21 @@ func TestGetAgentDir_SharedWorkspaceWithoutProjectIDFallsBack(t *testing.T) {
 	}
 }
 
-func TestResolveAgentDir_PrefersExternalWhenScionAgentJSONExists(t *testing.T) {
+func TestResolveAgentDir_PrefersExternalWhenFabricAgentJSONExists(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
-	// Populate the external dir with a scion-agent.json (shared-workspace layout)
-	extAgentDir := filepath.Join(tmpHome, ".scion", "project-configs", "my-repo__550e8400", ".scion", "agents", "test-agent")
+	// Populate the external dir with a fabric-agent.json (shared-workspace layout)
+	extAgentDir := filepath.Join(tmpHome, ".fabric", "project-configs", "my-repo__550e8400", ".fabric", "agents", "test-agent")
 	if err := os.MkdirAll(extAgentDir, 0755); err != nil {
 		t.Fatalf("mkdir external agent dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(extAgentDir, "scion-agent.json"), []byte("{}"), 0644); err != nil {
-		t.Fatalf("write scion-agent.json: %v", err)
+	if err := os.WriteFile(filepath.Join(extAgentDir, "fabric-agent.json"), []byte("{}"), 0644); err != nil {
+		t.Fatalf("write fabric-agent.json: %v", err)
 	}
 
 	got := ResolveAgentDir(projectDir, "test-agent")
@@ -468,12 +468,12 @@ func TestResolveAgentDir_FallsBackToInProjectWhenExternalAbsent(t *testing.T) {
 	tmpHome := t.TempDir()
 	t.Setenv("HOME", tmpHome)
 
-	projectDir := filepath.Join(t.TempDir(), "my-repo", ".scion")
+	projectDir := filepath.Join(t.TempDir(), "my-repo", ".fabric")
 	_ = os.MkdirAll(projectDir, 0755)
 	_ = WriteProjectID(projectDir, "550e8400-e29b-41d4-a716-446655440000")
 
-	// Worktree-mode layout: scion-agent.json lives in-project, only home/ is external.
-	// (We do not create the external scion-agent.json.)
+	// Worktree-mode layout: fabric-agent.json lives in-project, only home/ is external.
+	// (We do not create the external fabric-agent.json.)
 	got := ResolveAgentDir(projectDir, "test-agent")
 	want := filepath.Join(projectDir, "agents", "test-agent")
 	if got != want {
@@ -483,33 +483,33 @@ func TestResolveAgentDir_FallsBackToInProjectWhenExternalAbsent(t *testing.T) {
 
 func TestIsHubContext(t *testing.T) {
 	// Clear all hub env vars
-	t.Setenv("SCION_HUB_ENDPOINT", "")
-	t.Setenv("SCION_HUB_URL", "")
-	t.Setenv("SCION_GROVE_ID", "")
-	t.Setenv("SCION_PROJECT_ID", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_URL", "")
+	t.Setenv("FABRIC_GROVE_ID", "")
+	t.Setenv("FABRIC_PROJECT_ID", "")
 
 	if IsHubContext() {
 		t.Error("expected IsHubContext() = false when no hub env vars are set")
 	}
 
-	// SCION_HUB_ENDPOINT alone
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.example.com")
+	// FABRIC_HUB_ENDPOINT alone
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.example.com")
 	if !IsHubContext() {
-		t.Error("expected IsHubContext() = true when SCION_HUB_ENDPOINT is set")
+		t.Error("expected IsHubContext() = true when FABRIC_HUB_ENDPOINT is set")
 	}
-	t.Setenv("SCION_HUB_ENDPOINT", "")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "")
 
-	// SCION_HUB_URL alone (legacy)
-	t.Setenv("SCION_HUB_URL", "http://hub.example.com")
+	// FABRIC_HUB_URL alone (legacy)
+	t.Setenv("FABRIC_HUB_URL", "http://hub.example.com")
 	if !IsHubContext() {
-		t.Error("expected IsHubContext() = true when SCION_HUB_URL is set")
+		t.Error("expected IsHubContext() = true when FABRIC_HUB_URL is set")
 	}
-	t.Setenv("SCION_HUB_URL", "")
+	t.Setenv("FABRIC_HUB_URL", "")
 
-	// SCION_GROVE_ID alone (broker-dispatched)
-	t.Setenv("SCION_GROVE_ID", "grove-uuid-123")
+	// FABRIC_GROVE_ID alone (broker-dispatched)
+	t.Setenv("FABRIC_GROVE_ID", "grove-uuid-123")
 	if !IsHubContext() {
-		t.Error("expected IsHubContext() = true when SCION_GROVE_ID is set")
+		t.Error("expected IsHubContext() = true when FABRIC_GROVE_ID is set")
 	}
 }
 
@@ -524,7 +524,7 @@ func TestWriteWorkspaceMarker(t *testing.T) {
 	}
 
 	// Read back the marker
-	markerPath := filepath.Join(workspaceDir, ".scion")
+	markerPath := filepath.Join(workspaceDir, ".fabric")
 	marker, err := ReadProjectMarker(markerPath)
 	if err != nil {
 		t.Fatalf("ReadProjectMarker failed: %v", err)
@@ -563,9 +563,9 @@ func TestGetProjectName_ExternalDir(t *testing.T) {
 		dir  string
 		want string
 	}{
-		{"/home/user/.scion/project-configs/my-project__abc12345/.scion", "my-project"},
-		{"/home/user/.scion/project-configs/cool-app__12345678/.scion", "cool-app"},
-		{"/home/user/projects/simple/.scion", "simple"},
+		{"/home/user/.fabric/project-configs/my-project__abc12345/.fabric", "my-project"},
+		{"/home/user/.fabric/project-configs/cool-app__12345678/.fabric", "cool-app"},
+		{"/home/user/projects/simple/.fabric", "simple"},
 	}
 	for _, tt := range tests {
 		got := GetProjectName(tt.dir)

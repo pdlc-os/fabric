@@ -5,7 +5,7 @@
     "env_secret_files": {},
     "files": [],
     "file_secret_files": {
-      "CLAUDE_AUTH": "$HOME/.scion/harness/secrets/CLAUDE_AUTH"
+      "CLAUDE_AUTH": "$HOME/.fabric/harness/secrets/CLAUDE_AUTH"
     }
   },
   "harness_config": {}

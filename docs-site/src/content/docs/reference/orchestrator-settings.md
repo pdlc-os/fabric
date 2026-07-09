@@ -1,17 +1,17 @@
 ---
 title: Orchestrator Settings (settings.yaml)
-description: Configuration reference for the Scion CLI and orchestrator.
+description: Configuration reference for the Fabric CLI and orchestrator.
 ---
 
-This document describes the configuration for the Scion orchestrator, managed through `settings.yaml` files. These settings control the behavior of the CLI, local agent execution, and connections to the Scion Hub.
+This document describes the configuration for the Fabric orchestrator, managed through `settings.yaml` files. These settings control the behavior of the CLI, local agent execution, and connections to the Fabric Hub.
 
 ## File Locations
 
-Scion loads settings from the following locations, merging them in order (later sources override earlier ones):
+Fabric loads settings from the following locations, merging them in order (later sources override earlier ones):
 
-1.  **Global Settings**: `~/.scion/settings.yaml` (User-wide defaults)
-2.  **Project Settings**: `.scion/settings.yaml` (Project-specific overrides)
-3.  **Environment Variables**: `SCION_*` overrides.
+1.  **Global Settings**: `~/.fabric/settings.yaml` (User-wide defaults)
+2.  **Project Settings**: `.fabric/settings.yaml` (Project-specific overrides)
+3.  **Environment Variables**: `FABRIC_*` overrides.
 
 ## Versioned Format
 
@@ -24,7 +24,7 @@ default_template: gemini
 ```
 
 :::note[Legacy Format]
-Files without `schema_version` are treated as legacy format. Run `scion config migrate` to automatically convert legacy files to the versioned format.
+Files without `schema_version` are treated as legacy format. Run `fabric config migrate` to automatically convert legacy files to the versioned format.
 :::
 
 ## Top-Level Fields
@@ -34,7 +34,7 @@ Files without `schema_version` are treated as legacy format. Run `scion config m
 | `schema_version` | string | **Required**. Must be `"1"`. |
 | `active_profile` | string | The name of the profile to use by default (e.g., `local`, `remote`). |
 | `default_template` | string | The default template to use when creating agents (e.g., `gemini`, `claude`). |
-| `image_registry` | string | Registry prefix for all standard harness images. Rewrites the registry portion of `scion-*` images (e.g., `ghcr.io/myorg`). See [Building Custom Images](/scion/local/custom-images/). |
+| `image_registry` | string | Registry prefix for all standard harness images. Rewrites the registry portion of `fabric-*` images (e.g., `ghcr.io/myorg`). See [Building Custom Images](/fabric/local/custom-images/). |
 | `default_max_turns` | int | Default maximum number of turns an agent can take before termination. |
 | `default_max_model_calls` | int | Default maximum number of LLM model calls an agent can make. |
 | `default_max_duration` | string | Default maximum execution time (e.g., `"2h"`, `"45m"`) for an agent. |
@@ -57,7 +57,7 @@ cli:
 
 ## Hub Client Configuration (`hub`)
 
-Settings for connecting the CLI to a Scion Hub.
+Settings for connecting the CLI to a Fabric Hub.
 
 ```yaml
 hub:
@@ -70,19 +70,19 @@ hub:
 | Field | Type | Description |
 | :--- | :--- | :--- |
 | `enabled` | bool | Whether to enable Hub integration for this project. |
-| `endpoint` | string | The Hub API endpoint URL. Can be overridden per-agent in `scion-agent.yaml`. |
+| `endpoint` | string | The Hub API endpoint URL. Can be overridden per-agent in `fabric-agent.yaml`. |
 | `project_id` | string | The unique identifier for this project on the Hub. |
 | `local_only` | bool | If `true`, forces local-only operation even if the Hub is configured. |
 
 :::caution[Moved Fields]
 Legacy fields like `token`, `apiKey`, and broker identity fields (`brokerId`) have been removed. 
-- **Dev Auth** is now handled via `server.auth.dev_token` (or `SCION_DEV_TOKEN`).
-- **Broker Identity** is now configured in the `server.broker` section (see [Server Configuration](/scion/reference/server-config/)).
+- **Dev Auth** is now handled via `server.auth.dev_token` (or `FABRIC_DEV_TOKEN`).
+- **Broker Identity** is now configured in the `server.broker` section (see [Server Configuration](/fabric/reference/server-config/)).
 :::
 
 ## Runtimes (`runtimes`)
 
-Defines the execution backends available to Scion.
+Defines the execution backends available to Fabric.
 
 ```yaml
 runtimes:
@@ -97,7 +97,7 @@ runtimes:
   remote-k8s:
     type: kubernetes
     context: "my-cluster"
-    namespace: "scion-agents"
+    namespace: "fabric-agents"
 ```
 
 | Field | Type | Description |
@@ -122,8 +122,8 @@ Named configurations for agent harnesses. This replaces the legacy `harnesses` m
 harness_configs:
   gemini:
     harness: gemini
-    image: "us-central1-docker.pkg.dev/.../scion-gemini:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-gemini:latest"
+    user: fabric
     model: "gemini-1.5-pro"
   
   claude-beta:
@@ -168,7 +168,7 @@ resources:
 
 ### Required Secrets
 
-Define secrets that must be provided to the agent. During agent creation, Scion utilizes an interactive `secrets-gather` pipeline to prompt for missing values if they are not already securely stored on the backend, ensuring sensitive credentials are never written to plain text configuration files.
+Define secrets that must be provided to the agent. During agent creation, Fabric utilizes an interactive `secrets-gather` pipeline to prompt for missing values if they are not already securely stored on the backend, ensuring sensitive credentials are never written to plain text configuration files.
 
 ```yaml
 secrets:
@@ -215,9 +215,9 @@ profiles:
 
 ## Telemetry Configuration (`telemetry`)
 
-Controls agent telemetry collection, forwarding, privacy filtering, and debug output. Telemetry settings can be defined at global or project scope and are merged across the hierarchy (last write wins). They can also be overridden per-template or per-agent in `scion-agent.yaml`.
+Controls agent telemetry collection, forwarding, privacy filtering, and debug output. Telemetry settings can be defined at global or project scope and are merged across the hierarchy (last write wins). They can also be overridden per-template or per-agent in `fabric-agent.yaml`.
 
-See the [Metrics & OpenTelemetry guide](/scion/hosted/single-node/metrics/) for operational details.
+See the [Metrics & OpenTelemetry guide](/fabric/hosted/single-node/metrics/) for operational details.
 
 ### Basic Example
 
@@ -251,7 +251,7 @@ Settings for forwarding telemetry to a cloud OTLP backend.
 
 ### Hub Reporting (`telemetry.hub`)
 
-Settings for reporting telemetry summaries to the Scion Hub.
+Settings for reporting telemetry summaries to the Fabric Hub.
 
 | Field | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -292,33 +292,33 @@ Static key-value pairs added to all telemetry events. Useful for tagging deploym
 ```yaml
 telemetry:
   resource:
-    service.name: "scion-agent"
+    service.name: "fabric-agent"
     deployment.env: "staging"
 ```
 
 ## Server Configuration (`server`)
 
-When running the `scion server` (Hub or Broker), configuration is read from the `server` section of `settings.yaml`.
+When running the `fabric server` (Hub or Broker), configuration is read from the `server` section of `settings.yaml`.
 
-See the [Server Configuration Reference](/scion/reference/server-config/) for details.
+See the [Server Configuration Reference](/fabric/reference/server-config/) for details.
 
 ## Environment Variable Overrides
 
-Settings can be overridden using environment variables with the `SCION_` prefix.
+Settings can be overridden using environment variables with the `FABRIC_` prefix.
 
 | Setting | Environment Variable |
 | :--- | :--- |
-| `active_profile` | `SCION_ACTIVE_PROFILE` |
-| `default_template` | `SCION_DEFAULT_TEMPLATE` |
-| `hub.endpoint` | `SCION_HUB_ENDPOINT` |
-| `hub.project_id` | `SCION_HUB_PROJECT_ID` |
-| `cli.autohelp` | `SCION_CLI_AUTOHELP` |
-| `telemetry.enabled` | `SCION_TELEMETRY_ENABLED` |
-| `telemetry.cloud.enabled` | `SCION_TELEMETRY_CLOUD_ENABLED` |
-| `telemetry.cloud.endpoint` | `SCION_OTEL_ENDPOINT` |
-| `telemetry.cloud.protocol` | `SCION_OTEL_PROTOCOL` |
-| `telemetry.cloud.tls.insecure_skip_verify` | `SCION_OTEL_INSECURE` |
-| `telemetry.hub.enabled` | `SCION_TELEMETRY_HUB_ENABLED` |
-| `telemetry.local.enabled` | `SCION_TELEMETRY_DEBUG` |
+| `active_profile` | `FABRIC_ACTIVE_PROFILE` |
+| `default_template` | `FABRIC_DEFAULT_TEMPLATE` |
+| `hub.endpoint` | `FABRIC_HUB_ENDPOINT` |
+| `hub.project_id` | `FABRIC_HUB_PROJECT_ID` |
+| `cli.autohelp` | `FABRIC_CLI_AUTOHELP` |
+| `telemetry.enabled` | `FABRIC_TELEMETRY_ENABLED` |
+| `telemetry.cloud.enabled` | `FABRIC_TELEMETRY_CLOUD_ENABLED` |
+| `telemetry.cloud.endpoint` | `FABRIC_OTEL_ENDPOINT` |
+| `telemetry.cloud.protocol` | `FABRIC_OTEL_PROTOCOL` |
+| `telemetry.cloud.tls.insecure_skip_verify` | `FABRIC_OTEL_INSECURE` |
+| `telemetry.hub.enabled` | `FABRIC_TELEMETRY_HUB_ENABLED` |
+| `telemetry.local.enabled` | `FABRIC_TELEMETRY_DEBUG` |
 
-See [Local Governance](/scion/local/local-governance/) for more on variable substitution.
+See [Local Governance](/fabric/local/local-governance/) for more on variable substitution.

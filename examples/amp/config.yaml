@@ -13,13 +13,13 @@
 # limitations under the License.
 
 harness: amp
-image: scion-amp:latest
-user: scion
+image: fabric-amp:latest
+user: fabric
 
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -42,7 +42,7 @@ command:
   task_position: after_base_args
 
 env_template:
-  SCION_AGENT_NAME: "{{ .AgentName }}"
+  FABRIC_AGENT_NAME: "{{ .AgentName }}"
 
 capabilities:
   limits:

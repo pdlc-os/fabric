@@ -22,16 +22,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // TestExecCommand_ProjectScopedDisambiguation is a regression test for the
-// cross-project slug collision in "scion look"/"scion exec". Two agents in
+// cross-project slug collision in "fabric look"/"fabric exec". Two agents in
 // different projects share the slug "coordinator"; the exec must target the
 // container in the project named by the projectId query param. Before the fix,
 // execCommand ignored projectId and resolved the slug across all projects,
-// so "scion look coordinator" in one project could show another project's
+// so "fabric look coordinator" in one project could show another project's
 // terminal output.
 func TestExecCommand_ProjectScopedDisambiguation(t *testing.T) {
 	mgr := &filteringMockManager{}
@@ -39,12 +39,12 @@ func TestExecCommand_ProjectScopedDisambiguation(t *testing.T) {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 		{
 			ContainerID: "container-B",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-B"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-B"},
 		},
 	}
 
@@ -91,7 +91,7 @@ func TestExecCommand_ProjectScopedDisambiguation(t *testing.T) {
 	}
 }
 
-// TestStopAgent_ProjectScopedDisambiguation verifies that "scion stop" targets
+// TestStopAgent_ProjectScopedDisambiguation verifies that "fabric stop" targets
 // the container in the requested project when two projects share an agent slug,
 // rather than stopping whichever the slug matches first.
 func TestStopAgent_ProjectScopedDisambiguation(t *testing.T) {
@@ -100,12 +100,12 @@ func TestStopAgent_ProjectScopedDisambiguation(t *testing.T) {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 		{
 			ContainerID: "container-B",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-B"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-B"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -133,7 +133,7 @@ func TestExecCommand_NotFoundWhenOnlyInOtherProject(t *testing.T) {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 	}
 	execCalled := false
@@ -168,7 +168,7 @@ func TestStopAgent_NotFoundInProjectIsNoOp(t *testing.T) {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -195,7 +195,7 @@ func TestExecCommand_NotFoundInProject(t *testing.T) {
 		{
 			ContainerID: "container-A",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-A"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-A"},
 		},
 	}
 	rt := &runtime.MockRuntime{

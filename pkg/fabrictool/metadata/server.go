@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package metadata implements a GCE compute metadata server emulator.
-// It runs as an in-process HTTP server within sciontool, providing GCP
+// It runs as an in-process HTTP server within fabrictool, providing GCP
 // identity to agents via the standard metadata endpoint format.
 package metadata
 
@@ -35,7 +35,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // Config holds configuration for the metadata server.
@@ -50,7 +50,7 @@ type Config struct {
 	ProjectID string
 	// HubURL is the Hub endpoint for token brokering.
 	HubURL string
-	// AuthToken is the agent's SCION_AUTH_TOKEN for Hub authentication.
+	// AuthToken is the agent's FABRIC_AUTH_TOKEN for Hub authentication.
 	// Deprecated: Use TokenFunc for dynamic token retrieval.
 	AuthToken string
 	// TokenFunc, if set, is called to get the current auth token.
@@ -84,31 +84,31 @@ const (
 )
 
 // ConfigFromEnv reads metadata server configuration from environment variables.
-// Returns nil if SCION_METADATA_MODE is not set.
+// Returns nil if FABRIC_METADATA_MODE is not set.
 func ConfigFromEnv() *Config {
-	mode := os.Getenv("SCION_METADATA_MODE")
+	mode := os.Getenv("FABRIC_METADATA_MODE")
 	if mode == "" {
 		return nil
 	}
 
 	port := 18380
-	if p := os.Getenv("SCION_METADATA_PORT"); p != "" {
+	if p := os.Getenv("FABRIC_METADATA_PORT"); p != "" {
 		_, _ = fmt.Sscanf(p, "%d", &port)
 	}
 
-	hubURL := os.Getenv("SCION_HUB_ENDPOINT")
+	hubURL := os.Getenv("FABRIC_HUB_ENDPOINT")
 	if hubURL == "" {
-		hubURL = os.Getenv("SCION_HUB_URL")
+		hubURL = os.Getenv("FABRIC_HUB_URL")
 	}
 
 	return &Config{
 		Mode:        mode,
 		Port:        port,
-		SAEmail:     os.Getenv("SCION_METADATA_SA_EMAIL"),
-		ProjectID:   os.Getenv("SCION_METADATA_PROJECT_ID"),
+		SAEmail:     os.Getenv("FABRIC_METADATA_SA_EMAIL"),
+		ProjectID:   os.Getenv("FABRIC_METADATA_PROJECT_ID"),
 		HubURL:      hubURL,
-		AuthToken:   os.Getenv("SCION_AUTH_TOKEN"),
-		NetworkMode: os.Getenv("SCION_NETWORK_MODE"),
+		AuthToken:   os.Getenv("FABRIC_AUTH_TOKEN"),
+		NetworkMode: os.Getenv("FABRIC_NETWORK_MODE"),
 	}
 }
 
@@ -194,7 +194,7 @@ func (s *Server) buildMux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleRoot)
 	mux.HandleFunc("/computeMetadata/v1/", s.handleMetadata)
-	mux.HandleFunc("/_scion/shutdown", s.handleShutdown)
+	mux.HandleFunc("/_fabric/shutdown", s.handleShutdown)
 	return s.requireMetadataFlavor(mux)
 }
 
@@ -376,11 +376,11 @@ func (s *Server) Stop() {
 }
 
 // shutdownExisting tries to shut down an existing metadata server on the port
-// by sending a POST to its /_scion/shutdown endpoint. This handles the case
+// by sending a POST to its /_fabric/shutdown endpoint. This handles the case
 // where a stale server from a previous init cycle holds the port.
 func (s *Server) shutdownExisting() {
 	client := &http.Client{Timeout: 2 * time.Second}
-	url := fmt.Sprintf("http://127.0.0.1:%d/_scion/shutdown", s.config.Port)
+	url := fmt.Sprintf("http://127.0.0.1:%d/_fabric/shutdown", s.config.Port)
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return
@@ -391,7 +391,7 @@ func (s *Server) shutdownExisting() {
 		log.Debug("Could not read metadata shutdown token for port %d: %v", s.config.Port, err)
 		return
 	}
-	req.Header.Set("X-Scion-Shutdown-Token", strings.TrimSpace(string(token)))
+	req.Header.Set("X-Fabric-Shutdown-Token", strings.TrimSpace(string(token)))
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Debug("Could not reach existing metadata server for shutdown: %v", err)
@@ -401,18 +401,18 @@ func (s *Server) shutdownExisting() {
 	log.Info("Sent shutdown request to existing metadata server on port %d (status=%d)", s.config.Port, resp.StatusCode)
 }
 
-// handleShutdown handles POST /_scion/shutdown requests, allowing a new
+// handleShutdown handles POST /_fabric/shutdown requests, allowing a new
 // metadata server instance to reclaim the port from a stale server.
 func (s *Server) handleShutdown(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	if s.shutdownToken == "" || r.Header.Get("X-Scion-Shutdown-Token") != s.shutdownToken {
+	if s.shutdownToken == "" || r.Header.Get("X-Fabric-Shutdown-Token") != s.shutdownToken {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-	log.Info("Shutdown requested via /_scion/shutdown, stopping metadata server")
+	log.Info("Shutdown requested via /_fabric/shutdown, stopping metadata server")
 	w.WriteHeader(http.StatusOK)
 	_, _ = fmt.Fprint(w, "shutting down")
 	go func() {
@@ -422,7 +422,7 @@ func (s *Server) handleShutdown(w http.ResponseWriter, r *http.Request) {
 }
 
 func shutdownTokenPath(port int) string {
-	return filepath.Join(os.TempDir(), fmt.Sprintf("scion-metadata-shutdown-%d.token", port))
+	return filepath.Join(os.TempDir(), fmt.Sprintf("fabric-metadata-shutdown-%d.token", port))
 }
 
 func (s *Server) ensureShutdownToken() error {

@@ -14,16 +14,16 @@ GitHub Apps support multiple active private keys, enabling zero-downtime rotatio
 2. **Update the Hub configuration**:
    ```bash
    # Copy the new key to the Hub server
-   scp new-key.pem hub-server:/etc/scion/github-app-key-new.pem
-   chmod 600 /etc/scion/github-app-key-new.pem
+   scp new-key.pem hub-server:/etc/fabric/github-app-key-new.pem
+   chmod 600 /etc/fabric/github-app-key-new.pem
 
    # Update settings.yaml to point to the new key
-   # private_key_path: /etc/scion/github-app-key-new.pem
+   # private_key_path: /etc/fabric/github-app-key-new.pem
    ```
 
 3. **Restart/reload the Hub server**:
    ```bash
-   systemctl restart scion-hub
+   systemctl restart fabric-hub
    ```
 
 4. **Verify token minting works**:
@@ -43,7 +43,7 @@ GitHub Apps support multiple active private keys, enabling zero-downtime rotatio
 
 6. **Clean up the old key file**:
    ```bash
-   rm /etc/scion/github-app-key-old.pem
+   rm /etc/fabric/github-app-key-old.pem
    ```
 
 ### Rollback
@@ -72,7 +72,7 @@ GitHub does **not** support multiple webhook secrets simultaneously. There will 
 
 3. **Restart the Hub server**:
    ```bash
-   systemctl restart scion-hub
+   systemctl restart fabric-hub
    ```
 
 ### Impact Window

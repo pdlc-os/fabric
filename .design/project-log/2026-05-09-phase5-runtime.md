@@ -5,24 +5,24 @@ Agent: developer
 
 ## Overview
 
-Implemented Phase 5 transition for container labels and runtime discovery. This involves emitting both `scion.project*` and `scion.grove*` labels/annotations for backward compatibility, and updating discovery logic to prefer the new project variants while falling back to grove variants.
+Implemented Phase 5 transition for container labels and runtime discovery. This involves emitting both `fabric.project*` and `fabric.grove*` labels/annotations for backward compatibility, and updating discovery logic to prefer the new project variants while falling back to grove variants.
 
 ## Changes
 
 ### Container Label Emission
 - **pkg/agent/run.go**: Updated `RunConfig` generation to include:
-  - Labels: `scion.project`, `scion.project_id` (alongside `scion.grove`, `scion.grove_id`).
-  - Annotations: `scion.project_path` (alongside `scion.grove_path`).
-- **cmd/server_dispatcher.go**: Updated `hubAgent` label setting to include `scion.project`.
+  - Labels: `fabric.project`, `fabric.project_id` (alongside `fabric.grove`, `fabric.grove_id`).
+  - Annotations: `fabric.project_path` (alongside `fabric.grove_path`).
+- **cmd/server_dispatcher.go**: Updated `hubAgent` label setting to include `fabric.project`.
 
 ### Discovery and Filtering Logic
-- **pkg/agent/list.go**: Updated `List` to handle `scion.project` and `scion.project_path` in filters.
-- **pkg/agent/manager.go**: Updated `MessageRaw` and `deliverImmediate` to use `scion.project_id` in filters.
+- **pkg/agent/list.go**: Updated `List` to handle `fabric.project` and `fabric.project_path` in filters.
+- **pkg/agent/manager.go**: Updated `MessageRaw` and `deliverImmediate` to use `fabric.project_id` in filters.
 - **pkg/runtimebroker/handlers.go**:
-  - Updated `matchesAgent` to check both `scion.project_id` and `scion.grove_id`.
-  - Updated `listAgents` to support `scion.project_id` filter.
+  - Updated `matchesAgent` to check both `fabric.project_id` and `fabric.grove_id`.
+  - Updated `listAgents` to support `fabric.project_id` filter.
   - Updated `agentKey` for deduping to use project ID.
-  - Updated `resolveManagerForAgent` and `resolveRuntimeForAgent` to use `scion.project_id` in filters.
+  - Updated `resolveManagerForAgent` and `resolveRuntimeForAgent` to use `fabric.project_id` in filters.
 - **pkg/runtime/docker.go**:
   - Updated `List` to populate `Project`, `ProjectID`, and `ProjectPath` from both label variants.
   - Updated filtering logic to support fallback from project keys to grove keys.
@@ -32,11 +32,11 @@ Implemented Phase 5 transition for container labels and runtime discovery. This 
   - Updated `createSharedDirPVCs` to emit both project and grove labels on PVCs.
 
 ### Command Line Interface
-- Updated `attach`, `delete`, `list`, `message`, `stop`, and `suspend` commands to use `scion.project` and `scion.project_path` when filtering agents.
+- Updated `attach`, `delete`, `list`, `message`, `stop`, and `suspend` commands to use `fabric.project` and `fabric.project_path` when filtering agents.
 
 ### State and Provisioning
 - **pkg/agent/provision.go**: Updated `ProvisionAgent` to populate `ProjectID` and `ProjectPath` in the `AgentInfo` written to `agent-info.json`.
-- **pkg/agent/provision.go**: Updated `StopProjectContainers` to use `scion.project` for filtering.
+- **pkg/agent/provision.go**: Updated `StopProjectContainers` to use `fabric.project` for filtering.
 
 ## Verification Results
 

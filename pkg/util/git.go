@@ -44,7 +44,7 @@ func IsGitRepoDir(dir string) bool {
 
 // GetGitVersion returns the git version string and the path to the git binary used.
 func GetGitVersion() (string, string, error) {
-	gitPath := os.Getenv("SCION_GIT_BINARY")
+	gitPath := os.Getenv("FABRIC_GIT_BINARY")
 	if gitPath == "" {
 		var err error
 		gitPath, err = exec.LookPath("git")
@@ -70,7 +70,7 @@ func CheckGitVersion() error {
 	}
 
 	if err := CompareGitVersion(version, 2, 47); err != nil {
-		return fmt.Errorf("git version 2.47.0 or newer is required; scion requires worktree support with relative paths (found %s at %s)", version, gitPath)
+		return fmt.Errorf("git version 2.47.0 or newer is required; fabric requires worktree support with relative paths (found %s at %s)", version, gitPath)
 	}
 
 	return nil
@@ -165,12 +165,12 @@ func IsIgnored(dir, path string) bool {
 // CreateWorktree creates a new git worktree at the specified path with a new branch.
 func CreateWorktree(path, branch string) error {
 	// Guard: refuse to create worktrees inside an agent container.
-	// SCION_HOST_UID is set by the runtime when launching containers.
+	// FABRIC_HOST_UID is set by the runtime when launching containers.
 	// Creating worktrees inside containers produces path-identity mismatches
 	// because --relative-paths are computed against the container mount layout,
 	// not the host filesystem.
-	if os.Getenv("SCION_HOST_UID") != "" {
-		return fmt.Errorf("cannot create worktree: running inside an agent container (SCION_HOST_UID is set)")
+	if os.Getenv("FABRIC_HOST_UID") != "" {
+		return fmt.Errorf("cannot create worktree: running inside an agent container (FABRIC_HOST_UID is set)")
 	}
 
 	// Resolve the main repository root via the common git dir. This is correct
@@ -281,11 +281,11 @@ func RemoveWorktree(path string, deleteBranch bool) (bool, error) {
 // PruneWorktrees prunes worktree information for worktrees that no longer exist.
 // It runs from the current working directory.
 func PruneWorktrees() error {
-	// Guard: skip pruning inside agent containers. SCION_HOST_UID is set by the
+	// Guard: skip pruning inside agent containers. FABRIC_HOST_UID is set by the
 	// runtime when launching containers. Pruning inside a container can destroy
 	// worktree metadata that appears stale from the container's mount layout but
 	// is actively used by sibling agents on the host.
-	if os.Getenv("SCION_HOST_UID") != "" {
+	if os.Getenv("FABRIC_HOST_UID") != "" {
 		return nil
 	}
 	cmd := exec.Command("git", "worktree", "prune")
@@ -295,7 +295,7 @@ func PruneWorktrees() error {
 // PruneWorktreesIn prunes worktree information from the specified repository root.
 func PruneWorktreesIn(repoRoot string) error {
 	// Guard: skip pruning inside agent containers (see PruneWorktrees).
-	if os.Getenv("SCION_HOST_UID") != "" {
+	if os.Getenv("FABRIC_HOST_UID") != "" {
 		return nil
 	}
 	cmd := exec.Command("git", "-C", repoRoot, "worktree", "prune")
@@ -609,10 +609,10 @@ func CloneSharedWorkspace(workspacePath, cloneURL, branch, token string) error {
 		return &GitError{Kind: gitErr.Kind, Message: fmt.Sprintf("git clone failed: %s", sanitized)}
 	}
 
-	if err := gitConfig(workspacePath, "user.name", "Scion"); err != nil {
+	if err := gitConfig(workspacePath, "user.name", "Fabric"); err != nil {
 		return fmt.Errorf("failed to configure git user.name: %w", err)
 	}
-	if err := gitConfig(workspacePath, "user.email", "agent@scion.dev"); err != nil {
+	if err := gitConfig(workspacePath, "user.email", "agent@fabric.dev"); err != nil {
 		return fmt.Errorf("failed to configure git user.email: %w", err)
 	}
 
@@ -803,17 +803,17 @@ func sanitizeGitOutput(output, token string) string {
 	return strings.ReplaceAll(output, token, "***")
 }
 
-// scionNamespace is a fixed UUID v5 namespace used by HashProjectID for
+// fabricNamespace is a fixed UUID v5 namespace used by HashProjectID for
 // deterministic identifier derivation (e.g. cache keys).
-var scionNamespace = uuid.MustParse("a1b8e4f0-7c3d-4a1e-9f2b-6d5c8e7a0b1f")
+var fabricNamespace = uuid.MustParse("a1b8e4f0-7c3d-4a1e-9f2b-6d5c8e7a0b1f")
 
 // HashProjectID computes a deterministic identifier from a normalized input
-// string.  It uses UUID v5 (SHA-1 based) with a fixed Scion namespace to
+// string.  It uses UUID v5 (SHA-1 based) with a fixed Fabric namespace to
 // produce a valid UUID that is stable for a given input.
 //
 // NOTE: Project IDs are random UUIDs (see config.GenerateProjectID).  This
 // function is NOT used for project-ID generation — it is retained for other
 // deterministic identifier needs such as cache keys.
 func HashProjectID(normalized string) string {
-	return uuid.NewSHA1(scionNamespace, []byte(normalized)).String()
+	return uuid.NewSHA1(fabricNamespace, []byte(normalized)).String()
 }

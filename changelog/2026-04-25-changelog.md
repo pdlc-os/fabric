@@ -11,7 +11,7 @@ This update introduces significant security hardening for Kubernetes environment
 
 ## 🐛 Fixes
 * **Agent Lifecycle:** Resolved issues where heartbeats could incorrectly revert stopped agent states and improved agent phase derivation from container status. Failed local launches are now correctly reported as errors.
-* **Permissions & Environment:** Improved privilege handling in `sciontool` and Podman rootless environments. Optimized workspace ownership management for non-root containers.
+* **Permissions & Environment:** Improved privilege handling in `fabrictool` and Podman rootless environments. Optimized workspace ownership management for non-root containers.
 * **Routing & Connectivity:** Fixed profile resolution to respect grove-level overrides and resolved various routing issues related to broker registration and standalone mode.
 * **Claude Harness:** Improved the Claude harness by pre-trusting workspaces and removing unnecessary model suffixes.
 * **UI/UX Improvements:** Improved GitHub URL styling, user list sorting, and resolved agent identity collisions across different groves.

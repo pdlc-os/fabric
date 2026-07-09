@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package eventbus provides the event bus abstraction for Scion's real-time
+// Package eventbus provides the event bus abstraction for Fabric's real-time
 // pub/sub system. The event bus routes structured messages between agents,
 // users, and system components using topic-based publish/subscribe with
 // NATS-style subject matching.
@@ -23,16 +23,16 @@
 //
 // Topic hierarchy:
 //
-//	scion.project.<project-id>.agent.<agent-slug>.messages - direct messages to an agent
-//	scion.project.<project-id>.broadcast                    - project-wide broadcasts
-//	scion.global.broadcast                                - global broadcasts
+//	fabric.project.<project-id>.agent.<agent-slug>.messages - direct messages to an agent
+//	fabric.project.<project-id>.broadcast                    - project-wide broadcasts
+//	fabric.global.broadcast                                - global broadcasts
 package eventbus
 
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // EventBus abstracts message routing and delivery.
@@ -72,7 +72,7 @@ func TopicProjectBroadcast(projectID string) string {
 
 // TopicGlobalBroadcast returns the topic for global broadcast messages.
 func TopicGlobalBroadcast() string {
-	return "scion.global.broadcast"
+	return "fabric.global.broadcast"
 }
 
 // TopicAllAgentMessages returns a wildcard pattern matching all agent message

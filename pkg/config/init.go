@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 )
@@ -126,13 +126,13 @@ func GenerateProjectIDForDir(_ string) string {
 	return uuid.New().String()
 }
 
-// IsInsideProject returns true if the current working directory or any parent contains a .scion directory.
+// IsInsideProject returns true if the current working directory or any parent contains a .fabric directory.
 func IsInsideProject() bool {
 	_, ok := FindProjectRoot()
 	return ok
 }
 
-// GetEnclosingProjectPath returns the path to the enclosing .scion directory if one exists,
+// GetEnclosingProjectPath returns the path to the enclosing .fabric directory if one exists,
 // along with the root directory containing it.
 func GetEnclosingProjectPath() (projectPath string, rootDir string, found bool) {
 	wd, err := os.Getwd()
@@ -142,7 +142,7 @@ func GetEnclosingProjectPath() (projectPath string, rootDir string, found bool) 
 
 	dir := wd
 	for {
-		p := filepath.Join(dir, DotScion)
+		p := filepath.Join(dir, DotFabric)
 		info, err := os.Stat(p)
 		if err == nil {
 			if info.IsDir() {
@@ -151,7 +151,7 @@ func GetEnclosingProjectPath() (projectPath string, rootDir string, found bool) 
 				}
 				return p, dir, true
 			}
-			// .scion is a marker file — resolve to external path
+			// .fabric is a marker file — resolve to external path
 			if resolved, err := ResolveProjectMarker(p); err == nil {
 				return resolved, dir, true
 			}
@@ -255,34 +255,34 @@ func InitProject(targetDir string, harnesses []api.Harness, opts ...InitProjectO
 		}
 	}
 
-	// Enforce .scion/agents/ in .gitignore for git repos
+	// Enforce .fabric/agents/ in .gitignore for git repos
 	if isGit {
 		root, err := util.RepoRoot()
 		if err == nil {
-			if err := EnsureScionGitignore(root); err != nil {
+			if err := EnsureFabricGitignore(root); err != nil {
 				return fmt.Errorf("failed to update .gitignore: %w", err)
 			}
 		}
 	}
 
 	// For non-git projects, externalize the project data.
-	// The .scion entry in the project directory becomes a marker file pointing
-	// to ~/.scion/project-configs/<slug>__<short-uuid>/.scion/
+	// The .fabric entry in the project directory becomes a marker file pointing
+	// to ~/.fabric/project-configs/<slug>__<short-uuid>/.fabric/
 	if !isGit {
 		return initExternalProject(projectDir, opt)
 	}
 
-	// Git project: create .scion as a directory (in-repo)
+	// Git project: create .fabric as a directory (in-repo)
 	return initInRepoProject(projectDir, opt)
 }
 
 // initExternalProject creates a non-git project with externalized data.
-// The project directory gets a .scion marker file, and the actual project
-// data lives under ~/.scion/project-configs/.
+// The project directory gets a .fabric marker file, and the actual project
+// data lives under ~/.fabric/project-configs/.
 func initExternalProject(projectDir string, opt InitProjectOpts) error {
-	// projectDir is the intended <project>/.scion path.
+	// projectDir is the intended <project>/.fabric path.
 	projectRoot := filepath.Dir(projectDir)
-	markerPath := filepath.Join(projectRoot, DotScion)
+	markerPath := filepath.Join(projectRoot, DotFabric)
 
 	// TODO(project-migration): Remove this check after a few releases.
 	// Detect old-style non-git project (directory instead of marker file).
@@ -290,8 +290,8 @@ func initExternalProject(projectDir string, opt InitProjectOpts) error {
 		return fmt.Errorf("this project at %s uses an outdated directory format.\n"+
 			"Non-git projects now use externalized storage. Please:\n"+
 			"  1. Back up any custom templates from %s/templates/\n"+
-			"  2. Remove the .scion directory: rm -rf %s\n"+
-			"  3. Re-initialize: scion init",
+			"  2. Remove the .fabric directory: rm -rf %s\n"+
+			"  3. Re-initialize: fabric init",
 			projectRoot, markerPath, markerPath)
 	}
 
@@ -351,10 +351,10 @@ func initExternalProject(projectDir string, opt InitProjectOpts) error {
 	return nil
 }
 
-// initInRepoProject creates a git project with .scion as a directory in the repo.
-// Settings are stored externally at ~/.scion/project-configs/<slug>__<uuid>/.scion/
-// and agent homes are stored externally at ~/.scion/project-configs/<slug>__<uuid>/.scion/agents/.
-// Templates live in the in-repo .scion/templates/ so they can be committed to the repository.
+// initInRepoProject creates a git project with .fabric as a directory in the repo.
+// Settings are stored externally at ~/.fabric/project-configs/<slug>__<uuid>/.fabric/
+// and agent homes are stored externally at ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents/.
+// Templates live in the in-repo .fabric/templates/ so they can be committed to the repository.
 func initInRepoProject(projectDir string, opt InitProjectOpts) error {
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		return fmt.Errorf("failed to create settings directory: %w", err)
@@ -549,7 +549,7 @@ type InitMachineOpts struct {
 	SelectedHarnessConfigs []string
 }
 
-// InitMachine performs full global/machine-level setup: creates ~/.scion/,
+// InitMachine performs full global/machine-level setup: creates ~/.fabric/,
 // seeds settings, harness-configs, and the default agnostic template.
 func InitMachine(harnesses []api.Harness, opts ...InitMachineOpts) error {
 	globalDir, err := GetGlobalDir()
@@ -658,15 +658,15 @@ func InitGlobal(harnesses []api.Harness, opts ...InitMachineOpts) error {
 	return InitMachine(harnesses, opts...)
 }
 
-// EnsureScionGitignore ensures that .scion/agents/ is ignored by git at the
+// EnsureFabricGitignore ensures that .fabric/agents/ is ignored by git at the
 // given repo root. It uses git check-ignore to detect whether any existing
 // pattern (in any .gitignore or global excludes) already covers the path.
-// If not, it appends .scion/agents/ to the root .gitignore file.
+// If not, it appends .fabric/agents/ to the root .gitignore file.
 // Only the agents directory is excluded; templates/ and other config can be committed.
-func EnsureScionGitignore(repoRoot string) error {
+func EnsureFabricGitignore(repoRoot string) error {
 	// Use git check-ignore for authoritative detection — this respects all
 	// gitignore sources (nested .gitignore, global excludes, etc.).
-	if util.IsIgnored(repoRoot, ".scion/agents/") {
+	if util.IsIgnored(repoRoot, ".fabric/agents/") {
 		return nil
 	}
 
@@ -677,12 +677,12 @@ func EnsureScionGitignore(repoRoot string) error {
 		return err
 	}
 
-	// Append .scion/agents/ to .gitignore.
+	// Append .fabric/agents/ to .gitignore.
 	var newContent string
 	if len(content) > 0 && content[len(content)-1] != '\n' {
-		newContent = string(content) + "\n.scion/agents/\n"
+		newContent = string(content) + "\n.fabric/agents/\n"
 	} else {
-		newContent = string(content) + ".scion/agents/\n"
+		newContent = string(content) + ".fabric/agents/\n"
 	}
 
 	return os.WriteFile(gitignorePath, []byte(newContent), 0644)

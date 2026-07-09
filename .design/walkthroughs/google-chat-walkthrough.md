@@ -1,7 +1,7 @@
 # Google Chat App Walkthrough
 
 **Created:** 2026-04-08
-**Goal:** Step-by-step tour to exercise and demo all features of the Scion Google Chat integration
+**Goal:** Step-by-step tour to exercise and demo all features of the Fabric Google Chat integration
 
 ---
 
@@ -9,9 +9,9 @@
 
 Before starting, ensure:
 
-1. **A running Scion Hub** with at least one Runtime Broker
-2. **The chat app deployed** — either via `make install` on a starter-hub VM or as a standalone service (see the [chat app README](../../extras/scion-chat-app/README.md))
-3. **Google Chat API configured** — the Workspace Add-on is registered with an HTTP endpoint pointing to the chat app's `/chat/events` URL, with the `/scion` slash command (Command ID 1) defined
+1. **A running Fabric Hub** with at least one Runtime Broker
+2. **The chat app deployed** — either via `make install` on a starter-hub VM or as a standalone service (see the [chat app README](../../extras/fabric-chat-app/README.md))
+3. **Google Chat API configured** — the Workspace Add-on is registered with an HTTP endpoint pointing to the chat app's `/chat/events` URL, with the `/fabric` slash command (Command ID 1) defined
 4. **A GCP service account** with Google Chat API permissions and Secret Manager access to the Hub's signing key
 5. **At least one grove** registered on the Hub (with a Runtime Broker providing it)
 6. **Two or more Hub user accounts** — one for the demo presenter, one (optional) to demonstrate multi-user notification routing
@@ -34,13 +34,13 @@ This checks Hub API reachability, broker plugin connection, and database accessi
 
 1. Open Google Chat and navigate to a space (or create a new one for the demo)
 2. Click the space name > **Apps & integrations** > **Add apps**
-3. Search for the registered app name (e.g., "Scion") and add it
+3. Search for the registered app name (e.g., "Fabric") and add it
 
 **What happens:** The bot receives a `ADDED_TO_SPACE` event and posts a welcome message introducing itself and listing available commands.
 
 ### Step 1.2: Direct Message the Bot
 
-1. In Google Chat, start a new 1:1 conversation with the Scion bot
+1. In Google Chat, start a new 1:1 conversation with the Fabric bot
 2. Type anything (e.g., "hello")
 
 **What happens:** The bot responds with a help prompt since no grove is linked and no command was issued. This confirms the bot is receiving messages in DM context.
@@ -54,7 +54,7 @@ Before issuing commands that touch the Hub, your Google Chat identity must be li
 ### Step 2.1: Check Current Status
 
 ```
-/scion info
+/fabric info
 ```
 
 **Expected output:** Shows you are **not registered** and the space is **not linked** to a grove. Also displays the Hub hostname and version.
@@ -62,7 +62,7 @@ Before issuing commands that touch the Hub, your Google Chat identity must be li
 ### Step 2.2: Register via Email Auto-Match
 
 ```
-/scion register
+/fabric register
 ```
 
 **What happens (happy path):** If your Google Chat email matches a Hub user's email, the app automatically links the accounts. You'll see a confirmation card: *"Registered as you@example.com"*.
@@ -71,13 +71,13 @@ Before issuing commands that touch the Hub, your Google Chat identity must be li
 
 If your Chat email doesn't match any Hub user:
 
-1. Run `/scion register` — the bot responds with a **verification URL** and a **user code**
+1. Run `/fabric register` — the bot responds with a **verification URL** and a **user code**
 2. Open the verification URL in your browser
 3. Enter the user code and authorize the app
 4. Return to Google Chat and run:
 
 ```
-/scion register confirm
+/fabric register confirm
 ```
 
 **What happens:** The app polls for token completion, links your Chat account to the authorized Hub user, and confirms registration.
@@ -85,7 +85,7 @@ If your Chat email doesn't match any Hub user:
 ### Step 2.4: Verify Registration
 
 ```
-/scion info
+/fabric info
 ```
 
 **Expected output:** Now shows your registration status, linked Hub email, and registration method (auto or manual).
@@ -93,7 +93,7 @@ If your Chat email doesn't match any Hub user:
 ### Step 2.5: Unregister (Optional — Demo the Reverse)
 
 ```
-/scion unregister
+/fabric unregister
 ```
 
 **What happens:** Removes the Chat-to-Hub account link. Subsequent commands that require authentication will fail until you register again. Re-register before continuing.
@@ -107,7 +107,7 @@ Linking a space scopes all agent commands in that space to a specific grove (pro
 ### Step 3.1: Link the Space
 
 ```
-/scion link <grove-slug>
+/fabric link <grove-slug>
 ```
 
 Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my-project`).
@@ -117,7 +117,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 3.2: Confirm the Link
 
 ```
-/scion info
+/fabric info
 ```
 
 **Expected output:** Shows the space is linked to the grove, along with the number of agents currently in that grove.
@@ -129,7 +129,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.1: List Existing Agents
 
 ```
-/scion list
+/fabric list
 ```
 
 **What happens:** Displays a card listing all agents in the linked grove with their current status (RUNNING, STOPPED, etc.) and recent activity. If no agents exist yet, the list will be empty.
@@ -137,7 +137,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.2: Create an Agent
 
 ```
-/scion create demo-agent
+/fabric create demo-agent
 ```
 
 **What happens:** Creates a new agent named `demo-agent` in the linked grove. The bot confirms creation with the agent's details.
@@ -145,7 +145,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.3: Start the Agent
 
 ```
-/scion start demo-agent
+/fabric start demo-agent
 ```
 
 **What happens:** The Hub dispatches a start request to the Runtime Broker. The bot confirms the agent is starting. The agent transitions through STARTING to RUNNING.
@@ -153,7 +153,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.4: Check Agent Status
 
 ```
-/scion status demo-agent
+/fabric status demo-agent
 ```
 
 **What happens:** Displays an interactive status card with:
@@ -164,7 +164,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.5: View Agent Logs
 
 ```
-/scion logs demo-agent
+/fabric logs demo-agent
 ```
 
 **What happens:** Fetches the last 50 lines of the agent's logs and displays them in a code-formatted message. Output is truncated to 2000 characters to stay within Chat message limits.
@@ -174,22 +174,22 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 4.6: Stop the Agent
 
 ```
-/scion stop demo-agent
+/fabric stop demo-agent
 ```
 
 **What happens:** The agent container is stopped. The bot confirms the agent has been stopped.
 
 ### Step 4.7: Restart the Agent (from Status Card)
 
-1. Run `/scion status demo-agent` to get the status card
+1. Run `/fabric status demo-agent` to get the status card
 2. Click the **Start** button on the card
 
-**What happens:** Same as `/scion start` but triggered via card interaction. Demonstrates that card buttons are fully functional action shortcuts.
+**What happens:** Same as `/fabric start` but triggered via card interaction. Demonstrates that card buttons are fully functional action shortcuts.
 
 ### Step 4.8: Delete the Agent
 
 ```
-/scion delete demo-agent
+/fabric delete demo-agent
 ```
 
 **What happens:** A **confirmation dialog** pops up asking you to confirm deletion. This is a two-step process to prevent accidental deletions:
@@ -206,7 +206,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 5.1: Send a Message via Slash Command
 
 ```
-/scion message demo-agent Please check the staging environment
+/fabric message demo-agent Please check the staging environment
 ```
 
 **What happens:** The message is delivered to the agent as if from your Hub user (using an impersonation token). The agent sees the message prefixed with your identity (e.g., `user:you@example.com`).
@@ -214,7 +214,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 ### Step 5.2: Send a Threaded Message
 
 ```
-/scion message --thread <thread-id> demo-agent Follow up on the previous request
+/fabric message --thread <thread-id> demo-agent Follow up on the previous request
 ```
 
 **What happens:** The message is associated with a specific thread for context continuity.
@@ -224,7 +224,7 @@ Replace `<grove-slug>` with the slug of a grove registered on the Hub (e.g., `my
 Type a regular message in the space and @mention the bot:
 
 ```
-@Scion tell demo-agent to run the test suite
+@Fabric tell demo-agent to run the test suite
 ```
 
 **What happens:** The bot parses the mention, identifies the target agent from context, and routes the message. This is a more natural, conversational way to interact with agents.
@@ -236,7 +236,7 @@ Type a regular message in the space and @mention the bot:
 ### Step 6.1: Subscribe to All Notifications
 
 ```
-/scion subscribe demo-agent
+/fabric subscribe demo-agent
 ```
 
 **What happens:** A **filter dialog** appears with checkboxes for activity types:
@@ -307,7 +307,7 @@ Click the **Acknowledge** button on any notification card.
 ### Step 6.8: Unsubscribe
 
 ```
-/scion unsubscribe demo-agent
+/fabric unsubscribe demo-agent
 ```
 
 **What happens:** You stop receiving notification cards for this agent. Direct user-targeted messages (sent specifically to you by an agent) are still delivered regardless of subscription status.
@@ -320,7 +320,7 @@ Unlike broadcast notifications, **user-targeted messages** are sent directly to 
 
 ### Step 7.1: Receive a Direct Message from an Agent
 
-When an agent sends a message targeting your Hub user (e.g., via `sciontool status ask_user`):
+When an agent sends a message targeting your Hub user (e.g., via `fabrictool status ask_user`):
 
 **What happens:** A card message appears in the space with:
 - The agent's name in the header
@@ -342,7 +342,7 @@ When an agent sends a message targeting your Hub user (e.g., via `sciontool stat
 ### Step 8.1: Unlink the Space
 
 ```
-/scion unlink
+/fabric unlink
 ```
 
 **What happens:** The space-grove link is removed. All active notification subscriptions for this space are cancelled. Agent commands will no longer work until a new grove is linked.
@@ -350,14 +350,14 @@ When an agent sends a message targeting your Hub user (e.g., via `sciontool stat
 ### Step 8.2: Re-Link to a Different Grove
 
 ```
-/scion link <different-grove-slug>
+/fabric link <different-grove-slug>
 ```
 
-**What happens:** The space is now scoped to the new grove. Running `/scion list` shows agents from the new grove.
+**What happens:** The space is now scoped to the new grove. Running `/fabric list` shows agents from the new grove.
 
 ### Step 8.3: Remove the Bot from a Space
 
-Remove the Scion app from the space via Google Chat's space settings.
+Remove the Fabric app from the space via Google Chat's space settings.
 
 **What happens:** The bot receives a `REMOVED_FROM_SPACE` event and automatically cleans up the space link and subscriptions.
 
@@ -368,7 +368,7 @@ Remove the Scion app from the space via Google Chat's space settings.
 ### Step 9.1: View All Commands
 
 ```
-/scion help
+/fabric help
 ```
 
 **What happens:** Displays a complete command reference with usage and descriptions for all available subcommands.
@@ -380,22 +380,22 @@ Remove the Scion app from the space via Google Chat's space settings.
 | Feature | How to Exercise |
 |---------|----------------|
 | Welcome message | Add bot to a space |
-| Identity registration (auto) | `/scion register` (matching email) |
-| Identity registration (device auth) | `/scion register` + browser flow + `/scion register confirm` |
-| Space-grove linking | `/scion link <grove>` |
-| Agent list | `/scion list` |
-| Agent lifecycle | `/scion create`, `start`, `stop`, `delete <agent>` |
-| Agent status card | `/scion status <agent>` |
-| Agent logs | `/scion logs <agent>` |
-| Send message to agent | `/scion message <agent> <text>` |
-| @mention messaging | `@Scion tell <agent> ...` |
-| Subscribe to notifications | `/scion subscribe <agent>` (with filter dialog) |
+| Identity registration (auto) | `/fabric register` (matching email) |
+| Identity registration (device auth) | `/fabric register` + browser flow + `/fabric register confirm` |
+| Space-grove linking | `/fabric link <grove>` |
+| Agent list | `/fabric list` |
+| Agent lifecycle | `/fabric create`, `start`, `stop`, `delete <agent>` |
+| Agent status card | `/fabric status <agent>` |
+| Agent logs | `/fabric logs <agent>` |
+| Send message to agent | `/fabric message <agent> <text>` |
+| @mention messaging | `@Fabric tell <agent> ...` |
+| Subscribe to notifications | `/fabric subscribe <agent>` (with filter dialog) |
 | WAITING_FOR_INPUT response | Inline text field on notification card |
 | Card button actions | Start, Stop, Restart, View Logs, Acknowledge |
-| Deletion confirmation | `/scion delete <agent>` (dialog prompt) |
-| Unsubscribe | `/scion unsubscribe <agent>` |
-| Unlink space | `/scion unlink` |
-| Unregister | `/scion unregister` |
+| Deletion confirmation | `/fabric delete <agent>` (dialog prompt) |
+| Unsubscribe | `/fabric unsubscribe <agent>` |
+| Unlink space | `/fabric unlink` |
+| Unregister | `/fabric unregister` |
 | Health check | `GET /chat/healthz` |
 
 ---
@@ -405,21 +405,21 @@ Remove the Scion app from the space via Google Chat's space settings.
 For a concise live demo, follow this abbreviated sequence:
 
 1. **Setup** (pre-done): Bot added to space, presenter registered
-2. `/scion info` — show unlinked state
-3. `/scion link my-project` — link to a grove
-4. `/scion info` — show linked state
-5. `/scion list` — show existing agents
-6. `/scion create demo-agent` — create an agent
-7. `/scion start demo-agent` — start it
-8. `/scion status demo-agent` — show interactive status card
-9. `/scion subscribe demo-agent` — subscribe with filter dialog
-10. `/scion message demo-agent Check the build status` — send a message
+2. `/fabric info` — show unlinked state
+3. `/fabric link my-project` — link to a grove
+4. `/fabric info` — show linked state
+5. `/fabric list` — show existing agents
+6. `/fabric create demo-agent` — create an agent
+7. `/fabric start demo-agent` — start it
+8. `/fabric status demo-agent` — show interactive status card
+9. `/fabric subscribe demo-agent` — subscribe with filter dialog
+10. `/fabric message demo-agent Check the build status` — send a message
 11. Wait for a WAITING_FOR_INPUT notification, respond inline
-12. `/scion logs demo-agent` — view logs
-13. `/scion stop demo-agent` — stop via command
+12. `/fabric logs demo-agent` — view logs
+13. `/fabric stop demo-agent` — stop via command
 14. Click **Start** on the status card — restart via button
-15. `/scion delete demo-agent` — delete with confirmation dialog
-16. `/scion unlink` — clean up
+15. `/fabric delete demo-agent` — delete with confirmation dialog
+16. `/fabric unlink` — clean up
 
 ---
 
@@ -428,9 +428,9 @@ For a concise live demo, follow this abbreviated sequence:
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | Bot doesn't respond to slash commands | HTTP endpoint URL misconfigured | Verify the Chat API config points to `<url>/chat/events` |
-| "Not registered" on every command | Chat email doesn't match Hub user | Run `/scion register` and complete device auth flow |
-| "Space not linked" errors | No grove linked to this space | Run `/scion link <grove-slug>` |
-| Notifications not appearing | Not subscribed, or activity filtered out | Run `/scion subscribe <agent>` and check filter settings |
+| "Not registered" on every command | Chat email doesn't match Hub user | Run `/fabric register` and complete device auth flow |
+| "Space not linked" errors | No grove linked to this space | Run `/fabric link <grove-slug>` |
+| Notifications not appearing | Not subscribed, or activity filtered out | Run `/fabric subscribe <agent>` and check filter settings |
 | Card buttons return errors | Impersonation token expired or signing key mismatch | Check chat app logs; verify signing key in Secret Manager |
 | Bot welcome message not shown | Bot added via @mention (skips welcome) | Add via space settings instead |
-| Health check fails | Hub unreachable, DB inaccessible, or plugin disconnected | Check `journalctl -u scion-chat-app` for details |
+| Health check fails | Hub unreachable, DB inaccessible, or plugin disconnected | Check `journalctl -u fabric-chat-app` for details |

@@ -56,7 +56,7 @@ Admin
 
 Icon: `file-earmark-code` (matches template icon used in grove settings).
 
-Route: `/admin/templates` → component `scion-page-admin-templates`.
+Route: `/admin/templates` → component `fabric-page-admin-templates`.
 
 ### 2.2 Template List Page
 
@@ -109,7 +109,7 @@ A lock icon (🔒) appears next to templates where `locked: true`.
 Clicking a template name navigates to the existing template detail page. For admin context, the route supports access without a grove context:
 
 - **Grove-scoped templates**: `/groves/{groveId}/templates/{templateId}` — existing route, works as-is.
-- **Global/user-scoped templates**: `/admin/templates/{templateId}` — new route pointing to the same `scion-page-template-detail` component, with admin breadcrumbs (`Admin > Templates > {name}`).
+- **Global/user-scoped templates**: `/admin/templates/{templateId}` — new route pointing to the same `fabric-page-template-detail` component, with admin breadcrumbs (`Admin > Templates > {name}`).
 
 The template detail page already supports:
 - File browser with directory tree
@@ -208,7 +208,7 @@ The "Import Template" button in the page header opens a dialog that re-uses the 
 Follow the pattern established by `admin-users.ts`:
 
 ```typescript
-@customElement('scion-page-admin-templates')
+@customElement('fabric-page-admin-templates')
 export class AdminTemplatesPage extends LitElement {
   @state() private loading = true;
   @state() private templates: Template[] = [];

@@ -24,10 +24,10 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // defaultAgentListLimit and maxAgentListLimit mirror the pagination bounds of
@@ -264,7 +264,7 @@ func (s *AgentStore) GetAgentBySlug(ctx context.Context, projectID, slug string)
 // UpdateAgent updates an existing agent using optimistic locking on
 // state_version. The mutable field set mirrors the legacy SQLite store:
 // identity-adjacent operational fields are updated, while immutable lineage
-// fields (created_at, created_by, project_id, ancestry) and the sciontool-owned
+// fields (created_at, created_by, project_id, ancestry) and the fabrictool-owned
 // counters (current_turns, current_model_calls, started_at) are left untouched.
 func (s *AgentStore) UpdateAgent(ctx context.Context, a *store.Agent) error {
 	uid, err := parseUUID(a.ID)

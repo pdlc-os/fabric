@@ -73,8 +73,8 @@ interface RuntimeBrokerWithProvider extends RuntimeBroker {
   localPath?: string;
 }
 
-@customElement('scion-page-project-settings')
-export class ScionPageProjectSettings extends LitElement {
+@customElement('fabric-page-project-settings')
+export class FabricPageProjectSettings extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -224,14 +224,14 @@ export class ScionPageProjectSettings extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .header {
@@ -242,21 +242,21 @@ export class ScionPageProjectSettings extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -264,13 +264,13 @@ export class ScionPageProjectSettings extends LitElement {
     .section h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .section p {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
@@ -296,13 +296,13 @@ export class ScionPageProjectSettings extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem 1rem;
-      background: var(--scion-bg-subtle, #f8fafc);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .template-item sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.125rem;
       flex-shrink: 0;
     }
@@ -315,12 +315,12 @@ export class ScionPageProjectSettings extends LitElement {
     .template-name {
       font-weight: 600;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .template-meta {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.125rem;
     }
 
@@ -328,16 +328,16 @@ export class ScionPageProjectSettings extends LitElement {
       font-size: 0.6875rem;
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       white-space: nowrap;
     }
 
     .empty-templates {
       text-align: center;
       padding: 2rem 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -352,7 +352,7 @@ export class ScionPageProjectSettings extends LitElement {
       align-items: center;
       gap: 0.5rem;
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.8125rem;
       margin-bottom: 1rem;
     }
@@ -389,7 +389,7 @@ export class ScionPageProjectSettings extends LitElement {
       justify-content: space-between;
       gap: 1.5rem;
       padding-top: 1rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .delete-info {
@@ -399,13 +399,13 @@ export class ScionPageProjectSettings extends LitElement {
     .delete-info h3 {
       font-size: 0.9375rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .delete-info p {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
     }
 
@@ -423,7 +423,7 @@ export class ScionPageProjectSettings extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -434,9 +434,9 @@ export class ScionPageProjectSettings extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -448,27 +448,27 @@ export class ScionPageProjectSettings extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
 
     sl-tab-group {
-      --indicator-color: var(--scion-primary, #3b82f6);
+      --indicator-color: var(--fabric-primary, #3b82f6);
     }
 
     sl-tab-group::part(base) {
@@ -494,12 +494,12 @@ export class ScionPageProjectSettings extends LitElement {
     .config-field label {
       font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .config-field .field-help {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .config-actions {
@@ -584,9 +584,9 @@ export class ScionPageProjectSettings extends LitElement {
       font-size: 0.75rem;
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .github-perm-badge.write {
@@ -619,9 +619,9 @@ export class ScionPageProjectSettings extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem 1rem;
-      background: var(--scion-bg-subtle, #f8fafc);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .broker-status-dot {
@@ -650,21 +650,21 @@ export class ScionPageProjectSettings extends LitElement {
     .broker-name {
       font-weight: 600;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .broker-default-badge {
       font-size: 0.6875rem;
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: #fff;
       white-space: nowrap;
     }
 
     .broker-meta-row {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
       display: flex;
       flex-wrap: wrap;
@@ -682,9 +682,9 @@ export class ScionPageProjectSettings extends LitElement {
       font-size: 0.6875rem;
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       white-space: nowrap;
     }
 
@@ -704,7 +704,7 @@ export class ScionPageProjectSettings extends LitElement {
     .empty-brokers {
       text-align: center;
       padding: 2rem 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -805,14 +805,14 @@ export class ScionPageProjectSettings extends LitElement {
   /** Refresh the templates list component (e.g. after an import). */
   private refreshTemplatesList(): void {
     const list = this.shadowRoot?.querySelector('#templates-resource-list') as
-      | import('../shared/resource-list.js').ScionResourceList
+      | import('../shared/resource-list.js').FabricResourceList
       | null;
     void list?.load();
   }
 
   private refreshHarnessConfigsList(): void {
     const list = this.shadowRoot?.querySelector('#harness-configs-resource-list') as
-      | import('../shared/resource-list.js').ScionResourceList
+      | import('../shared/resource-list.js').FabricResourceList
       | null;
     void list?.load();
   }
@@ -1074,13 +1074,13 @@ export class ScionPageProjectSettings extends LitElement {
 
       ${this.membersGroup
         ? html`
-            <scion-group-member-editor
+            <fabric-group-member-editor
               groupId=${this.membersGroup.id}
               ?readOnly=${!canAny(this.project._capabilities, 'update', 'manage')}
               compact
               sectionTitle="Members"
               sectionDescription="Users and groups who can create and manage agents in this project."
-            ></scion-group-member-editor>
+            ></fabric-group-member-editor>
           `
         : ''}
 
@@ -1088,10 +1088,10 @@ export class ScionPageProjectSettings extends LitElement {
 
       ${this.pageData?.user
         ? html`
-            <scion-subscription-manager
+            <fabric-subscription-manager
               .projectId=${this.project.id}
               compact
-            ></scion-subscription-manager>
+            ></fabric-subscription-manager>
           `
         : ''}
 
@@ -1186,7 +1186,7 @@ export class ScionPageProjectSettings extends LitElement {
 
         ${!hasInstallation ? html`
           <div class="github-no-install">
-            <sl-icon name="github" style="font-size: 2rem; color: var(--scion-text-muted, #64748b);"></sl-icon>
+            <sl-icon name="github" style="font-size: 2rem; color: var(--fabric-text-muted, #64748b);"></sl-icon>
             ${this.githubAppLoading ? html`
               <p>Checking for GitHub App installation…</p>
             ` : !this.githubAppConfigured ? html`
@@ -1778,26 +1778,26 @@ export class ScionPageProjectSettings extends LitElement {
           <sl-tab slot="nav" panel="gcp-sa" ?active=${this.activeResourcesTab === 'gcp-sa'}>GCP Service Accounts</sl-tab>
 
           <sl-tab-panel name="env-vars">
-            <scion-env-var-list
+            <fabric-env-var-list
               scope="project"
               scopeId=${this.projectId}
               apiBasePath="/api/v1/projects/${this.projectId}"
-            ></scion-env-var-list>
+            ></fabric-env-var-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="secrets">
-            <scion-secret-list
+            <fabric-secret-list
               scope="project"
               scopeId=${this.projectId}
               apiBasePath="/api/v1/projects/${this.projectId}"
-            ></scion-secret-list>
+            ></fabric-secret-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="shared-dirs">
-            <scion-shared-dir-list
+            <fabric-shared-dir-list
               projectId=${this.projectId}
               apiBasePath="/api/v1/projects/${this.projectId}"
-            ></scion-shared-dir-list>
+            ></fabric-shared-dir-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="templates">
@@ -1809,9 +1809,9 @@ export class ScionPageProjectSettings extends LitElement {
           </sl-tab-panel>
 
           <sl-tab-panel name="gcp-sa">
-            <scion-gcp-service-account-list
+            <fabric-gcp-service-account-list
               projectId=${this.projectId}
-            ></scion-gcp-service-account-list>
+            ></fabric-gcp-service-account-list>
           </sl-tab-panel>
         </sl-tab-group>
       </div>
@@ -1826,7 +1826,7 @@ export class ScionPageProjectSettings extends LitElement {
           <p style="margin: 0;">Project-scoped agent templates imported into the Hub.</p>
         </div>
       </div>
-      <scion-resource-import
+      <fabric-resource-import
         kind="template"
         scope="project"
         .scopeId=${this.projectId}
@@ -1837,8 +1837,8 @@ export class ScionPageProjectSettings extends LitElement {
           this.refreshTemplatesList();
           void this.loadDropdownTemplates();
         }}
-      ></scion-resource-import>
-      <scion-resource-list
+      ></fabric-resource-import>
+      <fabric-resource-list
         id="templates-resource-list"
         kind="template"
         scope="project"
@@ -1851,7 +1851,7 @@ export class ScionPageProjectSettings extends LitElement {
           this.refreshTemplatesList();
           void this.loadDropdownTemplates();
         }}
-      ></scion-resource-list>
+      ></fabric-resource-list>
     `;
   }
 
@@ -1866,7 +1866,7 @@ export class ScionPageProjectSettings extends LitElement {
           </p>
         </div>
       </div>
-      <scion-resource-import
+      <fabric-resource-import
         kind="harness-config"
         scope="project"
         .scopeId=${this.projectId}
@@ -1874,8 +1874,8 @@ export class ScionPageProjectSettings extends LitElement {
         allowWorkspace
         gitRemote=${this.project?.gitRemote ?? ''}
         @resource-changed=${() => this.refreshHarnessConfigsList()}
-      ></scion-resource-import>
-      <scion-resource-list
+      ></fabric-resource-import>
+      <fabric-resource-list
         id="harness-configs-resource-list"
         kind="harness-config"
         scope="project"
@@ -1885,7 +1885,7 @@ export class ScionPageProjectSettings extends LitElement {
         ?canDelete=${can(this.project!._capabilities, 'delete') || can(this.project!._capabilities, 'manage')}
         ?cloneFromGlobal=${canSync}
         @resource-changed=${() => this.refreshHarnessConfigsList()}
-      ></scion-resource-list>
+      ></fabric-resource-list>
     `;
   }
 
@@ -1904,15 +1904,15 @@ export class ScionPageProjectSettings extends LitElement {
           <sl-tab slot="nav" panel="recurring" ?active=${this.activeSchedulesTab === 'recurring'}>Recurring</sl-tab>
 
           <sl-tab-panel name="events">
-            <scion-scheduled-event-list
+            <fabric-scheduled-event-list
               .projectId=${this.project!.id}
-            ></scion-scheduled-event-list>
+            ></fabric-scheduled-event-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="recurring">
-            <scion-schedule-list
+            <fabric-schedule-list
               .projectId=${this.project!.id}
-            ></scion-schedule-list>
+            ></fabric-schedule-list>
           </sl-tab-panel>
         </sl-tab-group>
       </div>
@@ -2023,7 +2023,7 @@ export class ScionPageProjectSettings extends LitElement {
     }
 
     return html`
-      <p style="margin: 0 0 1rem 0; font-size: 0.8125rem; color: var(--scion-text-muted, #64748b);">
+      <p style="margin: 0 0 1rem 0; font-size: 0.8125rem; color: var(--fabric-text-muted, #64748b);">
         Runtime Brokers provide access to container runtime environments.
       </p>
       ${this.brokers.length === 0
@@ -2088,7 +2088,7 @@ export class ScionPageProjectSettings extends LitElement {
                         <sl-icon-button
                           name="star-fill"
                           label="Default broker"
-                          style="color: var(--scion-primary, #3b82f6);"
+                          style="color: var(--fabric-primary, #3b82f6);"
                           disabled
                         ></sl-icon-button>
                       </sl-tooltip>
@@ -2140,6 +2140,6 @@ export class ScionPageProjectSettings extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-project-settings': ScionPageProjectSettings;
+    'fabric-page-project-settings': FabricPageProjectSettings;
   }
 }

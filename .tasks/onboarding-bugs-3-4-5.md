@@ -9,7 +9,7 @@
 
 **File:** `web/src/components/pages/onboarding.ts`
 
-**Problem:** `initialize()` auto-advances `currentStep` based on backend status flags (`runtimeOK`, `harnessesSeeded`). After `scion init --machine`, both are already true, so the wizard jumps to step 4 (Images) on first launch, skipping Identity, System Check, Runtime, and Harness steps.
+**Problem:** `initialize()` auto-advances `currentStep` based on backend status flags (`runtimeOK`, `harnessesSeeded`). After `fabric init --machine`, both are already true, so the wizard jumps to step 4 (Images) on first launch, skipping Identity, System Check, Runtime, and Harness steps.
 
 **Fix:** The resume logic must only fire if the user has previously progressed through the wizard. Add a `previouslyStarted` check — use `sessionStorage.getItem('onboardingStarted')` (set it when the user clicks "Next" for the first time). Only run the resume auto-advance if `previouslyStarted` is true:
 
@@ -47,7 +47,7 @@ Clear `sessionStorage.removeItem('onboardingStarted')` when the wizard completes
 ```typescript
 // In the SSE event handler (around line 1004-1016):
 if (d['image']) {
-  const fullImageName = d['image'] as string;  // e.g. "ghcr.io/homebrew-scion/scion-claude:latest"
+  const fullImageName = d['image'] as string;  // e.g. "ghcr.io/homebrew-fabric/fabric-claude:latest"
   const status = d['status'] as string;
   // Store by full image name
   const next = new Map(this.imageStatuses);
@@ -58,7 +58,7 @@ if (d['image']) {
 
 In the render template (around line 872), display the full image name:
 ```typescript
-// Show: "ghcr.io/homebrew-scion/scion-claude:latest" instead of "scion-claude:latest"
+// Show: "ghcr.io/homebrew-fabric/fabric-claude:latest" instead of "fabric-claude:latest"
 ${[...this.imageStatuses.entries()].map(([image, info]) => html`
   <div class="image-status">
     <code>${image}</code>
@@ -72,7 +72,7 @@ ${[...this.imageStatuses.entries()].map(([image, info]) => html`
 
 **Problem:** The frontend has no way to verify what registry is configured.
 
-**Fix:** Add `ImageRegistry string` to `OnboardingStatus` in `pkg/hub/system_handlers.go` and populate it by reading `image_registry` from settings (via `config.LoadSettings("")` → `settings.ImageRegistry` or however it's stored). The frontend can display this in the images step header: "Pulling from: ghcr.io/homebrew-scion".
+**Fix:** Add `ImageRegistry string` to `OnboardingStatus` in `pkg/hub/system_handlers.go` and populate it by reading `image_registry` from settings (via `config.LoadSettings("")` → `settings.ImageRegistry` or however it's stored). The frontend can display this in the images step header: "Pulling from: ghcr.io/homebrew-fabric".
 
 ---
 
@@ -96,7 +96,7 @@ if buildScript == "" {
 
 In `GET /system/status`, add `BuildAvailable bool` that returns `true` only if the build script can be resolved. Frontend uses this to:
 - Hide the "Build locally" button when `!status.buildAvailable`
-- Show an explanatory note: "Pre-built images are available from ghcr.io/homebrew-scion. Local builds require a source checkout."
+- Show an explanatory note: "Pre-built images are available from ghcr.io/homebrew-fabric. Local builds require a source checkout."
 
 This ensures that for Homebrew installs the user only sees the pull path, while developer checkouts still get the build option.
 

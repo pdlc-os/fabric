@@ -13,19 +13,19 @@
 # limitations under the License.
 
 harness: codex
-image: scion-codex:latest
-user: scion
+image: fabric-codex:latest
+user: fabric
 env:
-  SCION_CODEX_NOTIFY_AUTO_COMPLETE: "true"
+  FABRIC_CODEX_NOTIFY_AUTO_COMPLETE: "true"
 # provisioner.type is container-script so the container-side provision.py
 # handles auth resolution, MCP server translation, and other harness-native
 # config writes. Existing installations that still have type: builtin can
-# run `scion harness-config upgrade codex --activate-script` to migrate.
+# run `fabric harness-config upgrade codex --activate-script` to migrate.
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -78,7 +78,7 @@ no_auth:
   message: |
     This agent started without credentials.
     Run: codex login --device-auth
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 auth:
   default_type: api-key
   types:

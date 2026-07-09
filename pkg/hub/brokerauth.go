@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hub provides the Scion Hub API server.
+// Package hub provides the Fabric Hub API server.
 package hub
 
 import (
@@ -31,7 +31,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 
@@ -173,7 +173,7 @@ type CreateBrokerRegistrationRequest struct {
 // CreateBrokerRegistrationResponse is the response for POST /api/v1/brokers.
 type CreateBrokerRegistrationResponse struct {
 	BrokerID     string    `json:"brokerId"`
-	JoinToken    string    `json:"joinToken"` // scion_join_<base64>
+	JoinToken    string    `json:"joinToken"` // fabric_join_<base64>
 	ExpiresAt    time.Time `json:"expiresAt"`
 	Reregistered bool      `json:"reregistered,omitempty"`
 }
@@ -196,7 +196,7 @@ type BrokerJoinResponse struct {
 }
 
 // JoinTokenPrefix is the prefix for join tokens.
-const JoinTokenPrefix = "scion_join_"
+const JoinTokenPrefix = "fabric_join_"
 
 // CreateBrokerRegistration creates a new broker with a join token.
 // Requires admin authentication.
@@ -428,11 +428,11 @@ func (s *BrokerAuthService) GenerateAndStoreSecret(ctx context.Context, brokerID
 
 // HMAC authentication headers as per runtime-broker-auth.md
 const (
-	HeaderBrokerID      = "X-Scion-Broker-ID"
-	HeaderTimestamp     = "X-Scion-Timestamp"
-	HeaderNonce         = "X-Scion-Nonce"
-	HeaderSignature     = "X-Scion-Signature"
-	HeaderSignedHeaders = "X-Scion-Signed-Headers"
+	HeaderBrokerID      = "X-Fabric-Broker-ID"
+	HeaderTimestamp     = "X-Fabric-Timestamp"
+	HeaderNonce         = "X-Fabric-Nonce"
+	HeaderSignature     = "X-Fabric-Signature"
+	HeaderSignedHeaders = "X-Fabric-Signed-Headers"
 )
 
 // ValidateBrokerSignature validates an HMAC-signed request from a Runtime Broker.
@@ -440,22 +440,22 @@ func (s *BrokerAuthService) ValidateBrokerSignature(ctx context.Context, r *http
 	// Extract required headers
 	brokerID := r.Header.Get(HeaderBrokerID)
 	if brokerID == "" {
-		return nil, errors.New("missing X-Scion-Broker-ID header")
+		return nil, errors.New("missing X-Fabric-Broker-ID header")
 	}
 
 	timestamp := r.Header.Get(HeaderTimestamp)
 	if timestamp == "" {
-		return nil, errors.New("missing X-Scion-Timestamp header")
+		return nil, errors.New("missing X-Fabric-Timestamp header")
 	}
 
 	signature := r.Header.Get(HeaderSignature)
 	if signature == "" {
-		return nil, errors.New("missing X-Scion-Signature header")
+		return nil, errors.New("missing X-Fabric-Signature header")
 	}
 
 	nonce := r.Header.Get(HeaderNonce)
 	if nonce == "" {
-		return nil, errors.New("missing X-Scion-Nonce header")
+		return nil, errors.New("missing X-Fabric-Nonce header")
 	}
 
 	// Parse and validate timestamp
@@ -659,7 +659,7 @@ func (s *BrokerAuthService) ValidateBrokerSignatureWithRotation(ctx context.Cont
 	// Extract required headers
 	brokerID := r.Header.Get(HeaderBrokerID)
 	if brokerID == "" {
-		return nil, errors.New("missing X-Scion-Broker-ID header")
+		return nil, errors.New("missing X-Fabric-Broker-ID header")
 	}
 
 	// Get all active secrets for this broker
@@ -697,17 +697,17 @@ func (s *BrokerAuthService) ValidateBrokerSignatureWithRotation(ctx context.Cont
 func (s *BrokerAuthService) validateWithSecret(ctx context.Context, r *http.Request, brokerID string, secretKey []byte) (BrokerIdentity, error) {
 	timestamp := r.Header.Get(HeaderTimestamp)
 	if timestamp == "" {
-		return nil, errors.New("missing X-Scion-Timestamp header")
+		return nil, errors.New("missing X-Fabric-Timestamp header")
 	}
 
 	signature := r.Header.Get(HeaderSignature)
 	if signature == "" {
-		return nil, errors.New("missing X-Scion-Signature header")
+		return nil, errors.New("missing X-Fabric-Signature header")
 	}
 
 	nonce := r.Header.Get(HeaderNonce)
 	if nonce == "" {
-		return nil, errors.New("missing X-Scion-Nonce header")
+		return nil, errors.New("missing X-Fabric-Nonce header")
 	}
 
 	// Parse and validate timestamp
@@ -780,7 +780,7 @@ func slugify(name string) string {
 // =============================================================================
 
 // BrokerAuthMiddleware creates middleware for HMAC-based broker authentication.
-// This runs AFTER UnifiedAuthMiddleware and checks for X-Scion-Broker-ID header.
+// This runs AFTER UnifiedAuthMiddleware and checks for X-Fabric-Broker-ID header.
 func BrokerAuthMiddleware(svc *BrokerAuthService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

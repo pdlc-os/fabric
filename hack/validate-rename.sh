@@ -12,15 +12,15 @@ for arg in "$@"; do
 done
 
 # Define exclusions based on requirements:
-# .design/grove-to-project-rename.md, .scratch/ directory, /scion-volumes/scratchpad/, go.sum file, changelog/ directory, .git/ directory.
+# .design/grove-to-project-rename.md, .scratch/ directory, /fabric-volumes/scratchpad/, go.sum file, changelog/ directory, .git/ directory.
 
 # Directories to exclude
 EXCLUDE_DIRS=(
   ".git"
   ".scratch"
   "changelog"
-  "scratchpad" # matches /scion-volumes/scratchpad/
-  ".scion"
+  "scratchpad" # matches /fabric-volumes/scratchpad/
+  ".fabric"
 )
 
 # Files to exclude

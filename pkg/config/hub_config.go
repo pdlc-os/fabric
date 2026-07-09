@@ -195,7 +195,7 @@ type DevAuthConfig struct {
 	// Token is an explicitly configured development token.
 	// If empty and Enabled=true, a token is auto-generated and persisted.
 	Token string `json:"devToken" yaml:"devToken" koanf:"devToken"`
-	// TokenFile is the path to the token file (default: ~/.scion/dev-token).
+	// TokenFile is the path to the token file (default: ~/.fabric/dev-token).
 	TokenFile string `json:"devTokenFile" yaml:"devTokenFile" koanf:"devTokenFile"`
 	// AuthorizedDomains is a list of email domains allowed to authenticate.
 	// If empty, all domains are allowed.
@@ -367,7 +367,7 @@ func DefaultGlobalConfig() GlobalConfig {
 			CORSEnabled:        true,
 			CORSAllowedOrigins: []string{"*"},
 			CORSAllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-			CORSAllowedHeaders: []string{"Authorization", "Content-Type", "X-Scion-Broker-Token", "X-Scion-Agent-Token", "X-API-Key"},
+			CORSAllowedHeaders: []string{"Authorization", "Content-Type", "X-Fabric-Broker-Token", "X-Fabric-Agent-Token", "X-API-Key"},
 			CORSMaxAge:         3600,
 			AdminEmails:        []string{},
 		},
@@ -380,7 +380,7 @@ func DefaultGlobalConfig() GlobalConfig {
 			CORSEnabled:                   true,
 			CORSAllowedOrigins:            []string{"*"},
 			CORSAllowedMethods:            []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-			CORSAllowedHeaders:            []string{"Authorization", "Content-Type", "X-Scion-Broker-Token", "X-API-Key"},
+			CORSAllowedHeaders:            []string{"Authorization", "Content-Type", "X-Fabric-Broker-Token", "X-API-Key"},
 			CORSMaxAge:                    3600,
 			AllowContainerScriptHarnesses: true,
 		},
@@ -398,7 +398,7 @@ func DefaultGlobalConfig() GlobalConfig {
 		Auth: DevAuthConfig{
 			Enabled:   false,
 			Token:     "",
-			TokenFile: "", // Will default to ~/.scion/dev-token
+			TokenFile: "", // Will default to ~/.fabric/dev-token
 		},
 		Storage: StorageConfig{
 			Provider: "local",
@@ -467,9 +467,9 @@ func applyDatabasePoolDefaults(db *DatabaseConfig) {
 
 // LoadGlobalConfig loads global configuration using Koanf with priority:
 // 1. Embedded defaults
-// 2. Global config: settings.yaml (server key) OR server.yaml (~/.scion/)
+// 2. Global config: settings.yaml (server key) OR server.yaml (~/.fabric/)
 // 3. Local config: settings.yaml (server key) OR server.yaml (./server.yaml or specified path)
-// 4. Environment variables (SCION_SERVER_ prefix)
+// 4. Environment variables (FABRIC_SERVER_ prefix)
 //
 // If settings.yaml contains a "server" key, it is preferred over server.yaml.
 // If both exist in the same directory, a deprecation warning is emitted to stderr.
@@ -513,7 +513,7 @@ func loadGlobalConfigFromSettings(configPath string) (*GlobalConfig, bool) {
 
 	// Emit deprecation warning if server.yaml also exists
 	if hasServerYAML(globalDir) {
-		fmt.Fprintf(os.Stderr, "Warning: Both settings.yaml (server key) and server.yaml exist in %s. Using settings.yaml. server.yaml is deprecated; run 'scion config migrate --server' to consolidate.\n", globalDir)
+		fmt.Fprintf(os.Stderr, "Warning: Both settings.yaml (server key) and server.yaml exist in %s. Using settings.yaml. server.yaml is deprecated; run 'fabric config migrate --server' to consolidate.\n", globalDir)
 	}
 	if configPath != "" {
 		info, err := os.Stat(configPath)
@@ -528,7 +528,7 @@ func loadGlobalConfigFromSettings(configPath string) (*GlobalConfig, bool) {
 		}
 	}
 
-	// Apply environment variable overrides (SCION_SERVER_ prefix).
+	// Apply environment variable overrides (FABRIC_SERVER_ prefix).
 	// Without this, env vars are ignored when config comes from settings.yaml.
 	if err := applyEnvOverrides(gc); err != nil {
 		return nil, false
@@ -611,7 +611,7 @@ func loadGlobalConfigLegacy(configPath string) (*GlobalConfig, error) {
 		return nil, err
 	}
 
-	// 2. Load global config (~/.scion/server.yaml)
+	// 2. Load global config (~/.fabric/server.yaml)
 	if globalDir, err := GetGlobalDir(); err == nil {
 		loadServerConfigFile(k, globalDir)
 	}
@@ -632,13 +632,13 @@ func loadGlobalConfigLegacy(configPath string) (*GlobalConfig, error) {
 		loadServerConfigFile(k, ".")
 	}
 
-	// 4. Load environment variables (SCION_SERVER_ prefix)
-	// Maps: SCION_SERVER_HUB_PORT -> hub.port
-	//       SCION_SERVER_DATABASE_DRIVER -> database.driver
-	//       SCION_SERVER_LOG_LEVEL -> logLevel
-	//       SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID -> oauth.cli.google.clientId
-	_ = k.Load(env.Provider("SCION_SERVER_", ".", func(s string) string {
-		key := strings.TrimPrefix(s, "SCION_SERVER_")
+	// 4. Load environment variables (FABRIC_SERVER_ prefix)
+	// Maps: FABRIC_SERVER_HUB_PORT -> hub.port
+	//       FABRIC_SERVER_DATABASE_DRIVER -> database.driver
+	//       FABRIC_SERVER_LOG_LEVEL -> logLevel
+	//       FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID -> oauth.cli.google.clientId
+	_ = k.Load(env.Provider("FABRIC_SERVER_", ".", func(s string) string {
+		key := strings.TrimPrefix(s, "FABRIC_SERVER_")
 		// Replace underscores with dots for nested keys and handle camelCase
 		key = envKeyToConfigKey(key)
 		return key
@@ -769,27 +769,27 @@ func LoadFileOnlyKoanf() *koanf.Koanf {
 	return k
 }
 
-// LoadEnvKoanf returns a koanf instance loaded with only the SCION_SERVER_*
+// LoadEnvKoanf returns a koanf instance loaded with only the FABRIC_SERVER_*
 // environment variables (no file, no defaults). This is used by the
 // OperationalSettings service to detect which Layer-1 keys are overridden by
 // env vars on this node (settings-db §3.4).
 func LoadEnvKoanf() *koanf.Koanf {
 	k := koanf.New(".")
-	_ = k.Load(env.Provider("SCION_SERVER_", ".", func(s string) string {
-		key := strings.TrimPrefix(s, "SCION_SERVER_")
+	_ = k.Load(env.Provider("FABRIC_SERVER_", ".", func(s string) string {
+		key := strings.TrimPrefix(s, "FABRIC_SERVER_")
 		return envKeyToConfigKey(key)
 	}), nil)
 	return k
 }
 
-// applyEnvOverrides loads SCION_SERVER_ environment variables and merges them
+// applyEnvOverrides loads FABRIC_SERVER_ environment variables and merges them
 // into an existing GlobalConfig. This ensures env vars override config file
 // values regardless of which config loading path was used (settings.yaml or
 // legacy server.yaml).
 func applyEnvOverrides(gc *GlobalConfig) error {
 	k := koanf.New(".")
-	_ = k.Load(env.Provider("SCION_SERVER_", ".", func(s string) string {
-		key := strings.TrimPrefix(s, "SCION_SERVER_")
+	_ = k.Load(env.Provider("FABRIC_SERVER_", ".", func(s string) string {
+		key := strings.TrimPrefix(s, "FABRIC_SERVER_")
 		return envKeyToConfigKey(key)
 	}), nil)
 

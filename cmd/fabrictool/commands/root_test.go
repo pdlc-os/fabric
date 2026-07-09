@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 package commands
 
@@ -13,7 +13,7 @@ import (
 
 func TestRootCommand(t *testing.T) {
 	// Test that the root command exists and has expected properties
-	assert.Equal(t, "sciontool", rootCmd.Use)
+	assert.Equal(t, "fabrictool", rootCmd.Use)
 	assert.NotEmpty(t, rootCmd.Short)
 	assert.NotEmpty(t, rootCmd.Long)
 }
@@ -29,7 +29,7 @@ func TestRootCommandHelp(t *testing.T) {
 	require.NoError(t, err)
 
 	output := buf.String()
-	assert.Contains(t, output, "sciontool")
+	assert.Contains(t, output, "fabrictool")
 	assert.Contains(t, output, "init")
 	assert.Contains(t, output, "version")
 }

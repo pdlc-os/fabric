@@ -28,7 +28,7 @@ import (
 )
 
 // CommandBus abstracts the inter-node command signal channel. The Postgres
-// implementation LISTENs on scion_broker_cmd; the no-op implementation is
+// implementation LISTENs on fabric_broker_cmd; the no-op implementation is
 // used for SQLite (single-process, all brokers are local).
 type CommandBus interface {
 	// NotifyBrokerCmd issues a NOTIFY signal inside the caller's transaction,
@@ -45,10 +45,10 @@ const (
 	// pgCommandChannel is the global Postgres NOTIFY channel for broker
 	// command signals. Every hub instance LISTENs on this single channel and
 	// filters by local ownership.
-	pgCommandChannel = "scion_broker_cmd"
+	pgCommandChannel = "fabric_broker_cmd"
 )
 
-// cmdSignal is the JSON wire format for the NOTIFY payload on scion_broker_cmd.
+// cmdSignal is the JSON wire format for the NOTIFY payload on fabric_broker_cmd.
 // It is intentionally tiny: the durable command lives in the DB; this is only
 // a wakeup.
 type cmdSignal struct {
@@ -57,7 +57,7 @@ type cmdSignal struct {
 }
 
 // PostgresCommandBus is a sibling of PostgresEventPublisher that LISTENs on
-// scion_broker_cmd for dispatch wakeup signals. It maintains its OWN pgx
+// fabric_broker_cmd for dispatch wakeup signals. It maintains its OWN pgx
 // connection (listener) and pool (publisher) so dispatch and event-fanout are
 // independently pooled (design §5.1).
 //
@@ -156,7 +156,7 @@ func (b *PostgresCommandBus) SetOnSignal(fn func(ctx context.Context, brokerID s
 	b.onSignal = fn
 }
 
-// NotifyBrokerCmd issues NOTIFY scion_broker_cmd inside the caller's
+// NotifyBrokerCmd issues NOTIFY fabric_broker_cmd inside the caller's
 // transaction, so the signal commits atomically with the durable intent.
 func (b *PostgresCommandBus) NotifyBrokerCmd(ctx context.Context, tx pgExecutor, brokerID string) error {
 	sig := cmdSignal{BrokerID: brokerID, Kind: "dispatch"}
@@ -259,7 +259,7 @@ func (b *PostgresCommandBus) connectListener(ctx context.Context) (*pgx.Conn, er
 	return pgx.ConnectConfig(ctx, cc)
 }
 
-// listenLoop LISTENs on scion_broker_cmd and dispatches signals.
+// listenLoop LISTENs on fabric_broker_cmd and dispatches signals.
 func (b *PostgresCommandBus) listenLoop(conn *pgx.Conn) error {
 	if err := execListen(b.ctx, conn, "LISTEN", pgCommandChannel); err != nil {
 		return fmt.Errorf("LISTEN %s: %w", pgCommandChannel, err)

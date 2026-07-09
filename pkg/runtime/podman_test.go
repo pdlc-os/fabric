@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/harness"
 )
 
 func TestPodmanRuntime_Run_NoInitFlag(t *testing.T) {
@@ -43,8 +43,8 @@ echo "$@"
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		Task:         "hello",
 	}
 
@@ -53,7 +53,7 @@ echo "$@"
 		t.Fatalf("runtime.Run failed: %v", err)
 	}
 
-	// sciontool handles PID 1 responsibilities, so --init should NOT be present
+	// fabrictool handles PID 1 responsibilities, so --init should NOT be present
 	if strings.Contains(out, "--init") {
 		t.Errorf("expected '--init' to be absent in output, got %q", out)
 	}
@@ -75,7 +75,7 @@ echo "$@"
 		t.Fatalf("failed to write mock podman: %v", err)
 	}
 
-	t.Run("rootful uses scion user", func(t *testing.T) {
+	t.Run("rootful uses fabric user", func(t *testing.T) {
 		rt := &PodmanRuntime{
 			Command:  mockPodman,
 			Rootless: false,
@@ -86,12 +86,12 @@ echo "$@"
 			t.Fatalf("runtime.Exec failed: %v", err)
 		}
 
-		if !strings.Contains(out, "--user scion") {
-			t.Errorf("expected '--user scion' in exec output, got %q", out)
+		if !strings.Contains(out, "--user fabric") {
+			t.Errorf("expected '--user fabric' in exec output, got %q", out)
 		}
 	})
 
-	t.Run("rootless uses scion user", func(t *testing.T) {
+	t.Run("rootless uses fabric user", func(t *testing.T) {
 		rt := &PodmanRuntime{
 			Command:  mockPodman,
 			Rootless: true,
@@ -102,24 +102,24 @@ echo "$@"
 			t.Fatalf("runtime.Exec failed: %v", err)
 		}
 
-		if !strings.Contains(out, "--user scion") {
-			t.Errorf("expected '--user scion' in exec output, got %q", out)
+		if !strings.Contains(out, "--user fabric") {
+			t.Errorf("expected '--user fabric' in exec output, got %q", out)
 		}
 	})
 }
 
 func TestPodmanRuntime_ExecUserMethod(t *testing.T) {
-	t.Run("rootful returns scion", func(t *testing.T) {
+	t.Run("rootful returns fabric", func(t *testing.T) {
 		rt := &PodmanRuntime{Rootless: false}
-		if got := rt.ExecUser(); got != "scion" {
-			t.Errorf("expected 'scion', got %q", got)
+		if got := rt.ExecUser(); got != "fabric" {
+			t.Errorf("expected 'fabric', got %q", got)
 		}
 	})
 
-	t.Run("rootless returns scion", func(t *testing.T) {
+	t.Run("rootless returns fabric", func(t *testing.T) {
 		rt := &PodmanRuntime{Rootless: true}
-		if got := rt.ExecUser(); got != "scion" {
-			t.Errorf("expected 'scion', got %q", got)
+		if got := rt.ExecUser(); got != "fabric" {
+			t.Errorf("expected 'fabric', got %q", got)
 		}
 	})
 }
@@ -140,8 +140,8 @@ echo "$@"
 		config := RunConfig{
 			Harness:      &harness.Generic{},
 			Name:         "test-agent",
-			UnixUsername: "scion",
-			Image:        "scion-agent:latest",
+			UnixUsername: "fabric",
+			Image:        "fabric-agent:latest",
 			Task:         "hello",
 		}
 		out, err := rt.Run(context.Background(), config)
@@ -151,8 +151,8 @@ echo "$@"
 		if !strings.Contains(out, "--userns=keep-id:uid=1000,gid=1000") {
 			t.Errorf("expected '--userns=keep-id:uid=1000,gid=1000' in output, got %q", out)
 		}
-		if !strings.Contains(out, "SCION_KEEPID_UID=1000") {
-			t.Errorf("expected 'SCION_KEEPID_UID=1000' env var in output, got %q", out)
+		if !strings.Contains(out, "FABRIC_KEEPID_UID=1000") {
+			t.Errorf("expected 'FABRIC_KEEPID_UID=1000' env var in output, got %q", out)
 		}
 	})
 
@@ -161,8 +161,8 @@ echo "$@"
 		config := RunConfig{
 			Harness:      &harness.Generic{},
 			Name:         "test-agent",
-			UnixUsername: "scion",
-			Image:        "scion-agent:latest",
+			UnixUsername: "fabric",
+			Image:        "fabric-agent:latest",
 			Task:         "hello",
 		}
 		out, err := rt.Run(context.Background(), config)
@@ -180,7 +180,7 @@ func TestPodmanRuntime_List_JSONArray(t *testing.T) {
 	tmpDir := t.TempDir()
 	mockPodman := filepath.Join(tmpDir, "mock-podman")
 
-	jsonOutput := `[{"Id":"abc123def456","Names":["test-agent"],"Status":"Up 2 hours","Image":"scion-agent:latest","Labels":{"scion.grove":"mygrove","scion.template":"default"}}]`
+	jsonOutput := `[{"Id":"abc123def456","Names":["test-agent"],"Status":"Up 2 hours","Image":"fabric-agent:latest","Labels":{"fabric.grove":"mygrove","fabric.template":"default"}}]`
 
 	script := `#!/bin/sh
 echo '` + jsonOutput + `'
@@ -212,11 +212,11 @@ echo '` + jsonOutput + `'
 	if a.ContainerStatus != "Up 2 hours" {
 		t.Errorf("expected ContainerStatus 'Up 2 hours', got %q", a.ContainerStatus)
 	}
-	if a.Image != "scion-agent:latest" {
-		t.Errorf("expected Image 'scion-agent:latest', got %q", a.Image)
+	if a.Image != "fabric-agent:latest" {
+		t.Errorf("expected Image 'fabric-agent:latest', got %q", a.Image)
 	}
-	if a.Labels["scion.grove"] != "mygrove" {
-		t.Errorf("expected label scion.grove='mygrove', got %q", a.Labels["scion.grove"])
+	if a.Labels["fabric.grove"] != "mygrove" {
+		t.Errorf("expected label fabric.grove='mygrove', got %q", a.Labels["fabric.grove"])
 	}
 	if a.Template != "default" {
 		t.Errorf("expected Template 'default', got %q", a.Template)
@@ -255,7 +255,7 @@ func TestPodmanRuntime_List_LabelFiltering(t *testing.T) {
 	tmpDir := t.TempDir()
 	mockPodman := filepath.Join(tmpDir, "mock-podman")
 
-	jsonOutput := `[{"Id":"aaa","Names":["agent-a"],"Status":"Up","Image":"img","Labels":{"scion.grove":"grove1","scion.template":"default"}},{"Id":"bbb","Names":["agent-b"],"Status":"Up","Image":"img","Labels":{"scion.grove":"grove2","scion.template":"custom"}}]`
+	jsonOutput := `[{"Id":"aaa","Names":["agent-a"],"Status":"Up","Image":"img","Labels":{"fabric.grove":"grove1","fabric.template":"default"}},{"Id":"bbb","Names":["agent-b"],"Status":"Up","Image":"img","Labels":{"fabric.grove":"grove2","fabric.template":"custom"}}]`
 
 	script := `#!/bin/sh
 echo '` + jsonOutput + `'
@@ -269,7 +269,7 @@ echo '` + jsonOutput + `'
 	}
 
 	// Filter for project1 only
-	agents, err := rt.List(context.Background(), map[string]string{"scion.grove": "grove1"})
+	agents, err := rt.List(context.Background(), map[string]string{"fabric.grove": "grove1"})
 	if err != nil {
 		t.Fatalf("runtime.List failed: %v", err)
 	}

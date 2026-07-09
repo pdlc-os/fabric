@@ -27,7 +27,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -150,11 +150,11 @@ func TestSPAShellHandler(t *testing.T) {
 
 	// Verify expected SPA shell elements
 	checks := map[string]string{
-		"__SCION_DATA__":  "hydration data script",
-		"scion-app":       "root custom element",
+		"__FABRIC_DATA__":  "hydration data script",
+		"fabric-app":       "root custom element",
 		"main.js":         "client entry point script",
-		"--scion-primary": "critical CSS variables",
-		"scion-theme":     "theme detection script",
+		"--fabric-primary": "critical CSS variables",
+		"fabric-theme":     "theme detection script",
 		shoelaceVersion:   "Shoelace CDN version",
 	}
 	for needle, desc := range checks {
@@ -183,7 +183,7 @@ func TestSPACatchAll(t *testing.T) {
 			}
 
 			body, _ := io.ReadAll(resp.Body)
-			if !strings.Contains(string(body), "scion-app") {
+			if !strings.Contains(string(body), "fabric-app") {
 				t.Errorf("expected SPA shell HTML for %s", path)
 			}
 		})
@@ -301,7 +301,7 @@ func TestSPAHandler_NoAssets_ServesErrorPage(t *testing.T) {
 			assert.Contains(t, html, "Web UI Not Available")
 			assert.Contains(t, html, "built without embedded web assets")
 			assert.Contains(t, html, "Hub API")
-			assert.NotContains(t, html, "scion-app",
+			assert.NotContains(t, html, "fabric-app",
 				"should not render SPA shell when no assets are available")
 			assert.NotContains(t, html, "main.js",
 				"should not reference main.js when no assets are available")
@@ -366,17 +366,17 @@ func TestSPAHandler_WithAssets_ServesNormalShell(t *testing.T) {
 	html := string(body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, html, "scion-app")
+	assert.Contains(t, html, "fabric-app")
 	assert.Contains(t, html, "main.js")
 	assert.NotContains(t, html, "Web UI Not Available")
 }
 
 func TestRootLevelStaticFile_Disk(t *testing.T) {
-	// Root-level public files (e.g. /scion-notification-icon.png) should be
+	// Root-level public files (e.g. /fabric-notification-icon.png) should be
 	// served as static assets rather than falling through to the SPA shell.
 	tmpDir := t.TempDir()
 	iconContent := "fake-png-data"
-	if err := os.WriteFile(filepath.Join(tmpDir, "scion-notification-icon.png"), []byte(iconContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpDir, "fabric-notification-icon.png"), []byte(iconContent), 0644); err != nil {
 		t.Fatalf("failed to write test icon: %v", err)
 	}
 
@@ -384,7 +384,7 @@ func TestRootLevelStaticFile_Disk(t *testing.T) {
 		AssetsDir: tmpDir,
 	})
 
-	req := httptest.NewRequest("GET", "/scion-notification-icon.png", nil)
+	req := httptest.NewRequest("GET", "/fabric-notification-icon.png", nil)
 	rec := httptest.NewRecorder()
 
 	ws.Handler().ServeHTTP(rec, req)
@@ -507,7 +507,7 @@ func TestWebHealthz(t *testing.T) {
 
 	// Top-level backward-compatible fields
 	assert.Equal(t, "healthy", result.Status)
-	assert.NotEmpty(t, result.ScionVersion)
+	assert.NotEmpty(t, result.FabricVersion)
 	assert.NotEmpty(t, result.Version)
 	assert.NotEmpty(t, result.Uptime)
 
@@ -530,7 +530,7 @@ func TestWebHealthz_CompositeMode(t *testing.T) {
 		return &HealthResponse{
 			Status:       "healthy",
 			Version:      "0.1.0",
-			ScionVersion: "abc1234",
+			FabricVersion: "abc1234",
 			Uptime:       "5m0s",
 			Checks:       map[string]string{"database": "healthy"},
 			Stats:        &HealthStats{ConnectedBrokers: 1, ActiveAgents: 2, Projects: 3},
@@ -567,7 +567,7 @@ func TestWebHealthz_CompositeMode(t *testing.T) {
 	// Top-level fields from hub health
 	assert.Equal(t, "healthy", result["status"])
 	assert.Equal(t, "0.1.0", result["version"])
-	assert.Equal(t, "abc1234", result["scionVersion"])
+	assert.Equal(t, "abc1234", result["fabricVersion"])
 	assert.Equal(t, "5m0s", result["uptime"])
 
 	// Web sub-object
@@ -600,7 +600,7 @@ func TestWebHealthz_DegradedHub(t *testing.T) {
 		return &HealthResponse{
 			Status:       "degraded",
 			Version:      "0.1.0",
-			ScionVersion: "abc1234",
+			FabricVersion: "abc1234",
 			Uptime:       "1m0s",
 			Checks:       map[string]string{"database": "unhealthy"},
 		}
@@ -933,7 +933,7 @@ func TestSessionToBearerMiddleware_SigningKeyRotation(t *testing.T) {
 	// since the session user info was removed.
 	var sessionCleared bool
 	for _, c := range rec2.Result().Cookies() {
-		if c.Name == "scion_sess" && c.MaxAge < 0 {
+		if c.Name == "fabric_sess" && c.MaxAge < 0 {
 			sessionCleared = true
 		}
 	}
@@ -1294,7 +1294,7 @@ func TestIsPublicRoute(t *testing.T) {
 		{"/auth/debug", true},
 		{"/login", true},
 		{"/favicon.ico", true},
-		{"/scion-notification-icon.png", true},
+		{"/fabric-notification-icon.png", true},
 		{"/robots.txt", true},
 		{"/api/v1/projects", true},
 		{"/api/v1/agents", true},
@@ -1339,7 +1339,7 @@ func TestIsBrowserRequest(t *testing.T) {
 func TestSessionStore_CookieConfiguration(t *testing.T) {
 	// HTTPS base URL should produce secure cookies
 	ws := newTestWebServer(t, WebServerConfig{
-		BaseURL: "https://scion.example.com",
+		BaseURL: "https://fabric.example.com",
 	})
 	assert.True(t, ws.sessionStore.Options.Secure,
 		"HTTPS base URL should produce secure cookies")
@@ -1715,8 +1715,8 @@ func TestLoginPageRendersLoginComponent(t *testing.T) {
 	html := string(body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, html, "scion-login-page")
-	assert.NotContains(t, html, "<scion-app>")
+	assert.Contains(t, html, "fabric-login-page")
+	assert.NotContains(t, html, "<fabric-app>")
 }
 
 func TestNonLoginPageRendersAppComponent(t *testing.T) {
@@ -1732,8 +1732,8 @@ func TestNonLoginPageRendersAppComponent(t *testing.T) {
 	html := string(body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, html, "<scion-app></scion-app>")
-	assert.NotContains(t, html, "<scion-login-page")
+	assert.Contains(t, html, "<fabric-app></fabric-app>")
+	assert.NotContains(t, html, "<fabric-login-page")
 }
 
 func TestLoginPageNoOAuthAttributes(t *testing.T) {
@@ -1761,7 +1761,7 @@ func TestLoginPageNoOAuthAttributes(t *testing.T) {
 	html := string(body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, html, "<scion-login-page></scion-login-page>")
+	assert.Contains(t, html, "<fabric-login-page></fabric-login-page>")
 	assert.NotContains(t, html, "googleEnabled")
 	assert.NotContains(t, html, "githubEnabled")
 }
@@ -1923,7 +1923,7 @@ func TestSPAShellHandler_ContainsInitialData(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// The __SCION_DATA__ should contain agent data
+	// The __FABRIC_DATA__ should contain agent data
 	assert.Contains(t, html, tid("agent-1"))
 	assert.Contains(t, html, `"test-agent"`)
 	assert.Contains(t, html, `"_capabilities"`)
@@ -1932,7 +1932,7 @@ func TestSPAShellHandler_ContainsInitialData(t *testing.T) {
 	// Verify it's valid JSON by extracting and parsing
 	dataStart := strings.Index(html, `type="application/json">`) + len(`type="application/json">`)
 	dataEnd := strings.Index(html[dataStart:], `</script>`)
-	require.True(t, dataStart > 0 && dataEnd > 0, "should find __SCION_DATA__ boundaries")
+	require.True(t, dataStart > 0 && dataEnd > 0, "should find __FABRIC_DATA__ boundaries")
 
 	jsonData := html[dataStart : dataStart+dataEnd]
 	var pageData map[string]interface{}
@@ -1959,7 +1959,7 @@ func TestSPAShellHandler_UserInInitialData(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Extract and parse __SCION_DATA__
+	// Extract and parse __FABRIC_DATA__
 	dataStart := strings.Index(html, `type="application/json">`) + len(`type="application/json">`)
 	dataEnd := strings.Index(html[dataStart:], `</script>`)
 	require.True(t, dataStart > 0 && dataEnd > 0)
@@ -1997,7 +1997,7 @@ func TestSPAShellHandler_NoHubMounted(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Extract and parse __SCION_DATA__
+	// Extract and parse __FABRIC_DATA__
 	dataStart := strings.Index(html, `type="application/json">`) + len(`type="application/json">`)
 	dataEnd := strings.Index(html[dataStart:], `</script>`)
 	require.True(t, dataStart > 0 && dataEnd > 0)
@@ -2043,7 +2043,7 @@ func TestSPAShellHandler_HubAPIError(t *testing.T) {
 	// Page should still render (200 OK)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Extract and parse __SCION_DATA__
+	// Extract and parse __FABRIC_DATA__
 	dataStart := strings.Index(html, `type="application/json">`) + len(`type="application/json">`)
 	dataEnd := strings.Index(html[dataStart:], `</script>`)
 	require.True(t, dataStart > 0 && dataEnd > 0)

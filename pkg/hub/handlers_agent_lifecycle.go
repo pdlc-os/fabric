@@ -23,10 +23,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func (s *Server) updateAgentStatus(w http.ResponseWriter, r *http.Request, id string) {
@@ -91,7 +91,7 @@ func guardAgentPhaseTransition(agent *store.Agent, status *store.AgentStatusUpda
 
 	// Guard 0: suspended is sticky against async status updates. When an agent
 	// is suspended, its container is being torn down, and the dying container's
-	// async sciontool /status POST (e.g. phase=stopped, activity=crashed) must
+	// async fabrictool /status POST (e.g. phase=stopped, activity=crashed) must
 	// not clobber the suspended phase — otherwise a subsequent /start would not
 	// see suspended and would skip the harness --continue (resume) flag.
 	// Only explicit start/stop lifecycle actions may leave the suspended phase,

@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -11,13 +11,13 @@ import (
 	"path/filepath"
 	"time"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
-// HubHandler sends status updates to the Scion Hub.
+// HubHandler sends status updates to the Fabric Hub.
 type HubHandler struct {
 	client *hub.Client
 }
@@ -243,7 +243,7 @@ func (h *HubHandler) isLocalActivitySticky() bool {
 func readLocalActivity() string {
 	home := os.Getenv("HOME")
 	if home == "" {
-		home = "/home/scion"
+		home = "/home/fabric"
 	}
 	statusPath := filepath.Join(home, "agent-info.json")
 

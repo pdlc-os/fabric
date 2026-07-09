@@ -26,8 +26,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // ContainerScriptHarness is a thin api.Harness implementation that stages a
@@ -36,7 +36,7 @@ import (
 //
 // Host or broker code never invokes the script. Provision() copies the script,
 // the manifest, staged inputs, candidate secrets, and a trusted lifecycle hook
-// wrapper under agent_home/.scion/. sciontool init runs the wrapper inside the
+// wrapper under agent_home/.fabric/. fabrictool init runs the wrapper inside the
 // container during the pre-start lifecycle hook.
 type ContainerScriptHarness struct {
 	// entry is the resolved harness-config entry from config.yaml plus any
@@ -44,7 +44,7 @@ type ContainerScriptHarness struct {
 	entry config.HarnessConfigEntry
 
 	// configDirPath is the absolute path to the on-disk harness-config dir
-	// (e.g. ~/.scion/harness-configs/<name>/). Empty for synthetic configs.
+	// (e.g. ~/.fabric/harness-configs/<name>/). Empty for synthetic configs.
 	configDirPath string
 }
 
@@ -174,7 +174,7 @@ func (c *ContainerScriptHarness) GetCommand(task string, resume bool, baseArgs [
 // GetEnv returns the templated env for the harness.
 func (c *ContainerScriptHarness) GetEnv(agentName, agentHome, unixUsername string) map[string]string {
 	out := map[string]string{
-		"SCION_AGENT_NAME": agentName,
+		"FABRIC_AGENT_NAME": agentName,
 	}
 	for k, v := range c.entry.EnvTemplate {
 		out[k] = expandEnvTemplate(v, agentName, agentHome, unixUsername)
@@ -188,7 +188,7 @@ func (c *ContainerScriptHarness) GetEnv(agentName, agentHome, unixUsername strin
 func (c *ContainerScriptHarness) GetTelemetryEnv() map[string]string { return nil }
 
 // InjectAgentInstructions stages instruction content under
-// agent_home/.scion/harness/inputs/instructions.md. The container-side
+// agent_home/.fabric/harness/inputs/instructions.md. The container-side
 // pre-start script copies it to the harness-native location declared in
 // config.yaml (instructions_file).
 func (c *ContainerScriptHarness) InjectAgentInstructions(agentHome string, content []byte) error {
@@ -196,14 +196,14 @@ func (c *ContainerScriptHarness) InjectAgentInstructions(agentHome string, conte
 }
 
 // InjectSystemPrompt stages system-prompt content under
-// agent_home/.scion/harness/inputs/system-prompt.md. The container-side script
+// agent_home/.fabric/harness/inputs/system-prompt.md. The container-side script
 // honors system_prompt_mode (native | prepend_to_instructions | none).
 func (c *ContainerScriptHarness) InjectSystemPrompt(agentHome string, content []byte) error {
 	return c.stageInputFile(agentHome, "system-prompt.md", content)
 }
 
 // ResolveAuth returns a container-side auth plan: env candidates flow as files
-// under .scion/harness/secrets/, and any harness-native file mappings declared
+// under .fabric/harness/secrets/, and any harness-native file mappings declared
 // in config_dir-bound auth metadata are surfaced to the runtime so the
 // container can mount them. Final harness-native auth selection happens in the
 // pre-start script.
@@ -214,9 +214,9 @@ func (c *ContainerScriptHarness) ResolveAuth(auth api.AuthConfig) (*api.Resolved
 	}
 
 	// Pass through non-secret discovery values so the script and broker can
-	// use them. SCION_HARNESS_AUTH_CANDIDATES is a manifest-style hint.
+	// use them. FABRIC_HARNESS_AUTH_CANDIDATES is a manifest-style hint.
 	if auth.SelectedType != "" {
-		resolved.EnvVars["SCION_HARNESS_SELECTED_AUTH"] = auth.SelectedType
+		resolved.EnvVars["FABRIC_HARNESS_SELECTED_AUTH"] = auth.SelectedType
 	}
 
 	// Forward any explicit auth env vars to the container. The script may
@@ -274,7 +274,7 @@ func (c *ContainerScriptHarness) ResolveAuth(auth api.AuthConfig) (*api.Resolved
 	if auth.OAuthCreds != "" {
 		resolved.Files = append(resolved.Files, api.FileMapping{
 			SourcePath:    auth.OAuthCreds,
-			ContainerPath: "~/.scion/oauth_creds.json",
+			ContainerPath: "~/.fabric/oauth_creds.json",
 		})
 	}
 
@@ -285,7 +285,7 @@ func (c *ContainerScriptHarness) ResolveAuth(auth api.AuthConfig) (*api.Resolved
 }
 
 // ProvisionManifest is the JSON payload written to
-// agent_home/.scion/harness/manifest.json and read by the container-side
+// agent_home/.fabric/harness/manifest.json and read by the container-side
 // provisioner script.
 type ProvisionManifest struct {
 	SchemaVersion    int                       `json:"schema_version"`
@@ -323,16 +323,16 @@ type ProvisionPlatform struct {
 // Provision stages the container bundle into the agent home. It does not
 // execute provision.py. The bundle layout matches the design doc:
 //
-//	agent_home/.scion/harness/
+//	agent_home/.fabric/harness/
 //	  config.yaml
 //	  provision.py
 //	  manifest.json
 //	  inputs/...
 //	  outputs/  (writable by the script)
 //	  secrets/  (populated by runtime secret projection)
-//	agent_home/.scion/hooks/pre-start.d/20-harness-provision  (trusted wrapper)
+//	agent_home/.fabric/hooks/pre-start.d/20-harness-provision  (trusted wrapper)
 func (c *ContainerScriptHarness) Provision(ctx context.Context, agentName, agentDir, agentHome, agentWorkspace string) error {
-	bundleHostPath := filepath.Join(agentHome, ".scion", "harness")
+	bundleHostPath := filepath.Join(agentHome, ".fabric", "harness")
 	bundleContainerPath := containerBundlePath(agentHome)
 
 	for _, sub := range []string{"", "inputs", "outputs", "secrets"} {
@@ -370,7 +370,7 @@ func (c *ContainerScriptHarness) Provision(ctx context.Context, agentName, agent
 		}
 	}
 
-	// Stage scion_harness.py next to provision.py so the in-container script
+	// Stage fabric_harness.py next to provision.py so the in-container script
 	// can import it. The lib mode (vendored | injected) determines the source.
 	if err := c.stageHarnessLib(bundleHostPath); err != nil {
 		return err
@@ -429,19 +429,19 @@ func (c *ContainerScriptHarness) Provision(ctx context.Context, agentName, agent
 }
 
 // ApplyAuthSettings stages resolved auth metadata into
-// agent_home/.scion/harness/inputs/auth-candidates.json so the container-side
+// agent_home/.fabric/harness/inputs/auth-candidates.json so the container-side
 // script can finalize harness-native auth selection on every start/resume.
 //
 // For env-based credentials, the secret value is also written to
-// agent_home/.scion/harness/secrets/<NAME> (mode 0600) and the path is recorded
+// agent_home/.fabric/harness/secrets/<NAME> (mode 0600) and the path is recorded
 // in the candidates file under env_secret_files. Scripts that need the actual
 // value (e.g. Codex writes its API key into .codex/auth.json) read the file
-// because sciontool harness provision strips secret env vars from the script's
+// because fabrictool harness provision strips secret env vars from the script's
 // process environment for containment.
 //
 // For file-based credentials declared in required_files (e.g. auth-file mode),
 // the file content is read from the host SourcePath and staged as a secret file
-// under agent_home/.scion/harness/secrets/<NAME> (mode 0600). The path is
+// under agent_home/.fabric/harness/secrets/<NAME> (mode 0600). The path is
 // recorded in file_secret_files in auth-candidates.json so the container-side
 // script can write a fresh writable copy. The FileMapping is removed from
 // resolved.Files so the runtime does not bind-mount the file read-only.
@@ -482,8 +482,8 @@ func (c *ContainerScriptHarness) ApplyAuthSettings(agentHome string, resolved *a
 
 // stageFileSecretFiles reads the content of each FileMapping whose ContainerPath
 // matches a required_files declaration in the harness config, writes it to
-// agent_home/.scion/harness/secrets/<NAME> (mode 0600), and returns:
-//   - fileSecretFiles: map of name -> "$HOME/.scion/harness/secrets/<NAME>" for
+// agent_home/.fabric/harness/secrets/<NAME> (mode 0600), and returns:
+//   - fileSecretFiles: map of name -> "$HOME/.fabric/harness/secrets/<NAME>" for
 //     the staged secrets (to be written into file_secret_files in auth-candidates.json)
 //   - remainingFiles: the FileMappings that were NOT staged as secrets and should
 //     still be passed to the runtime for bind-mounting
@@ -517,7 +517,7 @@ func (c *ContainerScriptHarness) stageFileSecretFiles(agentHome string, files []
 
 	// Normalize a container path by expanding ~ to $HOME and stripping trailing
 	// slashes so comparison is consistent. Absolute paths (e.g.
-	// /home/scion/.codex/auth.json) are returned unchanged; tilde paths are
+	// /home/fabric/.codex/auth.json) are returned unchanged; tilde paths are
 	// expanded to $HOME/... form.
 	normalize := func(p string) string {
 		p = strings.TrimRight(p, "/")
@@ -527,7 +527,7 @@ func (c *ContainerScriptHarness) stageFileSecretFiles(agentHome string, files []
 		return p
 	}
 
-	dir := filepath.Join(agentHome, ".scion", "harness", "secrets")
+	dir := filepath.Join(agentHome, ".fabric", "harness", "secrets")
 	dirCreated := false
 
 	var remaining []api.FileMapping
@@ -537,7 +537,7 @@ func (c *ContainerScriptHarness) stageFileSecretFiles(agentHome string, files []
 		// Find a matching required_file entry by container path suffix.
 		// Use HasSuffix so that both tilde paths (~/.codex/auth.json →
 		// $HOME/.codex/auth.json) and absolute paths
-		// (/home/scion/.codex/auth.json) match the same suffix declaration.
+		// (/home/fabric/.codex/auth.json) match the same suffix declaration.
 		var matchedName string
 		for _, req := range reqs {
 			suffix := strings.TrimRight(req.targetSuffix, "/")
@@ -578,7 +578,7 @@ func (c *ContainerScriptHarness) stageFileSecretFiles(agentHome string, files []
 		if err := os.WriteFile(target, content, 0600); err != nil {
 			return nil, nil, fmt.Errorf("write file secret %s: %w", matchedName, err)
 		}
-		fileSecretFiles[matchedName] = "$HOME/.scion/harness/secrets/" + matchedName
+		fileSecretFiles[matchedName] = "$HOME/.fabric/harness/secrets/" + matchedName
 		// Do NOT add to remaining — this file is now staged as a secret and
 		// must not be bind-mounted.
 	}
@@ -587,16 +587,16 @@ func (c *ContainerScriptHarness) stageFileSecretFiles(agentHome string, files []
 }
 
 // stageEnvSecretFiles writes each non-empty env value to
-// agent_home/.scion/harness/secrets/<NAME> with mode 0600 and returns a map
+// agent_home/.fabric/harness/secrets/<NAME> with mode 0600 and returns a map
 // of env-var name -> container-relative secret file path. The returned paths
-// use the literal "$HOME/.scion/harness/secrets/<NAME>" form so they remain
+// use the literal "$HOME/.fabric/harness/secrets/<NAME>" form so they remain
 // portable across host/container path layouts.
 func (c *ContainerScriptHarness) stageEnvSecretFiles(agentHome string, envVars map[string]string) (map[string]string, error) {
 	out := map[string]string{}
 	if len(envVars) == 0 {
 		return out, nil
 	}
-	dir := filepath.Join(agentHome, ".scion", "harness", "secrets")
+	dir := filepath.Join(agentHome, ".fabric", "harness", "secrets")
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("create secrets dir: %w", err)
 	}
@@ -614,7 +614,7 @@ func (c *ContainerScriptHarness) stageEnvSecretFiles(agentHome string, envVars m
 		if err := os.WriteFile(target, []byte(val), 0600); err != nil {
 			return nil, fmt.Errorf("write secret %s: %w", name, err)
 		}
-		out[name] = "$HOME/.scion/harness/secrets/" + name
+		out[name] = "$HOME/.fabric/harness/secrets/" + name
 	}
 	return out, nil
 }
@@ -639,7 +639,7 @@ func isSafeEnvName(name string) bool {
 }
 
 // ApplyMCPSettings stages the universal mcp_servers map into
-// agent_home/.scion/harness/inputs/mcp-servers.json so the container-side
+// agent_home/.fabric/harness/inputs/mcp-servers.json so the container-side
 // provision.py can translate it into the harness's native MCP config. An empty
 // or nil map is a no-op (no file written) so existing inline harness MCP
 // configuration in home/ files keeps working unchanged.
@@ -659,7 +659,7 @@ func (c *ContainerScriptHarness) ApplyMCPSettings(agentHome string, mcpServers m
 }
 
 // ApplyTelemetrySettings stages telemetry config into
-// agent_home/.scion/harness/inputs/telemetry.json.
+// agent_home/.fabric/harness/inputs/telemetry.json.
 func (c *ContainerScriptHarness) ApplyTelemetrySettings(agentHome string, telemetry *api.TelemetryConfig, env map[string]string) error {
 	payload := map[string]interface{}{
 		"schema_version": 1,
@@ -680,10 +680,10 @@ func (c *ContainerScriptHarness) stageCaptureAuthConfig(agentHome string) error 
 	return StageCaptureAuthAssets(agentHome, c.configDirPath, c.entry.Auth)
 }
 
-// stageInputFile writes content under agent_home/.scion/harness/inputs/<name>.
+// stageInputFile writes content under agent_home/.fabric/harness/inputs/<name>.
 // Inputs are not secrets; mode 0644 is fine.
 func (c *ContainerScriptHarness) stageInputFile(agentHome, name string, content []byte) error {
-	dir := filepath.Join(agentHome, ".scion", "harness", "inputs")
+	dir := filepath.Join(agentHome, ".fabric", "harness", "inputs")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("create inputs dir: %w", err)
 	}
@@ -691,18 +691,18 @@ func (c *ContainerScriptHarness) stageInputFile(agentHome, name string, content 
 }
 
 // containerBundlePath returns the path the script will see inside the
-// container. The container always sees the bundle at $HOME/.scion/harness;
+// container. The container always sees the bundle at $HOME/.fabric/harness;
 // agentHome on the host may be split storage. Use the trailing path so that
 // inside the container, paths begin from the user's home directory.
 func containerBundlePath(_ string) string {
 	// The container-side $HOME differs from the host-side agentHome path.
-	// Provisioner scripts read the manifest from $HOME/.scion/harness, so
+	// Provisioner scripts read the manifest from $HOME/.fabric/harness, so
 	// we encode that path verbatim. The wrapper is responsible for setting
 	// $HOME correctly.
-	return "$HOME/.scion/harness"
+	return "$HOME/.fabric/harness"
 }
 
-// stageHarnessLib stages scion_harness.py into the bundle directory according
+// stageHarnessLib stages fabric_harness.py into the bundle directory according
 // to the provisioner.lib mode declared in config.yaml.
 //
 //   - vendored: copy from the installed harness-config directory; hard error if
@@ -712,7 +712,7 @@ func containerBundlePath(_ string) string {
 //
 // Both modes log the staged source and LIB_VERSION for diagnostics.
 func (c *ContainerScriptHarness) stageHarnessLib(bundleHostPath string) error {
-	dst := filepath.Join(bundleHostPath, "scion_harness.py")
+	dst := filepath.Join(bundleHostPath, "fabric_harness.py")
 	libMode := "injected"
 	if c.entry.Provisioner != nil && c.entry.Provisioner.Lib != "" {
 		libMode = c.entry.Provisioner.Lib
@@ -721,18 +721,18 @@ func (c *ContainerScriptHarness) stageHarnessLib(bundleHostPath string) error {
 	var stagedSource string
 	switch libMode {
 	case "vendored":
-		src := filepath.Join(c.configDirPath, "scion_harness.py")
+		src := filepath.Join(c.configDirPath, "fabric_harness.py")
 		if !fileExistsHelper(src) {
-			return fmt.Errorf("stage scion_harness.py: provisioner.lib is %q but %s does not exist — "+
-				"run 'go generate ./harnesses/' or include scion_harness.py in the harness bundle", libMode, src)
+			return fmt.Errorf("stage fabric_harness.py: provisioner.lib is %q but %s does not exist — "+
+				"run 'go generate ./harnesses/' or include fabric_harness.py in the harness bundle", libMode, src)
 		}
 		if err := copyHarnessConfigFile(src, dst); err != nil {
-			return fmt.Errorf("stage scion_harness.py (vendored): %w", err)
+			return fmt.Errorf("stage fabric_harness.py (vendored): %w", err)
 		}
 		stagedSource = "vendored"
 	default:
 		if err := writeSharedHarnessHelper(dst); err != nil {
-			return fmt.Errorf("stage scion_harness.py (injected): %w", err)
+			return fmt.Errorf("stage fabric_harness.py (injected): %w", err)
 		}
 		stagedSource = "injected"
 	}
@@ -740,12 +740,12 @@ func (c *ContainerScriptHarness) stageHarnessLib(bundleHostPath string) error {
 	staged, err := os.ReadFile(dst)
 	if err == nil {
 		version := parseLibVersion(string(staged))
-		slog.Info("staged scion_harness.py", "source", stagedSource, "lib_version", version)
+		slog.Info("staged fabric_harness.py", "source", stagedSource, "lib_version", version)
 	}
 	return nil
 }
 
-// parseLibVersion extracts the LIB_VERSION value from scion_harness.py source.
+// parseLibVersion extracts the LIB_VERSION value from fabric_harness.py source.
 // Returns "unknown" if the marker is not found.
 func parseLibVersion(src string) string {
 	for _, line := range strings.Split(src, "\n") {
@@ -765,14 +765,14 @@ func parseLibVersion(src string) string {
 }
 
 func writeHookWrapper(agentHome, bundleContainerPath string) error {
-	dir := filepath.Join(agentHome, ".scion", "hooks", "pre-start.d")
+	dir := filepath.Join(agentHome, ".fabric", "hooks", "pre-start.d")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 	wrapper := fmt.Sprintf(`#!/bin/sh
-# Generated by scion. Do not edit by hand.
+# Generated by fabric. Do not edit by hand.
 set -eu
-exec sciontool harness provision --manifest "%s/manifest.json"
+exec fabrictool harness provision --manifest "%s/manifest.json"
 `, bundleContainerPath)
 	target := filepath.Join(dir, "20-harness-provision")
 	if err := os.WriteFile(target, []byte(wrapper), 0755); err != nil {
@@ -845,13 +845,13 @@ func expandEnvTemplate(value, agentName, agentHome, unixUsername string) string 
 }
 
 // StageCaptureAuthAssets stages capture_auth.py and its config file into the
-// harness bundle directory at agentHome/.scion/harness/.
+// harness bundle directory at agentHome/.fabric/harness/.
 //
 // configDirPath is the harness-config directory containing capture_auth.py.
 // authMeta provides the required_files declarations used to generate the
 // capture-auth-config.json input.
 func StageCaptureAuthAssets(agentHome, configDirPath string, authMeta *config.HarnessAuthMetadata) error {
-	bundleDir := filepath.Join(agentHome, ".scion", "harness")
+	bundleDir := filepath.Join(agentHome, ".fabric", "harness")
 	inputsDir := filepath.Join(bundleDir, "inputs")
 
 	for _, dir := range []string{bundleDir, inputsDir} {

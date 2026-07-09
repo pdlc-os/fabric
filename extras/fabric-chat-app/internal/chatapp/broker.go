@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -127,7 +127,7 @@ func (b *BrokerServer) Close() error {
 // GetInfo returns plugin metadata.
 func (b *BrokerServer) GetInfo() (*plugin.PluginInfo, error) {
 	return &plugin.PluginInfo{
-		Name:         "scion-chat-app",
+		Name:         "fabric-chat-app",
 		Version:      "1.0.0",
 		ChannelID:    b.ChannelName(),
 		Capabilities: []string{"chat-bridge", "notification-relay"},

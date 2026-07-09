@@ -46,16 +46,16 @@ echo "=== Testing OAuth Discovery ==="
 
 # Initialize a grove in the temp dir
 cd "$TEST_TMP"
-scion grove init
+fabric grove init
 
 echo "=== Starting Agent ==="
-scion start test-oauth-agent "hello" > start_output.log 2>&1 || true
+fabric start test-oauth-agent "hello" > start_output.log 2>&1 || true
 
 echo "Start output:"
 cat start_output.log
 
 # Check if the agent directory was created
-AGENT_DIR=".scion/agents/test-oauth-agent"
+AGENT_DIR=".fabric/agents/test-oauth-agent"
 if [ -d "$AGENT_DIR" ]; then
     echo "SUCCESS: Agent directory created."
 else
@@ -63,6 +63,6 @@ else
     exit 1
 fi
 
-scion stop test-oauth-agent --rm || true
+fabric stop test-oauth-agent --rm || true
 
 echo "Test complete."

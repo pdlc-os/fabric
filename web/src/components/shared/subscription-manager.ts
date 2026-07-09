@@ -40,8 +40,8 @@ interface SubscriptionTemplate {
 const DEFAULT_TRIGGERS = ['COMPLETED', 'WAITING_FOR_INPUT', 'LIMITS_EXCEEDED'];
 const ALL_TRIGGERS = ['COMPLETED', 'WAITING_FOR_INPUT', 'LIMITS_EXCEEDED', 'STALLED', 'ERROR', 'DELETED'];
 
-@customElement('scion-subscription-manager')
-export class ScionSubscriptionManager extends LitElement {
+@customElement('fabric-subscription-manager')
+export class FabricSubscriptionManager extends LitElement {
   @property() projectId = '';
   @property() agentId?: string;
   @property({ type: Boolean }) compact = false;
@@ -406,7 +406,7 @@ export class ScionSubscriptionManager extends LitElement {
       <tr>
         <td>
           <span class="key-info">
-            <sl-icon name=${scopeIcon} style="color: var(--scion-primary, #3b82f6); flex-shrink: 0;"></sl-icon>
+            <sl-icon name=${scopeIcon} style="color: var(--fabric-primary, #3b82f6); flex-shrink: 0;"></sl-icon>
             <span>${sub.scope}</span>
           </span>
         </td>
@@ -632,6 +632,6 @@ export class ScionSubscriptionManager extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-subscription-manager': ScionSubscriptionManager;
+    'fabric-subscription-manager': FabricSubscriptionManager;
   }
 }

@@ -9,7 +9,7 @@
 
 ## 1. Problem Statement
 
-The current `scion sync` command is agent-centric: it transfers files to or from a specific agent's workspace via `scion sync [to|from] <agent-name>`. This framing misses the broader need — **groves themselves need to be synchronized between brokers**.
+The current `fabric sync` command is agent-centric: it transfers files to or from a specific agent's workspace via `fabric sync [to|from] <agent-name>`. This framing misses the broader need — **groves themselves need to be synchronized between brokers**.
 
 Consider these scenarios the current design doesn't address well:
 
@@ -30,13 +30,13 @@ Agent workspace sync is a *special case* of grove workspace sync. An agent's wor
 
 | Goal | Description |
 |------|-------------|
-| **Grove-level sync** | `scion sync` operates on the current grove, not a specific agent |
-| **Bidirectional by default** | Bare `scion sync` performs per-file bidirectional merge (newer wins) |
+| **Grove-level sync** | `fabric sync` operates on the current grove, not a specific agent |
+| **Bidirectional by default** | Bare `fabric sync` performs per-file bidirectional merge (newer wins) |
 | **File-level sync as primary** | Working tree files are the unit of sync — `.git/` excluded |
 | **Hub as canonical state** | Each broker syncs against the hub independently; hub is the single source of truth |
 | **WebDAV relay** | Hub exposes a WebDAV endpoint; rclone targets it for efficient streaming sync |
 | **Multi-broker** | Enable syncing a grove's workspace from one broker to another (mediated by hub) |
-| **Implicit grove** | When hub is enabled, `scion sync` should "just work" with the resolved grove |
+| **Implicit grove** | When hub is enabled, `fabric sync` should "just work" with the resolved grove |
 
 ### 2.2 Non-Goals
 
@@ -45,7 +45,7 @@ Agent workspace sync is a *special case* of grove workspace sync. An agent's wor
 | Real-time continuous sync | On-demand is sufficient; continuous sync (mutagen/syncthing) is future work |
 | Conflict resolution beyond mtime | Last-write-wins by mtime for true conflicts (modified on both sides) |
 | Cross-hub grove sync | Out of scope; multi-hub broker design handles per-hub grove isolation |
-| Replacing agent-level sync | Existing `scion sync to/from <agent>` remains for targeting a running agent's container |
+| Replacing agent-level sync | Existing `fabric sync to/from <agent>` remains for targeting a running agent's container |
 | Solo mode grove sync | Grove-level sync requires a hub; solo mode uses agent-level sync only |
 
 ---
@@ -56,31 +56,31 @@ Agent workspace sync is a *special case* of grove workspace sync. An agent's wor
 
 ```bash
 # Bidirectional sync of the current grove (inferred from cwd or -g flag)
-scion sync                     # Bidirectional per-file merge (newer wins)
+fabric sync                     # Bidirectional per-file merge (newer wins)
 
 # One-directional overrides
-scion sync push                # Force push local → hub
-scion sync pull                # Force pull hub → local
+fabric sync push                # Force push local → hub
+fabric sync pull                # Force pull hub → local
 
 # Explicit grove targeting (uses existing -g flag)
-scion sync -g /path/to/grove
-scion sync push -g /path/to/grove
+fabric sync -g /path/to/grove
+fabric sync push -g /path/to/grove
 
 # Existing agent-level sync preserved (different terminology: to/from)
-scion sync to <agent-name>     # Push to a specific running agent
-scion sync from <agent-name>   # Pull from a specific running agent
+fabric sync to <agent-name>     # Push to a specific running agent
+fabric sync from <agent-name>   # Pull from a specific running agent
 
 # Options
-scion sync --dry-run
-scion sync --exclude "*.log" --exclude "tmp/**"
-scion sync push --force         # Overwrite without hash comparison
+fabric sync --dry-run
+fabric sync --exclude "*.log" --exclude "tmp/**"
+fabric sync push --force         # Overwrite without hash comparison
 ```
 
 ### 3.2 Default Behavior (Bidirectional)
 
-When a user runs bare `scion sync` in a hub-enabled grove:
+When a user runs bare `fabric sync` in a hub-enabled grove:
 
-1. Resolve the current grove (same resolution as other commands: `-g` flag → project `.scion/` → global).
+1. Resolve the current grove (same resolution as other commands: `-g` flag → project `.fabric/` → global).
 2. Collect local file manifest (paths, sizes, mtimes, hashes).
 3. Fetch remote manifest from hub.
 4. Compare per-file:
@@ -95,14 +95,14 @@ When a user runs bare `scion sync` in a hub-enabled grove:
 
 | Scope | Direction Words | Example |
 |-------|----------------|---------|
-| Grove-level | `push` / `pull` | `scion sync push` |
-| Agent-level | `to` / `from` | `scion sync to my-agent` |
+| Grove-level | `push` / `pull` | `fabric sync push` |
+| Agent-level | `to` / `from` | `fabric sync to my-agent` |
 
-The different terminology disambiguates scope. Bare `scion sync` (no subcommand, no agent name) is always grove-level bidirectional.
+The different terminology disambiguates scope. Bare `fabric sync` (no subcommand, no agent name) is always grove-level bidirectional.
 
 ### 3.4 Grove Resolution
 
-The user must be inside a grove directory (containing `.scion/`) or specify one via `-g`. This is consistent with all other grove-scoped commands.
+The user must be inside a grove directory (containing `.fabric/`) or specify one via `-g`. This is consistent with all other grove-scoped commands.
 
 ---
 
@@ -160,7 +160,7 @@ The hub serves a WebDAV interface over each grove's workspace directory. This is
 **Implementation:** Use `golang.org/x/net/webdav` which provides a ready-made WebDAV server handler. The hub mounts it with a custom `FileSystem` implementation that:
 1. Scopes all paths to the grove's workspace directory
 2. Enforces grove-level authorization (existing middleware)
-3. Excludes `.git/`, `.scion/`, `node_modules/` etc. from listings
+3. Excludes `.git/`, `.fabric/`, `node_modules/` etc. from listings
 4. For linked groves on remote brokers: relays WebDAV operations through the control channel to the broker that owns the workspace
 
 **Authentication:** Same as all hub API endpoints — bearer token or HMAC broker auth. No additional auth mechanism needed.
@@ -227,7 +227,7 @@ For **linked groves**, the workspace lives on a broker. The hub must relay WebDA
 The following patterns are excluded from sync (consistent with existing `transfer.DefaultExcludePatterns`):
 
 - `.git/**` — git internals (history transferred separately if needed)
-- `.scion/**` — grove metadata (managed locally)
+- `.fabric/**` — grove metadata (managed locally)
 - `node_modules/**` — dependency artifacts
 - `*.env` — secrets
 
@@ -236,7 +236,7 @@ The following patterns are excluded from sync (consistent with existing `transfe
 For git-backed groves, committed history can optionally be transferred using `git bundle`:
 
 ```bash
-scion sync --include-history
+fabric sync --include-history
 ```
 
 - Bundles the **default branch only** (not agent branches)
@@ -259,7 +259,7 @@ CLI  ───WebDAV────▶  │  Storage Layer    │
                      └──────────────────┘
 ```
 
-### 5.2 Agent-Scoped Sync (`scion sync to/from <agent>`)
+### 5.2 Agent-Scoped Sync (`fabric sync to/from <agent>`)
 
 The existing agent-level sync continues to work as-is. It operates on a running agent's container workspace, using GCS signed URLs with manifest-diff. Grove-level sync is a separate, orthogonal operation.
 
@@ -335,10 +335,10 @@ CREATE TABLE grove_sync_state (
 
 ## 7. Sync Flows
 
-### 7.1 Bidirectional Sync (default: `scion sync`)
+### 7.1 Bidirectional Sync (default: `fabric sync`)
 
 ```
-1. CLI: Resolve grove from cwd or -g flag (must contain .scion/)
+1. CLI: Resolve grove from cwd or -g flag (must contain .fabric/)
 2. CLI: rclone bisync local grove workspace ↔ hub WebDAV endpoint
    - rclone PROPFIND on hub: get remote file list + mtimes
    - rclone compares with local files
@@ -349,7 +349,7 @@ CREATE TABLE grove_sync_state (
 4. Hub: Updates sync metadata (last_sync_time, file_count)
 ```
 
-### 7.2 Push (`scion sync push`)
+### 7.2 Push (`fabric sync push`)
 
 ```
 1. CLI: Resolve grove
@@ -357,7 +357,7 @@ CREATE TABLE grove_sync_state (
 3. Hub: Updates sync metadata
 ```
 
-### 7.3 Pull (`scion sync pull`)
+### 7.3 Pull (`fabric sync pull`)
 
 ```
 1. CLI: Resolve grove
@@ -368,13 +368,13 @@ CREATE TABLE grove_sync_state (
 ### 7.4 Multi-Broker Sync
 
 ```
-1. Broker A: scion sync          # bisync Broker A ↔ Hub
-2. Broker B: scion sync          # bisync Broker B ↔ Hub
+1. Broker A: fabric sync          # bisync Broker A ↔ Hub
+2. Broker B: fabric sync          # bisync Broker B ↔ Hub
    - Hub canonical state now includes changes from both brokers
    - Each broker gets the other's changes on next sync
 ```
 
-### 7.5 Git History Sync (optional: `scion sync --include-history`)
+### 7.5 Git History Sync (optional: `fabric sync --include-history`)
 
 ```
 1. CLI: git bundle create with default branch only
@@ -389,9 +389,9 @@ CREATE TABLE grove_sync_state (
 
 | # | Question | Decision | Rationale |
 |---|----------|----------|-----------|
-| Q1 | `scion sync` without arguments | **Bidirectional per-file merge** (newer mtime wins) | Most intuitive default; `push`/`pull` available as one-directional overrides |
+| Q1 | `fabric sync` without arguments | **Bidirectional per-file merge** (newer mtime wins) | Most intuitive default; `push`/`pull` available as one-directional overrides |
 | Q2 | Uncommitted changes in git groves | **Sync working tree files directly** (`.git/` excluded) | Git and non-git groves use the same file-level sync path; git history is a separate optional layer |
-| Q3 | Local workspace path resolution | **Must be in a grove directory** (has `.scion/`), or specify via `-g` | Consistent with all other grove-scoped commands |
+| Q3 | Local workspace path resolution | **Must be in a grove directory** (has `.fabric/`), or specify via `-g` | Consistent with all other grove-scoped commands |
 | Q4 | Auto-propagate to running agents | **Automatic for bind-mounted workspaces** (same filesystem); restart needed for copied workspaces | No notification mechanism needed — bind-mount means it's the same files |
 | Q5 | Git bundle scope | **Default branch only** | Agent branches are workspace-local; only the shared default branch needs cross-broker transfer |
 | Q6 | Broker-to-broker sync | **Always mediated by hub via WebDAV** | Hub exposes WebDAV endpoint; rclone targets it. No direct broker connectivity required, NAT-safe |
@@ -413,13 +413,13 @@ CREATE TABLE grove_sync_state (
 - ✅ Implement WebDAV handler using `golang.org/x/net/webdav`
 - ✅ Mount at `/api/v1/groves/{id}/dav/` with grove-scoped authorization
 - ✅ Serve hub-managed grove workspaces directly from filesystem
-- ✅ File exclusion filter (`.git/`, `.scion/`, `node_modules/`, `*.env`)
+- ✅ File exclusion filter (`.git/`, `.fabric/`, `node_modules/`, `*.env`)
 - ✅ Add `grove_sync_state` table for tracking sync metadata
 - ✅ Add `GET /api/v1/groves/{id}/sync/status` endpoint
 
 ### Phase 2: CLI Grove Sync Command ✅ Complete
 
-- ✅ Add `scion sync` (bare), `scion sync push`, `scion sync pull` subcommands
+- ✅ Add `fabric sync` (bare), `fabric sync push`, `fabric sync pull` subcommands
 - ✅ Integrate rclone WebDAV backend for hub communication
 - ✅ Wire up rclone bisync for bidirectional default
 - ✅ Wire up rclone sync for one-directional push/pull
@@ -436,7 +436,7 @@ CREATE TABLE grove_sync_state (
 
 ### Phase 4: Git History Sync (Optional)
 
-- `scion sync --include-history` flag
+- `fabric sync --include-history` flag
 - `git bundle create` / `git fetch` wrapper (default branch only)
 - Hub stores latest bundle per grove
 - Upload/download via WebDAV PUT/GET on a well-known path

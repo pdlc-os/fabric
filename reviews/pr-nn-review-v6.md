@@ -4,7 +4,7 @@
 **Risk Level:** HIGH (due to CLI configuration regression)
 
 ## Overview
-This review covers the large-scale rename of "grove" to "project" across the Scion codebase. While the migration is generally well-executed with impressive attention to backward compatibility in the API and Hub client, a critical regression was found in the CLI configuration path for versioned settings.
+This review covers the large-scale rename of "grove" to "project" across the Fabric codebase. While the migration is generally well-executed with impressive attention to backward compatibility in the API and Hub client, a critical regression was found in the CLI configuration path for versioned settings.
 
 ## Summary of Findings
 - **CRITICAL/HIGH Issues:** 1
@@ -17,8 +17,8 @@ This review covers the large-scale rename of "grove" to "project" across the Sci
 
 ### 1. Missing `project_id` and `hub.projectId` support in `UpdateVersionedSetting`
 - **File:** `pkg/config/settings_v1.go`
-- **Description:** The `UpdateVersionedSetting` and `GetVersionedSettingValue` functions (used by `scion config set/get`) do not support the new `project_id` or `hub.projectId` keys. They only support the legacy `grove_id` and `hub.groveId` keys.
-- **Impact:** Once a project is initialized or migrated to the `v1` schema, users cannot set their project ID using the command `scion config set project_id <id>`. This is a significant regression as "project" is now the promoted nomenclature.
+- **Description:** The `UpdateVersionedSetting` and `GetVersionedSettingValue` functions (used by `fabric config set/get`) do not support the new `project_id` or `hub.projectId` keys. They only support the legacy `grove_id` and `hub.groveId` keys.
+- **Impact:** Once a project is initialized or migrated to the `v1` schema, users cannot set their project ID using the command `fabric config set project_id <id>`. This is a significant regression as "project" is now the promoted nomenclature.
 - **Suggested Fix:** Add cases for the new keys in the switch statements of both functions.
   ```go
   // pkg/config/settings_v1.go

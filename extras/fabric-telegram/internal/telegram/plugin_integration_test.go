@@ -25,8 +25,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -76,7 +76,7 @@ func TestRPCIntegration_ConfigurePublishSubscribe(t *testing.T) {
 		"bot_token":    "test-token",
 		"api_base_url": tgSrv.srv.URL,
 		"plugin_name":  "rpc-test",
-		"chat_routes":  `{"789": "scion.project.p1.agent.coder.messages"}`,
+		"chat_routes":  `{"789": "fabric.project.p1.agent.coder.messages"}`,
 	})
 	require.NoError(t, err)
 
@@ -95,12 +95,12 @@ func TestRPCIntegration_ConfigurePublishSubscribe(t *testing.T) {
 	})
 
 	// Subscribe triggers polling
-	err = client.Subscribe("scion.project.p1.>")
+	err = client.Subscribe("fabric.project.p1.>")
 	require.NoError(t, err)
 
 	// Wait for delivery
 	<-done
-	assert.Equal(t, "scion.project.p1.agent.coder.messages", deliveredTopic)
+	assert.Equal(t, "fabric.project.p1.agent.coder.messages", deliveredTopic)
 	assert.Equal(t, "hello via rpc", deliveredMsg.Msg)
 }
 
@@ -112,13 +112,13 @@ func TestRPCIntegration_PublishToTelegram(t *testing.T) {
 	err := client.Configure(map[string]string{
 		"bot_token":    "test-token",
 		"api_base_url": tgSrv.srv.URL,
-		"chat_routes":  `{"789": "scion.project.p1.agent.coder.messages"}`,
+		"chat_routes":  `{"789": "fabric.project.p1.agent.coder.messages"}`,
 	})
 	require.NoError(t, err)
 
 	// Publish a message to a topic mapped to a Telegram chat
 	msg := messages.NewInstruction("user:alice", "agent:coder", "hello from hub via rpc")
-	err = client.Publish(context.Background(), "scion.project.p1.agent.coder.messages", msg)
+	err = client.Publish(context.Background(), "fabric.project.p1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	sent := tgSrv.getSentMessages()
@@ -190,7 +190,7 @@ func TestRPCIntegration_FullLifecycle(t *testing.T) {
 		"bot_token":    "test-token",
 		"api_base_url": tgSrv.srv.URL,
 		"plugin_name":  "lifecycle-test",
-		"chat_routes":  `{"789": "scion.project.p1.agent.coder.messages"}`,
+		"chat_routes":  `{"789": "fabric.project.p1.agent.coder.messages"}`,
 	})
 	require.NoError(t, err)
 
@@ -213,15 +213,15 @@ func TestRPCIntegration_FullLifecycle(t *testing.T) {
 		},
 	})
 
-	err = client.Subscribe("scion.project.*.>")
+	err = client.Subscribe("fabric.project.*.>")
 	require.NoError(t, err)
 
 	topic := <-deliveries
-	assert.Equal(t, "scion.project.p1.agent.coder.messages", topic)
+	assert.Equal(t, "fabric.project.p1.agent.coder.messages", topic)
 
 	// 4. Publish outbound
 	msg := messages.NewInstruction("user:bob", "agent:coder", "reply from hub")
-	err = client.Publish(context.Background(), "scion.project.p1.agent.coder.messages", msg)
+	err = client.Publish(context.Background(), "fabric.project.p1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	sent := tgSrv.getSentMessages()
@@ -229,7 +229,7 @@ func TestRPCIntegration_FullLifecycle(t *testing.T) {
 	assert.Contains(t, sent[0].Text, "reply from hub")
 
 	// 5. Unsubscribe
-	err = client.Unsubscribe("scion.project.*.>")
+	err = client.Unsubscribe("fabric.project.*.>")
 	require.NoError(t, err)
 
 	// 6. Close
@@ -276,7 +276,7 @@ func TestRPCIntegration_HubDelivery(t *testing.T) {
 		},
 	})
 
-	err = client.Subscribe("scion.>")
+	err = client.Subscribe("fabric.>")
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {

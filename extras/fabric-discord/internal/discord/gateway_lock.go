@@ -17,7 +17,7 @@ package discord
 import (
 	"log/slog"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/lockloop"
+	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
 )
 
 // AdvisoryLocker is the subset of Store needed by GatewayLockLoop.

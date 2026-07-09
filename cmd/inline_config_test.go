@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestLoadInlineConfig_YAML(t *testing.T) {
@@ -30,7 +30,7 @@ func TestLoadInlineConfig_YAML(t *testing.T) {
 harness_config: claude-default
 model: claude-opus-4-6
 image: my-image:latest
-user: scion
+user: fabric
 task: "Review the code"
 branch: review-branch
 max_turns: 50
@@ -61,8 +61,8 @@ env:
 	if cfg.Image != "my-image:latest" {
 		t.Errorf("expected Image='my-image:latest', got %q", cfg.Image)
 	}
-	if cfg.User != "scion" {
-		t.Errorf("expected User='scion', got %q", cfg.User)
+	if cfg.User != "fabric" {
+		t.Errorf("expected User='fabric', got %q", cfg.User)
 	}
 	if cfg.Task != "Review the code" {
 		t.Errorf("expected Task='Review the code', got %q", cfg.Task)
@@ -91,7 +91,7 @@ func TestLoadInlineConfig_JSON(t *testing.T) {
 	jsonContent := `{
   "harness_config": "claude-default",
   "model": "claude-opus-4-6",
-  "user": "scion",
+  "user": "fabric",
   "task": "Fix the bug",
   "branch": "fix-branch"
 }`
@@ -107,8 +107,8 @@ func TestLoadInlineConfig_JSON(t *testing.T) {
 	if cfg.HarnessConfig != "claude-default" {
 		t.Errorf("expected HarnessConfig='claude-default', got %q", cfg.HarnessConfig)
 	}
-	if cfg.User != "scion" {
-		t.Errorf("expected User='scion', got %q", cfg.User)
+	if cfg.User != "fabric" {
+		t.Errorf("expected User='fabric', got %q", cfg.User)
 	}
 	if cfg.Task != "Fix the bug" {
 		t.Errorf("expected Task='Fix the bug', got %q", cfg.Task)
@@ -162,7 +162,7 @@ func TestResolveInlineConfigContent_FileURI(t *testing.T) {
 		t.Fatalf("failed to write instructions file: %v", err)
 	}
 
-	cfg := &api.ScionConfig{
+	cfg := &api.FabricConfig{
 		SystemPrompt:      "file://prompt.md",
 		AgentInstructions: "file://instructions.md",
 	}
@@ -180,7 +180,7 @@ func TestResolveInlineConfigContent_FileURI(t *testing.T) {
 }
 
 func TestResolveInlineConfigContent_InlineContent(t *testing.T) {
-	cfg := &api.ScionConfig{
+	cfg := &api.FabricConfig{
 		SystemPrompt:      "You are a code reviewer.",
 		AgentInstructions: "Review the code carefully.",
 	}

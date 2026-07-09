@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/accesspolicy"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
+	"github.com/pdlc-os/fabric/pkg/ent/schema"
 	"github.com/google/uuid"
 )
 

@@ -9,8 +9,8 @@ import (
 
 	slackapi "github.com/slack-go/slack"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // OpenAskUserModal opens a Slack modal for free-text response to an ask-user request.
@@ -94,8 +94,8 @@ func HandleAskModalSubmit(
 	if deliverInbound != nil {
 		userID := callback.User.ID
 		sender := "slack:" + userID
-		if mapping, mapErr := store.GetUserMapping(ctx, userID); mapErr == nil && mapping != nil && mapping.ScionEmail != "" {
-			sender = "user:" + mapping.ScionEmail
+		if mapping, mapErr := store.GetUserMapping(ctx, userID); mapErr == nil && mapping != nil && mapping.FabricEmail != "" {
+			sender = "user:" + mapping.FabricEmail
 		}
 
 		topic := projectcompat.AgentTopic(pending.ProjectID, pending.AgentSlug)

@@ -4,9 +4,9 @@
 
 ## Overview
 
-The Scion web frontend currently runs as a separate Node.js/Koa BFF (Backend-for-Frontend) that proxies API requests to the Hub, manages browser sessions, serves static assets, performs Lit SSR, and bridges real-time events from NATS to the browser via SSE.
+The Fabric web frontend currently runs as a separate Node.js/Koa BFF (Backend-for-Frontend) that proxies API requests to the Hub, manages browser sessions, serves static assets, performs Lit SSR, and bridges real-time events from NATS to the browser via SSE.
 
-This design consolidates the BFF's functionality into the Go `scion` binary, adding a new web server capability alongside the existing Hub API and Runtime Broker. The result is a single binary that serves the API, executes agents, and hosts the web UI — eliminating Node.js and NATS as runtime dependencies.
+This design consolidates the BFF's functionality into the Go `fabric` binary, adding a new web server capability alongside the existing Hub API and Runtime Broker. The result is a single binary that serves the API, executes agents, and hosts the web UI — eliminating Node.js and NATS as runtime dependencies.
 
 Real-time event delivery uses an in-process `EventPublisher` backed by Go channels (`ChannelEventPublisher`) for single-node deployments. The design accommodates a future move to PostgreSQL `LISTEN/NOTIFY` for multi-node scaling without introducing new dependencies.
 
@@ -16,7 +16,7 @@ Real-time event delivery uses an in-process `EventPublisher` backed by Go channe
 
 ## Design Principles
 
-1. **Single binary, multiple capabilities.** The `scion` binary serves the API, runs agents, and hosts the web UI — toggled by flags (`--enable-hub`, `--enable-runtime-broker`, `--enable-web`). No external runtime dependencies beyond the database.
+1. **Single binary, multiple capabilities.** The `fabric` binary serves the API, runs agents, and hosts the web UI — toggled by flags (`--enable-hub`, `--enable-runtime-broker`, `--enable-web`). No external runtime dependencies beyond the database.
 2. **Fire-and-forget events.** Event publish failures are logged but never fail the HTTP request. The database write is the commit point; real-time notification is best-effort.
 3. **Publish after commit.** Events are published only after the store operation succeeds, avoiding notifications about rolled-back changes.
 4. **Dual-publish for status.** Agent status changes are published to both the agent-scoped subject (`agent.{id}.status`) and the grove-scoped subject (`grove.{groveId}.agent.status`), enabling grove-level subscribers to receive lightweight updates without per-agent subscriptions.
@@ -31,7 +31,7 @@ Real-time event delivery uses an in-process `EventPublisher` backed by Go channe
 ### Target State
 
 ```
-scion server start --enable-hub --enable-runtime-broker --enable-web
+fabric server start --enable-hub --enable-runtime-broker --enable-web
 ```
 
 One binary. One process. Three capabilities toggled by flags.
@@ -86,20 +86,20 @@ The current Koa BFF uses `@lit-labs/ssr` to render Lit components server-side. P
 
 **Decision: Drop SSR. Use a SPA shell.**
 
-The Go server returns a minimal HTML page with `<script>` tags. Lit components render entirely client-side. The `__SCION_DATA__` hydration pattern still works — embed initial JSON in the HTML template, the client reads it on load.
+The Go server returns a minimal HTML page with `<script>` tags. Lit components render entirely client-side. The `__FABRIC_DATA__` hydration pattern still works — embed initial JSON in the HTML template, the client reads it on load.
 
 ```go
 const spaShell = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Scion</title>
+  <title>Fabric</title>
   <link rel="stylesheet" href="/assets/main.css">
   {{.InlineCriticalCSS}}
 </head>
 <body>
-  <scion-app></scion-app>
-  <script id="__SCION_DATA__" type="application/json">{{.InitialData}}</script>
+  <fabric-app></fabric-app>
+  <script id="__FABRIC_DATA__" type="application/json">{{.InitialData}}</script>
   <script type="module" src="/assets/main.js"></script>
 </body>
 </html>`
@@ -120,7 +120,7 @@ Client-side code (Lit components, xterm.js, CSS) is built with Vite and needs to
 ### Option 1: Filesystem-Based (Development & Flexible Deployment)
 
 ```
-scion server start --enable-web --web-assets-dir ./web/dist/client
+fabric server start --enable-web --web-assets-dir ./web/dist/client
 ```
 
 The Go server uses `http.FileServer` to serve assets from a directory on disk. This is the default for development workflows where a Vite dev server rebuilds assets and the Go server picks up changes.
@@ -173,7 +173,7 @@ During development, the JS toolchain runs separately:
 cd web && npm run dev    # Serves on :5173 with HMR
 
 # Terminal 2: Go server (serves API + web shell)
-scion server start --enable-hub --enable-web --enable-runtime-broker \
+fabric server start --enable-hub --enable-web --enable-runtime-broker \
   --web-assets-dir ./web/dist/client --dev-auth
 ```
 
@@ -487,7 +487,7 @@ func init() {
 
 ```go
 func (s *Server) handleOAuthCallback(w http.ResponseWriter, r *http.Request) {
-    session, _ := sessionStore.Get(r, "scion_sess")
+    session, _ := sessionStore.Get(r, "fabric_sess")
     // Exchange code for tokens — direct function call, no HTTP
     tokens, user, err := s.exchangeOAuthCode(r.Context(), code, provider)
     session.Values["user"] = user
@@ -551,9 +551,9 @@ type ServerConfig struct {
 ### CLI Flags
 
 ```
-scion server start --enable-hub --enable-runtime-broker --enable-web \
+fabric server start --enable-hub --enable-runtime-broker --enable-web \
   --session-secret "$(openssl rand -hex 32)" \
-  --base-url https://scion.example.com \
+  --base-url https://fabric.example.com \
   --web-assets-dir ./web/dist/client  # optional, defaults to embedded
 ```
 
@@ -561,10 +561,10 @@ scion server start --enable-hub --enable-runtime-broker --enable-web \
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SCION_SERVER_WEB_ENABLED` | Enable web server | `false` |
-| `SCION_SERVER_SESSION_SECRET` | HMAC secret for session cookies | (required in production) |
-| `SCION_SERVER_BASE_URL` | Public URL for OAuth redirects | `http://localhost:8080` |
-| `SCION_SERVER_WEB_ASSETS_DIR` | Path to client assets | (empty — use embedded) |
+| `FABRIC_SERVER_WEB_ENABLED` | Enable web server | `false` |
+| `FABRIC_SERVER_SESSION_SECRET` | HMAC secret for session cookies | (required in production) |
+| `FABRIC_SERVER_BASE_URL` | Public URL for OAuth redirects | `http://localhost:8080` |
+| `FABRIC_SERVER_WEB_ASSETS_DIR` | Path to client assets | (empty — use embedded) |
 
 ---
 
@@ -682,7 +682,7 @@ The alternative — completing the full Koa port before adding real-time events 
 **Scope:**
 - Add `--enable-web` and `--web-assets-dir` flags.
 - Implement `//go:embed` for client assets with runtime override.
-- Implement SPA shell Go template (HTML with `__SCION_DATA__` slot).
+- Implement SPA shell Go template (HTML with `__FABRIC_DATA__` slot).
 - Add security headers middleware (CSP, HSTS, X-Frame-Options).
 - Serve `/assets/*` from embedded or disk.
 - Serve `/*` catch-all with SPA shell HTML.
@@ -696,10 +696,10 @@ The alternative — completing the full Koa port before adding real-time events 
 
 **Scope:**
 - Add `gorilla/sessions` dependency.
-- Implement session middleware with signed httpOnly cookies (`scion_sess`).
+- Implement session middleware with signed httpOnly cookies (`fabric_sess`).
 - Port OAuth flow: `/auth/login/:provider`, `/auth/callback/:provider`, `/auth/logout`, `/auth/me`.
-- Port dev-auth middleware (read `~/.scion/dev-token`, auto-create session).
-- Port email domain authorization (`SCION_AUTHORIZED_DOMAINS`).
+- Port dev-auth middleware (read `~/.fabric/dev-token`, auto-create session).
+- Port email domain authorization (`FABRIC_AUTHORIZED_DOMAINS`).
 - Implement `SessionAuthMiddleware` for web routes.
 - Wire auth into route mux alongside existing `UnifiedAuthMiddleware`.
 
@@ -822,14 +822,14 @@ No external dependencies needed for tests — no Docker, no NATS server, no Post
 
 ```bash
 # Terminal 1: Start Go server with web enabled
-scion server start --enable-hub --enable-runtime-broker --enable-web --dev-auth
+fabric server start --enable-hub --enable-runtime-broker --enable-web --dev-auth
 
 # Terminal 2: Open SSE connection
-curl -N -H "Cookie: scion_sess=..." \
+curl -N -H "Cookie: fabric_sess=..." \
   "http://localhost:8080/events?sub=grove.test.>"
 
 # Terminal 3: Trigger a state change
-scion agent start --name test-agent
+fabric agent start --name test-agent
 # -> SSE stream should show agent.created and agent.status events
 ```
 

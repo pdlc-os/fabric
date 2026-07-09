@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"go.opentelemetry.io/otel/attribute"
 )
 

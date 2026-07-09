@@ -42,8 +42,8 @@ interface BreadcrumbItem {
   current: boolean;
 }
 
-@customElement('scion-breadcrumb')
-export class ScionBreadcrumb extends LitElement {
+@customElement('fabric-breadcrumb')
+export class FabricBreadcrumb extends LitElement {
   /**
    * Current path for generating breadcrumbs
    */
@@ -62,7 +62,7 @@ export class ScionBreadcrumb extends LitElement {
     }
 
     sl-breadcrumb {
-      --separator-color: var(--scion-text-muted, #64748b);
+      --separator-color: var(--fabric-text-muted, #64748b);
     }
 
     sl-breadcrumb-item::part(label) {
@@ -70,11 +70,11 @@ export class ScionBreadcrumb extends LitElement {
     }
 
     sl-breadcrumb-item::part(label):hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     sl-breadcrumb-item[aria-current='page']::part(label) {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       font-weight: 500;
     }
 
@@ -190,6 +190,6 @@ export class ScionBreadcrumb extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-breadcrumb': ScionBreadcrumb;
+    'fabric-breadcrumb': FabricBreadcrumb;
   }
 }

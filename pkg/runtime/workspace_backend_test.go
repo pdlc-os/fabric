@@ -18,8 +18,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // --- SelectWorkspaceBackend truth table ---
@@ -31,7 +31,7 @@ func TestSelectWorkspaceBackend(t *testing.T) {
 			MountRoot:   "/mnt/nfs",
 			SubPathRoot: "projects",
 			Shares: []config.V1NFSShare{
-				{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+				{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 			},
 		},
 	}
@@ -150,7 +150,7 @@ func TestNFSBackendResolve(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -276,7 +276,7 @@ func TestNFSResolve_Deterministic(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -330,7 +330,7 @@ func TestNFSResolve_PathsAreUnderMountNotExportRoot(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "ws1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "ws1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -344,7 +344,7 @@ func TestNFSResolve_PathsAreUnderMountNotExportRoot(t *testing.T) {
 		t.Fatalf("Resolve: %v", err)
 	}
 
-	exportRoot := "/scion-workspaces"
+	exportRoot := "/fabric-workspaces"
 
 	// Workspace host path must not start with the export root
 	if len(res.HostPath) >= len(exportRoot) && res.HostPath[:len(exportRoot)] == exportRoot {
@@ -376,7 +376,7 @@ func TestNFSResolve_ServerRelativePathFormat(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -441,7 +441,7 @@ func TestNFSResolve_SubPathRootDefault(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "", // should default to "projects"
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 
@@ -473,31 +473,31 @@ func TestLocalBackendResolve(t *testing.T) {
 		{
 			name: "basic local resolve",
 			input: ResolveInput{
-				ProjectDir: "/home/user/.scion.projects/my-project",
+				ProjectDir: "/home/user/.fabric.projects/my-project",
 				ProjectID:  "proj1",
 				Mode:       store.SharingModeSharedPlain,
 			},
-			wantPath:    "/home/user/.scion.projects/my-project",
+			wantPath:    "/home/user/.fabric.projects/my-project",
 			wantBackend: "local",
 		},
 		{
 			name: "local resolve clone-per-agent",
 			input: ResolveInput{
-				ProjectDir: "/home/user/.scion.projects/my-project",
+				ProjectDir: "/home/user/.fabric.projects/my-project",
 				ProjectID:  "proj1",
 				Mode:       store.SharingModeClonePerAgent,
 			},
-			wantPath:    "/home/user/.scion.projects/my-project",
+			wantPath:    "/home/user/.fabric.projects/my-project",
 			wantBackend: "local",
 		},
 		{
 			name: "worktree-per-agent uses workspace subdir",
 			input: ResolveInput{
-				ProjectDir: "/home/user/.scion.projects/my-project",
+				ProjectDir: "/home/user/.fabric.projects/my-project",
 				ProjectID:  "proj1",
 				Mode:       store.SharingModeWorktreePerAgent,
 			},
-			wantPath:    "/home/user/.scion.projects/my-project/workspace",
+			wantPath:    "/home/user/.fabric.projects/my-project/workspace",
 			wantBackend: "local",
 		},
 		{
@@ -546,9 +546,9 @@ func TestLocalBackendResolve(t *testing.T) {
 // produce for a hub-native project. This is the "zero behavior change" guard.
 func TestLocalBackendResolve_MatchesPreExisting(t *testing.T) {
 	// The existing broker resolution for a hub-native project sets
-	// ProjectPath = ~/.scion.projects/<slug>. localBackend.Resolve must
+	// ProjectPath = ~/.fabric.projects/<slug>. localBackend.Resolve must
 	// return exactly that path as HostPath.
-	projectPath := "/home/scion/.scion.projects/my-project-slug"
+	projectPath := "/home/fabric/.fabric.projects/my-project-slug"
 
 	b := NewLocalBackend()
 	res, err := b.Resolve(ResolveInput{
@@ -571,7 +571,7 @@ func TestLocalBackendRealize(t *testing.T) {
 	b := NewLocalBackend()
 	desc, err := b.Realize(RealizeInput{
 		Resolved: ResolvedWorkspace{
-			HostPath: "/home/scion/.scion.projects/my-project",
+			HostPath: "/home/fabric/.fabric.projects/my-project",
 			Backend:  "local",
 		},
 		ContainerWorkspace: "/workspace",
@@ -583,7 +583,7 @@ func TestLocalBackendRealize(t *testing.T) {
 	if desc.Type != "local" {
 		t.Errorf("Type = %q, want %q", desc.Type, "local")
 	}
-	if desc.HostPath != "/home/scion/.scion.projects/my-project" {
+	if desc.HostPath != "/home/fabric/.fabric.projects/my-project" {
 		t.Errorf("HostPath = %q, want the resolved path", desc.HostPath)
 	}
 	if desc.Target != "/workspace" {
@@ -613,7 +613,7 @@ func TestNFSBackendRealize(t *testing.T) {
 		MountRoot:   "/mnt/nfs",
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 	b := NewNFSBackend(nfsCfg)

@@ -53,7 +53,7 @@ func TestCreateAgent_DuplicateReturnsError(t *testing.T) {
 	noHub = true
 
 	// Set up project directory with an existing agent
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectDir, "agents"), 0755))
 	projectPath = projectDir
 

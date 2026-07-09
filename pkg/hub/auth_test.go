@@ -20,11 +20,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 func TestUnifiedAuthMiddleware_DevToken(t *testing.T) {
-	devToken := "scion_dev_test_token_12345678901234567890123456789012"
+	devToken := "fabric_dev_test_token_12345678901234567890123456789012"
 
 	cfg := AuthConfig{
 		Mode:           "development",
@@ -49,7 +49,7 @@ func TestUnifiedAuthMiddleware_DevToken(t *testing.T) {
 		},
 		{
 			name:           "invalid dev token",
-			authHeader:     "Bearer scion_dev_wrong_token_12345678901234567890",
+			authHeader:     "Bearer fabric_dev_wrong_token_12345678901234567890",
 			expectedStatus: http.StatusUnauthorized,
 			expectIdentity: false,
 		},
@@ -170,7 +170,7 @@ func TestUnifiedAuthMiddleware_AgentToken(t *testing.T) {
 
 	middleware := UnifiedAuthMiddleware(cfg)
 
-	t.Run("agent token via X-Scion-Agent-Token header", func(t *testing.T) {
+	t.Run("agent token via X-Fabric-Agent-Token header", func(t *testing.T) {
 		var gotIdentity Identity
 		handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gotIdentity = GetIdentityFromContext(r.Context())
@@ -178,7 +178,7 @@ func TestUnifiedAuthMiddleware_AgentToken(t *testing.T) {
 		}))
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/agent-456/status", nil)
-		req.Header.Set("X-Scion-Agent-Token", agentToken)
+		req.Header.Set("X-Fabric-Agent-Token", agentToken)
 
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
@@ -270,19 +270,19 @@ func TestUnifiedAuthMiddleware_BrokerAuthPassthrough(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	t.Run("request with X-Scion-Broker-ID passes through", func(t *testing.T) {
+	t.Run("request with X-Fabric-Broker-ID passes through", func(t *testing.T) {
 		passedThrough = false
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/runtime-brokers/test-host/heartbeat", nil)
-		req.Header.Set("X-Scion-Broker-ID", "test-host-id")
-		req.Header.Set("X-Scion-Timestamp", "1234567890")
-		req.Header.Set("X-Scion-Nonce", "test-nonce")
-		req.Header.Set("X-Scion-Signature", "test-signature")
+		req.Header.Set("X-Fabric-Broker-ID", "test-host-id")
+		req.Header.Set("X-Fabric-Timestamp", "1234567890")
+		req.Header.Set("X-Fabric-Nonce", "test-nonce")
+		req.Header.Set("X-Fabric-Signature", "test-signature")
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)
 
 		if !passedThrough {
-			t.Error("expected request with X-Scion-Broker-ID to pass through to next handler")
+			t.Error("expected request with X-Fabric-Broker-ID to pass through to next handler")
 		}
 		if rec.Code != http.StatusOK {
 			t.Errorf("expected status 200, got %d", rec.Code)
@@ -311,7 +311,7 @@ func TestDetectTokenType(t *testing.T) {
 		expected tokenType
 	}{
 		{apiclient.DevTokenPrefix + "abc123", tokenTypeDev},
-		{"scion_pat_abc123def456", tokenTypeUAT},
+		{"fabric_pat_abc123def456", tokenTypeUAT},
 		{"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U", tokenTypeUser},
 		{"random-string", tokenTypeUnknown},
 		{"", tokenTypeUnknown},

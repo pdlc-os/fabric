@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-31
 **Issue:** #94
-**Branch:** scion/cleanup-message-group-rename
+**Branch:** fabric/cleanup-message-group-rename
 
 ## Summary
 
@@ -44,7 +44,7 @@ syntax is preserved for backward compatibility.
 - `pkg/messages/set_test.go` → `pkg/messages/message_group_test.go`
 - `cmd/message.go`, `cmd/message_test.go`
 - `pkg/hub/handlers.go`, `pkg/hub/messagebroker.go`, `pkg/hub/messagebroker_test.go`
-- `extras/scion-telegram/internal/telegram/broker_v2.go`
+- `extras/fabric-telegram/internal/telegram/broker_v2.go`
 
 ## Coordination Notes
 

@@ -1,7 +1,7 @@
 # Design: Harness Interface Cleanup
 
 ## Objective
-Decouple harness-specific logic from the core `agent` and `config` packages by extending the `Harness` interface to cover the full agent lifecycle, particularly the provisioning phase. Consolidate configuration and behavior decisions into the template structure (`scion-agent.json`) so that harness implementations are minimized and the system is more data-driven.
+Decouple harness-specific logic from the core `agent` and `config` packages by extending the `Harness` interface to cover the full agent lifecycle, particularly the provisioning phase. Consolidate configuration and behavior decisions into the template structure (`fabric-agent.json`) so that harness implementations are minimized and the system is more data-driven.
 
 ## Proposed Changes
 
@@ -25,7 +25,7 @@ type Harness interface {
     // New methods
     
     // Provision performs harness-specific setup during agent creation.
-    // This is called after templates are copied and scion-agent.json is written.
+    // This is called after templates are copied and fabric-agent.json is written.
     Provision(ctx context.Context, agentName, agentHome, agentWorkspace string) error
 
     // GetEmbedDir returns the name of the directory in pkg/config/embeds/ 
@@ -38,7 +38,7 @@ type Harness interface {
 *   **Remove `UpdateClaudeJSON`**: Move the logic of this function into `pkg/harness/claude_code.go` as the `Provision` method.
 *   **Update `ProvisionAgent`**:
     *   Remove the direct call to `UpdateClaudeJSON`.
-    *   Instantiate the harness: `h := harness.New(finalScionCfg.Harness)`.
+    *   Instantiate the harness: `h := harness.New(finalFabricCfg.Harness)`.
     *   Call `h.Provision(ctx, agentName, agentHome, agentWorkspace)` at the end of the function (before returning).
 
 ### 4. Refactor `pkg/config/init.go` and `SeedTemplateDir`
@@ -69,30 +69,30 @@ type Harness interface {
     *   `GetEmbedDir`: Return `"claude"`.
 
 ### 8. Update `pkg/api/types.go`
-*   Add `CommandArgs []string `json:"command_args,omitempty"` to `ScionConfig`.
+*   Add `CommandArgs []string `json:"command_args,omitempty"` to `FabricConfig`.
 
-### 9. Simplify `scion-agent.json` Logic (Data-Driven)
+### 9. Simplify `fabric-agent.json` Logic (Data-Driven)
 
-Standardize how the harness consumes `scion-agent.json` to reduce code in `GetEnv`, `GetVolumes`, etc.
+Standardize how the harness consumes `fabric-agent.json` to reduce code in `GetEnv`, `GetVolumes`, etc.
 
 *   **Environment Variables**:
-    *   If `env` in `scion-agent.json` has a key with an empty value (e.g., `"MY_KEY": ""`), it implies "inherit from host environment".
+    *   If `env` in `fabric-agent.json` has a key with an empty value (e.g., `"MY_KEY": ""`), it implies "inherit from host environment".
     *   If value is set, use it.
     *   Harness `GetEnv` implementations should merge this logic with their specific requirements.
 
 *   **Volume Mounts**:
     *   Support `~` expansion in `Source` (host user home) and `Target` (container user home).
     *   Example: `{ "source": "~/.config/gcloud", "target": "~/.config/gcloud" }`.
-    *   Harness `GetVolumes` should process the `ScionConfig.Volumes` list, expand paths, and append harness-specific volumes (like credentials).
+    *   Harness `GetVolumes` should process the `FabricConfig.Volumes` list, expand paths, and append harness-specific volumes (like credentials).
 
 *   **Command Args**:
-    *   Harness `GetCommand` should accept the base args from `ScionConfig.CommandArgs`.
+    *   Harness `GetCommand` should accept the base args from `FabricConfig.CommandArgs`.
     *   It can prepend/append harness-specific flags (e.g., `--yolo`).
 
 ## Implementation Plan
 
 1.  **Move Interface**: Create `pkg/api/harness.go` with the updated interface.
-2.  **Update Structs**: Add `CommandArgs` to `ScionConfig` in `pkg/api/types.go`.
+2.  **Update Structs**: Add `CommandArgs` to `FabricConfig` in `pkg/api/types.go`.
 3.  **Update Harnesses**: Implement `Provision` and `GetEmbedDir` in `pkg/harness/*.go`. Move `UpdateClaudeJSON` logic.
 4.  **Update Config Logic**: Modify `SeedTemplateDir` in `pkg/config/init.go` to accept `embedDir`/`configDir` args.
 5.  **Update CLI**: Update `cmd/create.go` to resolve harness details and pass them to config.

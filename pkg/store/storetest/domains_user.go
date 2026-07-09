@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -166,7 +166,7 @@ func InviteCodeDomain() Domain[store.InviteCode] {
 			return &store.InviteCode{
 				ID:         id,
 				CodeHash:   fmt.Sprintf("hash-%d-%s", seq, id),
-				CodePrefix: fmt.Sprintf("scion_in%d", seq),
+				CodePrefix: fmt.Sprintf("fabric_in%d", seq),
 				MaxUses:    5,
 				UseCount:   0,
 				ExpiresAt:  time.Now().Add(24 * time.Hour),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hubclient provides a Go client for the Scion Hub API.
+// Package hubclient provides a Go client for the Fabric Hub API.
 package hubclient
 
 import (
@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // Client is the interface for the Hub API client.
@@ -378,7 +378,7 @@ func (c *client) Health(ctx context.Context) (*HealthResponse, error) {
 type HealthResponse struct {
 	Status       string            `json:"status"`
 	Version      string            `json:"version"`
-	ScionVersion string            `json:"scionVersion"`
+	FabricVersion string            `json:"fabricVersion"`
 	Uptime       string            `json:"uptime"`
 	Checks       map[string]string `json:"checks,omitempty"`
 
@@ -437,9 +437,9 @@ func WithDevToken(token string) Option {
 
 // WithAutoDevAuth attempts to load a development token automatically.
 // It checks in order:
-// 1. SCION_DEV_TOKEN environment variable
-// 2. SCION_DEV_TOKEN_FILE environment variable (path to token file)
-// 3. Default token file (~/.scion/dev-token)
+// 1. FABRIC_DEV_TOKEN environment variable
+// 2. FABRIC_DEV_TOKEN_FILE environment variable (path to token file)
+// 3. Default token file (~/.fabric/dev-token)
 // If no token is found, authentication is not configured.
 func WithAutoDevAuth() Option {
 	return func(c *client) {
@@ -460,7 +460,7 @@ func WithAutoDevAuth() Option {
 	}
 }
 
-// WithAgentToken sets agent token authentication using the X-Scion-Agent-Token header.
+// WithAgentToken sets agent token authentication using the X-Fabric-Agent-Token header.
 // Use this when authenticating as an agent (not a user) to the Hub API.
 func WithAgentToken(token string) Option {
 	return func(c *client) {

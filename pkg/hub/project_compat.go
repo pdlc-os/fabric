@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 const legacyGroveRouteSunset = "Sun, 01 Nov 2026 00:00:00 GMT"

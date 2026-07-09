@@ -4,7 +4,7 @@
 **Key files:** `pkg/daemon/daemon.go`, `cmd/server_daemon.go`  
 **Commit all changes to the current branch.**
 
-## Fix 1 — Port conflict detection in `scion server start`
+## Fix 1 — Port conflict detection in `fabric server start`
 
 In `cmd/server_daemon.go` `runServerStartOrDaemon()` (around line 34), after the existing `StatusComponent()` check, add a port probe:
 
@@ -13,7 +13,7 @@ In `cmd/server_daemon.go` `runServerStartOrDaemon()` (around line 34), after the
 if phantomPorts := detectOccupiedPorts(cfg); len(phantomPorts) > 0 {
     fmt.Fprintf(os.Stderr, "Error: the following ports are already in use: %v\n", phantomPorts)
     fmt.Fprintf(os.Stderr, "A previous server process may be running without a PID file.\n")
-    fmt.Fprintf(os.Stderr, "Run 'scion server stop --force' to kill any process on these ports.\n")
+    fmt.Fprintf(os.Stderr, "Run 'fabric server stop --force' to kill any process on these ports.\n")
     return fmt.Errorf("port conflict: ports %v are occupied", phantomPorts)
 }
 ```
@@ -27,7 +27,7 @@ Look at how the server resolves its ports from `cfg` (search for `cfg.Hub.Port`,
 
 Use `net.Listen("tcp", fmt.Sprintf(":%d", port))` — if it succeeds, close it immediately and mark as free; if it fails with EADDRINUSE, mark as occupied.
 
-## Fix 2 — `scion server stop --force`
+## Fix 2 — `fabric server stop --force`
 
 In `cmd/server_daemon.go` `runServerStop()` (around line 165), add a `--force` flag:
 
@@ -50,6 +50,6 @@ Add `--force` to the `stop` command's flags in `cmd/server_daemon.go`.
 ## Commit Instructions
 
 - `feat: detect port conflicts on server start to catch phantom daemons`
-- `feat: add scion server stop --force to kill phantom processes by port`
+- `feat: add fabric server stop --force to kill phantom processes by port`
 - Run `go build ./...` and `go vet ./...` before committing
 - Do not open PRs — commit directly to `workstation-improvements`

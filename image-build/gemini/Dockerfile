@@ -18,8 +18,8 @@ FROM ${BASE_IMAGE}
 
 ARG GEMINI_CLI_VERSION=latest
 
-RUN mkdir -p /home/scion/.gemini /home/scion/.gemini/skills && \
-  chown -R scion:scion /home/scion/.gemini
+RUN mkdir -p /home/fabric/.gemini /home/fabric/.gemini/skills && \
+  chown -R fabric:fabric /home/fabric/.gemini
 
 # install gemini-cli and clean up
 RUN npm install -g @google/gemini-cli@${GEMINI_CLI_VERSION} \

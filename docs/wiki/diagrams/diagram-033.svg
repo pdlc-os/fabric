@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 452.75)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-452.75 452.75,-452.75 452.75,4 -4,4"/>
-<!-- Scion Base Image -->
+<!-- Fabric Base Image -->
 <g id="node1" class="node">
-<title>Scion Base Image</title>
+<title>Fabric Base Image</title>
 <polygon fill="lightblue" stroke="black" points="174,-445 38,-445 38,-409 174,-409 174,-445"/>
-<text xml:space="preserve" text-anchor="middle" x="106" y="-418.95" font-family="Times,serif" font-size="14.00">Scion Base Image</text>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-418.95" font-family="Times,serif" font-size="14.00">Fabric Base Image</text>
 </g>
 <!-- Amp Dockerfile -->
 <g id="node2" class="node">
@@ -37,22 +37,22 @@
 <polygon fill="lightblue" stroke="black" points="166.5,-344 45.5,-344 45.5,-308 166.5,-308 166.5,-344"/>
 <text xml:space="preserve" text-anchor="middle" x="106" y="-317.95" font-family="Times,serif" font-size="14.00">Amp Dockerfile</text>
 </g>
-<!-- Scion Base Image&#45;&gt;Amp Dockerfile -->
+<!-- Fabric Base Image&#45;&gt;Amp Dockerfile -->
 <g id="edge1" class="edge">
-<title>Scion Base Image&#45;&gt;Amp Dockerfile</title>
+<title>Fabric Base Image&#45;&gt;Amp Dockerfile</title>
 <path fill="none" stroke="black" d="M106,-408.76C106,-394.08 106,-372.71 106,-355.5"/>
 <polygon fill="black" stroke="black" points="109.5,-355.89 106,-345.89 102.5,-355.89 109.5,-355.89"/>
 <text xml:space="preserve" text-anchor="middle" x="132.25" y="-367.95" font-family="Times,serif" font-size="14.00">extends</text>
 </g>
-<!-- Scion Agent Container -->
+<!-- Fabric Agent Container -->
 <g id="node3" class="node">
-<title>Scion Agent Container</title>
+<title>Fabric Agent Container</title>
 <polygon fill="lightblue" stroke="black" points="192.75,-242 19.25,-242 19.25,-206 192.75,-206 192.75,-242"/>
-<text xml:space="preserve" text-anchor="middle" x="106" y="-215.95" font-family="Times,serif" font-size="14.00">Scion Agent Container</text>
+<text xml:space="preserve" text-anchor="middle" x="106" y="-215.95" font-family="Times,serif" font-size="14.00">Fabric Agent Container</text>
 </g>
-<!-- Amp Dockerfile&#45;&gt;Scion Agent Container -->
+<!-- Amp Dockerfile&#45;&gt;Fabric Agent Container -->
 <g id="edge2" class="edge">
-<title>Amp Dockerfile&#45;&gt;Scion Agent Container</title>
+<title>Amp Dockerfile&#45;&gt;Fabric Agent Container</title>
 <path fill="none" stroke="black" d="M106,-307.58C106,-292.74 106,-271.12 106,-253.72"/>
 <polygon fill="black" stroke="black" points="109.5,-253.73 106,-243.73 102.5,-253.73 109.5,-253.73"/>
 <text xml:space="preserve" text-anchor="middle" x="128.5" y="-266.95" font-family="Times,serif" font-size="14.00">builds</text>
@@ -63,9 +63,9 @@
 <polygon fill="lightblue" stroke="black" points="313.25,-141 154.75,-141 154.75,-105 313.25,-105 313.25,-141"/>
 <text xml:space="preserve" text-anchor="middle" x="234" y="-114.95" font-family="Times,serif" font-size="14.00">provision.py Script</text>
 </g>
-<!-- Scion Agent Container&#45;&gt;provision.py Script -->
+<!-- Fabric Agent Container&#45;&gt;provision.py Script -->
 <g id="edge3" class="edge">
-<title>Scion Agent Container&#45;&gt;provision.py Script</title>
+<title>Fabric Agent Container&#45;&gt;provision.py Script</title>
 <path fill="none" stroke="black" d="M171.27,-205.58C186.08,-199.21 200.74,-190.65 212,-179.25 219.3,-171.86 224.26,-161.74 227.59,-152.18"/>
 <polygon fill="black" stroke="black" points="230.87,-153.45 230.37,-142.87 224.16,-151.45 230.87,-153.45"/>
 <text xml:space="preserve" text-anchor="middle" x="287.3" y="-165.95" font-family="Times,serif" font-size="14.00">executes pre&#45;start</text>
@@ -76,16 +76,16 @@
 <polygon fill="lightblue" stroke="black" points="106,-141 0,-141 0,-105 106,-105 106,-141"/>
 <text xml:space="preserve" text-anchor="middle" x="53" y="-114.95" font-family="Times,serif" font-size="14.00">Amp CLI Tool</text>
 </g>
-<!-- Scion Agent Container&#45;&gt;Amp CLI Tool -->
+<!-- Fabric Agent Container&#45;&gt;Amp CLI Tool -->
 <g id="edge7" class="edge">
-<title>Scion Agent Container&#45;&gt;Amp CLI Tool</title>
+<title>Fabric Agent Container&#45;&gt;Amp CLI Tool</title>
 <path fill="none" stroke="black" d="M76.71,-205.5C67.76,-198.54 58.97,-189.69 54,-179.25 50.14,-171.15 48.97,-161.6 49.03,-152.74"/>
 <polygon fill="black" stroke="black" points="52.52,-152.99 49.66,-142.79 45.54,-152.55 52.52,-152.99"/>
 <text xml:space="preserve" text-anchor="middle" x="69" y="-165.95" font-family="Times,serif" font-size="14.00">uses</text>
 </g>
-<!-- provision.py Script&#45;&gt;Scion Agent Container -->
+<!-- provision.py Script&#45;&gt;Fabric Agent Container -->
 <g id="edge6" class="edge">
-<title>provision.py Script&#45;&gt;Scion Agent Container</title>
+<title>provision.py Script&#45;&gt;Fabric Agent Container</title>
 <path fill="none" stroke="black" d="M154.35,-134.41C134.41,-141 115.23,-151.64 103,-168.75 97.74,-176.11 96.84,-185.58 97.77,-194.53"/>
 <polygon fill="black" stroke="black" points="94.32,-195.11 99.57,-204.31 101.21,-193.84 94.32,-195.11"/>
 <text xml:space="preserve" text-anchor="middle" x="155.5" y="-165.95" font-family="Times,serif" font-size="14.00">configures env</text>
@@ -103,15 +103,15 @@
 <polygon fill="black" stroke="black" points="237.5,-51.89 234,-41.89 230.5,-51.89 237.5,-51.89"/>
 <text xml:space="preserve" text-anchor="middle" x="252.75" y="-64.95" font-family="Times,serif" font-size="14.00">reads</text>
 </g>
-<!-- Scion Harness -->
+<!-- Fabric Harness -->
 <g id="node5" class="node">
-<title>Scion Harness</title>
+<title>Fabric Harness</title>
 <polygon fill="lightblue" stroke="black" points="448.75,-242 335.25,-242 335.25,-206 448.75,-206 448.75,-242"/>
-<text xml:space="preserve" text-anchor="middle" x="392" y="-215.95" font-family="Times,serif" font-size="14.00">Scion Harness</text>
+<text xml:space="preserve" text-anchor="middle" x="392" y="-215.95" font-family="Times,serif" font-size="14.00">Fabric Harness</text>
 </g>
-<!-- Scion Harness&#45;&gt;provision.py Script -->
+<!-- Fabric Harness&#45;&gt;provision.py Script -->
 <g id="edge4" class="edge">
-<title>Scion Harness&#45;&gt;provision.py Script</title>
+<title>Fabric Harness&#45;&gt;provision.py Script</title>
 <path fill="none" stroke="black" d="M385.18,-205.69C379.71,-193.81 370.96,-178.5 359,-168.75 347.28,-159.2 333.37,-151.6 319.15,-145.59"/>
 <polygon fill="black" stroke="black" points="320.76,-142.46 310.17,-142.04 318.18,-148.97 320.76,-142.46"/>
 <text xml:space="preserve" text-anchor="middle" x="394.92" y="-165.95" font-family="Times,serif" font-size="14.00">invokes</text>

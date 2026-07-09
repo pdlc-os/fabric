@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -43,24 +43,24 @@ and carries a set of action permissions.
 
 Examples:
   # Create a token for CI that can dispatch and monitor agents
-  scion hub token create \
+  fabric hub token create \
     --project my-project \
     --name "github-actions" \
     --scopes agent:dispatch,agent:read,agent:stop \
     --expires 90d
 
   # List your tokens
-  scion hub token list
+  fabric hub token list
 
   # Revoke a token
-  scion hub token revoke <token-id>
+  fabric hub token revoke <token-id>
 
   # Delete a token permanently
-  scion hub token delete <token-id>
+  fabric hub token delete <token-id>
 
   # Use the token in CI
-  export SCION_HUB_TOKEN=scion_pat_...
-  scion hub agent dispatch --project my-project --template default --task "Run tests"`,
+  export FABRIC_HUB_TOKEN=fabric_pat_...
+  fabric hub agent dispatch --project my-project --template default --task "Run tests"`,
 }
 
 var hubTokenCreateCmd = &cobra.Command{
@@ -88,8 +88,8 @@ RFC 3339 date (e.g., 2026-12-31T00:00:00Z). Default: 90 days.
 Maximum: 1 year.
 
 Examples:
-  scion hub token create --project my-project --name ci-token --scopes agent:dispatch,agent:read
-  scion hub token create --project my-project --name deploy --scopes agent:manage --expires 30d`,
+  fabric hub token create --project my-project --name ci-token --scopes agent:dispatch,agent:read
+  fabric hub token create --project my-project --name deploy --scopes agent:manage --expires 30d`,
 	Args: cobra.NoArgs,
 	RunE: runTokenCreate,
 }
@@ -100,9 +100,9 @@ var hubTokenListCmd = &cobra.Command{
 	Long: `List all user access tokens for the authenticated user.
 
 Examples:
-  scion hub token list
-  scion hub token list --json
-  scion hub token list --project my-project`,
+  fabric hub token list
+  fabric hub token list --json
+  fabric hub token list --project my-project`,
 	Args: cobra.NoArgs,
 	RunE: runTokenList,
 }
@@ -114,7 +114,7 @@ var hubTokenRevokeCmd = &cobra.Command{
 for authentication but will still appear in listings as revoked.
 
 Examples:
-  scion hub token revoke abc123`,
+  fabric hub token revoke abc123`,
 	Args: cobra.ExactArgs(1),
 	RunE: runTokenRevoke,
 }
@@ -125,7 +125,7 @@ var hubTokenDeleteCmd = &cobra.Command{
 	Long: `Permanently delete a user access token. This cannot be undone.
 
 Examples:
-  scion hub token delete abc123`,
+  fabric hub token delete abc123`,
 	Args: cobra.ExactArgs(1),
 	RunE: runTokenDelete,
 }

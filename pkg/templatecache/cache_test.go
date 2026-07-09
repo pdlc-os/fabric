@@ -60,7 +60,7 @@ func TestPutAndGet(t *testing.T) {
 
 	contentHash := "abc123hash"
 	files := map[string][]byte{
-		"scion-agent.yaml":       []byte("harness: claude\n"),
+		"fabric-agent.yaml":       []byte("harness: claude\n"),
 		"home/.claude/CLAUDE.md": []byte("# Test Template\n"),
 	}
 
@@ -74,7 +74,7 @@ func TestPutAndGet(t *testing.T) {
 	}
 
 	// Verify files were written
-	yamlPath := filepath.Join(storedPath, "scion-agent.yaml")
+	yamlPath := filepath.Join(storedPath, "fabric-agent.yaml")
 	content, err := os.ReadFile(yamlPath)
 	if err != nil {
 		t.Fatalf("Failed to read stored file: %v", err)

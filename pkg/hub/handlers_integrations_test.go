@@ -25,9 +25,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/integrationupdate"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/ent/integrationupdate"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 	"github.com/google/uuid"
 )
 
@@ -643,7 +643,7 @@ func TestFilterSensitiveConfig_Slack(t *testing.T) {
 	cfg := map[string]string{
 		"socket_mode":     "true",
 		"listen_address":  ":3000",
-		"db_path":         "~/.scion/scion-slack.db",
+		"db_path":         "~/.fabric/fabric-slack.db",
 		"agent_cache_ttl": "5m",
 		"bot_token":       "xoxb-secret",
 		"app_token":       "xapp-secret",
@@ -675,7 +675,7 @@ func TestFilterSensitiveConfig_Slack(t *testing.T) {
 	if filtered["listen_address"] != ":3000" {
 		t.Errorf("expected listen_address :3000, got %s", filtered["listen_address"])
 	}
-	if filtered["db_path"] != "~/.scion/scion-slack.db" {
+	if filtered["db_path"] != "~/.fabric/fabric-slack.db" {
 		t.Errorf("expected db_path preserved, got %s", filtered["db_path"])
 	}
 	if filtered["agent_cache_ttl"] != "5m" {
@@ -877,7 +877,7 @@ func TestListAvailableIntegrations_NoRepoPath(t *testing.T) {
 func TestListAvailableIntegrations_WithSource(t *testing.T) {
 	repoDir := t.TempDir()
 	// Create source directories for telegram (available) but not discord
-	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "scion-telegram"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "fabric-telegram"), 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -913,7 +913,7 @@ func TestListAvailableIntegrations_WithSource(t *testing.T) {
 
 func TestListAvailableIntegrations_IncludesSlack(t *testing.T) {
 	repoDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "scion-slack"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "fabric-slack"), 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -952,7 +952,7 @@ func TestListAvailableIntegrations_IncludesSlack(t *testing.T) {
 
 func TestListAvailableIntegrations_ExcludesInstalled(t *testing.T) {
 	repoDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "scion-telegram"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(repoDir, "extras", "fabric-telegram"), 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1013,7 +1013,7 @@ func TestRequirePostgres_Postgres(t *testing.T) {
 
 func TestUpdateIntegration_HA_Accepted(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1066,7 +1066,7 @@ func TestUpdateIntegration_HA_Accepted(t *testing.T) {
 
 func TestGetUpdateStatus_ByID(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1123,7 +1123,7 @@ func TestGetUpdateStatus_ByID(t *testing.T) {
 
 func TestGetUpdateStatus_Latest(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1186,7 +1186,7 @@ func TestGetUpdateStatus_Latest(t *testing.T) {
 
 func TestGetUpdateStatus_NotFound(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1210,7 +1210,7 @@ func TestGetUpdateStatus_NotFound(t *testing.T) {
 
 func TestGetUpdateStatus_InvalidID(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1251,7 +1251,7 @@ func TestGetUpdateStatus_SQLiteReturns409(t *testing.T) {
 
 func TestUpdateConfig_HA_Integration(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1323,7 +1323,7 @@ func TestIsHAIntegration(t *testing.T) {
 
 func TestGetUpdateStatus_CrossIntegrationRejected(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 
@@ -1368,7 +1368,7 @@ func TestGetUpdateStatus_CrossIntegrationRejected(t *testing.T) {
 
 func TestUpdateConfig_HA_SetsUpdatedBy(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 

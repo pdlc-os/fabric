@@ -25,7 +25,7 @@
 These tests in `pkg/config` were failing before our changes — fix them too:
 - `TestIsInsideProject`
 - `TestRequireProjectPath_NoProjectError`
-- `TestFindProjectRoot_HubContextNoScion_Disabled`
+- `TestFindProjectRoot_HubContextNoFabric_Disabled`
 - `TestDiscoverProjects_GitProjectWithExternalConfigUsesWorkspaceMarkerProjectID`
 - `TestIsHubContext`
 

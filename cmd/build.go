@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -81,9 +81,9 @@ field is updated to reference the built image.`,
 
 		baseImage := buildBaseImage
 		if baseImage == "" {
-			baseImage = "scion-base:" + tag
+			baseImage = "fabric-base:" + tag
 			if imageRegistry != "" {
-				baseImage = imageRegistry + "/scion-base:" + tag
+				baseImage = imageRegistry + "/fabric-base:" + tag
 			}
 		}
 
@@ -237,7 +237,7 @@ func runCloudBuild(cmd *cobra.Command, harnessConfigName string, hcDir *config.H
 		return fmt.Errorf("failed to marshal cloudbuild config: %w", err)
 	}
 
-	tmpFile, err := os.CreateTemp("", "scion-cloudbuild-*.yaml")
+	tmpFile, err := os.CreateTemp("", "fabric-cloudbuild-*.yaml")
 	if err != nil {
 		return fmt.Errorf("failed to create temp cloudbuild config: %w", err)
 	}
@@ -300,11 +300,11 @@ func syncBuildToHub(harnessConfigName string, hcDir *config.HarnessConfigDir) {
 	hubCtx, hubErr := CheckHubAvailabilityWithOptions(gp, true)
 	if hubErr != nil {
 		fmt.Printf("Warning: could not sync to Hub: %v\n", hubErr)
-		fmt.Println("Run 'scion harness-config push " + harnessConfigName + "' to sync manually.")
+		fmt.Println("Run 'fabric harness-config push " + harnessConfigName + "' to sync manually.")
 	} else if hubCtx != nil {
 		if err := syncHarnessConfigToHub(hubCtx, harnessConfigName, hcDir.Path, "global", "", hcDir.Config.Harness); err != nil {
 			fmt.Printf("Warning: failed to sync to Hub: %v\n", err)
-			fmt.Println("Run 'scion harness-config push " + harnessConfigName + "' to sync manually.")
+			fmt.Println("Run 'fabric harness-config push " + harnessConfigName + "' to sync manually.")
 		}
 	}
 }

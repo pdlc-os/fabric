@@ -13,9 +13,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/accesspolicy"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/policybinding"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
+	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/google/uuid"
 )
 

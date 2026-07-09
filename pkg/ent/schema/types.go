@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package schema defines the Ent ORM schemas for Scion principal and
+// Package schema defines the Ent ORM schemas for Fabric principal and
 // authorization entities.
 package schema
 

@@ -18,4 +18,4 @@ This update introduces comprehensive SDKs for Python and TypeScript, significant
 * **Cross-platform Stability:** Fixed an issue with gitignore path resolution on non-Linux platforms by using `filepath.ToSlash`.
 * **CLI Routing:** Refined the help command detection to prevent accidental triggers when "help" is used as a sub-argument rather than the primary command.
 * **Token Optimization:** Optimized agent context usage by stripping the unnecessary `version` field from the message delivery payload.
-* **Validation Improvements:** Moved `.scion/agents/` gitignore validation to pre-flight checks to provide earlier feedback on potential configuration issues.
+* **Validation Improvements:** Moved `.fabric/agents/` gitignore validation to pre-flight checks to provide earlier feedback on potential configuration issues.

@@ -29,13 +29,13 @@ import (
 
 const (
 	// UserTokenIssuer is the issuer claim for user tokens.
-	UserTokenIssuer = "scion-hub"
+	UserTokenIssuer = "fabric-hub"
 	// UserTokenAudience is the audience claim for user tokens.
-	UserTokenAudience = "scion-hub-api"
+	UserTokenAudience = "fabric-hub-api"
 	// TestLoginAudience is the audience claim for test-login challenge tokens.
 	// It is distinct from UserTokenAudience so a test-login token cannot be
 	// used as a regular access token and vice versa.
-	TestLoginAudience = "scion-test-login"
+	TestLoginAudience = "fabric-test-login"
 	// DefaultAccessTokenDuration is the default validity for access tokens.
 	DefaultAccessTokenDuration = 15 * time.Minute
 	// DefaultCLIAccessTokenDuration is the longer validity for CLI access tokens.
@@ -291,7 +291,7 @@ func (s *UserTokenService) GetTokenExpiry(tokenString string) (time.Time, error)
 
 // GenerateTestLoginToken mints a short-lived JWT for authenticating to the
 // test-login endpoint. The token uses the same signing key as user tokens
-// but a dedicated audience ("scion-test-login") so it cannot be used as a
+// but a dedicated audience ("fabric-test-login") so it cannot be used as a
 // regular access token and vice versa.
 func (s *UserTokenService) GenerateTestLoginToken(subject string) (string, error) {
 	now := time.Now()
@@ -315,7 +315,7 @@ func (s *UserTokenService) GenerateTestLoginToken(subject string) (string, error
 }
 
 // ValidateTestLoginToken validates a test-login challenge JWT. It verifies
-// the signature, issuer, audience ("scion-test-login"), and expiry. Returns
+// the signature, issuer, audience ("fabric-test-login"), and expiry. Returns
 // nil on success or an error describing the validation failure.
 func (s *UserTokenService) ValidateTestLoginToken(tokenString string) error {
 	token, err := jwt.ParseSigned(tokenString, []jose.SignatureAlgorithm{jose.HS256})

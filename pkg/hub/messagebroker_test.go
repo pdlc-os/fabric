@@ -23,10 +23,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // brokerMockDispatcher records dispatched messages for test assertions.
@@ -693,7 +693,7 @@ func TestMessageBrokerProxy_PluginSubscriptionDedup(t *testing.T) {
 	proxy.Start()
 	defer proxy.Stop()
 
-	pattern := "scion.project.test.>"
+	pattern := "fabric.project.test.>"
 	if err := proxy.RequestSubscription(pattern); err != nil {
 		t.Fatalf("first RequestSubscription failed: %v", err)
 	}
@@ -727,7 +727,7 @@ func TestMessageBrokerProxy_PluginSubscriptionCancel(t *testing.T) {
 	proxy.Start()
 	defer proxy.Stop()
 
-	pattern := "scion.project.test.>"
+	pattern := "fabric.project.test.>"
 	if err := proxy.RequestSubscription(pattern); err != nil {
 		t.Fatalf("RequestSubscription failed: %v", err)
 	}
@@ -764,10 +764,10 @@ func TestMessageBrokerProxy_PluginSubscriptionCleanupOnStop(t *testing.T) {
 	proxy := NewMessageBrokerProxy(b, s, events, func() AgentDispatcher { return dispatcher }, slog.Default())
 	proxy.Start()
 
-	if err := proxy.RequestSubscription("scion.project.a.>"); err != nil {
+	if err := proxy.RequestSubscription("fabric.project.a.>"); err != nil {
 		t.Fatal(err)
 	}
-	if err := proxy.RequestSubscription("scion.project.b.>"); err != nil {
+	if err := proxy.RequestSubscription("fabric.project.b.>"); err != nil {
 		t.Fatal(err)
 	}
 

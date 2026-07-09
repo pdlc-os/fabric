@@ -26,7 +26,7 @@ func TestWaitForTmuxSession_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
 
-	err := waitForTmuxSession(ctx, "false", "nonexistent-container", "", "scion", nil, nil)
+	err := waitForTmuxSession(ctx, "false", "nonexistent-container", "", "fabric", nil, nil)
 	if err == nil {
 		t.Fatal("expected error when context is cancelled")
 	}
@@ -39,7 +39,7 @@ func TestWaitForTmuxSession_TimesOut(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	err := waitForTmuxSession(ctx, "false", "nonexistent-container", "", "scion", nil, nil)
+	err := waitForTmuxSession(ctx, "false", "nonexistent-container", "", "fabric", nil, nil)
 	elapsed := time.Since(start)
 
 	if err == nil {
@@ -57,7 +57,7 @@ func TestWaitForTmuxSession_SucceedsImmediately(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	err := waitForTmuxSession(ctx, "true", "any-container", "", "scion", nil, nil)
+	err := waitForTmuxSession(ctx, "true", "any-container", "", "fabric", nil, nil)
 	elapsed := time.Since(start)
 
 	if err != nil {
@@ -90,7 +90,7 @@ func TestActiveWindowOSC(t *testing.T) {
 
 func TestQueryTmuxActiveWindow_CommandFails(t *testing.T) {
 	// "false" always exits 1, simulating tmux not available
-	result := queryTmuxActiveWindow(context.Background(), "false", "test-container", "scion")
+	result := queryTmuxActiveWindow(context.Background(), "false", "test-container", "fabric")
 	if result != "" {
 		t.Errorf("expected empty string on failure, got %q", result)
 	}
@@ -99,7 +99,7 @@ func TestQueryTmuxActiveWindow_CommandFails(t *testing.T) {
 func TestQueryTmuxActiveWindow_ContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // already cancelled
-	result := queryTmuxActiveWindow(ctx, "echo", "test-container", "scion")
+	result := queryTmuxActiveWindow(ctx, "echo", "test-container", "fabric")
 	if result != "" {
 		t.Errorf("expected empty string on cancelled context, got %q", result)
 	}
@@ -187,14 +187,14 @@ func TestSanitizeExecUser(t *testing.T) {
 		in   string
 		want string
 	}{
-		{name: "empty falls back", in: "", want: "scion"},
-		{name: "valid scion", in: "scion", want: "scion"},
+		{name: "empty falls back", in: "", want: "fabric"},
+		{name: "valid fabric", in: "fabric", want: "fabric"},
 		{name: "valid root", in: "root", want: "root"},
 		{name: "valid alphanumeric with hyphen", in: "agent-user_1", want: "agent-user_1"},
-		{name: "shell metachar rejected", in: "scion;rm -rf /", want: "scion"},
-		{name: "command substitution rejected", in: "$(whoami)", want: "scion"},
-		{name: "quote rejected", in: `bad"name`, want: "scion"},
-		{name: "space rejected", in: "two words", want: "scion"},
+		{name: "shell metachar rejected", in: "fabric;rm -rf /", want: "fabric"},
+		{name: "command substitution rejected", in: "$(whoami)", want: "fabric"},
+		{name: "quote rejected", in: `bad"name`, want: "fabric"},
+		{name: "space rejected", in: "two words", want: "fabric"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

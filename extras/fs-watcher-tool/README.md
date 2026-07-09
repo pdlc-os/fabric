@@ -1,6 +1,6 @@
-# scion-fs-watcher
+# fabric-fs-watcher
 
-A standalone Linux utility that monitors filesystem activity across scion agent worktrees and attributes each event (create, modify, delete, rename) to the originating agent. It uses Linux `fanotify` for filesystem monitoring and correlates process PIDs to Docker container labels for agent attribution.
+A standalone Linux utility that monitors filesystem activity across fabric agent worktrees and attributes each event (create, modify, delete, rename) to the originating agent. It uses Linux `fanotify` for filesystem monitoring and correlates process PIDs to Docker container labels for agent attribution.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ cd extras/fs-watcher-tool
 make build
 ```
 
-This produces a `scion-fs-watcher` binary in the current directory.
+This produces a `fabric-fs-watcher` binary in the current directory.
 
 To run the full local CI (format, vet, test, build):
 
@@ -30,14 +30,14 @@ The watcher must run as root (or with `CAP_SYS_ADMIN`) on the host machine, not 
 
 ### Watch a grove
 
-The simplest way to use the watcher is with `--grove`, which automatically discovers all agent worktree directories by inspecting Docker containers with the matching `scion.grove` label:
+The simplest way to use the watcher is with `--grove`, which automatically discovers all agent worktree directories by inspecting Docker containers with the matching `fabric.grove` label:
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project
+sudo ./fabric-fs-watcher --grove my-project
 ```
 
 This will:
-1. Query Docker for all containers labeled `scion.grove=my-project`
+1. Query Docker for all containers labeled `fabric.grove=my-project`
 2. Inspect their bind mounts to find workspace directories
 3. Start monitoring those directories with fanotify
 4. Output NDJSON events to stdout as agents create, modify, or delete files
@@ -48,13 +48,13 @@ This will:
 You can also watch specific directories directly:
 
 ```bash
-sudo ./scion-fs-watcher --watch /path/to/worktree-a --watch /path/to/worktree-b
+sudo ./fabric-fs-watcher --watch /path/to/worktree-a --watch /path/to/worktree-b
 ```
 
 Both `--grove` and `--watch` can be combined:
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project --watch /extra/shared/dir
+sudo ./fabric-fs-watcher --grove my-project --watch /extra/shared/dir
 ```
 
 ### Write to a log file
@@ -62,7 +62,7 @@ sudo ./scion-fs-watcher --grove my-project --watch /extra/shared/dir
 By default, events are written to stdout. To write to a file instead:
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project --log /var/log/scion/fs-events.ndjson
+sudo ./fabric-fs-watcher --grove my-project --log /var/log/fabric/fs-events.ndjson
 ```
 
 ### Filter noise
@@ -70,7 +70,7 @@ sudo ./scion-fs-watcher --grove my-project --log /var/log/scion/fs-events.ndjson
 Exclude paths with `--ignore` glob patterns (repeatable):
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project \
+sudo ./fabric-fs-watcher --grove my-project \
   --ignore '.git/**' \
   --ignore 'node_modules/**' \
   --ignore '*.swp'
@@ -79,13 +79,13 @@ sudo ./scion-fs-watcher --grove my-project \
 For more complex filtering, use a `.gitignore`-style filter file:
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project --filter-file /path/to/fs-filter.txt
+sudo ./fabric-fs-watcher --grove my-project --filter-file /path/to/fs-filter.txt
 ```
 
 The filter file supports `#` comments, `!` negation for re-inclusion, and glob patterns. Send `SIGHUP` to reload the filter file without restarting:
 
 ```bash
-kill -HUP $(pidof scion-fs-watcher)
+kill -HUP $(pidof fabric-fs-watcher)
 ```
 
 ### Debug mode
@@ -93,7 +93,7 @@ kill -HUP $(pidof scion-fs-watcher)
 Use `--debug` for verbose output on stderr showing Docker interactions, PID resolution, fanotify setup, and event processing:
 
 ```bash
-sudo ./scion-fs-watcher --grove my-project --debug
+sudo ./fabric-fs-watcher --grove my-project --debug
 ```
 
 Example debug output:
@@ -102,26 +102,26 @@ Example debug output:
 [docker] connected to docker daemon at unix:///var/run/docker.sock
 [docker] server version: 27.1.0, containers: 5 running / 12 total
 [docker] cgroup driver: systemd, cgroup version: 2
-[resolver] warming up container cache (label filter: scion.name)
+[resolver] warming up container cache (label filter: fabric.name)
 [resolver]   cached container a1b2c3d4e5f6 → agent "frontend-refactor"
 [resolver]   cached container f6e5d4c3b2a1 → agent "backend-api"
-[resolver] warmed up with 2 scion containers
-[grove] discovered watch dir: /home/user/.scion_worktrees/my-project/frontend-refactor (agent: frontend-refactor)
-[grove] discovered watch dir: /home/user/.scion_worktrees/my-project/backend-api (agent: backend-api)
+[resolver] warmed up with 2 fabric containers
+[grove] discovered watch dir: /home/user/.fabric_worktrees/my-project/frontend-refactor (agent: frontend-refactor)
+[grove] discovered watch dir: /home/user/.fabric_worktrees/my-project/backend-api (agent: backend-api)
 [grove] discovered 2 directories for grove "my-project"
-[config] grove="my-project", label-key="scion.name", debounce=300ms, cache-ttl=5m0s
+[config] grove="my-project", label-key="fabric.name", debounce=300ms, cache-ttl=5m0s
 [config] ignore patterns: [.git/**]
 [config] log output: -
-[config] watch root [0]: /home/user/.scion_worktrees/my-project/frontend-refactor
-[config] watch root [1]: /home/user/.scion_worktrees/my-project/backend-api
+[config] watch root [0]: /home/user/.fabric_worktrees/my-project/frontend-refactor
+[config] watch root [1]: /home/user/.fabric_worktrees/my-project/backend-api
 [watcher] fanotify fd=3, flags=FAN_CLASS_NOTIF|FAN_REPORT_DFID_NAME|FAN_CLOEXEC
 [watcher] mark flags=FAN_MARK_ADD|FAN_MARK_FILESYSTEM, mask=CREATE|DELETE|CLOSE_WRITE|MOVED_FROM|MOVED_TO
-[watcher] marking filesystem for dir: /home/user/.scion_worktrees/my-project/frontend-refactor
-[watcher] marking filesystem for dir: /home/user/.scion_worktrees/my-project/backend-api
+[watcher] marking filesystem for dir: /home/user/.fabric_worktrees/my-project/frontend-refactor
+[watcher] marking filesystem for dir: /home/user/.fabric_worktrees/my-project/backend-api
 [watcher] watching 2 directories, debounce=300ms
 [watcher] entering event loop (poll timeout=500ms)
 [resolver] subscribed to docker container lifecycle events (start/die)
-scion-fs-watcher started, watching 2 directories
+fabric-fs-watcher started, watching 2 directories
 [resolver] pid 12345 → container a1b2c3d4e5f6 → agent "frontend-refactor" (resolved)
 ```
 
@@ -138,7 +138,7 @@ Events are written as line-delimited JSON (NDJSON), one object per line:
 | Field      | Type   | Description |
 |------------|--------|-------------|
 | `ts`       | string | RFC 3339 timestamp with millisecond precision |
-| `agent_id` | string | Value of the `scion.name` Docker label, or `""` if unresolvable |
+| `agent_id` | string | Value of the `fabric.name` Docker label, or `""` if unresolvable |
 | `action`   | string | One of: `create`, `modify`, `delete`, `rename_from`, `rename_to` |
 | `path`     | string | Relative path from the watched root directory |
 | `size`     | int    | File size in bytes (omitted for `delete` and `rename_from`) |
@@ -146,7 +146,7 @@ Events are written as line-delimited JSON (NDJSON), one object per line:
 ## CLI Reference
 
 ```
-sudo scion-fs-watcher [flags]
+sudo fabric-fs-watcher [flags]
 ```
 
 | Flag            | Description | Default |
@@ -154,7 +154,7 @@ sudo scion-fs-watcher [flags]
 | `--grove`       | Grove ID — auto-discover agent directories via Docker labels | (none) |
 | `--watch`       | Directory to watch explicitly (repeatable) | (none) |
 | `--log`         | Output log file path (`-` for stdout) | `-` (stdout) |
-| `--label-key`   | Docker label key to use as agent ID | `scion.name` |
+| `--label-key`   | Docker label key to use as agent ID | `fabric.name` |
 | `--ignore`      | Glob patterns to exclude (repeatable) | `.git/**` |
 | `--filter-file` | Path to `.gitignore`-style filter file | (none) |
 | `--debounce`    | Duration to collapse rapid edits to the same file | `300ms` |
@@ -167,7 +167,7 @@ At least one of `--grove` or `--watch` is required.
 
 1. **fanotify** monitors the filesystem for create, modify (`FAN_CLOSE_WRITE`), delete, and rename events. Using `FAN_MARK_FILESYSTEM` provides coverage across all paths on the filesystem without needing per-directory watches.
 
-2. **PID resolution** maps each event's process ID to a Docker container by reading `/proc/<pid>/cgroup`, then looks up the container's `scion.name` label via the Docker API. Results are cached to avoid repeated API calls.
+2. **PID resolution** maps each event's process ID to a Docker container by reading `/proc/<pid>/cgroup`, then looks up the container's `fabric.name` label via the Docker API. Results are cached to avoid repeated API calls.
 
 3. **Debouncing** collapses rapid successive events on the same file (keyed by agent + path) within a configurable window (default 300ms), so a burst of writes produces a single `modify` event.
 

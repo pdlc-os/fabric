@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestLoadSettings(t *testing.T) {
@@ -32,13 +32,13 @@ func TestLoadSettings(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// 1. Test defaults
-	s, err := LoadSettings(projectScionDir)
+	s, err := LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}
@@ -54,21 +54,21 @@ func TestLoadSettings(t *testing.T) {
 		"active_profile": "prod",
 		"default_template": "claude",
 		"runtimes": {
-			"kubernetes": { "namespace": "scion-global" }
+			"kubernetes": { "namespace": "fabric-global" }
 		},
 		"profiles": {
 			"prod": { "runtime": "kubernetes", "tmux": false }
 		}
 	}`
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.json"), []byte(globalSettings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.json"), []byte(globalSettings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err = LoadSettings(projectScionDir)
+	s, err = LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}
@@ -78,8 +78,8 @@ func TestLoadSettings(t *testing.T) {
 	if s.DefaultTemplate != "claude" {
 		t.Errorf("expected global override template 'claude', got '%s'", s.DefaultTemplate)
 	}
-	if s.Runtimes["kubernetes"].Namespace != "scion-global" {
-		t.Errorf("expected global override runtime namespace 'scion-global', got '%s'", s.Runtimes["kubernetes"].Namespace)
+	if s.Runtimes["kubernetes"].Namespace != "fabric-global" {
+		t.Errorf("expected global override runtime namespace 'fabric-global', got '%s'", s.Runtimes["kubernetes"].Namespace)
 	}
 
 	// 3. Test Project overrides
@@ -89,11 +89,11 @@ func TestLoadSettings(t *testing.T) {
 			"local-dev": { "runtime": "local", "tmux": true }
 		}
 	}`
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(projectSettings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(projectSettings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err = LoadSettings(projectScionDir)
+	s, err = LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}
@@ -113,19 +113,19 @@ func TestUpdateSetting(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Update local setting
-	err := UpdateSetting(projectScionDir, "active_profile", "kubernetes", false)
+	err := UpdateSetting(projectFabricDir, "active_profile", "kubernetes", false)
 	if err != nil {
 		t.Fatalf("UpdateSetting failed: %v", err)
 	}
 
 	// Verify file content (now writes YAML)
-	content, err := os.ReadFile(filepath.Join(projectScionDir, "settings.yaml"))
+	content, err := os.ReadFile(filepath.Join(projectFabricDir, "settings.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,11 +134,11 @@ func TestUpdateSetting(t *testing.T) {
 	}
 
 	// Update default_template
-	err = UpdateSetting(projectScionDir, "default_template", "my-template", false)
+	err = UpdateSetting(projectFabricDir, "default_template", "my-template", false)
 	if err != nil {
 		t.Fatalf("UpdateSetting default_template failed: %v", err)
 	}
-	content, _ = os.ReadFile(filepath.Join(projectScionDir, "settings.yaml"))
+	content, _ = os.ReadFile(filepath.Join(projectFabricDir, "settings.yaml"))
 	if !strings.Contains(string(content), "default_template: my-template") {
 		t.Errorf("expected file to contain default_template: my-template, got %s", string(content))
 	}
@@ -431,7 +431,7 @@ func TestHubMethods(t *testing.T) {
 		},
 		{
 			name:                   "hub with endpoint and token implies enabled",
-			hub:                    &HubClientConfig{Endpoint: "https://hub.example.com", Token: "scion_pat_xxx"},
+			hub:                    &HubClientConfig{Endpoint: "https://hub.example.com", Token: "fabric_pat_xxx"},
 			wantConfigured:         true,
 			wantEnabled:            true,
 			wantExplicitlyDisabled: false,
@@ -445,14 +445,14 @@ func TestHubMethods(t *testing.T) {
 		},
 		{
 			name:                   "hub with token only (no endpoint) not enabled",
-			hub:                    &HubClientConfig{Token: "scion_pat_xxx"},
+			hub:                    &HubClientConfig{Token: "fabric_pat_xxx"},
 			wantConfigured:         false,
 			wantEnabled:            false,
 			wantExplicitlyDisabled: false,
 		},
 		{
 			name:                   "hub with endpoint, token, and enabled=false overrides to enabled",
-			hub:                    &HubClientConfig{Endpoint: "https://hub.example.com", Token: "scion_pat_xxx", Enabled: &falseBool},
+			hub:                    &HubClientConfig{Endpoint: "https://hub.example.com", Token: "fabric_pat_xxx", Enabled: &falseBool},
 			wantConfigured:         true,
 			wantEnabled:            true,
 			wantExplicitlyDisabled: true,
@@ -565,26 +565,26 @@ func TestUpdateHubSettingsGlobal(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	// Unset SCION_HUB_ENDPOINT so it doesn't override file-loaded values
-	if orig, ok := os.LookupEnv("SCION_HUB_ENDPOINT"); ok {
-		_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-		t.Cleanup(func() { _ = os.Setenv("SCION_HUB_ENDPOINT", orig) })
+	// Unset FABRIC_HUB_ENDPOINT so it doesn't override file-loaded values
+	if orig, ok := os.LookupEnv("FABRIC_HUB_ENDPOINT"); ok {
+		_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+		t.Cleanup(func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", orig) })
 	}
 
-	// Create global .scion directory
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	// Create global .fabric directory
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	t.Run("save hub endpoint to global settings", func(t *testing.T) {
-		err := UpdateSetting(globalScionDir, "hub.endpoint", "https://hub.example.com", true)
+		err := UpdateSetting(globalFabricDir, "hub.endpoint", "https://hub.example.com", true)
 		if err != nil {
 			t.Fatalf("UpdateSetting failed: %v", err)
 		}
 
 		// Reload settings and verify
-		s, err := LoadSettings(globalScionDir)
+		s, err := LoadSettings(globalFabricDir)
 		if err != nil {
 			t.Fatalf("LoadSettings failed: %v", err)
 		}
@@ -599,12 +599,12 @@ func TestUpdateHubSettingsGlobal(t *testing.T) {
 	})
 
 	t.Run("save hub brokerId to global settings", func(t *testing.T) {
-		err := UpdateSetting(globalScionDir, "hub.brokerId", "host-uuid-123", true)
+		err := UpdateSetting(globalFabricDir, "hub.brokerId", "host-uuid-123", true)
 		if err != nil {
 			t.Fatalf("UpdateSetting failed: %v", err)
 		}
 
-		s, err := LoadSettings(globalScionDir)
+		s, err := LoadSettings(globalFabricDir)
 		if err != nil {
 			t.Fatalf("LoadSettings failed: %v", err)
 		}
@@ -632,15 +632,15 @@ func TestHubSettingsLoadFromGlobal(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	// Unset SCION_HUB_ENDPOINT so it doesn't override file-loaded values
-	if orig, ok := os.LookupEnv("SCION_HUB_ENDPOINT"); ok {
-		_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-		t.Cleanup(func() { _ = os.Setenv("SCION_HUB_ENDPOINT", orig) })
+	// Unset FABRIC_HUB_ENDPOINT so it doesn't override file-loaded values
+	if orig, ok := os.LookupEnv("FABRIC_HUB_ENDPOINT"); ok {
+		_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+		t.Cleanup(func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", orig) })
 	}
 
 	// Create global settings with hub config
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -650,19 +650,19 @@ func TestHubSettingsLoadFromGlobal(t *testing.T) {
 			"brokerId": "global-host-id"
 		}
 	}`
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.json"), []byte(globalSettings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.json"), []byte(globalSettings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create project directory (no hub settings)
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Load settings from project (should inherit from global)
-	s, err := LoadSettings(projectScionDir)
+	s, err := LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}
@@ -740,13 +740,13 @@ func TestUpdateSettingHubConnections(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// hub_connections.* keys are silently skipped in v1 format (not supported)
-	err := UpdateSetting(projectScionDir, "hub_connections.hub-prod.endpoint", "https://hub.prod.example.com", false)
+	err := UpdateSetting(projectFabricDir, "hub_connections.hub-prod.endpoint", "https://hub.prod.example.com", false)
 	if err != nil {
 		t.Fatalf("UpdateSetting hub_connections should not error (silently skipped in v1): %v", err)
 	}
@@ -758,18 +758,18 @@ func TestUpdateSettingHubConnectionsInvalidKey(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// In v1 format, hub_connections.* keys are silently skipped regardless of structure
-	err := UpdateSetting(projectScionDir, "hub_connections.hub-prod", "value", false)
+	err := UpdateSetting(projectFabricDir, "hub_connections.hub-prod", "value", false)
 	if err != nil {
 		t.Errorf("hub_connections keys should be silently skipped in v1: %v", err)
 	}
 
-	err = UpdateSetting(projectScionDir, "hub_connections.hub-prod.unknown_field", "value", false)
+	err = UpdateSetting(projectFabricDir, "hub_connections.hub-prod.unknown_field", "value", false)
 	if err != nil {
 		t.Errorf("hub_connections keys should be silently skipped in v1: %v", err)
 	}
@@ -823,8 +823,8 @@ func TestDeleteHubConnection(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	projectScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -836,18 +836,18 @@ func TestDeleteHubConnection(t *testing.T) {
   hub-staging:
     endpoint: https://hub.staging.example.com
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(legacyContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(legacyContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Delete one
-	err := DeleteHubConnection(projectScionDir, "hub-prod", false)
+	err := DeleteHubConnection(projectFabricDir, "hub-prod", false)
 	if err != nil {
 		t.Fatalf("DeleteHubConnection failed: %v", err)
 	}
 
 	// Verify only staging remains
-	content, _ := os.ReadFile(filepath.Join(projectScionDir, "settings.yaml"))
+	content, _ := os.ReadFile(filepath.Join(projectFabricDir, "settings.yaml"))
 	if strings.Contains(string(content), "hub-prod") {
 		t.Errorf("expected hub-prod to be deleted, got %s", string(content))
 	}
@@ -856,13 +856,13 @@ func TestDeleteHubConnection(t *testing.T) {
 	}
 
 	// Delete the last one
-	err = DeleteHubConnection(projectScionDir, "hub-staging", false)
+	err = DeleteHubConnection(projectFabricDir, "hub-staging", false)
 	if err != nil {
 		t.Fatalf("DeleteHubConnection last failed: %v", err)
 	}
 
 	// Verify hub_connections is cleaned up
-	content, _ = os.ReadFile(filepath.Join(projectScionDir, "settings.yaml"))
+	content, _ = os.ReadFile(filepath.Join(projectFabricDir, "settings.yaml"))
 	if strings.Contains(string(content), "hub_connections") {
 		t.Errorf("expected hub_connections to be cleaned up, got %s", string(content))
 	}
@@ -870,36 +870,36 @@ func TestDeleteHubConnection(t *testing.T) {
 
 func TestUpdateSetting_SplitStorageWritesToExternalDir(t *testing.T) {
 	// When a project has split storage (grove-id file), UpdateSetting should
-	// write to the external config dir (~/.scion/project-configs/…), not the
-	// local .scion/ directory, so that LoadSettingsKoanf reads the same values.
+	// write to the external config dir (~/.fabric/project-configs/…), not the
+	// local .fabric/ directory, so that LoadSettingsKoanf reads the same values.
 	tmpHome := t.TempDir()
 	origHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tmpHome)
 	defer func() { _ = os.Setenv("HOME", origHome) }()
 
-	// Create a project with .scion and a grove-id file (split storage marker)
+	// Create a project with .fabric and a grove-id file (split storage marker)
 	projectDir := filepath.Join(tmpHome, "my-project")
-	scionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	projectID := "abcd1234-5678-9abc-def0-123456789abc"
-	if err := WriteProjectID(scionDir, projectID); err != nil {
+	if err := WriteProjectID(fabricDir, projectID); err != nil {
 		t.Fatal(err)
 	}
 
 	// Compute expected external config dir
 	projectSlug := api.Slugify("my-project")
 	shortUUID := strings.ReplaceAll(projectID, "-", "")[:8]
-	externalDir := filepath.Join(tmpHome, ".scion", "project-configs",
-		projectSlug+"__"+shortUUID, ".scion")
+	externalDir := filepath.Join(tmpHome, ".fabric", "project-configs",
+		projectSlug+"__"+shortUUID, ".fabric")
 	if err := os.MkdirAll(externalDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Write a setting via UpdateSetting
-	if err := UpdateSetting(scionDir, "hub.enabled", "true", false); err != nil {
+	if err := UpdateSetting(fabricDir, "hub.enabled", "true", false); err != nil {
 		t.Fatalf("UpdateSetting failed: %v", err)
 	}
 
@@ -912,14 +912,14 @@ func TestUpdateSetting_SplitStorageWritesToExternalDir(t *testing.T) {
 		t.Errorf("expected external settings.yaml to contain 'enabled: true', got:\n%s", extContent)
 	}
 
-	// Verify the local .scion/ did NOT get a settings.yaml written
-	localPath := filepath.Join(scionDir, "settings.yaml")
+	// Verify the local .fabric/ did NOT get a settings.yaml written
+	localPath := filepath.Join(fabricDir, "settings.yaml")
 	if _, err := os.Stat(localPath); err == nil {
-		t.Errorf("expected no settings.yaml in local .scion/ dir, but file exists")
+		t.Errorf("expected no settings.yaml in local .fabric/ dir, but file exists")
 	}
 
 	// Verify LoadSettingsKoanf reads the value correctly
-	settings, err := LoadSettingsKoanf(scionDir)
+	settings, err := LoadSettingsKoanf(fabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}

@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package commands
@@ -17,36 +17,36 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 var (
 	provisionManifestPath string
 )
 
-// harnessCmd is the root for harness-related sciontool subcommands.
+// harnessCmd is the root for harness-related fabrictool subcommands.
 var harnessCmd = &cobra.Command{
 	Use:   "harness",
 	Short: "Container-side harness operations",
-	Long: `harness contains container-side commands invoked by Scion lifecycle hooks.
+	Long: `harness contains container-side commands invoked by Fabric lifecycle hooks.
 
 These commands are not intended for direct use on a developer host; they run
-inside the agent container as part of sciontool init's lifecycle processing.`,
+inside the agent container as part of fabrictool init's lifecycle processing.`,
 }
 
 // harnessProvisionCmd runs the staged provisioner script declared in a
 // container-script harness's config.yaml. It is invoked from a trusted
-// pre-start hook wrapper that scion stages into the agent home.
+// pre-start hook wrapper that fabric stages into the agent home.
 var harnessProvisionCmd = &cobra.Command{
 	Use:   "provision",
 	Short: "Run the harness provisioner script inside the agent container",
 	Long: `provision validates the staged harness manifest, executes the declared
 provisioner.command from config.yaml under a timeout, and validates that any
 generated outputs are well-formed JSON. It refuses to run if the manifest
-references paths outside $HOME/.scion/harness or the agent home.
+references paths outside $HOME/.fabric/harness or the agent home.
 
-This command is invoked by sciontool's pre-start lifecycle hook from the
-trusted wrapper at $HOME/.scion/hooks/pre-start.d/20-harness-provision and is
+This command is invoked by fabrictool's pre-start lifecycle hook from the
+trusted wrapper at $HOME/.fabric/hooks/pre-start.d/20-harness-provision and is
 not meant to be run directly.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runHarnessProvision(cmd.Context(), provisionManifestPath)
@@ -65,7 +65,7 @@ func init() {
 // containerProvisionManifest mirrors pkg/harness.ProvisionManifest but is
 // duplicated here to avoid pulling pkg/harness (and pkg/config) into the
 // container-side binary. The script reads this from JSON; only the fields
-// sciontool needs to validate and dispatch are declared.
+// fabrictool needs to validate and dispatch are declared.
 type containerProvisionManifest struct {
 	SchemaVersion    int                 `json:"schema_version"`
 	Command          string              `json:"command"`
@@ -97,7 +97,7 @@ type containerOutputs struct {
 	Status       string `json:"status,omitempty"`
 }
 
-// runHarnessProvision implements the sciontool harness provision flow.
+// runHarnessProvision implements the fabrictool harness provision flow.
 func runHarnessProvision(ctx context.Context, manifestPath string) error {
 	if manifestPath == "" {
 		return fmt.Errorf("--manifest is required")
@@ -115,7 +115,7 @@ func runHarnessProvision(ctx context.Context, manifestPath string) error {
 	if err != nil {
 		return fmt.Errorf("resolve $HOME: %w", err)
 	}
-	bundleRoot := filepath.Join(home, ".scion", "harness")
+	bundleRoot := filepath.Join(home, ".fabric", "harness")
 
 	// Resolve $HOME prefixes in manifest paths. The host-side Provision()
 	// encodes paths with literal "$HOME/" for container portability; expand
@@ -296,8 +296,8 @@ func validateManifestPaths(m *containerProvisionManifest, bundleRoot, home strin
 }
 
 // minimalEnv builds a controlled environment for the script. We keep $HOME,
-// $PATH, $LANG, $TZ, and any SCION_* vars from the parent so the script can
-// reach python3 and locate scion runtime hints, but we deliberately drop
+// $PATH, $LANG, $TZ, and any FABRIC_* vars from the parent so the script can
+// reach python3 and locate fabric runtime hints, but we deliberately drop
 // unrelated host-level env to mirror the design's containment guidance.
 func minimalEnv(home string, m *containerProvisionManifest) []string {
 	env := []string{
@@ -305,16 +305,16 @@ func minimalEnv(home string, m *containerProvisionManifest) []string {
 		"PATH=" + envOr("PATH", "/usr/local/bin:/usr/bin:/bin"),
 		"LANG=" + envOr("LANG", "C.UTF-8"),
 		"TZ=" + envOr("TZ", "UTC"),
-		"SCION_AGENT_NAME=" + m.AgentName,
-		"SCION_AGENT_HOME=" + m.AgentHome,
-		"SCION_AGENT_WORKSPACE=" + m.AgentWorkspace,
-		"SCION_HARNESS_BUNDLE=" + m.HarnessBundleDir,
-		"SCION_HARNESS=" + m.HarnessConfig.Harness,
+		"FABRIC_AGENT_NAME=" + m.AgentName,
+		"FABRIC_AGENT_HOME=" + m.AgentHome,
+		"FABRIC_AGENT_WORKSPACE=" + m.AgentWorkspace,
+		"FABRIC_HARNESS_BUNDLE=" + m.HarnessBundleDir,
+		"FABRIC_HARNESS=" + m.HarnessConfig.Harness,
 		"PYTHONDONTWRITEBYTECODE=1",
 	}
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "SCION_") {
-			// Pass through SCION_* hints not already set above.
+		if strings.HasPrefix(e, "FABRIC_") {
+			// Pass through FABRIC_* hints not already set above.
 			key := strings.SplitN(e, "=", 2)[0]
 			if !envHasKey(env, key) {
 				env = append(env, e)
@@ -396,7 +396,7 @@ func scrubSecrets(s string, m *containerProvisionManifest) string {
 	}
 	// auth-candidates.json holds *names* (and now file paths) but not the raw
 	// secret values; the actual values live as 0600 files under
-	// .scion/harness/secrets/. Read those too so a script that accidentally
+	// .fabric/harness/secrets/. Read those too so a script that accidentally
 	// echoes its API key still gets redacted.
 	for _, val := range loadStagedSecretValues(m) {
 		if val != "" && len(val) >= 8 {
@@ -407,7 +407,7 @@ func scrubSecrets(s string, m *containerProvisionManifest) string {
 }
 
 // loadStagedSecretValues reads the per-secret files written by the host-side
-// ApplyAuthSettings into agent_home/.scion/harness/secrets/. The directory is
+// ApplyAuthSettings into agent_home/.fabric/harness/secrets/. The directory is
 // optional; missing dir means "no env-secret values were staged" and is fine.
 func loadStagedSecretValues(m *containerProvisionManifest) []string {
 	if m.HarnessBundleDir == "" {

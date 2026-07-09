@@ -23,9 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 func TestExtractWorkspaceFromVolumes(t *testing.T) {
@@ -139,7 +139,7 @@ func TestBuildAgentEnv(t *testing.T) {
 	// Setup host env for inheritance test
 	t.Setenv("INHERITED_KEY", "inherited-value")
 
-	scionCfg := &api.ScionConfig{
+	fabricCfg := &api.FabricConfig{
 		Env: map[string]string{
 			"NORMAL_KEY":     "normal-value",
 			"INHERITED_KEY":  "${INHERITED_KEY}",
@@ -154,7 +154,7 @@ func TestBuildAgentEnv(t *testing.T) {
 		"EMPTY_EXTRA_KEY": "", // Should be omitted
 	}
 
-	env, warnings, missingKeys := buildAgentEnv(scionCfg, extraEnv)
+	env, warnings, missingKeys := buildAgentEnv(fabricCfg, extraEnv)
 
 	expected := map[string]string{
 		"NORMAL_KEY":    "normal-value",
@@ -200,7 +200,7 @@ func TestBuildAgentEnv(t *testing.T) {
 func TestBuildAgentEnv_MissingKeysReturned(t *testing.T) {
 	// Verify that buildAgentEnv returns the names of keys that could not
 	// be resolved, so the caller can treat them as errors.
-	scionCfg := &api.ScionConfig{
+	fabricCfg := &api.FabricConfig{
 		Env: map[string]string{
 			"GOOD_KEY":    "good-value",
 			"MISSING_ONE": "",
@@ -208,7 +208,7 @@ func TestBuildAgentEnv_MissingKeysReturned(t *testing.T) {
 		},
 	}
 
-	env, _, missingKeys := buildAgentEnv(scionCfg, nil)
+	env, _, missingKeys := buildAgentEnv(fabricCfg, nil)
 
 	if len(env) != 1 {
 		t.Errorf("expected 1 env var, got %d: %v", len(env), env)
@@ -224,7 +224,7 @@ func TestBuildAgentEnv_MissingKeysReturned(t *testing.T) {
 }
 
 func TestStartBrokerMode_EmptyEnvNotFatal(t *testing.T) {
-	// In broker mode, empty env vars from scion-agent.json that the hub
+	// In broker mode, empty env vars from fabric-agent.json that the hub
 	// didn't resolve (e.g., profile-level keys irrelevant to the selected
 	// harness) should produce warnings but NOT block agent start.
 	tmpDir := t.TempDir()
@@ -237,17 +237,17 @@ func TestStartBrokerMode_EmptyEnvNotFatal(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -255,8 +255,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	var capturedEnv []string
 	mockRT := &runtime.MockRuntime{
@@ -269,11 +269,11 @@ profiles:
 		},
 	}
 
-	// Write scion-agent.json with empty env vars (simulating profile-level
+	// Write fabric-agent.json with empty env vars (simulating profile-level
 	// passthrough markers that are irrelevant to the selected harness)
-	agentDir := filepath.Join(projectScionDir, "agents", "broker-test")
+	agentDir := filepath.Join(projectFabricDir, "agents", "broker-test")
 	_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 		"harness": "generic",
 		"env": {
 			"GEMINI_API_KEY": "",
@@ -287,7 +287,7 @@ profiles:
 	// In broker mode, empty env vars should NOT cause an error
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "broker-test",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		BrokerMode:  true,
 		NoAuth:      true,
 		Env: map[string]string{
@@ -331,17 +331,17 @@ func TestStartLocalMode_EmptyEnvIsFatal(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -349,8 +349,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	mockRT := &runtime.MockRuntime{
 		ListFunc: func(ctx context.Context, labelFilter map[string]string) ([]api.AgentInfo, error) {
@@ -361,9 +361,9 @@ profiles:
 		},
 	}
 
-	agentDir := filepath.Join(projectScionDir, "agents", "local-test")
+	agentDir := filepath.Join(projectFabricDir, "agents", "local-test")
 	_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 		"harness": "generic",
 		"env": {
 			"MISSING_KEY": ""
@@ -375,7 +375,7 @@ profiles:
 	// In local mode (BrokerMode=false), empty env vars should be fatal
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "local-test",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err == nil {
@@ -391,7 +391,7 @@ func TestBuildAgentEnv_EmptyValuePassthrough(t *testing.T) {
 	// buildAgentEnv should implicitly look up the host env var of the same name.
 	t.Setenv("HOST_AVAILABLE_KEY", "host-value")
 
-	scionCfg := &api.ScionConfig{
+	fabricCfg := &api.FabricConfig{
 		Env: map[string]string{
 			"HOST_AVAILABLE_KEY": "", // empty → should pick up "host-value" from host
 			"HOST_MISSING_KEY":   "", // empty → host doesn't have it → should be omitted
@@ -399,7 +399,7 @@ func TestBuildAgentEnv_EmptyValuePassthrough(t *testing.T) {
 		},
 	}
 
-	env, warnings, missingKeys := buildAgentEnv(scionCfg, nil)
+	env, warnings, missingKeys := buildAgentEnv(fabricCfg, nil)
 
 	envMap := make(map[string]string)
 	for _, e := range env {
@@ -428,17 +428,17 @@ func TestBuildAgentEnv_EmptyValuePassthrough(t *testing.T) {
 	}
 }
 
-func TestBuildAgentEnv_ScionExtraPath(t *testing.T) {
-	// SCION_EXTRA_PATH should pass through buildAgentEnv as a normal literal
+func TestBuildAgentEnv_FabricExtraPath(t *testing.T) {
+	// FABRIC_EXTRA_PATH should pass through buildAgentEnv as a normal literal
 	// env var (no special expansion needed since the value is a literal
-	// container path like /home/scion/bin).
-	scionCfg := &api.ScionConfig{
+	// container path like /home/fabric/bin).
+	fabricCfg := &api.FabricConfig{
 		Env: map[string]string{
-			"SCION_EXTRA_PATH": "/home/scion/bin",
+			"FABRIC_EXTRA_PATH": "/home/fabric/bin",
 		},
 	}
 
-	env, warnings, _ := buildAgentEnv(scionCfg, nil)
+	env, warnings, _ := buildAgentEnv(fabricCfg, nil)
 
 	envMap := make(map[string]string)
 	for _, e := range env {
@@ -448,42 +448,42 @@ func TestBuildAgentEnv_ScionExtraPath(t *testing.T) {
 		}
 	}
 
-	if got, ok := envMap["SCION_EXTRA_PATH"]; !ok {
-		t.Error("expected SCION_EXTRA_PATH to be present in env")
-	} else if got != "/home/scion/bin" {
-		t.Errorf("SCION_EXTRA_PATH = %q, want %q", got, "/home/scion/bin")
+	if got, ok := envMap["FABRIC_EXTRA_PATH"]; !ok {
+		t.Error("expected FABRIC_EXTRA_PATH to be present in env")
+	} else if got != "/home/fabric/bin" {
+		t.Errorf("FABRIC_EXTRA_PATH = %q, want %q", got, "/home/fabric/bin")
 	}
 
 	// No warnings expected for a literal value
 	for _, w := range warnings {
-		if strings.Contains(w, "SCION_EXTRA_PATH") {
-			t.Errorf("unexpected warning for SCION_EXTRA_PATH: %s", w)
+		if strings.Contains(w, "FABRIC_EXTRA_PATH") {
+			t.Errorf("unexpected warning for FABRIC_EXTRA_PATH: %s", w)
 		}
 	}
 }
 
 func TestBuildAgentEnv_HubEndpointOverride(t *testing.T) {
-	t.Run("scion config hub endpoint overrides extraEnv", func(t *testing.T) {
-		scionCfg := &api.ScionConfig{
+	t.Run("fabric config hub endpoint overrides extraEnv", func(t *testing.T) {
+		fabricCfg := &api.FabricConfig{
 			Hub: &api.AgentHubConfig{
 				Endpoint: "https://tunnel.example.com",
 			},
 		}
 
 		// Simulate what Start() does: set hub endpoint in opts.Env from broker,
-		// then override with scion config hub endpoint.
+		// then override with fabric config hub endpoint.
 		extraEnv := map[string]string{
-			"SCION_HUB_ENDPOINT": "http://localhost:9810",
-			"SCION_HUB_URL":      "http://localhost:9810",
+			"FABRIC_HUB_ENDPOINT": "http://localhost:9810",
+			"FABRIC_HUB_URL":      "http://localhost:9810",
 		}
 
 		// Apply the override logic from Start()
-		if scionCfg.Hub != nil && scionCfg.Hub.Endpoint != "" {
-			extraEnv["SCION_HUB_ENDPOINT"] = scionCfg.Hub.Endpoint
-			extraEnv["SCION_HUB_URL"] = scionCfg.Hub.Endpoint
+		if fabricCfg.Hub != nil && fabricCfg.Hub.Endpoint != "" {
+			extraEnv["FABRIC_HUB_ENDPOINT"] = fabricCfg.Hub.Endpoint
+			extraEnv["FABRIC_HUB_URL"] = fabricCfg.Hub.Endpoint
 		}
 
-		env, _, _ := buildAgentEnv(scionCfg, extraEnv)
+		env, _, _ := buildAgentEnv(fabricCfg, extraEnv)
 
 		envMap := make(map[string]string)
 		for _, e := range env {
@@ -493,22 +493,22 @@ func TestBuildAgentEnv_HubEndpointOverride(t *testing.T) {
 			}
 		}
 
-		if got := envMap["SCION_HUB_ENDPOINT"]; got != "https://tunnel.example.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://tunnel.example.com', got %q", got)
+		if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "https://tunnel.example.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://tunnel.example.com', got %q", got)
 		}
-		if got := envMap["SCION_HUB_URL"]; got != "https://tunnel.example.com" {
-			t.Errorf("expected SCION_HUB_URL='https://tunnel.example.com', got %q", got)
+		if got := envMap["FABRIC_HUB_URL"]; got != "https://tunnel.example.com" {
+			t.Errorf("expected FABRIC_HUB_URL='https://tunnel.example.com', got %q", got)
 		}
 	})
 
 	t.Run("no hub config preserves extraEnv", func(t *testing.T) {
-		scionCfg := &api.ScionConfig{}
+		fabricCfg := &api.FabricConfig{}
 		extraEnv := map[string]string{
-			"SCION_HUB_ENDPOINT": "https://hub.example.com",
-			"SCION_HUB_URL":      "https://hub.example.com",
+			"FABRIC_HUB_ENDPOINT": "https://hub.example.com",
+			"FABRIC_HUB_URL":      "https://hub.example.com",
 		}
 
-		env, _, _ := buildAgentEnv(scionCfg, extraEnv)
+		env, _, _ := buildAgentEnv(fabricCfg, extraEnv)
 
 		envMap := make(map[string]string)
 		for _, e := range env {
@@ -518,45 +518,45 @@ func TestBuildAgentEnv_HubEndpointOverride(t *testing.T) {
 			}
 		}
 
-		if got := envMap["SCION_HUB_ENDPOINT"]; got != "https://hub.example.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.example.com', got %q", got)
+		if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "https://hub.example.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.example.com', got %q", got)
 		}
 	})
 }
 
-func TestScionCreatorEnvVar(t *testing.T) {
-	t.Run("SCION_CREATOR is set from OS user when not present", func(t *testing.T) {
+func TestFabricCreatorEnvVar(t *testing.T) {
+	t.Run("FABRIC_CREATOR is set from OS user when not present", func(t *testing.T) {
 		env := make(map[string]string)
-		// Simulate the logic from Start(): if SCION_CREATOR is not set, set it from os/user
-		if _, ok := env["SCION_CREATOR"]; !ok {
+		// Simulate the logic from Start(): if FABRIC_CREATOR is not set, set it from os/user
+		if _, ok := env["FABRIC_CREATOR"]; !ok {
 			if u, err := user.Current(); err == nil {
-				env["SCION_CREATOR"] = u.Username
+				env["FABRIC_CREATOR"] = u.Username
 			}
 		}
 
-		if env["SCION_CREATOR"] == "" {
-			t.Error("expected SCION_CREATOR to be set from OS user")
+		if env["FABRIC_CREATOR"] == "" {
+			t.Error("expected FABRIC_CREATOR to be set from OS user")
 		}
 
 		u, _ := user.Current()
-		if env["SCION_CREATOR"] != u.Username {
-			t.Errorf("expected SCION_CREATOR = %q, got %q", u.Username, env["SCION_CREATOR"])
+		if env["FABRIC_CREATOR"] != u.Username {
+			t.Errorf("expected FABRIC_CREATOR = %q, got %q", u.Username, env["FABRIC_CREATOR"])
 		}
 	})
 
-	t.Run("SCION_CREATOR is preserved when already set", func(t *testing.T) {
+	t.Run("FABRIC_CREATOR is preserved when already set", func(t *testing.T) {
 		env := map[string]string{
-			"SCION_CREATOR": "hub-user@example.com",
+			"FABRIC_CREATOR": "hub-user@example.com",
 		}
-		// Simulate the logic from Start(): if SCION_CREATOR is not set, set it from os/user
-		if _, ok := env["SCION_CREATOR"]; !ok {
+		// Simulate the logic from Start(): if FABRIC_CREATOR is not set, set it from os/user
+		if _, ok := env["FABRIC_CREATOR"]; !ok {
 			if u, err := user.Current(); err == nil {
-				env["SCION_CREATOR"] = u.Username
+				env["FABRIC_CREATOR"] = u.Username
 			}
 		}
 
-		if env["SCION_CREATOR"] != "hub-user@example.com" {
-			t.Errorf("expected SCION_CREATOR = %q, got %q", "hub-user@example.com", env["SCION_CREATOR"])
+		if env["FABRIC_CREATOR"] != "hub-user@example.com" {
+			t.Errorf("expected FABRIC_CREATOR = %q, got %q", "hub-user@example.com", env["FABRIC_CREATOR"])
 		}
 	})
 }
@@ -575,10 +575,10 @@ func TestStartResumeNonExistentAgent(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	// Create .scion directory structure (minimum required)
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		t.Fatalf("failed to create .scion dir: %v", err)
+	// Create .fabric directory structure (minimum required)
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		t.Fatalf("failed to create .fabric dir: %v", err)
 	}
 
 	// Create a mock runtime
@@ -593,7 +593,7 @@ func TestStartResumeNonExistentAgent(t *testing.T) {
 	// Try to resume a non-existent agent
 	opts := api.StartOptions{
 		Name:        "non-existent-agent",
-		ProjectPath: scionDir,
+		ProjectPath: fabricDir,
 		Resume:      true,
 	}
 
@@ -612,7 +612,7 @@ func TestStartResumeNonExistentAgent(t *testing.T) {
 }
 
 func TestStartResolvesHarnessConfigUser(t *testing.T) {
-	// Regression test: the container user (e.g. "scion") defined in the on-disk
+	// Regression test: the container user (e.g. "fabric") defined in the on-disk
 	// harness-config config.yaml must flow into RunConfig.UnixUsername.
 	// Previously, an empty User from settings.ResolveHarnessConfig() overwrote
 	// the default, producing empty mount paths like /home//.config/gcloud.
@@ -626,20 +626,20 @@ func TestStartResolvesHarnessConfigUser(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config with user field
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Settings without harness_configs entries (simulating default_settings.yaml)
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -648,8 +648,8 @@ profiles:
 
 	// Create project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -667,15 +667,15 @@ profiles:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
-	if capturedConfig.UnixUsername != "scion" {
-		t.Errorf("expected UnixUsername = %q, got %q", "scion", capturedConfig.UnixUsername)
+	if capturedConfig.UnixUsername != "fabric" {
+		t.Errorf("expected UnixUsername = %q, got %q", "fabric", capturedConfig.UnixUsername)
 	}
 }
 
@@ -692,20 +692,20 @@ func TestStartResolvesHarnessConfigUserSettingsOverride(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config with user field
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Settings WITH harness_configs that override the user
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 harness_configs:
   test-harness:
@@ -719,8 +719,8 @@ profiles:
 
 	// Create project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -738,7 +738,7 @@ profiles:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
@@ -767,20 +767,20 @@ func TestStartResolvesHarnessConfigUserFromAbsTemplateDir(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create a template at an absolute path (simulating hydrated template cache)
-	// with a bundled harness-config that has user: scion
+	// with a bundled harness-config that has user: fabric
 	hydratedTplDir := filepath.Join(tmpDir, "template-cache", "web-dev")
 	hcDir := filepath.Join(hydratedTplDir, "harness-configs", "claude-web")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: claude\nuser: scion\nimage: scion-claude:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: claude\nuser: fabric\nimage: fabric-claude:latest\n"), 0644)
 	_ = os.MkdirAll(filepath.Join(hcDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(hydratedTplDir, "scion-agent.json"), []byte(`{"default_harness_config": "claude-web"}`), 0644)
+	_ = os.WriteFile(filepath.Join(hydratedTplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "claude-web"}`), 0644)
 
 	// Minimal global settings (no harness_configs defined)
-	_ = os.MkdirAll(globalScionDir, 0755)
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.MkdirAll(globalFabricDir, 0755)
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -789,8 +789,8 @@ profiles:
 
 	// Create project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -809,21 +809,21 @@ profiles:
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
 		Template:    hydratedTplDir, // absolute path, simulating hydrated template
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
 		t.Fatalf("Start failed: %v", err)
 	}
 
-	if capturedConfig.UnixUsername != "scion" {
-		t.Errorf("expected UnixUsername = %q, got %q", "scion", capturedConfig.UnixUsername)
+	if capturedConfig.UnixUsername != "fabric" {
+		t.Errorf("expected UnixUsername = %q, got %q", "fabric", capturedConfig.UnixUsername)
 	}
 }
 
 func TestStartResolvesHarnessConfigFromNamedTemplate(t *testing.T) {
 	// Regression test: when a non-default template bundles a custom harness-config
-	// (e.g. .scion/templates/test4/harness-configs/claude2), the template name
+	// (e.g. .fabric/templates/test4/harness-configs/claude2), the template name
 	// stored in agent-info.json must be the derived template name (e.g. "test4"),
 	// not the base "default" template. Previously, displayTemplateName used
 	// chain[0].Name which was always "default" for non-default templates, causing
@@ -839,29 +839,29 @@ func TestStartResolvesHarnessConfigFromNamedTemplate(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create a "default" template (required as base layer)
-	defaultTplDir := filepath.Join(globalScionDir, "templates", "default")
+	defaultTplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(defaultTplDir, 0755)
-	_ = os.WriteFile(filepath.Join(defaultTplDir, "scion-agent.yaml"), []byte("default_harness_config: claude\n"), 0644)
+	_ = os.WriteFile(filepath.Join(defaultTplDir, "fabric-agent.yaml"), []byte("default_harness_config: claude\n"), 0644)
 
 	// Seed the default "claude" harness-config at global level
-	claudeHcDir := filepath.Join(globalScionDir, "harness-configs", "claude")
+	claudeHcDir := filepath.Join(globalFabricDir, "harness-configs", "claude")
 	_ = os.MkdirAll(filepath.Join(claudeHcDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(claudeHcDir, "config.yaml"), []byte("harness: claude\nuser: scion\nimage: scion-claude:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(claudeHcDir, "config.yaml"), []byte("harness: claude\nuser: fabric\nimage: fabric-claude:latest\n"), 0644)
 
 	// Create a non-default template "test4" with a bundled harness-config "claude2"
-	test4TplDir := filepath.Join(globalScionDir, "templates", "test4")
+	test4TplDir := filepath.Join(globalFabricDir, "templates", "test4")
 	_ = os.MkdirAll(test4TplDir, 0755)
-	_ = os.WriteFile(filepath.Join(test4TplDir, "scion-agent.yaml"), []byte("default_harness_config: claude2\n"), 0644)
+	_ = os.WriteFile(filepath.Join(test4TplDir, "fabric-agent.yaml"), []byte("default_harness_config: claude2\n"), 0644)
 
 	claude2HcDir := filepath.Join(test4TplDir, "harness-configs", "claude2")
 	_ = os.MkdirAll(filepath.Join(claude2HcDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(claude2HcDir, "config.yaml"), []byte("harness: claude\nuser: scion\nimage: custom-claude:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(claude2HcDir, "config.yaml"), []byte("harness: claude\nuser: fabric\nimage: custom-claude:latest\n"), 0644)
 
 	// Minimal global settings
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -870,8 +870,8 @@ profiles:
 
 	// Create project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -890,7 +890,7 @@ profiles:
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
 		Template:    "test4",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
@@ -900,8 +900,8 @@ profiles:
 	// The harness-config "claude2" specifies image "custom-claude:latest"
 	// If the template name was incorrectly stored as "default", this would
 	// fall back to the default image instead.
-	if capturedConfig.UnixUsername != "scion" {
-		t.Errorf("expected UnixUsername = %q, got %q", "scion", capturedConfig.UnixUsername)
+	if capturedConfig.UnixUsername != "fabric" {
+		t.Errorf("expected UnixUsername = %q, got %q", "fabric", capturedConfig.UnixUsername)
 	}
 }
 
@@ -944,7 +944,7 @@ func TestBuildAgentEnv_TelemetryInjection(t *testing.T) {
 	cloudEnabled := true
 	insecure := false
 
-	scionCfg := &api.ScionConfig{
+	fabricCfg := &api.FabricConfig{
 		Telemetry: &api.TelemetryConfig{
 			Enabled: &enabled,
 			Cloud: &api.TelemetryCloudConfig{
@@ -961,8 +961,8 @@ func TestBuildAgentEnv_TelemetryInjection(t *testing.T) {
 	opts := make(map[string]string)
 
 	// Replicate the injection logic from Start()
-	if scionCfg.Telemetry != nil {
-		telemetryEnv := config.TelemetryConfigToEnv(scionCfg.Telemetry)
+	if fabricCfg.Telemetry != nil {
+		telemetryEnv := config.TelemetryConfigToEnv(fabricCfg.Telemetry)
 		for k, v := range telemetryEnv {
 			if _, exists := opts[k]; !exists {
 				opts[k] = v
@@ -970,7 +970,7 @@ func TestBuildAgentEnv_TelemetryInjection(t *testing.T) {
 		}
 	}
 
-	env, _, _ := buildAgentEnv(scionCfg, opts)
+	env, _, _ := buildAgentEnv(fabricCfg, opts)
 
 	envMap := make(map[string]string)
 	for _, e := range env {
@@ -981,11 +981,11 @@ func TestBuildAgentEnv_TelemetryInjection(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		"SCION_TELEMETRY_ENABLED":       "true",
-		"SCION_TELEMETRY_CLOUD_ENABLED": "true",
-		"SCION_OTEL_ENDPOINT":           "otel.example.com:4317",
-		"SCION_OTEL_PROTOCOL":           "grpc",
-		"SCION_OTEL_INSECURE":           "false",
+		"FABRIC_TELEMETRY_ENABLED":       "true",
+		"FABRIC_TELEMETRY_CLOUD_ENABLED": "true",
+		"FABRIC_OTEL_ENDPOINT":           "otel.example.com:4317",
+		"FABRIC_OTEL_PROTOCOL":           "grpc",
+		"FABRIC_OTEL_INSECURE":           "false",
 	}
 
 	for k, want := range expected {
@@ -1009,7 +1009,7 @@ func TestTelemetryEnabledFlag(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		cfg      *api.ScionConfig
+		cfg      *api.FabricConfig
 		expected bool
 	}{
 		{
@@ -1019,22 +1019,22 @@ func TestTelemetryEnabledFlag(t *testing.T) {
 		},
 		{
 			name:     "nil telemetry",
-			cfg:      &api.ScionConfig{},
+			cfg:      &api.FabricConfig{},
 			expected: false,
 		},
 		{
 			name:     "telemetry enabled nil (default on)",
-			cfg:      &api.ScionConfig{Telemetry: &api.TelemetryConfig{}},
+			cfg:      &api.FabricConfig{Telemetry: &api.TelemetryConfig{}},
 			expected: true,
 		},
 		{
 			name:     "telemetry explicitly enabled",
-			cfg:      &api.ScionConfig{Telemetry: &api.TelemetryConfig{Enabled: boolPtr(true)}},
+			cfg:      &api.FabricConfig{Telemetry: &api.TelemetryConfig{Enabled: boolPtr(true)}},
 			expected: true,
 		},
 		{
 			name:     "telemetry explicitly disabled",
-			cfg:      &api.ScionConfig{Telemetry: &api.TelemetryConfig{Enabled: boolPtr(false)}},
+			cfg:      &api.FabricConfig{Telemetry: &api.TelemetryConfig{Enabled: boolPtr(false)}},
 			expected: false,
 		},
 	}
@@ -1051,7 +1051,7 @@ func TestTelemetryEnabledFlag(t *testing.T) {
 }
 
 func TestTaskFlagRunConfig(t *testing.T) {
-	// Verify that when task_flag is set in scion-agent.json, the task is
+	// Verify that when task_flag is set in fabric-agent.json, the task is
 	// delivered via CommandArgs (as a flag) instead of as a positional arg,
 	// and RunConfig.Task is empty.
 	tmpDir := t.TempDir()
@@ -1064,19 +1064,19 @@ func TestTaskFlagRunConfig(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: generic\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: generic\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1084,8 +1084,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	t.Run("task_flag moves task into CommandArgs", func(t *testing.T) {
 		var capturedConfig runtime.RunConfig
@@ -1099,9 +1099,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "flag-test")
+		agentDir := filepath.Join(projectFabricDir, "agents", "flag-test")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "generic",
 			"task_flag": "--input",
 			"command_args": ["adk", "run", "/opt/agent"]
@@ -1110,7 +1110,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "flag-test",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			Task:        "do something",
 			NoAuth:      true,
 		})
@@ -1149,9 +1149,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "noflag-test")
+		agentDir := filepath.Join(projectFabricDir, "agents", "noflag-test")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "generic",
 			"command_args": ["adk", "run", "/opt/agent"]
 		}`), 0644)
@@ -1159,7 +1159,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "noflag-test",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			Task:        "do something",
 			NoAuth:      true,
 		})
@@ -1194,19 +1194,19 @@ func TestTelemetryEnabledRunConfig(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1214,8 +1214,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	t.Run("telemetry enabled passes TelemetryEnabled to RunConfig", func(t *testing.T) {
 		var capturedConfig runtime.RunConfig
@@ -1229,10 +1229,10 @@ profiles:
 			},
 		}
 
-		// Create agent with telemetry enabled in scion-agent.json
-		agentDir := filepath.Join(projectScionDir, "agents", "telem-on")
+		// Create agent with telemetry enabled in fabric-agent.json
+		agentDir := filepath.Join(projectFabricDir, "agents", "telem-on")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"telemetry": {"enabled": true}
 		}`), 0644)
@@ -1240,7 +1240,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "telem-on",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 		})
 		if err != nil {
@@ -1264,9 +1264,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "telem-off")
+		agentDir := filepath.Join(projectFabricDir, "agents", "telem-off")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"telemetry": {"enabled": false}
 		}`), 0644)
@@ -1274,7 +1274,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "telem-off",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 		})
 		if err != nil {
@@ -1289,7 +1289,7 @@ profiles:
 
 func TestTelemetryOverrideFlag(t *testing.T) {
 	// Verify that TelemetryOverride in StartOptions takes highest priority,
-	// overriding the value from scion-agent.json.
+	// overriding the value from fabric-agent.json.
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1300,17 +1300,17 @@ func TestTelemetryOverrideFlag(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1318,8 +1318,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	boolPtr := func(b bool) *bool { return &b }
 
@@ -1335,9 +1335,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "override-enable")
+		agentDir := filepath.Join(projectFabricDir, "agents", "override-enable")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"telemetry": {"enabled": false}
 		}`), 0644)
@@ -1345,7 +1345,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:              "override-enable",
-			ProjectPath:       projectScionDir,
+			ProjectPath:       projectFabricDir,
 			NoAuth:            true,
 			TelemetryOverride: boolPtr(true),
 		})
@@ -1370,9 +1370,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "override-disable")
+		agentDir := filepath.Join(projectFabricDir, "agents", "override-disable")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"telemetry": {"enabled": true}
 		}`), 0644)
@@ -1380,7 +1380,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:              "override-disable",
-			ProjectPath:       projectScionDir,
+			ProjectPath:       projectFabricDir,
 			NoAuth:            true,
 			TelemetryOverride: boolPtr(false),
 		})
@@ -1405,16 +1405,16 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "override-no-config")
+		agentDir := filepath.Join(projectFabricDir, "agents", "override-no-config")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini"
 		}`), 0644)
 
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:              "override-no-config",
-			ProjectPath:       projectScionDir,
+			ProjectPath:       projectFabricDir,
 			NoAuth:            true,
 			TelemetryOverride: boolPtr(true),
 		})
@@ -1430,7 +1430,7 @@ profiles:
 
 func TestSettingsTelemetryMergedIntoStart(t *testing.T) {
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "SCION_") {
+		if strings.HasPrefix(e, "FABRIC_") {
 			k := strings.SplitN(e, "=", 2)[0]
 			t.Setenv(k, "") // registers cleanup to restore original value
 			os.Unsetenv(k)  //nolint:errcheck
@@ -1448,19 +1448,19 @@ func TestSettingsTelemetryMergedIntoStart(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Settings with telemetry cloud config but telemetry.enabled: false
 	// (the override should enable it)
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1474,8 +1474,8 @@ telemetry:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	boolPtr := func(b bool) *bool { return &b }
 
@@ -1490,9 +1490,9 @@ telemetry:
 		},
 	}
 
-	agentDir := filepath.Join(projectScionDir, "agents", "settings-telem")
+	agentDir := filepath.Join(projectFabricDir, "agents", "settings-telem")
 	_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 		"harness": "gemini"
 	}`), 0644)
 
@@ -1500,7 +1500,7 @@ telemetry:
 	env := make(map[string]string)
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:              "settings-telem",
-		ProjectPath:       projectScionDir,
+		ProjectPath:       projectFabricDir,
 		NoAuth:            true,
 		TelemetryOverride: boolPtr(true),
 		Env:               env,
@@ -1514,20 +1514,20 @@ telemetry:
 	}
 
 	// Verify that cloud config env vars from settings were injected
-	if got := env["SCION_OTEL_ENDPOINT"]; got != "otel-collector.example.com:4317" {
-		t.Errorf("SCION_OTEL_ENDPOINT = %q, want %q", got, "otel-collector.example.com:4317")
+	if got := env["FABRIC_OTEL_ENDPOINT"]; got != "otel-collector.example.com:4317" {
+		t.Errorf("FABRIC_OTEL_ENDPOINT = %q, want %q", got, "otel-collector.example.com:4317")
 	}
-	if got := env["SCION_OTEL_PROTOCOL"]; got != "grpc" {
-		t.Errorf("SCION_OTEL_PROTOCOL = %q, want %q", got, "grpc")
+	if got := env["FABRIC_OTEL_PROTOCOL"]; got != "grpc" {
+		t.Errorf("FABRIC_OTEL_PROTOCOL = %q, want %q", got, "grpc")
 	}
-	if got := env["SCION_TELEMETRY_CLOUD_ENABLED"]; got != "true" {
-		t.Errorf("SCION_TELEMETRY_CLOUD_ENABLED = %q, want %q", got, "true")
+	if got := env["FABRIC_TELEMETRY_CLOUD_ENABLED"]; got != "true" {
+		t.Errorf("FABRIC_TELEMETRY_CLOUD_ENABLED = %q, want %q", got, "true")
 	}
 }
 
 func TestHarnessAuthOverrideFlag(t *testing.T) {
 	// Verify that HarnessAuth in StartOptions takes highest priority,
-	// overriding the auth_selected_type from scion-agent.json.
+	// overriding the auth_selected_type from fabric-agent.json.
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1538,17 +1538,17 @@ func TestHarnessAuthOverrideFlag(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1556,8 +1556,8 @@ profiles:
 `), 0644)
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	t.Run("override changes auth_selected_type from api-key to vertex-ai", func(t *testing.T) {
 		mockRT := &runtime.MockRuntime{
@@ -1569,9 +1569,9 @@ profiles:
 			},
 		}
 
-		agentDir := filepath.Join(projectScionDir, "agents", "auth-override")
+		agentDir := filepath.Join(projectFabricDir, "agents", "auth-override")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"auth_selectedType": "api-key"
 		}`), 0644)
@@ -1579,7 +1579,7 @@ profiles:
 		mgr := NewManager(mockRT)
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "auth-override",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 			HarnessAuth: "vertex-ai",
 		})
@@ -1587,14 +1587,14 @@ profiles:
 			t.Fatalf("Start failed: %v", err)
 		}
 
-		// The override is applied in-memory to finalScionCfg.AuthSelectedType
-		// before container launch. Verify the scion-agent.json was updated.
-		data, err := os.ReadFile(filepath.Join(agentDir, "scion-agent.json"))
+		// The override is applied in-memory to finalFabricCfg.AuthSelectedType
+		// before container launch. Verify the fabric-agent.json was updated.
+		data, err := os.ReadFile(filepath.Join(agentDir, "fabric-agent.json"))
 		if err != nil {
-			t.Fatalf("failed to read scion-agent.json: %v", err)
+			t.Fatalf("failed to read fabric-agent.json: %v", err)
 		}
 		if !strings.Contains(string(data), `"vertex-ai"`) {
-			t.Errorf("expected scion-agent.json to contain vertex-ai, got: %s", string(data))
+			t.Errorf("expected fabric-agent.json to contain vertex-ai, got: %s", string(data))
 		}
 	})
 }
@@ -1603,7 +1603,7 @@ func TestBuildAgentEnv_TelemetryNoOverrideExplicit(t *testing.T) {
 	// Explicit opts.Env values must not be overwritten by telemetry config.
 	enabled := true
 
-	scionCfg := &api.ScionConfig{
+	fabricCfg := &api.FabricConfig{
 		Telemetry: &api.TelemetryConfig{
 			Enabled: &enabled,
 			Cloud: &api.TelemetryCloudConfig{
@@ -1614,12 +1614,12 @@ func TestBuildAgentEnv_TelemetryNoOverrideExplicit(t *testing.T) {
 
 	// Pre-set an explicit override in opts.Env (e.g. from Hub/broker)
 	opts := map[string]string{
-		"SCION_OTEL_ENDPOINT": "from-broker.example.com:4317",
+		"FABRIC_OTEL_ENDPOINT": "from-broker.example.com:4317",
 	}
 
 	// Replicate the injection logic from Start()
-	if scionCfg.Telemetry != nil {
-		telemetryEnv := config.TelemetryConfigToEnv(scionCfg.Telemetry)
+	if fabricCfg.Telemetry != nil {
+		telemetryEnv := config.TelemetryConfigToEnv(fabricCfg.Telemetry)
 		for k, v := range telemetryEnv {
 			if _, exists := opts[k]; !exists {
 				opts[k] = v
@@ -1627,7 +1627,7 @@ func TestBuildAgentEnv_TelemetryNoOverrideExplicit(t *testing.T) {
 		}
 	}
 
-	env, _, _ := buildAgentEnv(scionCfg, opts)
+	env, _, _ := buildAgentEnv(fabricCfg, opts)
 
 	envMap := make(map[string]string)
 	for _, e := range env {
@@ -1638,29 +1638,29 @@ func TestBuildAgentEnv_TelemetryNoOverrideExplicit(t *testing.T) {
 	}
 
 	// The broker's explicit value should win
-	if got := envMap["SCION_OTEL_ENDPOINT"]; got != "from-broker.example.com:4317" {
-		t.Errorf("SCION_OTEL_ENDPOINT = %q, want %q (explicit override should win)",
+	if got := envMap["FABRIC_OTEL_ENDPOINT"]; got != "from-broker.example.com:4317" {
+		t.Errorf("FABRIC_OTEL_ENDPOINT = %q, want %q (explicit override should win)",
 			got, "from-broker.example.com:4317")
 	}
 
 	// But the telemetry-derived enabled var should still be present
-	if got := envMap["SCION_TELEMETRY_ENABLED"]; got != "true" {
-		t.Errorf("SCION_TELEMETRY_ENABLED = %q, want %q", got, "true")
+	if got := envMap["FABRIC_TELEMETRY_ENABLED"]; got != "true" {
+		t.Errorf("FABRIC_TELEMETRY_ENABLED = %q, want %q", got, "true")
 	}
 }
 
 func TestBuildAgentEnv_HubEnvVarsSurviveMerge(t *testing.T) {
 	// Verify that hub env vars injected into opts.Env (from project settings
 	// or dev token resolution) survive the buildAgentEnv merge.
-	scionCfg := &api.ScionConfig{}
+	fabricCfg := &api.FabricConfig{}
 	extraEnv := map[string]string{
-		"SCION_HUB_ENDPOINT": "http://localhost:9810",
-		"SCION_HUB_URL":      "http://localhost:9810",
-		"SCION_AUTH_TOKEN":   "scion-dev-test-token-123",
-		"SCION_AGENT_NAME":   "test-agent",
+		"FABRIC_HUB_ENDPOINT": "http://localhost:9810",
+		"FABRIC_HUB_URL":      "http://localhost:9810",
+		"FABRIC_AUTH_TOKEN":   "fabric-dev-test-token-123",
+		"FABRIC_AGENT_NAME":   "test-agent",
 	}
 
-	env, _, _ := buildAgentEnv(scionCfg, extraEnv)
+	env, _, _ := buildAgentEnv(fabricCfg, extraEnv)
 
 	envMap := make(map[string]string)
 	for _, e := range env {
@@ -1671,10 +1671,10 @@ func TestBuildAgentEnv_HubEnvVarsSurviveMerge(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		"SCION_HUB_ENDPOINT": "http://localhost:9810",
-		"SCION_HUB_URL":      "http://localhost:9810",
-		"SCION_AUTH_TOKEN":   "scion-dev-test-token-123",
-		"SCION_AGENT_NAME":   "test-agent",
+		"FABRIC_HUB_ENDPOINT": "http://localhost:9810",
+		"FABRIC_HUB_URL":      "http://localhost:9810",
+		"FABRIC_AUTH_TOKEN":   "fabric-dev-test-token-123",
+		"FABRIC_AGENT_NAME":   "test-agent",
 	}
 	for k, want := range expected {
 		got, ok := envMap[k]
@@ -1760,7 +1760,7 @@ func TestBuildAuthEnvOverlay_EmptyValueOverriddenBySecret(t *testing.T) {
 func TestFilterResolvedSecretsForResolvedAuth(t *testing.T) {
 	secrets := []api.ResolvedSecret{
 		{Name: "GEMINI_API_KEY", Type: "environment", Target: "GEMINI_API_KEY", Value: "gemini"},
-		{Name: "gcloud-adc", Type: "file", Target: "/home/scion/.config/gcloud/application_default_credentials.json", Value: "adc"},
+		{Name: "gcloud-adc", Type: "file", Target: "/home/fabric/.config/gcloud/application_default_credentials.json", Value: "adc"},
 		{Name: "NOT_AUTH_SECRET", Type: "environment", Target: "NOT_AUTH_SECRET", Value: "keep"},
 	}
 	resolved := &api.ResolvedAuth{
@@ -1899,7 +1899,7 @@ func TestFilterResolvedSecretsForResolvedAuth_ConfigDrivenKeys(t *testing.T) {
 
 func TestStartInjectsHubEnvFromProjectSettings(t *testing.T) {
 	// When project settings have hub enabled with an endpoint, Start() should
-	// inject SCION_HUB_ENDPOINT and SCION_HUB_URL into the container env.
+	// inject FABRIC_HUB_ENDPOINT and FABRIC_HUB_URL into the container env.
 	tmpDir := t.TempDir()
 
 	oldWd, _ := os.Getwd()
@@ -1909,25 +1909,25 @@ func TestStartInjectsHubEnvFromProjectSettings(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	// Clear env vars that would interfere with settings loading
-	for _, k := range []string{"SCION_DEV_TOKEN", "SCION_AUTH_TOKEN", "SCION_DEV_TOKEN_FILE", "SCION_HUB_ENDPOINT", "SCION_HUB_URL"} {
+	for _, k := range []string{"FABRIC_DEV_TOKEN", "FABRIC_AUTH_TOKEN", "FABRIC_DEV_TOKEN_FILE", "FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL"} {
 		t.Setenv(k, "")
 		_ = os.Unsetenv(k)
 	}
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Global settings
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -1936,15 +1936,15 @@ profiles:
 
 	// Create project directory with hub-enabled settings
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	_ = os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(`hub:
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	_ = os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(`hub:
   enabled: true
   endpoint: "http://localhost:9810"
 `), 0644)
 
 	// Write a dev-token file so the token resolution finds it
-	_ = os.WriteFile(filepath.Join(globalScionDir, "dev-token"), []byte("scion-dev-test-token-abc"), 0644)
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "dev-token"), []byte("fabric-dev-test-token-abc"), 0644)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -1962,7 +1962,7 @@ profiles:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
@@ -1978,24 +1978,24 @@ profiles:
 		}
 	}
 
-	if got := envMap["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-		t.Errorf("SCION_HUB_ENDPOINT = %q, want %q", got, "http://localhost:9810")
+	if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+		t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q", got, "http://localhost:9810")
 	}
-	if got := envMap["SCION_HUB_URL"]; got != "http://localhost:9810" {
-		t.Errorf("SCION_HUB_URL = %q, want %q", got, "http://localhost:9810")
+	if got := envMap["FABRIC_HUB_URL"]; got != "http://localhost:9810" {
+		t.Errorf("FABRIC_HUB_URL = %q, want %q", got, "http://localhost:9810")
 	}
-	// SCION_AUTH_TOKEN should NOT be in the container env (it's written to the token file instead)
-	if _, exists := envMap["SCION_AUTH_TOKEN"]; exists {
-		t.Error("expected SCION_AUTH_TOKEN to NOT be in container env (should be in token file)")
+	// FABRIC_AUTH_TOKEN should NOT be in the container env (it's written to the token file instead)
+	if _, exists := envMap["FABRIC_AUTH_TOKEN"]; exists {
+		t.Error("expected FABRIC_AUTH_TOKEN to NOT be in container env (should be in token file)")
 	}
 
 	// Verify the token was written to the agent home token file
-	tokenData, err := os.ReadFile(filepath.Join(capturedConfig.HomeDir, ".scion", "scion-token"))
+	tokenData, err := os.ReadFile(filepath.Join(capturedConfig.HomeDir, ".fabric", "fabric-token"))
 	if err != nil {
 		t.Fatalf("failed to read token file: %v", err)
 	}
-	if got := strings.TrimSpace(string(tokenData)); got != "scion-dev-test-token-abc" {
-		t.Errorf("token file = %q, want %q", got, "scion-dev-test-token-abc")
+	if got := strings.TrimSpace(string(tokenData)); got != "fabric-dev-test-token-abc" {
+		t.Errorf("token file = %q, want %q", got, "fabric-dev-test-token-abc")
 	}
 }
 
@@ -2012,20 +2012,20 @@ func TestStartPreservesExplicitHubEndpoint(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Global settings
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -2034,9 +2034,9 @@ profiles:
 
 	// Create project directory with hub-enabled settings (different endpoint)
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	_ = os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(`hub:
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	_ = os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(`hub:
   enabled: true
   endpoint: "http://project-setting:9810"
 `), 0644)
@@ -2057,10 +2057,10 @@ profiles:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 		Env: map[string]string{
-			"SCION_HUB_ENDPOINT": "http://broker-dispatch:9810",
+			"FABRIC_HUB_ENDPOINT": "http://broker-dispatch:9810",
 		},
 	})
 	if err != nil {
@@ -2076,47 +2076,47 @@ profiles:
 	}
 
 	// Broker-dispatched endpoint should be preserved, not overwritten by project settings
-	if got := envMap["SCION_HUB_ENDPOINT"]; got != "http://broker-dispatch:9810" {
-		t.Errorf("SCION_HUB_ENDPOINT = %q, want %q (explicit should win over project settings)", got, "http://broker-dispatch:9810")
+	if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "http://broker-dispatch:9810" {
+		t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q (explicit should win over project settings)", got, "http://broker-dispatch:9810")
 	}
 }
 
-func TestBuildAgentEnv_EnvKeyScionHubEndpointOverride(t *testing.T) {
-	// Unit test verifying that when scionCfg.Env has SCION_HUB_ENDPOINT and
+func TestBuildAgentEnv_EnvKeyFabricHubEndpointOverride(t *testing.T) {
+	// Unit test verifying that when fabricCfg.Env has FABRIC_HUB_ENDPOINT and
 	// it's pre-applied to extraEnv (simulating the new run.go logic), the
 	// env-section value wins over the project/broker value.
-	t.Run("env section SCION_HUB_ENDPOINT overrides all via pre-apply", func(t *testing.T) {
-		scionCfg := &api.ScionConfig{
+	t.Run("env section FABRIC_HUB_ENDPOINT overrides all via pre-apply", func(t *testing.T) {
+		fabricCfg := &api.FabricConfig{
 			Hub: &api.AgentHubConfig{
 				Endpoint: "https://hub-endpoint.example.com",
 			},
 			Env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://host.docker.internal:8080",
+				"FABRIC_HUB_ENDPOINT": "http://host.docker.internal:8080",
 			},
 		}
 
 		// Simulate the priority chain from Start():
 		// 1. CLI/project settings sets initial value
 		extraEnv := map[string]string{
-			"SCION_HUB_ENDPOINT": "http://localhost:8080",
-			"SCION_HUB_URL":      "http://localhost:8080",
+			"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
+			"FABRIC_HUB_URL":      "http://localhost:8080",
 		}
 
 		// 2. hub.endpoint overrides
-		if scionCfg.Hub != nil && scionCfg.Hub.Endpoint != "" {
-			extraEnv["SCION_HUB_ENDPOINT"] = scionCfg.Hub.Endpoint
-			extraEnv["SCION_HUB_URL"] = scionCfg.Hub.Endpoint
+		if fabricCfg.Hub != nil && fabricCfg.Hub.Endpoint != "" {
+			extraEnv["FABRIC_HUB_ENDPOINT"] = fabricCfg.Hub.Endpoint
+			extraEnv["FABRIC_HUB_URL"] = fabricCfg.Hub.Endpoint
 		}
 
-		// 3. env section SCION_HUB_ENDPOINT takes final priority
-		if scionCfg.Env != nil {
-			if ep, ok := scionCfg.Env["SCION_HUB_ENDPOINT"]; ok && ep != "" {
-				extraEnv["SCION_HUB_ENDPOINT"] = ep
-				extraEnv["SCION_HUB_URL"] = ep
+		// 3. env section FABRIC_HUB_ENDPOINT takes final priority
+		if fabricCfg.Env != nil {
+			if ep, ok := fabricCfg.Env["FABRIC_HUB_ENDPOINT"]; ok && ep != "" {
+				extraEnv["FABRIC_HUB_ENDPOINT"] = ep
+				extraEnv["FABRIC_HUB_URL"] = ep
 			}
 		}
 
-		env, _, _ := buildAgentEnv(scionCfg, extraEnv)
+		env, _, _ := buildAgentEnv(fabricCfg, extraEnv)
 
 		envMap := make(map[string]string)
 		for _, e := range env {
@@ -2127,16 +2127,16 @@ func TestBuildAgentEnv_EnvKeyScionHubEndpointOverride(t *testing.T) {
 		}
 
 		// The env section value should be the final winner
-		if got := envMap["SCION_HUB_ENDPOINT"]; got != "http://host.docker.internal:8080" {
-			t.Errorf("SCION_HUB_ENDPOINT = %q, want %q (env section should win)", got, "http://host.docker.internal:8080")
+		if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "http://host.docker.internal:8080" {
+			t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q (env section should win)", got, "http://host.docker.internal:8080")
 		}
-		if got := envMap["SCION_HUB_URL"]; got != "http://host.docker.internal:8080" {
-			t.Errorf("SCION_HUB_URL = %q, want %q (env section should win)", got, "http://host.docker.internal:8080")
+		if got := envMap["FABRIC_HUB_URL"]; got != "http://host.docker.internal:8080" {
+			t.Errorf("FABRIC_HUB_URL = %q, want %q (env section should win)", got, "http://host.docker.internal:8080")
 		}
 	})
 
 	t.Run("no env section key preserves hub.endpoint", func(t *testing.T) {
-		scionCfg := &api.ScionConfig{
+		fabricCfg := &api.FabricConfig{
 			Hub: &api.AgentHubConfig{
 				Endpoint: "https://hub-endpoint.example.com",
 			},
@@ -2146,25 +2146,25 @@ func TestBuildAgentEnv_EnvKeyScionHubEndpointOverride(t *testing.T) {
 		}
 
 		extraEnv := map[string]string{
-			"SCION_HUB_ENDPOINT": "http://localhost:8080",
-			"SCION_HUB_URL":      "http://localhost:8080",
+			"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
+			"FABRIC_HUB_URL":      "http://localhost:8080",
 		}
 
 		// hub.endpoint overrides
-		if scionCfg.Hub != nil && scionCfg.Hub.Endpoint != "" {
-			extraEnv["SCION_HUB_ENDPOINT"] = scionCfg.Hub.Endpoint
-			extraEnv["SCION_HUB_URL"] = scionCfg.Hub.Endpoint
+		if fabricCfg.Hub != nil && fabricCfg.Hub.Endpoint != "" {
+			extraEnv["FABRIC_HUB_ENDPOINT"] = fabricCfg.Hub.Endpoint
+			extraEnv["FABRIC_HUB_URL"] = fabricCfg.Hub.Endpoint
 		}
 
-		// No SCION_HUB_ENDPOINT in env section — should not change
-		if scionCfg.Env != nil {
-			if ep, ok := scionCfg.Env["SCION_HUB_ENDPOINT"]; ok && ep != "" {
-				extraEnv["SCION_HUB_ENDPOINT"] = ep
-				extraEnv["SCION_HUB_URL"] = ep
+		// No FABRIC_HUB_ENDPOINT in env section — should not change
+		if fabricCfg.Env != nil {
+			if ep, ok := fabricCfg.Env["FABRIC_HUB_ENDPOINT"]; ok && ep != "" {
+				extraEnv["FABRIC_HUB_ENDPOINT"] = ep
+				extraEnv["FABRIC_HUB_URL"] = ep
 			}
 		}
 
-		env, _, _ := buildAgentEnv(scionCfg, extraEnv)
+		env, _, _ := buildAgentEnv(fabricCfg, extraEnv)
 
 		envMap := make(map[string]string)
 		for _, e := range env {
@@ -2174,8 +2174,8 @@ func TestBuildAgentEnv_EnvKeyScionHubEndpointOverride(t *testing.T) {
 			}
 		}
 
-		if got := envMap["SCION_HUB_ENDPOINT"]; got != "https://hub-endpoint.example.com" {
-			t.Errorf("SCION_HUB_ENDPOINT = %q, want %q (hub.endpoint should win when no env key)", got, "https://hub-endpoint.example.com")
+		if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "https://hub-endpoint.example.com" {
+			t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q (hub.endpoint should win when no env key)", got, "https://hub-endpoint.example.com")
 		}
 	})
 }
@@ -2195,27 +2195,27 @@ func TestStartSuppressesHubEnvWhenHubDisabled(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	// Clear dev token env vars so we control the test
-	for _, k := range []string{"SCION_DEV_TOKEN", "SCION_AUTH_TOKEN", "SCION_DEV_TOKEN_FILE"} {
+	for _, k := range []string{"FABRIC_DEV_TOKEN", "FABRIC_AUTH_TOKEN", "FABRIC_DEV_TOKEN_FILE"} {
 		if old, ok := os.LookupEnv(k); ok {
 			defer func() { _ = os.Setenv(k, old) }()
 			_ = os.Unsetenv(k)
 		}
 	}
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Global settings
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -2224,15 +2224,15 @@ profiles:
 
 	// Create project directory with hub explicitly DISABLED but endpoint configured
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	_ = os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(`hub:
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	_ = os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(`hub:
   enabled: false
   endpoint: "http://localhost:9810"
 `), 0644)
 
 	// Write a dev-token file (should NOT be used since hub is disabled)
-	_ = os.WriteFile(filepath.Join(globalScionDir, "dev-token"), []byte("scion-dev-test-token-abc"), 0644)
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "dev-token"), []byte("fabric-dev-test-token-abc"), 0644)
 
 	t.Run("project settings hub disabled suppresses hub env", func(t *testing.T) {
 		var capturedConfig runtime.RunConfig
@@ -2250,7 +2250,7 @@ profiles:
 
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "test-agent",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 		})
 		if err != nil {
@@ -2265,22 +2265,22 @@ profiles:
 			}
 		}
 
-		if _, exists := envMap["SCION_HUB_ENDPOINT"]; exists {
-			t.Error("expected SCION_HUB_ENDPOINT to NOT be set when hub.enabled=false")
+		if _, exists := envMap["FABRIC_HUB_ENDPOINT"]; exists {
+			t.Error("expected FABRIC_HUB_ENDPOINT to NOT be set when hub.enabled=false")
 		}
-		if _, exists := envMap["SCION_HUB_URL"]; exists {
-			t.Error("expected SCION_HUB_URL to NOT be set when hub.enabled=false")
+		if _, exists := envMap["FABRIC_HUB_URL"]; exists {
+			t.Error("expected FABRIC_HUB_URL to NOT be set when hub.enabled=false")
 		}
-		if _, exists := envMap["SCION_AUTH_TOKEN"]; exists {
-			t.Error("expected SCION_AUTH_TOKEN to NOT be set when hub.enabled=false")
+		if _, exists := envMap["FABRIC_AUTH_TOKEN"]; exists {
+			t.Error("expected FABRIC_AUTH_TOKEN to NOT be set when hub.enabled=false")
 		}
 	})
 
 	t.Run("agent-level hub endpoint suppressed when hub disabled", func(t *testing.T) {
-		// Agent scion-agent.json has hub.endpoint but project says hub.enabled=false
-		agentDir := filepath.Join(projectScionDir, "agents", "hub-disabled-agent")
+		// Agent fabric-agent.json has hub.endpoint but project says hub.enabled=false
+		agentDir := filepath.Join(projectFabricDir, "agents", "hub-disabled-agent")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"hub": {
 				"endpoint": "http://agent-hub:9810"
@@ -2302,7 +2302,7 @@ profiles:
 
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "hub-disabled-agent",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 		})
 		if err != nil {
@@ -2317,19 +2317,19 @@ profiles:
 			}
 		}
 
-		if _, exists := envMap["SCION_HUB_ENDPOINT"]; exists {
-			t.Error("expected SCION_HUB_ENDPOINT to NOT be set when hub.enabled=false, even with agent hub.endpoint")
+		if _, exists := envMap["FABRIC_HUB_ENDPOINT"]; exists {
+			t.Error("expected FABRIC_HUB_ENDPOINT to NOT be set when hub.enabled=false, even with agent hub.endpoint")
 		}
 	})
 
 	t.Run("template env section hub endpoint suppressed when hub disabled", func(t *testing.T) {
-		// Agent scion-agent.json has env.SCION_HUB_ENDPOINT but project says hub.enabled=false
-		agentDir := filepath.Join(projectScionDir, "agents", "hub-disabled-env")
+		// Agent fabric-agent.json has env.FABRIC_HUB_ENDPOINT but project says hub.enabled=false
+		agentDir := filepath.Join(projectFabricDir, "agents", "hub-disabled-env")
 		_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-		_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+		_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 			"harness": "gemini",
 			"env": {
-				"SCION_HUB_ENDPOINT": "http://host.docker.internal:8080"
+				"FABRIC_HUB_ENDPOINT": "http://host.docker.internal:8080"
 			}
 		}`), 0644)
 
@@ -2348,7 +2348,7 @@ profiles:
 
 		_, err := mgr.Start(context.Background(), api.StartOptions{
 			Name:        "hub-disabled-env",
-			ProjectPath: projectScionDir,
+			ProjectPath: projectFabricDir,
 			NoAuth:      true,
 		})
 		if err != nil {
@@ -2363,15 +2363,15 @@ profiles:
 			}
 		}
 
-		if _, exists := envMap["SCION_HUB_ENDPOINT"]; exists {
-			t.Error("expected SCION_HUB_ENDPOINT to NOT be set when hub.enabled=false, even with env section override")
+		if _, exists := envMap["FABRIC_HUB_ENDPOINT"]; exists {
+			t.Error("expected FABRIC_HUB_ENDPOINT to NOT be set when hub.enabled=false, even with env section override")
 		}
 	})
 }
 
-func TestStartScionConfigEnvHubEndpointOverridesAll(t *testing.T) {
+func TestStartFabricConfigEnvHubEndpointOverridesAll(t *testing.T) {
 	// Integration test verifying the full priority chain:
-	// project settings -> hub.endpoint -> env.SCION_HUB_ENDPOINT
+	// project settings -> hub.endpoint -> env.FABRIC_HUB_ENDPOINT
 	// The env-key value should be the final one in the container env.
 	tmpDir := t.TempDir()
 
@@ -2384,27 +2384,27 @@ func TestStartScionConfigEnvHubEndpointOverridesAll(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	// Clear dev token env vars so we control the test
-	for _, k := range []string{"SCION_DEV_TOKEN", "SCION_AUTH_TOKEN", "SCION_DEV_TOKEN_FILE"} {
+	for _, k := range []string{"FABRIC_DEV_TOKEN", "FABRIC_AUTH_TOKEN", "FABRIC_DEV_TOKEN_FILE"} {
 		if old, ok := os.LookupEnv(k); ok {
 			defer func() { _ = os.Setenv(k, old) }()
 			_ = os.Unsetenv(k)
 		}
 	}
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "test-harness")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "test-harness")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: gemini\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "test-harness"}`), 0644)
 
 	// Global settings
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: local
 profiles:
   local:
@@ -2413,24 +2413,24 @@ profiles:
 
 	// Create project directory with hub-enabled settings (priority 1)
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
-	_ = os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(`hub:
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
+	_ = os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(`hub:
   enabled: true
   endpoint: "http://project-settings:9810"
 `), 0644)
 
 	// Create agent with both hub.endpoint (priority 2) and
-	// env.SCION_HUB_ENDPOINT (priority 3 — should win)
-	agentDir := filepath.Join(projectScionDir, "agents", "hub-env-test")
+	// env.FABRIC_HUB_ENDPOINT (priority 3 — should win)
+	agentDir := filepath.Join(projectFabricDir, "agents", "hub-env-test")
 	_ = os.MkdirAll(filepath.Join(agentDir, "home"), 0755)
-	_ = os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{
+	_ = os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{
 		"harness": "gemini",
 		"hub": {
 			"endpoint": "http://hub-endpoint-field:9810"
 		},
 		"env": {
-			"SCION_HUB_ENDPOINT": "http://host.docker.internal:8080"
+			"FABRIC_HUB_ENDPOINT": "http://host.docker.internal:8080"
 		}
 	}`), 0644)
 
@@ -2450,7 +2450,7 @@ profiles:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "hub-env-test",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {
@@ -2468,11 +2468,11 @@ profiles:
 
 	// The env section value (priority 3) should be the final winner,
 	// overriding both project settings (priority 1) and hub.endpoint (priority 2)
-	if got := envMap["SCION_HUB_ENDPOINT"]; got != "http://host.docker.internal:8080" {
-		t.Errorf("SCION_HUB_ENDPOINT = %q, want %q (env section should override all)", got, "http://host.docker.internal:8080")
+	if got := envMap["FABRIC_HUB_ENDPOINT"]; got != "http://host.docker.internal:8080" {
+		t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q (env section should override all)", got, "http://host.docker.internal:8080")
 	}
-	if got := envMap["SCION_HUB_URL"]; got != "http://host.docker.internal:8080" {
-		t.Errorf("SCION_HUB_URL = %q, want %q (env section should override all)", got, "http://host.docker.internal:8080")
+	if got := envMap["FABRIC_HUB_URL"]; got != "http://host.docker.internal:8080" {
+		t.Errorf("FABRIC_HUB_URL = %q, want %q (env section should override all)", got, "http://host.docker.internal:8080")
 	}
 }
 
@@ -2526,20 +2526,20 @@ func TestStartInjectsProfileEnvForAuth(t *testing.T) {
 		}
 	}
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
 
 	// Create harness-config on disk (claude type)
-	hcDir := filepath.Join(globalScionDir, "harness-configs", "claude-cfg")
+	hcDir := filepath.Join(globalFabricDir, "harness-configs", "claude-cfg")
 	_ = os.MkdirAll(hcDir, 0755)
-	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: claude\nuser: scion\nimage: test-image:latest\n"), 0644)
+	_ = os.WriteFile(filepath.Join(hcDir, "config.yaml"), []byte("harness: claude\nuser: fabric\nimage: test-image:latest\n"), 0644)
 
 	// Create a minimal template
-	tplDir := filepath.Join(globalScionDir, "templates", "default")
+	tplDir := filepath.Join(globalFabricDir, "templates", "default")
 	_ = os.MkdirAll(tplDir, 0755)
-	_ = os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(`{"default_harness_config": "claude-cfg"}`), 0644)
+	_ = os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(`{"default_harness_config": "claude-cfg"}`), 0644)
 
 	// Global versioned settings with a profile that has env vars
-	_ = os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(`schema_version: "1"
+	_ = os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(`schema_version: "1"
 active_profile: vertex
 profiles:
   vertex:
@@ -2554,8 +2554,8 @@ runtimes:
 
 	// Create project directory
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	_ = os.MkdirAll(projectScionDir, 0755)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	_ = os.MkdirAll(projectFabricDir, 0755)
 
 	// Capture the RunConfig
 	var capturedConfig runtime.RunConfig
@@ -2573,7 +2573,7 @@ runtimes:
 
 	_, err := mgr.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		NoAuth:      true,
 	})
 	if err != nil {

@@ -3,13 +3,13 @@
 This release focuses on a major modernization of authentication via User Access Tokens (UATs) and the initial rollout of native GitHub App integration. It also significantly improves infrastructure robustness with idempotent setup scripts and enhanced GCP identity management.
 
 ## ⚠️ BREAKING CHANGES
-* **Legacy API Key Removal:** The legacy API key system (`sk_live_*`) has been completely removed. Users must migrate to the new User Access Tokens (`scion_pat_*`) for all programmatic and API access.
+* **Legacy API Key Removal:** The legacy API key system (`sk_live_*`) has been completely removed. Users must migrate to the new User Access Tokens (`fabric_pat_*`) for all programmatic and API access.
 * **Metadata Server Security:** "Block mode" now strictly enforces the restriction of direct metadata server access for agents. Any agents that were previously bypassing this due to loose enforcement will now be correctly restricted.
 
 ## 🚀 Features
 * **User Access Tokens (UATs):** Implemented a complete end-to-end token system (Phases 1-3) replacing the legacy API keys.
-    * **Granular Scoping:** New `scion_pat_*` tokens support grove-level scoping and specific action permissions.
-    * **CLI Management:** Added `scion auth tokens` commands for lifecycle management (create, list, revoke).
+    * **Granular Scoping:** New `fabric_pat_*` tokens support grove-level scoping and specific action permissions.
+    * **CLI Management:** Added `fabric auth tokens` commands for lifecycle management (create, list, revoke).
     * **Web UI:** Dedicated management interface in the user profile for token administration.
     * **Observability:** Added `auth-type` logging to all requests to differentiate between session and UAT-based access.
 * **GitHub App Integration:** Completed Phases 1 and 2 of the GitHub App integration for agent git authentication.

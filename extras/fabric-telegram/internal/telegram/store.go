@@ -47,7 +47,7 @@ type Store interface {
 	GetUserMapping(ctx context.Context, telegramUserID string) (*TelegramUserMapping, error)
 	GetUserMappingByEmail(ctx context.Context, email string) (*TelegramUserMapping, error)
 	GetUserMappingByUsername(ctx context.Context, username string) (*TelegramUserMapping, error)
-	GetUserMappingByScionUserID(ctx context.Context, userID string) (*TelegramUserMapping, error)
+	GetUserMappingByFabricUserID(ctx context.Context, userID string) (*TelegramUserMapping, error)
 	DeleteUserMapping(ctx context.Context, telegramUserID string) error
 	GetAllUserMappings(ctx context.Context) ([]*TelegramUserMapping, error)
 
@@ -80,7 +80,7 @@ type Store interface {
 	Close() error
 }
 
-// GroupLink represents a Telegram group chat linked to a Scion project.
+// GroupLink represents a Telegram group chat linked to a Fabric project.
 type GroupLink struct {
 	ChatID             int64
 	ChatTitle          string
@@ -111,12 +111,12 @@ type ProjectAgents struct {
 	RefreshedAt time.Time
 }
 
-// TelegramUserMapping links a Telegram user to a Scion user identity.
+// TelegramUserMapping links a Telegram user to a Fabric user identity.
 type TelegramUserMapping struct {
 	TelegramUserID   string
 	TelegramUsername string
-	ScionUserID      string
-	ScionEmail       string
+	FabricUserID      string
+	FabricEmail       string
 	LinkedAt         time.Time
 }
 
@@ -221,12 +221,12 @@ CREATE TABLE IF NOT EXISTS project_agents (
 CREATE TABLE IF NOT EXISTS user_mappings (
 	telegram_user_id   TEXT PRIMARY KEY,
 	telegram_username  TEXT NOT NULL DEFAULT '',
-	scion_user_id      TEXT NOT NULL DEFAULT '',
-	scion_email        TEXT NOT NULL DEFAULT '',
+	fabric_user_id      TEXT NOT NULL DEFAULT '',
+	fabric_email        TEXT NOT NULL DEFAULT '',
 	linked_at          TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(scion_email);
+CREATE INDEX IF NOT EXISTS idx_user_mappings_email ON user_mappings(fabric_email);
 CREATE INDEX IF NOT EXISTS idx_user_mappings_username ON user_mappings(telegram_username);
 
 CREATE TABLE IF NOT EXISTS pending_ask_users (
@@ -469,38 +469,38 @@ func (s *sqliteStore) GetProjectAgents(ctx context.Context, projectID string) (*
 
 func (s *sqliteStore) SaveUserMapping(ctx context.Context, mapping *TelegramUserMapping) error {
 	const q = `
-INSERT INTO user_mappings (telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at)
+INSERT INTO user_mappings (telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at)
 VALUES (?, ?, ?, ?, ?)
 ON CONFLICT(telegram_user_id) DO UPDATE SET
-	telegram_username=excluded.telegram_username, scion_user_id=excluded.scion_user_id,
-	scion_email=excluded.scion_email, linked_at=excluded.linked_at`
+	telegram_username=excluded.telegram_username, fabric_user_id=excluded.fabric_user_id,
+	fabric_email=excluded.fabric_email, linked_at=excluded.linked_at`
 	_, err := s.db.ExecContext(ctx, q,
 		mapping.TelegramUserID, mapping.TelegramUsername,
-		mapping.ScionUserID, mapping.ScionEmail,
+		mapping.FabricUserID, mapping.FabricEmail,
 		mapping.LinkedAt.UTC().Format(time.RFC3339))
 	return err
 }
 
 func (s *sqliteStore) GetUserMapping(ctx context.Context, telegramUserID string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE telegram_user_id = ?`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE telegram_user_id = ?`
 	row := s.db.QueryRowContext(ctx, q, telegramUserID)
 	return scanUserMapping(row)
 }
 
 func (s *sqliteStore) GetUserMappingByEmail(ctx context.Context, email string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE scion_email = ?`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE fabric_email = ?`
 	row := s.db.QueryRowContext(ctx, q, email)
 	return scanUserMapping(row)
 }
 
 func (s *sqliteStore) GetUserMappingByUsername(ctx context.Context, username string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE telegram_username = ? COLLATE NOCASE`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE telegram_username = ? COLLATE NOCASE`
 	row := s.db.QueryRowContext(ctx, q, username)
 	return scanUserMapping(row)
 }
 
-func (s *sqliteStore) GetUserMappingByScionUserID(ctx context.Context, userID string) (*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM user_mappings WHERE scion_user_id = ?`
+func (s *sqliteStore) GetUserMappingByFabricUserID(ctx context.Context, userID string) (*TelegramUserMapping, error) {
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM user_mappings WHERE fabric_user_id = ?`
 	row := s.db.QueryRowContext(ctx, q, userID)
 	return scanUserMapping(row)
 }
@@ -511,7 +511,7 @@ func (s *sqliteStore) DeleteUserMapping(ctx context.Context, telegramUserID stri
 }
 
 func (s *sqliteStore) GetAllUserMappings(ctx context.Context) ([]*TelegramUserMapping, error) {
-	const q = `SELECT telegram_user_id, telegram_username, scion_user_id, scion_email, linked_at FROM user_mappings`
+	const q = `SELECT telegram_user_id, telegram_username, fabric_user_id, fabric_email, linked_at FROM user_mappings`
 	rows, err := s.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -753,7 +753,7 @@ func scanGroupLinks(rows *sql.Rows) ([]*GroupLink, error) {
 func scanUserMapping(row *sql.Row) (*TelegramUserMapping, error) {
 	var m TelegramUserMapping
 	var linkedAt string
-	err := row.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.ScionUserID, &m.ScionEmail, &linkedAt)
+	err := row.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.FabricUserID, &m.FabricEmail, &linkedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -770,7 +770,7 @@ func scanUserMapping(row *sql.Row) (*TelegramUserMapping, error) {
 func scanUserMappingRow(rows *sql.Rows) (*TelegramUserMapping, error) {
 	var m TelegramUserMapping
 	var linkedAt string
-	err := rows.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.ScionUserID, &m.ScionEmail, &linkedAt)
+	err := rows.Scan(&m.TelegramUserID, &m.TelegramUsername, &m.FabricUserID, &m.FabricEmail, &linkedAt)
 	if err != nil {
 		return nil, err
 	}

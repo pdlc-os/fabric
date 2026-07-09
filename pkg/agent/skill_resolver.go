@@ -29,9 +29,9 @@ import (
 
 	"crypto/sha256"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 const (
@@ -157,7 +157,7 @@ func ResolveUserIDFromContext(ctx context.Context) string {
 
 // --- Resolution record types ---
 
-// SkillResolutionRecord is written to agentHome/.scion/resolved-skills.json
+// SkillResolutionRecord is written to agentHome/.fabric/resolved-skills.json
 // after successful skill installation.
 type SkillResolutionRecord struct {
 	ResolvedAt string                 `json:"resolvedAt"`

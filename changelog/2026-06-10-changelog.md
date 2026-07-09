@@ -5,7 +5,7 @@ A sweeping day of project compatibility refactoring, security hardening, and a m
 ## 🚀 Features
 * **[Discord]:** Standalone Discord bot with gRPC for HA deployment — the Discord plugin can now run as an independent process communicating with the hub via gRPC, enabling horizontal scaling and high-availability setups. Includes a new `DiscordPendingLink` entity, gRPC broker adapter, and a dedicated Dockerfile (#395).
 * **[Scheduler]:** Enabled scheduler write commands (`create-recurring`, `pause`, `resume`, `delete`) in agent mode, removing the `dispatch_` prefix gate that previously blocked agents from managing schedules (#378).
-* **[Auth]:** Added challenge token authentication to the test-login endpoint — callers must present a short-lived JWT (5min TTL) signed with the hub's user signing key and scoped to the `scion-test-login` audience. Includes case-insensitive Bearer parsing and explicit `exp` claim enforcement (#382, #392).
+* **[Auth]:** Added challenge token authentication to the test-login endpoint — callers must present a short-lived JWT (5min TTL) signed with the hub's user signing key and scoped to the `fabric-test-login` audience. Includes case-insensitive Bearer parsing and explicit `exp` claim enforcement (#382, #392).
 * **[Compatibility]:** Project/grove compatibility boundary — added a comprehensive migration layer with legacy `/groves` route wrappers, request body field adapters, and centralized compatibility key mapping to support clients using the old naming while the codebase transitions (#380, #387, #388).
 
 ## 🐛 Fixes

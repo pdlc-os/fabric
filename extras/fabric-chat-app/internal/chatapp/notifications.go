@@ -20,8 +20,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // NotificationRelay routes agent notifications to chat spaces as rich cards.
@@ -41,15 +41,15 @@ func NewNotificationRelay(store *state.Store, messenger Messenger, log *slog.Log
 }
 
 // HandleBrokerMessage processes a message received via the broker plugin's Publish() path.
-// Only user-targeted messages (from explicit "scion message" commands) are relayed
+// Only user-targeted messages (from explicit "fabric message" commands) are relayed
 // to chat. All other topics are dropped to prevent harness output leaking into chat.
 //
 // Expected topic:
 //
-//	scion.grove.<projectID>.user.<userID>.messages  — user-targeted message
+//	fabric.grove.<projectID>.user.<userID>.messages  — user-targeted message
 func (n *NotificationRelay) HandleBrokerMessage(ctx context.Context, topic string, msg *messages.StructuredMessage) error {
-	// Strip the "scion." prefix used by the broker topic hierarchy.
-	normalized := strings.TrimPrefix(topic, "scion.")
+	// Strip the "fabric." prefix used by the broker topic hierarchy.
+	normalized := strings.TrimPrefix(topic, "fabric.")
 
 	parts := strings.Split(normalized, ".")
 	if len(parts) < 2 {
@@ -57,7 +57,7 @@ func (n *NotificationRelay) HandleBrokerMessage(ctx context.Context, topic strin
 		return nil
 	}
 
-	// Only relay user-targeted messages (from explicit "scion message"
+	// Only relay user-targeted messages (from explicit "fabric message"
 	// commands). All other topics (agent-to-agent, broadcasts, etc.) are
 	// dropped so that harness terminal output does not leak into chat.
 	if parts[0] == "grove" && len(parts) >= 5 && parts[2] == "user" {

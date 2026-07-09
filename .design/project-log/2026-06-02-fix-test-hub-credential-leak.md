@@ -6,14 +6,14 @@
 
 ## Problem
 
-When `go test` runs inside an agent container, tests inherit live Hub env vars. `TestInitCommand_Integration` builds and spawns a real sciontool binary that inherits these vars, causing the child process to report status to the real Hub and corrupt agent state (resetting phase to "starting"). This is how dev-issue-71b got stuck.
+When `go test` runs inside an agent container, tests inherit live Hub env vars. `TestInitCommand_Integration` builds and spawns a real fabrictool binary that inherits these vars, causing the child process to report status to the real Hub and corrupt agent state (resetting phase to "starting"). This is how dev-issue-71b got stuck.
 
 ## Fix
 
 1. Added `scrubHubEnv(t)` helpers using `t.Setenv` for automatic cleanup in:
-   - `cmd/sciontool/commands/init_test.go` (primary subprocess fix)
-   - `pkg/sciontool/hooks/handlers/hub_test.go` (env var hygiene)
-   - `pkg/sciontool/hub/client_test.go` (env var hygiene)
+   - `cmd/fabrictool/commands/init_test.go` (primary subprocess fix)
+   - `pkg/fabrictool/hooks/handlers/hub_test.go` (env var hygiene)
+   - `pkg/fabrictool/hub/client_test.go` (env var hygiene)
 
 2. Added `filterHubEnv(env)` to explicitly strip Hub vars from subprocess environments.
 
@@ -21,5 +21,5 @@ When `go test` runs inside an agent container, tests inherit live Hub env vars. 
 
 ## Observations
 
-- The Hub env var list (`SCION_HUB_ENDPOINT`, `SCION_HUB_URL`, `SCION_AUTH_TOKEN`, `SCION_AGENT_ID`, `SCION_AGENT_MODE`) is defined in `pkg/sciontool/hub/client.go:45-56`. The `scrubHubEnv` helpers are inlined in each test file rather than shared, to avoid importing `testing` into production code.
+- The Hub env var list (`FABRIC_HUB_ENDPOINT`, `FABRIC_HUB_URL`, `FABRIC_AUTH_TOKEN`, `FABRIC_AGENT_ID`, `FABRIC_AGENT_MODE`) is defined in `pkg/fabrictool/hub/client.go:45-56`. The `scrubHubEnv` helpers are inlined in each test file rather than shared, to avoid importing `testing` into production code.
 - Pre-existing CI issue: `pkg/hub/resource_import_handler_test.go` has an undefined `mockRoundTripper` symbol that causes `go vet ./...` to fail — not related to this change.

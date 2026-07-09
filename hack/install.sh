@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Scion CLI installer
+# Fabric CLI installer
 #
 # Usage:
 #   gcloud storage cat gs://BUCKET_NAME/install.sh | bash
 #
 # Environment variables:
-#   SCION_INSTALL_DIR  - Override install directory (default: auto-detected)
-#   SCION_VERSION      - Install a specific version hash (default: latest)
+#   FABRIC_INSTALL_DIR  - Override install directory (default: auto-detected)
+#   FABRIC_VERSION      - Install a specific version hash (default: latest)
 
 set -euo pipefail
 
@@ -57,8 +57,8 @@ detect_platform() {
 # --- Install directory resolution ---
 
 detect_install_dir() {
-    if [[ -n "${SCION_INSTALL_DIR:-}" ]]; then
-        echo "${SCION_INSTALL_DIR}"
+    if [[ -n "${FABRIC_INSTALL_DIR:-}" ]]; then
+        echo "${FABRIC_INSTALL_DIR}"
         return
     fi
 
@@ -76,11 +76,11 @@ detect_install_dir() {
 
 PLATFORM=$(detect_platform)
 INSTALL_DIR=$(detect_install_dir)
-VERSION="${SCION_VERSION:-latest}"
+VERSION="${FABRIC_VERSION:-latest}"
 TMPDIR=$(mktemp -d)
 trap "rm -rf ${TMPDIR}" EXIT
 
-echo "Scion CLI Installer"
+echo "Fabric CLI Installer"
 echo "  Platform:  ${PLATFORM}"
 echo "  Install:   ${INSTALL_DIR}"
 echo "  Version:   ${VERSION}"
@@ -91,27 +91,27 @@ echo ""
 BUCKET_NAME="__BUCKET_NAME__"
 
 if [[ "$VERSION" == "latest" ]]; then
-    ZIP_PATH="gs://${BUCKET_NAME}/latest/${PLATFORM}/scion.zip"
+    ZIP_PATH="gs://${BUCKET_NAME}/latest/${PLATFORM}/fabric.zip"
 else
-    ZIP_PATH="gs://${BUCKET_NAME}/versions/${PLATFORM}/scion-${VERSION}.zip"
+    ZIP_PATH="gs://${BUCKET_NAME}/versions/${PLATFORM}/fabric-${VERSION}.zip"
 fi
 
 echo "Downloading ${ZIP_PATH}..."
-gcloud storage cp "${ZIP_PATH}" "${TMPDIR}/scion.zip"
+gcloud storage cp "${ZIP_PATH}" "${TMPDIR}/fabric.zip"
 
 echo "Extracting..."
-unzip -qo "${TMPDIR}/scion.zip" -d "${TMPDIR}"
+unzip -qo "${TMPDIR}/fabric.zip" -d "${TMPDIR}"
 
-BINARY_NAME="scion"
+BINARY_NAME="fabric"
 if [[ "${PLATFORM}" == windows-* ]]; then
-    BINARY_NAME="scion.exe"
+    BINARY_NAME="fabric.exe"
 fi
 
 chmod +x "${TMPDIR}/${BINARY_NAME}"
 mv "${TMPDIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
 
 echo ""
-echo "Installed scion to ${INSTALL_DIR}/${BINARY_NAME}"
+echo "Installed fabric to ${INSTALL_DIR}/${BINARY_NAME}"
 
 # Check if install dir is in PATH
 case ":${PATH}:" in
@@ -126,4 +126,4 @@ case ":${PATH}:" in
         ;;
 esac
 
-echo "Run 'scion --help' to get started."
+echo "Run 'fabric --help' to get started."

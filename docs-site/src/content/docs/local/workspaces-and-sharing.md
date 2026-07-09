@@ -3,9 +3,9 @@ title: Workspaces & Sharing Modes
 description: The three workspace sharing modes — Shared-plain, Worktree-per-agent, and Clone-per-agent — that decide how a project's agents share (or isolate) their working directory.
 ---
 
-Every Scion **agent** runs against a **workspace** — the working directory mounted into its container at `/workspace`, where it reads code, makes changes, and runs commands. When a project runs several agents at once, a key question follows: do they share one directory, or does each get its own?
+Every Fabric **agent** runs against a **workspace** — the working directory mounted into its container at `/workspace`, where it reads code, makes changes, and runs commands. When a project runs several agents at once, a key question follows: do they share one directory, or does each get its own?
 
-Scion answers this with a project-level setting called the **workspace sharing mode**. There is **one universal set of three modes**, intended for both local and Hub-managed projects. This page explains each mode and when to use it. The definitions follow the canonical [`GLOSSARY.md`](https://github.com/GoogleCloudPlatform/scion/blob/main/GLOSSARY.md).
+Fabric answers this with a project-level setting called the **workspace sharing mode**. There is **one universal set of three modes**, intended for both local and Hub-managed projects. This page explains each mode and when to use it. The definitions follow the canonical [`GLOSSARY.md`](https://github.com/pdlc-os/fabric/blob/main/GLOSSARY.md).
 
 :::note[Three modes, not two]
 Earlier documentation framed workspaces as "two strategies" (worktrees vs. a git-init clone). That framing is superseded. The current model is **three sharing modes** — **Shared-plain**, **Worktree-per-agent**, and **Clone-per-agent** — described below.
@@ -27,7 +27,7 @@ This is the model used for **plain (non-git) projects**, where there is no git h
 
 Each agent gets its own [git worktree](https://git-scm.com/docs/git-worktree) over a **shared checkout**, isolating working trees while sharing one clone's history.
 
-Every agent operates on the same repository history but has an independent working directory (typically created under `../.scion_worktrees/<project>/<agent>` on a dedicated branch) mounted as `/workspace`. Agents cannot step on each other's uncommitted changes, and their work is merged back to the main branch manually (for example, `git merge <agent-branch>`).
+Every agent operates on the same repository history but has an independent working directory (typically created under `../.fabric_worktrees/<project>/<agent>` on a dedicated branch) mounted as `/workspace`. Agents cannot step on each other's uncommitted changes, and their work is merged back to the main branch manually (for example, `git merge <agent-branch>`).
 
 - **Isolation:** per-agent working tree; shared history.
 - **Requires git:** yes.
@@ -38,7 +38,7 @@ Every agent operates on the same repository history but has an independent worki
 
 Each agent gets its **own full git clone** of the repository — the strongest isolation of the three.
 
-When a Hub manages a git-based project, agents are provisioned with an independent clone via a robust `git init` + `git fetch` strategy rather than a shared worktree. The broker injects `SCION_GIT_CLONE_URL`, `SCION_GIT_BRANCH`, and a `GITHUB_TOKEN`; `sciontool init` then initializes the workspace, fetches the repo over HTTPS, and checks out a `scion/<agent-name>` branch. This strategy is consistent across all broker machines, whether or not the repo already exists locally, and cleanly handles workspaces that already contain `.scion` metadata.
+When a Hub manages a git-based project, agents are provisioned with an independent clone via a robust `git init` + `git fetch` strategy rather than a shared worktree. The broker injects `FABRIC_GIT_CLONE_URL`, `FABRIC_GIT_BRANCH`, and a `GITHUB_TOKEN`; `fabrictool init` then initializes the workspace, fetches the repo over HTTPS, and checks out a `fabric/<agent-name>` branch. This strategy is consistent across all broker machines, whether or not the repo already exists locally, and cleanly handles workspaces that already contain `.fabric` metadata.
 
 - **Isolation:** full — each agent has its own clone.
 - **Requires git:** yes (and a `GITHUB_TOKEN`; host SSH credentials are not used).
@@ -72,6 +72,6 @@ Both are independent of which sharing mode a project uses.
 
 ## See also
 
-- [About Workspaces](/scion/local/workspace/) — the operational guide to worktrees, mounts, and host-side backing.
-- [Core Concepts](/scion/concepts/) — how workspaces fit alongside agents, projects, and the Hub.
-- [Glossary](/scion/glossary/) — canonical definitions for every term used here.
+- [About Workspaces](/fabric/local/workspace/) — the operational guide to worktrees, mounts, and host-side backing.
+- [Core Concepts](/fabric/concepts/) — how workspaces fit alongside agents, projects, and the Hub.
+- [Glossary](/fabric/glossary/) — canonical definitions for every term used here.

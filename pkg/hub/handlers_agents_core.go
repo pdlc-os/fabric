@@ -25,14 +25,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/labels"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/labels"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 	gouuid "github.com/google/uuid"
 )
 
@@ -76,7 +76,7 @@ type CreateAgentRequest struct {
 	Branch          string            `json:"branch,omitempty"`
 	Workspace       string            `json:"workspace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty"`
-	Config          *api.ScionConfig  `json:"config,omitempty"`
+	Config          *api.FabricConfig  `json:"config,omitempty"`
 	Attach          bool              `json:"attach,omitempty"`        // If true, signals interactive attach mode to the broker/harness
 	ProvisionOnly   bool              `json:"provisionOnly,omitempty"` // If true, provision only (write task to prompt.md) without starting
 	// WorkspaceFiles is populated for non-git workspace bootstrap.
@@ -455,7 +455,7 @@ func (s *Server) createAgentInProject(
 		resolvedGCPSA = sa
 	}
 
-	// Check if the agent already exists (e.g. created via "scion create" for later start).
+	// Check if the agent already exists (e.g. created via "fabric create" for later start).
 	// If it exists in "created" status, start it instead of creating a duplicate.
 	// If it doesn't exist, fall through to create it.
 	slug, err := api.ValidateAgentName(req.Name)
@@ -520,7 +520,7 @@ func (s *Server) createAgentInProject(
 			if name == "" {
 				name = resolvedTemplate.Name
 			}
-			ValidationError(w, "template "+name+" has no files — sync template files first with: scion template sync "+name, nil)
+			ValidationError(w, "template "+name+" has no files — sync template files first with: fabric template sync "+name, nil)
 			return
 		}
 	}
@@ -860,7 +860,7 @@ func (s *Server) createAgentInProject(
 		"agent_id", agent.ID, "agent", agent.Name, "totalElapsed", time.Since(hubCreateStart).String())
 
 	// Re-read the agent from the database before publishing the "created" event.
-	// A concurrent status update (e.g. sciontool reporting a clone error) may have
+	// A concurrent status update (e.g. fabrictool reporting a clone error) may have
 	// changed the phase between our last UpdateAgent and now. Publishing the stale
 	// in-memory object would send a "created" SSE event with the wrong phase,
 	// and since the frontend may have already dropped the earlier "status" event
@@ -885,7 +885,7 @@ func (s *Server) createAgentInProject(
 // concurrent status update has moved the agent to a terminal phase (error or
 // stopped), preserves that phase on the in-memory agent so the subsequent
 // UpdateAgent call does not overwrite it with the broker-reported phase.
-// This prevents a race where sciontool reports an error (e.g. git clone
+// This prevents a race where fabrictool reports an error (e.g. git clone
 // failure) while the broker dispatch is still in flight.
 func (s *Server) preserveTerminalPhase(ctx context.Context, agent *store.Agent) {
 	current, err := s.store.GetAgent(ctx, agent.ID)
@@ -1458,7 +1458,7 @@ func (s *Server) updateAgent(w http.ResponseWriter, r *http.Request, id string) 
 		Labels       map[string]string      `json:"labels,omitempty"`
 		Annotations  map[string]string      `json:"annotations,omitempty"`
 		TaskSummary  string                 `json:"taskSummary,omitempty"`
-		Config       *api.ScionConfig       `json:"config,omitempty"`
+		Config       *api.FabricConfig       `json:"config,omitempty"`
 		GCPIdentity  *GCPIdentityAssignment `json:"gcp_identity,omitempty"`
 		StateVersion int64                  `json:"stateVersion"`
 	}
@@ -1974,7 +1974,7 @@ func (s *Server) handleAgentTokenRefresh(w http.ResponseWriter, r *http.Request,
 	tokens := []RefreshTokenEntry{
 		{
 			Layer:     "app",
-			Type:      "scion_access",
+			Type:      "fabric_access",
 			Value:     newToken,
 			ExpiresIn: int(time.Until(expiresAt).Seconds()),
 		},

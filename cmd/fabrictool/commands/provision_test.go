@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 package commands
 
@@ -14,7 +14,7 @@ import (
 func TestProvisionCmd_WaitForSentinel_Found(t *testing.T) {
 	dir := t.TempDir()
 
-	sentinelPath := filepath.Join(dir, ".scion-provisioned")
+	sentinelPath := filepath.Join(dir, ".fabric-provisioned")
 	if err := os.WriteFile(sentinelPath, []byte("provisioned_at=test\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestProvisionCmd_WaitForSentinel_DelayedWrite(t *testing.T) {
 
 	go func() {
 		time.Sleep(2 * time.Second)
-		sentinelPath := filepath.Join(dir, ".scion-provisioned")
+		sentinelPath := filepath.Join(dir, ".fabric-provisioned")
 		_ = os.WriteFile(sentinelPath, []byte("provisioned_at=test\n"), 0644)
 	}()
 
@@ -147,7 +147,7 @@ func TestProvisionCmd_Clone_Idempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sentinelPath := filepath.Join(wsDir, ".scion-provisioned")
+	sentinelPath := filepath.Join(wsDir, ".fabric-provisioned")
 	if err := os.WriteFile(sentinelPath, []byte("provisioned_at=test\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -171,9 +171,9 @@ func TestProvisionCmd_Clone_Idempotent(t *testing.T) {
 	provisionUID = os.Getuid()
 	provisionGID = os.Getgid()
 
-	t.Setenv("SCION_CLONE_URL", "https://nonexistent.example.com/repo.git")
-	t.Setenv("SCION_CLONE_BRANCH", "main")
-	t.Setenv("SCION_PROJECT_ID", "test-proj")
+	t.Setenv("FABRIC_CLONE_URL", "https://nonexistent.example.com/repo.git")
+	t.Setenv("FABRIC_CLONE_BRANCH", "main")
+	t.Setenv("FABRIC_PROJECT_ID", "test-proj")
 
 	if err := runProvision(context.Background()); err != nil {
 		t.Fatalf("idempotent provision (sentinel exists) should succeed, got: %v", err)
@@ -202,15 +202,15 @@ func TestProvisionCmd_Clone_NoURL(t *testing.T) {
 	provisionUID = os.Getuid()
 	provisionGID = os.Getgid()
 
-	t.Setenv("SCION_CLONE_URL", "")
-	t.Setenv("SCION_CLONE_BRANCH", "")
-	t.Setenv("SCION_PROJECT_ID", "test-proj-no-url")
+	t.Setenv("FABRIC_CLONE_URL", "")
+	t.Setenv("FABRIC_CLONE_BRANCH", "")
+	t.Setenv("FABRIC_PROJECT_ID", "test-proj-no-url")
 
 	if err := runProvision(context.Background()); err != nil {
 		t.Fatalf("provision without clone URL should succeed (non-git project), got: %v", err)
 	}
 
-	sentinelPath := filepath.Join(dir, ".scion-provisioned")
+	sentinelPath := filepath.Join(dir, ".fabric-provisioned")
 	if _, err := os.Stat(sentinelPath); err != nil {
 		t.Errorf("sentinel should be written for non-git project: %v", err)
 	}

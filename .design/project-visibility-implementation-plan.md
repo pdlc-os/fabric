@@ -205,11 +205,11 @@ of WP-B but should be tested after B so the filter semantics match.)
   `template`/`harness_config`); their own visibility + grove-attachment design is a
   separate pass.
 - **Grove→project terminology cleanup** — DELIVERED as standalone branch
-  `scion/grove-cleanup` (commit 230ca7f, by visibility-explorer): adds
+  `fabric/grove-cleanup` (commit 230ca7f, by visibility-explorer): adds
   `api.NormalizeVisibility()` (legacy `grove`/`project` → `team`) applied at
   write entry points for Templates, HarnessConfigs, and Projects; fixes stale
   comments; leaves wire-compat shims (`groveId/grove*` JSON, NATS subjects,
-  `SCION_GROVE_ID`, container labels) intentionally untouched. **Direction (ptone,
+  `FABRIC_GROVE_ID`, container labels) intentionally untouched. **Direction (ptone,
   2026-06-05): pull it into THIS stream, not a standalone PR.** It lands as a
   discrete cherry-picked commit (`230ca7f`) on the branch, applied AFTER WP-0 and
   BEFORE wave 2 so the backend agent builds on top of it (no `handlers.go`

@@ -18,14 +18,14 @@
  * API fetch wrapper with automatic 403 handling.
  *
  * Wraps the standard fetch() with credential inclusion and dispatches a
- * `scion:access-denied` CustomEvent on the window when a 403 response is
+ * `fabric:access-denied` CustomEvent on the window when a 403 response is
  * received, allowing the app shell to display a toast notification.
  *
  * This is additive — existing components can continue using fetch() directly.
  * Phase 3 will migrate them to apiFetch().
  */
 
-/** Detail payload for the scion:access-denied custom event. */
+/** Detail payload for the fabric:access-denied custom event. */
 export interface AccessDeniedDetail {
   resource?: string;
   action?: string;
@@ -36,7 +36,7 @@ export interface AccessDeniedDetail {
  * Fetch wrapper that includes credentials and handles 403 responses.
  *
  * Returns the raw Response object so callers can handle the body themselves.
- * On 403, dispatches a `scion:access-denied` event on `window` with parsed
+ * On 403, dispatches a `fabric:access-denied` event on `window` with parsed
  * error details, but does NOT re-throw or alter the response.
  */
 const API_SLOW_THRESHOLD_MS = 2000;
@@ -80,7 +80,7 @@ export async function apiFetch(path: string, options?: RequestInit): Promise<Res
       // Body wasn't JSON — use empty detail
     }
     window.dispatchEvent(
-      new CustomEvent('scion:access-denied', { detail })
+      new CustomEvent('fabric:access-denied', { detail })
     );
   }
 

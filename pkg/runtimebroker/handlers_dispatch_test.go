@@ -23,18 +23,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // dispatchTestEnv prepares a fresh broker test environment with a
 // provisionCapturingManager and isolated cwd/$HOME. Harness-config dirs
-// written via writeHarnessConfig land in $HOME/.scion/harness-configs/
+// written via writeHarnessConfig land in $HOME/.fabric/harness-configs/
 // (the global dir resolved by config.GetGlobalDir), which is the lookup
 // path used by createAgent when the request has no projectPath — matching
 // the broker's behavior for hub-dispatched agents on a remote broker.
 //
-// Returns the server, manager, and the global .scion dir so tests can
+// Returns the server, manager, and the global .fabric dir so tests can
 // inspect/mutate state.
 func dispatchTestEnv(t *testing.T, allowContainerScript bool) (*Server, *provisionCapturingManager, string) {
 	t.Helper()
@@ -51,11 +51,11 @@ func dispatchTestEnv(t *testing.T, allowContainerScript bool) (*Server, *provisi
 	}
 	t.Cleanup(func() { _ = os.Chdir(origWd) })
 
-	// CWD .scion is needed because LoadEffectiveSettings is called with the
+	// CWD .fabric is needed because LoadEffectiveSettings is called with the
 	// resolved global dir; we drop a minimal settings file there so the
 	// test does not hit "no settings" code paths.
-	cwdScion := filepath.Join(cwd, ".scion")
-	if err := os.MkdirAll(cwdScion, 0755); err != nil {
+	cwdFabric := filepath.Join(cwd, ".fabric")
+	if err := os.MkdirAll(cwdFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 	settingsYAML := `schema_version: "1"
@@ -67,17 +67,17 @@ runtimes:
     mock:
         type: mock
 `
-	if err := os.WriteFile(filepath.Join(cwdScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(cwdFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Global .scion dir — where the broker resolves harness-configs when no
+	// Global .fabric dir — where the broker resolves harness-configs when no
 	// project path is supplied.
-	globalScion := filepath.Join(homeDir, ".scion")
-	if err := os.MkdirAll(globalScion, 0755); err != nil {
+	globalFabric := filepath.Join(homeDir, ".fabric")
+	if err := os.MkdirAll(globalFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(globalScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,13 +90,13 @@ runtimes:
 	mgr := &provisionCapturingManager{}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "mock" }}
 
-	return New(cfg, mgr, rt), mgr, globalScion
+	return New(cfg, mgr, rt), mgr, globalFabric
 }
 
-// writeHarnessConfig writes a minimal harness-config dir under .scion/harness-configs/<name>.
-func writeHarnessConfig(t *testing.T, dotScion, name, body string) {
+// writeHarnessConfig writes a minimal harness-config dir under .fabric/harness-configs/<name>.
+func writeHarnessConfig(t *testing.T, dotFabric, name, body string) {
 	t.Helper()
-	dir := filepath.Join(dotScion, "harness-configs", name)
+	dir := filepath.Join(dotFabric, "harness-configs", name)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -124,13 +124,13 @@ func dispatchAgent(t *testing.T, srv *Server, harnessConfig string) (int, string
 }
 
 func TestDispatchContainerScriptConfigBlockedByDefault(t *testing.T) {
-	srv, mgr, dotScion := dispatchTestEnv(t, false)
-	writeHarnessConfig(t, dotScion, "scripted", `harness: claude
-image: scion-claude:test
+	srv, mgr, dotFabric := dispatchTestEnv(t, false)
+	writeHarnessConfig(t, dotFabric, "scripted", `harness: claude
+image: fabric-claude:test
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
 `)
 
 	code, body := dispatchAgent(t, srv, "scripted")
@@ -149,13 +149,13 @@ provisioner:
 }
 
 func TestDispatchContainerScriptConfigAllowedWhenEnabled(t *testing.T) {
-	srv, mgr, dotScion := dispatchTestEnv(t, true)
-	writeHarnessConfig(t, dotScion, "scripted-ok", `harness: claude
-image: scion-claude:test
+	srv, mgr, dotFabric := dispatchTestEnv(t, true)
+	writeHarnessConfig(t, dotFabric, "scripted-ok", `harness: claude
+image: fabric-claude:test
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
 `)
 
 	code, body := dispatchAgent(t, srv, "scripted-ok")
@@ -170,9 +170,9 @@ provisioner:
 // TestDispatchContainerScriptResponseBody confirms the 403 body uses the
 // standard error envelope so Hub clients can parse it.
 func TestDispatchContainerScriptResponseBody(t *testing.T) {
-	srv, _, dotScion := dispatchTestEnv(t, false)
-	writeHarnessConfig(t, dotScion, "scripted-envelope", `harness: claude
-image: scion-claude:test
+	srv, _, dotFabric := dispatchTestEnv(t, false)
+	writeHarnessConfig(t, dotFabric, "scripted-envelope", `harness: claude
+image: fabric-claude:test
 provisioner:
   type: container-script
   interface_version: 1
@@ -195,19 +195,19 @@ provisioner:
 // TestDispatchMissingRequiredImageTools simulates a container-script
 // harness whose image is missing the declared interpreter. The current
 // broker scope (Phase 3) does not pre-validate image contents — that runs
-// inside `sciontool harness provision` from Phase 2. This test pins the
+// inside `fabrictool harness provision` from Phase 2. This test pins the
 // expected behavior: the broker accepts the dispatch when allow=true and
 // defers tool validation to the in-container provisioner. If a future
 // broker-side preflight is added, this test should be updated to expect a
 // pre-launch failure instead.
 func TestDispatchMissingRequiredImageTools(t *testing.T) {
-	srv, mgr, dotScion := dispatchTestEnv(t, true)
-	writeHarnessConfig(t, dotScion, "needs-tools", `harness: claude
-image: scion-claude:bare
+	srv, mgr, dotFabric := dispatchTestEnv(t, true)
+	writeHarnessConfig(t, dotFabric, "needs-tools", `harness: claude
+image: fabric-claude:bare
 provisioner:
   type: container-script
   interface_version: 1
-  command: ["nonexistent-interpreter", "/home/scion/.scion/harness/provision.py"]
+  command: ["nonexistent-interpreter", "/home/fabric/.fabric/harness/provision.py"]
   required_image_tools:
     - nonexistent-interpreter
 `)
@@ -250,14 +250,14 @@ func TestDispatchNoHarnessConfigStillWorks(t *testing.T) {
 // per-harness tables. This guards against silent regressions when the
 // config-driven path diverges from the compiled fallback.
 func TestExtractRequiredEnvKeys_ConfigDriven(t *testing.T) {
-	srv, _, dotScion := dispatchTestEnv(t, false)
+	srv, _, dotFabric := dispatchTestEnv(t, false)
 
 	// Harness-config with custom auth metadata: requires FOOBAR_TOKEN, not
 	// the canonical ANTHROPIC_API_KEY. If the broker still used the compiled
 	// table, it would ask for ANTHROPIC_API_KEY and the test would catch the
 	// regression.
-	writeHarnessConfig(t, dotScion, "custom-auth", `harness: claude
-image: scion-claude:test
+	writeHarnessConfig(t, dotFabric, "custom-auth", `harness: claude
+image: fabric-claude:test
 provisioner:
   type: builtin
   interface_version: 1
@@ -296,10 +296,10 @@ auth:
 // is the legacy path required during migration so older configs do not
 // suddenly stop reporting missing credentials.
 func TestExtractRequiredEnvKeys_CompiledFallback(t *testing.T) {
-	srv, _, dotScion := dispatchTestEnv(t, false)
+	srv, _, dotFabric := dispatchTestEnv(t, false)
 
-	writeHarnessConfig(t, dotScion, "claude-legacy", `harness: claude
-image: scion-claude:test
+	writeHarnessConfig(t, dotFabric, "claude-legacy", `harness: claude
+image: fabric-claude:test
 `)
 
 	req := CreateAgentRequest{

@@ -8,7 +8,7 @@
 - Updated package name in `pkg/projectsync/*.go` to `projectsync`.
 - Updated package documentation and comments in `pkg/projectsync/projectsync.go` to refer to "project-level" and "project sync".
 - Updated `cmd/sync.go`:
-    - Updated import `github.com/GoogleCloudPlatform/scion/pkg/grovesync` to `github.com/GoogleCloudPlatform/scion/pkg/projectsync`.
+    - Updated import `github.com/pdlc-os/fabric/pkg/grovesync` to `github.com/pdlc-os/fabric/pkg/projectsync`.
     - Renamed all usages of `grovesync.` to `projectsync.`.
     - Renamed internal function `runGroveSync` to `runProjectSync`.
     - Renamed internal function `resolveGroveWorkspacePath` to `resolveProjectWorkspacePath`.

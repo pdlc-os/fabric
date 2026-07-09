@@ -9,14 +9,14 @@
 
 ## 1. Overview
 
-This document defines how Scion supports **git-anchored groves on the Hub** — groves defined by a remote git repository URL (and optionally a branch) that can provision agents with full git workspaces without requiring any local filesystem representation.
+This document defines how Fabric supports **git-anchored groves on the Hub** — groves defined by a remote git repository URL (and optionally a branch) that can provision agents with full git workspaces without requiring any local filesystem representation.
 
-Today, groves are primarily created by running `scion grove init` inside a local git checkout, with Hub registration as a secondary step. This design introduces a **Hub-first flow** where a user creates a grove directly on the Hub from a git URL, sets authentication credentials, and starts agents that clone the repository at initialization time.
+Today, groves are primarily created by running `fabric grove init` inside a local git checkout, with Hub registration as a secondary step. This design introduces a **Hub-first flow** where a user creates a grove directly on the Hub from a git URL, sets authentication credentials, and starts agents that clone the repository at initialization time.
 
 ### Goals
 
 1. Allow users to create groves on the Hub with only a git URL and a secret — no local checkout required.
-2. Agent containers clone the repository at startup using `sciontool`, producing a fully functional git workspace.
+2. Agent containers clone the repository at startup using `fabrictool`, producing a fully functional git workspace.
 3. Agents can commit and push changes back to the remote repository.
 4. All lifecycle state changes are reported via Hub events for web UI visibility.
 
@@ -95,10 +95,10 @@ The `--slug` flag allows shorter names when collisions are not a concern.
 
 ## 3. Hub-First Grove Creation
 
-### 3.1 New Command: `scion hub grove create`
+### 3.1 New Command: `fabric hub grove create`
 
 ```
-scion hub grove create <git-url> [flags]
+fabric hub grove create <git-url> [flags]
 ```
 
 **Arguments:**
@@ -127,9 +127,9 @@ scion hub grove create <git-url> [flags]
      "slug": "acme-widgets",
      "gitRemote": "github.com/acme/widgets",
      "labels": {
-       "scion.dev/default-branch": "main",
-       "scion.dev/clone-url": "https://github.com/acme/widgets.git",
-       "scion.dev/source-url": "git@github.com:acme/widgets.git"
+       "fabric.dev/default-branch": "main",
+       "fabric.dev/clone-url": "https://github.com/acme/widgets.git",
+       "fabric.dev/source-url": "git@github.com:acme/widgets.git"
      }
    }
    ```
@@ -138,7 +138,7 @@ scion hub grove create <git-url> [flags]
 **Example Session:**
 
 ```
-$ scion hub grove create https://github.com/acme/widgets.git
+$ fabric hub grove create https://github.com/acme/widgets.git
 Grove created:
   ID:     a1b2c3d4e5f67890
   Slug:   acme-widgets
@@ -147,10 +147,10 @@ Grove created:
 
 Next steps:
   1. Set git credentials:
-     scion hub secret set GITHUB_TOKEN --grove acme-widgets <your-pat>
+     fabric hub secret set GITHUB_TOKEN --grove acme-widgets <your-pat>
 
   2. Start an agent:
-     scion start my-agent --grove acme-widgets "implement feature X"
+     fabric start my-agent --grove acme-widgets "implement feature X"
 ```
 
 ### 3.2 Hub API Changes
@@ -162,7 +162,7 @@ The existing `POST /api/v1/groves` endpoint already supports creating groves wit
 
 ### 3.3 Local Grove Linking (Existing Flow, No Changes)
 
-The existing `scion hub link` command continues to work for users who have a local checkout. When a user runs `scion hub link` in a git repository, the grove is registered/linked using the detected `origin` remote. This flow is unchanged.
+The existing `fabric hub link` command continues to work for users who have a local checkout. When a user runs `fabric hub link` in a git repository, the grove is registered/linked using the detected `origin` remote. This flow is unchanged.
 
 ---
 
@@ -193,8 +193,8 @@ GitHub fine-grained PATs **do not support restricting push operations to specifi
 
 **Mitigation strategies:**
 
-1. **GitHub branch protection rules** — Configure the repository with branch protection on `main`/`master` requiring PR reviews. This is the primary defense and is external to Scion.
-2. **Scion convention** — Agents are configured (via harness instructions and system prompt) to work on feature branches (`scion/<agent-name>`) and never push directly to protected branches. This is an advisory control, not enforced at the credential level.
+1. **GitHub branch protection rules** — Configure the repository with branch protection on `main`/`master` requiring PR reviews. This is the primary defense and is external to Fabric.
+2. **Fabric convention** — Agents are configured (via harness instructions and system prompt) to work on feature branches (`fabric/<agent-name>`) and never push directly to protected branches. This is an advisory control, not enforced at the credential level.
 3. **Future: GitHub App tokens** — GitHub App installation tokens can be issued with more granular control. Deferred to a later phase.
 
 ### 4.4 Secret Storage
@@ -202,7 +202,7 @@ GitHub fine-grained PATs **do not support restricting push operations to specifi
 The PAT is stored as a secret using the existing secret management system:
 
 ```
-scion hub secret set GITHUB_TOKEN --grove acme-widgets <pat-value>
+fabric hub secret set GITHUB_TOKEN --grove acme-widgets <pat-value>
 ```
 
 This creates a secret with:
@@ -213,7 +213,7 @@ This creates a secret with:
 
 The `GITHUB_TOKEN` can also be set at **user scope** (omit `--grove`), which makes it available to all of the user's groves. This is useful when a single user manages their own token across multiple repositories. Grove-scoped secrets override user-scoped secrets per the standard secret resolution hierarchy (`user < grove < broker`).
 
-The existing `scion hub secret set` command already supports both scoping modes. The secret value is encrypted at rest (Hub DB encryption or GCP Secret Manager, per `secrets.md`).
+The existing `fabric hub secret set` command already supports both scoping modes. The secret value is encrypted at rest (Hub DB encryption or GCP Secret Manager, per `secrets.md`).
 
 ---
 
@@ -221,7 +221,7 @@ The existing `scion hub secret set` command already supports both scoping modes.
 
 ### 5.1 Flow Overview
 
-When `scion start my-agent --grove acme-widgets` is executed against a Hub-first git grove (no local checkout), the workspace must be provisioned by cloning the repository inside the agent container.
+When `fabric start my-agent --grove acme-widgets` is executed against a Hub-first git grove (no local checkout), the workspace must be provisioned by cloning the repository inside the agent container.
 
 ```
 User CLI                  Hub                    Runtime Broker             Container
@@ -237,7 +237,7 @@ User CLI                  Hub                    Runtime Broker             Cont
    |                       |                          |    GIT_CLONE_URL,      |
    |                       |                          |    GIT_BRANCH)         |
    |                       |                          |                        |
-   |                       |                          |                  sciontool init
+   |                       |                          |                  fabrictool init
    |                       |<-- status: CLONING ------|<-- event --------------|
    |                       |                          |                   ├─ git clone
    |                       |                          |                   ├─ git checkout
@@ -285,15 +285,15 @@ When the Runtime Broker receives a `CreateAgent` command with `gitClone` config:
 
 1. **No worktree creation** — skip the `util.CreateWorktree()` call.
 2. **No workspace mount** — the workspace will be created inside the container.
-3. **Environment injection** — pass `GITHUB_TOKEN`, `SCION_GIT_CLONE_URL`, `SCION_GIT_BRANCH`, and `SCION_GIT_DEPTH` as environment variables to the container.
-4. **Container start** — start the container with `sciontool init` as the entrypoint (unchanged).
+3. **Environment injection** — pass `GITHUB_TOKEN`, `FABRIC_GIT_CLONE_URL`, `FABRIC_GIT_BRANCH`, and `FABRIC_GIT_DEPTH` as environment variables to the container.
+4. **Container start** — start the container with `fabrictool init` as the entrypoint (unchanged).
 
-### 5.4 sciontool: Git Clone Phase
+### 5.4 fabrictool: Git Clone Phase
 
-`sciontool init` gains a new **git clone phase** that runs before the harness process starts. This slots into the existing initialization sequence:
+`fabrictool init` gains a new **git clone phase** that runs before the harness process starts. This slots into the existing initialization sequence:
 
 ```
-sciontool init
+fabrictool init
   1. StartReaper()
   2. setupHostUser()
   3. Start Telemetry
@@ -308,7 +308,7 @@ sciontool init
 
 #### `gitCloneWorkspace()` Implementation
 
-Triggered when the environment variable `SCION_GIT_CLONE_URL` is set and `/workspace` is empty (or does not exist).
+Triggered when the environment variable `FABRIC_GIT_CLONE_URL` is set and `/workspace` is empty (or does not exist).
 
 ```
 gitCloneWorkspace():
@@ -319,25 +319,25 @@ gitCloneWorkspace():
      https://oauth2:${GITHUB_TOKEN}@github.com/acme/widgets.git
 
   3. Execute:
-     git clone --depth=${SCION_GIT_DEPTH:-1} \
-       --branch=${SCION_GIT_BRANCH:-main} \
+     git clone --depth=${FABRIC_GIT_DEPTH:-1} \
+       --branch=${FABRIC_GIT_BRANCH:-main} \
        <authenticated-url> /workspace
 
   4. Configure git identity:
-     git -C /workspace config user.name "Scion Agent (${SCION_AGENT_NAME})"
-     git -C /workspace config user.email "agent@scion.dev"
+     git -C /workspace config user.name "Fabric Agent (${FABRIC_AGENT_NAME})"
+     git -C /workspace config user.email "agent@fabric.dev"
 
   5. Configure credential helper for subsequent operations:
      git -C /workspace config credential.helper \
        '!f() { echo "password=${GITHUB_TOKEN}"; echo "username=oauth2"; }; f'
 
   6. Create and checkout agent feature branch:
-     git -C /workspace checkout -b scion/${SCION_AGENT_NAME}
+     git -C /workspace checkout -b fabric/${FABRIC_AGENT_NAME}
 
   7. Report status: STARTING (clone complete, proceeding to harness startup)
 ```
 
-**Error handling**: If `git clone` fails (bad URL, invalid token, network error), sciontool reports status `ERROR` with a descriptive message and exits with a non-zero code. The Hub event includes the error detail for UI display.
+**Error handling**: If `git clone` fails (bad URL, invalid token, network error), fabrictool reports status `ERROR` with a descriptive message and exits with a non-zero code. The Hub event includes the error detail for UI display.
 
 **Security**: The authenticated URL is constructed in-process and never written to disk or logs. The `GITHUB_TOKEN` environment variable is available for the credential helper to use during subsequent push operations, but is not embedded in the git config.
 
@@ -346,9 +346,9 @@ gitCloneWorkspace():
 | Variable | Source | Description |
 |----------|--------|-------------|
 | `GITHUB_TOKEN` | Resolved secret (user or grove scope) | GitHub PAT for authentication |
-| `SCION_GIT_CLONE_URL` | Grove gitRemote (HTTPS form) | Repository URL (without credentials) |
-| `SCION_GIT_BRANCH` | Agent config / grove default branch | Branch to clone and checkout |
-| `SCION_GIT_DEPTH` | Agent config (optional) | Clone depth (default: 1) |
+| `FABRIC_GIT_CLONE_URL` | Grove gitRemote (HTTPS form) | Repository URL (without credentials) |
+| `FABRIC_GIT_BRANCH` | Agent config / grove default branch | Branch to clone and checkout |
+| `FABRIC_GIT_DEPTH` | Agent config (optional) | Clone depth (default: 1) |
 
 `GITHUB_TOKEN` is resolved through the standard secret resolution pipeline — nothing special. It follows the same `user < grove < broker` scope hierarchy as any other environment-type secret.
 
@@ -358,16 +358,16 @@ The default clone depth is **1** (shallow clone) for speed. This limits `git log
 
 This can be noted as a tip in agent template instructions — e.g., "If you need full git history for blame or log analysis, run `git fetch --unshallow` first."
 
-Override via `--depth` on `scion start` or as a grove label (`scion.dev/clone-depth`).
+Override via `--depth` on `fabric start` or as a grove label (`fabric.dev/clone-depth`).
 
 ### 5.7 Branch Strategy
 
 When an agent starts on a git grove:
 
-1. The repository is cloned at the grove's base branch (stored in `scion.dev/default-branch` label).
-2. A new feature branch is created: `scion/<agent-name>`.
+1. The repository is cloned at the grove's base branch (stored in `fabric.dev/default-branch` label).
+2. A new feature branch is created: `fabric/<agent-name>`.
 3. The agent works on this feature branch exclusively.
-4. Commits and pushes go to `scion/<agent-name>` on the remote.
+4. Commits and pushes go to `fabric/<agent-name>` on the remote.
 
 This matches the existing local worktree behavior where each agent gets its own branch.
 
@@ -378,7 +378,7 @@ This matches the existing local worktree behavior where each agent gets its own 
 ### 6.1 Starting an Agent
 
 ```
-scion start my-agent --grove acme-widgets "implement login page"
+fabric start my-agent --grove acme-widgets "implement login page"
 ```
 
 **Resolution flow:**
@@ -389,17 +389,17 @@ scion start my-agent --grove acme-widgets "implement login page"
 4. Hub selects an available Runtime Broker for the grove.
 5. Hub sends `CreateAgent` command to Broker with `gitClone` config and resolved secrets.
 6. Broker starts container with appropriate environment.
-7. `sciontool` reports `CLONING`, clones repo, creates branch, reports `STARTING`, starts harness.
+7. `fabrictool` reports `CLONING`, clones repo, creates branch, reports `STARTING`, starts harness.
 8. Status transitions visible in web UI: `PENDING` → `CLONING` → `STARTING` → `RUNNING`.
 
 ### 6.2 Status Events
 
-The `sciontool` status reporting system already supports arbitrary status values. The git clone phase introduces a new status:
+The `fabrictool` status reporting system already supports arbitrary status values. The git clone phase introduces a new status:
 
 | Status | Meaning |
 |--------|---------|
 | `PENDING` | Agent record created, container not yet started |
-| `CLONING` | **New** — `sciontool` is about to / currently cloning the git repository |
+| `CLONING` | **New** — `fabrictool` is about to / currently cloning the git repository |
 | `STARTING` | Clone complete, harness initializing |
 | `RUNNING` | Harness active, agent accepting work |
 | `WAITING_FOR_INPUT` | Agent needs human interaction |
@@ -407,7 +407,7 @@ The `sciontool` status reporting system already supports arbitrary status values
 | `ERROR` | Fatal error (including clone failure) |
 
 These status transitions are reported via:
-- `sciontool` → Hub API (`POST /api/v1/agents/{id}/status`)
+- `fabrictool` → Hub API (`POST /api/v1/agents/{id}/status`)
 - Hub → WebSocket event bus → Web UI
 
 Note: The realtime web event system is also evolving (see `web-realtime.md`), but changes there do not impact the primary scope of this design. The status reporting mechanism is stable.
@@ -419,12 +419,12 @@ Once the agent has made changes, it can commit and push using standard git opera
 ```bash
 git add .
 git commit -m "implement login page"
-git push -u origin scion/my-agent
+git push -u origin fabric/my-agent
 ```
 
 The harness instructions should guide the agent to:
 1. Never push to `main` or other protected branches directly.
-2. Always push to the `scion/<agent-name>` branch.
+2. Always push to the `fabric/<agent-name>` branch.
 3. Open a PR via the GitHub API (using `GITHUB_TOKEN`) if requested.
 
 ### 6.4 Detach / Reattach
@@ -432,37 +432,37 @@ The harness instructions should guide the agent to:
 Git groves work identically to local groves for attach/detach operations. The container persists with its cloned workspace between sessions:
 
 ```
-scion attach my-agent --grove acme-widgets
-scion detach
+fabric attach my-agent --grove acme-widgets
+fabric detach
 ```
 
 ### 6.5 Agent Deletion and Unpushed Change Protection
 
-When an agent is deleted, the container is removed. The cloned workspace is ephemeral (container-local storage) and is discarded. Any unpushed commits are lost. The remote branch (`scion/my-agent`) remains on GitHub.
+When an agent is deleted, the container is removed. The cloned workspace is ephemeral (container-local storage) and is discarded. Any unpushed commits are lost. The remote branch (`fabric/my-agent`) remains on GitHub.
 
 **Future feature: `--protect-git-changes`**
 
 A future enhancement should add an agent-level option (set at creation time) that protects against accidental loss of unpushed work:
 
 ```
-scion start my-agent --grove acme-widgets --protect-git-changes "task"
+fabric start my-agent --grove acme-widgets --protect-git-changes "task"
 ```
 
 When this flag is set on an agent:
-- `scion rm my-agent` checks git status inside the container before deletion.
+- `fabric rm my-agent` checks git status inside the container before deletion.
 - If there are uncommitted changes or commits not pushed to the remote, the command returns an error with a descriptive message (e.g., "agent has 3 unpushed commits; use --force to delete anyway").
-- `scion rm my-agent --force` overrides the protection and deletes regardless.
+- `fabric rm my-agent --force` overrides the protection and deletes regardless.
 
-The mechanism for checking git status would be a `sciontool` command invoked via `docker exec` / `kubectl exec` before container removal. This is deferred to a later implementation phase.
+The mechanism for checking git status would be a `fabrictool` command invoked via `docker exec` / `kubectl exec` before container removal. This is deferred to a later implementation phase.
 
 ### 6.6 Workspace Persistence Across Restarts
 
-- **Stop/Start** (`scion stop` / `scion start`): The container filesystem persists (Docker) or the pod is kept (K8s with restart policy). The cloned workspace is reused — no re-clone needed.
-- **Delete/Recreate** (`scion rm` / `scion start`): The workspace is lost. A fresh shallow clone runs on the new container. This is fast for most repositories and acceptable.
+- **Stop/Start** (`fabric stop` / `fabric start`): The container filesystem persists (Docker) or the pod is kept (K8s with restart policy). The cloned workspace is reused — no re-clone needed.
+- **Delete/Recreate** (`fabric rm` / `fabric start`): The workspace is lost. A fresh shallow clone runs on the new container. This is fast for most repositories and acceptable.
 
 ---
 
-## 7. New CLI Command: `scion hub grove create`
+## 7. New CLI Command: `fabric hub grove create`
 
 ### 7.1 Command Registration
 
@@ -534,9 +534,9 @@ func runHubGroveCreate(cmd *cobra.Command, args []string) error {
         Slug:      slug,
         GitRemote: normalized,
         Labels: map[string]string{
-            "scion.dev/default-branch": defaultBranch,
-            "scion.dev/clone-url":      util.ToHTTPSCloneURL(gitURL),
-            "scion.dev/source-url":     gitURL,
+            "fabric.dev/default-branch": defaultBranch,
+            "fabric.dev/clone-url":      util.ToHTTPSCloneURL(gitURL),
+            "fabric.dev/source-url":     gitURL,
         },
     })
     if err != nil {
@@ -550,9 +550,9 @@ func runHubGroveCreate(cmd *cobra.Command, args []string) error {
     fmt.Printf("  Branch: %s\n", defaultBranch)
     fmt.Printf("\nNext steps:\n")
     fmt.Printf("  1. Set git credentials:\n")
-    fmt.Printf("     scion hub secret set GITHUB_TOKEN --grove %s <your-pat>\n\n", grove.Slug)
+    fmt.Printf("     fabric hub secret set GITHUB_TOKEN --grove %s <your-pat>\n\n", grove.Slug)
     fmt.Printf("  2. Start an agent:\n")
-    fmt.Printf("     scion start my-agent --grove %s \"your task\"\n", grove.Slug)
+    fmt.Printf("     fabric start my-agent --grove %s \"your task\"\n", grove.Slug)
 
     return nil
 }
@@ -615,9 +615,9 @@ The grove's configuration is stored as labels on the grove record:
 
 | Label | Value | Purpose |
 |-------|-------|---------|
-| `scion.dev/default-branch` | `main` | Base branch for new agents |
-| `scion.dev/clone-url` | `https://github.com/org/repo.git` | HTTPS-form URL for cloning |
-| `scion.dev/source-url` | `git@github.com:org/repo.git` | Original URL as provided by user |
+| `fabric.dev/default-branch` | `main` | Base branch for new agents |
+| `fabric.dev/clone-url` | `https://github.com/org/repo.git` | HTTPS-form URL for cloning |
+| `fabric.dev/source-url` | `git@github.com:org/repo.git` | Original URL as provided by user |
 
 Labels are used rather than new schema fields to avoid schema migration for what are effectively configuration preferences.
 
@@ -635,46 +635,46 @@ When the Runtime Broker receives a `CreateAgent` command with `gitClone` configu
 
 1. **Skip worktree creation** — `ProvisionAgent()` detects `gitClone` config and skips the `util.CreateWorktree()` call.
 2. **Skip workspace mounting** — no host-side workspace directory is bind-mounted.
-3. **Inject git environment** — add `SCION_GIT_CLONE_URL`, `SCION_GIT_BRANCH`, `SCION_GIT_DEPTH` to container environment.
+3. **Inject git environment** — add `FABRIC_GIT_CLONE_URL`, `FABRIC_GIT_BRANCH`, `FABRIC_GIT_DEPTH` to container environment.
 4. **Inject resolved secrets** — `GITHUB_TOKEN` is injected as a container environment variable (same as any environment-type secret).
 5. **Ensure writable workspace** — the container's `/workspace` directory must be writable. For Docker, this is automatic (container filesystem). For Kubernetes, an `emptyDir` volume at `/workspace`.
 
 ### 9.2 Docker Runtime
 
-No init container is needed for Docker. The `sciontool init` entrypoint handles the clone as part of its startup sequence. The Docker run command looks like:
+No init container is needed for Docker. The `fabrictool init` entrypoint handles the clone as part of its startup sequence. The Docker run command looks like:
 
 ```bash
 docker run -t -d \
   -e GITHUB_TOKEN=ghp_xxx \
-  -e SCION_GIT_CLONE_URL=https://github.com/acme/widgets.git \
-  -e SCION_GIT_BRANCH=main \
-  -e SCION_GIT_DEPTH=1 \
-  -e SCION_AGENT_NAME=my-agent \
+  -e FABRIC_GIT_CLONE_URL=https://github.com/acme/widgets.git \
+  -e FABRIC_GIT_BRANCH=main \
+  -e FABRIC_GIT_DEPTH=1 \
+  -e FABRIC_AGENT_NAME=my-agent \
   ... \
   claude-sandbox:latest \
-  sciontool init -- tmux new-session -s scion claude
+  fabrictool init -- tmux new-session -s fabric claude
 ```
 
 ### 9.3 Kubernetes Runtime
 
-For Kubernetes, the clone is performed by `sciontool init` in the main container (consistent with Docker — no separate init container):
+For Kubernetes, the clone is performed by `fabrictool init` in the main container (consistent with Docker — no separate init container):
 
 ```yaml
 spec:
   containers:
   - name: agent
     image: claude-sandbox:latest
-    command: ["sciontool", "init", "--"]
-    args: ["tmux", "new-session", "-s", "scion", "claude"]
+    command: ["fabrictool", "init", "--"]
+    args: ["tmux", "new-session", "-s", "fabric", "claude"]
     env:
     - name: GITHUB_TOKEN
       valueFrom:
         secretKeyRef:
-          name: scion-git-creds-acme-widgets
+          name: fabric-git-creds-acme-widgets
           key: token
-    - name: SCION_GIT_CLONE_URL
+    - name: FABRIC_GIT_CLONE_URL
       value: "https://github.com/acme/widgets.git"
-    - name: SCION_GIT_BRANCH
+    - name: FABRIC_GIT_BRANCH
       value: "main"
     volumeMounts:
     - name: workspace
@@ -694,7 +694,7 @@ For groves that use GCS-based workspace synchronization (non-git workspaces, or 
 |--------|-----------|----------|
 | Source of truth | Git remote | GCS bucket |
 | History | Full git history (within depth) | No history |
-| Push-back | `git push` to remote | `scion sync from` to download |
+| Push-back | `git push` to remote | `fabric sync from` to download |
 | Branch awareness | Yes | No |
 | Credential type | Git PAT | GCS service account / signed URLs |
 | Offline capability | Full (after clone) | Full (after sync) |
@@ -713,9 +713,9 @@ All state transitions during agent startup with git clone are reported through t
 
 1. **Agent created** → `PENDING` (Hub creates agent record)
 2. **Container starting** → broker reports container status
-3. **Clone starting** → `CLONING` (sciontool reports via `POST /api/v1/agents/{id}/status`, before clone begins)
-4. **Clone complete** → `STARTING` (sciontool reports)
-5. **Harness ready** → `RUNNING` (sciontool reports)
+3. **Clone starting** → `CLONING` (fabrictool reports via `POST /api/v1/agents/{id}/status`, before clone begins)
+4. **Clone complete** → `STARTING` (fabrictool reports)
+5. **Harness ready** → `RUNNING` (fabrictool reports)
 
 The `CLONING` status includes metadata about the clone operation:
 
@@ -759,7 +759,7 @@ Note: The realtime web event system is also under active development (see `web-r
 
 ```bash
 # Create a grove from a GitHub repository
-$ scion hub grove create https://github.com/acme/widgets.git
+$ fabric hub grove create https://github.com/acme/widgets.git
 Grove created:
   ID:     a1b2c3d4e5f67890
   Slug:   acme-widgets
@@ -767,7 +767,7 @@ Grove created:
   Branch: main
 
 # Store a GitHub PAT as a grove secret
-$ scion hub secret set GITHUB_TOKEN --grove acme-widgets ghp_xxxxxxxxxxxxxxxxxxxx
+$ fabric hub secret set GITHUB_TOKEN --grove acme-widgets ghp_xxxxxxxxxxxxxxxxxxxx
 Secret 'GITHUB_TOKEN' set for grove 'acme-widgets'
 ```
 
@@ -775,14 +775,14 @@ Secret 'GITHUB_TOKEN' set for grove 'acme-widgets'
 
 ```bash
 # Start an agent on the grove (no local checkout needed)
-$ scion start my-coder --grove acme-widgets "implement user authentication"
+$ fabric start my-coder --grove acme-widgets "implement user authentication"
 Agent 'my-coder' starting on grove 'acme-widgets'...
   Cloning github.com/acme/widgets (branch: main)...
-  Branch: scion/my-coder
+  Branch: fabric/my-coder
   Status: RUNNING
 
 # Attach to interact
-$ scion attach my-coder --grove acme-widgets
+$ fabric attach my-coder --grove acme-widgets
 ```
 
 ### 12.3 Agent Operations (Inside Container)
@@ -793,7 +793,7 @@ $ pwd
 /workspace
 
 $ git branch
-* scion/my-coder
+* fabric/my-coder
   main
 
 $ git remote -v
@@ -803,26 +803,26 @@ origin  https://github.com/acme/widgets.git (push)
 # After making changes...
 $ git add .
 $ git commit -m "implement user auth module"
-$ git push -u origin scion/my-coder
+$ git push -u origin fabric/my-coder
 ```
 
 ### 12.4 Multiple Agents
 
 ```bash
 # Start additional agents on the same grove
-$ scion start reviewer --grove acme-widgets "review the auth PR"
-$ scion start tester --grove acme-widgets "write tests for the auth module"
+$ fabric start reviewer --grove acme-widgets "review the auth PR"
+$ fabric start tester --grove acme-widgets "write tests for the auth module"
 
 # Each gets its own branch
-# reviewer → scion/reviewer
-# tester   → scion/tester
+# reviewer → fabric/reviewer
+# tester   → fabric/tester
 ```
 
 ### 12.5 Branch-Scoped Grove
 
 ```bash
 # Create a grove for a specific branch
-$ scion hub grove create https://github.com/acme/widgets.git --branch release/v2
+$ fabric hub grove create https://github.com/acme/widgets.git --branch release/v2
 Grove created:
   ID:     f9e8d7c6b5a49382
   Slug:   acme-widgets-release-v2
@@ -830,8 +830,8 @@ Grove created:
   Branch: release/v2
 
 # Agents on this grove branch from release/v2 instead of main
-$ scion start hotfix --grove acme-widgets-release-v2 "fix CVE-2026-1234"
-# Branch: scion/hotfix (based on release/v2)
+$ fabric start hotfix --grove acme-widgets-release-v2 "fix CVE-2026-1234"
+# Branch: fabric/hotfix (based on release/v2)
 ```
 
 ---
@@ -840,20 +840,20 @@ $ scion start hotfix --grove acme-widgets-release-v2 "fix CVE-2026-1234"
 
 ### Phase 1: Hub-First Grove Creation
 
-1. Add `scion hub grove create <git-url>` command to `cmd/hub.go`.
+1. Add `fabric hub grove create <git-url>` command to `cmd/hub.go`.
 2. Add `IsGitURL()`, `ToHTTPSCloneURL()`, `ExtractOrgRepo()`, and `HashGroveID()` utilities to `pkg/util/git.go`.
 3. Implement default branch detection via `git ls-remote --symref`.
 4. Update `NormalizeGitRemote()` to support `@branch` suffix in identity strings.
 5. Store clone URL, source URL, and default branch as grove labels.
-6. Verify existing `scion hub secret set` works for this flow (no changes expected).
+6. Verify existing `fabric hub secret set` works for this flow (no changes expected).
 
-### Phase 2: sciontool Git Clone
+### Phase 2: fabrictool Git Clone
 
-1. Add `gitCloneWorkspace()` function to `cmd/sciontool/commands/init.go`.
+1. Add `gitCloneWorkspace()` function to `cmd/fabrictool/commands/init.go`.
 2. Report `CLONING` status before clone begins, with repository and branch metadata.
 3. Construct authenticated clone URL in-process (never written to disk/logs).
 4. Configure git identity and credential helper post-clone.
-5. Create and checkout agent feature branch (`scion/<agent-name>`).
+5. Create and checkout agent feature branch (`fabric/<agent-name>`).
 6. Handle errors with actionable messages and `ERROR` status reporting.
 
 ### Phase 3: Runtime Broker Integration
@@ -867,7 +867,7 @@ $ scion start hotfix --grove acme-widgets-release-v2 "fix CVE-2026-1234"
 
 1. Update Hub's agent creation handler to resolve grove git remote and inject `gitClone` config into `CreateAgent` payload.
 2. Ensure `GITHUB_TOKEN` is included in resolved agent environment via standard secret pipeline.
-3. Pass `SCION_GIT_CLONE_URL` and `SCION_GIT_BRANCH` through to broker.
+3. Pass `FABRIC_GIT_CLONE_URL` and `FABRIC_GIT_BRANCH` through to broker.
 
 ### Phase 5: Testing and Polish
 
@@ -892,7 +892,7 @@ The following questions were raised during design review and resolved:
 | 6 | **Forks**: track upstream? | Forks are independent groves. Upstream relationships handled at PR level. |
 | 7 | **Default branch detection**: probe remote? | Yes, via `git ls-remote --symref` when token is available. Fall back to `main`. |
 | 8 | **Workspace persistence**: re-clone on restart? | Reuse for stop/start. Re-clone on delete/recreate (shallow clone is fast). |
-| 9 | **K8s clone mechanism**: init container vs sciontool? | Use `sciontool init` for consistency across runtimes. |
+| 9 | **K8s clone mechanism**: init container vs fabrictool? | Use `fabrictool init` for consistency across runtimes. |
 | 10 | **Branch in grove identity**: single repo = single grove? | Support `@branch` qualifier so same repo can have multiple groves for different branches. |
 | 11 | **Secret scope for GITHUB_TOKEN**: grove only? | Grove is natural default, but user scope also supported (one token across groves). Standard resolution hierarchy applies. |
-| 12 | **Unpushed change protection**: block deletion? | Future feature via `--protect-git-changes` flag and `--force` override on `scion rm`. |
+| 12 | **Unpushed change protection**: block deletion? | Future feature via `--protect-git-changes` flag and `--force` override on `fabric rm`. |

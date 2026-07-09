@@ -16,12 +16,12 @@ Build the `/onboarding` route and Lit page with a step-by-step wizard, first-run
 ## 3.1 — Route registration
 
 In `web/src/client/main.ts` (routes around line 127-158):
-- Add a `/onboarding` route pointing to `scion-page-onboarding`
+- Add a `/onboarding` route pointing to `fabric-page-onboarding`
 - First-run redirect: on app load, call `GET /api/v1/system/status`; if `!status.complete`, navigate to `/onboarding` (store result in `sessionStorage` as `onboardingStatus`)
 
 ## 3.2 — `web/src/components/pages/onboarding.ts`
 
-Create a new Lit page `scion-page-onboarding`. It implements a linear wizard with these steps:
+Create a new Lit page `fabric-page-onboarding`. It implements a linear wizard with these steps:
 
 | # | Step | Key actions |
 |---|---|---|
@@ -46,10 +46,10 @@ Styling: use existing Shoelace components (`sl-card`, `sl-button`, `sl-input`, `
 In `cmd/server_daemon.go` `printWorkstationQuickstart()` (line 361-384):
 - Change the URL printed to include `/onboarding` when the machine is un-onboarded
 - Print the URL **before** the process backgrounds itself (it currently already does this — verify)
-- Add auto-open: after printing the URL, call `openBrowser(url)` if: stdin is a TTY (`term.IsTerminal(os.Stdin.Fd())`), and `SCION_NO_BROWSER` env var is not set
+- Add auto-open: after printing the URL, call `openBrowser(url)` if: stdin is a TTY (`term.IsTerminal(os.Stdin.Fd())`), and `FABRIC_NO_BROWSER` env var is not set
 - `openBrowser` uses `exec.Command("open", url)` on macOS, `exec.Command("xdg-open", url)` on Linux, skips on other OS — no-op if command fails
 
-Use `GET /system/status` (or a simpler check: does `~/.scion/settings.yaml` exist?) to decide whether to point to `/onboarding` vs `/`.
+Use `GET /system/status` (or a simpler check: does `~/.fabric/settings.yaml` exist?) to decide whether to point to `/onboarding` vs `/`.
 
 ---
 

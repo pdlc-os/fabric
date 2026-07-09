@@ -3,20 +3,20 @@ title: Agent Lifecycle — Suspend, Resume & Recovery
 description: Pause and resume agents with their harness session intact, recover crashed agents, and understand auto-suspend of stalled agents.
 ---
 
-Beyond the basic `start` / `stop` pair, Scion gives you finer control over an
+Beyond the basic `start` / `stop` pair, Fabric gives you finer control over an
 agent's lifecycle: you can **suspend** an agent and later **resume** it with its
 harness conversation intact, recover an agent that **crashed**, and rely on the
 Hub to **auto-suspend** agents that have stalled in order to reclaim resources.
 
 This page is for power users driving agents from the CLI. For the conceptual
-model behind phases and activities, see [Core Concepts: Agent State Model](/scion/concepts/#agent-state-model).
+model behind phases and activities, see [Core Concepts: Agent State Model](/fabric/concepts/#agent-state-model).
 
 ## Stop vs. Suspend: two ways to wind down
 
 Both `stop` and `suspend` tear down the agent's container, but they record very
 different intent:
 
-| | `scion stop` | `scion suspend` |
+| | `fabric stop` | `fabric suspend` |
 | :--- | :--- | :--- |
 | **Phase after** | `stopped` | `suspended` |
 | **Next `start`** | Fresh harness session | **Continues** the previous conversation |
@@ -36,7 +36,7 @@ network filesystem); see [Runtime caveats](#runtime-caveats) below.
 ### Suspending an agent
 
 ```bash
-scion suspend <agent-name>
+fabric suspend <agent-name>
 ```
 
 This stops the agent's container but marks its phase as `suspended` — a signal
@@ -45,18 +45,18 @@ that you intend to resume it later. Only a **running** agent can be suspended.
 To suspend every running agent in the current project at once:
 
 ```bash
-scion suspend --all
+fabric suspend --all
 ```
 
 Suspend requires a harness that supports session resume. If the agent's harness
 does not (for example, the `generic` harness), the command is rejected with an
-error and you should use `scion stop` instead. When using `--all`, unsupported
+error and you should use `fabric stop` instead. When using `--all`, unsupported
 agents are skipped rather than failing the whole batch.
 
 ### Resuming an agent
 
 ```bash
-scion resume <agent-name> [task]
+fabric resume <agent-name> [task]
 ```
 
 `resume` re-launches the container and continues the prior harness conversation
@@ -70,12 +70,12 @@ appended to the resumed session as a new prompt, if the harness supports it.
 
 ### `start` and `resume` are intent-aware
 
-You do not have to remember which command to use — Scion looks at the agent's
+You do not have to remember which command to use — Fabric looks at the agent's
 saved phase and does the right thing:
 
-- **`scion start` on a *suspended* agent** performs an **implicit resume**: the
-  harness session is continued, exactly as if you had run `scion resume`.
-- **`scion resume` on a *stopped* agent** starts a **fresh** session — there is
+- **`fabric start` on a *suspended* agent** performs an **implicit resume**: the
+  harness session is continued, exactly as if you had run `fabric resume`.
+- **`fabric resume` on a *stopped* agent** starts a **fresh** session — there is
   no prior conversation to continue, so it falls back to a clean start.
 
 In other words, the *agent's phase* decides whether the session is continued or
@@ -97,8 +97,8 @@ When an agent's process or container exits **non-zero** — a real crash, an
 out-of-memory kill, or a `SIGKILL` — the agent transitions to the `error` phase
 with a descriptive message such as `Agent crashed with exit code 137`.
 
-Scion is careful to distinguish a crash from an orderly shutdown. The harness
-runs inside `tmux`, and `sciontool` recovers the real exit code when the session
+Fabric is careful to distinguish a crash from an orderly shutdown. The harness
+runs inside `tmux`, and `fabrictool` recovers the real exit code when the session
 ends, then classifies it:
 
 | Outcome | Phase | Activity |
@@ -109,13 +109,13 @@ ends, then classifies it:
 
 A crash surfaces as the **`error` phase** — the activity is cleared, and the
 crash detail is carried in the agent's message (e.g. `Agent crashed with exit
-code 137`). Two paths can set `error`: `sciontool` reports it from the recovered
+code 137`). Two paths can set `error`: `fabrictool` reports it from the recovered
 exit code (the authoritative path), and the Hub also derives `error` from a
 non-zero container exit reported in the broker heartbeat — which covers cases
-where the container died before `sciontool` could report.
+where the container died before `fabrictool` could report.
 
 :::note
-A normal `scion stop` sends `SIGTERM`, which harnesses like Claude Code handle
+A normal `fabric stop` sends `SIGTERM`, which harnesses like Claude Code handle
 gracefully and exit cleanly (code 0). Only a *genuine* crash or a hard kill
 produces the `error` phase — stopping an agent never leaves it in `error`.
 :::
@@ -124,7 +124,7 @@ The `error` phase is **restartable**. Starting the agent again clears the error
 and runs a **fresh** session:
 
 ```bash
-scion start <agent-name>
+fabric start <agent-name>
 ```
 
 Because the crash discarded the previous run, this is a clean start rather than
@@ -144,7 +144,7 @@ inactivity in total), the Hub auto-suspends it — provided that:
 - the agent's harness supports session resume, and
 - the container is still alive.
 
-Auto-suspend uses the same machinery as a manual `scion suspend`, so the agent's
+Auto-suspend uses the same machinery as a manual `fabric suspend`, so the agent's
 phase becomes `suspended` and its harness session is preserved. The agent is
 **resumed automatically on the next message** sent to it, continuing right where
 it left off.
@@ -152,7 +152,7 @@ it left off.
 :::tip
 If your agent is *intentionally* idle — for example, waiting on a child agent or
 a scheduled event — have it declare itself `blocked` (via
-`sciontool status blocked "<reason>"`). Blocked agents are excluded from stalled
+`fabrictool status blocked "<reason>"`). Blocked agents are excluded from stalled
 detection and therefore from auto-suspend.
 :::
 
@@ -181,6 +181,6 @@ capability, with this caveat for other runtimes:
 
 ## See also
 
-- [Core Concepts: Agent State Model](/scion/concepts/#agent-state-model)
-- [CLI Reference: Agent Lifecycle](/scion/reference/cli/#agent-lifecycle)
-- [Web Dashboard](/scion/workstation/dashboard/)
+- [Core Concepts: Agent State Model](/fabric/concepts/#agent-state-model)
+- [CLI Reference: Agent Lifecycle](/fabric/reference/cli/#agent-lifecycle)
+- [Web Dashboard](/fabric/workstation/dashboard/)

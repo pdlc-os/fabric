@@ -20,7 +20,7 @@
 # This script sets up the web server component for the NATS-to-SSE real-time
 # event pipeline (Milestones 7 and 8).
 #
-# It assumes a NATS server is already running and reachable at SCION_NATS_URL
+# It assumes a NATS server is already running and reachable at FABRIC_NATS_URL
 # (default: nats://localhost:4222).
 #
 # Architecture:
@@ -43,7 +43,7 @@
 #
 # Prerequisites:
 #   - Node.js 20+
-#   - A running NATS server (see SCION_NATS_URL)
+#   - A running NATS server (see FABRIC_NATS_URL)
 #   - curl, jq (optional) for verification
 #   - A running Hub API (or DEV_AUTH=true for local development without one)
 #
@@ -55,7 +55,7 @@
 
 set -euo pipefail
 
-NATS_URL="${SCION_NATS_URL:-${NATS_URL:-nats://localhost:4222}}"
+NATS_URL="${FABRIC_NATS_URL:-${NATS_URL:-nats://localhost:4222}}"
 WEB_PORT="${PORT:-8080}"
 WEB_DIR="${WEB_DIR:-web}"
 
@@ -71,8 +71,8 @@ err()   { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*"; }
 # Environment Variables Reference
 # ---------------------------------------------------------------------------
 #
-#   SCION_NATS_URL    (none)           NATS server URL(s), comma-separated for clusters
-#   NATS_URL          (none)           Fallback if SCION_NATS_URL is not set
+#   FABRIC_NATS_URL    (none)           NATS server URL(s), comma-separated for clusters
+#   NATS_URL          (none)           Fallback if FABRIC_NATS_URL is not set
 #   NATS_TOKEN        (none)           Optional auth token for NATS connection
 #   NATS_ENABLED      true if URL set  Explicitly enable/disable NATS
 #   NATS_MAX_RECONNECT -1 (infinite)   Max reconnect attempts before giving up
@@ -141,13 +141,13 @@ start_web() {
 
     info "Web server will start in foreground. Press Ctrl+C to stop."
     echo ""
-    echo "  SCION_NATS_URL=${NATS_URL}"
+    echo "  FABRIC_NATS_URL=${NATS_URL}"
     echo "  DEV_AUTH=true"
     echo "  PORT=${WEB_PORT}"
     echo ""
 
     cd "${WEB_DIR}"
-    SCION_NATS_URL="${NATS_URL}" DEV_AUTH=true PORT="${WEB_PORT}" npm run dev
+    FABRIC_NATS_URL="${NATS_URL}" DEV_AUTH=true PORT="${WEB_PORT}" npm run dev
 }
 
 # ---------------------------------------------------------------------------
@@ -242,8 +242,8 @@ usage() {
     echo "  status  Check health of NATS and the web server"
     echo ""
     echo "Environment:"
-    echo "  SCION_NATS_URL  NATS server URL (default: nats://localhost:4222)"
-    echo "  NATS_URL        Fallback NATS URL if SCION_NATS_URL is not set"
+    echo "  FABRIC_NATS_URL  NATS server URL (default: nats://localhost:4222)"
+    echo "  NATS_URL        Fallback NATS URL if FABRIC_NATS_URL is not set"
     echo "  WEB_DIR         Path to web/ directory (default: web)"
     echo "  PORT            Web server port (default: 8080)"
 }

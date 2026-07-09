@@ -19,10 +19,10 @@ package storetest_test
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/storetest"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/storetest"
 )
 
 // compositeFactory returns a Factory that builds the production-shaped
@@ -32,7 +32,7 @@ import (
 // against the current backend.
 //
 // The backend (SQLite by default, Postgres under -tags integration with
-// SCION_TEST_POSTGRES_URL set) is selected by enttest.NewClient, so the same
+// FABRIC_TEST_POSTGRES_URL set) is selected by enttest.NewClient, so the same
 // oracle asserts identical observable behavior across both backends.
 func compositeFactory(t *testing.T) store.Store {
 	t.Helper()

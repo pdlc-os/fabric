@@ -14,16 +14,16 @@ and asserts behavior that only a real, concurrent, multi-writer database exhibit
 ## Running
 
 All tests are gated by the `integration` build tag **and** require a live
-Postgres reachable via `SCION_TEST_POSTGRES_URL`. Without that variable every
+Postgres reachable via `FABRIC_TEST_POSTGRES_URL`. Without that variable every
 test skips (and the default `go test ./...` build sees the package as empty).
 
 ```sh
 # Local Postgres
-SCION_TEST_POSTGRES_URL='postgres://scion:scion@localhost:5432/scion?sslmode=disable' \
+FABRIC_TEST_POSTGRES_URL='postgres://fabric:fabric@localhost:5432/fabric?sslmode=disable' \
   go test -tags integration ./pkg/store/integrationtest/...
 
 # CloudSQL (e.g. via the auth proxy on localhost)
-SCION_TEST_POSTGRES_URL='postgres://USER:PASS@127.0.0.1:5432/DB?sslmode=disable' \
+FABRIC_TEST_POSTGRES_URL='postgres://USER:PASS@127.0.0.1:5432/DB?sslmode=disable' \
   go test -tags integration -timeout 20m ./pkg/store/integrationtest/...
 ```
 
@@ -35,8 +35,8 @@ and parallel runs never collide.
 
 | Variable                   | Default | Meaning                                            |
 | -------------------------- | ------- | -------------------------------------------------- |
-| `SCION_TEST_POSTGRES_URL`  | (unset) | Live Postgres DSN; unset ⇒ all tests skip.         |
-| `SCION_TEST_CONCURRENCY`   | `10`    | Worker count for contention/pool tests (≥ 2).      |
+| `FABRIC_TEST_POSTGRES_URL`  | (unset) | Live Postgres DSN; unset ⇒ all tests skip.         |
+| `FABRIC_TEST_CONCURRENCY`   | `10`    | Worker count for contention/pool tests (≥ 2).      |
 
 Target wall-clock: **< 5 min** against a local Postgres, **< 15 min** against
 CloudSQL, at the default concurrency.

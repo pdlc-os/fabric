@@ -1,6 +1,6 @@
-# Scion Web Frontend - Agent Instructions
+# Fabric Web Frontend - Agent Instructions
 
-This document provides instructions for AI agents working on the Scion Web Frontend.
+This document provides instructions for AI agents working on the Fabric Web Frontend.
 
 ## Design Documents
 
@@ -10,7 +10,7 @@ Before making changes, review the relevant design documentation:
 
 ## Architecture Overview
 
-The web frontend is a **client-side SPA** built with Lit web components. There is no Node.js server at runtime. The Go `scion` binary serves the compiled client assets and handles all server-side concerns (OAuth, sessions, SSE real-time events, API routing) via `pkg/hub/web.go` and `pkg/hub/events.go`.
+The web frontend is a **client-side SPA** built with Lit web components. There is no Node.js server at runtime. The Go `fabric` binary serves the compiled client assets and handles all server-side concerns (OAuth, sessions, SSE real-time events, API routing) via `pkg/hub/web.go` and `pkg/hub/events.go`.
 
 Node.js and npm are used **only at build time** to compile and bundle client assets via Vite.
 
@@ -26,7 +26,7 @@ npm install    # First time only, or after package.json changes
 npm run build
 
 # Run the Go server with dev auth (from repository root)
-scion server start --enable-hub --enable-web --dev-auth \
+fabric server start --enable-hub --enable-web --dev-auth \
   --web-assets-dir ./web/dist/client
 ```
 
@@ -111,7 +111,7 @@ web/
 - **Build:** Vite for client-side bundling
 - **Routing:** Client-side via History API (click interception in `main.ts`)
 - **Terminal:** xterm.js for terminal sessions
-- **Server:** Go (`scion` binary with `--enable-web`)
+- **Server:** Go (`fabric` binary with `--enable-web`)
 
 ## Icon Reference
 
@@ -205,20 +205,20 @@ render() {
 
 ### Theme Variables
 
-Use CSS custom properties with the `--scion-` prefix for consistent theming:
+Use CSS custom properties with the `--fabric-` prefix for consistent theming:
 
 ```css
 :host {
-  background: var(--scion-surface);
-  color: var(--scion-text);
-  border: 1px solid var(--scion-border);
-  border-radius: var(--scion-radius);
+  background: var(--fabric-surface);
+  color: var(--fabric-text);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius);
 }
 ```
 
 ### Dark Mode
 
-Dark mode is handled automatically via CSS custom properties. The theme toggle in the navigation saves the preference to localStorage. Components should use the semantic color variables (e.g., `--scion-surface`, `--scion-text`) which automatically adjust for dark mode.
+Dark mode is handled automatically via CSS custom properties. The theme toggle in the navigation saves the preference to localStorage. Components should use the semantic color variables (e.g., `--fabric-surface`, `--fabric-text`) which automatically adjust for dark mode.
 
 ## Testing Real-Time (SSE) Events
 
@@ -244,7 +244,7 @@ PROJECT_ID=<uuid> TOKEN=<dev-token> node web/test-scripts/realtime-lifecycle-tes
 
 ## Containerized / Sandboxed Environments
 
-When working in a containerized or sandboxed agent environment (e.g., scion agents), keep these points in mind:
+When working in a containerized or sandboxed agent environment (e.g., fabric agents), keep these points in mind:
 
 - **Vite dev server is available.** You can run `npm run dev` to start the Vite dev server for client-side development and visual inspection. API calls and SSE will not work without the Go backend.
 - **Use `--dev-auth` for local testing.** When a Go server is available, `--dev-auth` bypasses OAuth and auto-creates a dev session, which is the simplest way to test the frontend end-to-end. See the README for details.
@@ -265,14 +265,14 @@ These tips were collected during validation work and are useful for agents debug
 
 - **Combined mode** runs the Hub API on the web port (default 8080). When `--enable-hub` and `--enable-web` are both set, there is no separate listener on port 9810. All API routes are at `http://localhost:8080/api/v1/`.
 - **Runtime broker** must be enabled (`--enable-runtime-broker`) and linked to the project as a provider before agents can be created. With the co-located broker, use `POST /api/v1/projects/{id}/providers` with `{"brokerId":"<id>"}` to link.
-- **Dev token** is printed in the server startup logs. Use it as `Authorization: Bearer scion_dev_...` for API calls.
+- **Dev token** is printed in the server startup logs. Use it as `Authorization: Bearer fabric_dev_...` for API calls.
 - **`--web-assets-dir`** loads assets from disk so you can rebuild the frontend (`npm run build`) and refresh the browser without restarting the Go server.
 
 ### API gotchas
 
 - **Agent status updates** use `POST /api/v1/agents/{id}/status`, not `PATCH`. The handler only accepts POST.
 - **Agent creation response** wraps the agent under an `"agent"` key: `{ "agent": { "id": "...", ... }, "warnings": [...] }`.
-- **SSE endpoint** (`/events?sub=...`) requires a session cookie, not a Bearer token. To get a session cookie via curl: `curl -c - -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/projects` then pass the `scion_sess` cookie with `-b`.
+- **SSE endpoint** (`/events?sub=...`) requires a session cookie, not a Bearer token. To get a session cookie via curl: `curl -c - -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/projects` then pass the `fabric_sess` cookie with `-b`.
 
 ### SSE event format
 
@@ -304,7 +304,7 @@ When using the Chrome DevTools MCP tools (`take_screenshot`, `take_snapshot`, `c
 
 ### Starting the Go server
 
-1. **Settings must exist first.** The server requires `image_registry` in `~/.scion/settings.json` with `schema_version`. Create this before starting:
+1. **Settings must exist first.** The server requires `image_registry` in `~/.fabric/settings.json` with `schema_version`. Create this before starting:
    ```json
    {
      "schema_version": "1",
@@ -315,7 +315,7 @@ When using the Chrome DevTools MCP tools (`take_screenshot`, `take_snapshot`, `c
 
 2. **Run the server with `&` in a regular Bash call**, not with `run_in_background`. Background tasks can be hard to retrieve output from. Instead:
    ```bash
-   /tmp/scion-test server start --enable-hub --enable-web --dev-auth \
+   /tmp/fabric-test server start --enable-hub --enable-web --dev-auth \
      --web-assets-dir ./web/dist/client --foreground 2>&1 &
    sleep 4
    ss -tlnp | grep 8080  # verify it's listening
@@ -323,7 +323,7 @@ When using the Chrome DevTools MCP tools (`take_screenshot`, `take_snapshot`, `c
 
 3. **Capture the dev token** from the server startup output. It appears as:
    ```
-   Dev token: scion_dev_<hex>
+   Dev token: fabric_dev_<hex>
    ```
 
 4. **Build assets before starting the server**: Run `npm install && npm run build` in `web/` first. The server serves from `web/dist/client`.
@@ -331,7 +331,7 @@ When using the Chrome DevTools MCP tools (`take_screenshot`, `take_snapshot`, `c
 ### Browser authentication
 
 - **Navigate directly to `http://localhost:8080`** — dev-auth mode sets a session cookie automatically on the first page load, no manual cookie setup needed.
-- **For API calls via curl**, use the dev token as `Authorization: Bearer scion_dev_...` to get a `scion_sess` cookie, then pass it to subsequent requests.
+- **For API calls via curl**, use the dev token as `Authorization: Bearer fabric_dev_...` to get a `fabric_sess` cookie, then pass it to subsequent requests.
 
 ### Taking screenshots and snapshots
 

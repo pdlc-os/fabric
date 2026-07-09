@@ -31,8 +31,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func mkProject(id string) *store.Project {
@@ -89,7 +89,7 @@ func (e *recExec) inserts() []recCall {
 	defer e.mu.Unlock()
 	var out []recCall
 	for _, c := range e.calls {
-		if strings.Contains(c.sql, "INSERT INTO scion_event_payloads") {
+		if strings.Contains(c.sql, "INSERT INTO fabric_event_payloads") {
 			out = append(out, c)
 		}
 	}
@@ -492,13 +492,13 @@ func TestHandleNotification_FullBufferDropsAndCounts(t *testing.T) {
 	}
 }
 
-// --- integration tests (require a live Postgres via SCION_TEST_POSTGRES_DSN) ---
+// --- integration tests (require a live Postgres via FABRIC_TEST_POSTGRES_DSN) ---
 
 func requirePostgres(t *testing.T) string {
 	t.Helper()
-	dsn := os.Getenv("SCION_TEST_POSTGRES_DSN")
+	dsn := os.Getenv("FABRIC_TEST_POSTGRES_DSN")
 	if dsn == "" {
-		t.Skip("set SCION_TEST_POSTGRES_DSN to run Postgres LISTEN/NOTIFY integration tests")
+		t.Skip("set FABRIC_TEST_POSTGRES_DSN to run Postgres LISTEN/NOTIFY integration tests")
 	}
 	return dsn
 }
@@ -638,7 +638,7 @@ func TestPostgresIntegration_TransactionalRollback(t *testing.T) {
 // PostgresEventPublisher, which must emit a pg_notify observable by an
 // independent raw LISTEN connection. This is the exact capability the
 // multi-replica live test probed with psql (create project => NOTIFY on
-// scion_ev_global); it guards against regressions in the cmd-level wiring that
+// fabric_ev_global); it guards against regressions in the cmd-level wiring that
 // connects the handler's s.events to the Postgres backend.
 func TestPostgresIntegration_HandlerCreateProjectEmitsNotify(t *testing.T) {
 	dsn := requirePostgres(t)
@@ -659,7 +659,7 @@ func TestPostgresIntegration_HandlerCreateProjectEmitsNotify(t *testing.T) {
 		t.Fatalf("listen conn: %v", err)
 	}
 	defer func() { _ = lconn.Close(context.Background()) }()
-	if _, err := lconn.Exec(ctx, `LISTEN scion_ev_global`); err != nil {
+	if _, err := lconn.Exec(ctx, `LISTEN fabric_ev_global`); err != nil {
 		t.Fatalf("LISTEN: %v", err)
 	}
 

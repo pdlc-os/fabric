@@ -18,12 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/accesspolicy"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/policybinding"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	entschema "github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
+	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	entschema "github.com/pdlc-os/fabric/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // PolicyStore implements store.PolicyStore using Ent ORM.

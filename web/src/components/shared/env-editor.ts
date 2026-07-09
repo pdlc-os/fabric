@@ -29,8 +29,8 @@ export interface EnvEntry {
   value: string;
 }
 
-@customElement('scion-env-editor')
-export class ScionEnvEditor extends LitElement {
+@customElement('fabric-env-editor')
+export class FabricEnvEditor extends LitElement {
   @property({ type: Array })
   entries: EnvEntry[] = [];
 
@@ -49,7 +49,7 @@ export class ScionEnvEditor extends LitElement {
       margin-bottom: 0.5rem;
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -82,9 +82,9 @@ export class ScionEnvEditor extends LitElement {
       height: 36px;
       border: none;
       background: none;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       transition: all 150ms ease;
     }
 
@@ -100,7 +100,7 @@ export class ScionEnvEditor extends LitElement {
 
     .remove-btn:disabled:hover {
       background: none;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .add-btn {
@@ -110,7 +110,7 @@ export class ScionEnvEditor extends LitElement {
     .empty-state {
       padding: 1.5rem;
       text-align: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
   `;
@@ -206,6 +206,6 @@ export class ScionEnvEditor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-env-editor': ScionEnvEditor;
+    'fabric-env-editor': FabricEnvEditor;
   }
 }

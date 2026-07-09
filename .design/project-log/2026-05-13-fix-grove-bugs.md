@@ -1,8 +1,8 @@
 # Fix Grove-to-Project Rename Bugs
 
 **Date**: 2026-05-13
-**PR**: https://github.com/ptone/scion/pull/69
-**Branch**: scion/fix-grove-bugs
+**PR**: https://github.com/ptone/fabric/pull/69
+**Branch**: fabric/fix-grove-bugs
 
 ## Summary
 

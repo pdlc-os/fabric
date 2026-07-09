@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// scion-broker-log is a minimal Scion message broker plugin that logs all
+// fabric-broker-log is a minimal Fabric message broker plugin that logs all
 // messages flowing through the broker. It serves as both a reference
 // implementation of the broker plugin interface and a debugging tool for
 // inspecting message traffic.
 //
 // Usage:
 //
-//	scion-broker-log [flags]
+//	fabric-broker-log [flags]
 //
 // Hub configuration (server.yaml):
 //
@@ -50,8 +50,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/go-plugin/runner"
 )
@@ -59,11 +59,11 @@ import (
 // CLI flags
 var (
 	flagAddr    = flag.String("addr", "localhost:9091", "RPC listen address")
-	flagTopic   = flag.String("topic", "scion.>", "Subscription pattern (NATS-style wildcards: * = one token, > = remainder)")
+	flagTopic   = flag.String("topic", "fabric.>", "Subscription pattern (NATS-style wildcards: * = one token, > = remainder)")
 	flagJSON    = flag.Bool("json", false, "Output JSON Lines instead of human-readable format")
 	flagFullMsg = flag.Bool("full-msg", false, "Show full message body (default truncates to 120 chars)")
 	flagFields  = flag.String("fields", "", "Comma-separated fields to include (e.g. topic,sender,type,msg). Empty = all")
-	flagForward = flag.String("forward", "", "Forward messages to another broker plugin at this address (e.g. localhost:9090 for scion-chat-app)")
+	flagForward = flag.String("forward", "", "Forward messages to another broker plugin at this address (e.g. localhost:9090 for fabric-chat-app)")
 )
 
 func main() {
@@ -223,7 +223,7 @@ func (b *brokerLog) Close() error {
 
 func (b *brokerLog) GetInfo() (*plugin.PluginInfo, error) {
 	return &plugin.PluginInfo{
-		Name:         "scion-broker-log",
+		Name:         "fabric-broker-log",
 		Version:      "0.1.0",
 		Capabilities: []string{"observer"},
 	}, nil
@@ -300,7 +300,7 @@ func (b *brokerLog) CancelSubscription(pattern string) error {
 // --- Downstream forwarding ---
 
 // connectDownstream establishes a go-plugin RPC client connection to another
-// broker plugin (e.g. scion-chat-app) running at the given address.
+// broker plugin (e.g. fabric-chat-app) running at the given address.
 func connectDownstream(addr string, log *slog.Logger, hostCallbacks plugin.HostCallbacks) (*plugin.BrokerRPCClient, error) {
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {

@@ -62,17 +62,17 @@ func TestScanPluginDir_FindsPlugins(t *testing.T) {
 	logger := slog.Default()
 
 	// Create a valid plugin binary (executable)
-	pluginPath := filepath.Join(dir, "scion-plugin-nats")
+	pluginPath := filepath.Join(dir, "fabric-plugin-nats")
 	require.NoError(t, os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0755))
 
 	// Create a non-plugin file
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "other-binary"), []byte(""), 0755))
 
 	// Create a non-executable plugin file
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "scion-plugin-noexec"), []byte(""), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "fabric-plugin-noexec"), []byte(""), 0644))
 
 	// Create a directory with the plugin prefix
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "scion-plugin-isdir"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "fabric-plugin-isdir"), 0755))
 
 	plugins := scanPluginDir(dir, PluginTypeBroker, logger)
 	assert.Len(t, plugins, 1)
@@ -91,7 +91,7 @@ func TestDiscoverPlugins_FromConfig(t *testing.T) {
 	require.NoError(t, os.MkdirAll(brokerDir, 0755))
 
 	// Create a plugin binary
-	pluginPath := filepath.Join(brokerDir, "scion-plugin-nats")
+	pluginPath := filepath.Join(brokerDir, "fabric-plugin-nats")
 	require.NoError(t, os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0755))
 
 	cfg := PluginsConfig{
@@ -140,7 +140,7 @@ func TestDiscoverPlugins_AutoDiscovery(t *testing.T) {
 	// Create auto-discoverable broker plugin
 	brokerDir := filepath.Join(dir, "broker")
 	require.NoError(t, os.MkdirAll(brokerDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(brokerDir, "scion-plugin-nats"), []byte("#!/bin/sh\n"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(brokerDir, "fabric-plugin-nats"), []byte("#!/bin/sh\n"), 0755))
 
 	// Empty config - should auto-discover
 	cfg := PluginsConfig{}
@@ -159,7 +159,7 @@ func TestDiscoverPlugins_NoDuplicates(t *testing.T) {
 	// Create plugin in the standard location
 	brokerDir := filepath.Join(dir, "broker")
 	require.NoError(t, os.MkdirAll(brokerDir, 0755))
-	pluginPath := filepath.Join(brokerDir, "scion-plugin-nats")
+	pluginPath := filepath.Join(brokerDir, "fabric-plugin-nats")
 	require.NoError(t, os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0755))
 
 	// Also configure it in settings — should not appear twice
@@ -222,7 +222,7 @@ func TestDiscoverPlugins_MixedModes(t *testing.T) {
 	// Create a regular plugin binary
 	brokerDir := filepath.Join(dir, "broker")
 	require.NoError(t, os.MkdirAll(brokerDir, 0755))
-	pluginPath := filepath.Join(brokerDir, "scion-plugin-nats")
+	pluginPath := filepath.Join(brokerDir, "fabric-plugin-nats")
 	require.NoError(t, os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0755))
 
 	cfg := PluginsConfig{
@@ -267,5 +267,5 @@ func TestDefaultPluginsDir(t *testing.T) {
 	require.NoError(t, err)
 
 	home, _ := os.UserHomeDir()
-	assert.Equal(t, filepath.Join(home, ".scion", "plugins"), dir)
+	assert.Equal(t, filepath.Join(home, ".fabric", "plugins"), dir)
 }

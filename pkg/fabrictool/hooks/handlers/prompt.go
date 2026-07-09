@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 )
 
 // PromptHandler saves the initial user prompt to a file.
-// This replicates the functionality from scion_tool.py that saves
+// This replicates the functionality from fabric_tool.py that saves
 // the first prompt to ~/prompt.md.
 type PromptHandler struct {
 	// PromptPath is the path to save the prompt.
@@ -28,7 +28,7 @@ type PromptHandler struct {
 func NewPromptHandler() *PromptHandler {
 	home := os.Getenv("HOME")
 	if home == "" {
-		home = "/home/scion"
+		home = "/home/fabric"
 	}
 	return &PromptHandler{
 		PromptPath: filepath.Join(home, "prompt.md"),

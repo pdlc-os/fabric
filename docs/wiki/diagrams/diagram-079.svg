@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 370)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-370 466.42,-370 466.42,4 -4,4"/>
-<!-- Scion Agent -->
+<!-- Fabric Agent -->
 <g id="node1" class="node">
-<title>Scion Agent</title>
+<title>Fabric Agent</title>
 <polygon fill="lightblue" stroke="black" points="296.2,-366 197.7,-366 197.7,-330 296.2,-330 296.2,-366"/>
-<text xml:space="preserve" text-anchor="middle" x="246.95" y="-339.95" font-family="Times,serif" font-size="14.00">Scion Agent</text>
+<text xml:space="preserve" text-anchor="middle" x="246.95" y="-339.95" font-family="Times,serif" font-size="14.00">Fabric Agent</text>
 </g>
 <!-- BrokerServiceClient -->
 <g id="node2" class="node">
@@ -37,9 +37,9 @@
 <polygon fill="lightblue" stroke="black" points="326.2,-284 167.7,-284 167.7,-248 326.2,-248 326.2,-284"/>
 <text xml:space="preserve" text-anchor="middle" x="246.95" y="-257.95" font-family="Times,serif" font-size="14.00">BrokerServiceClient</text>
 </g>
-<!-- Scion Agent&#45;&gt;BrokerServiceClient -->
+<!-- Fabric Agent&#45;&gt;BrokerServiceClient -->
 <g id="edge1" class="edge">
-<title>Scion Agent&#45;&gt;BrokerServiceClient</title>
+<title>Fabric Agent&#45;&gt;BrokerServiceClient</title>
 <path fill="none" stroke="black" d="M246.95,-329.64C246.95,-319.68 246.95,-306.93 246.95,-295.54"/>
 <polygon fill="black" stroke="black" points="250.45,-295.84 246.95,-285.84 243.45,-295.84 250.45,-295.84"/>
 <text xml:space="preserve" text-anchor="middle" x="314.45" y="-298.95" font-family="Times,serif" font-size="14.00">Calls gRPC methods</text>

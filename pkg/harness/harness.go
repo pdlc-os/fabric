@@ -18,10 +18,10 @@ import (
 	"io/fs"
 	"sort"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 
-	harnessesEmbed "github.com/GoogleCloudPlatform/scion/harnesses"
+	harnessesEmbed "github.com/pdlc-os/fabric/harnesses"
 )
 
 func New(harnessName string) api.Harness {

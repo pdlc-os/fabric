@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-13
 **Agent:** fix-invite-ux
-**Branch:** scion/fix-invite-ux
+**Branch:** fabric/fix-invite-ux
 
 ## Summary
 

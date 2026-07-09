@@ -321,8 +321,8 @@ func TestPostgres_UserMapping_SaveAndGet(t *testing.T) {
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   "456",
 		TelegramUsername: "alice",
-		ScionUserID:      "user-123",
-		ScionEmail:       "alice@example.com",
+		FabricUserID:      "user-123",
+		FabricEmail:       "alice@example.com",
 		LinkedAt:         time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
 	}
 	require.NoError(t, store.SaveUserMapping(ctx, mapping))
@@ -331,7 +331,7 @@ func TestPostgres_UserMapping_SaveAndGet(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, "alice", got.TelegramUsername)
-	assert.Equal(t, "alice@example.com", got.ScionEmail)
+	assert.Equal(t, "alice@example.com", got.FabricEmail)
 }
 
 func TestPostgres_UserMapping_GetByEmail(t *testing.T) {
@@ -340,7 +340,7 @@ func TestPostgres_UserMapping_GetByEmail(t *testing.T) {
 
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		ScionEmail:     "alice@example.com",
+		FabricEmail:     "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -381,7 +381,7 @@ func TestPostgres_UserMapping_GetAll(t *testing.T) {
 	for _, id := range []string{"100", "200", "300"} {
 		require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 			TelegramUserID: id,
-			ScionEmail:     id + "@test.com",
+			FabricEmail:     id + "@test.com",
 			LinkedAt:       time.Now().UTC(),
 		}))
 	}

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // EventPublisher defines the interface for publishing Hub events.

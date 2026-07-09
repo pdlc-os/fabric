@@ -25,7 +25,7 @@ This release introduces a major overhaul of the Hub's invitation and security sy
     * Resolved an issue where unlimited invites (`maxUses=0`) were incorrectly treated as single-use.
 * **[Runtime]: Shell Escaping & Environment Ordering.**
     * Improved handling of shell-embedded prompts using POSIX single-quote escaping.
-    * Corrected the ordering of the `SCION_START_CMD` environment variable in agent execution arguments.
+    * Corrected the ordering of the `FABRIC_START_CMD` environment variable in agent execution arguments.
 * **[Web UI]: Feature Gating & Routing.**
     * The suspend button is now correctly gated based on the harness's resume capability across all views.
     * Fixed API endpoint mismatches on the invite landing page.

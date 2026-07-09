@@ -20,12 +20,12 @@ import (
 	"testing"
 )
 
-const generatedHeader = "# GENERATED FILE — DO NOT EDIT. Source: harnesses/scion_harness.py\n"
+const generatedHeader = "# GENERATED FILE — DO NOT EDIT. Source: harnesses/fabric_harness.py\n"
 
 func TestVendoredLibMatchesCanonical(t *testing.T) {
 	canonical := CanonicalHarnessLib
 	if len(canonical) == 0 {
-		t.Fatal("canonical scion_harness.py is empty")
+		t.Fatal("canonical fabric_harness.py is empty")
 	}
 
 	want := generatedHeader + string(canonical)
@@ -41,7 +41,7 @@ func TestVendoredLibMatchesCanonical(t *testing.T) {
 			continue
 		}
 		name := e.Name()
-		vendoredPath := name + "/scion_harness.py"
+		vendoredPath := name + "/fabric_harness.py"
 
 		data, err := fs.ReadFile(FS, vendoredPath)
 		if err != nil {
@@ -50,22 +50,22 @@ func TestVendoredLibMatchesCanonical(t *testing.T) {
 			if _, provErr := fs.ReadFile(FS, name+"/provision.py"); provErr != nil {
 				continue
 			}
-			t.Errorf("%s: missing vendored scion_harness.py (run: go generate ./harnesses/)", name)
+			t.Errorf("%s: missing vendored fabric_harness.py (run: go generate ./harnesses/)", name)
 			continue
 		}
 		found++
 
 		if !strings.HasPrefix(string(data), generatedHeader) {
-			t.Errorf("%s/scion_harness.py: missing GENERATED header (run: go generate ./harnesses/)", name)
+			t.Errorf("%s/fabric_harness.py: missing GENERATED header (run: go generate ./harnesses/)", name)
 			continue
 		}
 
 		if string(data) != want {
-			t.Errorf("%s/scion_harness.py: content does not match canonical harnesses/scion_harness.py (run: go generate ./harnesses/)", name)
+			t.Errorf("%s/fabric_harness.py: content does not match canonical harnesses/fabric_harness.py (run: go generate ./harnesses/)", name)
 		}
 	}
 
 	if found == 0 {
-		t.Fatal("no vendored scion_harness.py copies found — expected at least one bundle")
+		t.Fatal("no vendored fabric_harness.py copies found — expected at least one bundle")
 	}
 }

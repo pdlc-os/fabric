@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent"
 )
 
 // migrationEntities lists every Ent node by its field name on the generated

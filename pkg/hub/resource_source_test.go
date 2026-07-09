@@ -24,9 +24,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 // testFS creates a minimal in-memory fs.FS with the given file contents.
@@ -45,7 +45,7 @@ func testBundledResource(kind storage.ResourceKind, name string, files map[strin
 		Name:      name,
 		Scope:     "global",
 		ScopeID:   "",
-		SourceURL: "builtin://scion/dev/" + string(kind) + "/" + name,
+		SourceURL: "builtin://fabric/dev/" + string(kind) + "/" + name,
 		FS:        testFS(files),
 		Root:      ".",
 	}
@@ -53,7 +53,7 @@ func testBundledResource(kind storage.ResourceKind, name string, files map[strin
 
 func TestFSResourceSource_Files(t *testing.T) {
 	br := testBundledResource(storage.ResourceKindTemplate, "default", map[string]string{
-		"scion-agent.yaml": "harness: claude\n",
+		"fabric-agent.yaml": "harness: claude\n",
 		"home/.bashrc":     "# bashrc",
 	})
 	src := NewFSResourceSource(br)
@@ -76,8 +76,8 @@ func TestFSResourceSource_Files(t *testing.T) {
 			t.Errorf("expected non-zero size for %s", f.Path)
 		}
 	}
-	if !paths["scion-agent.yaml"] {
-		t.Error("missing scion-agent.yaml")
+	if !paths["fabric-agent.yaml"] {
+		t.Error("missing fabric-agent.yaml")
 	}
 	if !paths["home/.bashrc"] {
 		t.Error("missing home/.bashrc")
@@ -103,7 +103,7 @@ func TestFSResourceSource_Metadata(t *testing.T) {
 	if meta.Scope != "global" {
 		t.Errorf("expected scope global, got %q", meta.Scope)
 	}
-	if !strings.HasPrefix(meta.SourceURL, "builtin://scion/") {
+	if !strings.HasPrefix(meta.SourceURL, "builtin://fabric/") {
 		t.Errorf("expected builtin source URL, got %q", meta.SourceURL)
 	}
 }
@@ -113,9 +113,9 @@ func TestIsBuiltinManaged(t *testing.T) {
 		sourceURL string
 		want      bool
 	}{
-		{"builtin://scion/dev/template/default", true},
-		{"builtin://scion/v1.0.0/harness-config/claude", true},
-		{"git+https://github.com/GoogleCloudPlatform/scion/harnesses/claude", true},
+		{"builtin://fabric/dev/template/default", true},
+		{"builtin://fabric/v1.0.0/harness-config/claude", true},
+		{"git+https://github.com/pdlc-os/fabric/harnesses/claude", true},
 		{"https://github.com/example/templates", false},
 		{"", false},
 	}
@@ -131,7 +131,7 @@ func TestBootstrapSource_CreateTemplate(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindTemplate, "my-template", map[string]string{
-		"scion-agent.yaml": "harness: claude\nimage: test:latest\n",
+		"fabric-agent.yaml": "harness: claude\nimage: test:latest\n",
 		"home/.bashrc":     "# bashrc content",
 	})
 	src := NewFSResourceSource(br)
@@ -178,7 +178,7 @@ func TestBootstrapSource_CreateHarnessConfig(t *testing.T) {
 	ctx := context.Background()
 
 	br := testBundledResource(storage.ResourceKindHarnessConfig, "claude", map[string]string{
-		"config.yaml":  "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml":  "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 		"home/.bashrc": "# bashrc",
 	})
 	src := NewFSResourceSource(br)
@@ -387,7 +387,7 @@ func TestBootstrapSource_DuplicateCreateRace(t *testing.T) {
 		Scope:         "global",
 		ScopeID:       "",
 		Status:        store.TemplateStatusActive,
-		SourceURL:     "builtin://scion/dev/template/raced",
+		SourceURL:     "builtin://fabric/dev/template/raced",
 		ContentHash:   "old-hash",
 		StoragePath:   "templates/global/raced",
 		StorageBucket: "test-bucket",

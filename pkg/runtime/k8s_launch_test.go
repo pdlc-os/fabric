@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -30,7 +30,7 @@ func TestBuildPod_InvalidImagePullPolicy_ErrorMessage(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Kubernetes: &api.KubernetesConfig{
 			ImagePullPolicy: "MaybeLater",
 		},
@@ -99,7 +99,7 @@ func TestBuildPod_FullConfig_Stage3(t *testing.T) {
 	config := RunConfig{
 		Name:         "stage3-test",
 		Image:        "gcr.io/test/image:v2",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Harness:      &EnvHarness{},
 		Resources: &api.ResourceSpec{
 			Requests: api.ResourceList{CPU: "1", Memory: "2Gi"},
@@ -108,7 +108,7 @@ func TestBuildPod_FullConfig_Stage3(t *testing.T) {
 		},
 		Kubernetes: &api.KubernetesConfig{
 			RuntimeClassName:   "kata",
-			ServiceAccountName: "scion-agent-sa",
+			ServiceAccountName: "fabric-agent-sa",
 			ImagePullPolicy:    "IfNotPresent",
 			NodeSelector: map[string]string{
 				"accelerator": "gpu",
@@ -136,8 +136,8 @@ func TestBuildPod_FullConfig_Stage3(t *testing.T) {
 	if pod.Spec.RuntimeClassName == nil || *pod.Spec.RuntimeClassName != "kata" {
 		t.Error("expected RuntimeClassName 'kata'")
 	}
-	if pod.Spec.ServiceAccountName != "scion-agent-sa" {
-		t.Error("expected ServiceAccountName 'scion-agent-sa'")
+	if pod.Spec.ServiceAccountName != "fabric-agent-sa" {
+		t.Error("expected ServiceAccountName 'fabric-agent-sa'")
 	}
 	if len(pod.Spec.NodeSelector) != 2 {
 		t.Errorf("expected 2 nodeSelector entries, got %d", len(pod.Spec.NodeSelector))
@@ -162,7 +162,7 @@ func TestBuildPod_DefaultResources_WhenNoneSpecified(t *testing.T) {
 	config := RunConfig{
 		Name:         "no-resources",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := rt.buildPod("default", config)
@@ -224,7 +224,7 @@ func TestBuildPod_ExplicitResources_OverrideDefaults(t *testing.T) {
 	config := RunConfig{
 		Name:         "custom-resources",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Resources: &api.ResourceSpec{
 			Requests: api.ResourceList{CPU: "500m", Memory: "1Gi"},
 			Limits:   api.ResourceList{CPU: "4", Memory: "8Gi"},

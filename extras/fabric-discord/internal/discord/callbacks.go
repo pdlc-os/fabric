@@ -10,8 +10,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // CallbackHandler processes Discord message component interactions (buttons, selects).
@@ -87,7 +87,7 @@ func (h *CallbackHandler) handleSetupCallback(s *discordgo.Session, i *discordgo
 	}
 }
 
-// handleSetupProject handles project selection during /scion setup.
+// handleSetupProject handles project selection during /fabric setup.
 func (h *CallbackHandler) handleSetupProject(s *discordgo.Session, i *discordgo.InteractionCreate, projectID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -96,7 +96,7 @@ func (h *CallbackHandler) handleSetupProject(s *discordgo.Session, i *discordgo.
 	agents, err := h.hubClient.ListAgents(ctx, projectID)
 	if err != nil {
 		h.log.Error("Failed to list agents for project", "project_id", projectID, "error", err)
-		h.respondUpdate(s, i, "Failed to fetch agents. Please try `/scion setup` again.", nil)
+		h.respondUpdate(s, i, "Failed to fetch agents. Please try `/fabric setup` again.", nil)
 		return
 	}
 
@@ -145,7 +145,7 @@ func (h *CallbackHandler) handleSetupProject(s *discordgo.Session, i *discordgo.
 	)
 }
 
-// handleSetupDefaultAgent handles default agent selection during /scion setup.
+// handleSetupDefaultAgent handles default agent selection during /fabric setup.
 // The channel link was already saved by handleSetupProject; this updates
 // the default agent.
 func (h *CallbackHandler) handleSetupDefaultAgent(s *discordgo.Session, i *discordgo.InteractionCreate, agentSlug string) {
@@ -154,7 +154,7 @@ func (h *CallbackHandler) handleSetupDefaultAgent(s *discordgo.Session, i *disco
 
 	link, _ := h.store.GetChannelLink(ctx, i.ChannelID)
 	if link == nil {
-		h.respondUpdate(s, i, "Setup session expired. Please use `/scion setup` again.", nil)
+		h.respondUpdate(s, i, "Setup session expired. Please use `/fabric setup` again.", nil)
 		return
 	}
 
@@ -409,11 +409,11 @@ func (h *CallbackHandler) deliverAskUserResponse(ctx context.Context, i *discord
 		return &hubError{StatusCode: 500, Message: "Internal error: delivery not configured"}
 	}
 
-	// Resolve the sender identity from Discord user → Scion identity.
+	// Resolve the sender identity from Discord user → Fabric identity.
 	discordUserID := interactionUserID(i)
 	sender := "discord:" + discordUserID
-	if mapping, err := h.store.GetUserMapping(ctx, discordUserID); err == nil && mapping != nil && mapping.ScionEmail != "" {
-		sender = "user:" + mapping.ScionEmail
+	if mapping, err := h.store.GetUserMapping(ctx, discordUserID); err == nil && mapping != nil && mapping.FabricEmail != "" {
+		sender = "user:" + mapping.FabricEmail
 	}
 
 	topic := projectcompat.AgentTopic(pending.ProjectID, pending.AgentSlug)

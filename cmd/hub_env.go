@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -59,23 +59,23 @@ Variables are resolved hierarchically when an agent starts:
 
 Examples:
   # Set a user-scoped variable (two formats)
-  scion hub env set API_URL=https://api.example.com
-  scion hub env set API_URL https://api.example.com
+  fabric hub env set API_URL=https://api.example.com
+  fabric hub env set API_URL https://api.example.com
 
   # Set a project-scoped variable (infer project from current directory)
-  scion hub env set --project API_URL=https://api.example.com
+  fabric hub env set --project API_URL=https://api.example.com
 
   # Set a project-scoped variable for a specific project (by name, slug, or ID)
-  scion hub env set --project=my-project API_URL=https://api.example.com
+  fabric hub env set --project=my-project API_URL=https://api.example.com
 
   # List all user variables
-  scion hub env get
+  fabric hub env get
 
   # Get a specific variable
-  scion hub env get API_URL
+  fabric hub env get API_URL
 
   # Delete a variable
-  scion hub env clear API_URL`,
+  fabric hub env clear API_URL`,
 }
 
 // hubEnvSetCmd sets an environment variable
@@ -91,10 +91,10 @@ The value can be provided as a single argument in KEY=VALUE format, or as
 two separate arguments.
 
 Examples:
-  scion hub env set API_URL=https://api.example.com
-  scion hub env set API_URL https://api.example.com
-  scion hub env set --project LOG_LEVEL=debug
-  scion hub env set --host DATABASE_HOST localhost`,
+  fabric hub env set API_URL=https://api.example.com
+  fabric hub env set API_URL https://api.example.com
+  fabric hub env set --project LOG_LEVEL=debug
+  fabric hub env set --host DATABASE_HOST localhost`,
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runEnvSet,
 }
@@ -109,10 +109,10 @@ Without a key, lists all variables for the scope.
 With a key, returns the specific variable.
 
 Examples:
-  scion hub env get                    # List all user variables
-  scion hub env get API_URL            # Get specific variable
-  scion hub env get --project          # List project variables
-  scion hub env get --project API_URL  # Get project variable`,
+  fabric hub env get                    # List all user variables
+  fabric hub env get API_URL            # Get specific variable
+  fabric hub env get --project          # List project variables
+  fabric hub env get --project API_URL  # Get project variable`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runEnvGet,
 }
@@ -127,10 +127,10 @@ By default, lists user-scoped variables. Use --project or --broker
 to list variables at different scopes.
 
 Examples:
-  scion hub env list                      # List all user variables
-  scion hub env list --project            # List current project variables
-  scion hub env list --project=my-project # List variables for a specific project
-  scion hub env list --json               # Output as JSON`,
+  fabric hub env list                      # List all user variables
+  fabric hub env list --project            # List current project variables
+  fabric hub env list --project=my-project # List variables for a specific project
+  fabric hub env list --json               # Output as JSON`,
 	Args: cobra.NoArgs,
 	RunE: runEnvList,
 }
@@ -142,9 +142,9 @@ var hubEnvClearCmd = &cobra.Command{
 	Long: `Remove an environment variable from the Hub.
 
 Examples:
-  scion hub env clear API_URL
-  scion hub env clear --project API_URL
-  scion hub env clear --broker API_URL`,
+  fabric hub env clear API_URL
+  fabric hub env clear --project API_URL
+  fabric hub env clear --broker API_URL`,
 	Args: cobra.ExactArgs(1),
 	RunE: runEnvClear,
 }
@@ -233,7 +233,7 @@ func resolveEnvScope(cmd *cobra.Command, settings *config.Settings) (scope, scop
 			if settings.Hub != nil && settings.Hub.ProjectID != "" {
 				scopeID = settings.Hub.ProjectID
 			} else {
-				return "", "", fmt.Errorf("cannot infer project ID: not linked with Hub. Use 'scion hub link' first or provide explicit project ID")
+				return "", "", fmt.Errorf("cannot infer project ID: not linked with Hub. Use 'fabric hub link' first or provide explicit project ID")
 			}
 		}
 		return scope, scopeID, nil
@@ -253,7 +253,7 @@ func resolveEnvScope(cmd *cobra.Command, settings *config.Settings) (scope, scop
 			if settings.Hub != nil && settings.Hub.BrokerID != "" {
 				scopeID = settings.Hub.BrokerID
 			} else {
-				return "", "", fmt.Errorf("cannot infer broker ID: not linked with Hub. Use 'scion hub link' first or provide explicit broker ID")
+				return "", "", fmt.Errorf("cannot infer broker ID: not linked with Hub. Use 'fabric hub link' first or provide explicit broker ID")
 			}
 		}
 		return scope, scopeID, nil

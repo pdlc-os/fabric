@@ -18,7 +18,7 @@
  * Main Application Shell Component
  *
  * Provides the overall layout structure with sidebar navigation and content area.
- * Uses Shoelace components for UI and integrates with shared Scion components.
+ * Uses Shoelace components for UI and integrates with shared Fabric components.
  */
 
 import { LitElement, html, css } from 'lit';
@@ -55,8 +55,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/onboarding': 'Setup',
 };
 
-@customElement('scion-app')
-export class ScionApp extends LitElement {
+@customElement('fabric-app')
+export class FabricApp extends LitElement {
   /**
    * Current authenticated user
    */
@@ -87,7 +87,7 @@ export class ScionApp extends LitElement {
       display: flex;
       height: 100vh;
       height: 100dvh;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
     }
 
     /* Desktop sidebar */
@@ -117,15 +117,15 @@ export class ScionApp extends LitElement {
     }
 
     .mobile-drawer::part(panel) {
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
     }
 
     .mobile-drawer::part(close-button) {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .mobile-drawer::part(close-button):hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     /* Main content area */
@@ -153,7 +153,7 @@ export class ScionApp extends LitElement {
 
     /* Max width container */
     .content-inner {
-      max-width: var(--scion-content-max-width, 1400px);
+      max-width: var(--fabric-content-max-width, 1400px);
       margin: 0 auto;
       width: 100%;
       flex: 1;
@@ -191,11 +191,11 @@ export class ScionApp extends LitElement {
 
   override connectedCallback(): void {
     super.connectedCallback();
-    window.addEventListener('scion:access-denied', this._accessDeniedHandler as EventListener);
+    window.addEventListener('fabric:access-denied', this._accessDeniedHandler as EventListener);
     this.addEventListener(PAGE_TITLE_EVENT, this._pageTitleHandler as EventListener);
     this.updateDocumentTitle();
     try {
-      this._sidebarCollapsed = localStorage.getItem('scion-sidebar-collapsed') === 'true';
+      this._sidebarCollapsed = localStorage.getItem('fabric-sidebar-collapsed') === 'true';
     } catch {
       // localStorage may be unavailable (SecurityError in restricted contexts)
     }
@@ -203,7 +203,7 @@ export class ScionApp extends LitElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    window.removeEventListener('scion:access-denied', this._accessDeniedHandler as EventListener);
+    window.removeEventListener('fabric:access-denied', this._accessDeniedHandler as EventListener);
     this.removeEventListener(PAGE_TITLE_EVENT, this._pageTitleHandler as EventListener);
   }
 
@@ -226,7 +226,7 @@ export class ScionApp extends LitElement {
 
   /**
    * Set the document title from the current path-based page title.
-   * Detail page components will refine this further via scion:page-title events.
+   * Detail page components will refine this further via fabric:page-title events.
    */
   private updateDocumentTitle(): void {
     const title = this.getPageTitle();
@@ -257,12 +257,12 @@ export class ScionApp extends LitElement {
     return html`
       <!-- Desktop Sidebar -->
       <aside class="sidebar">
-        <scion-nav
+        <fabric-nav
           .user=${this.user}
           .currentPath=${this.currentPath}
           ?collapsed=${this._sidebarCollapsed}
           @sidebar-toggle=${(): void => this.handleSidebarToggle()}
-        ></scion-nav>
+        ></fabric-nav>
       </aside>
 
       <!-- Mobile Drawer -->
@@ -272,24 +272,24 @@ export class ScionApp extends LitElement {
         placement="start"
         @sl-hide=${(): void => this.handleDrawerClose()}
       >
-        <scion-nav
+        <fabric-nav
           .user=${this.user}
           .currentPath=${this.currentPath}
           .hideCollapse=${true}
           @nav-click=${(): void => this.handleNavClick()}
-        ></scion-nav>
+        ></fabric-nav>
       </sl-drawer>
 
       <!-- Main Content -->
       <main class="main">
-        <scion-header
+        <fabric-header
           .user=${this.user}
           .currentPath=${this.currentPath}
           .pageTitle=${pageTitle}
           ?showMobileMenu=${true}
           @mobile-menu-toggle=${(): void => this.handleMobileMenuToggle()}
           @logout=${(): void => this.handleLogout()}
-        ></scion-header>
+        ></fabric-header>
 
         <div class="content">
           <div class="content-inner">
@@ -299,7 +299,7 @@ export class ScionApp extends LitElement {
       </main>
 
       <!-- Debug Panel (only shows in debug mode) -->
-      <scion-debug-panel></scion-debug-panel>
+      <fabric-debug-panel></fabric-debug-panel>
     `;
   }
 
@@ -374,7 +374,7 @@ export class ScionApp extends LitElement {
   private handleSidebarToggle(): void {
     this._sidebarCollapsed = !this._sidebarCollapsed;
     try {
-      localStorage.setItem('scion-sidebar-collapsed', String(this._sidebarCollapsed));
+      localStorage.setItem('fabric-sidebar-collapsed', String(this._sidebarCollapsed));
     } catch {
       // localStorage may be unavailable (SecurityError in restricted contexts)
     }
@@ -420,6 +420,6 @@ export class ScionApp extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-app': ScionApp;
+    'fabric-app': FabricApp;
   }
 }

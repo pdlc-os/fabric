@@ -1,14 +1,14 @@
-# Scion Plugin System Design
+# Fabric Plugin System Design
 
 ## Motivation
 
-Scion currently hard-codes all message broker implementations (in-process only) and harness implementations (claude, gemini, opencode, codex, generic) directly into the binary. As we add external message brokers (NATS, Redis, etc.) and potentially new harnesses, this approach does not scale:
+Fabric currently hard-codes all message broker implementations (in-process only) and harness implementations (claude, gemini, opencode, codex, generic) directly into the binary. As we add external message brokers (NATS, Redis, etc.) and potentially new harnesses, this approach does not scale:
 
 - Every new implementation increases binary size and dependency surface
 - Users cannot add custom integrations without forking the project
 - The hub/broker server carries code for harnesses it may never use
 
-We want a **plugin system** that allows scion to load additional message broker and harness implementations at runtime from external binaries.
+We want a **plugin system** that allows fabric to load additional message broker and harness implementations at runtime from external binaries.
 
 ## Technology: hashicorp/go-plugin
 
@@ -33,7 +33,7 @@ We want a **plugin system** that allows scion to load additional message broker 
 
 go-plugin is designed for **long-lived subprocesses**. The client starts the process once and reuses it for all calls. Per-invocation usage (start, call, kill) is technically possible but adds process-spawn overhead on every call.
 
-**Implications for scion:**
+**Implications for fabric:**
 
 | Plugin Type | Lifecycle | Rationale |
 |---|---|---|
@@ -86,16 +86,16 @@ Implements the `api.Harness` interface over RPC. The current interface has ~15 m
 ### Filesystem Layout
 
 ```
-~/.scion/plugins/
+~/.fabric/plugins/
   broker/
-    scion-plugin-nats        # Message broker plugin
-    scion-plugin-redis       # Message broker plugin
+    fabric-plugin-nats        # Message broker plugin
+    fabric-plugin-redis       # Message broker plugin
   harness/
-    scion-plugin-cursor      # Harness plugin
-    scion-plugin-aider       # Harness plugin
+    fabric-plugin-cursor      # Harness plugin
+    fabric-plugin-aider       # Harness plugin
 ```
 
-Plugin binaries follow a naming convention: `scion-plugin-<name>`.
+Plugin binaries follow a naming convention: `fabric-plugin-<name>`.
 
 ### Settings Configuration
 
@@ -105,13 +105,13 @@ Add a `plugins` section to settings:
 plugins:
   broker:
     nats:
-      path: ~/.scion/plugins/broker/scion-plugin-nats  # optional, auto-discovered if omitted
+      path: ~/.fabric/plugins/broker/fabric-plugin-nats  # optional, auto-discovered if omitted
       config:
         url: "nats://localhost:4222"
         credentials_file: "/path/to/creds"
   harness:
     cursor:
-      path: ~/.scion/plugins/harness/scion-plugin-cursor
+      path: ~/.fabric/plugins/harness/fabric-plugin-cursor
       config:
         image: "cursor-agent:latest"
         user: "cursor"
@@ -119,8 +119,8 @@ plugins:
 
 **Discovery order:**
 1. Explicit `path` in settings
-2. Scan `~/.scion/plugins/<type>/` directory
-3. Search `$PATH` for `scion-plugin-<name>` (lower priority, optional)
+2. Scan `~/.fabric/plugins/<type>/` directory
+3. Search `$PATH` for `fabric-plugin-<name>` (lower priority, optional)
 
 ### Harness Plugin Selection
 
@@ -201,7 +201,7 @@ func (m *Manager) Shutdown()                            // Kill all plugins
 
 ### Plugin Lifecycle Tied to Server Lifecycle
 
-Plugin processes are started when the hub/broker server starts and stopped when it stops. The plugin manager's `Shutdown()` is called as part of the server's graceful shutdown sequence. On `scion server restart` or `scion broker restart`, all plugin processes are killed and restarted with the new server instance.
+Plugin processes are started when the hub/broker server starts and stopped when it stops. The plugin manager's `Shutdown()` is called as part of the server's graceful shutdown sequence. On `fabric server restart` or `fabric broker restart`, all plugin processes are killed and restarted with the new server instance.
 
 ### Integration Points
 
@@ -232,17 +232,17 @@ Plugin processes are started when the hub/broker server starts and stopped when 
 | Security model | Simple trust — user-installed binaries, magic cookie handshake | No signature verification or mTLS for now. Same trust model as any user-installed binary. |
 | Dynamic registration | Deferred | Static settings-based registration covers primary use cases. |
 | Hot reload | Deferred | Plugin lifecycle tied to server start/stop/restart. No watch-and-reload. |
-| Plugin distribution | Deferred | Manual install to `~/.scion/plugins/<type>/`. Future `scion plugin install` command possible. |
+| Plugin distribution | Deferred | Manual install to `~/.fabric/plugins/<type>/`. Future `fabric plugin install` command possible. |
 | Plugin versioning | Strict version check; reject incompatible | go-plugin protocol version negotiation with hard rejection on mismatch. No graceful degradation. |
 
 ### Plugin Versioning
 
-Scion uses go-plugin's protocol version negotiation with **strict matching**:
+Fabric uses go-plugin's protocol version negotiation with **strict matching**:
 - Each plugin type (broker, harness) has a protocol version number (starting at 1)
-- On `plugin.NewClient()`, scion specifies the expected protocol version
+- On `plugin.NewClient()`, fabric specifies the expected protocol version
 - go-plugin rejects plugins that report a different version — the plugin process is killed and an error is returned
 - Any change to the RPC method signatures, argument types, or semantics constitutes a breaking change requiring a version bump
-- Plugins can report their minimum compatible scion version via a `GetInfo()` RPC call; scion logs a warning if the plugin targets a newer scion version
+- Plugins can report their minimum compatible fabric version via a `GetInfo()` RPC call; fabric logs a warning if the plugin targets a newer fabric version
 
 ## Phased Implementation Plan
 
@@ -263,7 +263,7 @@ Scion uses go-plugin's protocol version negotiation with **strict matching**:
 - Optional capability tests for `AuthSettingsApplier` and `TelemetrySettingsApplier`
 
 ### Phase 4: Polish
-- `scion plugin list` command showing discovered/loaded plugins
+- `fabric plugin list` command showing discovered/loaded plugins
 - Health status reporting
 - Documentation and plugin authoring guide
 - Optional: gRPC plugin support for non-Go plugin authors

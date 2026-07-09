@@ -21,7 +21,7 @@ import (
 
 	"github.com/a2aproject/a2a-go/v2/a2a"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/google/uuid"
 )
 
@@ -80,7 +80,7 @@ type TaskResult struct {
 	Artifacts []Artifact `json:"artifacts,omitempty"`
 }
 
-// MapActivityToTaskState maps a Scion agent activity string to an A2A task state.
+// MapActivityToTaskState maps a Fabric agent activity string to an A2A task state.
 func MapActivityToTaskState(activity string) string {
 	switch strings.ToUpper(activity) {
 	case "WORKING":
@@ -110,8 +110,8 @@ func IsTerminalState(state string) bool {
 	}
 }
 
-// TranslateA2AToScion converts A2A message parts into a Scion StructuredMessage.
-func TranslateA2AToScion(parts []Part) *messages.StructuredMessage {
+// TranslateA2AToFabric converts A2A message parts into a Fabric StructuredMessage.
+func TranslateA2AToFabric(parts []Part) *messages.StructuredMessage {
 	var textContent strings.Builder
 	var attachments []string
 
@@ -153,8 +153,8 @@ func TranslateA2AToScion(parts []Part) *messages.StructuredMessage {
 	}
 }
 
-// TranslateScionToA2A converts a Scion StructuredMessage into an A2A Message and optional Artifacts.
-func TranslateScionToA2A(msg *messages.StructuredMessage) (Message, []Artifact) {
+// TranslateFabricToA2A converts a Fabric StructuredMessage into an A2A Message and optional Artifacts.
+func TranslateFabricToA2A(msg *messages.StructuredMessage) (Message, []Artifact) {
 	parts := []Part{{Text: msg.Msg, MediaType: "text/plain"}}
 
 	for _, att := range msg.Attachments {
@@ -182,8 +182,8 @@ func TranslateScionToA2A(msg *messages.StructuredMessage) (Message, []Artifact) 
 
 // --- SDK-compatible translation functions ---
 
-// TranslateA2APartsToScion converts SDK a2a.ContentParts into a Scion StructuredMessage.
-func TranslateA2APartsToScion(parts a2a.ContentParts) *messages.StructuredMessage {
+// TranslateA2APartsToFabric converts SDK a2a.ContentParts into a Fabric StructuredMessage.
+func TranslateA2APartsToFabric(parts a2a.ContentParts) *messages.StructuredMessage {
 	var textContent strings.Builder
 	var attachments []string
 
@@ -225,9 +225,9 @@ func TranslateA2APartsToScion(parts a2a.ContentParts) *messages.StructuredMessag
 	}
 }
 
-// TranslateScionToA2AParts converts a Scion StructuredMessage into SDK a2a types.
+// TranslateFabricToA2AParts converts a Fabric StructuredMessage into SDK a2a types.
 // Returns parts for the agent message and artifacts for content delivery.
-func TranslateScionToA2AParts(msg *messages.StructuredMessage) (*a2a.Message, []*a2a.Artifact) {
+func TranslateFabricToA2AParts(msg *messages.StructuredMessage) (*a2a.Message, []*a2a.Artifact) {
 	if msg == nil {
 		empty := a2a.NewMessage(a2a.MessageRoleAgent, a2a.NewTextPart("[empty response]"))
 		return empty, nil
@@ -254,7 +254,7 @@ func TranslateScionToA2AParts(msg *messages.StructuredMessage) (*a2a.Message, []
 	return message, artifacts
 }
 
-// MapActivityToSDKTaskState maps a Scion agent activity string to an SDK a2a.TaskState.
+// MapActivityToSDKTaskState maps a Fabric agent activity string to an SDK a2a.TaskState.
 func MapActivityToSDKTaskState(activity string) a2a.TaskState {
 	switch strings.ToUpper(activity) {
 	case "WORKING":

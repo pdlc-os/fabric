@@ -27,15 +27,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/version"
 	"github.com/spf13/cobra"
 )
 
@@ -46,14 +46,14 @@ var (
 // hubCmd represents the hub command
 var hubCmd = &cobra.Command{
 	Use:   "hub",
-	Short: "Interact with the Scion Hub",
-	Long: `Commands for interacting with a remote Scion Hub.
+	Short: "Interact with the Fabric Hub",
+	Long: `Commands for interacting with a remote Fabric Hub.
 
 The Hub provides centralized coordination for projects, agents, and templates
 across multiple runtime brokers.
 
 Configure the Hub endpoint via:
-  - SCION_HUB_ENDPOINT environment variable
+  - FABRIC_HUB_ENDPOINT environment variable
   - hub.endpoint in settings.yaml
   - --hub flag on any command`,
 }
@@ -77,10 +77,10 @@ If a project name is provided, shows detailed information for that project.
 
 Examples:
   # List all projects
-  scion hub projects
+  fabric hub projects
 
   # Show info for a specific project
-  scion hub project my-project`,
+  fabric hub project my-project`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHubProjects,
 }
@@ -98,13 +98,13 @@ If no project name is provided, the current project is used.
 
 Examples:
   # Show info for the current project
-  scion hub projects info
+  fabric hub projects info
 
   # Show info for a project by name
-  scion hub projects info my-project
+  fabric hub projects info my-project
 
   # Output as JSON
-  scion hub projects info my-project --json`,
+  fabric hub projects info my-project --json`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHubProjectsInfo,
 }
@@ -122,13 +122,13 @@ If no project name is provided, the current project is used.
 
 Examples:
   # Delete the current project (with confirmation)
-  scion hub projects delete
+  fabric hub projects delete
 
   # Delete a project by name (with confirmation)
-  scion hub projects delete my-project
+  fabric hub projects delete my-project
 
   # Delete without confirmation
-  scion hub projects delete my-project -y`,
+  fabric hub projects delete my-project -y`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHubProjectsDelete,
 }
@@ -155,13 +155,13 @@ If no broker name is provided, the current host's broker is used (if registered)
 
 Examples:
   # Show info for the current host's broker
-  scion hub brokers info
+  fabric hub brokers info
 
   # Show info for a broker by name
-  scion hub brokers info my-broker
+  fabric hub brokers info my-broker
 
   # Output as JSON
-  scion hub brokers info my-broker --json`,
+  fabric hub brokers info my-broker --json`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHubBrokersInfo,
 }
@@ -176,10 +176,10 @@ This will remove the broker registration and all associated project provider rel
 
 Examples:
   # Delete a broker by name (with confirmation)
-  scion hub brokers delete my-broker
+  fabric hub brokers delete my-broker
 
   # Delete without confirmation
-  scion hub brokers delete my-broker -y`,
+  fabric hub brokers delete my-broker -y`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHubBrokersDelete,
 }
@@ -195,7 +195,7 @@ the Hub API instead of being performed locally. This allows centralized
 coordination of agents across multiple runtime brokers.
 
 The Hub endpoint must be configured before enabling:
-  - SCION_HUB_ENDPOINT environment variable
+  - FABRIC_HUB_ENDPOINT environment variable
   - hub.endpoint in settings.yaml
   - --hub flag on any command`,
 	RunE: runHubEnable,
@@ -228,10 +228,10 @@ to an existing project with a matching name or git remote.
 
 Examples:
   # Link the current project
-  scion hub link
+  fabric hub link
 
   # Link the global project
-  scion hub link --global`,
+  fabric hub link --global`,
 	RunE: runHubLink,
 }
 
@@ -245,14 +245,14 @@ This command disables Hub integration for the project without removing
 the project or its agents from the Hub. Other brokers can still manage
 the project through the Hub.
 
-Use 'scion hub link' to re-link the project later.
+Use 'fabric hub link' to re-link the project later.
 
 Examples:
   # Unlink the current project
-  scion hub unlink
+  fabric hub unlink
 
   # Unlink the global project
-  scion hub unlink --global`,
+  fabric hub unlink --global`,
 	RunE: runHubUnlink,
 }
 
@@ -276,16 +276,16 @@ a serial-numbered slug (e.g., acme-widgets-1, acme-widgets-2).
 
 Examples:
   # Create from HTTPS URL
-  scion hub projects create https://github.com/acme/widgets.git
+  fabric hub projects create https://github.com/acme/widgets.git
 
   # Create from SSH URL
-  scion hub projects create git@github.com:acme/widgets.git
+  fabric hub projects create git@github.com:acme/widgets.git
 
   # Create with a specific branch
-  scion hub projects create https://github.com/acme/widgets.git --branch release/v2
+  fabric hub projects create https://github.com/acme/widgets.git --branch release/v2
 
   # Create with a custom slug
-  scion hub projects create https://github.com/acme/widgets.git --slug widgets`,
+  fabric hub projects create https://github.com/acme/widgets.git --slug widgets`,
 	Args: cobra.ExactArgs(1),
 	RunE: runHubProjectCreate,
 }
@@ -411,14 +411,14 @@ func isLocalhostEndpoint(endpoint string) bool {
 	return host == "localhost" || host == "127.0.0.1" || host == "::1"
 }
 
-// readAgentTokenFile reads the canonical agent token from ~/.scion/scion-token.
+// readAgentTokenFile reads the canonical agent token from ~/.fabric/fabric-token.
 // Returns empty string if the file doesn't exist (e.g. not running in a container).
 func readAgentTokenFile() string {
 	home := os.Getenv("HOME")
 	if home == "" {
 		return ""
 	}
-	data, err := os.ReadFile(filepath.Join(home, ".scion", "scion-token"))
+	data, err := os.ReadFile(filepath.Join(home, ".fabric", "fabric-token"))
 	if err != nil {
 		return ""
 	}
@@ -434,12 +434,12 @@ func getAuthInfo(settings *config.Settings, endpoint string) authInfo {
 		MethodType: "none",
 	}
 
-	// Check for OAuth credentials from scion hub auth login
+	// Check for OAuth credentials from fabric hub auth login
 	if endpoint != "" {
 		if creds, err := credentials.Load(endpoint); err == nil && creds.AccessToken != "" {
 			info.Method = "OAuth"
 			info.MethodType = "oauth"
-			info.Source = "scion hub auth login"
+			info.Source = "fabric hub auth login"
 			info.HasOAuth = true
 			info.OAuthCreds = creds
 			return info
@@ -448,20 +448,20 @@ func getAuthInfo(settings *config.Settings, endpoint string) authInfo {
 
 	// Check for agent auth token from canonical token file or bootstrap env var.
 	// When the endpoint is localhost and dev auth is available, prefer dev auth
-	// over a non-dev agent token — the scion-token may be stale from a previous
+	// over a non-dev agent token — the fabric-token may be stale from a previous
 	// remote hub connection while the dev-token was written by the running local server.
 	if token := readAgentTokenFile(); token != "" {
 		if apiclient.IsDevToken(token) {
 			info.Method = "Agent token (dev)"
 			info.MethodType = "agent_token"
-			info.Source = "scion-token file"
+			info.Source = "fabric-token file"
 			info.IsDevAuth = true
 			info.TokenExpiry = parseJWTExpiry(token)
 			return info
 		}
 		if isLocalhostEndpoint(endpoint) {
 			if devToken, devSource := apiclient.ResolveDevTokenWithSource(); devToken != "" {
-				util.Debugf("Skipping non-dev agent token from scion-token file; using dev auth (%s) for localhost endpoint", devSource)
+				util.Debugf("Skipping non-dev agent token from fabric-token file; using dev auth (%s) for localhost endpoint", devSource)
 				info.Method = "Dev auth"
 				info.MethodType = "devauth"
 				info.Source = devSource
@@ -471,30 +471,30 @@ func getAuthInfo(settings *config.Settings, endpoint string) authInfo {
 		}
 		info.Method = "Agent token"
 		info.MethodType = "agent_token"
-		info.Source = "scion-token file"
+		info.Source = "fabric-token file"
 		info.TokenExpiry = parseJWTExpiry(token)
 		return info
 	}
-	if token := os.Getenv("SCION_AUTH_TOKEN"); token != "" {
+	if token := os.Getenv("FABRIC_AUTH_TOKEN"); token != "" {
 		if apiclient.IsDevToken(token) {
 			info.Method = "Agent token (dev)"
 			info.MethodType = "agent_token"
-			info.Source = "SCION_AUTH_TOKEN env"
+			info.Source = "FABRIC_AUTH_TOKEN env"
 			info.IsDevAuth = true
 		} else {
 			info.Method = "Agent token"
 			info.MethodType = "agent_token"
-			info.Source = "SCION_AUTH_TOKEN env"
+			info.Source = "FABRIC_AUTH_TOKEN env"
 		}
 		info.TokenExpiry = parseJWTExpiry(token)
 		return info
 	}
 
 	// Check for legacy agent-mode token
-	if token := os.Getenv("SCION_HUB_TOKEN"); token != "" {
+	if token := os.Getenv("FABRIC_HUB_TOKEN"); token != "" {
 		info.Method = "Bearer token"
 		info.MethodType = "bearer"
-		info.Source = "SCION_HUB_TOKEN env"
+		info.Source = "FABRIC_HUB_TOKEN env"
 		return info
 	}
 
@@ -514,7 +514,7 @@ func getAuthInfo(settings *config.Settings, endpoint string) authInfo {
 func getHubClient(settings *config.Settings) (hubclient.Client, error) {
 	endpoint := GetHubEndpoint(settings)
 	if endpoint == "" {
-		return nil, fmt.Errorf("hub endpoint not configured; set SCION_HUB_ENDPOINT or use --hub flag")
+		return nil, fmt.Errorf("hub endpoint not configured; set FABRIC_HUB_ENDPOINT or use --hub flag")
 	}
 
 	var opts []hubclient.Option
@@ -524,12 +524,12 @@ func getHubClient(settings *config.Settings) (hubclient.Client, error) {
 
 	// Add authentication - check in priority order.
 	// Note: hub.token and hub.apiKey are deprecated and no longer used for auth.
-	// Auth priority: OAuth credentials > scion-token file > SCION_AUTH_TOKEN env > SCION_HUB_TOKEN env > auto dev auth.
+	// Auth priority: OAuth credentials > fabric-token file > FABRIC_AUTH_TOKEN env > FABRIC_HUB_TOKEN env > auto dev auth.
 	// Exception: for localhost endpoints, dev auth takes priority over non-dev agent tokens
-	// to avoid stale scion-token files from previous remote hub connections.
+	// to avoid stale fabric-token files from previous remote hub connections.
 	authConfigured := false
 
-	// Check for OAuth credentials from scion hub auth login
+	// Check for OAuth credentials from fabric hub auth login
 	if accessToken := credentials.GetAccessToken(endpoint); accessToken != "" {
 		opts = append(opts, hubclient.WithBearerToken(accessToken))
 		authConfigured = true
@@ -548,7 +548,7 @@ func getHubClient(settings *config.Settings) (hubclient.Client, error) {
 				opts = append(opts, hubclient.WithAgentToken(token))
 				authConfigured = true
 			}
-		} else if token := os.Getenv("SCION_AUTH_TOKEN"); token != "" {
+		} else if token := os.Getenv("FABRIC_AUTH_TOKEN"); token != "" {
 			opts = append(opts, hubclient.WithAgentToken(token))
 			authConfigured = true
 		}
@@ -556,14 +556,14 @@ func getHubClient(settings *config.Settings) (hubclient.Client, error) {
 
 	// Check for legacy agent-mode token (running inside a container)
 	if !authConfigured {
-		if token := os.Getenv("SCION_HUB_TOKEN"); token != "" {
+		if token := os.Getenv("FABRIC_HUB_TOKEN"); token != "" {
 			opts = append(opts, hubclient.WithBearerToken(token))
 			authConfigured = true
 		}
 	}
 
 	// Fallback to auto dev auth if no explicit auth configured
-	// This checks SCION_DEV_TOKEN env var and ~/.scion/dev-token file
+	// This checks FABRIC_DEV_TOKEN env var and ~/.fabric/dev-token file
 	if !authConfigured {
 		opts = append(opts, hubclient.WithAutoDevAuth())
 	}
@@ -669,7 +669,7 @@ func getHubEndpointScope(resolvedPath string, isGlobal bool, settings *config.Se
 	}
 
 	// Check env var
-	if ep := os.Getenv("SCION_HUB_ENDPOINT"); ep != "" {
+	if ep := os.Getenv("FABRIC_HUB_ENDPOINT"); ep != "" {
 		return hubEndpointScope{Endpoint: ep, Source: "env", Inherited: !isGlobal}
 	}
 
@@ -715,7 +715,7 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 			"endpointInherited": endpointScope.Inherited,
 			"configured":        settings.IsHubConfigured(),
 			"projectId":         settings.ProjectID,
-			"scionVersionLocal": version.Short(),
+			"fabricVersionLocal": version.Short(),
 		}
 		if settings.Hub != nil {
 			status["brokerId"] = settings.Hub.BrokerID
@@ -739,7 +739,7 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 					status["connected"] = true
 					status["hubVersion"] = health.Version
 					status["hubStatus"] = health.Status
-					status["scionVersionServer"] = health.ScionVersion
+					status["fabricVersionServer"] = health.FabricVersion
 
 					// Verify auth against server
 					jsonAuthVerified := false
@@ -832,7 +832,7 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 	fmt.Println("--------------")
 	if authInfo.MethodType == "none" {
 		fmt.Println("Status:     Not authenticated")
-		fmt.Println("            Run 'scion hub auth login' to authenticate.")
+		fmt.Println("            Run 'fabric hub auth login' to authenticate.")
 	} else if client != nil {
 		// Verify auth against the server by calling an authenticated endpoint
 		meCtx, meCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -841,7 +841,7 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 		if meErr != nil {
 			fmt.Println("Status:     Not authenticated")
 			fmt.Printf("Method:     %s (configured but not accepted by server)\n", authInfo.Method)
-			fmt.Println("            Run 'scion hub auth login' to authenticate.")
+			fmt.Println("            Run 'fabric hub auth login' to authenticate.")
 		} else {
 			authVerified = true
 			fmt.Printf("Method:     %s\n", authInfo.Method)
@@ -894,8 +894,8 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 			fmt.Printf("Connection: ok\n")
 			fmt.Printf("Hub Version: %s\n", health.Version)
 			fmt.Printf("Hub Status:  %s\n", health.Status)
-			fmt.Printf("Scion Version (Server): %s\n", valueOrNone(health.ScionVersion))
-			fmt.Printf("Scion Version (Local):  %s\n", version.Short())
+			fmt.Printf("Fabric Version (Server): %s\n", valueOrNone(health.FabricVersion))
+			fmt.Printf("Fabric Version (Local):  %s\n", version.Short())
 
 			// Show project context if we're in a project
 			printProjectContext(client, resolvedPath, isGlobal, settings, authVerified)
@@ -927,7 +927,7 @@ func printProjectContext(client hubclient.Client, projectPath string, isGlobal b
 	if !authVerified {
 		fmt.Printf("Linked:     unknown (not authenticated)\n")
 		fmt.Println()
-		fmt.Println("Authenticate with 'scion hub auth login' to view project status.")
+		fmt.Println("Authenticate with 'fabric hub auth login' to view project status.")
 		return
 	}
 
@@ -944,7 +944,7 @@ func printProjectContext(client hubclient.Client, projectPath string, isGlobal b
 	if !settings.IsHubEnabled() {
 		fmt.Printf("Linked: no (unlinked locally)\n")
 		fmt.Println()
-		fmt.Println("Run 'scion hub link' to re-link this project with the Hub.")
+		fmt.Println("Run 'fabric hub link' to re-link this project with the Hub.")
 		return
 	}
 
@@ -952,7 +952,7 @@ func printProjectContext(client hubclient.Client, projectPath string, isGlobal b
 	if !settings.IsHubLinked() {
 		fmt.Printf("Linked: no\n")
 		fmt.Println()
-		fmt.Println("Run 'scion hub link' to link this project with the Hub.")
+		fmt.Println("Run 'fabric hub link' to link this project with the Hub.")
 		return
 	}
 
@@ -1000,7 +1000,7 @@ func printProjectContext(client hubclient.Client, projectPath string, isGlobal b
 	if linkedProject == nil {
 		fmt.Printf("Linked: no (project not found on Hub)\n")
 		fmt.Println()
-		fmt.Println("Run 'scion hub link' to re-link this project with the Hub.")
+		fmt.Println("Run 'fabric hub link' to re-link this project with the Hub.")
 		return
 	}
 
@@ -1583,9 +1583,9 @@ func runHubProjectCreate(cmd *cobra.Command, args []string) error {
 		GitRemote:  normalized,
 		Visibility: hubProjectCreateVisibility,
 		Labels: map[string]string{
-			"scion.dev/default-branch": defaultBranch,
-			"scion.dev/clone-url":      util.ToHTTPSCloneURL(gitURL),
-			"scion.dev/source-url":     gitURL,
+			"fabric.dev/default-branch": defaultBranch,
+			"fabric.dev/clone-url":      util.ToHTTPSCloneURL(gitURL),
+			"fabric.dev/source-url":     gitURL,
 		},
 	})
 	if err != nil {
@@ -1609,9 +1609,9 @@ func runHubProjectCreate(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Branch: %s\n", defaultBranch)
 	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("  1. Set git credentials:\n")
-	fmt.Printf("     scion hub secret set GITHUB_TOKEN --project %s <your-pat>\n\n", project.Slug)
+	fmt.Printf("     fabric hub secret set GITHUB_TOKEN --project %s <your-pat>\n\n", project.Slug)
 	fmt.Printf("  2. Start an agent:\n")
-	fmt.Printf("     scion start my-agent --project %s \"your task\"\n", project.Slug)
+	fmt.Printf("     fabric start my-agent --project %s \"your task\"\n", project.Slug)
 
 	return nil
 }
@@ -1755,7 +1755,7 @@ func runHubBrokersInfo(cmd *cobra.Command, args []string) error {
 		// Try to get the current host's broker ID
 		brokerNameOrID = getCurrentHostBrokerID(settings)
 		if brokerNameOrID == "" {
-			return fmt.Errorf("no broker name provided and this host is not registered as a broker.\n\nUsage: scion hub brokers info [broker-name]")
+			return fmt.Errorf("no broker name provided and this host is not registered as a broker.\n\nUsage: fabric hub brokers info [broker-name]")
 		}
 	}
 
@@ -1899,7 +1899,7 @@ func runHubBrokersInfo(cmd *cobra.Command, args []string) error {
 func runHubBrokersDelete(cmd *cobra.Command, args []string) error {
 	// Broker name is required for delete
 	if len(args) == 0 {
-		return fmt.Errorf("broker name or ID is required.\n\nUsage: scion hub brokers delete <broker-name>")
+		return fmt.Errorf("broker name or ID is required.\n\nUsage: fabric hub brokers delete <broker-name>")
 	}
 
 	brokerNameOrID := args[0]
@@ -2038,7 +2038,7 @@ func runHubEnable(cmd *cobra.Command, args []string) error {
 
 	endpoint := GetHubEndpoint(settings)
 	if endpoint == "" {
-		return fmt.Errorf("hub endpoint not configured: set SCION_HUB_ENDPOINT, hub.endpoint in settings.yaml, or use --hub flag")
+		return fmt.Errorf("hub endpoint not configured: set FABRIC_HUB_ENDPOINT, hub.endpoint in settings.yaml, or use --hub flag")
 	}
 
 	// Try to connect and verify Hub is healthy before enabling
@@ -2090,7 +2090,7 @@ func runHubEnable(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Endpoint: %s\n", endpoint)
 	fmt.Printf("Hub Status: %s (version %s)\n", health.Status, health.Version)
 	fmt.Println("\nAgent operations (create, start, delete) will now be routed through the Hub.")
-	fmt.Println("Use 'scion hub disable' to switch back to local-only mode.")
+	fmt.Println("Use 'fabric hub disable' to switch back to local-only mode.")
 
 	return nil
 }
@@ -2164,7 +2164,7 @@ func runHubDisable(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Hub integration disabled (%s scope).\n", scopeLabel)
 	fmt.Println("Agent operations will now be performed locally.")
-	fmt.Println("\nHub configuration is preserved. Use 'scion hub enable' to re-enable.")
+	fmt.Println("\nHub configuration is preserved. Use 'fabric hub enable' to re-enable.")
 
 	return nil
 }
@@ -2188,7 +2188,7 @@ func runHubLink(cmd *cobra.Command, args []string) error {
 
 	endpoint := GetHubEndpoint(settings)
 	if endpoint == "" {
-		return fmt.Errorf("hub endpoint not configured: set SCION_HUB_ENDPOINT, hub.endpoint in settings.yaml, or use --hub flag")
+		return fmt.Errorf("hub endpoint not configured: set FABRIC_HUB_ENDPOINT, hub.endpoint in settings.yaml, or use --hub flag")
 	}
 
 	// Get project name for display
@@ -2212,7 +2212,7 @@ func runHubLink(cmd *cobra.Command, args []string) error {
 	// Verify authentication before proceeding
 	authInfo := getAuthInfo(settings, endpoint)
 	if authInfo.MethodType == "none" {
-		return fmt.Errorf("not authenticated to Hub at %s\n\nPlease log in first:\n  scion hub auth login", endpoint)
+		return fmt.Errorf("not authenticated to Hub at %s\n\nPlease log in first:\n  fabric hub auth login", endpoint)
 	}
 
 	// Create Hub client
@@ -2465,7 +2465,7 @@ func offerTemplateSyncOnLink(projectPath, endpoint, projectID string) {
 
 	if !util.IsTerminal() {
 		fmt.Printf("\nSkipping template sync (non-interactive mode).\n")
-		fmt.Println("Run 'scion templates sync --all' to upload project templates.")
+		fmt.Println("Run 'fabric templates sync --all' to upload project templates.")
 		return
 	}
 
@@ -2477,7 +2477,7 @@ func offerTemplateSyncOnLink(projectPath, endpoint, projectID string) {
 
 	if !hubsync.ConfirmAction("Sync these templates to the Hub?", true, autoConfirm) {
 		fmt.Println("Skipping template sync.")
-		fmt.Println("Run 'scion templates sync --all' to upload project templates later.")
+		fmt.Println("Run 'fabric templates sync --all' to upload project templates later.")
 		return
 	}
 
@@ -2615,8 +2615,8 @@ func runHubUnlink(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 	fmt.Printf("Project '%s' has been unlinked from the Hub.\n", projectName)
 	fmt.Println("The project and its agents remain on the Hub for other brokers.")
-	fmt.Println("Use 'scion hub link' to re-link this local project to the hub's.")
-	fmt.Printf("Use \"scion hub projects delete '%s'\" to remove project from hub entirely.", projectName)
+	fmt.Println("Use 'fabric hub link' to re-link this local project to the hub's.")
+	fmt.Printf("Use \"fabric hub projects delete '%s'\" to remove project from hub entirely.", projectName)
 
 	return nil
 }
@@ -2738,7 +2738,7 @@ func listBrokersForProject(ctx context.Context, client hubclient.Client, project
 	if len(resp.Brokers) == 0 {
 		fmt.Println()
 		fmt.Println("Warning: This project has no active runtime brokers.")
-		fmt.Println("Register one with 'scion runtime-broker register'")
+		fmt.Println("Register one with 'fabric runtime-broker register'")
 		return
 	}
 

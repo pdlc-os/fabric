@@ -44,15 +44,15 @@
 <polygon fill="black" stroke="black" points="94.93,-189.43 85.12,-185.43 90.29,-194.68 94.93,-189.43"/>
 <text xml:space="preserve" text-anchor="middle" x="212.91" y="-259.95" font-family="Times,serif" font-size="14.00">Triggers</text>
 </g>
-<!-- sciontool_status Tool -->
+<!-- fabrictool_status Tool -->
 <g id="node3" class="node">
-<title>sciontool_status Tool</title>
+<title>fabrictool_status Tool</title>
 <polygon fill="lightblue" stroke="black" points="419,-242 245.5,-242 245.5,-206 419,-206 419,-242"/>
-<text xml:space="preserve" text-anchor="middle" x="332.25" y="-215.95" font-family="Times,serif" font-size="14.00">sciontool_status Tool</text>
+<text xml:space="preserve" text-anchor="middle" x="332.25" y="-215.95" font-family="Times,serif" font-size="14.00">fabrictool_status Tool</text>
 </g>
-<!-- ADK Agent Main Loop&#45;&gt;sciontool_status Tool -->
+<!-- ADK Agent Main Loop&#45;&gt;fabrictool_status Tool -->
 <g id="edge2" class="edge">
-<title>ADK Agent Main Loop&#45;&gt;sciontool_status Tool</title>
+<title>ADK Agent Main Loop&#45;&gt;fabrictool_status Tool</title>
 <path fill="none" stroke="black" d="M248.5,-293.6C264.01,-280.89 285.25,-263.5 302.45,-249.4"/>
 <polygon fill="black" stroke="black" points="304.34,-252.38 309.86,-243.34 299.91,-246.97 304.34,-252.38"/>
 <text xml:space="preserve" text-anchor="middle" x="301.04" y="-259.95" font-family="Times,serif" font-size="14.00">Uses</text>
@@ -70,35 +70,35 @@
 <polygon fill="black" stroke="black" points="65.68,-45.79 72.95,-38.09 62.46,-39.57 65.68,-45.79"/>
 <text xml:space="preserve" text-anchor="middle" x="154.75" y="-99.95" font-family="Times,serif" font-size="14.00">Writes Transient (thinking, executing)</text>
 </g>
-<!-- Sciontool CLI -->
+<!-- Fabrictool CLI -->
 <g id="node5" class="node">
-<title>Sciontool CLI</title>
+<title>Fabrictool CLI</title>
 <polygon fill="lightblue" stroke="black" points="420,-126 306.5,-126 306.5,-90 420,-90 420,-126"/>
-<text xml:space="preserve" text-anchor="middle" x="363.25" y="-99.95" font-family="Times,serif" font-size="14.00">Sciontool CLI</text>
+<text xml:space="preserve" text-anchor="middle" x="363.25" y="-99.95" font-family="Times,serif" font-size="14.00">Fabrictool CLI</text>
 </g>
-<!-- sciontool_status Tool&#45;&gt;Sciontool CLI -->
+<!-- fabrictool_status Tool&#45;&gt;Fabrictool CLI -->
 <g id="edge4" class="edge">
-<title>sciontool_status Tool&#45;&gt;Sciontool CLI</title>
+<title>fabrictool_status Tool&#45;&gt;Fabrictool CLI</title>
 <path fill="none" stroke="black" d="M336.96,-205.69C341.87,-187.61 349.67,-158.95 355.49,-137.53"/>
 <polygon fill="black" stroke="black" points="358.85,-138.51 358.1,-127.94 352.1,-136.67 358.85,-138.51"/>
 <text xml:space="preserve" text-anchor="middle" x="502.34" y="-157.95" font-family="Times,serif" font-size="14.00">Invokes for Sticky (ask_user, completed)</text>
 </g>
-<!-- Sciontool CLI&#45;&gt;agent&#45;info.json -->
+<!-- Fabrictool CLI&#45;&gt;agent&#45;info.json -->
 <g id="edge6" class="edge">
-<title>Sciontool CLI&#45;&gt;agent&#45;info.json</title>
+<title>Fabrictool CLI&#45;&gt;agent&#45;info.json</title>
 <path fill="none" stroke="black" d="M314.86,-89.6C276.11,-75.67 221.61,-56.08 180.3,-41.23"/>
 <polygon fill="black" stroke="black" points="181.58,-37.97 170.98,-37.88 179.21,-44.56 181.58,-37.97"/>
 <text xml:space="preserve" text-anchor="middle" x="282.99" y="-55.95" font-family="Times,serif" font-size="14.00">Updates</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node6" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <polygon fill="lightblue" stroke="black" points="405,-37 321.5,-37 321.5,-1 405,-1 405,-37"/>
-<text xml:space="preserve" text-anchor="middle" x="363.25" y="-10.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="363.25" y="-10.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- Sciontool CLI&#45;&gt;Scion Hub -->
+<!-- Fabrictool CLI&#45;&gt;Fabric Hub -->
 <g id="edge5" class="edge">
-<title>Sciontool CLI&#45;&gt;Scion Hub</title>
+<title>Fabrictool CLI&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M363.25,-89.81C363.25,-78.09 363.25,-62.29 363.25,-48.68"/>
 <polygon fill="black" stroke="black" points="366.75,-48.96 363.25,-38.96 359.75,-48.96 366.75,-48.96"/>
 <text xml:space="preserve" text-anchor="middle" x="415.75" y="-55.95" font-family="Times,serif" font-size="14.00">Reports Status</text>

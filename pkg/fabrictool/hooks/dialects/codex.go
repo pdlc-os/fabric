@@ -1,10 +1,10 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package dialects
 
-import "github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+import "github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 
 // CodexDialect parses Codex notify payloads.
 type CodexDialect struct{}

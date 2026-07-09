@@ -22,13 +22,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -89,9 +89,9 @@ var deleteCmd = &cobra.Command{
 			mgr := agent.NewManager(rt)
 
 			filters := map[string]string{
-				"scion.agent":        "true",
-				"scion.project_path": resolvedGrove,
-				"scion.project":      config.GetProjectName(resolvedGrove),
+				"fabric.agent":        "true",
+				"fabric.project_path": resolvedGrove,
+				"fabric.project":      config.GetProjectName(resolvedGrove),
 			}
 
 			agents, err := mgr.List(context.Background(), filters)
@@ -106,9 +106,9 @@ var deleteCmd = &cobra.Command{
 				}
 
 				// Get the canonical agent name from labels (Docker Names field has leading slash)
-				agentName := a.Labels["scion.name"]
+				agentName := a.Labels["fabric.name"]
 				if agentName == "" {
-					continue // Not a scion-managed container
+					continue // Not a fabric-managed container
 				}
 
 				status := strings.ToLower(a.ContainerStatus)
@@ -227,7 +227,7 @@ func deleteAgentsViaHub(hubCtx *HubContext, agentNames []string) error {
 		branchDeleted, err := agent.DeleteAgentFiles(agentName, projectPath, !preserveBranch)
 		if err != nil {
 			statusf("Warning: Hub record deleted but local cleanup failed for '%s': %v\n", agentName, err)
-			statusf("Run 'scion --no-hub delete %s' to retry targeted cleanup, or 'scion clean' to reset the project.\n", agentName)
+			statusf("Run 'fabric --no-hub delete %s' to retry targeted cleanup, or 'fabric clean' to reset the project.\n", agentName)
 		}
 
 		// Keep sync watermark current after a successful Hub delete. If hub server
@@ -302,7 +302,7 @@ func deleteAgentLocal(agentName string) error {
 	// We check if it exists in List to provide better feedback
 	util.Debugf("delete: listing containers for %s", agentName)
 	listStart := time.Now()
-	agents, _ := mgr.List(context.Background(), map[string]string{"scion.name": agentName})
+	agents, _ := mgr.List(context.Background(), map[string]string{"fabric.name": agentName})
 	util.Debugf("delete: container list completed in %v", time.Since(listStart))
 	containerFound := false
 	for _, a := range agents {

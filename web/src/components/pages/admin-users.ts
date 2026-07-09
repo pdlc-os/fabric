@@ -88,8 +88,8 @@ const EXPIRY_PRESETS = [
 
 const PAGE_SIZE = 50;
 
-@customElement('scion-page-admin-users')
-export class ScionPageAdminUsers extends LitElement {
+@customElement('fabric-page-admin-users')
+export class FabricPageAdminUsers extends LitElement {
   @state()
   private loading = true;
 
@@ -211,19 +211,19 @@ export class ScionPageAdminUsers extends LitElement {
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .user-count {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .table-container {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
 
@@ -239,9 +239,9 @@ export class ScionPageAdminUsers extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     th.sortable {
@@ -250,7 +250,7 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     th.sortable:hover {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .sort-indicator {
@@ -268,8 +268,8 @@ export class ScionPageAdminUsers extends LitElement {
     td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
 
@@ -278,7 +278,7 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     tr:hover td {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .user-identity {
@@ -291,7 +291,7 @@ export class ScionPageAdminUsers extends LitElement {
       width: 2rem;
       height: 2rem;
       border-radius: 50%;
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: white;
       display: flex;
       align-items: center;
@@ -323,7 +323,7 @@ export class ScionPageAdminUsers extends LitElement {
 
     .user-email {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -349,8 +349,8 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     .role-badge.viewer {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .status-cell {
@@ -384,32 +384,32 @@ export class ScionPageAdminUsers extends LitElement {
 
     .last-seen-text {
       font-size: 0.6875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding-left: 0.875rem;
     }
 
     .meta-text {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .id-text {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .empty-state > sl-icon {
       font-size: 4rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 1rem;
     }
@@ -417,12 +417,12 @@ export class ScionPageAdminUsers extends LitElement {
     .empty-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
     }
 
@@ -432,7 +432,7 @@ export class ScionPageAdminUsers extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -443,9 +443,9 @@ export class ScionPageAdminUsers extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -457,21 +457,21 @@ export class ScionPageAdminUsers extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -481,13 +481,13 @@ export class ScionPageAdminUsers extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 0.75rem 1rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .pagination-info {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .pagination-controls {
@@ -502,7 +502,7 @@ export class ScionPageAdminUsers extends LitElement {
 
     .page-indicator {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding: 0 0.5rem;
     }
 
@@ -535,7 +535,7 @@ export class ScionPageAdminUsers extends LitElement {
     .confirm-body {
       font-size: 0.875rem;
       line-height: 1.5;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .confirm-user {
@@ -544,8 +544,8 @@ export class ScionPageAdminUsers extends LitElement {
       gap: 0.75rem;
       padding: 0.75rem;
       margin: 0.75rem 0;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .feedback-alert {
@@ -555,7 +555,7 @@ export class ScionPageAdminUsers extends LitElement {
     .tabs {
       display: flex;
       gap: 0;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       margin-bottom: 1.5rem;
     }
 
@@ -563,7 +563,7 @@ export class ScionPageAdminUsers extends LitElement {
       padding: 0.625rem 1.25rem;
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       background: none;
       border: none;
       border-bottom: 2px solid transparent;
@@ -572,12 +572,12 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     .tab-btn:hover {
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .tab-btn.active {
-      color: var(--scion-primary, #3b82f6);
-      border-bottom-color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
+      border-bottom-color: var(--fabric-primary, #3b82f6);
     }
 
     .allow-list-header {
@@ -589,7 +589,7 @@ export class ScionPageAdminUsers extends LitElement {
 
     .allow-list-header span {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .add-email-form {
@@ -608,7 +608,7 @@ export class ScionPageAdminUsers extends LitElement {
 
     .domain-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .invite-status {
@@ -626,8 +626,8 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     .invite-status.expired {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .invite-status.revoked {
@@ -653,21 +653,21 @@ export class ScionPageAdminUsers extends LitElement {
     }
 
     .reveal-code .code-display {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.8125rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       word-break: break-all;
       user-select: all;
     }
 
     .reveal-code .link-display {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       word-break: break-all;
       user-select: all;
     }
@@ -677,7 +677,7 @@ export class ScionPageAdminUsers extends LitElement {
       color: var(--sl-color-warning-700, #a16207);
       background: var(--sl-color-warning-50, #fffbeb);
       padding: 0.5rem 0.75rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       border: 1px solid var(--sl-color-warning-200, #fde68a);
     }
 
@@ -1483,7 +1483,7 @@ export class ScionPageAdminUsers extends LitElement {
         @sl-request-close=${() => { if (!this.importInProgress) this.showImportDialog = false; }}
       >
         <div class="import-form">
-          <p style="margin: 0 0 1rem; font-size: 0.875rem; color: var(--scion-text-muted)">
+          <p style="margin: 0 0 1rem; font-size: 0.875rem; color: var(--fabric-text-muted)">
             Upload a CSV file with one email per line. An optional second column can contain notes.
           </p>
           <input
@@ -1766,8 +1766,8 @@ export class ScionPageAdminUsers extends LitElement {
       >
         <div class="create-invite-form">
           ${this.generateInviteForEmail
-            ? html`<p style="margin: 0; font-size: 0.875rem; color: var(--scion-text-muted, #64748b)">
-                Generating invite for <strong style="color: var(--scion-text, #1e293b)">${this.generateInviteForEmail}</strong>
+            ? html`<p style="margin: 0; font-size: 0.875rem; color: var(--fabric-text-muted, #64748b)">
+                Generating invite for <strong style="color: var(--fabric-text, #1e293b)">${this.generateInviteForEmail}</strong>
               </p>`
             : nothing}
           <sl-select
@@ -1824,7 +1824,7 @@ export class ScionPageAdminUsers extends LitElement {
         <div class="reveal-code">
           <p style="margin: 0; font-size: 0.875rem">Your invite link has been created. Copy it now — it will not be shown again.</p>
           <div>
-            <label style="font-size: 0.75rem; font-weight: 600; color: var(--scion-text-muted)">Invite Link</label>
+            <label style="font-size: 0.75rem; font-weight: 600; color: var(--fabric-text-muted)">Invite Link</label>
             <div class="link-display">${this.createdInviteResult.inviteUrl}</div>
           </div>
           <div class="reveal-warning">
@@ -1851,6 +1851,6 @@ export class ScionPageAdminUsers extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-users': ScionPageAdminUsers;
+    'fabric-page-admin-users': FabricPageAdminUsers;
   }
 }

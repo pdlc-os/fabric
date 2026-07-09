@@ -46,7 +46,7 @@ func Setup(component string, debug bool, useGCP bool) {
 // createBaseHandler creates the base slog handler for local logging.
 func createBaseHandler(component string, debug bool, useGCP bool) slog.Handler {
 	level := slog.LevelInfo
-	if debug || os.Getenv("SCION_LOG_LEVEL") == "debug" {
+	if debug || os.Getenv("FABRIC_LOG_LEVEL") == "debug" {
 		level = slog.LevelDebug
 	}
 

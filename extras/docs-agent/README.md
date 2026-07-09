@@ -1,6 +1,6 @@
-# Scion Docs Agent
+# Fabric Docs Agent
 
-A lightweight Q&A service that answers questions about Scion using Gemini CLI. Deployed as a standalone Cloud Run service.
+A lightweight Q&A service that answers questions about Fabric using Gemini CLI. Deployed as a standalone Cloud Run service.
 
 ## Endpoints
 
@@ -23,7 +23,7 @@ go run .
 # Test the /ask endpoint
 curl -X POST http://localhost:8080/ask \
   -H "Content-Type: application/json" \
-  -d '{"query": "What is Scion?"}'
+  -d '{"query": "What is Fabric?"}'
 
 # Open the chat widget
 open http://localhost:8080/chat
@@ -35,7 +35,7 @@ Environment variables:
 - `GEMINI_SYSTEM_MD` - Path to system prompt (default: `$DOCS_AGENT_REPO_DIR/extras/docs-agent/system-prompt.md`)
 - `DOCS_AGENT_TIMEOUT` - Query timeout in seconds (default: `60`)
 - `DOCS_AGENT_WORKSPACE` - Workspace root directory (default: `/workspace`)
-- `DOCS_AGENT_REPO_DIR` - Path to Scion source checkout (default: `$DOCS_AGENT_WORKSPACE/scion`)
+- `DOCS_AGENT_REPO_DIR` - Path to Fabric source checkout (default: `$DOCS_AGENT_WORKSPACE/fabric`)
 - `DOCS_AGENT_MODEL` - Gemini model to use (default: `gemini-3.1-flash-lite-preview`)
 
 ## Testing

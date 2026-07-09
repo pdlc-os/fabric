@@ -12,7 +12,7 @@ Implemented critical fixes for settings loading and Hub API backward compatibili
 ### 1. Settings Loading Fixes (`pkg/config/koanf.go`)
 - Updated `LoadSettingsKoanf` to use `project_id` and `hub.projectId` as the primary keys for koanf remapping.
 - Added support for both legacy `grove_id` and new `project_id` in environment variables.
-- Implemented `SCION_HUB_PROJECT_ID` environment variable support (mapping to top-level `project_id`).
+- Implemented `FABRIC_HUB_PROJECT_ID` environment variable support (mapping to top-level `project_id`).
 - Ensured that `hub.grove_id` or `hub.project_id` from V1 settings files are correctly remapped to top-level `project_id` and `hub.projectId`.
 - Fixed `ReadProjectID` usage to map to `project_id`.
 

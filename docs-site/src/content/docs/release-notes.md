@@ -14,7 +14,7 @@ The largest single commit in recent history landed: Phase 5 HA (Mode 3) support 
   - **Transactional NOTIFY** for admin signals, cross-integration ID leakage guards, `updated_by` tracking
   - **PostgresConfigProvider** for HA config persistence replacing YAML-only storage
   - Multi-stage Dockerfile and comprehensive standalone deployment documentation (#608)
-* **[Agent]:** Platform skills embedded in binary via `go:embed` and injected into all agents at provisioning time — `scion`, `scion-cli-operations`, `scion-messaging`, `agent-status-signals`, `team-creation`, and `git-sandbox` (conditional on `isGit=true`). Runs after template skills but before workspace skills (#610).
+* **[Agent]:** Platform skills embedded in binary via `go:embed` and injected into all agents at provisioning time — `fabric`, `fabric-cli-operations`, `fabric-messaging`, `agent-status-signals`, `team-creation`, and `git-sandbox` (conditional on `isGit=true`). Runs after template skills but before workspace skills (#610).
 
 ### 🐛 Fixes
 * **[Hub]:** Check hub-scoped env vars in `hasAnyKey` credential check — child agents whose owner is a parent agent (not a human user) can now find credentials at hub scope (#611).
@@ -37,10 +37,10 @@ A quieter holiday day focused on auth correctness: the hub's credential detectio
 A milestone cleanup and expansion day: the entire builtin harness system was deleted (-3486 lines), Slack landed as a full chat integration, the hub gained graceful SSE reconnect for Cloud Run, and Claude's provisioner received OAuth capture and Vertex AI fixes.
 
 ### 🚀 Features
-* **[Slack]:** Full Slack chat integration as a standalone plugin module — Events API and Socket Mode support, Block Kit formatting, slash command tree (`/scion setup, register, msg, agents, status`), ask-user modal flow, SQLite state store with WAL, hub API client with HMAC signing, per-user registration with code flow (#591).
+* **[Slack]:** Full Slack chat integration as a standalone plugin module — Events API and Socket Mode support, Block Kit formatting, slash command tree (`/fabric setup, register, msg, agents, status`), ask-user modal flow, SQLite state store with WAL, hub API client with HMAC signing, per-user registration with code flow (#591).
 * **[Slack]:** Slack integration management added to the chat admin UI (#599).
 * **[Hub]:** Auto no-auth fallback in pre-dispatch validation — when auth is `auto` and the harness supports `drop-to-shell`, the hub now accepts the agent without credentials instead of rejecting it for missing env vars (#595).
-* **[Hub]:** `SCION_IMAGE_REGISTRY` env var takes precedence over `settings.yaml` for image registry resolution (#594).
+* **[Hub]:** `FABRIC_IMAGE_REGISTRY` env var takes precedence over `settings.yaml` for image registry resolution (#594).
 
 ### 🐛 Fixes
 * **[Hub]:** Graceful SSE reconnect before Cloud Run's 3600s hard timeout — server sends a `reconnect` event at 3500s and closes cleanly so the client auto-reconnects per the SSE spec (#590).
@@ -59,7 +59,7 @@ A milestone cleanup and expansion day: the entire builtin harness system was del
 * **[Harness]:** Removed the entire dead builtin harness system — **-3486 lines**. All harnesses now use container-script provisioning (#600).
 
 ### 🔧 Chores
-* **[Deps]:** Bumped `golang.org/x/net` in scion-broker-log (#597).
+* **[Deps]:** Bumped `golang.org/x/net` in fabric-broker-log (#597).
 
 ## Jul 2, 2026
 
@@ -83,7 +83,7 @@ A day of polish and depth: harness-config images gained build status tracking wi
 * **[Base]:** Added Playwright CLI to base image.
 
 ### 🔄 Refactor
-* **[Skills/Templates]:** Factored skills and templates across scion, teamv1, and contrib repos — created `scion-cli-operations` and `git-sandbox` workspace skills, promoted `scion-messaging` and `agent-status-signals` from teamv1, moved fork templates to correct destinations, retired status boilerplate from default `agents.md` (#575).
+* **[Skills/Templates]:** Factored skills and templates across fabric, teamv1, and contrib repos — created `fabric-cli-operations` and `git-sandbox` workspace skills, promoted `fabric-messaging` and `agent-status-signals` from teamv1, moved fork templates to correct destinations, retired status boilerplate from default `agents.md` (#575).
 
 ### 📖 Docs
 * **[Glossary]:** Reworked Modes section with availability tiers (single-node hosted vs HA hosted) and tenancy as an orthogonal dimension (#571, #572).
@@ -96,10 +96,10 @@ A massive infrastructure day: the harness system was refactored from compiled bu
 * **[Harness]:** Normalized Claude to directory-based provisioning — moves Claude's harness config from compiled Go code to a standalone `harnesses/claude/` directory, completing the pattern established by PR #279's `provision.py` migration (#548).
 * **[Resources]:** Introduced bundled resource catalog for Templates and Harness-configs — embedded resources are now declared in a catalog and promoted through a `ResourceSource` interface with `BootstrapSource` for the hosted startup path and `MaterializeBundledResources` for workstation local seeding (#549, #550, #551, #552).
 * **[Harness]:** Gemini CLI container-script harness bundle — full provisioning model with API key/OAuth/Vertex AI auth detection, model aliases, `capture_auth.py`, Dockerfile, and Cloud Build config. Migrates Gemini from the builtin harness to the same pattern as Claude (#563).
-* **[Build]:** Refocused image builds on base image and harness catalog — build pipeline now produces a single `scion-base` image plus per-harness images from the catalog (#561).
+* **[Build]:** Refocused image builds on base image and harness catalog — build pipeline now produces a single `fabric-base` image plus per-harness images from the catalog (#561).
 * **[Chat Admin]:** Chat integration admin API endpoints (Phase 2) — CRUD operations for managing integration plugins via the Hub API (#543).
 * **[Chat Admin]:** Chat integration admin UI (Phase 3) — new `/admin/integrations` page with list/detail views, config forms, secrets management, and restart controls (#556).
-* **[A2A Bridge]:** Adopted the official `a2a-go` SDK for protocol handling — replaces hand-rolled JSON-RPC with spec-compliant server, `ScionExecutor` bridges SDK events to Scion Hub routing. Preserves auth, metrics, and multi-project routing (#362).
+* **[A2A Bridge]:** Adopted the official `a2a-go` SDK for protocol handling — replaces hand-rolled JSON-RPC with spec-compliant server, `FabricExecutor` bridges SDK events to Fabric Hub routing. Preserves auth, metrics, and multi-project routing (#362).
 * **[Hub]:** HA robustness improvements — added scheduler jitter (0-30s) and increased non-critical task intervals from 1 to 5 minutes to prevent DB connection thundering herd. Idempotent broker secret for co-located mode survives Cloud Run restarts (#555).
 * **[Hub]:** Storage validation, repair, and CLI `validate` commands for diagnosing and fixing storage inconsistencies (#553).
 
@@ -122,7 +122,7 @@ A massive infrastructure day: the harness system was refactored from compiled bu
 
 ## Jun 30, 2026
 
-A landmark feature landed: the managed agent backend, enabling Scion to orchestrate cloud-hosted agents (starting with Google's Gemini API) alongside its existing container-based runtime. The glossary was also ported to the repo root.
+A landmark feature landed: the managed agent backend, enabling Fabric to orchestrate cloud-hosted agents (starting with Google's Gemini API) alongside its existing container-based runtime. The glossary was also ported to the repo root.
 
 ### 🚀 Features
 * **[Managed Agent]:** Added the `ManagedAgentBackend` interface and Google API client — introduces a new execution path where `ManagedAgentManager` implements the existing `Manager` interface but delegates to a cloud API instead of a local Runtime+Harness pair. The first backend targets `generativelanguage.googleapis.com` (Gemini API). Includes SSE stream parser, hub handlers for managed agent CRUD, design document, and ~2800 lines of new code across 21 files (#541).
@@ -138,14 +138,14 @@ The biggest day in weeks: the Claude harness was migrated from builtin to contai
 * **[Harness]:** Migrated Claude harness from builtin to container-script provisioning — `provision.py` handles Claude's 4-way auth precedence (API key → OAuth → auth-file → Vertex AI), API key pre-approval, MCP server translation, and env var overlay. Includes parity tests verifying identical output to the compiled harness. Compiled fallback preserved for existing installations (#279).
 * **[Hub]:** Chat integration config refactor + secrets migration (Phase 1) — added `IntegrationConfigProvider` with YAML-based per-integration config files, well-known secret key constants for Telegram/Discord/Google Chat, and a `LoadPluginConfigFile` helper that merges file-based config with inline config while filtering secrets (#537).
 * **[Agent]:** Agent-specific key-value labels added to the core data model — labels can be set at creation time, displayed on agent detail pages, and filtered/sorted in the agent list view (#531).
-* **[Hub]:** Multi-stage `Dockerfile.hub` for Scion Hub — builds frontend assets, embeds them in the Go binary, uses `CGO_ENABLED=0` for a static binary compatible with Debian runtime. Iteratively refined through several commits to fix npm scripts, web asset embedding, and root Dockerfile sync.
+* **[Hub]:** Multi-stage `Dockerfile.hub` for Fabric Hub — builds frontend assets, embeds them in the Go binary, uses `CGO_ENABLED=0` for a static binary compatible with Debian runtime. Iteratively refined through several commits to fix npm scripts, web asset embedding, and root Dockerfile sync.
 * **[Hub]:** IAP proxy auth middleware for Cloud Run — creates hub sessions from IAP identity headers, re-evaluates admin role on every request (not just login), and reduces DB connection pool size for hosted deployments (#530 follow-up).
 * **[Deployment]:** Reworked Cloud Run HA deployment config — overhauled `deploy.sh` and `hub-settings-template.yaml` with fail-closed HA preflight checks, stateless broker lifecycle routing, IAP audience normalization, and Postgres advisory locking for safe concurrent migrations.
 
 ### 🐛 Fixes
 * **[Hub]:** Expire stuck pending messages in broker-message-sweep — messages that remain in `pending` status beyond a threshold are now cleaned up automatically (#545).
 * **[Hub]:** Narrowed hosted HA preflight to actual HA deployments — previously the preflight blocked single-instance startups that happened to have Postgres configured (#544).
-* **[Runtime]:** Made `SCION_FORCE_HOST_NETWORK` escape hatch runtime-agnostic — works correctly with Docker, Podman, and Apple Container instead of assuming Docker-only semantics.
+* **[Runtime]:** Made `FABRIC_FORCE_HOST_NETWORK` escape hatch runtime-agnostic — works correctly with Docker, Podman, and Apple Container instead of assuming Docker-only semantics.
 * **[Hub]:** Stateless Cloud Run broker routing — `deriveCloudRunLogicalBrokerID` now returns errors when project/region is unavailable instead of proceeding with empty values.
 * **[Hub]:** IAP audience trailing-slash trimming and `render_settings` escaping fix for deploy scripts.
 * **[Hub]:** Postgres migration advisory lock with proper error handling on deferred unlock, preventing concurrent migration races.
@@ -196,14 +196,14 @@ A harness-heavy day: the Codex harness received critical auth fixes for file-bas
 ### 🚀 Features
 * **[Harness]:** GitHub Copilot CLI harness bundle — complete harness with build integration, provisioner with resilient auth fallback to no-auth mode when hub-registered configs haven't staged auth keys yet, and env var fallback for tokens in container environment (#506).
 * **[OpenCode]:** Vertex AI auth support — autodetects GCP project + location env vars and writes `VERTEXAI_PROJECT`/`VERTEX_LOCATION` to `outputs/env.json`. Lowest priority fallback after api-key and auth-file.
-* **[Harness]:** Stage `required_files` as secrets instead of bind-mounting — reads file content on host and stages as 0600 secret files under `agent_home/.scion/harness/secrets/`, fixing read-only filesystem crashes when harnesses try to write to credential files (#498).
+* **[Harness]:** Stage `required_files` as secrets instead of bind-mounting — reads file content on host and stages as 0600 secret files under `agent_home/.fabric/harness/secrets/`, fixing read-only filesystem crashes when harnesses try to write to credential files (#498).
 
 ### 🐛 Fixes
 * **[Codex]:** Write fresh writable `auth.json` from staged secret in auth-file mode, fixing `lchown: read-only file system` crash at Codex startup (#501).
 * **[Codex]:** Validate `CODEX_AUTH` secret is valid JSON before writing to `~/.codex/auth.json`, surfacing clear errors at provisioning time instead of opaque startup failures (#499).
 * **[Codex]:** Updated no-auth hint to suggest `codex login --device-auth` instead of generic message (#504).
 * **[Hub]:** Registered missing `/api/v1/message-channels` route that was causing 404s for `--channel` flag in the CLI (#502).
-* **[Sciontool]:** Prevent `__pycache__` creation during harness provision by setting `PYTHONDONTWRITEBYTECODE=1`, fixing `scion delete` permission errors from root-owned bytecache on bind-mounted agent home (#505).
+* **[Fabrictool]:** Prevent `__pycache__` creation during harness provision by setting `PYTHONDONTWRITEBYTECODE=1`, fixing `fabric delete` permission errors from root-owned bytecache on bind-mounted agent home (#505).
 * **[Web]:** Move Name field above Workspace Type in new project form (#507).
 * **[Web]:** Clean `dist` directory before build to prevent stale chunk accumulation (#508).
 
@@ -221,7 +221,7 @@ A major push on harness development — the Codex harness gained notification ho
 * **[Codex Harness]:** Extended OTEL config support for richer telemetry integration (#494).
 * **[Codex Harness]:** Updated model aliases (#481).
 * **[Antigravity]:** Pinned CLI binary to v1.0.11 from GitHub Releases for build reproducibility, with `TARGETARCH` mapping for multi-platform support (#487).
-* **[Sciontool]:** Hook support for bundled dialect overrides, allowing harness-specific model mapping to be shipped with the harness config (#485, #489).
+* **[Fabrictool]:** Hook support for bundled dialect overrides, allowing harness-specific model mapping to be shipped with the harness config (#485, #489).
 
 ### 🐛 Fixes
 * **[Antigravity]:** Added missing field extractions (`session_id` from `.conversationId`, `tool_input` from `.toolCall.args`) and removed false `tool_name` extraction from `PostToolUse`. Declared `max_model_calls` as supported capability (#490).
@@ -300,10 +300,10 @@ Harness config management gained delete and image status UI, agent logs got a br
 A productive day spanning the harness config lifecycle, template import UX, agent visualization, and build infrastructure. The harness journey P1 landed with source URL tracking and reimport flows, while template imports gained a discovery/selection dialog.
 
 ### 🚀 Features
-* **[Harness Config — Journey P1]:** Added `source_url` field to track import origin for harness configs and templates. New reimport endpoint (`POST /reimport`) re-imports from stored or overridden source URL. CLI `scion harness-config update` command with `--url` and `--all` flags. Web UI shows source URL as clickable link with a "Refresh from Source" button (#447).
+* **[Harness Config — Journey P1]:** Added `source_url` field to track import origin for harness configs and templates. New reimport endpoint (`POST /reimport`) re-imports from stored or overridden source URL. CLI `fabric harness-config update` command with `--url` and `--all` flags. Web UI shows source URL as clickable link with a "Refresh from Source" button (#447).
 * **[Templates]:** Template discovery and selection dialog for bulk imports — discover endpoints scan for available resources without importing, and when multiple templates are found, a checkbox dialog lets users choose which to import. Single-template sources import directly (#437).
 * **[Agent Viz]:** Customizable agent colors via color picker (persisted in localStorage), replay button for seek-to-start, sender-colored comms cards with smarter collapsed summaries that understand structured JSON payloads (#436).
-* **[Build]:** Sync built image reference back to Hub after `scion build` — auto-syncs the updated `config.yaml` to Hub with recalculated file manifest and content hash, so the locally-built image is actually used at agent start (#444).
+* **[Build]:** Sync built image reference back to Hub after `fabric build` — auto-syncs the updated `config.yaml` to Hub with recalculated file manifest and content hash, so the locally-built image is actually used at agent start (#444).
 * **[Server]:** Startup warning when the server binary is built without embedded web assets, with a self-contained HTML page served from the static asset handler (#445).
 
 ### 🐛 Fixes
@@ -330,7 +330,7 @@ A settings loading fix resolved a split-brain bug for git projects, the Skill Ba
 * **[Agent Viz]:** Render inter-agent comms transcript as Markdown with per-message collapse — messages expand from a one-line plain-text summary to full formatted Markdown on click. Includes security hardening (HTML escaping before `marked.parse()`), lazy parsing for performance, and 1,000-char summary truncation (#427).
 
 ### 🐛 Fixes
-* **[Config]:** Fixed split-brain settings loading for git projects with `project-id` — in-repo `.scion/settings.yaml` was silently skipped when split storage was configured, causing global settings to override project-level settings. The merge chain is now: defaults → global → in-repo → external → env. Also fixed `scion config dir` to show the effective config directory and added warnings for profiles/runtimes in in-repo settings.
+* **[Config]:** Fixed split-brain settings loading for git projects with `project-id` — in-repo `.fabric/settings.yaml` was silently skipped when split storage was configured, causing global settings to override project-level settings. The merge chain is now: defaults → global → in-repo → external → env. Also fixed `fabric config dir` to show the effective config directory and added warnings for profiles/runtimes in in-repo settings.
 * **[Web — Skill Bank]:** QA fixes — added `storage.googleapis.com` to CSP `connect-src` for GCS uploads, fixed upload retry to use `/upload` endpoint, changed registry create default trust level from `trusted` to `pinned`, fixed case-sensitive `SKILL.md` validation, hid `scopeId` for user-scoped skills, and defaulted version to `1.0.0` (#429).
 * **[Runtime]:** Fixed Apple container list JSON parsing for new status format.
 * **[Build]:** Split `make all` and `make install` targets so `sudo` doesn't need `go`/`npm` in PATH — workflow is now `make all && sudo make install`.
@@ -388,11 +388,11 @@ Two major feature PRs landed: Skill Bank M5 adds federated skill resolution acro
 ### 🚀 Features
 * **[Skill Bank — M5a: Routing Resolver]:** `RoutingSkillResolver` dispatches skill references by URI scheme to registered resolvers (`skill://`, `gh://`, `gcp-skill://`, full GitHub URLs), with the hub resolver as fallback. Wired at CLI and broker call sites, wrapped by the caching resolver (#408).
 * **[Skill Bank — M5b: GitHub Resolver]:** `GitHubSkillResolver` resolves `gh://` URIs and full GitHub URLs via the GitHub Contents API, with input sanitization and response size limits (#408).
-* **[Skill Bank — M5c: Federation & Registries]:** External skill registry management with CRUD admin API, federation proxy for cross-registry resolution, and trust enforcement (trusted pass-through or pinned hash verification). CLI commands under `scion skills registries`. Security hardening: 10MB body size limit, redirect-following disabled to prevent credential leakage, reusable HTTP client (#408).
+* **[Skill Bank — M5c: Federation & Registries]:** External skill registry management with CRUD admin API, federation proxy for cross-registry resolution, and trust enforcement (trusted pass-through or pinned hash verification). CLI commands under `fabric skills registries`. Security hardening: 10MB body size limit, redirect-following disabled to prevent credential leakage, reusable HTTP client (#408).
 * **[Skill Bank — M5d: GCP Vertex AI Resolver]:** `gcp-skill://` URI resolution via Vertex AI Skills API using Application Default Credentials. Version validation, SSRF defense (HTTPS-only, same-host download URLs, no link-local/RFC1918 targets), and 1MB metadata response limit (#408).
 * **[Messaging — Error Contracts]:** Non-existent agent targets now return proper errors instead of creating orphan message rows. Scheduled events targeting deleted agents are marked as failed. Hub API 404 responses include agent slug and project context (#409).
 * **[Messaging — Delivery Feedback]:** Persistence failures return 500 (was silent 200), missing recipients return 400 (removed silent creator fallback), broker dispatch failures return 502. Successful sends include `message_id`, `status`, `recipient`, and `recipient_id` in the response (#409).
-* **[Messaging — Agent Phase Pre-Check]:** `handleAgentMessage` now returns 409 Conflict for non-running agents with actionable guidance (suspended: use `--wake`, stopped/error: use `scion start`) (#409).
+* **[Messaging — Agent Phase Pre-Check]:** `handleAgentMessage` now returns 409 Conflict for non-running agents with actionable guidance (suspended: use `--wake`, stopped/error: use `fabric start`) (#409).
 * **[Messaging — Wake Improvements]:** Wake timeout bumped from 15s to 30s matching broker retry deadline. Distinct error for wake-success-delivery-failure. Messages to suspended agents without `--wake` now rejected with clear error (#409).
 * **[Messaging — Integration Feedback]:** Telegram plugin validates default agents before routing, reports Hub delivery errors back to originating chat with error cooldown (max 1 per 5min per chat+thread+error-type) and remediation suggestions (#409).
 
@@ -400,7 +400,7 @@ Two major feature PRs landed: Skill Bank M5 adds federated skill resolution acro
 * **[Build]:** Corrected `runId` JSON key mismatch in build polling that caused polling to silently fail (#410).
 
 ### 🔧 Chores
-* **[Docs]:** Added Observability section to glossary clarifying infrastructure metrics (`scion.hub.*`, `scion.db.*`) vs agent metrics (`gen_ai.*`, `agent.*`) and the telemetry pipeline (#407).
+* **[Docs]:** Added Observability section to glossary clarifying infrastructure metrics (`fabric.hub.*`, `fabric.db.*`) vs agent metrics (`gen_ai.*`, `agent.*`) and the telemetry pipeline (#407).
 
 ## Jun 11, 2026
 
@@ -409,9 +409,9 @@ The skill bank feature landed in a single massive PR — a complete registry, pr
 ### 🚀 Features
 * **[Skill Bank — M1: Agent-Side Provisioning]:** Added `SkillReference` type with URI parser supporting full, shorthand, alias, and bare name forms. Integrated skill resolution into the agent provisioning pipeline with fail-closed safety (S1): required skills without a resolver cause provisioning failure. Skills are installed via staging with per-file SHA-256 hash verification (S2), path safety validation (S3), and atomic rename (#399).
 * **[Skill Bank — M2: Hub API & Storage]:** Full CRUD API for skills and versions — create, list, get, update, delete, publish with signed URL upload workflow. Batch resolve endpoint with scope search order (user > project > global > core) and semver constraint matching (exact, `^`, `~`, `>=`, `latest`, `sha256:` content-addressed). Ent schemas for `Skill` and `SkillVersion` entities with comprehensive store tests (#399).
-* **[Skill Bank — M2: CLI]:** `scion skills` command group with `list`, `show`, `create` (scaffold), `publish` (upload + finalize), `delete`, `versions`, and `resolve` subcommands. Includes `scion skill` singular alias and `--format json` support (#399).
+* **[Skill Bank — M2: CLI]:** `fabric skills` command group with `list`, `show`, `create` (scaffold), `publish` (upload + finalize), `delete`, `versions`, and `resolve` subcommands. Includes `fabric skill` singular alias and `--format json` support (#399).
 * **[Skill Bank — M3: Hub Resolver Wiring]:** `HubSkillResolver` adapter bridging `hubclient.SkillService` to the agent `SkillResolver` interface, injected at both CLI and broker call sites with identity propagation (#399).
-* **[Skill Bank — M4: Broker-Side Caching]:** Content-hash-keyed caching for resolved skills using the existing `templatecache.Cache` infrastructure (500MB default, `~/.scion/cache/skills/`). Cache hits verified with SHA-256 on read; mismatches evict and re-download. Latest/range constraints always re-resolve against Hub but skip download on cache hit (#399).
+* **[Skill Bank — M4: Broker-Side Caching]:** Content-hash-keyed caching for resolved skills using the existing `templatecache.Cache` infrastructure (500MB default, `~/.fabric/cache/skills/`). Cache hits verified with SHA-256 on read; mismatches evict and re-download. Latest/range constraints always re-resolve against Hub but skip download on cache hit (#399).
 * **[Skill Bank — M6: Discovery & Lifecycle]:** Tag filtering with AND semantics and case-insensitive matching. Deprecation workflow with version-level deprecation messages, optional replacement URIs, and warnings surfaced during resolution. Download counter with atomic per-version increment. Published versions preferred over deprecated in latest/constraint resolution (#399).
 
 ### 🔒 Security
@@ -424,7 +424,7 @@ A sweeping day of project compatibility refactoring, security hardening, and a m
 ### 🚀 Features
 * **[Discord]:** Standalone Discord bot with gRPC for HA deployment — the Discord plugin can now run as an independent process communicating with the hub via gRPC, enabling horizontal scaling and high-availability setups. Includes a new `DiscordPendingLink` entity, gRPC broker adapter, and a dedicated Dockerfile (#395).
 * **[Scheduler]:** Enabled scheduler write commands (`create-recurring`, `pause`, `resume`, `delete`) in agent mode, removing the `dispatch_` prefix gate that previously blocked agents from managing schedules (#378).
-* **[Auth]:** Added challenge token authentication to the test-login endpoint — callers must present a short-lived JWT (5min TTL) signed with the hub's user signing key and scoped to the `scion-test-login` audience. Includes case-insensitive Bearer parsing and explicit `exp` claim enforcement (#382, #392).
+* **[Auth]:** Added challenge token authentication to the test-login endpoint — callers must present a short-lived JWT (5min TTL) signed with the hub's user signing key and scoped to the `fabric-test-login` audience. Includes case-insensitive Bearer parsing and explicit `exp` claim enforcement (#382, #392).
 * **[Compatibility]:** Project/grove compatibility boundary — added a comprehensive migration layer with legacy `/groves` route wrappers, request body field adapters, and centralized compatibility key mapping to support clients using the old naming while the codebase transitions (#380, #387, #388).
 
 ### 🐛 Fixes
@@ -456,11 +456,11 @@ A lighter day focused on messaging improvements and fixing a hub import routing 
 This release strengthens the agent state and container lifecycle: agents can now be suspended and resumed with their harness session intact, crashes are surfaced as a restartable `error` state, and stalled agents are auto-suspended to reclaim resources.
 
 ### 🚀 Features
-* **Suspend & Resume with Session Continuation:** `scion suspend <agent>` (and `--all`) now tears down an agent's container while preserving the intent to resume. Resuming — or simply running `scion start` on a suspended agent — *continues* the prior harness conversation (Claude Code via `--continue`, Gemini CLI via `--resume`) instead of starting fresh. Suspend is available for harnesses that support session resume and is also exposed in the Web Dashboard's lifecycle controls. See [Agent Lifecycle](/scion/local/agent-lifecycle/).
+* **Suspend & Resume with Session Continuation:** `fabric suspend <agent>` (and `--all`) now tears down an agent's container while preserving the intent to resume. Resuming — or simply running `fabric start` on a suspended agent — *continues* the prior harness conversation (Claude Code via `--continue`, Gemini CLI via `--resume`) instead of starting fresh. Suspend is available for harnesses that support session resume and is also exposed in the Web Dashboard's lifecycle controls. See [Agent Lifecycle](/fabric/local/agent-lifecycle/).
 * **Auto-Suspend of Stalled Agents:** The Hub now automatically suspends agents that remain `stalled` past a grace period (~10 minutes of inactivity), reclaiming their containers. Such agents resume automatically on the next message, as long as their harness supports resume and the container is still alive.
 
 ### 🐛 Fixes
-* **Crash → Restartable `error` State:** Agents that exit non-zero (a genuine crash, OOM, or `SIGKILL`) now transition to the `error` phase with a descriptive message like `Agent crashed with exit code N`, distinct from a clean `stopped` exit or a `limits_exceeded` stop. The `error` phase is restartable — `scion start` clears it and launches a fresh session. (A graceful `stop` sends `SIGTERM`, which harnesses handle cleanly, so stopping never leaves an agent in `error`.)
+* **Crash → Restartable `error` State:** Agents that exit non-zero (a genuine crash, OOM, or `SIGKILL`) now transition to the `error` phase with a descriptive message like `Agent crashed with exit code N`, distinct from a clean `stopped` exit or a `limits_exceeded` stop. The `error` phase is restartable — `fabric start` clears it and launches a fresh session. (A graceful `stop` sends `SIGTERM`, which harnesses handle cleanly, so stopping never leaves an agent in `error`.)
 
 ## Mar 17, 2026
 
@@ -470,15 +470,15 @@ This release introduces a major new GCP Identity implementation allowing agents 
 * **GCP Identity & Metadata Emulation:** Implemented end-to-end GCP identity assignment for agents using metadata server emulation and token brokering. This includes a new Web UI for Service Account management, iptables interception, per-agent rate limiting, audit logging, and telemetry metrics (consolidated from commits 2ac33bb, 961653a, d37a79c, d11318f, a5f457a, d187838, 8df2a04, 34c7056, 401a178, 52f6838).
 * **Project Settings & Agent Limits:** Introduced a comprehensive Project Settings UI organized into General, Limits, and Resources tabs. Administrators can now configure default agent limits at both the hub and project levels, which automatically pre-populate when creating new agents (consolidated from commits c7d9585, aa5c2ff, 2ffdff8, 8f0263f, 0d87a17, 07714a1, 906a88d).
 * **Workspace Content Previews:** Added content preview capabilities for workspace files directly within the UI (commit 53cea7c).
-* **CLI Enhancements:** Added a `-r`/`--running` flag to the `scion list` command to easily filter for active agents (commit 7001035).
+* **CLI Enhancements:** Added a `-r`/`--running` flag to the `fabric list` command to easily filter for active agents (commit 7001035).
 
 ### 🐛 Fixes
 * **Project & Membership Synchronization:** Resolved multiple issues with project linking and membership backfills, including fixing unique constraints on project IDs, ensuring proper legacy owner role assignments, and correctly including auto-provide brokers (consolidated from commits 4af2662, 307fb85, cb22a18, 79cc591, 1f6f16f, e14ec95).
-* **Storage & ID Consistency:** Fixed global project ID bleed-through issues and unified agent split storage paths under `.scion/` for deterministic behavior across hub-managed and external projects. Ensured cascading cleanups of templates and configs when a project is deleted (consolidated from commits fea4588, 6bb2348, a97ebd7, 023a089, 6eaf8dc, 221c736, 75bfcc0, c9d8ddf).
+* **Storage & ID Consistency:** Fixed global project ID bleed-through issues and unified agent split storage paths under `.fabric/` for deterministic behavior across hub-managed and external projects. Ensured cascading cleanups of templates and configs when a project is deleted (consolidated from commits fea4588, 6bb2348, a97ebd7, 023a089, 6eaf8dc, 221c736, 75bfcc0, c9d8ddf).
 * **GCP Validation & Logging:** Improved debug logging for 4xx errors and enhanced GCP Service Account validation messages, including returning capabilities in the list API response (consolidated from commits e060664, d65dc09).
 * **Container Lifecycle Management:** Ensured agent containers are gracefully stopped before removal to prevent shared-directory mount errors (commit 8a0fabc).
 * **Template Synchronization:** Fixed an issue where template synchronization was blocked by setting a default image for the generic harness config (commit 816c960).
-* **Web UI Consistency:** Fixed layout issues such as status column widths in agent tables and exposed Scion version information on the admin config page (consolidated from commits 53f55b5, 7536c59).
+* **Web UI Consistency:** Fixed layout issues such as status column widths in agent tables and exposed Fabric version information on the admin config page (consolidated from commits 53f55b5, 7536c59).
 
 ## Mar 16, 2026
 
@@ -500,7 +500,7 @@ This release focuses on a major overhaul of user group and membership management
 This release significantly hardens the agent workspace provisioning process for Hub-linked environments, introduces interactive terminal toolbar toggles for the web UI, and improves overall deterministic Project ID generation and management.
 
 ### 🚀 Features
-* **Hub-Linked Workspace Provisioning:** Transitioned hub-linked projects to strictly use a robust `git init` + `git fetch` strategy instead of standard cloning or local worktrees. This allows provisioning into workspaces that already contain `.scion` metadata or `.scion-volumes` directories while properly clearing out stale artifacts before initialization (consolidated from commits 3852e6a, 51be1e6, 118b518, 2f6b877, 2f59410, 4497a86, 6cc4487).
+* **Hub-Linked Workspace Provisioning:** Transitioned hub-linked projects to strictly use a robust `git init` + `git fetch` strategy instead of standard cloning or local worktrees. This allows provisioning into workspaces that already contain `.fabric` metadata or `.fabric-volumes` directories while properly clearing out stale artifacts before initialization (consolidated from commits 3852e6a, 51be1e6, 118b518, 2f6b877, 2f59410, 4497a86, 6cc4487).
 * **Terminal Toolbar Enhancements:** Added web toolbar toggles for managing tmux windows (seamlessly switching between agent and shell) and controlling mouse/clipboard behavior. Also fixed mouse-drag text selection and improved the robustness of the window controls using direct tmux key bindings (consolidated from commits 8c07a48, b83ba8c, 8027407, 6140111).
 * **Deterministic Project ID & Synchronization:** Enhanced deterministic Project ID generation during hub-link sync. Git URL user info is now cleanly normalized to ensure UUID v5 project IDs match regardless of the protocol (e.g., `https://` vs `git@`), and stale project links are automatically detected and synchronized (consolidated from commits 6a52952, 1bfa95d, ed2b2c5).
 * **Template Sync Improvements:** Enabled the template sync command to update existing templates without requiring the `--force` flag. Local templates now automatically sync on hub startup and intelligently bypass cache when running in co-located (hub-broker combo) mode (consolidated from commits ff14bd9, e0cf52d).
@@ -517,7 +517,7 @@ This release significantly hardens the agent workspace provisioning process for 
 
 ## Mar 14, 2026
 
-This release introduces the foundational infrastructure for the Scion plugin system, adds comprehensive support for syncing project-level templates, and unifies all Project IDs to a standard UUID format.
+This release introduces the foundational infrastructure for the Fabric plugin system, adds comprehensive support for syncing project-level templates, and unifies all Project IDs to a standard UUID format.
 
 :::danger[BREAKING CHANGES]
 * **Project ID Format Unification:** All Project IDs have been standardized to a unified UUID format. Git-backed projects now use a deterministic UUID v5 (based on the namespace and normalized URL) instead of a 16-character hex hash, while non-git and hub-managed projects continue using UUID v4. Existing git-backed projects may need to be re-linked, and any integrations relying on the old hex format must be updated (commit e896693).
@@ -525,12 +525,12 @@ This release introduces the foundational infrastructure for the Scion plugin sys
 :::
 
 ### 🚀 Features
-* **Plugin System Infrastructure:** Introduced the core architecture for a new Scion plugin system using `hashicorp/go-plugin`, complete with reference implementations for message broker and agent harness plugins (consolidated from commits 6c543d0, b1a5ae1, 22991ec).
-* **Project Template Sync & Management:** Implemented capabilities for syncing project-level templates with the Hub. This includes new API endpoints (`POST /api/v1/projects/{projectId}/sync-templates`), CLI commands (`scion templates sync --all`, `scion templates status`), and a dedicated Web UI for managing synced templates. Additionally, machine-specific settings for git-backed projects are now externalized, while templates remain in-repo to support version control (consolidated from commits d0507b1, 3c9cb4b, 0cf62d7, ef4f208, 56df5b4).
+* **Plugin System Infrastructure:** Introduced the core architecture for a new Fabric plugin system using `hashicorp/go-plugin`, complete with reference implementations for message broker and agent harness plugins (consolidated from commits 6c543d0, b1a5ae1, 22991ec).
+* **Project Template Sync & Management:** Implemented capabilities for syncing project-level templates with the Hub. This includes new API endpoints (`POST /api/v1/projects/{projectId}/sync-templates`), CLI commands (`fabric templates sync --all`, `fabric templates status`), and a dedicated Web UI for managing synced templates. Additionally, machine-specific settings for git-backed projects are now externalized, while templates remain in-repo to support version control (consolidated from commits d0507b1, 3c9cb4b, 0cf62d7, ef4f208, 56df5b4).
 * **CLI Navigation Commands:** Added `config dir`, `cd-config`, and `cd-project` commands to simplify locating and navigating to configuration and workspace directories (commit 596295d).
 
 ### 🐛 Fixes
-* **Agent Git Cloning:** Resolved an issue where git clones would hang indefinitely when authentication was required but no token was present. Added proper error state reporting upon clone failures, and corrected the `agent-info.json` path to correctly use the `scion` user's home directory (consolidated from commits 93dfdcd, 7ec5eb2).
+* **Agent Git Cloning:** Resolved an issue where git clones would hang indefinitely when authentication was required but no token was present. Added proper error state reporting upon clone failures, and corrected the `agent-info.json` path to correctly use the `fabric` user's home directory (consolidated from commits 93dfdcd, 7ec5eb2).
 * **Image Builds:** Fixed the Google Cloud SDK installation in the build environment by explicitly using `apt-get` (commit d76197c).
 
 ## Mar 13, 2026
@@ -546,7 +546,7 @@ This release focuses on improving agent specialization with harness skills, reso
 * **Harness Skills for Templates:** Implemented robust support for harness skills within agent templates. Skills defined in `harness-configs` and templates are now automatically merged and mounted into the appropriate harness-specific directory (e.g., `.claude/skills`, `.gemini/skills`) during agent provisioning (consolidated from commits efefc44, 2a086ac, 5b54c66).
 * **Docs-Agent Satellite Service:** Introduced a new `docs-agent` satellite service to provide dedicated documentation capabilities alongside agent workflows (consolidated from commits 092ffde, 58f21c2, fd1b1e2).
 * **Shared Directory Management UI:** Added web UI support for managing and viewing project shared directories (commit 7d7acfb).
-* **Terminal & UX Enhancements:** Enabled tmux mouse mode by default for better terminal interactivity and introduced a custom Scion bell icon for browser notifications (commits c915da9, 343382e).
+* **Terminal & UX Enhancements:** Enabled tmux mouse mode by default for better terminal interactivity and introduced a custom Fabric bell icon for browser notifications (commits c915da9, 343382e).
 
 ### 🐛 Fixes
 * **Multi-Hub Routing & Dispatch:**
@@ -565,12 +565,12 @@ This release focuses on enhancing persistent storage and system observability. I
 ### 🚀 Features
 * **Project Shared Directories (Phase 1 & 2):** Introduced a persistent, mutable storage layer shared between agents within a single project.
     * Added support for both local filesystem storage and Kubernetes PersistentVolumeClaims (PVCs) with project-scoped lifecycle management.
-    * New CLI commands added: `scion shared-dir list`, `create`, `remove`, and `info` for managing shared volumes.
-    * Shared volumes can be mounted at standard paths (`/scion-volumes/<name>`) or within the workspace (`/workspace/.scion-volumes/<name>`) (consolidated from commits 838b1b9, a8d50f8, 8b860c0).
+    * New CLI commands added: `fabric shared-dir list`, `create`, `remove`, and `info` for managing shared volumes.
+    * Shared volumes can be mounted at standard paths (`/fabric-volumes/<name>`) or within the workspace (`/workspace/.fabric-volumes/<name>`) (consolidated from commits 838b1b9, a8d50f8, 8b860c0).
 * **Enhanced Telemetry & Metrics Pipeline:** Major overhaul of the metrics pipeline for improved observability and aggregation.
-    * Enriched OTel resource attributes with `scion.harness`, `scion.model`, `scion.broker`, and `project_id`.
+    * Enriched OTel resource attributes with `fabric.harness`, `fabric.model`, `fabric.broker`, and `project_id`.
     * Expanded Codex-specific telemetry to capture tool usage, tool input/output, and detailed token counts (input, output, cached).
-    * Injected `SCION_HARNESS` and `SCION_MODEL` environment variables into agent containers to enable harness-aware telemetry (consolidated from commit 8246a76).
+    * Injected `FABRIC_HARNESS` and `FABRIC_MODEL` environment variables into agent containers to enable harness-aware telemetry (consolidated from commit 8246a76).
 
 ### 🐛 Fixes
 * **Metrics & Telemetry Reliability:**
@@ -618,20 +618,20 @@ This release focuses on streamlining system administration and enhancing visibil
 * **Hub Connectivity Precision:** Enhanced agent startup logic to prioritize Hub-dispatched endpoints over local broker configuration, ensuring correct Hub communication in distributed and multi-hub environments.
 * **Logging Observability & Traceability:**
     * **Agent Lifecycle Traceability:** Added `agent_id` to all broker-side agent lifecycle log events to improve cross-traceability and audit capabilities.
-    * **Connectivity Debugging:** Stopped redacting `SCION_HUB_ENDPOINT` and `SCION_HUB_URL` in agent environment logs to facilitate easier debugging of connectivity issues.
+    * **Connectivity Debugging:** Stopped redacting `FABRIC_HUB_ENDPOINT` and `FABRIC_HUB_URL` in agent environment logs to facilitate easier debugging of connectivity issues.
 * **Documentation & Licensing:** Restructured internal documentation for improved clarity, updated the installation guide, and completed the application of standard license headers across all source files.
 
 ## Mar 9, 2026
 
-This release marks a significant milestone with the official transition of the project to the Google Cloud Platform organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Scion CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
+This release marks a significant milestone with the official transition of the project to the Google Cloud Platform organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Fabric CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
 
 :::danger[BREAKING CHANGES]
-* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/scion-agent` to `github.com/GoogleCloudPlatform/scion`. All internal package imports and external references have been updated to reflect the transition to the Google Cloud Platform organization.
+* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/fabric-agent` to `github.com/pdlc-os/fabric`. All internal package imports and external references have been updated to reflect the transition to the Google Cloud Platform organization.
 
 :::
 
 ### 🚀 Features
-* **Autonomous In-Container CLI:** Enabled the Scion CLI within agent containers, providing agents with the ability to interact with the Hub API natively using their provisioned authenticated service context.
+* **Autonomous In-Container CLI:** Enabled the Fabric CLI within agent containers, providing agents with the ability to interact with the Hub API natively using their provisioned authenticated service context.
 * **Admin User Activity Tracking:** Introduced "Last Seen" timestamps and sortable columns to the Admin Users dashboard to improve system administration and audit capabilities.
 * **Enhanced Event Integrity:** Refined the Server-Sent Event (SSE) pipeline to ensure full agent snapshots are sent in `created` events, preventing incomplete UI states during high-concurrency creation.
 
@@ -664,7 +664,7 @@ This release delivers a complete maturation of the Kubernetes runtime, introduce
 
 ### 🚀 Features
 * **Kubernetes Runtime Maturation (Stages 1-3):** Successfully implemented Parity, Production Hardening, and Launch Readiness for the Kubernetes runtime, establishing it as a fully-supported, robust platform for agent execution.
-* **Agent Isolation & Project Security:** Enhanced agent security by externalizing non-git project data and agent home directories. Introduced tmpfs shadow mounts to definitively prevent agents from cross-accessing `.scion` configuration data or other agents' workspaces within the same project.
+* **Agent Isolation & Project Security:** Enhanced agent security by externalizing non-git project data and agent home directories. Introduced tmpfs shadow mounts to definitively prevent agents from cross-accessing `.fabric` configuration data or other agents' workspaces within the same project.
 * **Web UI Performance & Responsiveness:** Drastically improved the frontend experience by implementing optimistic UI updates and background data refreshes. Re-architected the application shell to reuse components on navigation and consolidated Server-Sent Event (SSE) connections to prevent browser connection pool exhaustion.
 * **Contextual Agent Instructions:** Added support for conditional instruction extensions (`agents-git.md` and `agents-hub.md`), allowing agents to receive tailored operational context based on their specific workspace type.
 * **Hub API & Infrastructure:** Completed Phase 5 of the Hub API consolidation with full mode awareness and isolation. Enabled HTTP/2 cleartext (h2c) support on the web server, and introduced new project management CLI commands (`list`, `prune`, `reconnect`).
@@ -681,16 +681,16 @@ This release delivers a complete maturation of the Kubernetes runtime, introduce
 
 ## Mar 7, 2026
 
-This release marks a major leap in agent observability with the launch of the Cloud Log Viewer and structured messaging pipeline. It also introduces significant UI overhauls for agent management, enhanced GCP integration, and a new workstation-class daemon mode for the Scion server.
+This release marks a major leap in agent observability with the launch of the Cloud Log Viewer and structured messaging pipeline. It also introduces significant UI overhauls for agent management, enhanced GCP integration, and a new workstation-class daemon mode for the Fabric server.
 
 ### 🚀 Features
 * **Cloud Log Viewer & Structured Messaging (Phases 1-5):** Completed the end-to-end implementation of the Cloud Log Viewer and structured message pipeline. This includes a new Hub API for log retrieval, a dedicated "Messages" tab in the Web UI, and a multi-stage message broker adapter for reliable delivery and external notifications.
 * **Agent Detail UI Overhaul:** Re-architected the agent detail page into a high-density tabbed layout featuring dedicated "Status", "Configuration", and "Messages" tabs. Added a new telemetry configuration card, breadcrumb navigation improvements, and a back button for the configuration flow.
-* **Workstation & Daemon Management:** Introduced a workstation-optimized "daemon" mode for `scion server`. This allows the server to run as a persistent background process with integrated lifecycle management, simplified configuration, and automated combined-server detection for local brokers.
-* **GCP & Metrics Integration:** Enhanced Google Cloud visibility with a native Cloud Monitoring exporter, trace-log correlation across logging pipelines, and automated injection of `SCION_PROJECT_ID` and GCP labels (agent/project) into all log streams.
-* **Image Management & Build Automation:** Consolidated image build scripts and introduced support for custom `image_registry` settings. Added GitHub Actions workflows for automated building and delivery of Scion harness images.
+* **Workstation & Daemon Management:** Introduced a workstation-optimized "daemon" mode for `fabric server`. This allows the server to run as a persistent background process with integrated lifecycle management, simplified configuration, and automated combined-server detection for local brokers.
+* **GCP & Metrics Integration:** Enhanced Google Cloud visibility with a native Cloud Monitoring exporter, trace-log correlation across logging pipelines, and automated injection of `FABRIC_PROJECT_ID` and GCP labels (agent/project) into all log streams.
+* **Image Management & Build Automation:** Consolidated image build scripts and introduced support for custom `image_registry` settings. Added GitHub Actions workflows for automated building and delivery of Fabric harness images.
 * **Security & Authorization Hardening:** Strengthened the security posture by enforcing per-agent authorization for workspace routes, mandatory read authorization for all resource endpoints, and nonce-based HMAC validation for broker communication.
-* **First-Run Experience:** Added a new `scion install` command and a streamlined first-run experience to simplify initial project setup and dependency verification.
+* **First-Run Experience:** Added a new `fabric install` command and a streamlined first-run experience to simplify initial project setup and dependency verification.
 * **Bulk Operations:** Added a "Stop All" button to the Web UI for efficient bulk shutdown of all agents within a project.
 * **Harness Capability Gating:** Introduced capability-based gating for advanced agent configuration, ensuring only supported features are exposed based on the selected harness.
 
@@ -706,7 +706,7 @@ This release marks a major leap in agent observability with the launch of the Cl
 This release introduces Just-In-Time (JIT) agent configuration, an advanced agent creation interface, and native GCP telemetry integration, while centralizing profile management at the global level.
 
 :::danger[BREAKING CHANGES]
-* **Global Profile Management:** Runtime `profiles` and `runtimes` are no longer supported in project-level `settings.yaml`. These must now be managed exclusively at the global/broker level (`~/.scion/settings.yaml`). Existing project-specific profiles must be migrated to the global configuration.
+* **Global Profile Management:** Runtime `profiles` and `runtimes` are no longer supported in project-level `settings.yaml`. These must now be managed exclusively at the global/broker level (`~/.fabric/settings.yaml`). Existing project-specific profiles must be migrated to the global configuration.
 
 :::
 
@@ -714,7 +714,7 @@ This release introduces Just-In-Time (JIT) agent configuration, an advanced agen
 * **Just-In-Time (JIT) Agent Configuration:** Completed Phases 1 & 2 of the inline agent configuration refactor. Agents now support dynamic, late-bound configuration overrides at runtime, enabling more flexible and adaptive agent behavior.
 * **Advanced Agent Creation Form:** Launched a comprehensive advanced configuration interface in the Web UI. This allows for granular control over agent parameters, including model selection, resource limits, and specific harness settings during creation.
 * **GCP-Native Telemetry Integration:** Introduced native support for Google Cloud Trace and Cloud Logging telemetry exporters. The system now automatically detects GCP credentials and configures the appropriate exporter mode, facilitating seamless observability in Google Cloud environments.
-* **Enhanced Developer Workflow:** Improved the developer experience with automated mounting of the `sciontool` binary and a dedicated `SCION_DEV_BINARIES` directory, enabling rapid iteration and testing of local changes within agent containers.
+* **Enhanced Developer Workflow:** Improved the developer experience with automated mounting of the `fabrictool` binary and a dedicated `FABRIC_DEV_BINARIES` directory, enabling rapid iteration and testing of local changes within agent containers.
 * **Branding & UI Refresh:** Updated the application branding with a new seedling logo and favicon, and added detailed visibility of the resolved harness authentication method in the agent detail view.
 * **Local Networking Automation:** Automated the computation of the `ContainerHubEndpoint` for Podman and Docker when running in combined hub-broker mode, simplifying local setup and networking.
 
@@ -741,7 +741,7 @@ This release introduces a major overhaul of the agent authentication pipeline, a
 ### 🐛 Fixes
 * **Apple-Container Stability:** Resolved critical hangs during container removal on macOS by implementing automated cleanup and blocking of problematic debug symlinks (e.g., `.claude_debug`).
 * **Terminal UX & Reliability:** Improved error visibility by skipping terminal reset sequences on attachment failures.
-* **Workspace & Git Integrity:** Hardened workspace file collection by skipping symlinks and ensured `git clone` operations correctly use the `scion` user when the broker runs as root.
+* **Workspace & Git Integrity:** Hardened workspace file collection by skipping symlinks and ensured `git clone` operations correctly use the `fabric` user when the broker runs as root.
 * **Auth Precision & Validation:** Fixed several authentication regressions, including incorrect Vertex AI region projections, false API key requirements during environment gathering, and improper leakage of host settings into agent containers.
 
 ## Mar 4, 2026
@@ -759,7 +759,7 @@ This period focuses on the foundational implementation of the unified harness au
 * **Default Notification Triggers:** Expanded the notification system to include `stalled` and `error` as default trigger states, improving proactive monitoring of agent health.
 
 ### 🐛 Fixes
-* **Workspace Permissions:** Hardened the workspace provisioning flow by ensuring `git clone` operations run as the `scion` user when the broker is executing as root.
+* **Workspace Permissions:** Hardened the workspace provisioning flow by ensuring `git clone` operations run as the `fabric` user when the broker is executing as root.
 * **UI Navigation & UX:** Fixed back-link routing for agent creation and detail pages to consistently return users to the parent project. Improved terminal accessibility by disabling the terminal button for offline agents.
 * **Config & Environment Propagation:** Resolved issues with `harnessConfig` propagation during the environment-gathering finalization flow and refined Hub endpoint bridging to only target `localhost` endpoints.
 * **Server Reliability:** Applied default `StalledThreshold` values for agent health monitoring and improved status badge readability.
@@ -797,10 +797,10 @@ This release focuses on refining the agent lifecycle experience with an overhaul
 
 ### 🐛 Fixes
 * **Container Runtime Compliance:** Fixed an issue where secret volume mounts were incorrectly ordered in container run commands, ensuring reliable mounting across different runtimes.
-* **Agent Identity Reliability:** Resolved bugs preventing the consistent propagation of `SCION_AGENT_ID` during restarts and specific dispatch paths, fixing broken notification subscriptions.
+* **Agent Identity Reliability:** Resolved bugs preventing the consistent propagation of `FABRIC_AGENT_ID` during restarts and specific dispatch paths, fixing broken notification subscriptions.
 * **Linked-Project Pathing:** Corrected workspace resolution for linked projects without git remotes by ensuring fallback to the provider's local filesystem path.
 * **UI State Resolution:** Fixed a bug where hub agents would occasionally show an "unknown" phase by ensuring the UI correctly reads the unified Phase and Activity fields.
-* **UX Refinements:** Improved the `scion list` output to use human-friendly template names and fixed dynamic label mapping in secret configuration forms.
+* **UX Refinements:** Improved the `fabric list` output to use human-friendly template names and fixed dynamic label mapping in secret configuration forms.
 * **Stability:** Suppressed spurious errors during graceful server shutdown and resolved potential issues with higher-priority environment variable leakage in tests.
 
 ## Mar 1, 2026
@@ -820,7 +820,7 @@ This release introduces strict runtime enforcement for agent resource limits and
 This release marks a major milestone with the completion of the canonical agent state refactor and the launch of the Hub scheduler system, alongside significant enhancements to real-time observability and broker security.
 
 :::danger[BREAKING CHANGES]
-* **Unified State Model:** The legacy `Status` and `SessionStatus` fields have been fully retired in favor of a canonical, layered agent state model. Downstream consumers of the Hub API or `sciontool` status outputs must update to the new schema.
+* **Unified State Model:** The legacy `Status` and `SessionStatus` fields have been fully retired in favor of a canonical, layered agent state model. Downstream consumers of the Hub API or `fabrictool` status outputs must update to the new schema.
 * **Notification Triggers:** In alignment with the state refactor, notification `TriggerStatuses` have been renamed to `TriggerActivities`.
 
 :::
@@ -832,11 +832,11 @@ This release marks a major milestone with the completion of the canonical agent 
 * **Enhanced Web UI Feedback:** Added emoji-based status badges to agent cards and list views, providing more intuitive visual indicators of agent health and activity.
 * **Broker Authorization & Identity:** Strengthened security by enforcing dispatch authorization checks and resolving creator identities for all registered runtime brokers.
 * **Automated Project Cleanup:** Hardened the hub-managed project lifecycle by implementing cascaded directory cleanup on remote brokers whenever a project is deleted via the Hub.
-* **CLI Enhancements:** Added a new `-n/--num-lines` flag to the `scion look` command, enabling tailored views of agent terminal output.
+* **CLI Enhancements:** Added a new `-n/--num-lines` flag to the `fabric look` command, enabling tailored views of agent terminal output.
 
 ### 🐛 Fixes
 * **Notification Dispatcher:** Fixed a bug where the notification dispatcher failed to start when the Hub was running in combined mode with the Web server.
-* **Environment Variable Standardization:** Renamed `SCION_SERVER_AUTH_DEV_TOKEN` to `SCION_AUTH_TOKEN` and introduced `SCION_BROKER_ID` and `SCION_TEMPLATE` variables for better debugging and interoperability.
+* **Environment Variable Standardization:** Renamed `FABRIC_SERVER_AUTH_DEV_TOKEN` to `FABRIC_AUTH_TOKEN` and introduced `FABRIC_BROKER_ID` and `FABRIC_TEMPLATE` variables for better debugging and interoperability.
 * **Local Secret Storage:** Resolved issues with local secret storage and added diagnostics for environment-gathering resolution.
 
 ## Feb 27, 2026
@@ -850,7 +850,7 @@ This release focuses on refining the hub-managed project experience, enhancing t
 * **Iconography Standardization:** Established a centralized icon reference system and updated the web interface to use consistent iconography for resources like projects, templates, and brokers.
 
 ### 🐛 Fixes
-* **Hub-Managed Path Resolution:** Resolved several critical issues where hub-managed projects incorrectly inherited local filesystem paths from the Hub server. Broker-side initialization of `.scion` directories and explicit path mapping now ensure consistent workspace behavior across distributed brokers.
+* **Hub-Managed Path Resolution:** Resolved several critical issues where hub-managed projects incorrectly inherited local filesystem paths from the Hub server. Broker-side initialization of `.fabric` directories and explicit path mapping now ensure consistent workspace behavior across distributed brokers.
 * **Terminal & Clipboard UX:** Enabled native clipboard copy/paste support in the web terminal and relaxed availability checks to allow terminal access during agent startup and transition states.
 * **Real-time Data Integrity:** Fixed a bug in the frontend state manager where SSE delta updates could merge incorrectly; the manager is now reliably seeded with full REST data upon page load.
 * **Slug & Case Sensitivity:** Normalized agent slug lookups to lowercase and implemented stricter name validation to prevent routing collisions and inconsistent dispatcher behavior.
@@ -865,7 +865,7 @@ This release introduces a robust capability-based access control system, a dedic
 * **Capability-Based Access Control:** Implemented a comprehensive capability gating system across the Hub API and Web UI. Resource responses now include `_capabilities` annotations, enabling granular UI controls and API-level enforcement for resource operations.
 * **Administrative Management Suite:** Launched a new Admin section in the Web UI, providing centralized views for managing users, groups, and brokers. Includes a maintenance mode toggle for Hub and Web servers to facilitate safe infrastructure updates.
 * **Advanced Environment & Secret Management:** Introduced a profile-based settings section for managing user-scoped environment variables and secrets. Secrets are now automatically promoted to the configured backend (e.g., GCP Secret Manager) with standardized metadata labels.
-* **SSR Data Prefetching:** Improved initial page load performance and eliminated "flash of unauthenticated content" by prefetching critical user and configuration data into the HTML payload via `__SCION_DATA__`.
+* **SSR Data Prefetching:** Improved initial page load performance and eliminated "flash of unauthenticated content" by prefetching critical user and configuration data into the HTML payload via `__FABRIC_DATA__`.
 * **Hub Scheduler Design:** Completed the technical specification for a new Hub scheduler and timer system to manage long-running background tasks and lifecycle events.
 * **Enhanced Real-time Monitoring:** Expanded Server-Sent Events (SSE) support to the Brokers list view, ensuring infrastructure status is reflected in real-time without manual refreshes.
 
@@ -890,7 +890,7 @@ This release focuses on hardening the agent provisioning pipeline, streamlining 
 * **Agent Provisioning & Creation:** Resolved multiple issues in the Hub-dispatched agent creation flow, including a 403 authorization fix, rejection of duplicate agent names, and a critical fix for container image resolution.
 * **Instruction Injection Logic:** Improved the reliability of agent instructions by implementing auto-detection for `agents.md` and ensuring stale instruction files (e.g., lowercase `claude.md`) are removed during provisioning.
 * **Web UI & Auth Persistence:** Fixed a bug where the authenticated user wasn't correctly fetched on page load, ensuring the profile and sign-out options are always visible in the header.
-* **Pathing & Scoping:** Corrected path resolution logic to prevent local-path projects from incorrectly using hub-managed paths, and refined the `scion delete --stopped` command to strictly scope to the active project.
+* **Pathing & Scoping:** Corrected path resolution logic to prevent local-path projects from incorrectly using hub-managed paths, and refined the `fabric delete --stopped` command to strictly scope to the active project.
 * **Environment Gathering:** Fixed a regression in the `env-gather` finalize-env flow to ensure the template slug is correctly preserved throughout the entire provisioning pipeline.
 * **Configuration Schema:** Added `task_flag` support to the settings schema and Hub configuration, improving the tracking and validation of agent task states.
 
@@ -908,7 +908,7 @@ This release introduces a robust policy-based authorization system, a comprehens
 * **Harness-Agnostic Templates:** Introduced support for role-based, harness-agnostic agent templates. New fields for `agent_instructions`, `system_prompt`, and `default_harness_config` allow templates to be defined by their role rather than specific LLM implementations.
 * **GKE Security Enhancements:** Added a dedicated `gke` runtime configuration option to enable GKE-specific features like Workload Identity, streamlining secure deployments on Google Kubernetes Engine.
 * **Hub-Managed Workspace Management:** Advanced hub-managed project capabilities (Phase 3) with new support for direct workspace file management via the Hub API, reducing reliance on external Git repositories.
-* **ADK Agent Integration:** Added a specialized example and Docker template for Agent Development Kit (ADK) agents, facilitating the development of custom autonomous agents within the Scion ecosystem.
+* **ADK Agent Integration:** Added a specialized example and Docker template for Agent Development Kit (ADK) agents, facilitating the development of custom autonomous agents within the Fabric ecosystem.
 * **Infrastructure & Models:** Upgraded the default agent model to `gemini-3-flash-preview` and introduced Cloud Build configurations for automated image delivery.
 
 ### 🐛 Fixes
@@ -923,7 +923,7 @@ This period focused on major architectural expansions, introducing multi-hub con
 
 ### 🚀 Features
 * **Multi-Hub Broker Architecture:** Completed a major refactor of the Runtime Broker to support simultaneous connections to multiple Hubs. This includes a new multi-credential store, per-connection heartbeat management, and a "combo mode" that allows a broker to be co-located with one Hub while serving others remotely.
-* **Hub-Managed Projects:** Launched "Hub-Managed" projects, enabling the creation of project workspaces directly through the Hub API and Web UI without an external Git repository. These projects are automatically initialized with a seeded `.scion` structure and managed locally by the Hub.
+* **Hub-Managed Projects:** Launched "Hub-Managed" projects, enabling the creation of project workspaces directly through the Hub API and Web UI without an external Git repository. These projects are automatically initialized with a seeded `.fabric` structure and managed locally by the Hub.
 * **Streamlined Workspace Creation:** Introduced a new project creation interface in the Web UI that supports both Git-based repositories and Hub-managed workspaces, including direct Git URL support for quick onboarding.
 * **Improved Agent Configuration:** Enhanced the agent creation form with optimized dropdowns and more intuitive labeling, including renaming "Harness" to "Type" for better clarity.
 
@@ -937,12 +937,12 @@ This period focused on major architectural expansions, introducing multi-hub con
 This period introduced significant data management features, including agent soft-delete and centralized harness configuration storage, while advancing the secrets management and execution limits infrastructure.
 
 ### 🚀 Features
-* **Agent Soft-Delete & Restore:** Implemented a complete soft-delete lifecycle for agents. This includes Hub-side archiving, a new `scion restore` command, list filtering for deleted agents, and an automated background purge loop for expired records.
+* **Agent Soft-Delete & Restore:** Implemented a complete soft-delete lifecycle for agents. This includes Hub-side archiving, a new `fabric restore` command, list filtering for deleted agents, and an automated background purge loop for expired records.
 * **Secrets-Gather & Interactive Input:** Enhanced the environment gathering pipeline to support "secrets-gather." Templates can now define required secrets, and the CLI provides interactive prompts to collect missing values, which are then securely backed by the configured secret provider.
 * **K8s Native Secret Mounting:** Completed Phase 4 of the secrets strategy, enabling native secret mounting for agents running in Kubernetes. This includes support for GKE CSI drivers and robust fallback paths.
 * **Harness Config Hub Storage:** Added Hub-resident storage for harness configurations. This enables centralized management (CRUD), CLI synchronization, and ensures configurations are consistently propagated to brokers during agent creation.
 * **Agent Execution Limits:** Introduced Phase 1 of the agent limits infrastructure, including support for `max_turns` and `max_duration` constraints and a new `LIMITS_EXCEEDED` agent state.
-* **CLI UX Improvements:** Added a `--all` flag to `scion stop` for bulk agent termination, introduced Hub auth verification with version reporting, and enhanced `scion look` with better visual padding and borders.
+* **CLI UX Improvements:** Added a `--all` flag to `fabric stop` for bulk agent termination, introduced Hub auth verification with version reporting, and enhanced `fabric look` with better visual padding and borders.
 * **Web UI & Real-time Updates:** Launched a new "Create Agent" UI, optimized frontend performance by moving to explicit component imports, and enabled real-time project list updates via Server-Sent Events (SSE).
 
 ### 🐛 Fixes
@@ -959,7 +959,7 @@ This period heavily focused on implementing the end-to-end "env-gather" flow to 
 * **Env-Gather Flow Pipeline:** Implemented a comprehensive environment variable gathering system across the CLI, Hub, and Broker. This includes harness-aware env key extraction, Hub 202 handling with submission endpoints, and broker-side evaluation to finalize the environment prior to agent creation.
 * **Agent Context Threading:** Threaded the CLI hub endpoint directly to agent containers and added support for environment variable overrides.
 * **Agent Dashboard Enhancements:** The agent details page now displays the `lastSeen` heartbeat as a relative time format.
-* **Template Pathing:** Added support for `SCION_EXTRA_PATH` to optionally include template bin directories in the system `PATH`.
+* **Template Pathing:** Added support for `FABRIC_EXTRA_PATH` to optionally include template bin directories in the system `PATH`.
 * **Build System Upgrades:** Overhauled the Makefile with new standard targets for build, install, test, lint, and web compilation.
 
 ### 🐛 Fixes
@@ -968,7 +968,7 @@ This period heavily focused on implementing the end-to-end "env-gather" flow to 
 * **Podman Performance:** Fixed slow container provisioning on Podman by directly editing `/etc/passwd` instead of using `usermod`.
 * **Profile Parameter Routing:** Corrected the threading of the profile parameter from the CLI through the Hub to the runtime broker.
 * **Hub API Accuracy:** The Hub API now correctly surfaces the `harness` type in responses for agent listings.
-* **Docker Build Context:** Fixed an issue where the `scion-base` Docker image build was missing the web package context.
+* **Docker Build Context:** Fixed an issue where the `fabric-base` Docker image build was missing the web package context.
 
 ## Feb 20, 2026
 
@@ -998,15 +998,15 @@ This period represented a major architectural shift, consolidating the web serve
 
 :::danger[BREAKING CHANGES]
 * **Secrets Management:** The system now strictly requires a configured production secret backend (e.g., `gcpsm`) for any secret Set operations across user, project, and runtime broker scopes. Plaintext fallbacks have been removed. Read, list, and delete operations remain functional locally to support data migration.
-* **Server Architecture:** The Node.js Koa server and NATS message broker dependencies have been completely retired. The Scion Hub now natively handles web frontend serving, SPA routing, and Server-Sent Events (SSE) via a consolidated Go binary.
+* **Server Architecture:** The Node.js Koa server and NATS message broker dependencies have been completely retired. The Fabric Hub now natively handles web frontend serving, SPA routing, and Server-Sent Events (SSE) via a consolidated Go binary.
 
 :::
 
 ### 🚀 Features
-* **Hub-First Git Workspaces:** Implemented end-to-end support for creating remote workspaces directly from Git URLs. This integration enables git clone mode across `sciontool init` and the runtime broker pipeline.
+* **Hub-First Git Workspaces:** Implemented end-to-end support for creating remote workspaces directly from Git URLs. This integration enables git clone mode across `fabrictool init` and the runtime broker pipeline.
 * **Web Server & Auth Integration:** Introduced native session management and OAuth routing within the Go web server, alongside a new EventPublisher for real-time SSE streaming.
 * **Telemetry & Settings:** Added telemetry injection to the `v1` settings schema. Telemetry configuration now supports hierarchical merging and is automatically bridged into the agent container's environment variables.
-* **CLI Additions:** Introduced the `scion look` command for non-interactive terminal viewing. Project initialization now automatically sets up template directories and requires a global project.
+* **CLI Additions:** Introduced the `fabric look` command for non-interactive terminal viewing. Project initialization now automatically sets up template directories and requires a global project.
 
 ### 🐛 Fixes
 * **Lifecycle Hooks:** Relocated the cleanup handler to container lifecycle hooks to guarantee reliable execution upon container termination.

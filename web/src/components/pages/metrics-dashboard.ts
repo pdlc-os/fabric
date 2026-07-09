@@ -63,8 +63,8 @@ const CHART_COLORS = [
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
 ];
 
-@customElement('scion-page-metrics')
-export class ScionPageMetrics extends LitElement {
+@customElement('fabric-page-metrics')
+export class FabricPageMetrics extends LitElement {
   @property({ type: String })
   projectId = '';
 
@@ -99,14 +99,14 @@ export class ScionPageMetrics extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -117,10 +117,10 @@ export class ScionPageMetrics extends LitElement {
 
     .period-btn {
       padding: 0.375rem 0.75rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
-      background: var(--scion-surface, #ffffff);
-      color: var(--scion-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
+      background: var(--fabric-surface, #ffffff);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.8125rem;
       font-weight: 500;
       cursor: pointer;
@@ -128,18 +128,18 @@ export class ScionPageMetrics extends LitElement {
     }
 
     .period-btn:hover {
-      border-color: var(--scion-primary, #3b82f6);
-      color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .period-btn.active {
-      background: var(--scion-primary, #3b82f6);
-      border-color: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
       color: #ffffff;
     }
 
     sl-tab-group {
-      --indicator-color: var(--scion-primary, #3b82f6);
+      --indicator-color: var(--fabric-primary, #3b82f6);
     }
 
     sl-tab-group::part(base) {
@@ -152,9 +152,9 @@ export class ScionPageMetrics extends LitElement {
     }
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -170,8 +170,8 @@ export class ScionPageMetrics extends LitElement {
       display: flex;
       flex-direction: column;
       padding: 1.25rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .stat-label {
@@ -179,14 +179,14 @@ export class ScionPageMetrics extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 0.375rem;
     }
 
     .stat-value {
       font-size: 1.75rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .chart-container {
@@ -210,14 +210,14 @@ export class ScionPageMetrics extends LitElement {
     .chart-section-title {
       font-size: 0.9375rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
     }
 
     .empty-state {
       text-align: center;
       padding: 3rem 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state sl-icon {
@@ -322,7 +322,7 @@ export class ScionPageMetrics extends LitElement {
   override updated(changedProperties: Map<string, unknown>): void {
     super.updated(changedProperties);
     for (const key of changedProperties.keys()) {
-      if (ScionPageMetrics.CHART_PROPERTIES.has(key as string)) {
+      if (FabricPageMetrics.CHART_PROPERTIES.has(key as string)) {
         this.updateCharts();
         break;
       }

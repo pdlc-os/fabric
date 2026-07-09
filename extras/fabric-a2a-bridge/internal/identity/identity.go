@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	tokenIssuer   = "scion-hub"
-	tokenAudience = "scion-hub-api"
+	tokenIssuer   = "fabric-hub"
+	tokenAudience = "fabric-hub-api"
 )
 
 type tokenClaims struct {

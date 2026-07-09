@@ -1,34 +1,34 @@
-# scion-broker-log
+# fabric-broker-log
 
-A minimal Scion message broker plugin that logs all messages flowing through the broker. Serves as both a **reference implementation** of the broker plugin interface and a **debugging/observability tool** for inspecting message traffic.
+A minimal Fabric message broker plugin that logs all messages flowing through the broker. Serves as both a **reference implementation** of the broker plugin interface and a **debugging/observability tool** for inspecting message traffic.
 
 ## Build
 
 ```bash
-cd extras/scion-broker-log
-go build -o scion-broker-log .
+cd extras/fabric-broker-log
+go build -o fabric-broker-log .
 ```
 
 ## Usage
 
 ```bash
 # Start with defaults (listen on localhost:9091, subscribe to all topics)
-./scion-broker-log
+./fabric-broker-log
 
 # JSON output for piping to jq
-./scion-broker-log --json
+./fabric-broker-log --json
 
 # Only watch user-targeted messages
-./scion-broker-log --topic "scion.grove.*.user.>"
+./fabric-broker-log --topic "fabric.grove.*.user.>"
 
 # Show full message bodies (default truncates to 120 chars)
-./scion-broker-log --full-msg
+./fabric-broker-log --full-msg
 
 # Only show topic, type, and message content
-./scion-broker-log --fields topic,type,msg
+./fabric-broker-log --fields topic,type,msg
 
 # Custom listen address
-./scion-broker-log --addr localhost:9999
+./fabric-broker-log --addr localhost:9999
 ```
 
 ## Flags
@@ -36,7 +36,7 @@ go build -o scion-broker-log .
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--addr` | `localhost:9091` | RPC listen address |
-| `--topic` | `scion.>` | Subscription pattern (NATS-style: `*` = one token, `>` = remainder) |
+| `--topic` | `fabric.>` | Subscription pattern (NATS-style: `*` = one token, `>` = remainder) |
 | `--json` | `false` | Output JSON Lines instead of human-readable format |
 | `--full-msg` | `false` | Show full message body (default truncates to 120 chars) |
 | `--fields` | *(all)* | Comma-separated fields to include: `topic`, `sender`, `recipient`, `type`, `status`, `msg`, `attachments` |
@@ -44,7 +44,7 @@ go build -o scion-broker-log .
 
 ## Hub Configuration
 
-Add to your server settings (`~/.scion/server.yaml` or versioned settings):
+Add to your server settings (`~/.fabric/server.yaml` or versioned settings):
 
 ```yaml
 server:
@@ -58,7 +58,7 @@ server:
         address: "localhost:9091"
 ```
 
-Start `scion-broker-log` before the hub. The hub connects to it as a self-managed plugin via go-plugin RPC.
+Start `fabric-broker-log` before the hub. The hub connects to it as a self-managed plugin via go-plugin RPC.
 
 ## Output
 
@@ -66,16 +66,16 @@ Start `scion-broker-log` before the hub. The hub connects to it as a self-manage
 
 ```bash
 # Messages only
-./scion-broker-log 2>/dev/null
+./fabric-broker-log 2>/dev/null
 
 # Lifecycle only
-./scion-broker-log >/dev/null
+./fabric-broker-log >/dev/null
 ```
 
 ### Human-readable (default)
 
 ```
-10:23:01.123 PUB scion.grove.abc.user.def.messages
+10:23:01.123 PUB fabric.grove.abc.user.def.messages
   sender=agent:code-reviewer → recipient=user:alice
   type=assistant-reply  [urgent]
   msg="I'll analyze this carefully... Here is my resp..." [2048 bytes]
@@ -84,7 +84,7 @@ Start `scion-broker-log` before the hub. The hub connects to it as a self-manage
 ### JSON Lines (`--json`)
 
 ```json
-{"ts":"2026-05-07T10:23:01.123Z","topic":"scion.grove.abc.user.def.messages","sender":"agent:code-reviewer","recipient":"user:alice","type":"assistant-reply","urgent":true,"msg_len":2048,"msg":"I'll analyze this carefully..."}
+{"ts":"2026-05-07T10:23:01.123Z","topic":"fabric.grove.abc.user.def.messages","sender":"agent:code-reviewer","recipient":"user:alice","type":"assistant-reply","urgent":true,"msg_len":2048,"msg":"I'll analyze this carefully..."}
 ```
 
 ## How It Works
@@ -100,14 +100,14 @@ It implements `MessageBrokerPluginInterface` and `HostCallbacksAware` from `pkg/
 
 ## Forwarding Mode (tee/proxy)
 
-The hub supports one broker plugin at a time. To use `broker-log` alongside another plugin (e.g. `scion-chat-app`), use `--forward` to tee messages to the downstream plugin:
+The hub supports one broker plugin at a time. To use `broker-log` alongside another plugin (e.g. `fabric-chat-app`), use `--forward` to tee messages to the downstream plugin:
 
 ```bash
 # Start the chat app on its normal port
-./scion-chat-app ...
+./fabric-chat-app ...
 
 # Start broker-log as a proxy — logs everything AND forwards to the chat app
-./scion-broker-log --forward localhost:9090
+./fabric-broker-log --forward localhost:9090
 ```
 
 Then configure the hub to point at `broker-log` instead of the chat app:

@@ -1,8 +1,8 @@
 # Auth Proxy Mode — Phase 1 Implementation
 
 **Date:** 2026-06-05  
-**Branch:** scion/auth-proxy-mode  
-**Author:** Scion Agent (auth-proxy-phase1)
+**Branch:** fabric/auth-proxy-mode  
+**Author:** Fabric Agent (auth-proxy-phase1)
 
 ## Summary
 
@@ -92,7 +92,7 @@ delivering items 2–5 of the design plan in `.design/auth-proxy-mode.md`.
 ### Pre-existing Failures (unchanged)
 ~15 pre-existing "invalid UUID" failures in other hub tests (unrelated to auth):
 TestCreateAgent_ResumeFromStoppedStatus, TestPopulateAgentConfig_*, etc.
-~5 pre-existing config test failures from leaked SCION_ env vars in sandbox.
+~5 pre-existing config test failures from leaked FABRIC_ env vars in sandbox.
 
 ## Flags / Notes
 

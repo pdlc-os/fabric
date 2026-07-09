@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent"
 	// required by schema hooks.
-	_ "github.com/GoogleCloudPlatform/scion/pkg/ent/runtime"
+	_ "github.com/pdlc-os/fabric/pkg/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/migrate"
+	"github.com/pdlc-os/fabric/pkg/ent/migrate"
 )
 
 type (

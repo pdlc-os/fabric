@@ -66,7 +66,7 @@ exe, err := os.Executable()
 if err != nil { ... }
 buildScript := filepath.Join(filepath.Dir(exe), "..", "image-build", "scripts", "build-images.sh")
 ```
-Or if that's not appropriate for the install layout, check `SCION_ROOT` env var first, then fall back to a documented path. At minimum, emit a clear error message if the script is not found (not a silent 404).
+Or if that's not appropriate for the install layout, check `FABRIC_ROOT` env var first, then fall back to a documented path. At minimum, emit a clear error message if the script is not found (not a silent 404).
 
 ### m2 — ClassifyPath project cap
 **File:** `pkg/hub/fs_safety.go`

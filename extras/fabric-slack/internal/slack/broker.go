@@ -20,10 +20,10 @@ import (
 	slackapi "github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 const (
@@ -62,7 +62,7 @@ func (e *hubError) Error() string {
 func (e *hubError) userFacingMessage() string {
 	switch e.Code {
 	case "agent_not_found":
-		return "Target agent not found. Use `/scion agents` to see available agents."
+		return "Target agent not found. Use `/fabric agents` to see available agents."
 	case "forbidden":
 		return "You don't have permission to message this agent."
 	case "broker_auth_failed", "unauthorized":
@@ -677,7 +677,7 @@ func (b *SlackBroker) deliverInbound(topic string, msg *messages.StructuredMessa
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	if brokerID != "" && hmacKey != "" {
 		if err := signInboundRequest(req, brokerID, hmacKey); err != nil {

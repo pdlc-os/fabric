@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +32,8 @@ Reports PASS or FAIL with a list of issues found. Use --all to validate
 all templates visible to the current user.
 
 Examples:
-  scion template validate default
-  scion template validate --all`,
+  fabric template validate default
+  fabric template validate --all`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runTemplateValidate,
 }
@@ -53,7 +53,7 @@ func runTemplateValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("hub integration is not enabled, use 'scion hub enable' first")
+		return fmt.Errorf("hub integration is not enabled, use 'fabric hub enable' first")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -145,8 +145,8 @@ Reports PASS or FAIL with a list of issues found. Use --all to validate
 all harness-configs visible to the current user.
 
 Examples:
-  scion harness-config validate claude
-  scion harness-config validate --all`,
+  fabric harness-config validate claude
+  fabric harness-config validate --all`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runHarnessConfigValidate,
 }
@@ -166,7 +166,7 @@ func runHarnessConfigValidate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("hub integration is not enabled, use 'scion hub enable' first")
+		return fmt.Errorf("hub integration is not enabled, use 'fabric hub enable' first")
 	}
 
 	PrintUsingHub(hubCtx.Endpoint)
@@ -270,9 +270,9 @@ func printValidationReport(name string, report *hubclient.ValidationReport) erro
 
 	switch report.ResourceKind {
 	case "template":
-		fmt.Printf("\nRun 'scion template sync %s' to repair.\n", name)
+		fmt.Printf("\nRun 'fabric template sync %s' to repair.\n", name)
 	case "harness-config":
-		fmt.Printf("\nRun 'scion harness-config sync %s' to repair.\n", name)
+		fmt.Printf("\nRun 'fabric harness-config sync %s' to repair.\n", name)
 	}
 
 	return fmt.Errorf("%s failed validation with %d issue(s)", name, len(report.Issues))

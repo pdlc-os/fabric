@@ -28,7 +28,7 @@ import tempfile
 from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import scion_harness
+import fabric_harness
 
 _CA_EXIT_OK = 0
 _CA_EXIT_ERROR = 1
@@ -41,7 +41,7 @@ def _setup_dbus() -> bool:
     if os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
         return True
     home = os.environ.get("HOME") or os.path.expanduser("~")
-    dbus_env_file = os.path.join(home, ".scion", "harness", ".dbus-env")
+    dbus_env_file = os.path.join(home, ".fabric", "harness", ".dbus-env")
     try:
         with open(dbus_env_file, "r") as f:
             for line in f:
@@ -97,7 +97,7 @@ def _try_capture_token_file(force: bool) -> int | None:
 
     Returns an exit code on definitive result, or None to continue to keyring.
     """
-    expanded = scion_harness.expand_path(_AGY_TOKEN_PATH)
+    expanded = fabric_harness.expand_path(_AGY_TOKEN_PATH)
     if not os.path.isfile(expanded):
         return None
     try:
@@ -110,14 +110,14 @@ def _try_capture_token_file(force: bool) -> int | None:
     if not _validate_refresh_token(raw):
         print("capture-auth: AGY_TOKEN file does not contain refresh_token", file=sys.stderr)
         return _CA_EXIT_ERROR
-    cmd = ["sciontool", "secret", "set", "AGY_TOKEN", f"@{expanded}",
+    cmd = ["fabrictool", "secret", "set", "AGY_TOKEN", f"@{expanded}",
            "--type", "file", "--target", _AGY_TOKEN_PATH]
     if force:
         cmd.append("--force")
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-        print(f"capture-auth: sciontool error: {exc}", file=sys.stderr)
+        print(f"capture-auth: fabrictool error: {exc}", file=sys.stderr)
         return _CA_EXIT_ERROR
     if result.returncode == 0:
         print(f"capture-auth: AGY_TOKEN: captured from {_AGY_TOKEN_PATH}")
@@ -125,12 +125,12 @@ def _try_capture_token_file(force: bool) -> int | None:
     if "already exists" in result.stderr.lower():
         print('CONFLICT: secret "AGY_TOKEN" already exists (use --force to overwrite)')
         return _CA_EXIT_CONFLICT
-    print(f"capture-auth: sciontool failed: {result.stderr.strip()}", file=sys.stderr)
+    print(f"capture-auth: fabrictool failed: {result.stderr.strip()}", file=sys.stderr)
     return _CA_EXIT_ERROR
 
 
 def main() -> int:
-    rc = scion_harness.capture_auth_main()
+    rc = fabric_harness.capture_auth_main()
     if rc == _CA_EXIT_OK:
         return rc
 
@@ -163,7 +163,7 @@ def main() -> int:
         with os.fdopen(fd, "w") as f:
             f.write(token)
         force = "--force" in sys.argv
-        cmd = ["sciontool", "secret", "set", "AGY_TOKEN", f"@{tmp_path}",
+        cmd = ["fabrictool", "secret", "set", "AGY_TOKEN", f"@{tmp_path}",
                "--type", "file", "--target", target]
         if force:
             cmd.append("--force")

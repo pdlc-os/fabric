@@ -18,9 +18,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func canonicalHarnessName(name string) string {
@@ -127,7 +127,7 @@ func supportReason(field api.CapabilityField) string {
 	return "Unsupported for this harness"
 }
 
-func validateConfigAgainstHarnessCapabilities(cfg *api.ScionConfig, caps api.HarnessAdvancedCapabilities) map[string]interface{} {
+func validateConfigAgainstHarnessCapabilities(cfg *api.FabricConfig, caps api.HarnessAdvancedCapabilities) map[string]interface{} {
 	if cfg == nil {
 		return nil
 	}

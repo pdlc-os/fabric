@@ -24,7 +24,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/chatapp"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/chatapp"
 )
 
 const (
@@ -288,7 +288,7 @@ func (a *Adapter) buildMessageResponse(actionKey string, req *chatapp.SendMessag
 	if req.Card != nil {
 		msg["cardsV2"] = []map[string]any{
 			{
-				"cardId": "scion_card",
+				"cardId": "fabric_card",
 				"card":   a.renderCardV2(req.Card),
 			},
 		}
@@ -585,16 +585,16 @@ func (a *Adapter) normalizeEvent(raw *rawEvent) *chatapp.ChatEvent {
 }
 
 // commandNameFromText extracts the slash command name from the message text,
-// falling back to "scion" if the text doesn't contain a recognizable command.
+// falling back to "fabric" if the text doesn't contain a recognizable command.
 func commandNameFromText(msg *rawMessage) string {
 	if msg == nil {
-		return "scion"
+		return "fabric"
 	}
 	f := strings.Fields(msg.Text)
 	if len(f) > 0 && strings.HasPrefix(f[0], "/") {
 		return strings.TrimPrefix(f[0], "/")
 	}
-	return "scion"
+	return "fabric"
 }
 
 // getParameters extracts action parameters from commonEventObject.
@@ -642,7 +642,7 @@ func (a *Adapter) SendMessage(ctx context.Context, req chatapp.SendMessageReques
 	if hasCard {
 		payload["cardsV2"] = []map[string]any{
 			{
-				"cardId": "scion_card",
+				"cardId": "fabric_card",
 				"card":   a.renderCardV2(req.Card),
 			},
 		}
@@ -700,7 +700,7 @@ func (a *Adapter) UpdateMessage(ctx context.Context, messageID string, req chata
 	if req.Card != nil {
 		payload["cardsV2"] = []map[string]any{
 			{
-				"cardId": "scion_card",
+				"cardId": "fabric_card",
 				"card":   a.renderCardV2(req.Card),
 			},
 		}

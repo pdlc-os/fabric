@@ -30,8 +30,8 @@ Returns the agent slug by default, or full identity details with --format json.
 
 When run outside an agent container, falls back to the system whoami command.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		slug := os.Getenv("SCION_AGENT_SLUG")
-		name := os.Getenv("SCION_AGENT_NAME")
+		slug := os.Getenv("FABRIC_AGENT_SLUG")
+		name := os.Getenv("FABRIC_AGENT_NAME")
 
 		if slug == "" && name == "" {
 			return runSystemWhoami()
@@ -45,7 +45,7 @@ When run outside an agent container, falls back to the system whoami command.`,
 			return outputJSON(map[string]string{
 				"slug": slug,
 				"name": name,
-				"id":   os.Getenv("SCION_AGENT_ID"),
+				"id":   os.Getenv("FABRIC_AGENT_ID"),
 			})
 		}
 
@@ -57,7 +57,7 @@ When run outside an agent container, falls back to the system whoami command.`,
 func runSystemWhoami() error {
 	path, err := exec.LookPath("whoami")
 	if err != nil {
-		return fmt.Errorf("not running as a scion agent and system whoami not found")
+		return fmt.Errorf("not running as a fabric agent and system whoami not found")
 	}
 	sysCmd := exec.Command(path)
 	sysCmd.Stdout = os.Stdout

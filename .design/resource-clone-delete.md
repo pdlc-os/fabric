@@ -16,10 +16,10 @@ hub-level import. Since that draft, two things changed the ground under it:
 
 1. **The import slice is fully built** (`resource-import-refactor.md`, Phases 0–4):
    a unified `POST /api/v1/resources/import` endpoint, a shared
-   `<scion-resource-import>` web component mounted in both Project Settings →
+   `<fabric-resource-import>` web component mounted in both Project Settings →
    Resources and the Hub Resources page, streaming per-resource progress, and a
    parallelized import path. Import is **done** and is no longer part of this work.
-2. **A shared, kind-generic resource UI already exists.** `<scion-resource-list>`
+2. **A shared, kind-generic resource UI already exists.** `<fabric-resource-list>`
    (`web/src/components/shared/resource-list.ts`) renders templates *and*
    harness-configs identically in both the project and hub surfaces — but it is
    **read-only** today (lists + links to the detail/editor page; explicitly "does
@@ -37,7 +37,7 @@ already hold and just needs a regression test to lock it in.
 
 The full admin page in `hub-template-admin.md` assumed no shared resource UI and no
 import. Both now exist. Building a separate `/admin/templates` page would duplicate
-the list that `<scion-resource-list>` already renders in two places. Adding Clone and
+the list that `<fabric-resource-list>` already renders in two places. Adding Clone and
 Delete *to that shared list* gives the two highest-value management actions in both
 the project and hub Resources views with no new page, no new list, and a small,
 well-contained backend delta.
@@ -62,10 +62,10 @@ well-contained backend delta.
 
 ### 2.2 Frontend — what already exists
 
-- `<scion-resource-list>` (`resource-list.ts`, 251 lines) — shared, read-only list
+- `<fabric-resource-list>` (`resource-list.ts`, 251 lines) — shared, read-only list
   used by **both** Project Settings → Resources and the Hub Resources page
   (`settings.ts`). No row actions today.
-- `<scion-resource-import>` (`resource-import.ts`) — shared import form, mounted in
+- `<fabric-resource-import>` (`resource-import.ts`) — shared import form, mounted in
   both surfaces. Emits `resource-imported` so the host refreshes the list.
 - Resource detail/editor page — file browser + inline editor, reachable from each
   list row via `detailBasePath`.
@@ -129,7 +129,7 @@ project capability for project scope; covered by
 ## 3. Goals & Non-Goals
 
 ### Goals
-- Add **Clone** and **Delete** row actions to the shared `<scion-resource-list>`, so
+- Add **Clone** and **Delete** row actions to the shared `<fabric-resource-list>`, so
   both Project Settings → Resources and Hub Resources get them with one change.
 - Add a **harness-config clone** endpoint mirroring the template clone, so the list's
   Clone action works for both kinds.
@@ -204,7 +204,7 @@ Endpoint: `POST /api/v1/harness-configs/{id}/clone` — dispatches through the e
 
 ### 4.2 Frontend: Clone + Delete on the shared list, and clone-from-global
 
-Add an actions affordance to each row in `<scion-resource-list>` — an `sl-dropdown`
+Add an actions affordance to each row in `<fabric-resource-list>` — an `sl-dropdown`
 (or trailing icon buttons) with **Clone** and **Delete**. Both surfaces inherit it.
 
 New component state: `cloneTarget`, `deleteTarget`, `cloneFromGlobalOpen`,
@@ -300,7 +300,7 @@ including removals."
 ### Phase 2 — Frontend: Clone & Delete on the shared list + clone-from-global
 - Add row actions, delete-confirm dialog (`deleteFiles` checked by default + force
   retry for the latent locked case), and the same-scope clone dialog to
-  `<scion-resource-list>`; wire both kinds; emit `resource-changed`.
+  `<fabric-resource-list>`; wire both kinds; emit `resource-changed`.
 - Add the project-view "Clone from global" picker → clone into the current project.
 - Verify in both project and hub surfaces.
 

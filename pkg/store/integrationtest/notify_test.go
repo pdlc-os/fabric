@@ -37,7 +37,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // pgConnect opens a raw pgx connection to the per-package database and registers
@@ -93,7 +93,7 @@ func TestNotify_BurstDeliveredInOrderNoDrops(t *testing.T) {
 
 // TestNotify_OversizedPayloadRejected pins the 8000-byte NOTIFY payload limit:
 // a payload at/over the limit is rejected by the server (this is exactly why the
-// PostgresEventPublisher offloads oversized events to the scion_event_payloads
+// PostgresEventPublisher offloads oversized events to the fabric_event_payloads
 // table and notifies a reference id instead), while a payload comfortably under
 // the limit is delivered intact.
 func TestNotify_OversizedPayloadRejected(t *testing.T) {

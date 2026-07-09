@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -271,12 +271,12 @@ func TestProject_ProjectTypeLinked(t *testing.T) {
 	p := newProject(1)
 	require.NoError(t, ps.CreateProject(ctx, p))
 
-	// A contributor with a local path outside ~/.scion/projects/ marks it linked.
+	// A contributor with a local path outside ~/.fabric/projects/ marks it linked.
 	require.NoError(t, ps.AddProjectProvider(ctx, &store.ProjectProvider{
 		ProjectID:  p.ID,
 		BrokerID:   uuid.NewString(),
 		BrokerName: "broker-1",
-		LocalPath:  "/home/user/code/myrepo/.scion",
+		LocalPath:  "/home/user/code/myrepo/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}))
 

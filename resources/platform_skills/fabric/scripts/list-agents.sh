@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# List scion agents with optional JSON output
+# List fabric agents with optional JSON output
 # Usage: list-agents.sh [--json] [--all]
 
 JSON_OUTPUT=""
@@ -35,4 +35,4 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-scion list $ALL_FLAG $JSON_OUTPUT
+fabric list $ALL_FLAG $JSON_OUTPUT

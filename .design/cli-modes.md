@@ -4,7 +4,7 @@
 
 ## 1. Problem Statement
 
-The `scion` CLI exposes a broad surface area of commands covering agent lifecycle management, infrastructure operations (hub, broker, server), grove administration, template management, and more. All of these commands are available to every caller regardless of context, which creates two problems:
+The `fabric` CLI exposes a broad surface area of commands covering agent lifecycle management, infrastructure operations (hub, broker, server), grove administration, template management, and more. All of these commands are available to every caller regardless of context, which creates two problems:
 
 1. **AI assistants used by humans** (e.g., Claude Code, Gemini CLI acting as a coding assistant) have access to commands that are impractical or dangerous to invoke without a graphical or web-based interface — server installation, interactive authentication flows, and infrastructure administration. An AI assistant that discovers these commands may attempt to use them, leading to confusion or partial state.
 
@@ -70,9 +70,9 @@ Used inside agent containers. Agents can orchestrate sibling agents within their
 
 ## 3. Mode Selection Mechanism
 
-### 3.1. Environment Variable: `SCION_CLI_MODE`
+### 3.1. Environment Variable: `FABRIC_CLI_MODE`
 
-The mode is selected via the `SCION_CLI_MODE` environment variable:
+The mode is selected via the `FABRIC_CLI_MODE` environment variable:
 
 | Value | Mode |
 |-------|------|
@@ -84,21 +84,21 @@ Any unrecognized value is treated as `human` with a stderr warning.
 
 ### 3.2. Agent Mode Injection
 
-When the runtime provisions an agent container, it sets `SCION_CLI_MODE=agent` in the container environment alongside the existing `SCION_AGENT_NAME`, `SCION_HOST_UID`, etc. This makes mode restriction automatic and invisible to the agent.
+When the runtime provisions an agent container, it sets `FABRIC_CLI_MODE=agent` in the container environment alongside the existing `FABRIC_AGENT_NAME`, `FABRIC_HOST_UID`, etc. This makes mode restriction automatic and invisible to the agent.
 
 ### 3.3. Assistant Mode Activation
 
 Assistant mode can be activated through several mechanisms, in priority order:
 
-1. **Environment variable:** `SCION_CLI_MODE=assistant` — works when the user can control the assistant's shell environment before launch.
+1. **Environment variable:** `FABRIC_CLI_MODE=assistant` — works when the user can control the assistant's shell environment before launch.
 
-2. **Settings file:** A `cli.mode` key in grove settings (`.scion/settings.json`), versioned settings (`.scion/versioned_settings.json`), or global settings (`~/.scion/settings.json`). This is the most practical approach for teams, since committing `"cli.mode": "assistant"` in versioned settings activates it for all AI assistants working in the project without requiring per-tool environment setup.
+2. **Settings file:** A `cli.mode` key in grove settings (`.fabric/settings.json`), versioned settings (`.fabric/versioned_settings.json`), or global settings (`~/.fabric/settings.json`). This is the most practical approach for teams, since committing `"cli.mode": "assistant"` in versioned settings activates it for all AI assistants working in the project without requiring per-tool environment setup.
 
-3. **`scion config set cli.mode assistant`:** A one-time command the user runs in their terminal before starting the assistant session.
+3. **`fabric config set cli.mode assistant`:** A one-time command the user runs in their terminal before starting the assistant session.
 
 The environment variable takes precedence over settings if both are set.
 
-> **Future consideration:** AI assistants often run in environments where modifying the shell env post-launch is difficult. The settings-file approach avoids this by making the mode a project-level or user-level default. We may also explore auto-detection heuristics (e.g., checking `SCION_HARNESS` or parent process names) as supplementary signals, but these should never override an explicit setting.
+> **Future consideration:** AI assistants often run in environments where modifying the shell env post-launch is difficult. The settings-file approach avoids this by making the mode a project-level or user-level default. We may also explore auto-detection heuristics (e.g., checking `FABRIC_HARNESS` or parent process names) as supplementary signals, but these should never override an explicit setting.
 
 ### 3.4. No CLI Flag
 
@@ -110,8 +110,8 @@ There is intentionally **no** `--mode` CLI flag. The mode is an environmental pr
 
 When commands are removed by mode restrictions, they are **fully removed from the command tree** — not merely hidden. This means:
 
-- `scion --help` does not list restricted commands
-- `scion <restricted-command> --help` returns "unknown command"
+- `fabric --help` does not list restricted commands
+- `fabric <restricted-command> --help` returns "unknown command"
 - Shell completions do not suggest restricted commands
 - There is no indication in help text that other modes exist
 
@@ -127,7 +127,7 @@ When a command is blocked by mode restrictions, the error is a generic "unknown 
 
 ### 5.1. Command Removal at Init Time
 
-In `cmd/root.go`, during `init()` or early in `PersistentPreRunE`, read `SCION_CLI_MODE` and remove disallowed commands from the Cobra command tree using `rootCmd.RemoveCommand()`. For nested subcommands, remove them from their parent.
+In `cmd/root.go`, during `init()` or early in `PersistentPreRunE`, read `FABRIC_CLI_MODE` and remove disallowed commands from the Cobra command tree using `rootCmd.RemoveCommand()`. For nested subcommands, remove them from their parent.
 
 This approach is preferred over a runtime check because:
 - Removed commands disappear from help, completions, and the command tree entirely
@@ -150,23 +150,23 @@ Once the mode system is in place, `checkAgentContainerContext` can be simplified
 
 ### 5.4. Agent Self-Stop Safety
 
-Agents can stop themselves and other agents via `scion stop`. However, `scion stop --all` poses a risk: an agent may not realize it is included in "all" and inadvertently terminate itself mid-task. The implementation should either:
-- Exclude the calling agent from `--all` in agent mode (requiring explicit `scion stop --self` for self-termination), or
+Agents can stop themselves and other agents via `fabric stop`. However, `fabric stop --all` poses a risk: an agent may not realize it is included in "all" and inadvertently terminate itself mid-task. The implementation should either:
+- Exclude the calling agent from `--all` in agent mode (requiring explicit `fabric stop --self` for self-termination), or
 - Print a warning and require `--yes` confirmation when `--all` is used from within an agent container
 
 ### 5.5. No Debug Logging
 
-The mode system intentionally does **not** produce any debug or diagnostic output, even when `SCION_DEBUG=1` is set. Any log message referencing the mode, the environment variable name, or the number of removed commands could reveal the restriction mechanism to an agent inspecting its own output.
+The mode system intentionally does **not** produce any debug or diagnostic output, even when `FABRIC_DEBUG=1` is set. Any log message referencing the mode, the environment variable name, or the number of removed commands could reveal the restriction mechanism to an agent inspecting its own output.
 
 ## 6. Affected Existing Behavior
 
 ### 6.1. Runtime Container Provisioning
 
-`pkg/agent/run.go` (and harness-specific environment builders) must inject `SCION_CLI_MODE=agent` into the container environment. This is a one-line addition to the existing environment map.
+`pkg/agent/run.go` (and harness-specific environment builders) must inject `FABRIC_CLI_MODE=agent` into the container environment. This is a one-line addition to the existing environment map.
 
 ### 6.2. Settings Layer
 
-`pkg/config/` gains support for a `cli.mode` setting key, following the existing settings resolution order (env var > versioned settings > grove settings > global settings). The environment variable `SCION_CLI_MODE` takes precedence.
+`pkg/config/` gains support for a `cli.mode` setting key, following the existing settings resolution order (env var > versioned settings > grove settings > global settings). The environment variable `FABRIC_CLI_MODE` takes precedence.
 
 ### 6.3. Test Coverage
 

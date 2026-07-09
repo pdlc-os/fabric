@@ -20,14 +20,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"gopkg.in/yaml.v3"
 )
 
-// ProjectMarker represents the content of a .scion marker file.
-// When .scion is a file (not a directory), it points to an external
-// project-config directory under ~/.scion/project-configs/.
+// ProjectMarker represents the content of a .fabric marker file.
+// When .fabric is a file (not a directory), it points to an external
+// project-config directory under ~/.fabric/project-configs/.
 type ProjectMarker struct {
 	ProjectID   string `yaml:"project-id"`
 	ProjectName string `yaml:"project-name"`
@@ -71,13 +71,13 @@ func (m ProjectMarker) ShortUUID() string {
 	return id
 }
 
-// DirName returns the directory name used under ~/.scion/project-configs/.
+// DirName returns the directory name used under ~/.fabric/project-configs/.
 func (m ProjectMarker) DirName() string {
 	return fmt.Sprintf("%s__%s", m.ProjectSlug, m.ShortUUID())
 }
 
 // ExternalProjectPath returns the absolute path to the external project config
-// directory: ~/.scion/project-configs/<project-slug>__<short-uuid>/.scion/
+// directory: ~/.fabric/project-configs/<project-slug>__<short-uuid>/.fabric/
 // Checks project-configs first, falling back to legacy grove-configs if not found.
 func (m ProjectMarker) ExternalProjectPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -86,13 +86,13 @@ func (m ProjectMarker) ExternalProjectPath() (string, error) {
 	}
 
 	// 1. Try project-configs/
-	projectPath := filepath.Join(home, GlobalDir, ProjectConfigsDir, m.DirName(), DotScion)
+	projectPath := filepath.Join(home, GlobalDir, ProjectConfigsDir, m.DirName(), DotFabric)
 	if _, err := os.Stat(projectPath); err == nil {
 		return projectPath, nil
 	}
 
 	// 2. Fallback to legacy grove-configs/
-	legacyPath := filepath.Join(home, GlobalDir, GroveConfigsDir, m.DirName(), DotScion)
+	legacyPath := filepath.Join(home, GlobalDir, GroveConfigsDir, m.DirName(), DotFabric)
 	if _, err := os.Stat(legacyPath); err == nil {
 		return legacyPath, nil
 	}
@@ -101,7 +101,7 @@ func (m ProjectMarker) ExternalProjectPath() (string, error) {
 	return projectPath, nil
 }
 
-// ReadProjectMarker reads and parses a .scion marker file.
+// ReadProjectMarker reads and parses a .fabric marker file.
 func ReadProjectMarker(path string) (*ProjectMarker, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -126,7 +126,7 @@ func WriteProjectMarker(path string, marker *ProjectMarker) error {
 	return os.WriteFile(path, data, 0644)
 }
 
-// ResolveProjectMarker reads a .scion marker file and returns the resolved
+// ResolveProjectMarker reads a .fabric marker file and returns the resolved
 // external project path. Returns an error if the marker is invalid or the
 // external path cannot be computed.
 func ResolveProjectMarker(markerPath string) (string, error) {
@@ -147,11 +147,11 @@ func IsProjectMarkerFile(path string) bool {
 	return !info.IsDir()
 }
 
-// IsOldStyleNonGitProject returns true if the path is a .scion directory
-// in a non-git project (not the global ~/.scion/). This indicates an
+// IsOldStyleNonGitProject returns true if the path is a .fabric directory
+// in a non-git project (not the global ~/.fabric/). This indicates an
 // old-format project that needs to be re-initialized.
-func IsOldStyleNonGitProject(scionPath string) bool {
-	info, err := os.Stat(scionPath)
+func IsOldStyleNonGitProject(fabricPath string) bool {
+	info, err := os.Stat(fabricPath)
 	if err != nil || !info.IsDir() {
 		return false
 	}
@@ -160,7 +160,7 @@ func IsOldStyleNonGitProject(scionPath string) bool {
 	home, err := os.UserHomeDir()
 	if err == nil {
 		globalDir := filepath.Join(home, GlobalDir)
-		if abs, err := filepath.Abs(scionPath); err == nil {
+		if abs, err := filepath.Abs(fabricPath); err == nil {
 			evalAbs, _ := filepath.EvalSymlinks(abs)
 			evalGlobal, _ := filepath.EvalSymlinks(globalDir)
 			if evalAbs == evalGlobal {
@@ -170,7 +170,7 @@ func IsOldStyleNonGitProject(scionPath string) bool {
 	}
 
 	// Check if the parent directory is a git repo
-	parent := filepath.Dir(scionPath)
+	parent := filepath.Dir(fabricPath)
 	gitDir := filepath.Join(parent, ".git")
 	if _, err := os.Stat(gitDir); err == nil {
 		return false // Git project — not old-style (handled by Phase 3)
@@ -182,19 +182,19 @@ func IsOldStyleNonGitProject(scionPath string) bool {
 // IsHubContext returns true if hub context environment variables are available,
 // indicating the CLI is running inside a hub-connected agent container where
 // project data should be accessed via the Hub API rather than the local filesystem.
-// Checks SCION_HUB_ENDPOINT (primary), SCION_HUB_URL (legacy), and
-// SCION_GROVE_ID (always set for broker-dispatched agents).
+// Checks FABRIC_HUB_ENDPOINT (primary), FABRIC_HUB_URL (legacy), and
+// FABRIC_GROVE_ID (always set for broker-dispatched agents).
 func IsHubContext() bool {
-	return os.Getenv("SCION_HUB_ENDPOINT") != "" ||
-		os.Getenv("SCION_HUB_URL") != "" ||
+	return os.Getenv("FABRIC_HUB_ENDPOINT") != "" ||
+		os.Getenv("FABRIC_HUB_URL") != "" ||
 		os.Getenv(projectcompat.EnvGroveID) != "" ||
 		os.Getenv(projectcompat.EnvProjectID) != ""
 }
 
-// WriteWorkspaceMarker writes a minimal .scion marker file into a workspace
+// WriteWorkspaceMarker writes a minimal .fabric marker file into a workspace
 // directory so that in-container CLI can discover the project context.
 // This is called during agent provisioning for git projects (where the worktree
-// doesn't contain .scion because it's gitignored) and for hub-managed projects.
+// doesn't contain .fabric because it's gitignored) and for hub-managed projects.
 func WriteWorkspaceMarker(workspacePath string, projectID, projectName, projectSlug string) error {
 	if projectID == "" || projectSlug == "" {
 		return fmt.Errorf("project-id and project-slug are required for workspace marker")
@@ -204,7 +204,7 @@ func WriteWorkspaceMarker(workspacePath string, projectID, projectName, projectS
 		ProjectName: projectName,
 		ProjectSlug: projectSlug,
 	}
-	return WriteProjectMarker(filepath.Join(workspacePath, DotScion), marker)
+	return WriteProjectMarker(filepath.Join(workspacePath, DotFabric), marker)
 }
 
 // ExtractSlugFromExternalDir extracts the project slug from an external
@@ -216,7 +216,7 @@ func ExtractSlugFromExternalDir(dirName string) string {
 	return ""
 }
 
-// ReadProjectID reads the project-id file from a git project's .scion directory.
+// ReadProjectID reads the project-id file from a git project's .fabric directory.
 // Checks project-id first, then falls back to grove-id for legacy projects.
 func ReadProjectID(projectDir string) (string, error) {
 	// 1. Try project-id
@@ -236,13 +236,13 @@ func ReadProjectID(projectDir string) (string, error) {
 	return strings.TrimSpace(string(data)), nil
 }
 
-// WriteProjectID writes a project-id file to a git project's .scion directory.
+// WriteProjectID writes a project-id file to a git project's .fabric directory.
 func WriteProjectID(projectDir string, projectID string) error {
 	return os.WriteFile(filepath.Join(projectDir, projectcompat.ProjectIDFile), []byte(projectID+"\n"), 0644)
 }
 
 // GetGitProjectExternalConfigDir returns the external config directory for a git project.
-// Git projects store settings and templates externally at ~/.scion/project-configs/<slug>__<uuid>/.scion/
+// Git projects store settings and templates externally at ~/.fabric/project-configs/<slug>__<uuid>/.fabric/
 // while keeping worktrees in-repo.
 // Returns ("", nil) if the project-id file does not exist (not yet initialized for split storage).
 func GetGitProjectExternalConfigDir(projectDir string) (string, error) {
@@ -266,7 +266,7 @@ func GetGitProjectExternalConfigDir(projectDir string) (string, error) {
 }
 
 // GetGitProjectExternalAgentsDir returns the external agents directory for a git project.
-// Git projects store agent homes externally at ~/.scion/project-configs/<slug>__<uuid>/.scion/agents/
+// Git projects store agent homes externally at ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents/
 // while keeping worktrees in-repo.
 // Returns ("", nil) if the project-id file does not exist (not yet initialized for split storage).
 func GetGitProjectExternalAgentsDir(projectDir string) (string, error) {
@@ -295,7 +295,7 @@ func GetGitProjectExternalAgentsDir(projectDir string) (string, error) {
 
 // GetAgentHomePath returns the correct home directory path for an agent.
 // For git projects with split storage (project-id file exists), this returns
-// the external path under ~/.scion/project-configs/.
+// the external path under ~/.fabric/project-configs/.
 // For non-git projects (projectDir already resolved to external via marker),
 // or git projects without split storage, returns the in-repo path.
 func GetAgentHomePath(projectDir, agentName string) string {
@@ -306,12 +306,12 @@ func GetAgentHomePath(projectDir, agentName string) string {
 }
 
 // GetAgentDir returns the broker-side directory for an agent's per-agent state
-// files (prompt.md, scion-agent.json, and — in worktree mode — the workspace
+// files (prompt.md, fabric-agent.json, and — in worktree mode — the workspace
 // subdir).
 //
 // For shared-workspace git projects (sharedWorkspace == true and a project-id
 // marker exists), this returns the external path under
-// ~/.scion/project-configs/<slug>__<uuid>/.scion/agents/<name>/ so that sibling
+// ~/.fabric/project-configs/<slug>__<uuid>/.fabric/agents/<name>/ so that sibling
 // agents do not see each other's state via the shared /workspace mount. See
 // .design/hub-shared-workspace-isolation.md for the threat model.
 //
@@ -336,13 +336,13 @@ func GetAgentDir(projectDir, agentName string, sharedWorkspace bool) string {
 // sharedWorkspace flag through the call stack.
 //
 // Returns the external path only when a project-id marker exists *and* the
-// external per-agent directory contains scion-agent.json (which never lives
+// external per-agent directory contains fabric-agent.json (which never lives
 // external in worktree mode — only home/ does). Otherwise returns the
 // in-project path.
 func ResolveAgentDir(projectDir, agentName string) string {
 	if externalDir, err := GetGitProjectExternalAgentsDir(projectDir); err == nil && externalDir != "" {
 		ext := filepath.Join(externalDir, agentName)
-		if _, err := os.Stat(filepath.Join(ext, "scion-agent.json")); err == nil {
+		if _, err := os.Stat(filepath.Join(ext, "fabric-agent.json")); err == nil {
 			return ext
 		}
 	}

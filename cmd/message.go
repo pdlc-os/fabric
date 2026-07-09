@@ -24,12 +24,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -62,9 +62,9 @@ Recipients:
 If --broadcast is used, the recipient can be omitted and the message will be sent to all running agents.
 
 Examples:
-  scion message my-agent "Please review the PR"
-  scion message user:alice "I need clarification on the auth module"
-  scion message "group[agent:reviewer,user:alice,deploy-bot]" "Release v2 is ready"`,
+  fabric message my-agent "Please review the PR"
+  fabric message user:alice "I need clarification on the auth module"
+  fabric message "group[agent:reviewer,user:alice,deploy-bot]" "Release v2 is ready"`,
 	Args:              cobra.MinimumNArgs(1),
 	ValidArgsFunction: getAgentNames,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -213,25 +213,25 @@ Examples:
 
 		// Group recipients require Hub mode
 		if len(groupRecipients) > 0 && hubCtx == nil {
-			return fmt.Errorf("group[] recipients require Hub mode (use 'scion hub enable' first)")
+			return fmt.Errorf("group[] recipients require Hub mode (use 'fabric hub enable' first)")
 		}
 
 		// User recipients require Hub mode
 		if userRecipient != "" && hubCtx == nil {
-			return fmt.Errorf("sending messages to users requires Hub mode (use 'scion hub enable' first)")
+			return fmt.Errorf("sending messages to users requires Hub mode (use 'fabric hub enable' first)")
 		}
 
 		// Handle scheduled messages
 		if msgIn != "" || msgAt != "" {
 			if hubCtx == nil {
-				return fmt.Errorf("scheduled messages require Hub mode (use 'scion hub enable' first)")
+				return fmt.Errorf("scheduled messages require Hub mode (use 'fabric hub enable' first)")
 			}
 			return scheduleMessageViaHub(hubCtx, agentName, message, msgInterrupt, msgPlain)
 		}
 
 		// --notify requires Hub mode
 		if msgNotify && hubCtx == nil {
-			return fmt.Errorf("--notify requires Hub mode (use 'scion hub enable' first)")
+			return fmt.Errorf("--notify requires Hub mode (use 'fabric hub enable' first)")
 		}
 
 		// Group-targeted messages: fan out to each recipient
@@ -250,14 +250,14 @@ Examples:
 
 		// --wake requires Hub mode
 		if msgWake {
-			return fmt.Errorf("--wake requires Hub mode (use 'scion hub enable' first)")
+			return fmt.Errorf("--wake requires Hub mode (use 'fabric hub enable' first)")
 		}
 
 		// --attach requires Hub mode: attachments are delivered through Hub
 		// storage, while local mode writes plain text to the agent terminal
 		// and cannot transfer files.
 		if len(msgAttach) > 0 {
-			return fmt.Errorf("--attach requires Hub mode (use 'scion hub enable' first); in local mode, include the file contents in the message text")
+			return fmt.Errorf("--attach requires Hub mode (use 'fabric hub enable' first); in local mode, include the file contents in the message text")
 		}
 
 		// Local mode — structured messages are only available in Hub mode,
@@ -277,14 +277,14 @@ Examples:
 		var targets []string
 		if msgBroadcast || msgAll {
 			filters := map[string]string{
-				"scion.agent": "true",
+				"fabric.agent": "true",
 			}
 
 			if !msgAll {
 				projectDir, _ := config.GetResolvedProjectDir(projectPath)
 				if projectDir != "" {
-					filters["scion.project_path"] = projectDir
-					filters["scion.project"] = config.GetProjectName(projectDir)
+					filters["fabric.project_path"] = projectDir
+					filters["fabric.project"] = config.GetProjectName(projectDir)
 				}
 			}
 
@@ -343,11 +343,11 @@ Examples:
 }
 
 // resolveSenderIdentity determines the sender identity string for structured messages.
-// In agent context (SCION_AGENT_NAME set), returns "agent:<name>".
+// In agent context (FABRIC_AGENT_NAME set), returns "agent:<name>".
 // In user context, queries Hub for the current user and returns "user:<displayName>".
 func resolveSenderIdentity(hubCtx *HubContext) string {
 	// Agent context
-	if agentName := os.Getenv("SCION_AGENT_NAME"); agentName != "" {
+	if agentName := os.Getenv("FABRIC_AGENT_NAME"); agentName != "" {
 		return "agent:" + agentName
 	}
 
@@ -541,10 +541,10 @@ func sendOutboundMessageViaHub(hubCtx *HubContext, userRecipient string, message
 	}
 
 	// Determine the sending agent's name. This command is intended for use
-	// by agents running inside containers, where SCION_AGENT_NAME is set.
-	senderAgent := os.Getenv("SCION_AGENT_NAME")
+	// by agents running inside containers, where FABRIC_AGENT_NAME is set.
+	senderAgent := os.Getenv("FABRIC_AGENT_NAME")
 	if senderAgent == "" {
-		return fmt.Errorf("sending messages to users is only supported from within an agent container (SCION_AGENT_NAME not set)")
+		return fmt.Errorf("sending messages to users is only supported from within an agent container (FABRIC_AGENT_NAME not set)")
 	}
 
 	projectID, err := GetProjectID(hubCtx)
@@ -629,9 +629,9 @@ func sendGroupMessageViaHub(hubCtx *HubContext, recipients []messages.GroupRecip
 				}
 
 			case messages.RecipientUser:
-				senderAgent := os.Getenv("SCION_AGENT_NAME")
+				senderAgent := os.Getenv("FABRIC_AGENT_NAME")
 				if senderAgent == "" {
-					results[idx] = recipientResult{Recipient: recipStr, Status: "failed", Error: "sending to users requires agent context (SCION_AGENT_NAME not set)"}
+					results[idx] = recipientResult{Recipient: recipStr, Status: "failed", Error: "sending to users requires agent context (FABRIC_AGENT_NAME not set)"}
 					if !isJSONOutput() {
 						fmt.Printf("  Failed: %s: agent context required\n", recipStr)
 					}
@@ -736,7 +736,7 @@ var messageChannelsCmd = &cobra.Command{
 			return err
 		}
 		if hubCtx == nil {
-			return fmt.Errorf("listing message channels requires Hub mode (use 'scion hub enable' first)")
+			return fmt.Errorf("listing message channels requires Hub mode (use 'fabric hub enable' first)")
 		}
 		if !isJSONOutput() {
 			PrintUsingHub(hubCtx.Endpoint)

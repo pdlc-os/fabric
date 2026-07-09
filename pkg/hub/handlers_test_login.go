@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // TestLoginRequest is the request body for POST /api/v1/auth/test-login.
@@ -61,7 +61,7 @@ func (ws *WebServer) handleTestLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Validate test-login challenge token.
 	// Callers must present a short-lived JWT signed with the hub's user
-	// signing key and scoped to the "scion-test-login" audience.
+	// signing key and scoped to the "fabric-test-login" audience.
 	// Per RFC 7235 the auth scheme is case-insensitive; we also tolerate
 	// multiple spaces between scheme and token via strings.Fields.
 	authHeader := r.Header.Get("Authorization")

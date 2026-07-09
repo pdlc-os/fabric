@@ -2,7 +2,7 @@
 
 *Updated: 2026-02-18*
 
-This document outlines the incremental milestones required to evolve the Scion Kubernetes runtime to a fully functional, production-ready environment.
+This document outlines the incremental milestones required to evolve the Fabric Kubernetes runtime to a fully functional, production-ready environment.
 
 Each milestone is designed to be independently testable ("QAable") and builds upon the previous one.
 
@@ -48,7 +48,7 @@ See detailed design in `m1-design.md`.
 **Current workaround:** Workspace tar snapshot sync (`syncWorkspace`) uploads the local workspace to the container. Mutagen-based live sync keeps it up to date during the session.
 
 **Verification (Manual QA):**
-- Run: `scion start --runtime kubernetes` in a git repo.
+- Run: `fabric start --runtime kubernetes` in a git repo.
 - Success: Pod starts, `kubectl exec ls /workspace` shows the git repository content.
 
 ---
@@ -70,11 +70,11 @@ See detailed design in `m1-design.md`.
 
 **Tasks:**
 1.  [ ] **Secret Management:** Replace environment variable injection with proper Kubernetes Secrets for API keys and auth tokens.
-2.  [ ] **Status Reconciliation:** Update `scion list` to accurately reflect K8s Pod status (Pending, Running, CrashLoopBackOff) rather than just local state.
-3.  [ ] **Cleanup:** Ensure `scion delete` removes Secrets, ConfigMaps, and PVCs associated with the agent.
+2.  [ ] **Status Reconciliation:** Update `fabric list` to accurately reflect K8s Pod status (Pending, Running, CrashLoopBackOff) rather than just local state.
+3.  [ ] **Cleanup:** Ensure `fabric delete` removes Secrets, ConfigMaps, and PVCs associated with the agent.
 4.  [ ] **SecurityContext:** Set `FSGroup` and other pod security context fields for proper file permissions.
 5.  [ ] **Resource Requests/Limits:** CPU and memory requests/limits are implemented but need validation and tuning guidance.
 
 **Verification (Manual QA):**
 - Inspect Pod: `kubectl get pod <agent> -o yaml`. Verify no API keys are visible in `spec.containers.env`.
-- Run: `scion delete <agent>`. Verify all related K8s resources are gone.
+- Run: `fabric delete <agent>`. Verify all related K8s resources are gone.

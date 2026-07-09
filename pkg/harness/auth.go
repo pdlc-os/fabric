@@ -22,9 +22,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // GatherAuth populates an AuthConfig from the environment and filesystem.
@@ -77,7 +77,7 @@ func GatherAuthWithEnv(env map[string]string, localSources bool, authMeta *confi
 			lookup("GOOGLE_CLOUD_LOCATION"),
 		),
 		GoogleAppCredentials: lookup("GOOGLE_APPLICATION_CREDENTIALS"),
-		GCPMetadataMode:      lookup("SCION_METADATA_MODE"),
+		GCPMetadataMode:      lookup("FABRIC_METADATA_MODE"),
 	}
 
 	// File-sourced fields: check well-known paths (skip in broker mode)
@@ -266,20 +266,20 @@ func setAuthConfigFieldByTargetSuffix(auth *api.AuthConfig, target string) {
 }
 
 // OverlaySettings applies settings-based overrides to an AuthConfig.
-// It reads AuthSelectedType from scion-agent.json (top-level), which is
-// populated from scion's settings chain during provisioning.
+// It reads AuthSelectedType from fabric-agent.json (top-level), which is
+// populated from fabric's settings chain during provisioning.
 // Note: we intentionally do NOT fall back to the host's harness settings
 // (e.g. ~/.gemini/settings.json) because those contain harness-internal
 // auth type values (like "oauth-personal") that are not valid universal types.
-// agentDir is the directory containing scion-agent.json (which may differ
+// agentDir is the directory containing fabric-agent.json (which may differ
 // from filepath.Dir(agentHome) when split storage is active).
 func OverlaySettings(auth *api.AuthConfig, h api.Harness, agentDir string) {
 	selectedType := ""
 
-	// Check scion-agent.json for top-level auth_selectedType
-	scionAgentPath := filepath.Join(agentDir, "scion-agent.json")
-	if data, err := os.ReadFile(scionAgentPath); err == nil {
-		var cfg api.ScionConfig
+	// Check fabric-agent.json for top-level auth_selectedType
+	fabricAgentPath := filepath.Join(agentDir, "fabric-agent.json")
+	if data, err := os.ReadFile(fabricAgentPath); err == nil {
+		var cfg api.FabricConfig
 		if err := json.Unmarshal(data, &cfg); err == nil {
 			selectedType = cfg.AuthSelectedType
 		}

@@ -51,7 +51,7 @@
 <title>Image Dependencies</title>
 <polygon fill="lightblue" stroke="black" points="447.75,-266 154.25,-266 154.25,-230 447.75,-230 447.75,-266"/>
 <text xml:space="preserve" text-anchor="middle" x="301" y="-245.2" font-family="Times,serif" font-size="14.00">Image Dependencies</text>
-<text xml:space="preserve" text-anchor="middle" x="301" y="-234.7" font-family="Times,serif" font-size="14.00">(e.g., &#39;scion&#45;base&#39; uses &#39;core&#45;base&#39;)</text>
+<text xml:space="preserve" text-anchor="middle" x="301" y="-234.7" font-family="Times,serif" font-size="14.00">(e.g., &#39;fabric&#45;base&#39; uses &#39;core&#45;base&#39;)</text>
 </g>
 <!-- targets.sh&#45;&gt;Image Dependencies -->
 <g id="edge2" class="edge">

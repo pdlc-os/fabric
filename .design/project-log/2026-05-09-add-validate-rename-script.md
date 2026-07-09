@@ -17,13 +17,13 @@ Implemented a bash script that searches for the term "grove" (case-insensitive) 
 The script excludes:
 - `.design/grove-to-project-rename.md`
 - `.scratch/`
-- `/scion-volumes/scratchpad/`
+- `/fabric-volumes/scratchpad/`
 - `go.sum`
 - `changelog/`
 - `.git/`
 
 ## Observations
-The current codebase has over 44,000 occurrences of "grove" (including duplicates in `.scion/agents/...` workspaces). This indicates a significant amount of work remains for the full rename.
+The current codebase has over 44,000 occurrences of "grove" (including duplicates in `.fabric/agents/...` workspaces). This indicates a significant amount of work remains for the full rename.
 
 ## Verification Results
 - Script correctly identifies occurrences in files like `pkg/hub/handlers.go`.

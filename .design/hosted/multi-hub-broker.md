@@ -9,10 +9,10 @@
 
 Currently, a Runtime Broker is coupled 1:1 with a single Hub. This manifests in several places:
 
-- **Credential storage** (`~/.scion/broker-credentials.json`) holds a single `brokerId`, `secretKey`, and `hubEndpoint`.
+- **Credential storage** (`~/.fabric/broker-credentials.json`) holds a single `brokerId`, `secretKey`, and `hubEndpoint`.
 - **Server state** (`runtimebroker.Server`) has a single `hubClient`, single `heartbeat`, single `controlChannel`.
-- **Registration flow** (`scion broker register`) writes one set of credentials and saves one `hub.brokerId` to global settings.
-- **Co-located mode** (`scion server start --enable-hub --enable-runtime-broker`) auto-registers the broker with the embedded hub using in-memory credentials.
+- **Registration flow** (`fabric broker register`) writes one set of credentials and saves one `hub.brokerId` to global settings.
+- **Co-located mode** (`fabric server start --enable-hub --enable-runtime-broker`) auto-registers the broker with the embedded hub using in-memory credentials.
 
 A broker, as a concept, is a **host machine** that should be able to participate with **multiple hub endpoints** simultaneously. Use cases:
 
@@ -35,7 +35,7 @@ A broker, as a concept, is a **host machine** that should be able to participate
 ### 2.1 Credential Storage
 
 ```
-~/.scion/broker-credentials.json
+~/.fabric/broker-credentials.json
 {
   "brokerId": "uuid",
   "secretKey": "base64-encoded-256-bit-key",
@@ -60,16 +60,16 @@ All of these assume a single hub.
 
 ### 2.3 Registration Flow
 
-`scion broker register`:
+`fabric broker register`:
 1. Resolves hub endpoint from settings/env
 2. Creates broker on hub (`POST /api/v1/brokers`)
 3. Joins with token (`POST /api/v1/brokers/join`)
-4. Saves credentials to `~/.scion/broker-credentials.json`
+4. Saves credentials to `~/.fabric/broker-credentials.json`
 5. Saves `hub.brokerId` and `hub.endpoint` to global settings
 
 ### 2.4 Server Startup (Remote Broker)
 
-`scion broker start` / `scion server start --enable-runtime-broker`:
+`fabric broker start` / `fabric server start --enable-runtime-broker`:
 1. Loads broker credentials from file (or in-memory for co-located)
 2. Creates one `hubclient.Client` with HMAC auth
 3. Starts one `HeartbeatService`
@@ -132,7 +132,7 @@ Replace the single-file credential store with a directory-based or multi-entry s
 #### Option A: Directory-Based Store (Recommended)
 
 ```
-~/.scion/hub-credentials/
+~/.fabric/hub-credentials/
   dev.json          # Local dev hub
   prod.json         # Production hub
   team-alpha.json   # Team hub
@@ -145,7 +145,7 @@ Each file contains the existing `BrokerCredentials` structure, extended with a `
   "name": "prod",
   "brokerId": "uuid",
   "secretKey": "base64-...",
-  "hubEndpoint": "https://hub.scion.dev",
+  "hubEndpoint": "https://hub.fabric.dev",
   "authMode": "hmac",
   "registeredAt": "2026-..."
 }
@@ -154,7 +154,7 @@ Each file contains the existing `BrokerCredentials` structure, extended with a `
 Advantages:
 - Simple file-per-hub model
 - Easy to add/remove hubs without parsing a shared file
-- Natural mapping to `scion broker register --hub-name prod`
+- Natural mapping to `fabric broker register --hub-name prod`
 - Each file can have independent permissions
 - Backward compatible: migration reads old single file and moves it
 
@@ -167,7 +167,7 @@ Advantages:
       "name": "prod",
       "brokerId": "uuid",
       "secretKey": "base64-...",
-      "hubEndpoint": "https://hub.scion.dev",
+      "hubEndpoint": "https://hub.fabric.dev",
       "authMode": "hmac"
     },
     {
@@ -189,7 +189,7 @@ Disadvantages:
 #### Option C: Per-Hub Subdirectories
 
 ```
-~/.scion/hubs/
+~/.fabric/hubs/
   prod/
     credentials.json
     cache/          # Hub-specific template cache
@@ -265,7 +265,7 @@ Template hydration needs a hub client. With multiple hubs, the broker must route
 
 Incoming requests from hubs need authentication. With multiple hubs, the middleware must:
 - Accept signed requests from **any** connected hub's secret key
-- The broker uses a single `BrokerID` across all hubs (see Resolved Questions), so the `X-Scion-Broker-ID` header is the same for all connections
+- The broker uses a single `BrokerID` across all hubs (see Resolved Questions), so the `X-Fabric-Broker-ID` header is the same for all connections
 - Maintain a map of `hubEndpoint -> secretKey` for validation, trying each key until one matches
 
 ```go
@@ -279,29 +279,29 @@ type MultiBrokerAuthMiddleware struct {
 
 ```
 # Register with a specific hub, assigning an alias
-scion broker register --hub https://hub.scion.dev --name prod
+fabric broker register --hub https://hub.fabric.dev --name prod
 
 # Register with local dev hub
-scion broker register --hub http://localhost:8080 --name dev
+fabric broker register --hub http://localhost:8080 --name dev
 
 # Register with auto-detected hub from settings (backward compatible)
-scion broker register
+fabric broker register
 # -> uses hub.endpoint from settings, assigns name based on hostname/endpoint
 
 # List hub connections
-scion broker hubs
+fabric broker hubs
 
 # Remove a hub connection
-scion broker deregister --name prod
+fabric broker deregister --name prod
 ```
 
-The `--name` flag provides a human-friendly alias for the hub connection. If omitted, one is derived from the endpoint hostname, slugified (e.g., `hub-scion-dev`, `localhost`).
+The `--name` flag provides a human-friendly alias for the hub connection. If omitted, one is derived from the endpoint hostname, slugified (e.g., `hub-fabric-dev`, `localhost`).
 
-The broker uses the **same UUID** across all hub registrations. The UUID is stored in `~/.scion/settings.yaml` at `server.broker.broker_id`. On first registration, a UUID is generated locally by the broker and persisted to settings. Subsequent registrations to other hubs read and present this same UUID.
+The broker uses the **same UUID** across all hub registrations. The UUID is stored in `~/.fabric/settings.yaml` at `server.broker.broker_id`. On first registration, a UUID is generated locally by the broker and persisted to settings. Subsequent registrations to other hubs read and present this same UUID.
 
 ### 3.6 Settings Changes
 
-The global settings (`~/.scion/settings.yaml`) currently stores `server.broker.broker_id` (the broker's UUID) and `hub.endpoint`. This should evolve:
+The global settings (`~/.fabric/settings.yaml`) currently stores `server.broker.broker_id` (the broker's UUID) and `hub.endpoint`. This should evolve:
 
 ```yaml
 # Broker identity (unchanged — single UUID for this machine)
@@ -311,12 +311,12 @@ server:
 
 # Legacy (still supported, treated as default/unnamed connection)
 hub:
-  endpoint: https://hub.scion.dev
+  endpoint: https://hub.fabric.dev
 
 # New: explicit multi-hub configuration
 hub_connections:
   prod:
-    endpoint: https://hub.scion.dev
+    endpoint: https://hub.fabric.dev
   dev:
     endpoint: http://localhost:8080
 ```
@@ -325,7 +325,7 @@ The `server.broker.broker_id` is the canonical broker UUID and is shared across 
 
 ### 3.7 Co-located Mode Integration
 
-When running `scion server start --enable-hub --enable-runtime-broker`:
+When running `fabric server start --enable-hub --enable-runtime-broker`:
 
 1. The embedded hub creates a `HubConnection` named `"local"` (or `"colocated"`)
 2. In-memory credentials are injected directly into this connection
@@ -335,7 +335,7 @@ When running `scion server start --enable-hub --enable-runtime-broker`:
 If the server is also configured with external hub connections (via `hub_connections` in settings or credential files), those are established in parallel:
 
 ```
-scion server start \
+fabric server start \
   --enable-hub \
   --enable-runtime-broker \
   --enable-web
@@ -344,7 +344,7 @@ scion server start \
 This starts:
 - The local hub + web frontend
 - A broker connection to the local hub (in-memory, always present)
-- Additional broker connections to any hubs configured in `~/.scion/hub-credentials/`
+- Additional broker connections to any hubs configured in `~/.fabric/hub-credentials/`
 
 ### 3.8 Heartbeat Fan-Out
 
@@ -352,7 +352,7 @@ Each `HubConnection` runs its own independent `HeartbeatService`. Heartbeat payl
 
 Since groves are currently 1:1 with hubs (a grove is registered on exactly one hub), the broker-hub-grove combination is unique, making the filtering straightforward: the broker tracks which groves belong to which hub connection and includes only the relevant agents in each heartbeat.
 
-**Implementation note:** The grove-to-hub mapping is available from each grove's `.scion/settings.yaml` under the `hub` setting, where the endpoint uniquely identifies the hub. The `HeartbeatService` reads this mapping at startup and uses it to filter agent reports per hub. No additional persistence or control-channel inference is needed — the grove settings are the authoritative source.
+**Implementation note:** The grove-to-hub mapping is available from each grove's `.fabric/settings.yaml` under the `hub` setting, where the endpoint uniquely identifies the hub. The `HeartbeatService` reads this mapping at startup and uses it to filter agent reports per hub. No additional persistence or control-channel inference is needed — the grove settings are the authoritative source.
 
 ### 3.9 Control Channel Fan-Out
 
@@ -366,13 +366,13 @@ This works naturally because each hub maintains its own WebSocket and routes ind
 
 ### 3.10 Agent Namespace Isolation
 
-A key concern with multi-hub: **agent name collisions**. Two hubs might try to create agents with the same name. The current container naming scheme is `scion-<grove-slug>-<agent-name>`.
+A key concern with multi-hub: **agent name collisions**. Two hubs might try to create agents with the same name. The current container naming scheme is `fabric-<grove-slug>-<agent-name>`.
 
 Since grove slugs are derived from git remotes (which are globally unique URLs), and each hub manages distinct groves, collisions are unlikely. However, the `global` grove exists on every hub.
 
 
 **Mitigation options considered:**
-1. **Hub-scoped container prefix**: `scion-<hub-alias>-<grove-slug>-<agent-name>` - breaks existing containers
+1. **Hub-scoped container prefix**: `fabric-<hub-alias>-<grove-slug>-<agent-name>` - breaks existing containers
 2. **Conflict detection**: Before creating a container, check if the name is already in use. If so, append a hub-specific suffix.
 3. **Accept the risk**: Global grove collisions are the only realistic concern, and they're unlikely in practice since the global grove is typically used for one-off local agents.
 4. **Disable global grove on multi-hub brokers**: When a broker is connected to more than one hub, reject agent creation requests targeting the `global` grove. This eliminates the only realistic collision vector without changing container naming.
@@ -388,10 +388,10 @@ Since grove slugs are derived from git remotes (which are globally unique URLs),
 - Create `brokercredentials.MultiStore` (directory-based)
 - Reuse existing `server.broker.broker_id` from settings as the stable UUID across all registrations
 - Add migration logic from legacy single-file format
-- Update `scion broker register` to accept `--name` flag and present stable broker UUID
-- Update `scion broker deregister` to accept `--name` flag
-- Add `scion broker hubs` list command
-- Update `scion broker status` to show all connections
+- Update `fabric broker register` to accept `--name` flag and present stable broker UUID
+- Update `fabric broker deregister` to accept `--name` flag
+- Add `fabric broker hubs` list command
+- Update `fabric broker status` to show all connections
 - Enforce one dev-auth hub limit in `MultiStore.Save()`
 - Tests for `MultiStore`
 
@@ -403,7 +403,7 @@ Since grove slugs are derived from git remotes (which are globally unique URLs),
 - Update credential watcher to scan directory for changes (add/remove/modify)
 - Update `reinitializeHubServices()` to handle per-connection reload
 - Multi-key `BrokerAuthMiddleware` (keyed by hub endpoint, single broker UUID)
-- Implement per-hub heartbeat filtering (grove-to-hub mapping from grove `.scion/settings.yaml`)
+- Implement per-hub heartbeat filtering (grove-to-hub mapping from grove `.fabric/settings.yaml`)
 - Thread hub connection context through agent creation path for template routing
 - Reject global grove agent dispatch when multiple hub connections are active
 - Tests for multi-connection lifecycle
@@ -413,14 +413,14 @@ Since grove slugs are derived from git remotes (which are globally unique URLs),
 - Update co-located mode to create a `"local"` `HubConnection`
 - Enable additional file-based connections alongside co-located
 - Handle startup ordering (local hub must be ready before broker connects)
-- Update `scion server start` to log all hub connections
+- Update `fabric server start` to log all hub connections
 - Integration tests
 
 ### Phase 4: CLI Polish and Settings
 
 - `hub_connections` section in settings.yaml
-- `scion broker hubs` with status display (connected/disconnected per hub)
-- `scion broker provide --hub <name>` to scope provide/withdraw to a specific hub
+- `fabric broker hubs` with status display (connected/disconnected per hub)
+- `fabric broker provide --hub <name>` to scope provide/withdraw to a specific hub
 - Documentation updates
 
 ---
@@ -524,9 +524,9 @@ The following questions were raised during design review and have been resolved.
 
 ### 7.1 Broker Identity: Same UUID Across Hubs
 
-**Decision:** Use the **same `BrokerID` (UUID)** across all hubs. The UUID is the true identifier of the broker as a physical host. Hostnames are secondary and more prone to collisions than UUIDs. Each `scion broker register` presents the broker's existing UUID to the target hub during registration. If the broker has no UUID yet (first registration), one is generated locally and persisted for reuse with subsequent hub registrations.
+**Decision:** Use the **same `BrokerID` (UUID)** across all hubs. The UUID is the true identifier of the broker as a physical host. Hostnames are secondary and more prone to collisions than UUIDs. Each `fabric broker register` presents the broker's existing UUID to the target hub during registration. If the broker has no UUID yet (first registration), one is generated locally and persisted for reuse with subsequent hub registrations.
 
-**Implementation note:** The broker UUID is stored in `~/.scion/settings.yaml` at `server.broker.broker_id` (its current location). This is the canonical source. The per-connection credential files also store the broker ID for consistency, but it is the same value across all files.
+**Implementation note:** The broker UUID is stored in `~/.fabric/settings.yaml` at `server.broker.broker_id` (its current location). This is the canonical source. The per-connection credential files also store the broker ID for consistency, but it is the same value across all files.
 
 ### 7.2 Agent Visibility: Filtered by Hub
 
@@ -544,7 +544,7 @@ The following questions were raised during design review and have been resolved.
 
 ### 7.5 Both Standalone and Combo Mode Support Multi-Hub
 
-**Decision:** Both `scion broker start` (standalone) and `scion server start` (combo) support multi-hub. The code path is the same; the only difference is whether the `"local"` connection (co-located hub) exists. The co-located connection is always named `local`.
+**Decision:** Both `fabric broker start` (standalone) and `fabric server start` (combo) support multi-hub. The code path is the same; the only difference is whether the `"local"` connection (co-located hub) exists. The co-located connection is always named `local`.
 
 ### 7.6 CLI Hub Selection: Default to Current Grove's Hub
 
@@ -556,11 +556,11 @@ The following questions were raised during design review and have been resolved.
 
 ### 7.8 Hub Alias Naming: Slugified Hostname
 
-**Decision:** Use the hostname portion of the endpoint URL, slugified. Examples: `https://hub.scion.dev` -> `hub-scion-dev`, `http://localhost:8080` -> `localhost`. The co-located connection is always named `local`.
+**Decision:** Use the hostname portion of the endpoint URL, slugified. Examples: `https://hub.fabric.dev` -> `hub-fabric-dev`, `http://localhost:8080` -> `localhost`. The co-located connection is always named `local`.
 
 ### 7.9 Broker UUID Persistence and Registration Flow
 
-**Decision:** The broker UUID is stored in its current location: `~/.scion/settings.yaml` at `server.broker.broker_id`. This is the canonical source of the broker's identity.
+**Decision:** The broker UUID is stored in its current location: `~/.fabric/settings.yaml` at `server.broker.broker_id`. This is the canonical source of the broker's identity.
 
 - **UUID generation:** On first registration, the broker generates the UUID locally before contacting the hub. Since it is a UUID, the generation location does not matter.
 - **UUID conflicts on the hub:** If the hub already has a broker record with the same UUID (e.g., from a previous registration that was deregistered), this is a broken state — deregistration should have removed the hub-side record. The hub returns an error with a suggestion to manually delete the stale broker record on the hub and re-register.
@@ -568,7 +568,7 @@ The following questions were raised during design review and have been resolved.
 
 ### 7.10 Grove-to-Hub Mapping for Heartbeat Filtering
 
-**Decision:** The grove-to-hub mapping is read from each grove's `.scion/settings.yaml` under the `hub` setting. The hub endpoint stored there uniquely identifies which hub the grove belongs to. This is already persisted on disk and survives broker restarts. No additional mapping mechanism is needed — no control-channel inference, no separate persistence layer.
+**Decision:** The grove-to-hub mapping is read from each grove's `.fabric/settings.yaml` under the `hub` setting. The hub endpoint stored there uniquely identifies which hub the grove belongs to. This is already persisted on disk and survives broker restarts. No additional mapping mechanism is needed — no control-channel inference, no separate persistence layer.
 
 **Implementation:** At startup and when groves are added/removed, the broker scans provided groves' settings files and builds a `groveSlug -> hubEndpoint` map. Each `HeartbeatService` uses this map to include only agents from groves that match its hub connection's endpoint.
 
@@ -608,9 +608,9 @@ To avoid this late-error pattern, provider records could support an **enabled/di
 
 The migration must be seamless:
 
-1. On first run of the new code, check for `~/.scion/broker-credentials.json`
-2. If found, create `~/.scion/hub-credentials/` directory
-3. Move the file to `~/.scion/hub-credentials/<derived-name>.json`, adding the `name` field
+1. On first run of the new code, check for `~/.fabric/broker-credentials.json`
+2. If found, create `~/.fabric/hub-credentials/` directory
+3. Move the file to `~/.fabric/hub-credentials/<derived-name>.json`, adding the `name` field
 4. Remove the old file (or rename to `.bak`)
 5. All existing code paths that reference the old file path should fall through to the new store
 
@@ -620,7 +620,7 @@ The `server.broker.broker_id` in settings is unchanged (it remains the canonical
 
 ### 9.3 CLI Compatibility
 
-All existing `scion broker` commands continue to work without `--name`. They operate on the default/primary hub connection. The `--name` flag is additive.
+All existing `fabric broker` commands continue to work without `--name`. They operate on the default/primary hub connection. The `--name` flag is additive.
 
 ---
 
@@ -632,7 +632,7 @@ All existing `scion broker` commands continue to work without `--name`. They ope
 | Credential file corruption during concurrent writes | Hub connection fails | File-per-hub model reduces blast radius; mutex protects individual files |
 | Heartbeat load multiplication (N hubs x 1 heartbeat each) | Minor network overhead | Heartbeats are small (<1KB); 30s interval is already conservative; per-hub filtering reduces payload |
 | Control channel multiplexing complexity | Increased memory/goroutine usage | Each connection is independent; goroutine count scales linearly |
-| Grove-to-hub mapping drift | Wrong agents reported to wrong hub | Mapping read from grove `.scion/settings.yaml` hub settings; already persisted on disk |
+| Grove-to-hub mapping drift | Wrong agents reported to wrong hub | Mapping read from grove `.fabric/settings.yaml` hub settings; already persisted on disk |
 | Same UUID rejected by hub | Registration fails | Stale UUID after deregistration is a broken state; hub returns error with guidance to manually delete and re-register |
 | Migration breaks existing setups | Broker disconnects from hub | Automatic migration with fallback; old file preserved as backup |
 
@@ -642,7 +642,7 @@ All existing `scion broker` commands continue to work without `--name`. They ope
 
 The recommended approach is to introduce a `HubConnection` abstraction and evolve the broker from managing a single hub relationship to managing a collection of hub connections. The key design choices are:
 
-1. **Directory-based credential storage** (`~/.scion/hub-credentials/<name>.json`) with Option C (per-hub subdirectories) as a future enhancement
+1. **Directory-based credential storage** (`~/.fabric/hub-credentials/<name>.json`) with Option C (per-hub subdirectories) as a future enhancement
 2. **Independent services per connection** (heartbeat, control channel, hub client)
 3. **Same broker UUID across all hubs** (stored at `server.broker.broker_id` in settings; one machine = one identity)
 4. **Co-located mode as a special `"local"` connection** alongside file-based connections
@@ -651,5 +651,5 @@ The recommended approach is to introduce a `HubConnection` abstraction and evolv
 7. **Template requests routed to originating hub** (broker-hub relationships are isolated)
 8. **Global grove disabled in multi-hub mode** (dispatch rejected; provider registration preserved for single-hub fallback)
 9. **CLI defaults to current grove's hub** when `--hub` flag is omitted
-10. **Hub aliases derived from slugified hostname** (e.g., `hub-scion-dev`); co-located is always `local`
+10. **Hub aliases derived from slugified hostname** (e.g., `hub-fabric-dev`); co-located is always `local`
 11. **Phased implementation** starting with the credential store, then server refactoring, then combo mode, then CLI polish

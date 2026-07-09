@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/group"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/groupmembership"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/user"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/group"
+	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
+	"github.com/pdlc-os/fabric/pkg/ent/user"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 

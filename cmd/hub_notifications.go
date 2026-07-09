@@ -24,20 +24,20 @@ import (
 var hubNotificationsCmd = &cobra.Command{
 	Use:        "notifications",
 	Aliases:    []string{"notification"},
-	Short:      "Notifications have moved to 'scion notifications'",
-	Deprecated: "use 'scion notifications' instead.",
+	Short:      "Notifications have moved to 'fabric notifications'",
+	Deprecated: "use 'fabric notifications' instead.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return fmt.Errorf("this command has moved. Use 'scion notifications' instead")
+		return fmt.Errorf("this command has moved. Use 'fabric notifications' instead")
 	},
 }
 
 // hubNotificationsAckCmd is kept as a redirect.
 var hubNotificationsAckCmd = &cobra.Command{
 	Use:        "ack [notification-id]",
-	Short:      "Acknowledge notification(s) — moved to 'scion notifications ack'",
-	Deprecated: "use 'scion notifications ack' instead.",
+	Short:      "Acknowledge notification(s) — moved to 'fabric notifications ack'",
+	Deprecated: "use 'fabric notifications ack' instead.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return fmt.Errorf("this command has moved. Use 'scion notifications ack' instead")
+		return fmt.Errorf("this command has moved. Use 'fabric notifications ack' instead")
 	},
 }
 

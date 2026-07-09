@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -188,7 +188,7 @@ func TestLimitsHandler_TurnLimitDetection(t *testing.T) {
 	tmpDir := t.TempDir()
 	limitsPath := filepath.Join(tmpDir, "agent-limits.json")
 	statusPath := filepath.Join(tmpDir, "agent-info.json")
-	triggerPath := filepath.Join(tmpDir, "scion-limits-exceeded")
+	triggerPath := filepath.Join(tmpDir, "fabric-limits-exceeded")
 
 	err := InitLimitsFile(limitsPath, 3, 0)
 	require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestLimitsHandler_ModelCallLimitDetection(t *testing.T) {
 	tmpDir := t.TempDir()
 	limitsPath := filepath.Join(tmpDir, "agent-limits.json")
 	statusPath := filepath.Join(tmpDir, "agent-info.json")
-	triggerPath := filepath.Join(tmpDir, "scion-limits-exceeded")
+	triggerPath := filepath.Join(tmpDir, "fabric-limits-exceeded")
 
 	err := InitLimitsFile(limitsPath, 0, 2)
 	require.NoError(t, err)
@@ -389,13 +389,13 @@ func TestWriteLimitsState_AtomicWrite(t *testing.T) {
 }
 
 func TestLimitsTriggerFileConstant(t *testing.T) {
-	assert.Equal(t, "/tmp/scion-limits-exceeded", LimitsTriggerFile)
+	assert.Equal(t, "/tmp/fabric-limits-exceeded", LimitsTriggerFile)
 }
 
 func TestSignalLimitsExceeded_CreatesTriggerFile(t *testing.T) {
 	scrubHubEnv(t)
 	tmpDir := t.TempDir()
-	triggerPath := filepath.Join(tmpDir, "scion-limits-exceeded")
+	triggerPath := filepath.Join(tmpDir, "fabric-limits-exceeded")
 
 	h := &LimitsHandler{
 		triggerFilePath: triggerPath,

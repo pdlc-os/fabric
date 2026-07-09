@@ -20,8 +20,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ type mockAgentManager struct {
 	stopAgent  string
 }
 
-func (m *mockAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *mockAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	return nil, nil
 }
 

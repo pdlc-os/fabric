@@ -21,8 +21,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -451,14 +451,14 @@ func TestSendMessageViaHub_BroadcastPartialFailure(t *testing.T) {
 }
 
 func TestResolveSenderIdentity_AgentContext(t *testing.T) {
-	t.Setenv("SCION_AGENT_NAME", "test-worker")
+	t.Setenv("FABRIC_AGENT_NAME", "test-worker")
 	hubCtx := &HubContext{}
 	got := resolveSenderIdentity(hubCtx)
 	assert.Equal(t, "agent:test-worker", got)
 }
 
 func TestResolveSenderIdentity_NoContext(t *testing.T) {
-	t.Setenv("SCION_AGENT_NAME", "")
+	t.Setenv("FABRIC_AGENT_NAME", "")
 
 	// With no Hub auth and no agent env, should fall back to user:unknown
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -635,7 +635,7 @@ func TestSendOutboundMessageViaHub(t *testing.T) {
 		ProjectID: projectID,
 	}
 
-	t.Setenv("SCION_AGENT_NAME", "my-agent")
+	t.Setenv("FABRIC_AGENT_NAME", "my-agent")
 
 	err = sendOutboundMessageViaHub(hubCtx, "user:alice", "I need help", false)
 	require.NoError(t, err)
@@ -666,11 +666,11 @@ func TestSendOutboundMessageViaHub_RequiresAgentContext(t *testing.T) {
 		ProjectID: "grove-test",
 	}
 
-	t.Setenv("SCION_AGENT_NAME", "")
+	t.Setenv("FABRIC_AGENT_NAME", "")
 
 	err = sendOutboundMessageViaHub(hubCtx, "user:alice", "hello", false)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "SCION_AGENT_NAME not set")
+	assert.Contains(t, err.Error(), "FABRIC_AGENT_NAME not set")
 }
 
 func TestUserRecipientFlagValidation(t *testing.T) {

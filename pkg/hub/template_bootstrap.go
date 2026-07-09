@@ -20,9 +20,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // BootstrapTemplatesFromDir imports or updates local templates from a directory
@@ -124,7 +124,7 @@ func (s *Server) bootstrapSingleTemplate(ctx context.Context, name, templatePath
 }
 
 // templateConfigInfo holds the harness type and default harness config name
-// extracted from a template's scion-agent.yaml.
+// extracted from a template's fabric-agent.yaml.
 type templateConfigInfo struct {
 	Harness              string // inferred harness type (claude, gemini, etc.)
 	DefaultHarnessConfig string // actual harness-config name from config (e.g. "claude-web", "adk")
@@ -133,7 +133,7 @@ type templateConfigInfo struct {
 // detectHarnessFromConfig reads a template's config and returns the harness type
 // and the default harness config name. The harness type is inferred from the
 // config name or explicit harness field. The default harness config name preserves
-// the original value from scion-agent.yaml so it can be used for hub resolution.
+// the original value from fabric-agent.yaml so it can be used for hub resolution.
 func detectHarnessFromConfig(templatePath, templateName string) templateConfigInfo {
 	t := &config.Template{Name: templateName, Path: templatePath}
 	cfg, err := t.LoadConfig()
@@ -237,7 +237,7 @@ func (s *Server) importTemplateHarnessConfigs(ctx context.Context, templatePath,
 	}
 }
 
-// importTemplatesFromRemote fetches a remote source URL, discovers scion
+// importTemplatesFromRemote fetches a remote source URL, discovers fabric
 // templates within it, and registers each one into the Hub store scoped
 // to the given project. Returns the names of all templates imported or updated.
 func (s *Server) importTemplatesFromRemote(ctx context.Context, projectID, sourceURL string) ([]string, error) {
@@ -246,7 +246,7 @@ func (s *Server) importTemplatesFromRemote(ctx context.Context, projectID, sourc
 
 // importTemplatesFromWorkspace imports templates from a path within the
 // project's workspace filesystem. The workspacePath is relative to the project's
-// workspace root (e.g. "/.scion/templates" or "/my/custom/path").
+// workspace root (e.g. "/.fabric/templates" or "/my/custom/path").
 func (s *Server) importTemplatesFromWorkspace(ctx context.Context, project *store.Project, workspacePath string) ([]string, error) {
 	return s.importFromWorkspace(ctx, project, workspacePath, store.TemplateScopeProject, s.templateImportKind(), nil, nil)
 }

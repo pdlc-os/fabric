@@ -3,7 +3,7 @@
 This release focuses on stabilizing Kubernetes agent operations, enhancing GitHub App integration, and providing more robust management tools for brokers and runtimes.
 
 ## ⚠️ BREAKING CHANGES
-* **Agent CLI:** The `scion` CLI now explicitly blocks resource management commands (e.g., `create`, `delete`, `message`) when executed inside an agent container that lacks a reachable Hub endpoint. This prevents silent failures and guides users to configure `SCION_HUB_ENDPOINT` correctly. Informational commands like `version`, `help`, and `doctor` remain available.
+* **Agent CLI:** The `fabric` CLI now explicitly blocks resource management commands (e.g., `create`, `delete`, `message`) when executed inside an agent container that lacks a reachable Hub endpoint. This prevents silent failures and guides users to configure `FABRIC_HUB_ENDPOINT` correctly. Informational commands like `version`, `help`, and `doctor` remain available.
 
 ## 🚀 Features
 * **Broker & Runtime Management:**
@@ -27,12 +27,12 @@ This release focuses on stabilizing Kubernetes agent operations, enhancing GitHu
 ## 🐛 Fixes
 * **Kubernetes Agent Reliability:** 
     * **API Transition:** Switched to the Kubernetes Go client API for PTY execution, replacing the `kubectl` binary for better performance and stability.
-    * **Privilege Management:** Ensured all critical K8s operations (exec, attach, tmux readiness) run as the `scion` user.
+    * **Privilege Management:** Ensured all critical K8s operations (exec, attach, tmux readiness) run as the `fabric` user.
     * **Startup Sequencing:** Implemented a startup gate to guarantee directory synchronization is complete before an agent process launches.
     * **Cleanup Logic:** Improved K8s runtime cleanup by handling stale resources and "pod not found" errors gracefully.
 * **Observability & Logging:** Standardized `grove_id` and `agent_id` labels across all components to ensure they promote correctly to Cloud Logging.
 * **Web UI Consistency:** Migrated all web components to a standardized `extractApiError()` utility for consistent and helpful error messaging.
-* **Environment Precedence:** Fixed a critical issue where `SCION_GROVE_ID` from the environment was being overridden by local settings files, ensuring correct authoritative Grove association.
+* **Environment Precedence:** Fixed a critical issue where `FABRIC_GROVE_ID` from the environment was being overridden by local settings files, ensuring correct authoritative Grove association.
 * **General Stability:** 
     * Fixed an issue where explicit prompt arguments would error instead of overwriting `prompt.md`.
     * Resolved dark theme styling regressions and UI navigation bugs after agent deletion.

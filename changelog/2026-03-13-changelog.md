@@ -9,7 +9,7 @@ This release focuses on improving agent specialization with harness skills, reso
 * **Harness Skills for Templates:** Implemented robust support for harness skills within agent templates. Skills defined in `harness-configs` and templates are now automatically merged and mounted into the appropriate harness-specific directory (e.g., `.claude/skills`, `.gemini/skills`) during agent provisioning (consolidated from commits efefc44, 2a086ac, 5b54c66).
 * **Docs-Agent Satellite Service:** Introduced a new `docs-agent` satellite service to provide dedicated documentation capabilities alongside agent workflows (consolidated from commits 092ffde, 58f21c2, fd1b1e2).
 * **Shared Directory Management UI:** Added web UI support for managing and viewing grove shared directories (commit 7d7acfb).
-* **Terminal & UX Enhancements:** Enabled tmux mouse mode by default for better terminal interactivity and introduced a custom Scion bell icon for browser notifications (commits c915da9, 343382e).
+* **Terminal & UX Enhancements:** Enabled tmux mouse mode by default for better terminal interactivity and introduced a custom Fabric bell icon for browser notifications (commits c915da9, 343382e).
 
 ## 🐛 Fixes
 * **Multi-Hub Routing & Dispatch:**

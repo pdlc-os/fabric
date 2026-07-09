@@ -31,8 +31,8 @@ import type { Secret, SecretType, ResourceScope, InjectionMode } from '../../sha
 import { apiFetch, extractApiError } from '../../client/api.js';
 import { resourceStyles } from './resource-styles.js';
 
-@customElement('scion-secret-list')
-export class ScionSecretList extends LitElement {
+@customElement('fabric-secret-list')
+export class FabricSecretList extends LitElement {
   @property() scope: ResourceScope = 'user';
   @property() scopeId = '';
   @property() apiBasePath = '/api/v1';
@@ -548,6 +548,6 @@ export class ScionSecretList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-secret-list': ScionSecretList;
+    'fabric-secret-list': FabricSecretList;
   }
 }

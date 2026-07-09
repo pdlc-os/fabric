@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit tests for scion_harness.py — the shared harness provisioner library.
+"""Unit tests for fabric_harness.py — the shared harness provisioner library.
 
 Table-driven tests covering:
   - Auth engine (explicit selection, precedence, no-auth gate, error messages)
@@ -23,7 +23,7 @@ from typing import Any
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import scion_harness as sh
+import fabric_harness as sh
 
 
 class TestVersionContract(unittest.TestCase):
@@ -333,31 +333,31 @@ class TestSecretWhitespace(unittest.TestCase):
 
 class TestStripManagedBlock(unittest.TestCase):
     def test_strip_standard_markers(self):
-        content = "before\n<!-- BEGIN SCION MANAGED -->\nmanaged\n<!-- END SCION MANAGED -->\nafter"
+        content = "before\n<!-- BEGIN FABRIC MANAGED -->\nmanaged\n<!-- END FABRIC MANAGED -->\nafter"
         result = sh._strip_managed_block(content)
         self.assertIn("before", result)
         self.assertIn("after", result)
         self.assertNotIn("managed", result)
 
     def test_strip_codex_legacy_markers(self):
-        content = "user\n<!-- BEGIN SCION MANAGED CODEX INSTRUCTIONS -->\nstuff\n<!-- END SCION MANAGED CODEX INSTRUCTIONS -->\nrest"
+        content = "user\n<!-- BEGIN FABRIC MANAGED CODEX INSTRUCTIONS -->\nstuff\n<!-- END FABRIC MANAGED CODEX INSTRUCTIONS -->\nrest"
         result = sh._strip_managed_block(content)
         self.assertIn("user", result)
         self.assertIn("rest", result)
         self.assertNotIn("stuff", result)
 
     def test_strip_hermes_legacy_markers(self):
-        content = "user\n<!-- BEGIN SCION MANAGED HERMES INSTRUCTIONS -->\nstuff\n<!-- END SCION MANAGED HERMES INSTRUCTIONS -->\nrest"
+        content = "user\n<!-- BEGIN FABRIC MANAGED HERMES INSTRUCTIONS -->\nstuff\n<!-- END FABRIC MANAGED HERMES INSTRUCTIONS -->\nrest"
         result = sh._strip_managed_block(content)
         self.assertNotIn("stuff", result)
 
     def test_strip_copilot_legacy_markers(self):
-        content = "user\n<!-- SCION_MANAGED_BEGIN -->\nstuff\n<!-- SCION_MANAGED_END -->\nrest"
+        content = "user\n<!-- FABRIC_MANAGED_BEGIN -->\nstuff\n<!-- FABRIC_MANAGED_END -->\nrest"
         result = sh._strip_managed_block(content)
         self.assertNotIn("stuff", result)
 
     def test_unclosed_marker_preserved(self):
-        content = "before\n<!-- BEGIN SCION MANAGED -->\nunclosed content"
+        content = "before\n<!-- BEGIN FABRIC MANAGED -->\nunclosed content"
         result = sh._strip_managed_block(content)
         self.assertEqual(result, content)
 
@@ -380,8 +380,8 @@ class TestProjectInstructions(unittest.TestCase):
         sh.project_instructions(ctx, target, system_prompt_mode="prepend_to_instructions")
 
         content = open(target).read()
-        self.assertIn("<!-- BEGIN SCION MANAGED -->", content)
-        self.assertIn("<!-- END SCION MANAGED -->", content)
+        self.assertIn("<!-- BEGIN FABRIC MANAGED -->", content)
+        self.assertIn("<!-- END FABRIC MANAGED -->", content)
         self.assertIn("System Instruction", content)
         self.assertIn("You are helpful.", content)
         self.assertIn("Agent Instructions", content)
@@ -396,7 +396,7 @@ class TestProjectInstructions(unittest.TestCase):
         target_dir = tempfile.mkdtemp()
         target = os.path.join(target_dir, "AGENTS.md")
         with open(target, "w") as f:
-            f.write("<!-- BEGIN SCION MANAGED -->\nold\n<!-- END SCION MANAGED -->\nuser content\n")
+            f.write("<!-- BEGIN FABRIC MANAGED -->\nold\n<!-- END FABRIC MANAGED -->\nuser content\n")
 
         sh.project_instructions(ctx, target)
 
@@ -667,7 +667,7 @@ class TestOriginalAPI(unittest.TestCase):
         import io
         with mock.patch("sys.stderr", new_callable=io.StringIO) as fake_stderr:
             sh.warn("test warning")
-            self.assertIn("scion_harness: test warning", fake_stderr.getvalue())
+            self.assertIn("fabric_harness: test warning", fake_stderr.getvalue())
 
 
 if __name__ == "__main__":

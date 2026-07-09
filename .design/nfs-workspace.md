@@ -6,7 +6,7 @@
 **Status:** Design proposal — **all open questions (Q1–Q6) resolved with maintainer** (see §11)
 **Vocabulary:** follows `GLOSSARY.md` (Runtime Broker, Project, workspace sharing modes)
 **Reviewers:** @ptone
-**Context:** Multi-node Scion (Postgres-backed Hub, brokers/agents spread across VMs and GKE/Cloud Run) needs a shared filesystem so an agent can reach its project workspace regardless of which node it lands on.
+**Context:** Multi-node Fabric (Postgres-backed Hub, brokers/agents spread across VMs and GKE/Cloud Run) needs a shared filesystem so an agent can reach its project workspace regardless of which node it lands on.
 
 Inputs (verified against source):
 `pkg/runtime/common.go`, `pkg/runtime/k8s_runtime.go`, `pkg/config/shared_dirs.go`,
@@ -18,23 +18,23 @@ Inputs (verified against source):
 
 ## 1. Problem statement
 
-Workspace storage in Scion is **node-local** today. Two facts make that fatal once
+Workspace storage in Fabric is **node-local** today. Two facts make that fatal once
 agents can be scheduled across nodes:
 
 1. **Docker/VM path.** The Runtime Broker computes a host path
-   (`~/.scion/project-configs/<slug>__<uuid>/...` or a git checkout) and bind-mounts
+   (`~/.fabric/project-configs/<slug>__<uuid>/...` or a git checkout) and bind-mounts
    it into the container: `-v HOST:/workspace` (`pkg/runtime/common.go:181-241`). That
    host path only exists on the node where the Runtime Broker created it. A second agent for
    the same project, dispatched to a different VM, sees an empty disk.
 
 2. **Kubernetes path.** The workspace volume is an **EmptyDir**
    (`pkg/runtime/k8s_runtime.go:1080-1087`); the Runtime Broker then copies files into the pod
-   after start via `kubectl cp`, gated on a `/tmp/.scion-home-ready` marker
+   after start via `kubectl cp`, gated on a `/tmp/.fabric-home-ready` marker
    (`k8s_runtime.go:317-350`). Contents live only inside that pod and die with it.
    There is no shared durable workspace at all.
 
 Shared directories are the one place a cross-node primitive already exists: on K8s
-they are **project-scoped `ReadWriteMany` PVCs** named `scion-shared-<project>-<name>`
+they are **project-scoped `ReadWriteMany` PVCs** named `fabric-shared-<project>-<name>`
 (`k8s_runtime.go:657-751`), storage class from `KubernetesConfig.SharedDirStorageClass`.
 On Docker they are plain host bind mounts (`pkg/config/shared_dirs.go`). So the RWX
 PVC concept is proven; we extend the same idea to the **workspace** and give Docker an
@@ -53,7 +53,7 @@ project/agent and tells the runtime how to mount it.
   **mounting** the share, is the Hub / Runtime Broker's job (§4.2). A single NFS instance may
   expose **multiple shares** and serve **multiple Hub instances within one project**.
 - **A distributed POSIX lock manager.** We rely on NFS-native advisory locking plus
-  Scion's existing per-agent state isolation; we do *not* build a lock service.
+  Fabric's existing per-agent state isolation; we do *not* build a lock service.
 - **Replacing GCS-FUSE volumes.** `type: gcs` volumes (`common.go:142-163`,
   `k8s_runtime.go:1238-1275`) stay as-is; NFS is a parallel backend.
 - **Auto-migration of existing node-local workspaces.** New backend applies to new
@@ -68,11 +68,11 @@ project/agent and tells the runtime how to mount it.
 | Workspace storage | host bind mount `-v HOST:/workspace` (`common.go:185`) | EmptyDir + post-start `kubectl cp` (`k8s_runtime.go:1084`, `:317-350`) |
 | Workspace host path | Runtime Broker-computed, node-local (`agent/run.go:755-780`, `start_context.go:92-110`) | n/a (synced in) |
 | Container workspace path | `ResolveContainerWorkspace` → `/workspace` or `/repo-root/<rel>` (`common.go:52-69`) | same logic, `config.ContainerWorkspace` |
-| Shared dirs | host bind mount under `project-configs/.../shared-dirs/<name>` (`shared_dirs.go:33-118`) | project-scoped RWX PVC `scion-shared-<project>-<name>` (`k8s_runtime.go:657-751`) |
+| Shared dirs | host bind mount under `project-configs/.../shared-dirs/<name>` (`shared_dirs.go:33-118`) | project-scoped RWX PVC `fabric-shared-<project>-<name>` (`k8s_runtime.go:657-751`) |
 | Volume types | `local`, `gcs` (`api/types.go:248-279`) | `gcs` (CSI), no local bind | 
-| Container UID | host user `scion` | UID/GID 1000, `FSGroup=hostGID` (`k8s_runtime.go:1021-1033`) |
+| Container UID | host user `fabric` | UID/GID 1000, `FSGroup=hostGID` (`k8s_runtime.go:1021-1033`) |
 | Placement metadata | none on Agent; Runtime Broker decides at dispatch | none |
-| Workspace entity | **none** — derived from `Project.GitRemote` + workspace sharing mode (today a 2-value label `scion.dev/workspace-mode` ∈ {`shared`,`per-agent`}, `store/models.go:177-184`; glossary's canonical 3 modes are the target — §3.1) | same |
+| Workspace entity | **none** — derived from `Project.GitRemote` + workspace sharing mode (today a 2-value label `fabric.dev/workspace-mode` ∈ {`shared`,`per-agent`}, `store/models.go:177-184`; glossary's canonical 3 modes are the target — §3.1) | same |
 
 Key data structures:
 
@@ -147,7 +147,7 @@ answers "*is a shared NFS workspace available on this Hub?*"; whether a given ag
 it follows mechanically from the project's sharing mode.
 
 **Terminology note:** today the code carries only a two-value label
-`scion.dev/workspace-mode ∈ {shared, per-agent}` (`store/models.go:177-184`). The
+`fabric.dev/workspace-mode ∈ {shared, per-agent}` (`store/models.go:177-184`). The
 glossary's three canonical modes (Shared-plain / Worktree-per-agent / Clone-per-agent)
 are the target vocabulary; aligning the label/enum to all three is a prerequisite
 clean-up for this work (Worktree-per-agent is noted as "not yet on Hub-managed
@@ -161,7 +161,7 @@ projects").
 
 ```
             ┌────────────── NFS server (Filestore / self-hosted) ─────────────┐
-            │  export:  /scion-workspaces                                       │
+            │  export:  /fabric-workspaces                                       │
             │    projects/<pid>/workspace                                       │
             │    projects/<pid>/shared-dirs/<name>                              │
             └───────▲───────────────────────────────▲──────────────────────────┘
@@ -214,7 +214,7 @@ Implementation notes:
 ### 4.3 Path computation change (the only real code change for Model A)
 
 Today the Runtime Broker resolves the workspace/shared-dir host path under
-`~/.scion/project-configs/...` (`pkg/config/shared_dirs.go:33-54`,
+`~/.fabric/project-configs/...` (`pkg/config/shared_dirs.go:33-54`,
 `runtimebroker/start_context.go:92-110`). With backend=`nfs`, that resolution is
 redirected to the NFS mountpoint:
 
@@ -225,7 +225,7 @@ shared dir host path = hostBase/projects/<pid>/shared-dirs/<name>
 ```
 
 `SharedDirsToVolumeMounts` (`shared_dirs.go:90-118`) is unchanged in shape — it still
-emits `VolumeMount{Source: hostPath, Target: /scion-volumes/<name>}`; only the base
+emits `VolumeMount{Source: hostPath, Target: /fabric-volumes/<name>}`; only the base
 path moves onto NFS. The container sees **no difference** — it is still a bind mount at
 `/workspace` (or `/repo-root/<rel>`), and the existing repo-root tmpfs-shadow isolation
 (`common.go:357-362`) continues to protect per-agent state.
@@ -265,21 +265,21 @@ minimum per instance — one share per workspace is economically impossible).
 # Provisioned once by operator/Hub-bootstrap:
 apiVersion: v1
 kind: PersistentVolume
-metadata: { name: scion-workspaces }
+metadata: { name: fabric-workspaces }
 spec:
   capacity: { storage: 1Ti }
   accessModes: [ReadWriteMany]
-  nfs: { server: 10.0.0.2, path: /scion-workspaces }   # or csi: filestore.csi...
+  nfs: { server: 10.0.0.2, path: /fabric-workspaces }   # or csi: filestore.csi...
   mountOptions: [vers=4.1, hard, nconnect=4]
   persistentVolumeReclaimPolicy: Retain
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
-metadata: { name: scion-workspaces, namespace: scion-agents }
+metadata: { name: fabric-workspaces, namespace: fabric-agents }
 spec:
   accessModes: [ReadWriteMany]
   storageClassName: ""          # bind to the static PV
-  volumeName: scion-workspaces
+  volumeName: fabric-workspaces
   resources: { requests: { storage: 1Ti } }
 ```
 
@@ -288,7 +288,7 @@ Pod spec the runtime builds (replaces the EmptyDir at `k8s_runtime.go:1080-1087`
 ```yaml
 volumes:
 - name: workspace
-  persistentVolumeClaim: { claimName: scion-workspaces }
+  persistentVolumeClaim: { claimName: fabric-workspaces }
 containers:
 - name: agent
   volumeMounts:
@@ -329,7 +329,7 @@ volumes:
 - name: workspace
   nfs:
     server: 10.0.0.2
-    path: /scion-workspaces/projects/<pid>/workspace   # server-side path = isolation
+    path: /fabric-workspaces/projects/<pid>/workspace   # server-side path = isolation
     readOnly: false
 containers:
 - volumeMounts: [{ name: workspace, mountPath: /workspace }]
@@ -345,7 +345,7 @@ Today K8s starts with an empty workspace and the Runtime Broker `kubectl cp`s fi
 (`k8s_runtime.go:317-350`). With an NFS-backed workspace the bytes are **already
 present** on shared storage. The post-start sync of *workspace contents* becomes
 unnecessary in the NFS case — provisioning (clone) happens once, out-of-band (§7), not
-per-pod. Home-dir/secret sync and the `/tmp/.scion-home-ready` gate may still be needed
+per-pod. Home-dir/secret sync and the `/tmp/.fabric-home-ready` gate may still be needed
 for non-workspace material; that path stays, but the workspace copy step is skipped
 when backend=`nfs`. This is a meaningful simplification *and* a behavior change to call
 out in review (§11 Q5).
@@ -374,7 +374,7 @@ type V1NFSConfig struct {
 
     // Stable, node-independent ownership for NFS-backed trees (§9.1). Default
     // 1000:1000 to converge with the K8s pod UID/GID. The Runtime Broker advertises
-    // these as SCION_HOST_UID/GID for NFS-backed agents instead of os.Getuid().
+    // these as FABRIC_HOST_UID/GID for NFS-backed agents instead of os.Getuid().
     UID int `json:"uid,omitempty"` // default 1000
     GID int `json:"gid,omitempty"` // default 1000
 
@@ -386,7 +386,7 @@ type V1NFSConfig struct {
 type V1NFSShare struct {
     ID     string `json:"id,omitempty"`      // stable share id → mount dir + (K8s) PV name
     Server string `json:"server,omitempty"`  // e.g. 10.0.0.2 or Filestore IP
-    Export string `json:"export,omitempty"`  // server export path, e.g. /scion-workspaces
+    Export string `json:"export,omitempty"`  // server export path, e.g. /fabric-workspaces
     PVName string `json:"pv_name,omitempty"` // K8s static PV+subPath strategy (5.1)
 }
 ```
@@ -464,7 +464,7 @@ runs. Where the clone executes differs by model:
 
 **First-access guard (shared mode):** multiple agents for the same project may start
 concurrently and race to clone the same dir. Guard with one of:
-- a **sentinel file** (`.scion-provisioned`) created atomically after a successful clone;
+- a **sentinel file** (`.fabric-provisioned`) created atomically after a successful clone;
 - a **Postgres advisory lock** keyed by project-id (the Hub already uses advisory locks
   — see commit `dcd4e0f6`/`f6d2a727` — so this is a natural, cross-node-correct choice);
 - an NFS **advisory `flock`** on a lockfile in the project dir (works on NFSv4).
@@ -506,7 +506,7 @@ Hub (any replica)        K8s runtime (Runtime Broker)        kube-apiserver / ku
    │ resolve backend=nfs       │                            │                         │
    │ subPath=projects/<pid>/workspace                       │                         │
    │ ── CreateAgentConfig ────►│                            │                         │
-   │             ensure PVC scion-workspaces (reuse if exists, k8s_runtime style)     │
+   │             ensure PVC fabric-workspaces (reuse if exists, k8s_runtime style)     │
    │             buildPod: volume=PVC, mount /workspace subPath=<subPath>             │
    │             initContainer: clone into subPath (advisory-locked)                  │
    │                           ├─ create Pod ──────────────►│                         │
@@ -527,16 +527,16 @@ Rewritten per the maintainer's Q2 guidance (*study the existing remapping, then 
 on host-vs-NFS, keep it simple*). How it works today and the minimal branch NFS needs:
 
 **How Docker reconciles host-FS ownership today (verified):**
-- The Runtime Broker injects its **own host UID/GID** as `SCION_HOST_UID`/`SCION_HOST_GID`
+- The Runtime Broker injects its **own host UID/GID** as `FABRIC_HOST_UID`/`FABRIC_HOST_GID`
   (`common.go:281-282` → `os.Getuid()/os.Getgid()`).
-- Container starts as **root**; `sciontool init` → `setupHostUser()`
-  (`cmd/sciontool/commands/init.go:923`) **remaps the image's `scion` user to that host
-  UID/GID** via `usermod -o -u $SCION_HOST_UID -g $SCION_HOST_GID scion` (`init.go:1045`;
+- Container starts as **root**; `fabrictool init` → `setupHostUser()`
+  (`cmd/fabrictool/commands/init.go:923`) **remaps the image's `fabric` user to that host
+  UID/GID** via `usermod -o -u $FABRIC_HOST_UID -g $FABRIC_HOST_GID fabric` (`init.go:1045`;
   direct `/etc/passwd` fast-path on fuse-overlayfs, `:1033/:1086`), `chown`s the
   workspace (`ensureWorkspaceOwnership`, `:1416`), then drops privileges. Files thus land
   on the bind mount **owned by the Runtime Broker's host user** — fine, because the disk is
   node-local.
-- Podman rootless uses `--userns=keep-id:uid=1000,gid=1000` + `SCION_KEEPID_UID` with an
+- Podman rootless uses `--userns=keep-id:uid=1000,gid=1000` + `FABRIC_KEEPID_UID` with an
   early drop to 1000 (`podman.go:172`, `init.go:975`).
 - K8s uses a **fixed** UID/GID 1000 + `FSGroup=hostGID` (`k8s_runtime.go:1021-1033`).
 
@@ -555,12 +555,12 @@ uid, gid := os.Getuid(), os.Getgid()        // host-FS path: UNCHANGED (today's 
 if backend == nfs {
     uid, gid = cfg.NFS.UID, cfg.NFS.GID      // stable; default 1000:1000 to match K8s
 }
-addEnv("SCION_HOST_UID", uid); addEnv("SCION_HOST_GID", gid)
+addEnv("FABRIC_HOST_UID", uid); addEnv("FABRIC_HOST_GID", gid)
 ```
 
 The whole downstream remap pipeline (`setupHostUser` → `usermod`/passwd-edit → drop) is
 **unchanged** — it already does the right thing for whatever UID it's told; for NFS it
-remaps `scion` to the stable UID instead of the host Runtime Broker UID. One branch on the
+remaps `fabric` to the stable UID instead of the host Runtime Broker UID. One branch on the
 *value advertised*, no new remap machinery.
 
 **Chown discipline on NFS:** do **not** recursively `chown` the NFS tree on every start
@@ -593,7 +593,7 @@ scheme for NFS-backed projects and treat rootless+NFS as initially unsupported (
   workspaces on NFS (Q3).
 - **Shared-plain (on shared NFS workspace):** one directory mounted into all agents,
   intentionally no isolation (plain/non-git). Concurrent writers coordinate at the
-  application level; Scion's per-agent state already lives outside this mount.
+  application level; Fabric's per-agent state already lives outside this mount.
 - NFSv4 supports byte-range + `flock` advisory locks; NFSv3 needs `rpc.lockd`. Prefer
   **NFSv4.1** in mount options to get reliable locking and `nconnect` throughput.
 
@@ -675,7 +675,7 @@ future move to instance-per-Hub is a config change, not a redesign.
 
 ## 11. Maintainer decisions (all resolved)
 
-All six questions were resolved with @ptone over `scion message` (2026-06-02), one at a
+All six questions were resolved with @ptone over `fabric message` (2026-06-02), one at a
 time; each decision is folded into the sections noted below.
 
 - **Q1 — NFS server & host-mount ownership. [RESOLVED]** Operator creates and
@@ -684,8 +684,8 @@ time; each decision is folded into the sections noted below.
   expose multiple shares and serve multiple Hub instances within a project. Reflected
   in §1.1, §4.2, §6.1.
 - **Q2 — UID alignment. [RESOLVED]** Studied the existing remapping: Docker advertises
-  the Runtime Broker's host UID (`SCION_HOST_UID`, `common.go:281`) and `sciontool init` remaps
-  `scion` to it (`usermod`, `init.go:1045`); K8s is fixed at 1000. NFS needs a *stable*
+  the Runtime Broker's host UID (`FABRIC_HOST_UID`, `common.go:281`) and `fabrictool init` remaps
+  `fabric` to it (`usermod`, `init.go:1045`); K8s is fixed at 1000. NFS needs a *stable*
   node-independent UID, so the design **branches on host-vs-NFS**: for NFS-backed agents
   the Runtime Broker advertises a stable configured `NFS.UID/GID` (default **1000:1000**,
   matching K8s) instead of `os.Getuid()`, reusing the unchanged remap pipeline; per-start
@@ -710,7 +710,7 @@ time; each decision is folded into the sections noted below.
   NFS workspace via an **init container** (mounts the same NFS volume, clones/worktree-adds
   once under a Postgres advisory lock on Project ID), and **skip the post-start `kubectl
   cp` of workspace contents** when backend=nfs. The home-dir/secret sync and the
-  `/tmp/.scion-home-ready` readiness gate are unchanged, and the workspace `kubectl cp` is
+  `/tmp/.fabric-home-ready` readiness gate are unchanged, and the workspace `kubectl cp` is
   retained for the local backend. Reflected in §5.5, §7, §8.2.
 - **Q6 — `VolumeMount` nfs type. [RESOLVED — yes, NFS first-class]** Add `nfs` as a
   first-class `VolumeMount.Type` with a `Server` field (`Source` = server export path);
@@ -723,7 +723,7 @@ time; each decision is folded into the sections noted below.
 
 ## 12. Summary
 
-NFS-backed workspaces reuse Scion's proven RWX-PVC pattern (today's shared dirs) and
+NFS-backed workspaces reuse Fabric's proven RWX-PVC pattern (today's shared dirs) and
 its existing "Runtime Broker realizes the mount the Hub describes" split. The change is mostly
 **path mapping + provisioning + config**, not a rewrite:
 

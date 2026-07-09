@@ -26,10 +26,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // setupMessageTestAgent creates a project, runtime broker, and agent for message tests.
@@ -146,7 +146,7 @@ func TestHandleAgentMessage_StoppedReturns409(t *testing.T) {
 	if errResp.Error.Code != ErrCodeAgentNotRunning {
 		t.Errorf("expected error code %q, got %q", ErrCodeAgentNotRunning, errResp.Error.Code)
 	}
-	if want := `Agent "stopped-agent" is stopped. Use 'scion start' to start a new session.`; errResp.Error.Message != want {
+	if want := `Agent "stopped-agent" is stopped. Use 'fabric start' to start a new session.`; errResp.Error.Message != want {
 		t.Errorf("expected message %q, got %q", want, errResp.Error.Message)
 	}
 }
@@ -190,7 +190,7 @@ func TestHandleAgentMessage_ErrorReturns409(t *testing.T) {
 	if errResp.Error.Code != ErrCodeAgentNotRunning {
 		t.Errorf("expected error code %q, got %q", ErrCodeAgentNotRunning, errResp.Error.Code)
 	}
-	if want := `Agent "error-agent" is in error state. Use 'scion start' to restart.`; errResp.Error.Message != want {
+	if want := `Agent "error-agent" is in error state. Use 'fabric start' to restart.`; errResp.Error.Message != want {
 		t.Errorf("expected message %q, got %q", want, errResp.Error.Message)
 	}
 }

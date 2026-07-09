@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package plugin provides runtime plugin loading and management for scion.
+// Package plugin provides runtime plugin loading and management for fabric.
 // It supports loading external message broker implementations as separate
 // processes using hashicorp/go-plugin.
 package plugin
@@ -20,8 +20,8 @@ package plugin
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 const (
@@ -34,13 +34,13 @@ const (
 
 	// MagicCookieKey is the magic cookie key for go-plugin handshake.
 	// This prevents users from accidentally executing plugin binaries.
-	MagicCookieKey = "SCION_PLUGIN"
+	MagicCookieKey = "FABRIC_PLUGIN"
 
 	// MagicCookieValue is the magic cookie value for go-plugin handshake.
-	MagicCookieValue = "scion-plugin-v1"
+	MagicCookieValue = "fabric-plugin-v1"
 
 	// PluginBinaryPrefix is the naming convention prefix for plugin binaries.
-	PluginBinaryPrefix = "scion-plugin-"
+	PluginBinaryPrefix = "fabric-plugin-"
 )
 
 // PluginsConfig holds configuration for all plugins, loaded from settings.
@@ -156,9 +156,9 @@ type PluginInfo struct {
 	// Version is the plugin's version string.
 	Version string
 
-	// MinScionVersion is the minimum scion version this plugin targets.
-	// Scion logs a warning if the plugin targets a newer version.
-	MinScionVersion string
+	// MinFabricVersion is the minimum fabric version this plugin targets.
+	// Fabric logs a warning if the plugin targets a newer version.
+	MinFabricVersion string
 
 	// ChannelID is the message channel identifier this broker plugin handles.
 	// When set, the FanOutEventBus uses this value (instead of the plugin's

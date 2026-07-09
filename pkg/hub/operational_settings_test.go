@@ -20,8 +20,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
 )
@@ -641,10 +641,10 @@ func TestSnapshot_GitHubAppExcludesSecrets(t *testing.T) {
 // --- NB5 regression tests ---
 
 func TestApplyMaintenanceFromSnapshot_EnvWinsOverAbsentDBRow(t *testing.T) {
-	// Scenario: no maintenance row in DB, but SCION_SERVER_ADMIN_MODE=true env set.
+	// Scenario: no maintenance row in DB, but FABRIC_SERVER_ADMIN_MODE=true env set.
 	// Expected: MaintenanceState retains whatever it was initialized with (env at startup).
 	// ApplyMaintenanceFromSnapshot should be a no-op when HasMaintenanceRow is false.
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "true")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "true")
 
 	srv := &Server{
 		maintenance: NewMaintenanceState(true, "env-set"), // initialized from env at startup
@@ -668,10 +668,10 @@ func TestApplyMaintenanceFromSnapshot_EnvWinsOverAbsentDBRow(t *testing.T) {
 
 func TestApplyMaintenanceFromSnapshot_EnvWinsOverFalseDBRow(t *testing.T) {
 	// Scenario: maintenance row exists in DB with admin_mode=false,
-	// but SCION_SERVER_ADMIN_MODE=true env var is set (break-glass).
+	// but FABRIC_SERVER_ADMIN_MODE=true env var is set (break-glass).
 	// Expected: env wins — maintenance enabled.
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "true")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "env-break-glass")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "true")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "env-break-glass")
 
 	srv := &Server{
 		maintenance: NewMaintenanceState(false, ""),
@@ -697,8 +697,8 @@ func TestApplyMaintenanceFromSnapshot_DBRowAppliedWhenNoEnv(t *testing.T) {
 	// Scenario: maintenance row exists in DB with admin_mode=true,
 	// no env override set. Expected: DB values applied.
 	// Ensure env vars are unset by t.Setenv (overrides then restores).
-	setEnvForTest(t, "SCION_SERVER_ADMIN_MODE", "")
-	setEnvForTest(t, "SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	setEnvForTest(t, "FABRIC_SERVER_ADMIN_MODE", "")
+	setEnvForTest(t, "FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	srv := &Server{
 		maintenance: NewMaintenanceState(false, ""),

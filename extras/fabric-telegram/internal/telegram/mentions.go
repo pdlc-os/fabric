@@ -24,7 +24,7 @@ import (
 // resolveTargetAgents determines which agents a message should be routed to.
 // Returns a deduplicated list of agent slugs and whether @all was used.
 //
-// Tier 1: Bot @-mention (@ScionHubBot) → routes to group's default agent
+// Tier 1: Bot @-mention (@FabricHubBot) → routes to group's default agent
 // Tier 2: Direct agent @-mention (@coder) → routes to named agent(s)
 // Tier 3: @all → routes to ALL agents in the linked project
 //

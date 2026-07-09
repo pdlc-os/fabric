@@ -27,10 +27,10 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/integrationupdate"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/integrationupdate"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 // IntegrationManager is the narrow interface satisfied by *plugin.Manager.
@@ -538,7 +538,7 @@ func (s *Server) handleInstallIntegration(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	sourceDir := filepath.Join(repoPath, "extras", "scion-"+name)
+	sourceDir := filepath.Join(repoPath, "extras", "fabric-"+name)
 	if _, err := os.Stat(sourceDir); err != nil {
 		NotFound(w, "plugin source")
 		return
@@ -566,7 +566,7 @@ func (s *Server) handleInstallIntegration(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	configFilePath := "~/.scion/scion-" + name + ".yaml"
+	configFilePath := "~/.fabric/fabric-" + name + ".yaml"
 	if err := config.CreatePluginConfigFile(name, configFilePath); err != nil {
 		slog.Error("Failed to create plugin config file", "plugin", name, "error", err)
 		InternalError(w)
@@ -602,7 +602,7 @@ func (s *Server) handleListAvailableIntegrations(w http.ResponseWriter, _ *http.
 			continue
 		}
 		if repoPath != "" {
-			sourceDir := filepath.Join(repoPath, "extras", "scion-"+name)
+			sourceDir := filepath.Join(repoPath, "extras", "fabric-"+name)
 			if _, err := os.Stat(sourceDir); err != nil {
 				continue
 			}

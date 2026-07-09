@@ -10,7 +10,7 @@ This update focuses on strengthening security through stricter authorization che
 
 ## 🐛 Fixes
 * **[Security]:** Enforced stricter authorization for GCP Service Account management and group membership; administrative actions now require grove-owner (`ActionManage`) permissions.
-* **[Hub]:** Improved system resilience by adding polkit rules for self-restarting the scion service and implementing panic recovery for maintenance operations.
+* **[Hub]:** Improved system resilience by adding polkit rules for self-restarting the fabric service and implementing panic recovery for maintenance operations.
 * **[Look]:** Removed fragile tmux socket discovery logic in the `look` command for more reliable agent inspection.
 * **[Web]:** The Messages tab is now correctly decoupled from the cloud-logging gate, ensuring availability regardless of logging configuration.
 * **[Stalled Detection]:** Refined the stalled agent detection logic to correctly ignore agents that are `idle` or `waiting_for_input`.

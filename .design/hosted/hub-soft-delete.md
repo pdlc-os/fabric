@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies the design for soft-deleting agents in the Scion Hub. Currently, `DELETE /api/v1/agents/{id}` performs an immediate hard delete—removing the agent record from the database and dispatching container/filesystem cleanup to the runtime broker. There is no recovery path.
+This document specifies the design for soft-deleting agents in the Fabric Hub. Currently, `DELETE /api/v1/agents/{id}` performs an immediate hard delete—removing the agent record from the database and dispatching container/filesystem cleanup to the runtime broker. There is no recovery path.
 
 Soft delete introduces a grace period between the delete request and permanent purging. During this grace period, agents are marked as `deleted` but remain in the database, allowing recovery from accidental deletions and forensic investigation of agent history.
 
@@ -86,8 +86,8 @@ type V1ServerHubConfig struct {
 The retention can also be set via environment variable:
 
 ```
-SCION_SERVER_HUB_SOFT_DELETE_RETENTION=168h
-SCION_SERVER_HUB_SOFT_DELETE_RETAIN_FILES=true
+FABRIC_SERVER_HUB_SOFT_DELETE_RETENTION=168h
+FABRIC_SERVER_HUB_SOFT_DELETE_RETAIN_FILES=true
 ```
 
 ### 2.4 ServerConfig Plumbing
@@ -129,7 +129,7 @@ const (
 ```
 
 - `deleted`: The agent has been soft-deleted and is awaiting purge.
-- `restored`: The agent was restored from `deleted` state. No container or runtime artifacts exist—the agent must be re-provisioned via `scion start` before it can run again. This is distinct from `stopped`, which implies a container previously existed and was halted.
+- `restored`: The agent was restored from `deleted` state. No container or runtime artifacts exist—the agent must be re-provisioned via `fabric start` before it can run again. This is distinct from `stopped`, which implies a container previously existed and was halted.
 
 ### 3.2 New Timestamp Field
 
@@ -240,7 +240,7 @@ This is useful for operators who want to immediately purge a specific agent.
 
 When the Hub dispatches a soft-delete to the runtime broker, the broker must update the local `agent-info.json` to reflect the deleted state before performing container cleanup. This ensures that the broker's local filesystem is consistent with the Hub even if the broker later loses connectivity.
 
-**Why this matters:** When the Hub's purge loop permanently removes the agent record from the database, it does not contact the broker—the purge is a Hub-internal DB operation. If the broker retained an `agent-info.json` with a non-deleted status, local CLI listing (`scion ls` in local/no-hub mode) would show a stale agent that no longer exists on the Hub.
+**Why this matters:** When the Hub's purge loop permanently removes the agent record from the database, it does not contact the broker—the purge is a Hub-internal DB operation. If the broker retained an `agent-info.json` with a non-deleted status, local CLI listing (`fabric ls` in local/no-hub mode) would show a stale agent that no longer exists on the Hub.
 
 **Broker delete handler changes** (`pkg/runtimebroker/handlers.go`):
 
@@ -353,7 +353,7 @@ func (s *Server) listAgents(w http.ResponseWriter, r *http.Request) {
 
 ### 5.4 CLI List Command
 
-The `scion list` command gains a `--deleted` flag that sets `includeDeleted=true` (or `status=deleted` to show only deleted agents). By default, deleted agents are hidden.
+The `fabric list` command gains a `--deleted` flag that sets `includeDeleted=true` (or `status=deleted` to show only deleted agents). By default, deleted agents are hidden.
 
 ### 5.5 Local-Mode Deleted Agent Warning
 
@@ -387,7 +387,7 @@ POST /api/v1/agents/{id}/restore
 
 This action:
 1. Verifies the agent exists and is in `deleted` status.
-2. Sets `Status` to `restored`. This status is distinct from `stopped` because no container or runtime artifacts exist—the agent must be re-provisioned via `scion start` before it can run again.
+2. Sets `Status` to `restored`. This status is distinct from `stopped` because no container or runtime artifacts exist—the agent must be re-provisioned via `fabric start` before it can run again.
 3. Clears `DeletedAt` to zero value.
 4. Publishes an `AgentCreated` event to notify subscribers.
 5. Returns `200 OK` with the restored agent record.
@@ -422,7 +422,7 @@ func (s *Server) restoreAgent(w http.ResponseWriter, r *http.Request, id string)
 ### 6.2 CLI Command
 
 ```
-scion restore <agent-name-or-id>
+fabric restore <agent-name-or-id>
 ```
 
 Calls the restore endpoint. Requires the agent to be in `deleted` status.
@@ -547,7 +547,7 @@ The `AgentCount` computed field on `Grove` (populated during listing) should exc
 
 ## 11. Design Decisions
 
-1. **Restore sets `restored` status, not `stopped`**: Restored agents enter a new `restored` state rather than `stopped`. This makes it explicit that no container or runtime artifacts exist and the agent must be re-provisioned via `scion start`. Restore does not trigger automatic re-provisioning.
+1. **Restore sets `restored` status, not `stopped`**: Restored agents enter a new `restored` state rather than `stopped`. This makes it explicit that no container or runtime artifacts exist and the agent must be re-provisioned via `fabric start`. Restore does not trigger automatic re-provisioning.
 
 2. **`deleteFiles=true` remains the default**: Files are removed immediately during soft-delete by default. Operators who want file retention for a more complete restore can enable `SoftDeleteRetainFiles` in hub settings, which forces `deleteFiles=false` for soft-deleted agents.
 

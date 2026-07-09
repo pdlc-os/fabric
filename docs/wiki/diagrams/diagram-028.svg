@@ -44,28 +44,28 @@
 <polygon fill="black" stroke="black" points="260.63,-331.65 265.66,-322.33 255.91,-326.48 260.63,-331.65"/>
 <text xml:space="preserve" text-anchor="middle" x="242.44" y="-363.95" font-family="Times,serif" font-size="14.00">Prompts</text>
 </g>
-<!-- sciontool status ask_user -->
+<!-- fabrictool status ask_user -->
 <g id="node4" class="node">
-<title>sciontool status ask_user</title>
+<title>fabrictool status ask_user</title>
 <polygon fill="lightblue" stroke="black" points="203.5,-185 0,-185 0,-149 203.5,-149 203.5,-185"/>
-<text xml:space="preserve" text-anchor="middle" x="101.75" y="-158.95" font-family="Times,serif" font-size="14.00">sciontool status ask_user</text>
+<text xml:space="preserve" text-anchor="middle" x="101.75" y="-158.95" font-family="Times,serif" font-size="14.00">fabrictool status ask_user</text>
 </g>
-<!-- Semantic Release Notes Agent&#45;&gt;sciontool status ask_user -->
+<!-- Semantic Release Notes Agent&#45;&gt;fabrictool status ask_user -->
 <g id="edge3" class="edge">
-<title>Semantic Release Notes Agent&#45;&gt;sciontool status ask_user</title>
+<title>Semantic Release Notes Agent&#45;&gt;fabrictool status ask_user</title>
 <path fill="none" stroke="black" d="M262.07,-284.76C229.73,-261.2 171.58,-218.85 134.91,-192.15"/>
 <polygon fill="black" stroke="black" points="137,-189.34 126.85,-186.28 132.88,-195 137,-189.34"/>
 <text xml:space="preserve" text-anchor="middle" x="229.27" y="-226.95" font-family="Times,serif" font-size="14.00">Executes</text>
 </g>
-<!-- sciontool status task_completed -->
+<!-- fabrictool status task_completed -->
 <g id="node5" class="node">
-<title>sciontool status task_completed</title>
+<title>fabrictool status task_completed</title>
 <polygon fill="lightblue" stroke="black" points="470,-185 221.5,-185 221.5,-149 470,-149 470,-185"/>
-<text xml:space="preserve" text-anchor="middle" x="345.75" y="-158.95" font-family="Times,serif" font-size="14.00">sciontool status task_completed</text>
+<text xml:space="preserve" text-anchor="middle" x="345.75" y="-158.95" font-family="Times,serif" font-size="14.00">fabrictool status task_completed</text>
 </g>
-<!-- Semantic Release Notes Agent&#45;&gt;sciontool status task_completed -->
+<!-- Semantic Release Notes Agent&#45;&gt;fabrictool status task_completed -->
 <g id="edge5" class="edge">
-<title>Semantic Release Notes Agent&#45;&gt;sciontool status task_completed</title>
+<title>Semantic Release Notes Agent&#45;&gt;fabrictool status task_completed</title>
 <path fill="none" stroke="black" d="M293.47,-284.76C303.6,-262.14 321.48,-222.2 333.47,-195.42"/>
 <polygon fill="black" stroke="black" points="336.55,-197.12 337.44,-186.56 330.16,-194.26 336.55,-197.12"/>
 <text xml:space="preserve" text-anchor="middle" x="347.55" y="-226.95" font-family="Times,serif" font-size="14.00">Executes</text>
@@ -83,9 +83,9 @@
 <polygon fill="black" stroke="black" points="289.25,-332.82 285.75,-322.82 282.25,-332.82 289.25,-332.82"/>
 <text xml:space="preserve" text-anchor="middle" x="315.75" y="-363.95" font-family="Times,serif" font-size="14.00">Analyzes</text>
 </g>
-<!-- sciontool status ask_user&#45;&gt;User Input -->
+<!-- fabrictool status ask_user&#45;&gt;User Input -->
 <g id="edge4" class="edge">
-<title>sciontool status ask_user&#45;&gt;User Input</title>
+<title>fabrictool status ask_user&#45;&gt;User Input</title>
 <path fill="none" stroke="black" d="M101.93,-185.07C102.42,-213.43 104.27,-271.99 111.25,-321 115.66,-351.94 123.9,-386.79 130.02,-410.55"/>
 <polygon fill="black" stroke="black" points="126.61,-411.32 132.54,-420.1 133.38,-409.54 126.61,-411.32"/>
 <text xml:space="preserve" text-anchor="middle" x="137.5" y="-294.95" font-family="Times,serif" font-size="14.00">Queries</text>
@@ -96,9 +96,9 @@
 <polygon fill="lightblue" stroke="black" points="458.75,-48 232.75,-48 232.75,-12 458.75,-12 458.75,-48"/>
 <text xml:space="preserve" text-anchor="middle" x="345.75" y="-21.95" font-family="Times,serif" font-size="14.00">Release Notes (CHANGELOG.md)</text>
 </g>
-<!-- sciontool status task_completed&#45;&gt;Release Notes (CHANGELOG.md) -->
+<!-- fabrictool status task_completed&#45;&gt;Release Notes (CHANGELOG.md) -->
 <g id="edge6" class="edge">
-<title>sciontool status task_completed&#45;&gt;Release Notes (CHANGELOG.md)</title>
+<title>fabrictool status task_completed&#45;&gt;Release Notes (CHANGELOG.md)</title>
 <path fill="none" stroke="black" d="M345.75,-148.63C345.75,-126.15 345.75,-86.68 345.75,-59.71"/>
 <polygon fill="black" stroke="black" points="349.25,-59.82 345.75,-49.82 342.25,-59.82 349.25,-59.82"/>
 <text xml:space="preserve" text-anchor="middle" x="379.5" y="-89.95" font-family="Times,serif" font-size="14.00">Generates</text>

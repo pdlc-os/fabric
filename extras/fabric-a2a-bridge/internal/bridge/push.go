@@ -31,7 +31,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
 )
 
 // PushDispatcher delivers webhook notifications for task state changes.

@@ -16,7 +16,7 @@
 #
 # Template Integration Test Script
 # =================================
-# This script tests the full template management flow for the hosted Scion architecture,
+# This script tests the full template management flow for the hosted Fabric architecture,
 # covering Phases 1, 2, and 3 of the hosted-templates implementation.
 #
 # Phase 1: Foundation (Hub template CRUD, storage backend)
@@ -27,7 +27,7 @@
 #   ./scripts/template-integration-test.sh [options]
 #
 # Options:
-#   --skip-build     Skip building the scion binary
+#   --skip-build     Skip building the fabric binary
 #   --skip-cleanup   Don't clean up test artifacts after completion
 #   --storage-bucket Use GCS storage instead of local (requires GOOGLE_APPLICATION_CREDENTIALS)
 #   --verbose        Show verbose output
@@ -46,7 +46,7 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TEST_DIR="/tmp/scion-template-test-$$"
+TEST_DIR="/tmp/fabric-template-test-$$"
 STORAGE_DIR="$TEST_DIR/storage"
 HUB_PORT=9810
 RUNTIME_HOST_PORT=9800
@@ -162,20 +162,20 @@ check_prerequisites() {
     fi
 }
 
-# Build the scion binary
-build_scion() {
+# Build the fabric binary
+build_fabric() {
     if [[ "$SKIP_BUILD" == "true" ]]; then
         log_info "Skipping build (--skip-build)"
         return
     fi
 
-    log_section "Building Scion Binary"
+    log_section "Building Fabric Binary"
 
     cd "$PROJECT_ROOT"
-    log_info "Building scion from $PROJECT_ROOT..."
+    log_info "Building fabric from $PROJECT_ROOT..."
 
-    if go build -buildvcs=false -o "$TEST_DIR/scion" ./cmd/scion 2>&1; then
-        log_success "Build successful: $TEST_DIR/scion"
+    if go build -buildvcs=false -o "$TEST_DIR/fabric" ./cmd/fabric 2>&1; then
+        log_success "Build successful: $TEST_DIR/fabric"
     else
         log_error "Build failed"
         exit 1
@@ -190,7 +190,7 @@ start_server() {
     mkdir -p "$TEST_DIR/cache/templates"
 
     # Build command as array for proper handling
-    local cmd=("$TEST_DIR/scion" "server" "start" "--foreground" "--production"
+    local cmd=("$TEST_DIR/fabric" "server" "start" "--foreground" "--production"
         "--enable-hub"
         "--enable-runtime-broker"
         "--dev-auth"
@@ -245,9 +245,9 @@ start_server() {
     fi
 
     # Get auth token
-    TOKEN=$(cat ~/.scion/dev-token 2>/dev/null || echo "")
+    TOKEN=$(cat ~/.fabric/dev-token 2>/dev/null || echo "")
     if [[ -z "$TOKEN" ]]; then
-        log_error "Dev token not found at ~/.scion/dev-token"
+        log_error "Dev token not found at ~/.fabric/dev-token"
         exit 1
     fi
     export AUTH="Authorization: Bearer $TOKEN"
@@ -256,7 +256,7 @@ start_server() {
 
 # Create test template files
 # Uses the harness-agnostic template format from agnostic-template-design.md:
-#   - No harness field in scion-agent.yaml
+#   - No harness field in fabric-agent.yaml
 #   - Portable agent instructions (agents.md) and system prompt (system-prompt.md)
 #   - Optional harness-configs/ directory for template-specific overrides
 #   - Portable home/ directory (no harness-specific files)
@@ -268,8 +268,8 @@ create_test_template() {
     mkdir -p "$template_dir/home/.config/lint-rules"
     mkdir -p "$template_dir/harness-configs/claude"
 
-    # Harness-agnostic scion-agent.yaml (no harness field)
-    cat > "$template_dir/scion-agent.yaml" << 'EOF'
+    # Harness-agnostic fabric-agent.yaml (no harness field)
+    cat > "$template_dir/fabric-agent.yaml" << 'EOF'
 schema_version: "1"
 name: test-integration
 description: "Integration test template for verifying the hosted template system"
@@ -288,11 +288,11 @@ EOF
     cat > "$template_dir/agents.md" << 'EOF'
 # Integration Test Agent Instructions
 
-This agent is configured for integration testing of the Scion template system.
+This agent is configured for integration testing of the Fabric template system.
 
 ## Workflow
 - Run assigned test tasks
-- Report results via sciontool hooks
+- Report results via fabrictool hooks
 - Follow standard code review practices
 
 ## Tools
@@ -304,7 +304,7 @@ EOF
     cat > "$template_dir/system-prompt.md" << 'EOF'
 # Integration Test Agent
 
-You are a test agent created by the Scion template integration test suite.
+You are a test agent created by the Fabric template integration test suite.
 Your purpose is to verify that the template system correctly provisions agents
 with the appropriate configuration, instructions, and environment.
 EOF
@@ -312,7 +312,7 @@ EOF
     # Portable home directory content (non-harness-specific)
     cat > "$template_dir/home/.bashrc" << 'EOF'
 # Custom bashrc for integration test template
-export PS1="[\u@scion \W]\$ "
+export PS1="[\u@fabric \W]\$ "
 alias ll='ls -la'
 alias cls='clear'
 
@@ -446,7 +446,7 @@ test_phase2_upload_flow() {
             "harness": "claude",
             "default_harness_config": "claude",
             "files": [
-                {"path": "scion-agent.yaml", "size": 300},
+                {"path": "fabric-agent.yaml", "size": 300},
                 {"path": "agents.md", "size": 400},
                 {"path": "system-prompt.md", "size": 300},
                 {"path": "home/.bashrc", "size": 300},
@@ -500,7 +500,7 @@ test_phase2_upload_flow() {
     log_info "Test 2.3: Finalizing template..."
 
     # Compute file hashes for all template files
-    local yaml_hash=$(sha256sum "$template_dir/scion-agent.yaml" | cut -d' ' -f1)
+    local yaml_hash=$(sha256sum "$template_dir/fabric-agent.yaml" | cut -d' ' -f1)
     local agents_hash=$(sha256sum "$template_dir/agents.md" | cut -d' ' -f1)
     local prompt_hash=$(sha256sum "$template_dir/system-prompt.md" | cut -d' ' -f1)
     local bashrc_hash=$(sha256sum "$template_dir/home/.bashrc" | cut -d' ' -f1)
@@ -514,7 +514,7 @@ test_phase2_upload_flow() {
             \"manifest\": {
                 \"version\": \"1.0\",
                 \"files\": [
-                    {\"path\": \"scion-agent.yaml\", \"hash\": \"sha256:$yaml_hash\", \"size\": $(file_size "$template_dir/scion-agent.yaml"), \"mode\": \"0644\"},
+                    {\"path\": \"fabric-agent.yaml\", \"hash\": \"sha256:$yaml_hash\", \"size\": $(file_size "$template_dir/fabric-agent.yaml"), \"mode\": \"0644\"},
                     {\"path\": \"agents.md\", \"hash\": \"sha256:$agents_hash\", \"size\": $(file_size "$template_dir/agents.md"), \"mode\": \"0644\"},
                     {\"path\": \"system-prompt.md\", \"hash\": \"sha256:$prompt_hash\", \"size\": $(file_size "$template_dir/system-prompt.md"), \"mode\": \"0644\"},
                     {\"path\": \"home/.bashrc\", \"hash\": \"sha256:$bashrc_hash\", \"size\": $(file_size "$template_dir/home/.bashrc"), \"mode\": \"0644\"},
@@ -695,12 +695,12 @@ test_cli_commands() {
     template_dir=$(create_test_template)
     local grove_dir="$TEST_DIR/test-grove"
     local template_name="cli-test-template"
-    local grove_template_dir="$grove_dir/.scion/templates/$template_name"
+    local grove_template_dir="$grove_dir/.fabric/templates/$template_name"
     local hub_url="http://localhost:$HUB_PORT"
 
     # Create a test grove and copy template into its templates directory
     # (CLI resolves templates by name from grove or global template dirs)
-    mkdir -p "$grove_dir/.scion/templates"
+    mkdir -p "$grove_dir/.fabric/templates"
     cp -r "$template_dir" "$grove_template_dir"
     cd "$grove_dir"
 
@@ -708,15 +708,15 @@ test_cli_commands() {
 
     # Enable Hub for the test grove
     log_info "Enabling Hub integration for test grove..."
-    if $TEST_DIR/scion hub enable --hub "$hub_url" 2>&1; then
+    if $TEST_DIR/fabric hub enable --hub "$hub_url" 2>&1; then
         log_success "Hub enabled for test grove"
     else
         log_warning "Hub enable may have issues - CLI tests may fail"
     fi
 
     # Test CLI.1: template sync (uploads local template to Hub by name)
-    log_info "Test CLI.1: scion template sync..."
-    if $TEST_DIR/scion template sync "$template_name" \
+    log_info "Test CLI.1: fabric template sync..."
+    if $TEST_DIR/fabric template sync "$template_name" \
         --hub "$hub_url" 2>&1; then
         log_success "template sync command succeeded"
     else
@@ -724,20 +724,20 @@ test_cli_commands() {
     fi
 
     # Test CLI.2: template list
-    log_info "Test CLI.2: scion template list..."
-    if $TEST_DIR/scion template list --hub "$hub_url" 2>&1; then
+    log_info "Test CLI.2: fabric template list..."
+    if $TEST_DIR/fabric template list --hub "$hub_url" 2>&1; then
         log_success "template list command succeeded"
     else
         log_warning "template list may have issues"
     fi
 
     # Test CLI.3: Modify template locally and push changes
-    log_info "Test CLI.3: scion template push (after modification)..."
+    log_info "Test CLI.3: fabric template push (after modification)..."
     echo "" >> "$grove_template_dir/agents.md"
     echo "## Updated" >> "$grove_template_dir/agents.md"
     echo "- Added by integration test push verification" >> "$grove_template_dir/agents.md"
 
-    if $TEST_DIR/scion template push "$template_name" \
+    if $TEST_DIR/fabric template push "$template_name" \
         --hub "$hub_url" 2>&1; then
         log_success "template push command succeeded"
     else
@@ -745,11 +745,11 @@ test_cli_commands() {
     fi
 
     # Test CLI.4: Pull template from Hub to a new location
-    log_info "Test CLI.4: scion template pull..."
+    log_info "Test CLI.4: fabric template pull..."
     local pull_dir="$TEST_DIR/pulled-template"
     rm -rf "$pull_dir"
 
-    if $TEST_DIR/scion template pull "$template_name" \
+    if $TEST_DIR/fabric template pull "$template_name" \
         --to "$pull_dir" \
         --hub "$hub_url" 2>&1; then
         log_success "template pull command succeeded"
@@ -764,16 +764,16 @@ test_cli_commands() {
 
         # Compare against the grove template dir (which has the pushed modifications)
 
-        # Verify scion-agent.yaml
-        if [[ -f "$pull_dir/scion-agent.yaml" ]]; then
-            if diff "$grove_template_dir/scion-agent.yaml" "$pull_dir/scion-agent.yaml" > /dev/null 2>&1; then
-                log_success "  scion-agent.yaml matches"
+        # Verify fabric-agent.yaml
+        if [[ -f "$pull_dir/fabric-agent.yaml" ]]; then
+            if diff "$grove_template_dir/fabric-agent.yaml" "$pull_dir/fabric-agent.yaml" > /dev/null 2>&1; then
+                log_success "  fabric-agent.yaml matches"
             else
-                log_error "  scion-agent.yaml MISMATCH"
+                log_error "  fabric-agent.yaml MISMATCH"
                 compare_success=false
             fi
         else
-            log_error "  scion-agent.yaml not found in pulled template"
+            log_error "  fabric-agent.yaml not found in pulled template"
             compare_success=false
         fi
 
@@ -846,14 +846,14 @@ test_cli_commands() {
 # ============================================================================
 
 run_all_tests() {
-    log_section "Scion Template Integration Test Suite"
+    log_section "Fabric Template Integration Test Suite"
     log_info "Test directory: $TEST_DIR"
     log_info "Project root: $PROJECT_ROOT"
 
     local failed_tests=0
 
     check_prerequisites
-    build_scion
+    build_fabric
 
     mkdir -p "$TEST_DIR"
 

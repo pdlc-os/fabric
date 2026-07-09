@@ -1,4 +1,4 @@
-# GitHub App Integration for Scion Agents
+# GitHub App Integration for Fabric Agents
 
 **Created:** 2026-03-18
 **Status:** Draft / Proposal (Rev 5)
@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Today, Scion agents authenticate to GitHub using **Personal Access Tokens (PATs)** stored as secrets (`GITHUB_TOKEN`). This works but has significant limitations:
+Today, Fabric agents authenticate to GitHub using **Personal Access Tokens (PATs)** stored as secrets (`GITHUB_TOKEN`). This works but has significant limitations:
 
 - **PATs are user-scoped**: Tied to a single person's identity. If that person leaves or rotates credentials, all groves using their token break.
 - **No automatic rotation**: PATs have fixed expiration. When they expire, agents fail until someone manually updates the secret.
@@ -16,7 +16,7 @@ Today, Scion agents authenticate to GitHub using **Personal Access Tokens (PATs)
 - **Attribution**: All commits and API calls appear as the PAT owner, not as the agent or the system.
 - **Organization governance**: Org admins have limited visibility into which PATs access their repos and no central revocation mechanism.
 
-**GitHub Apps** address all of these issues. This document proposes a design for integrating GitHub App authentication into Scion as a first-class alternative to PATs.
+**GitHub Apps** address all of these issues. This document proposes a design for integrating GitHub App authentication into Fabric as a first-class alternative to PATs.
 
 ### Goals
 
@@ -28,7 +28,7 @@ Today, Scion agents authenticate to GitHub using **Personal Access Tokens (PATs)
 ### Non-Goals
 
 - Webhook-driven agent creation (GitHub App receiving events to trigger agents). Deferred to a future design.
-- GitHub App as a Scion Hub user authentication provider (the existing GitHub OAuth flow handles Hub login separately).
+- GitHub App as a Fabric Hub user authentication provider (the existing GitHub OAuth flow handles Hub login separately).
 - Multi-provider abstraction (GitLab, Bitbucket app equivalents). This design targets GitHub only.
 - GitHub App Manifest flow for automated app creation.
 - Solo/local mode support. GitHub App is Hub-only; solo mode continues to use PATs.
@@ -92,7 +92,7 @@ The installer chooses which repositories the app can access:
 - **All repositories** in the org/account.
 - **Selected repositories** — a specific subset.
 
-### 2.4 Key Properties for Scion
+### 2.4 Key Properties for Fabric
 
 | Property | PAT | GitHub App |
 |----------|-----|------------|
@@ -110,10 +110,10 @@ The installer chooses which repositories the app can access:
 
 ## 3. Ownership Model
 
-**One GitHub App per Scion Hub deployment. The Hub admin creates it. Grove owners install it.**
+**One GitHub App per Fabric Hub deployment. The Hub admin creates it. Grove owners install it.**
 
 ```
-Scion Hub (1:1 with GitHub App)
+Fabric Hub (1:1 with GitHub App)
   └── GitHub App (registered by Hub admin)
         │
         │  Hub stores: App ID, Private Key, Webhook Secret
@@ -139,7 +139,7 @@ Scion Hub (1:1 with GitHub App)
 ### 3.2 Installation Flow
 
 ```
-Grove Owner                GitHub.com                   Scion Hub
+Grove Owner                GitHub.com                   Fabric Hub
     |                          |                            |
     |-- "Install App" ------->|                            |
     |   (from grove settings  |                            |
@@ -205,7 +205,7 @@ The Hub server gains a new configuration section for the GitHub App:
 # Hub server config (e.g., hub.yaml or server flags)
 github_app:
   app_id: 123456
-  private_key_path: /etc/scion/github-app-key.pem
+  private_key_path: /etc/fabric/github-app-key.pem
   # OR inline:
   # private_key: |
   #   -----BEGIN RSA PRIVATE KEY-----
@@ -402,13 +402,13 @@ Installation tokens expire after 1 hour. Agents that run longer than 1 hour need
 
 #### Component 1: Credential Helper (Git Operations)
 
-The `sciontool` credential helper intercepts git credential requests and returns fresh tokens on demand:
+The `fabrictool` credential helper intercepts git credential requests and returns fresh tokens on demand:
 
 ```bash
 # Git credential helper (configured during clone):
-git config credential.helper '!sciontool credential-helper'
+git config credential.helper '!fabrictool credential-helper'
 
-# sciontool credential-helper:
+# fabrictool credential-helper:
 #   1. Check cached token age
 #   2. If fresh (< 50 min): return cached token
 #   3. If stale: call Hub refresh endpoint, cache new token, return
@@ -418,16 +418,16 @@ This provides the most native git integration — git operations transparently r
 
 #### Component 2: Background Refresh Loop (API/CLI Operations)
 
-`sciontool` runs a background goroutine that proactively refreshes the token before expiry, ensuring the on-disk token file stays current for non-git consumers like the `gh` CLI:
+`fabrictool` runs a background goroutine that proactively refreshes the token before expiry, ensuring the on-disk token file stays current for non-git consumers like the `gh` CLI:
 
 ```
-sciontool init
+fabrictool init
   └── tokenRefreshLoop():
         every 50 minutes:
           1. POST to Hub: /api/v1/agents/{id}/refresh-token
           2. Hub mints new installation token
           3. Hub returns token
-          4. sciontool updates:
+          4. fabrictool updates:
              - writes to /tmp/.github-token (for running processes to read)
              - updates git credential helper cache
 ```
@@ -444,11 +444,11 @@ The `gh` CLI is wrapped by a lightweight script that reads the current token fro
 
 ### 5.3 Token File Security
 
-The background refresh loop writes fresh tokens to `/tmp/.github-token` (path from `SCION_GITHUB_TOKEN_PATH`). This is the same security posture as `GITHUB_TOKEN` in the environment:
+The background refresh loop writes fresh tokens to `/tmp/.github-token` (path from `FABRIC_GITHUB_TOKEN_PATH`). This is the same security posture as `GITHUB_TOKEN` in the environment:
 
 - File permissions: `0600`, owned by the container user.
 - Token expiry: 1 hour maximum.
-- `sciontool` cleans up the token file on agent exit.
+- `fabrictool` cleans up the token file on agent exit.
 
 ### 5.4 Environment Variables
 
@@ -457,9 +457,9 @@ The following environment variables control GitHub App token behavior inside the
 | Variable | Purpose |
 |----------|---------|
 | `GITHUB_TOKEN` | Initial token (set at agent start) |
-| `SCION_GITHUB_APP_ENABLED` | `true` when credential source is GitHub App (enables refresh) |
-| `SCION_GITHUB_TOKEN_EXPIRY` | ISO 8601 timestamp of initial token expiry |
-| `SCION_GITHUB_TOKEN_PATH` | Path to refreshable token file (`/tmp/.github-token`) |
+| `FABRIC_GITHUB_APP_ENABLED` | `true` when credential source is GitHub App (enables refresh) |
+| `FABRIC_GITHUB_TOKEN_EXPIRY` | ISO 8601 timestamp of initial token expiry |
+| `FABRIC_GITHUB_TOKEN_PATH` | Path to refreshable token file (`/tmp/.github-token`) |
 
 ---
 
@@ -474,7 +474,7 @@ The primary way groves get associated with the GitHub App is through the **insta
 If the callback flow doesn't match correctly (e.g., grove was created after installation), a manual association is available:
 
 ```bash
-scion hub grove set acme-widgets --github-installation 12345
+fabric hub grove set acme-widgets --github-installation 12345
 ```
 
 The Hub validates that the installation exists and includes the grove's target repo.
@@ -492,7 +492,7 @@ When a grove is created from a GitHub URL and the Hub has a GitHub App configure
 6. If no match: grove uses PAT, grove settings show "Install GitHub App" link
 ```
 
-This auto-discovery runs during `scion hub grove create`.
+This auto-discovery runs during `fabric hub grove create`.
 
 ### 6.4 Webhooks
 
@@ -530,7 +530,7 @@ This validation is documented in the Hub admin setup guide with troubleshooting 
 1. The Hub marks the installation as `deleted` (via webhook or 403/404 during token minting).
 2. The Hub sets `installation_revoked` on all affected groves' `GitHubAppStatus`.
 3. Running agents with valid tokens continue until their token expires (up to 1 hour).
-4. Token refresh attempts fail; `sciontool` logs: "GitHub App installation revoked for org 'acme'."
+4. Token refresh attempts fail; `fabrictool` logs: "GitHub App installation revoked for org 'acme'."
 5. Affected groves fall back to PAT if one is configured, or surface an error status.
 6. The Hub notifies the grove owner via the Hub notification system.
 
@@ -572,7 +572,7 @@ GET    /api/v1/groves/{id}/github-permissions        → Get current permission 
 DELETE /api/v1/groves/{id}/github-permissions        → Reset to defaults
 GET    /api/v1/groves/{id}/github-status             → Get current GitHub App health status
 
-# Token refresh (called by sciontool inside agent container)
+# Token refresh (called by fabrictool inside agent container)
 POST   /api/v1/agents/{id}/refresh-token            → Mint fresh installation token
 
 # Callbacks and webhooks
@@ -632,16 +632,16 @@ Each grove can declare the permissions its agents need. This is configured in gr
 
 ```bash
 # Set grove-specific permissions
-scion hub grove set acme-widgets --github-permissions contents:write,pull_requests:write,metadata:read
+fabric hub grove set acme-widgets --github-permissions contents:write,pull_requests:write,metadata:read
 
 # View current permissions
-scion hub grove get acme-widgets --show-github-permissions
+fabric hub grove get acme-widgets --show-github-permissions
 ```
 
 **Template-driven defaults:**
 
 ```yaml
-# In scion-agent.yaml template
+# In fabric-agent.yaml template
 github_permissions:
   contents: write
   pull_requests: write
@@ -685,14 +685,14 @@ The app's registered permissions can change on GitHub at any time (e.g., the Hub
 
 ### 9.1 Agent Transparency
 
-The agent and harness code requires **zero changes**. The credential arrives as `GITHUB_TOKEN` regardless of source. The git credential helper configured by `sciontool` works identically with both PATs and installation tokens. The `gh` CLI also uses `GITHUB_TOKEN` natively.
+The agent and harness code requires **zero changes**. The credential arrives as `GITHUB_TOKEN` regardless of source. The git credential helper configured by `fabrictool` works identically with both PATs and installation tokens. The `gh` CLI also uses `GITHUB_TOKEN` natively.
 
-### 9.2 sciontool Changes
+### 9.2 fabrictool Changes
 
-`sciontool` gains:
+`fabrictool` gains:
 
-1. **Token refresh credential helper**: When `SCION_GITHUB_APP_ENABLED=true` is set, the credential helper calls the Hub to refresh tokens instead of returning a static value.
-2. **Background token refresh loop**: Proactively refreshes the token every 50 minutes, writing the fresh token to `SCION_GITHUB_TOKEN_PATH` for non-git consumers.
+1. **Token refresh credential helper**: When `FABRIC_GITHUB_APP_ENABLED=true` is set, the credential helper calls the Hub to refresh tokens instead of returning a static value.
+2. **Background token refresh loop**: Proactively refreshes the token every 50 minutes, writing the fresh token to `FABRIC_GITHUB_TOKEN_PATH` for non-git consumers.
 3. **gh wrapper**: A lightweight script at `/usr/local/bin/gh` that reads the current token from the token file before delegating to the real `gh` binary.
 
 ### 9.3 Web UI
@@ -734,15 +734,15 @@ Agent commits can be attributed in three configurable ways:
 
 ### 10.1 Option A: App Bot Identity (Default)
 
-Commits from `scion-app[bot]@users.noreply.github.com`. Clear automated provenance.
+Commits from `fabric-app[bot]@users.noreply.github.com`. Clear automated provenance.
 
 ### 10.2 Option B: Custom Identity
 
-Groves or templates specify `git user.name` and `git user.email`. The installation token authenticates the push, but the commit author is the configured identity. Already supported — custom templates use standard Scion environment variable injection for `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, etc.
+Groves or templates specify `git user.name` and `git user.email`. The installation token authenticates the push, but the commit author is the configured identity. Already supported — custom templates use standard Fabric environment variable injection for `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, etc.
 
 ### 10.3 Option C: Co-authored-by Trailers
 
-Use the bot identity but add `Co-authored-by: Alice <alice@example.com>` trailers linking to the Scion user who started the agent.
+Use the bot identity but add `Co-authored-by: Alice <alice@example.com>` trailers linking to the Fabric user who started the agent.
 
 ### 10.4 Configuration
 
@@ -756,7 +756,7 @@ git_identity:
   email: "agent@example.com"
 ```
 
-The default is **bot identity** (Option A). Templates that already set git user identity via Scion env vars continue to work.
+The default is **bot identity** (Option A). Templates that already set git user identity via Fabric env vars continue to work.
 
 ---
 
@@ -863,9 +863,9 @@ Even if an installation grants access to "all repositories" in an org, the minte
 
 Installation tokens are treated identically to PATs in the security model:
 - Injected as environment variables (same as today).
-- Never logged by `sciontool` (existing sanitization applies). The token file at `SCION_GITHUB_TOKEN_PATH` has permissions `0600`.
+- Never logged by `fabrictool` (existing sanitization applies). The token file at `FABRIC_GITHUB_TOKEN_PATH` has permissions `0600`.
 - 1-hour expiry limits blast radius of token theft.
-- `sciontool` cleans up the token file on agent exit.
+- `fabrictool` cleans up the token file on agent exit.
 
 ### 15.4 Webhook Security
 
@@ -878,7 +878,7 @@ The webhook endpoint (`/api/v1/webhooks/github`) validates all incoming payloads
 
 The Hub is the trust anchor. Organizations installing the GitHub App are trusting:
 1. The Hub operator (who holds the private key).
-2. The Scion platform (to mint correctly scoped tokens).
+2. The Fabric platform (to mint correctly scoped tokens).
 3. Their own installation scope (which repos the app can access).
 
 This is comparable to installing any third-party GitHub App (CI systems, code review tools, etc.).
@@ -916,10 +916,10 @@ This is comparable to installing any third-party GitHub App (CI systems, code re
 ### Phase 3: Token Refresh (Blended) ✅ COMPLETE
 
 1. ✅ Hub API: `POST /api/v1/agents/{id}/refresh-token` — mints fresh GitHub App installation token for the agent's grove. Self-access enforcement via agent JWT.
-2. ✅ `sciontool credential-helper` subcommand for on-demand git credential refresh — reads from token file, falls back to on-demand Hub refresh.
-3. ✅ `sciontool` background GitHub token refresh loop in init — proactively refreshes 10 minutes before expiry, writes to `SCION_GITHUB_TOKEN_PATH`.
-4. ✅ `sciontool gh-wrapper` subcommand — reads fresh token from token file, sets `GH_TOKEN`, execs real `gh` binary.
-5. ✅ `SCION_GITHUB_APP_ENABLED`, `SCION_GITHUB_TOKEN_EXPIRY`, and `SCION_GITHUB_TOKEN_PATH` env vars — already injected by Phase 2, now consumed by sciontool init for refresh scheduling.
+2. ✅ `fabrictool credential-helper` subcommand for on-demand git credential refresh — reads from token file, falls back to on-demand Hub refresh.
+3. ✅ `fabrictool` background GitHub token refresh loop in init — proactively refreshes 10 minutes before expiry, writes to `FABRIC_GITHUB_TOKEN_PATH`.
+4. ✅ `fabrictool gh-wrapper` subcommand — reads fresh token from token file, sets `GH_TOKEN`, execs real `gh` binary.
+5. ✅ `FABRIC_GITHUB_APP_ENABLED`, `FABRIC_GITHUB_TOKEN_EXPIRY`, and `FABRIC_GITHUB_TOKEN_PATH` env vars — already injected by Phase 2, now consumed by fabrictool init for refresh scheduling.
 6. ✅ Git credential helper updated to read from token file when GitHub App is enabled (falls back to `GITHUB_TOKEN` env var).
 7. ✅ Token file cleanup on agent exit; initial token written to file at startup.
 8. ✅ Unit tests: Hub handler (auth, self-access, no-installation), client (RefreshGitHubToken, token file I/O, refresh loop, env helpers).
@@ -944,7 +944,7 @@ Items from prior revisions that have been resolved by feedback or design decisio
 
 ### 17.1 Token File Security in Shared Containers
 
-**Resolution:** The token file at `SCION_GITHUB_TOKEN_PATH` has `0600` permissions and the token expires in 1 hour — same security posture as `GITHUB_TOKEN` in the environment. `sciontool` cleans up the token file on agent exit. Accepted as equivalent risk.
+**Resolution:** The token file at `FABRIC_GITHUB_TOKEN_PATH` has `0600` permissions and the token expires in 1 hour — same security posture as `GITHUB_TOKEN` in the environment. `fabrictool` cleans up the token file on agent exit. Accepted as equivalent risk.
 
 ### 17.2 Webhook Reachability Validation
 
@@ -990,7 +990,7 @@ Items from prior revisions that have been resolved by feedback or design decisio
 - **GitHub Docs**: [Authenticating as a GitHub App](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/about-authentication-with-a-github-app)
 - **GitHub Docs**: [Creating an installation access token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app)
 - **GitHub Docs**: [GitHub App setup URL](https://docs.github.com/en/apps/creating-github-apps/setting-up-a-github-app/about-the-setup-url)
-- **Scion Design**: `.design/hosted/git-groves.md` — Current PAT-based git authentication
-- **Scion Design**: `.design/hosted/secrets-gather.md` — Secret provisioning and resolution
-- **Scion Design**: `.design/agent-credentials.md` — Agent credential management
-- **Scion Design**: `.design/hosted/auth/oauth-setup.md` — Hub OAuth configuration (user auth, separate from this)
+- **Fabric Design**: `.design/hosted/git-groves.md` — Current PAT-based git authentication
+- **Fabric Design**: `.design/hosted/secrets-gather.md` — Secret provisioning and resolution
+- **Fabric Design**: `.design/agent-credentials.md` — Agent credential management
+- **Fabric Design**: `.design/hosted/auth/oauth-setup.md` — Hub OAuth configuration (user auth, separate from this)

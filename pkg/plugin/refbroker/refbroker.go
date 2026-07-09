@@ -30,16 +30,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 const (
 	// OriginMarkerKey is the config key injected into outbound messages
-	// to identify messages originating from the scion hub. The plugin
+	// to identify messages originating from the fabric hub. The plugin
 	// filters these on inbound to prevent echo loops.
-	OriginMarkerKey = "scion_origin"
+	OriginMarkerKey = "fabric_origin"
 
 	// OriginMarkerValue is the marker value for hub-originated messages.
 	OriginMarkerValue = "hub"
@@ -69,7 +69,7 @@ type RefBroker struct {
 	hubURL     string // e.g. "http://localhost:8080"
 	hmacKey    string // HMAC key for hub API auth (base64-encoded)
 	brokerID   string // Broker ID for HMAC signing
-	pluginName string // X-Scion-Plugin-Name header value
+	pluginName string // X-Fabric-Plugin-Name header value
 
 	httpClient *http.Client
 
@@ -158,7 +158,7 @@ func (b *RefBroker) Publish(_ context.Context, topic string, msg *messages.Struc
 
 // Subscribe registers a subscription for the given pattern. When messages
 // arrive matching the pattern, they are delivered via the hub API callback
-// (or InboundHandler if set). Messages with the scion origin marker are
+// (or InboundHandler if set). Messages with the fabric origin marker are
 // filtered out to prevent echo loops.
 func (b *RefBroker) Subscribe(pattern string) error {
 	b.mu.Lock()
@@ -199,7 +199,7 @@ func (b *RefBroker) dispatchLoop(sub *subscription) {
 	}
 }
 
-// isEcho returns true if the message was tagged with the scion origin marker,
+// isEcho returns true if the message was tagged with the fabric origin marker,
 // indicating it originated from the hub and should not be re-delivered.
 func isEcho(msg *messages.StructuredMessage) bool {
 	if msg == nil {
@@ -248,7 +248,7 @@ func (b *RefBroker) deliverInbound(topic string, msg *messages.StructuredMessage
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	// Sign the request with HMAC if broker credentials are configured
 	if brokerID != "" && hmacKey != "" {

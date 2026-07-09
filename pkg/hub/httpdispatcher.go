@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hub provides the Scion Hub API server.
+// Package hub provides the Fabric Hub API server.
 package hub
 
 import (
@@ -24,11 +24,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dispatchmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
@@ -54,7 +54,7 @@ func (c *HTTPRuntimeBrokerClient) CreateAgent(ctx context.Context, brokerID, bro
 	return c.transport.CreateAgent(ctx, brokerID, brokerEndpoint, req)
 }
 
-func (c *HTTPRuntimeBrokerClient) StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.ScionConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error) {
+func (c *HTTPRuntimeBrokerClient) StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.FabricConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error) {
 	return c.transport.StartAgent(ctx, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig, resolvedEnv, resolvedSecrets, inlineConfig, sharedDirs, sharedWorkspace, resume)
 }
 
@@ -200,7 +200,7 @@ func (d *HTTPAgentDispatcher) SetHubID(id string) {
 }
 
 // SetDevAuthToken sets the dev auth token to inject into agent containers.
-// When set, agents receive SCION_DEV_TOKEN as a fallback authentication method.
+// When set, agents receive FABRIC_DEV_TOKEN as a fallback authentication method.
 func (d *HTTPAgentDispatcher) SetDevAuthToken(token string) {
 	d.devAuthToken = token
 }
@@ -360,7 +360,7 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 		req.Attach = agent.AppliedConfig.Attach
 	}
 
-	// Propagate creator name for SCION_CREATOR env var
+	// Propagate creator name for FABRIC_CREATOR env var
 	if agent.AppliedConfig != nil && agent.AppliedConfig.CreatorName != "" {
 		req.CreatorName = agent.AppliedConfig.CreatorName
 	}
@@ -449,7 +449,7 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 		}
 		req.ResolvedEnv = agent.AppliedConfig.Env
 
-		// Thread through the full inline ScionConfig for broker-side provisioning
+		// Thread through the full inline FabricConfig for broker-side provisioning
 		req.InlineConfig = agent.AppliedConfig.InlineConfig
 
 		if d.debug {
@@ -558,7 +558,7 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 			// from an external repo whose git project has the app installed).
 			mintProject := project
 			if project.GitHubInstallationID == nil {
-				if sourceProjectID := agent.Labels["scion.dev/github-token-source-project"]; sourceProjectID != "" {
+				if sourceProjectID := agent.Labels["fabric.dev/github-token-source-project"]; sourceProjectID != "" {
 					if sg, sgErr := d.store.GetProject(ctx, sourceProjectID); sgErr == nil && sg.GitHubInstallationID != nil {
 						mintProject = sg
 						if d.debug {
@@ -575,10 +575,10 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 					// Respect it: skip overwriting with the GitHub App token.
 					d.log.Warn("buildCreateRequest: user has GITHUB_TOKEN from secrets; skipping GitHub App token injection — user token takes precedence for gh CLI, GitHub App will still be used for git credential helper",
 						"project_id", agent.ProjectID)
-					req.ResolvedEnv["SCION_USER_GITHUB_TOKEN"] = "true"
+					req.ResolvedEnv["FABRIC_USER_GITHUB_TOKEN"] = "true"
 					// Still enable the GitHub App machinery so the credential
 					// helper can mint tokens for git push/pull operations.
-					req.ResolvedEnv["SCION_GITHUB_APP_ENABLED"] = "true"
+					req.ResolvedEnv["FABRIC_GITHUB_APP_ENABLED"] = "true"
 				} else {
 					token, expiry, mintErr := d.githubAppMinter.MintGitHubAppTokenForProject(ctx, mintProject)
 					if mintErr != nil {
@@ -592,9 +592,9 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 							req.ResolvedEnv = make(map[string]string)
 						}
 						req.ResolvedEnv["GITHUB_TOKEN"] = token
-						req.ResolvedEnv["SCION_GITHUB_APP_ENABLED"] = "true"
-						req.ResolvedEnv["SCION_GITHUB_TOKEN_EXPIRY"] = expiry
-						req.ResolvedEnv["SCION_GITHUB_TOKEN_PATH"] = "/tmp/.github-token"
+						req.ResolvedEnv["FABRIC_GITHUB_APP_ENABLED"] = "true"
+						req.ResolvedEnv["FABRIC_GITHUB_TOKEN_EXPIRY"] = expiry
+						req.ResolvedEnv["FABRIC_GITHUB_TOKEN_PATH"] = "/tmp/.github-token"
 						if d.debug {
 							d.log.Debug("buildCreateRequest: injected GitHub App token",
 								"project_id", agent.ProjectID,
@@ -626,7 +626,7 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 		if req.ResolvedEnv == nil {
 			req.ResolvedEnv = make(map[string]string)
 		}
-		req.ResolvedEnv["SCION_DEV_TOKEN"] = d.devAuthToken
+		req.ResolvedEnv["FABRIC_DEV_TOKEN"] = d.devAuthToken
 	}
 
 	// Transport token minting for platform-layer auth (IAP / Cloud Run invoker)
@@ -640,9 +640,9 @@ func (d *HTTPAgentDispatcher) buildCreateRequest(ctx context.Context, agent *sto
 			if req.ResolvedEnv == nil {
 				req.ResolvedEnv = make(map[string]string)
 			}
-			req.ResolvedEnv["SCION_TRANSPORT_TOKEN"] = tToken
-			req.ResolvedEnv["SCION_TRANSPORT_AUDIENCE"] = d.transportAudience
-			req.ResolvedEnv["SCION_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
+			req.ResolvedEnv["FABRIC_TRANSPORT_TOKEN"] = tToken
+			req.ResolvedEnv["FABRIC_TRANSPORT_AUDIENCE"] = d.transportAudience
+			req.ResolvedEnv["FABRIC_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
 		}
 	}
 
@@ -669,7 +669,7 @@ func (d *HTTPAgentDispatcher) resolveDispatchProjectInfo(ctx context.Context, ag
 	// A provider LocalPath (linked project) takes precedence over hub-native
 	// slug resolution, even for projects without a git remote. Only when there
 	// is no provider path and no git remote do we fall back to projectSlug so
-	// the broker resolves the conventional ~/.scion/projects/<slug> path.
+	// the broker resolves the conventional ~/.fabric/projects/<slug> path.
 	if agent.ProjectID == "" {
 		return projectDispatchInfo{}
 	}
@@ -702,7 +702,7 @@ func (d *HTTPAgentDispatcher) resolveDispatchProjectInfo(ctx context.Context, ag
 	// If no provider path was found, let the broker resolve the path via
 	// slug. This applies to both hub-native projects (no git remote) and
 	// git-anchored projects — the broker needs a project identity to create
-	// agent directories under ~/.scion/projects/<slug>/ rather than falling
+	// agent directories under ~/.fabric/projects/<slug>/ rather than falling
 	// back to the global project.
 	if info.projectPath == "" {
 		info.projectSlug = project.Slug
@@ -808,14 +808,14 @@ func (d *HTTPAgentDispatcher) DispatchAgentProvision(ctx context.Context, agent 
 	req.ProvisionOnly = true
 
 	// Merge resolved storage env vars back into AppliedConfig so they are
-	// visible in the advanced config form. Exclude internal SCION_* vars
+	// visible in the advanced config form. Exclude internal FABRIC_* vars
 	// and dev tokens which are injected at start time.
 	if agent.AppliedConfig != nil && len(req.ResolvedEnv) > 0 {
 		if agent.AppliedConfig.Env == nil {
 			agent.AppliedConfig.Env = make(map[string]string)
 		}
 		for k, v := range req.ResolvedEnv {
-			if strings.HasPrefix(k, "SCION_") {
+			if strings.HasPrefix(k, "FABRIC_") {
 				continue
 			}
 			if _, exists := agent.AppliedConfig.Env[k]; !exists {
@@ -1161,21 +1161,21 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 	// request body, but the startAgent path on the broker doesn't — so
 	// we inject them here as resolved env vars.
 	if agent.ID != "" {
-		resolvedEnv["SCION_AGENT_ID"] = agent.ID
+		resolvedEnv["FABRIC_AGENT_ID"] = agent.ID
 	}
 	if agent.ProjectID != "" {
-		resolvedEnv["SCION_GROVE_ID"] = agent.ProjectID
-		resolvedEnv["SCION_PROJECT_ID"] = agent.ProjectID
+		resolvedEnv["FABRIC_GROVE_ID"] = agent.ProjectID
+		resolvedEnv["FABRIC_PROJECT_ID"] = agent.ProjectID
 	}
 	if agent.Slug != "" {
-		resolvedEnv["SCION_AGENT_SLUG"] = agent.Slug
+		resolvedEnv["FABRIC_AGENT_SLUG"] = agent.Slug
 	}
 	// Include hub endpoint so the broker can inject it into the container.
 	// The createAgent path sends this as req.HubEndpoint, but the startAgent
 	// path relies on the broker's own config which may be empty for standalone
 	// brokers. Including it here ensures the broker always has the endpoint.
 	if d.hubEndpoint != "" {
-		resolvedEnv["SCION_HUB_ENDPOINT"] = d.hubEndpoint
+		resolvedEnv["FABRIC_HUB_ENDPOINT"] = d.hubEndpoint
 	}
 
 	// Inject GCP identity env vars so the broker can configure the
@@ -1185,10 +1185,10 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 	// the values through resolvedEnv instead.
 	if agent.AppliedConfig != nil {
 		if gcpID := agent.AppliedConfig.GCPIdentity; gcpID != nil {
-			resolvedEnv["SCION_METADATA_MODE"] = gcpID.MetadataMode
+			resolvedEnv["FABRIC_METADATA_MODE"] = gcpID.MetadataMode
 			if gcpID.MetadataMode == store.GCPMetadataModeAssign {
-				resolvedEnv["SCION_METADATA_SA_EMAIL"] = gcpID.ServiceAccountEmail
-				resolvedEnv["SCION_METADATA_PROJECT_ID"] = gcpID.ProjectID
+				resolvedEnv["FABRIC_METADATA_SA_EMAIL"] = gcpID.ServiceAccountEmail
+				resolvedEnv["FABRIC_METADATA_PROJECT_ID"] = gcpID.ProjectID
 			}
 		}
 	}
@@ -1211,7 +1211,7 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 				d.log.Warn("DispatchAgentStart: failed to generate agent token", "error", err)
 			}
 		} else if token != "" {
-			resolvedEnv["SCION_AUTH_TOKEN"] = token
+			resolvedEnv["FABRIC_AUTH_TOKEN"] = token
 		}
 	}
 
@@ -1223,9 +1223,9 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 				d.log.Warn("DispatchAgentStart: failed to mint transport token", "error", tErr)
 			}
 		} else if tToken != "" {
-			resolvedEnv["SCION_TRANSPORT_TOKEN"] = tToken
-			resolvedEnv["SCION_TRANSPORT_AUDIENCE"] = d.transportAudience
-			resolvedEnv["SCION_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
+			resolvedEnv["FABRIC_TRANSPORT_TOKEN"] = tToken
+			resolvedEnv["FABRIC_TRANSPORT_AUDIENCE"] = d.transportAudience
+			resolvedEnv["FABRIC_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
 		}
 	}
 
@@ -1235,7 +1235,7 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 		if projectErr == nil {
 			mintProject := project
 			if project.GitHubInstallationID == nil {
-				if sourceProjectID := agent.Labels["scion.dev/github-token-source-project"]; sourceProjectID != "" {
+				if sourceProjectID := agent.Labels["fabric.dev/github-token-source-project"]; sourceProjectID != "" {
 					if sg, sgErr := d.store.GetProject(ctx, sourceProjectID); sgErr == nil && sg.GitHubInstallationID != nil {
 						mintProject = sg
 					}
@@ -1251,15 +1251,15 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 						}
 					} else if token != "" {
 						resolvedEnv["GITHUB_TOKEN"] = token
-						resolvedEnv["SCION_GITHUB_APP_ENABLED"] = "true"
-						resolvedEnv["SCION_GITHUB_TOKEN_EXPIRY"] = expiry
-						resolvedEnv["SCION_GITHUB_TOKEN_PATH"] = "/tmp/.github-token"
+						resolvedEnv["FABRIC_GITHUB_APP_ENABLED"] = "true"
+						resolvedEnv["FABRIC_GITHUB_TOKEN_EXPIRY"] = expiry
+						resolvedEnv["FABRIC_GITHUB_TOKEN_PATH"] = "/tmp/.github-token"
 					}
 				} else {
 					d.log.Warn("DispatchAgentStart: user GITHUB_TOKEN takes precedence over GitHub App token — user token will be used for gh CLI, GitHub App for git credential helper",
 						"project_id", agent.ProjectID)
-					resolvedEnv["SCION_USER_GITHUB_TOKEN"] = "true"
-					resolvedEnv["SCION_GITHUB_APP_ENABLED"] = "true"
+					resolvedEnv["FABRIC_USER_GITHUB_TOKEN"] = "true"
+					resolvedEnv["FABRIC_GITHUB_APP_ENABLED"] = "true"
 				}
 			}
 		}
@@ -1286,7 +1286,7 @@ func (d *HTTPAgentDispatcher) DispatchAgentStart(ctx context.Context, agent *sto
 
 	// Thread through updated InlineConfig so the broker can apply config
 	// changes (e.g. max_turns) made after initial provisioning.
-	var inlineConfig *api.ScionConfig
+	var inlineConfig *api.FabricConfig
 	if agent.AppliedConfig != nil {
 		inlineConfig = agent.AppliedConfig.InlineConfig
 	}
@@ -1349,17 +1349,17 @@ func (d *HTTPAgentDispatcher) DispatchAgentRestart(ctx context.Context, agent *s
 	// broker's restartAgent handler has no token to inject.
 	resolvedEnv := make(map[string]string)
 	if agent.ID != "" {
-		resolvedEnv["SCION_AGENT_ID"] = agent.ID
+		resolvedEnv["FABRIC_AGENT_ID"] = agent.ID
 	}
 	if agent.ProjectID != "" {
-		resolvedEnv["SCION_GROVE_ID"] = agent.ProjectID
-		resolvedEnv["SCION_PROJECT_ID"] = agent.ProjectID
+		resolvedEnv["FABRIC_GROVE_ID"] = agent.ProjectID
+		resolvedEnv["FABRIC_PROJECT_ID"] = agent.ProjectID
 	}
 	if agent.Slug != "" {
-		resolvedEnv["SCION_AGENT_SLUG"] = agent.Slug
+		resolvedEnv["FABRIC_AGENT_SLUG"] = agent.Slug
 	}
 	if d.hubEndpoint != "" {
-		resolvedEnv["SCION_HUB_ENDPOINT"] = d.hubEndpoint
+		resolvedEnv["FABRIC_HUB_ENDPOINT"] = d.hubEndpoint
 	}
 
 	if d.tokenGenerator != nil {
@@ -1378,7 +1378,7 @@ func (d *HTTPAgentDispatcher) DispatchAgentRestart(ctx context.Context, agent *s
 				d.log.Warn("DispatchAgentRestart: failed to generate agent token", "error", err)
 			}
 		} else if token != "" {
-			resolvedEnv["SCION_AUTH_TOKEN"] = token
+			resolvedEnv["FABRIC_AUTH_TOKEN"] = token
 		}
 	}
 
@@ -1390,9 +1390,9 @@ func (d *HTTPAgentDispatcher) DispatchAgentRestart(ctx context.Context, agent *s
 				d.log.Warn("DispatchAgentRestart: failed to mint transport token", "error", tErr)
 			}
 		} else if tToken != "" {
-			resolvedEnv["SCION_TRANSPORT_TOKEN"] = tToken
-			resolvedEnv["SCION_TRANSPORT_AUDIENCE"] = d.transportAudience
-			resolvedEnv["SCION_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
+			resolvedEnv["FABRIC_TRANSPORT_TOKEN"] = tToken
+			resolvedEnv["FABRIC_TRANSPORT_AUDIENCE"] = d.transportAudience
+			resolvedEnv["FABRIC_TRANSPORT_TOKEN_EXPIRY"] = tExpiry.UTC().Format(time.RFC3339)
 		}
 	}
 

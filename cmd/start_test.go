@@ -17,8 +17,8 @@ package cmd
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +44,7 @@ func TestModelFlagRegistered(t *testing.T) {
 }
 
 func TestModelFlagOverridesConfigModel(t *testing.T) {
-	inlineCfg := &api.ScionConfig{Model: "small"}
+	inlineCfg := &api.FabricConfig{Model: "small"}
 
 	flagModel := "large"
 	normalizedModel := config.NormalizeModelAlias(flagModel)
@@ -59,14 +59,14 @@ func TestModelFlagOverridesConfigModel(t *testing.T) {
 }
 
 func TestModelFlagCreatesConfig(t *testing.T) {
-	var inlineCfg *api.ScionConfig
+	var inlineCfg *api.FabricConfig
 
 	flagModel := "xl"
 	normalizedModel := config.NormalizeModelAlias(flagModel)
 
 	if normalizedModel != "" {
 		if inlineCfg == nil {
-			inlineCfg = &api.ScionConfig{}
+			inlineCfg = &api.FabricConfig{}
 		}
 		inlineCfg.Model = normalizedModel
 	}

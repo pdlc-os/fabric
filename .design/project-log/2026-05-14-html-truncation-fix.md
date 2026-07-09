@@ -1,7 +1,7 @@
 # Fix: HTML Truncation Mid-Tag in Telegram Status Cards
 
 **Date:** 2026-05-14
-**Component:** extras/scion-telegram/internal/telegram/format.go
+**Component:** extras/fabric-telegram/internal/telegram/format.go
 **Issue:** I6 — HTML truncation mid-tag in status cards
 
 ## Problem
@@ -38,7 +38,7 @@ which could split multi-byte runes in the task summary text.
 
 All 33 existing format tests pass without modification:
 ```
-cd extras/scion-telegram && go test ./internal/telegram/ -run TestFormat
+cd extras/fabric-telegram && go test ./internal/telegram/ -run TestFormat
 ```
 
 ## Key Insight

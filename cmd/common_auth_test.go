@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/credentials"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,8 +35,8 @@ func TestGetHubAccessToken_OAuthCredentials(t *testing.T) {
 	defer credentials.SetCredentialsPath(origPath)
 
 	// Clear any dev token env vars
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 
 	endpoint := "https://hub.example.com"
 
@@ -62,14 +62,14 @@ func TestGetHubAccessToken_DevTokenFallback(t *testing.T) {
 	defer credentials.SetCredentialsPath(origPath)
 
 	// Set a dev token via env var
-	t.Setenv("SCION_DEV_TOKEN", "scion_dev_test123")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "fabric_dev_test123")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 
 	endpoint := "https://hub.example.com"
 
 	// Should fall back to dev token
 	token := getHubAccessToken(endpoint)
-	assert.Equal(t, "scion_dev_test123", token)
+	assert.Equal(t, "fabric_dev_test123", token)
 }
 
 func TestGetHubAccessToken_DevTokenFileFallback(t *testing.T) {
@@ -82,20 +82,20 @@ func TestGetHubAccessToken_DevTokenFileFallback(t *testing.T) {
 	defer credentials.SetCredentialsPath(origPath)
 
 	// Clear env-based dev token (including v1 settings env var)
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
 
 	// Set up a dev token file
 	tokenFile := filepath.Join(tmpDir, "dev-token")
-	err := os.WriteFile(tokenFile, []byte("scion_dev_fromfile\n"), 0600)
+	err := os.WriteFile(tokenFile, []byte("fabric_dev_fromfile\n"), 0600)
 	require.NoError(t, err)
-	t.Setenv("SCION_DEV_TOKEN_FILE", tokenFile)
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", tokenFile)
 
 	endpoint := "https://hub.example.com"
 
 	// Should fall back to dev token from file
 	token := getHubAccessToken(endpoint)
-	assert.Equal(t, "scion_dev_fromfile", token)
+	assert.Equal(t, "fabric_dev_fromfile", token)
 }
 
 func TestGetHubAccessToken_OAuthTakesPriority(t *testing.T) {
@@ -117,7 +117,7 @@ func TestGetHubAccessToken_OAuthTakesPriority(t *testing.T) {
 	require.NoError(t, err)
 
 	// Also set a dev token
-	t.Setenv("SCION_DEV_TOKEN", "scion_dev_shouldnotuse")
+	t.Setenv("FABRIC_DEV_TOKEN", "fabric_dev_shouldnotuse")
 
 	// OAuth should take priority over dev token
 	token := getHubAccessToken(endpoint)
@@ -134,10 +134,10 @@ func TestGetHubAccessToken_NoAuth(t *testing.T) {
 	defer credentials.SetCredentialsPath(origPath)
 
 	// Clear all dev token sources (including v1 settings env var)
-	t.Setenv("SCION_DEV_TOKEN", "")
-	t.Setenv("SCION_AUTH_TOKEN", "")
-	t.Setenv("SCION_DEV_TOKEN_FILE", "")
-	// Override HOME to prevent finding ~/.scion/dev-token
+	t.Setenv("FABRIC_DEV_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
+	// Override HOME to prevent finding ~/.fabric/dev-token
 	t.Setenv("HOME", tmpDir)
 
 	endpoint := "https://hub.example.com"

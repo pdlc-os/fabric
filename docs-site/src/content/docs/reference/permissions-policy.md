@@ -1,6 +1,6 @@
 ---
 title: Policy & Permissions Reference
-description: Technical reference for the Scion policy language and permission system.
+description: Technical reference for the Fabric policy language and permission system.
 ---
 
 :::caution[Draft Specification]
@@ -9,7 +9,7 @@ The policy and permissions system described here is currently in **active design
 
 ## Overview
 
-Scion employs a rigorous, claim-based access control system to secure the interactions between Agents, Users, and the Hub. This system goes beyond simple role-based access control (RBAC) by allowing policies to evaluate cryptographically signed claims embedded in an agent's identity token.
+Fabric employs a rigorous, claim-based access control system to secure the interactions between Agents, Users, and the Hub. This system goes beyond simple role-based access control (RBAC) by allowing policies to evaluate cryptographically signed claims embedded in an agent's identity token.
 
 This enables sophisticated security postures, such as:
 *   "An agent can only read secrets belonging to the user who created it."
@@ -18,20 +18,20 @@ This enables sophisticated security postures, such as:
 
 ## Agent Identity
 
-When an agent is provisioned by the Scion Hub, it is issued a cryptographically signed identity token (JWT). This token serves as the agent's passport for all interactions with the Hub API.
+When an agent is provisioned by the Fabric Hub, it is issued a cryptographically signed identity token (JWT). This token serves as the agent's passport for all interactions with the Hub API.
 
 ### Token Structure
 
-The agent identity token contains standard JWT claims alongside Scion-specific metadata.
+The agent identity token contains standard JWT claims alongside Fabric-specific metadata.
 
 ```json
 {
-  "iss": "https://hub.scion.dev",
+  "iss": "https://hub.fabric.dev",
   "sub": "agent:550e8400-e29b-41d4-a716-446655440000",
-  "aud": "scion-hub",
+  "aud": "fabric-hub",
   "iat": 1615985870,
   "exp": 1616072270,
-  "scion_claims": {
+  "fabric_claims": {
     "project_id": "project:12345",
     "creator_user_id": "user:jane.doe@example.com",
     "template_id": "template:security-auditor:v2",
@@ -54,12 +54,12 @@ Crucially, the identity token includes **provenance claims** that attest to the 
 
 ## Policy Language
 
-Scion policies are defined in JSON or YAML and are evaluated at the Hub whenever an API request is made. A policy binds a **Principal** (User or Agent) to a set of allowed **Actions** on a **Resource**, subject to **Conditions**.
+Fabric policies are defined in JSON or YAML and are evaluated at the Hub whenever an API request is made. A policy binds a **Principal** (User or Agent) to a set of allowed **Actions** on a **Resource**, subject to **Conditions**.
 
 ### Policy Structure
 
 ```yaml
-apiVersion: scion.dev/v1alpha1
+apiVersion: fabric.dev/v1alpha1
 kind: Policy
 metadata:
   name: "limit-auditor-agents"

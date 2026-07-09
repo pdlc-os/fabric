@@ -1,7 +1,7 @@
 # Fix AttrProjectID constant value
 
 **Date:** 2026-05-13
-**Branch:** scion/fix-broken-tests
+**Branch:** fabric/fix-broken-tests
 **PR:** #67
 
 ## Summary

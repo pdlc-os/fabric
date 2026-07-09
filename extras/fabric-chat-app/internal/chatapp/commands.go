@@ -23,10 +23,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/identity"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/identity"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // eventUserLookup returns user info from the ChatEvent itself, using the
@@ -109,7 +109,7 @@ func (r *CommandRouter) SetMessenger(m Messenger) {
 func (r *CommandRouter) HandleEvent(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
 	switch event.Type {
 	case EventCommand:
-		if event.Command == "scionAdmin" {
+		if event.Command == "fabricAdmin" {
 			return r.handleAdminCommand(ctx, event)
 		}
 		return r.handleCommand(ctx, event)
@@ -129,15 +129,15 @@ func (r *CommandRouter) HandleEvent(ctx context.Context, event *ChatEvent) (*Eve
 	}
 }
 
-// handleCommand parses "/scion <args>" and routes to messaging.
-// The /scion command is focused entirely on sending messages to agents.
+// handleCommand parses "/fabric <args>" and routes to messaging.
+// The /fabric command is focused entirely on sending messages to agents.
 // If a default agent is set, the entire text is sent directly to it.
 // Otherwise, the first word is tried as an agent slug.
 func (r *CommandRouter) handleCommand(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
 	parts := strings.Fields(event.Args)
 	if len(parts) == 0 {
-		r.log.Info("scion command (no args, showing help)", "space", event.SpaceID, "user", event.UserID)
-		return r.cmdScionHelp(ctx, event)
+		r.log.Info("fabric command (no args, showing help)", "space", event.SpaceID, "user", event.UserID)
+		return r.cmdFabricHelp(ctx, event)
 	}
 
 	sub := strings.ToLower(parts[0])
@@ -145,20 +145,20 @@ func (r *CommandRouter) handleCommand(ctx context.Context, event *ChatEvent) (*E
 	switch sub {
 	case "help":
 		if len(parts) == 1 {
-			r.log.Info("scion command (help)", "space", event.SpaceID, "user", event.UserID)
-			return r.cmdScionHelp(ctx, event)
+			r.log.Info("fabric command (help)", "space", event.SpaceID, "user", event.UserID)
+			return r.cmdFabricHelp(ctx, event)
 		}
 		return r.cmdMessage(ctx, event, parts)
 	case "message", "msg":
-		r.log.Info("scion command (message)", "args", strings.Join(parts[1:], " "), "space", event.SpaceID, "user", event.UserID)
+		r.log.Info("fabric command (message)", "args", strings.Join(parts[1:], " "), "space", event.SpaceID, "user", event.UserID)
 		return r.cmdMessage(ctx, event, parts[1:])
 	default:
-		r.log.Info("scion command (message mode)", "args", event.Args, "space", event.SpaceID, "user", event.UserID)
+		r.log.Info("fabric command (message mode)", "args", event.Args, "space", event.SpaceID, "user", event.UserID)
 		return r.cmdMessage(ctx, event, parts)
 	}
 }
 
-// handleAdminCommand parses "/scionAdmin <subcommand> <args>" and routes to
+// handleAdminCommand parses "/fabricAdmin <subcommand> <args>" and routes to
 // administrative handlers (agent management, space linking, identity, etc.).
 func (r *CommandRouter) handleAdminCommand(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
 	parts := strings.Fields(event.Args)
@@ -211,11 +211,11 @@ func (r *CommandRouter) handleAdminCommand(ctx context.Context, event *ChatEvent
 			resp, err = r.cmdAdminHelp(ctx, event)
 		} else {
 			r.log.Warn("unknown admin command", "subcommand", strings.Join(parts, " "))
-			resp = textResponse(event, fmt.Sprintf("Unknown command: `%s`. Use `/scionAdmin help` for available commands.", strings.Join(parts, " ")))
+			resp = textResponse(event, fmt.Sprintf("Unknown command: `%s`. Use `/fabricAdmin help` for available commands.", strings.Join(parts, " ")))
 		}
 	default:
 		r.log.Warn("unknown admin command", "subcommand", subcommand)
-		resp = textResponse(event, fmt.Sprintf("Unknown command: `%s`. Use `/scionAdmin help` for available commands.", subcommand))
+		resp = textResponse(event, fmt.Sprintf("Unknown command: `%s`. Use `/fabricAdmin help` for available commands.", subcommand))
 	}
 
 	if err != nil {
@@ -233,7 +233,7 @@ func (r *CommandRouter) handleMessage(ctx context.Context, event *ChatEvent) err
 		return fmt.Errorf("getting space link: %w", err)
 	}
 	if link == nil {
-		return r.reply(ctx, event, "This space is not linked to a project. Use `/scionAdmin link <project-slug>` to link it.")
+		return r.reply(ctx, event, "This space is not linked to a project. Use `/fabricAdmin link <project-slug>` to link it.")
 	}
 
 	// Try to resolve the user
@@ -242,12 +242,12 @@ func (r *CommandRouter) handleMessage(ctx context.Context, event *ChatEvent) err
 		return fmt.Errorf("resolving user: %w", err)
 	}
 	if mapping == nil {
-		return r.reply(ctx, event, "You are not registered. Use `/scionAdmin register` to link your chat account to your Hub account.")
+		return r.reply(ctx, event, "You are not registered. Use `/fabricAdmin register` to link your chat account to your Hub account.")
 	}
 
 	// For MVP: send to the first running agent mentioned in the text,
 	// or prompt for target if ambiguous
-	return r.reply(ctx, event, "Message received. Use `/scion <agent> <text>` to send to a specific agent.")
+	return r.reply(ctx, event, "Message received. Use `/fabric <agent> <text>` to send to a specific agent.")
 }
 
 // handleAction processes button clicks and interactive elements.
@@ -271,7 +271,7 @@ func (r *CommandRouter) handleAction(ctx context.Context, event *ChatEvent) erro
 		if actionVerb == "ack" && targetID != "" {
 			client, err := r.clientForUser(ctx, event)
 			if err != nil {
-				return r.reply(ctx, event, "Authentication required. Use `/scionAdmin register` first.")
+				return r.reply(ctx, event, "Authentication required. Use `/fabricAdmin register` first.")
 			}
 			return client.Notifications().Acknowledge(ctx, targetID)
 		}
@@ -313,7 +313,7 @@ func (r *CommandRouter) handleDialogSubmit(ctx context.Context, event *ChatEvent
 			return r.reply(ctx, event, "Something went wrong, please try again later.")
 		}
 		if mapping == nil {
-			return r.reply(ctx, event, "Authentication required. Use `/scionAdmin register` first.")
+			return r.reply(ctx, event, "Authentication required. Use `/fabricAdmin register` first.")
 		}
 		client, err := r.idMapper.ClientFor(ctx, mapping)
 		if err != nil {
@@ -361,7 +361,7 @@ func (r *CommandRouter) handleAgentAction(ctx context.Context, event *ChatEvent,
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return r.reply(ctx, event, "Authentication required. Use `/scionAdmin register` first.")
+		return r.reply(ctx, event, "Authentication required. Use `/fabricAdmin register` first.")
 	}
 
 	agents := client.ProjectAgents(link.ProjectID)
@@ -416,7 +416,7 @@ func (r *CommandRouter) handleSpaceJoin(ctx context.Context, event *ChatEvent) e
 		r.log.Debug("space join via @mention, deferring to subsequent event")
 		return nil
 	}
-	return r.reply(ctx, event, "Hello! I'm Scion Bot. Use `/scionAdmin link <project-slug>` to connect this space to a project, then `/scionAdmin help` for available commands.")
+	return r.reply(ctx, event, "Hello! I'm Fabric Bot. Use `/fabricAdmin link <project-slug>` to connect this space to a project, then `/fabricAdmin help` for available commands.")
 }
 
 // handleSpaceRemove is called when the bot is removed from a space.
@@ -438,7 +438,7 @@ func (r *CommandRouter) cmdList(ctx context.Context, event *ChatEvent, args []st
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	// Fetch current project info from hub to ensure we display the latest slug.
@@ -483,7 +483,7 @@ func (r *CommandRouter) cmdList(ctx context.Context, event *ChatEvent, args []st
 
 func (r *CommandRouter) cmdStatus(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin status <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin status <agent-slug>`"), nil
 	}
 
 	link, resp := r.requireSpaceLink(ctx, event)
@@ -493,7 +493,7 @@ func (r *CommandRouter) cmdStatus(ctx context.Context, event *ChatEvent, args []
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	agent, err := client.ProjectAgents(link.ProjectID).Get(ctx, args[0])
@@ -528,7 +528,7 @@ func (r *CommandRouter) cmdStatus(ctx context.Context, event *ChatEvent, args []
 
 func (r *CommandRouter) cmdStart(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin start <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin start <agent-slug>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -538,7 +538,7 @@ func (r *CommandRouter) cmdStart(ctx context.Context, event *ChatEvent, args []s
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	if err := client.ProjectAgents(link.ProjectID).Start(ctx, args[0]); err != nil {
@@ -549,7 +549,7 @@ func (r *CommandRouter) cmdStart(ctx context.Context, event *ChatEvent, args []s
 
 func (r *CommandRouter) cmdStop(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin stop <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin stop <agent-slug>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -559,7 +559,7 @@ func (r *CommandRouter) cmdStop(ctx context.Context, event *ChatEvent, args []st
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	if err := client.ProjectAgents(link.ProjectID).Stop(ctx, args[0]); err != nil {
@@ -570,7 +570,7 @@ func (r *CommandRouter) cmdStop(ctx context.Context, event *ChatEvent, args []st
 
 func (r *CommandRouter) cmdCreate(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin create <agent-name>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin create <agent-name>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -580,7 +580,7 @@ func (r *CommandRouter) cmdCreate(ctx context.Context, event *ChatEvent, args []
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	createResp, err := client.ProjectAgents(link.ProjectID).Create(ctx, &hubclient.CreateAgentRequest{
@@ -594,12 +594,12 @@ func (r *CommandRouter) cmdCreate(ctx context.Context, event *ChatEvent, args []
 
 func (r *CommandRouter) cmdLink(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin link <project-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin link <project-slug>`"), nil
 	}
 
 	mapping, err := r.idMapper.ResolveOrAutoRegister(ctx, &eventUserLookup{event}, event.UserID, event.Platform)
 	if err != nil || mapping == nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	client, err := r.idMapper.ClientFor(ctx, mapping)
@@ -632,7 +632,7 @@ func (r *CommandRouter) cmdLink(ctx context.Context, event *ChatEvent, args []st
 	// Subscribe only to user-targeted messages so that agent-to-agent
 	// traffic and broadcasts do not leak into chat.
 	if r.broker != nil {
-		pattern := fmt.Sprintf("scion.grove.%s.user.>", proj.ID)
+		pattern := fmt.Sprintf("fabric.grove.%s.user.>", proj.ID)
 		if err := r.broker.RequestSubscription(pattern); err != nil {
 			r.log.Warn("failed to request project subscription", "project_id", proj.ID, "error", err)
 		}
@@ -652,7 +652,7 @@ func (r *CommandRouter) cmdUnlink(ctx context.Context, event *ChatEvent, args []
 
 	// Cancel broker subscription (must match the pattern used during link).
 	if r.broker != nil {
-		pattern := fmt.Sprintf("scion.grove.%s.user.>", link.ProjectID)
+		pattern := fmt.Sprintf("fabric.grove.%s.user.>", link.ProjectID)
 		if err := r.broker.CancelSubscription(pattern); err != nil {
 			r.log.Warn("failed to cancel project subscription", "project_id", link.ProjectID, "error", err)
 		}
@@ -732,7 +732,7 @@ func (r *CommandRouter) cmdRegister(ctx context.Context, event *ChatEvent, args 
 			{
 				Header: "After completing authorization:",
 				Widgets: []Widget{
-					{Type: WidgetText, Content: "Run `/scionAdmin register confirm` to finish registration."},
+					{Type: WidgetText, Content: "Run `/fabricAdmin register confirm` to finish registration."},
 				},
 			},
 		},
@@ -749,7 +749,7 @@ func (r *CommandRouter) pollDeviceAuth(ctx context.Context, event *ChatEvent, pe
 		r.mu.Lock()
 		delete(r.pendingAuth, authKey)
 		r.mu.Unlock()
-		return textResponse(event, "Device authorization expired. Run `/scionAdmin register` to start again."), nil
+		return textResponse(event, "Device authorization expired. Run `/fabricAdmin register` to start again."), nil
 	}
 
 	resp, err := r.adminClient.Auth().PollDeviceToken(ctx, pending.deviceCode, "")
@@ -759,12 +759,12 @@ func (r *CommandRouter) pollDeviceAuth(ctx context.Context, event *ChatEvent, pe
 
 	switch resp.Status {
 	case "authorization_pending":
-		return textResponse(event, "Authorization still pending. Complete the flow in your browser, then run `/scionAdmin register confirm` again."), nil
+		return textResponse(event, "Authorization still pending. Complete the flow in your browser, then run `/fabricAdmin register confirm` again."), nil
 	case "expired_token":
 		r.mu.Lock()
 		delete(r.pendingAuth, authKey)
 		r.mu.Unlock()
-		return textResponse(event, "Device authorization expired. Run `/scionAdmin register` to start again."), nil
+		return textResponse(event, "Device authorization expired. Run `/fabricAdmin register` to start again."), nil
 	case "slow_down":
 		return textResponse(event, "Please wait a moment before trying again."), nil
 	case "":
@@ -797,7 +797,7 @@ func (r *CommandRouter) cmdUnregister(ctx context.Context, event *ChatEvent, arg
 
 func (r *CommandRouter) cmdDelete(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin delete <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin delete <agent-slug>`"), nil
 	}
 	return r.showDeleteConfirmation(ctx, event, args[0])
 }
@@ -811,7 +811,7 @@ func (r *CommandRouter) showDeleteConfirmation(ctx context.Context, event *ChatE
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	agent, err := client.ProjectAgents(link.ProjectID).Get(ctx, agentSlug)
@@ -857,7 +857,7 @@ func (r *CommandRouter) executeDelete(ctx context.Context, event *ChatEvent, age
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return r.reply(ctx, event, "Authentication required. Use `/scionAdmin register` first.")
+		return r.reply(ctx, event, "Authentication required. Use `/fabricAdmin register` first.")
 	}
 
 	if err := client.ProjectAgents(link.ProjectID).Delete(ctx, agentID, nil); err != nil {
@@ -868,7 +868,7 @@ func (r *CommandRouter) executeDelete(ctx context.Context, event *ChatEvent, age
 
 func (r *CommandRouter) cmdLogs(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin logs <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin logs <agent-slug>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -878,7 +878,7 @@ func (r *CommandRouter) cmdLogs(ctx context.Context, event *ChatEvent, args []st
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	opts := &hubclient.GetLogsOptions{Tail: 50}
@@ -900,7 +900,7 @@ func (r *CommandRouter) cmdLogs(ctx context.Context, event *ChatEvent, args []st
 
 func (r *CommandRouter) cmdSubscribe(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin subscribe <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin subscribe <agent-slug>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -1003,7 +1003,7 @@ func (r *CommandRouter) handleSubscribeFilter(ctx context.Context, event *ChatEv
 
 func (r *CommandRouter) cmdUnsubscribe(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) == 0 {
-		return textResponse(event, "Usage: `/scionAdmin unsubscribe <agent-slug>`"), nil
+		return textResponse(event, "Usage: `/fabricAdmin unsubscribe <agent-slug>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -1019,7 +1019,7 @@ func (r *CommandRouter) cmdUnsubscribe(ctx context.Context, event *ChatEvent, ar
 
 func (r *CommandRouter) cmdMessage(ctx context.Context, event *ChatEvent, args []string) (*EventResponse, error) {
 	if len(args) < 1 {
-		return textResponse(event, "Usage: `/scion [--thread <thread-id>] <agent-slug> <text>`"), nil
+		return textResponse(event, "Usage: `/fabric [--thread <thread-id>] <agent-slug> <text>`"), nil
 	}
 
 	link, linkResp := r.requireSpaceLink(ctx, event)
@@ -1029,7 +1029,7 @@ func (r *CommandRouter) cmdMessage(ctx context.Context, event *ChatEvent, args [
 
 	mapping, err := r.idMapper.ResolveOrAutoRegister(ctx, &eventUserLookup{event}, event.UserID, event.Platform)
 	if err != nil || mapping == nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 	client, err := r.idMapper.ClientFor(ctx, mapping)
 	if err != nil {
@@ -1048,7 +1048,7 @@ func (r *CommandRouter) cmdMessage(ctx context.Context, event *ChatEvent, args [
 	}
 
 	if len(remaining) < 1 {
-		return textResponse(event, "Usage: `/scion [--thread <thread-id>] <agent-slug> <text>`"), nil
+		return textResponse(event, "Usage: `/fabric [--thread <thread-id>] <agent-slug> <text>`"), nil
 	}
 
 	agentSlug := remaining[0]
@@ -1075,7 +1075,7 @@ func (r *CommandRouter) cmdMessage(ctx context.Context, event *ChatEvent, args [
 		}
 	}
 	if agent.Phase == "stopped" {
-		return textResponse(event, fmt.Sprintf("Agent `%s` is stopped. Start it with `/scionAdmin start %s` before sending messages.", agentSlug, agentSlug)), nil
+		return textResponse(event, fmt.Sprintf("Agent `%s` is stopped. Start it with `/fabricAdmin start %s` before sending messages.", agentSlug, agentSlug)), nil
 	}
 
 	// Use the hub user email with "user:" prefix so agents can address replies
@@ -1107,9 +1107,9 @@ func (r *CommandRouter) cmdSetDefault(ctx context.Context, event *ChatEvent, arg
 
 	if len(args) == 0 {
 		if link.DefaultAgent == "" {
-			return textResponse(event, "No default agent is set. Usage: `/scionAdmin set-default <agent-slug>`"), nil
+			return textResponse(event, "No default agent is set. Usage: `/fabricAdmin set-default <agent-slug>`"), nil
 		}
-		return textResponse(event, fmt.Sprintf("Default agent is `%s`. Use `/scionAdmin set-default clear` to remove.", link.DefaultAgent)), nil
+		return textResponse(event, fmt.Sprintf("Default agent is `%s`. Use `/fabricAdmin set-default clear` to remove.", link.DefaultAgent)), nil
 	}
 
 	arg := strings.ToLower(args[0])
@@ -1122,7 +1122,7 @@ func (r *CommandRouter) cmdSetDefault(ctx context.Context, event *ChatEvent, arg
 
 	client, err := r.clientForUser(ctx, event)
 	if err != nil {
-		return textResponse(event, "Authentication required. Use `/scionAdmin register` first."), nil
+		return textResponse(event, "Authentication required. Use `/fabricAdmin register` first."), nil
 	}
 
 	agent, err := client.ProjectAgents(link.ProjectID).Get(ctx, args[0])
@@ -1190,7 +1190,7 @@ func (r *CommandRouter) cmdInfo(ctx context.Context, event *ChatEvent, args []st
 
 	card := Card{
 		Header: CardHeader{
-			Title:    "Scion Info",
+			Title:    "Fabric Info",
 			Subtitle: fmt.Sprintf("Hub: %s", r.hubHostname()),
 		},
 		Sections: []CardSection{
@@ -1208,45 +1208,45 @@ func (r *CommandRouter) cmdInfo(ctx context.Context, event *ChatEvent, args []st
 	}, nil
 }
 
-func (r *CommandRouter) cmdScionHelp(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
-	help := `*Scion — Message Agents:*
+func (r *CommandRouter) cmdFabricHelp(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
+	help := `*Fabric — Message Agents:*
 
-• ` + "`/scion <text>`" + ` — Send a message to the default agent
-• ` + "`/scion <agent> <text>`" + ` — Send a message to a specific agent
-• ` + "`/scion --thread <id> <agent> <text>`" + ` — Send in a specific thread
+• ` + "`/fabric <text>`" + ` — Send a message to the default agent
+• ` + "`/fabric <agent> <text>`" + ` — Send a message to a specific agent
+• ` + "`/fabric --thread <id> <agent> <text>`" + ` — Send in a specific thread
 
 _If a default agent is set, all text is sent directly to it. Otherwise, the first word is used as the agent slug._
 
-Use ` + "`/scionAdmin help`" + ` for agent management and space administration commands.`
+Use ` + "`/fabricAdmin help`" + ` for agent management and space administration commands.`
 
 	return textResponse(event, help), nil
 }
 
 func (r *CommandRouter) cmdAdminHelp(ctx context.Context, event *ChatEvent) (*EventResponse, error) {
-	help := `*Scion Admin Commands:*
+	help := `*Fabric Admin Commands:*
 
 *Agent Management:*
-• ` + "`/scionAdmin list`" + ` — List agents in linked project
-• ` + "`/scionAdmin status <agent>`" + ` — Show agent status
-• ` + "`/scionAdmin start <agent>`" + ` — Start an agent
-• ` + "`/scionAdmin stop <agent>`" + ` — Stop an agent
-• ` + "`/scionAdmin create <name>`" + ` — Create a new agent
-• ` + "`/scionAdmin delete <agent>`" + ` — Delete an agent (with confirmation)
-• ` + "`/scionAdmin logs <agent>`" + ` — View recent agent logs
-• ` + "`/scionAdmin set-default <agent>`" + ` — Set default agent for ` + "`/scion`" + ` messages (clear with ` + "`clear`" + `)
+• ` + "`/fabricAdmin list`" + ` — List agents in linked project
+• ` + "`/fabricAdmin status <agent>`" + ` — Show agent status
+• ` + "`/fabricAdmin start <agent>`" + ` — Start an agent
+• ` + "`/fabricAdmin stop <agent>`" + ` — Stop an agent
+• ` + "`/fabricAdmin create <name>`" + ` — Create a new agent
+• ` + "`/fabricAdmin delete <agent>`" + ` — Delete an agent (with confirmation)
+• ` + "`/fabricAdmin logs <agent>`" + ` — View recent agent logs
+• ` + "`/fabricAdmin set-default <agent>`" + ` — Set default agent for ` + "`/fabric`" + ` messages (clear with ` + "`clear`" + `)
 
 *Space & Identity:*
-• ` + "`/scionAdmin info`" + ` — Show registration, project link, and agent info
-• ` + "`/scionAdmin link <project-slug>`" + ` — Link this space to a project
-• ` + "`/scionAdmin unlink`" + ` — Unlink this space
-• ` + "`/scionAdmin register`" + ` — Register your chat account
-• ` + "`/scionAdmin unregister`" + ` — Unregister your account
+• ` + "`/fabricAdmin info`" + ` — Show registration, project link, and agent info
+• ` + "`/fabricAdmin link <project-slug>`" + ` — Link this space to a project
+• ` + "`/fabricAdmin unlink`" + ` — Unlink this space
+• ` + "`/fabricAdmin register`" + ` — Register your chat account
+• ` + "`/fabricAdmin unregister`" + ` — Unregister your account
 
 *Notifications:*
-• ` + "`/scionAdmin subscribe <agent>`" + ` — Subscribe to agent notifications
-• ` + "`/scionAdmin unsubscribe <agent>`" + ` — Unsubscribe from notifications
+• ` + "`/fabricAdmin subscribe <agent>`" + ` — Subscribe to agent notifications
+• ` + "`/fabricAdmin unsubscribe <agent>`" + ` — Unsubscribe from notifications
 
-Use ` + "`/scion <text>`" + ` to message agents directly.`
+Use ` + "`/fabric <text>`" + ` to message agents directly.`
 
 	return textResponse(event, help), nil
 }
@@ -1293,7 +1293,7 @@ func (r *CommandRouter) requireSpaceLink(ctx context.Context, event *ChatEvent) 
 		return nil, textResponse(event, fmt.Sprintf("Failed to check project link: %v", err))
 	}
 	if link == nil {
-		return nil, textResponse(event, "This space is not linked to a project. Use `/scionAdmin link <project-slug>` first.")
+		return nil, textResponse(event, "This space is not linked to a project. Use `/fabricAdmin link <project-slug>` first.")
 	}
 	return link, nil
 }

@@ -1,10 +1,10 @@
-// scion-plugin-discord is the Discord message broker plugin for scion.
+// fabric-plugin-discord is the Discord message broker plugin for fabric.
 // It can run as:
-//   - A go-plugin subprocess (when launched by the scion plugin manager)
+//   - A go-plugin subprocess (when launched by the fabric plugin manager)
 //   - A standalone gRPC service with HA support (--standalone flag or DISCORD_STANDALONE=true)
 //   - A standalone binary that prints usage information
 //
-// Plugin mode is auto-detected via the SCION_PLUGIN magic cookie environment variable.
+// Plugin mode is auto-detected via the FABRIC_PLUGIN magic cookie environment variable.
 package main
 
 import (
@@ -22,12 +22,12 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-discord/internal/discord"
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin/grpcbroker"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	brokerv1 "github.com/GoogleCloudPlatform/scion/proto/broker/v1"
+	"github.com/pdlc-os/fabric/extras/fabric-discord/internal/discord"
+	"github.com/pdlc-os/fabric/pkg/integration/runtime"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/plugin/grpcbroker"
+	"github.com/pdlc-os/fabric/pkg/store"
+	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
 	goplugin "github.com/hashicorp/go-plugin"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -46,11 +46,11 @@ func main() {
 	}
 
 	// Otherwise, print usage information.
-	fmt.Println("scion-plugin-discord: Discord message broker plugin for Scion")
+	fmt.Println("fabric-plugin-discord: Discord message broker plugin for Fabric")
 	fmt.Println()
-	fmt.Println("This binary is intended to be launched by the Scion plugin manager.")
+	fmt.Println("This binary is intended to be launched by the Fabric plugin manager.")
 	fmt.Println("It communicates with the Discord Gateway API to provide bidirectional")
-	fmt.Println("messaging between Discord channels and Scion agents.")
+	fmt.Println("messaging between Discord channels and Fabric agents.")
 	fmt.Println()
 	fmt.Println("Modes:")
 	fmt.Println("  (default)      Plugin mode — launched by hub plugin manager")

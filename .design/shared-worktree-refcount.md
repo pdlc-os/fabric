@@ -1,6 +1,6 @@
 # Design: Shared-Worktree Refcount / Last-Sharer Teardown (#168, Q7)
 
-**Branch:** `scion/shared-worktree-refcount` (off upstream `main`)
+**Branch:** `fabric/shared-worktree-refcount` (off upstream `main`)
 **Tracking:** #168 (child of #158). Q7 in `worktree-per-agent.md`.
 **Status:** proposal — decisions teed up for @ptone.
 
@@ -28,7 +28,7 @@ final mounting agent exits. Apply uniformly to **local + hub-managed**.
 
 ### D1 — How to track the agent→worktree association
 - **(A) Refs marker file in the shared base** — a small file per worktree (e.g.
-  `<base>/.git/worktrees/<id>/scion-sharers` or `<base>/worktrees/.sharers/<branch>`) listing
+  `<base>/.git/worktrees/<id>/fabric-sharers` or `<base>/worktrees/.sharers/<branch>`) listing
   sharer agent IDs; append on attach, remove on delete, teardown when empty. **Unified for
   local + hub** (both have the base on disk), no schema migration, naturally co-located with
   the worktree. Concurrency via the existing per-project advisory lock / provision mutex.

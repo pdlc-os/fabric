@@ -15,12 +15,12 @@
 """Amp container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Written inputs/auth-candidates.json with the env-var names and paths to
-    secret-value files under $HOME/.scion/harness/secrets/<NAME>.
+    secret-value files under $HOME/.fabric/harness/secrets/<NAME>.
   * Mounted no auth files (Amp uses env vars only; it relies on the OS keychain
     or AMP_API_KEY, but keychain is not available in containers).
 
@@ -30,7 +30,7 @@ This script's responsibilities:
      if present, otherwise applying precedence: AMP_API_KEY > ANTHROPIC_API_KEY.
   2. Read the secret value from the staged secrets/<NAME> file and project it
      into outputs/env.json as AMP_API_KEY so Amp picks it up from the env
-     overlay that sciontool init loads before launching the agent process.
+     overlay that fabrictool init loads before launching the agent process.
   3. Reconcile ~/.config/amp/settings.json: ensure harness-required defaults
      (dangerouslyAllowAll, terminal theme) are present without clobbering any
      keys the user may have placed in the home overlay.
@@ -182,7 +182,7 @@ def _reconcile_settings(settings_path: str) -> None:
 
 
 def _provision(manifest: dict[str, Any]) -> int:
-    bundle = manifest.get("harness_bundle_dir") or "$HOME/.scion/harness"
+    bundle = manifest.get("harness_bundle_dir") or "$HOME/.fabric/harness"
     bundle = _expand(bundle)
     inputs_dir = os.path.join(bundle, "inputs")
 
@@ -286,7 +286,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Amp container-side provisioner")
     parser.add_argument(
         "--manifest",
-        help="Path to the staged manifest.json (defaults to $HOME/.scion/harness/manifest.json)",
+        help="Path to the staged manifest.json (defaults to $HOME/.fabric/harness/manifest.json)",
         default=None,
     )
     args = parser.parse_args()
@@ -294,7 +294,7 @@ def main() -> int:
     manifest_path = args.manifest
     if not manifest_path:
         home = os.environ.get("HOME") or os.path.expanduser("~")
-        manifest_path = os.path.join(home, ".scion", "harness", "manifest.json")
+        manifest_path = os.path.join(home, ".fabric", "harness", "manifest.json")
 
     try:
         manifest = _load_json(manifest_path)

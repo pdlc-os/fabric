@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"golang.org/x/net/webdav"
 )
 
@@ -33,7 +33,7 @@ import (
 // These are matched against the first path component.
 var syncExcludePatterns = []string{
 	".git",
-	".scion",
+	".fabric",
 	"node_modules",
 }
 

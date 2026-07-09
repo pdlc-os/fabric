@@ -27,14 +27,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // defaultConcurrency is the worker count used by the contention/pool tests when
-// SCION_TEST_CONCURRENCY is unset. It is deliberately small so the suite stays
+// FABRIC_TEST_CONCURRENCY is unset. It is deliberately small so the suite stays
 // well under the 5-minute local-Postgres target; bump the env var for stress.
 const defaultConcurrency = 10
 
@@ -45,21 +45,21 @@ const defaultConcurrency = 10
 func requirePG(t *testing.T) {
 	t.Helper()
 	if !enttest.Active() {
-		t.Skip("integration: set SCION_TEST_POSTGRES_URL to a live Postgres to run the stress suite")
+		t.Skip("integration: set FABRIC_TEST_POSTGRES_URL to a live Postgres to run the stress suite")
 	}
 }
 
 // concurrency returns the worker count for contention tests: the value of
-// SCION_TEST_CONCURRENCY if set (>= 2), otherwise defaultConcurrency.
+// FABRIC_TEST_CONCURRENCY if set (>= 2), otherwise defaultConcurrency.
 func concurrency(t *testing.T) int {
 	t.Helper()
-	v := os.Getenv("SCION_TEST_CONCURRENCY")
+	v := os.Getenv("FABRIC_TEST_CONCURRENCY")
 	if v == "" {
 		return defaultConcurrency
 	}
 	n, err := strconv.Atoi(v)
 	if err != nil || n < 2 {
-		t.Fatalf("integration: invalid SCION_TEST_CONCURRENCY=%q (want integer >= 2): %v", v, err)
+		t.Fatalf("integration: invalid FABRIC_TEST_CONCURRENCY=%q (want integer >= 2): %v", v, err)
 	}
 	return n
 }

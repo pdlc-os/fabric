@@ -14,9 +14,9 @@
 
 syntax = "proto3";
 
-package scion.broker.v1;
+package fabric.broker.v1;
 
-option go_package = "github.com/GoogleCloudPlatform/scion/proto/broker/v1;brokerv1";
+option go_package = "github.com/pdlc-os/fabric/proto/broker/v1;brokerv1";
 
 // BrokerService mirrors MessageBrokerPluginInterface (pkg/plugin/broker_plugin.go)
 // over gRPC for standalone integration services.
@@ -91,7 +91,7 @@ message GetInfoRequest {}
 message GetInfoResponse {
   string name = 1;
   string version = 2;
-  string min_scion_version = 3;
+  string min_fabric_version = 3;
   string channel_id = 4;
   repeated string capabilities = 5;
 }

@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 const (
@@ -131,7 +131,7 @@ func (s *Server) federateResolve(ctx context.Context, registryName string, skill
 		if err != nil {
 			return nil, &ResolveSkillError{
 				URI: skillRef.URI, Code: "trust_violation",
-				Message: fmt.Sprintf("no pinned hash for %q in registry %q; use 'scion skills registries pin' first", skillRef.URI, registryName),
+				Message: fmt.Sprintf("no pinned hash for %q in registry %q; use 'fabric skills registries pin' first", skillRef.URI, registryName),
 			}
 		}
 		if resolved.ContentHash != pinnedHash {

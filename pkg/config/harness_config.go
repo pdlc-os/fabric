@@ -26,14 +26,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"gopkg.in/yaml.v3"
 )
 
 const harnessConfigsDirName = "harness-configs"
 
 // HarnessConfigDir represents a harness-config directory on disk.
-// Located at ~/.scion/harness-configs/<name>/ or .scion/harness-configs/<name>/
+// Located at ~/.fabric/harness-configs/<name>/ or .fabric/harness-configs/<name>/
 type HarnessConfigDir struct {
 	Name   string             // Directory name (e.g., "claude", "gemini-experimental")
 	Path   string             // Absolute path to the directory
@@ -142,7 +142,7 @@ func FindHarnessConfigDir(name string, projectPath string, templatePaths ...stri
 	if name == "generic" {
 		return &HarnessConfigDir{
 			Name:   "generic",
-			Config: HarnessConfigEntry{Harness: "generic", Image: "scion-base:latest", User: "scion"},
+			Config: HarnessConfigEntry{Harness: "generic", Image: "fabric-base:latest", User: "fabric"},
 		}, nil
 	}
 
@@ -196,7 +196,7 @@ func loadHarnessConfigsFromDir(parentDir string, into map[string]*HarnessConfigD
 }
 
 // SeedHarnessConfig populates a harness-config directory from embedded defaults.
-// targetDir is e.g. ~/.scion/harness-configs/claude/
+// targetDir is e.g. ~/.fabric/harness-configs/claude/
 func SeedHarnessConfig(targetDir string, h api.Harness, force bool) error {
 	embedsFS, basePath := h.GetHarnessEmbedsFS()
 	if basePath == "" {
@@ -229,7 +229,7 @@ func SeedHarnessConfig(targetDir string, h api.Harness, force bool) error {
 
 	// Seed home directory files from the harness embeds
 	// Walk all files in the embed FS and place them under home/
-	// except config.yaml and scion-agent.yaml which go at the top level
+	// except config.yaml and fabric-agent.yaml which go at the top level
 	err := fs.WalkDir(embedsFS, basePath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -270,7 +270,7 @@ func SeedHarnessConfig(targetDir string, h api.Harness, force bool) error {
 
 func mapEmbedFileToHarnessConfigPath(targetDir, homeDir, configDir, fileName string) string {
 	cleanName := filepath.ToSlash(filepath.Clean(fileName))
-	if cleanName == "." || cleanName == ".." || cleanName == "" || cleanName == "config.yaml" || cleanName == "scion-agent.yaml" {
+	if cleanName == "." || cleanName == ".." || cleanName == "" || cleanName == "config.yaml" || cleanName == "fabric-agent.yaml" {
 		return ""
 	}
 	if strings.HasPrefix(cleanName, "../") || filepath.IsAbs(cleanName) {
@@ -289,7 +289,7 @@ func mapEmbedFileToHarnessConfigPath(targetDir, homeDir, configDir, fileName str
 }
 
 func isHarnessConfigRootSupportFile(relPath string) bool {
-	if relPath == "provision.py" || relPath == "dialect.yaml" || relPath == "capture_auth.py" || relPath == "scion_harness.py" {
+	if relPath == "provision.py" || relPath == "dialect.yaml" || relPath == "capture_auth.py" || relPath == "fabric_harness.py" {
 		return true
 	}
 	for _, prefix := range []string{"schema/", "schemas/", "examples/", "tests/fixtures/"} {
@@ -320,8 +320,8 @@ func mapEmbedFileToHomePath(homeDir, configDir, fileName string) string {
 		return filepath.Join(homeDir, ".geminiignore")
 	case "config.toml":
 		return filepath.Join(homeDir, ".codex", "config.toml")
-	case "scion_notify.sh":
-		return filepath.Join(homeDir, ".codex", "scion_notify.sh")
+	case "fabric_notify.sh":
+		return filepath.Join(homeDir, ".codex", "fabric_notify.sh")
 	case "opencode.json":
 		if configDir != "" {
 			return filepath.Join(homeDir, configDir, "opencode.json")
@@ -573,7 +573,7 @@ func SeedHarnessConfigFromFS(targetDir string, embedsFS embed.FS, basePath, conf
 		}
 
 		switch relPath {
-		case "config.yaml", "scion-agent.yaml":
+		case "config.yaml", "fabric-agent.yaml":
 			return nil
 		}
 

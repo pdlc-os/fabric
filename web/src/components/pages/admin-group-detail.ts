@@ -29,8 +29,8 @@ import '../shared/group-member-editor.js';
 import { extractApiError } from '../../client/api.js';
 import { dispatchPageTitle } from '../../client/page-title.js';
 
-@customElement('scion-page-admin-group-detail')
-export class ScionPageAdminGroupDetail extends LitElement {
+@customElement('fabric-page-admin-group-detail')
+export class FabricPageAdminGroupDetail extends LitElement {
   @state()
   private groupId = '';
 
@@ -52,14 +52,14 @@ export class ScionPageAdminGroupDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .header {
@@ -84,14 +84,14 @@ export class ScionPageAdminGroupDetail extends LitElement {
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .header-slug {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .group-icon {
@@ -138,9 +138,9 @@ export class ScionPageAdminGroupDetail extends LitElement {
     }
 
     .details-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.25rem;
       margin-bottom: 2rem;
     }
@@ -158,7 +158,7 @@ export class ScionPageAdminGroupDetail extends LitElement {
 
     .detail-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
@@ -166,11 +166,11 @@ export class ScionPageAdminGroupDetail extends LitElement {
 
     .detail-value {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .detail-value.mono {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
     }
 
     .labels-container {
@@ -183,11 +183,11 @@ export class ScionPageAdminGroupDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       padding: 0.0625rem 0.375rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.6875rem;
-      font-family: var(--scion-font-mono, monospace);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      font-family: var(--fabric-font-mono, monospace);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state {
@@ -196,7 +196,7 @@ export class ScionPageAdminGroupDetail extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -207,9 +207,9 @@ export class ScionPageAdminGroupDetail extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -221,21 +221,21 @@ export class ScionPageAdminGroupDetail extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -380,10 +380,10 @@ export class ScionPageAdminGroupDetail extends LitElement {
         </div>
       </div>
 
-      <scion-group-member-editor
+      <fabric-group-member-editor
         groupId=${this.group.id}
         ?readOnly=${this.group.groupType === 'project_agents'}
-      ></scion-group-member-editor>
+      ></fabric-group-member-editor>
     `;
   }
 
@@ -419,6 +419,6 @@ export class ScionPageAdminGroupDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-group-detail': ScionPageAdminGroupDetail;
+    'fabric-page-admin-group-detail': FabricPageAdminGroupDetail;
   }
 }

@@ -31,9 +31,9 @@ import (
 
 // Environment variable names for Cloud Logging configuration.
 const (
-	EnvCloudLogging       = "SCION_CLOUD_LOGGING"
-	EnvCloudLoggingLogID  = "SCION_CLOUD_LOGGING_LOG_ID"
-	EnvGCPProjectID       = "SCION_GCP_PROJECT_ID"
+	EnvCloudLogging       = "FABRIC_CLOUD_LOGGING"
+	EnvCloudLoggingLogID  = "FABRIC_CLOUD_LOGGING_LOG_ID"
+	EnvGCPProjectID       = "FABRIC_GCP_PROJECT_ID"
 	EnvGoogleCloudProject = "GOOGLE_CLOUD_PROJECT"
 )
 
@@ -53,7 +53,7 @@ type CloudLoggingConfig struct {
 	ProjectID string
 	// LogID is the log name within Cloud Logging.
 	LogID string
-	// Component is the server component name (e.g., "scion-hub").
+	// Component is the server component name (e.g., "fabric-hub").
 	Component string
 	// BufferedByteLimit is the maximum bytes the Cloud Logging client
 	// will buffer. Prevents unbounded memory growth when Cloud Logging
@@ -85,7 +85,7 @@ func NewCloudHandler(ctx context.Context, config CloudLoggingConfig, level slog.
 		projectID = resolveProjectID()
 	}
 	if projectID == "" {
-		return nil, nil, fmt.Errorf("GCP project ID is required: set SCION_GCP_PROJECT_ID or GOOGLE_CLOUD_PROJECT")
+		return nil, nil, fmt.Errorf("GCP project ID is required: set FABRIC_GCP_PROJECT_ID or GOOGLE_CLOUD_PROJECT")
 	}
 
 	logID := config.LogID
@@ -324,7 +324,7 @@ func promoteAttrToLabels(labels map[string]string, a slog.Attr) {
 }
 
 // resolveProjectID returns the GCP project ID from environment variables.
-// Priority: SCION_GCP_PROJECT_ID > GOOGLE_CLOUD_PROJECT
+// Priority: FABRIC_GCP_PROJECT_ID > GOOGLE_CLOUD_PROJECT
 func resolveProjectID() string {
 	if v := os.Getenv(EnvGCPProjectID); v != "" {
 		return v
@@ -333,12 +333,12 @@ func resolveProjectID() string {
 }
 
 // resolveLogID returns the Cloud Logging log ID from environment variables.
-// Defaults to "scion-server" if not set.
+// Defaults to "fabric-server" if not set.
 func resolveLogID() string {
 	if v := os.Getenv(EnvCloudLoggingLogID); v != "" {
 		return v
 	}
-	return "scion-server"
+	return "fabric-server"
 }
 
 // isCloudLoggingEnabled checks if direct Cloud Logging is enabled via env var.
@@ -360,7 +360,7 @@ func ResolveProjectID() string {
 
 // ResolveLogLevel returns the slog.Level based on the debug flag and env var.
 func ResolveLogLevel(debug bool) slog.Level {
-	if debug || os.Getenv("SCION_LOG_LEVEL") == "debug" {
+	if debug || os.Getenv("FABRIC_LOG_LEVEL") == "debug" {
 		return slog.LevelDebug
 	}
 	return slog.LevelInfo

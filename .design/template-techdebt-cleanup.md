@@ -39,10 +39,10 @@ The actual path `.tmux.conf` takes to reach an agent:
 
 ```
 embeds/templates/default/home/.tmux.conf
-    -> SeedAgnosticTemplate() copies to ~/.scion/templates/default/home/.tmux.conf
+    -> SeedAgnosticTemplate() copies to ~/.fabric/templates/default/home/.tmux.conf
     -> During provisioning, GetTemplateChainInGrove() always includes "default" as base
     -> provision.go copies template chain home/ dirs into agent home (template wins on conflict)
-    -> Agent container mounts agent home at /home/scion/
+    -> Agent container mounts agent home at /home/fabric/
 ```
 
 No harness-specific embeds (`pkg/harness/*/embeds/`) contain `.tmux.conf` or other common files.

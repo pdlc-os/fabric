@@ -22,10 +22,10 @@ const (
 	ConfigHubGroveIDKey    = "hub.grove_id"
 	ConfigHubGroveIDJSON   = "hub.groveId"
 
-	EnvProjectID    = "SCION_PROJECT_ID"
-	EnvGroveID      = "SCION_GROVE_ID"
-	EnvHubProjectID = "SCION_HUB_PROJECT_ID"
-	EnvHubGroveID   = "SCION_HUB_GROVE_ID"
+	EnvProjectID    = "FABRIC_PROJECT_ID"
+	EnvGroveID      = "FABRIC_GROVE_ID"
+	EnvHubProjectID = "FABRIC_HUB_PROJECT_ID"
+	EnvHubGroveID   = "FABRIC_HUB_GROVE_ID"
 
 	ProjectIDFile = "project-id"
 	GroveIDFile   = "grove-id"

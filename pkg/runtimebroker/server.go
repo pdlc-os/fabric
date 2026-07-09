@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package runtimebroker provides the Scion Runtime Broker API server.
+// Package runtimebroker provides the Fabric Runtime Broker API server.
 // The Runtime Broker API exposes agent lifecycle management over HTTP,
-// allowing the Scion Hub to remotely manage agents on this compute node.
+// allowing the Fabric Hub to remotely manage agents on this compute node.
 package runtimebroker
 
 import (
@@ -31,17 +31,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/brokercredentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	scionrt "github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/templatecache"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/brokercredentials"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	fabricrt "github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/templatecache"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 // ServerConfig holds configuration for the Runtime Broker API server.
@@ -86,7 +86,7 @@ type ServerConfig struct {
 
 	// Template cache settings
 	// TemplateCacheDir is the directory for caching templates fetched from the Hub.
-	// Defaults to ~/.scion/cache/templates if not specified.
+	// Defaults to ~/.fabric/cache/templates if not specified.
 	TemplateCacheDir string
 	// TemplateCacheMaxSize is the maximum size of the template cache in bytes.
 	// Defaults to 100MB if not specified.
@@ -95,7 +95,7 @@ type ServerConfig struct {
 	// Broker credentials settings
 	// BrokerCredentialsPath is the path to the broker credentials file.
 	// If set, HMAC authentication will be used instead of bearer tokens.
-	// Defaults to ~/.scion/broker-credentials.json if not specified.
+	// Defaults to ~/.fabric/broker-credentials.json if not specified.
 	BrokerCredentialsPath string
 
 	// InMemoryCredentials allows injecting credentials directly without a file.
@@ -135,7 +135,7 @@ type ServerConfig struct {
 	ForceRuntime string
 
 	// StateDir is the directory for broker runtime state (pending env-gather,
-	// dispatch attempts). Defaults to ~/.scion/runtime-broker-state/<broker-id>.
+	// dispatch attempts). Defaults to ~/.fabric/runtime-broker-state/<broker-id>.
 	StateDir string
 
 	// AllowContainerScriptHarnesses controls whether the broker will dispatch
@@ -168,7 +168,7 @@ func DefaultServerConfig() ServerConfig {
 		CORSEnabled:          true,
 		CORSAllowedOrigins:   []string{"*"},
 		CORSAllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		CORSAllowedHeaders:   []string{"Authorization", "Content-Type", "X-Scion-Broker-Token", "X-API-Key", "X-Scion-Broker-ID", "X-Scion-Timestamp", "X-Scion-Nonce", "X-Scion-Signature", "X-Scion-Signed-Headers"},
+		CORSAllowedHeaders:   []string{"Authorization", "Content-Type", "X-Fabric-Broker-Token", "X-API-Key", "X-Fabric-Broker-ID", "X-Fabric-Timestamp", "X-Fabric-Nonce", "X-Fabric-Signature", "X-Fabric-Signed-Headers"},
 		CORSMaxAge:           3600,
 		BrokerAuthEnabled:    true,
 		BrokerAuthStrictMode: true,
@@ -179,7 +179,7 @@ func DefaultServerConfig() ServerConfig {
 type Server struct {
 	config     ServerConfig
 	manager    agent.Manager
-	runtime    scionrt.Runtime
+	runtime    fabricrt.Runtime
 	httpServer *http.Server
 	mux        *http.ServeMux
 	mu         sync.RWMutex
@@ -252,7 +252,7 @@ type Server struct {
 
 // auxiliaryRuntime pairs a runtime with its manager for non-default runtimes.
 type auxiliaryRuntime struct {
-	Runtime scionrt.Runtime
+	Runtime fabricrt.Runtime
 	Manager agent.Manager
 }
 
@@ -283,7 +283,7 @@ type dispatchAttempt struct {
 }
 
 // New creates a new Runtime Broker API server.
-func New(cfg ServerConfig, mgr agent.Manager, rt scionrt.Runtime) *Server {
+func New(cfg ServerConfig, mgr agent.Manager, rt fabricrt.Runtime) *Server {
 	// Enable util debug logging when broker debug mode is on,
 	// so that debug messages from pkg/agent (which use util.Debugf)
 	// are visible in the broker's logs.
@@ -319,7 +319,7 @@ func New(cfg ServerConfig, mgr agent.Manager, rt scionrt.Runtime) *Server {
 			if brokerDir == "" {
 				brokerDir = "default"
 			}
-			srv.stateDir = filepath.Join(homeDir, ".scion", "runtime-broker-state", brokerDir)
+			srv.stateDir = filepath.Join(homeDir, ".fabric", "runtime-broker-state", brokerDir)
 		}
 	}
 	if srv.stateDir != "" {
@@ -360,7 +360,7 @@ func (s *Server) initHubIntegration() error {
 		if err != nil {
 			return fmt.Errorf("failed to get home directory: %w", err)
 		}
-		cacheDir = filepath.Join(homeDir, ".scion", "cache", "templates")
+		cacheDir = filepath.Join(homeDir, ".fabric", "cache", "templates")
 	}
 
 	maxSize := s.config.TemplateCacheMaxSize
@@ -717,7 +717,7 @@ func (s *Server) validateBrokerAuthStartup() error {
 	loopbackOnly := isLoopbackHost(s.config.Host)
 
 	// Hub-connected brokers without keys are in a "pending registration" state.
-	// They must be allowed to start so that `scion broker register` can reach
+	// They must be allowed to start so that `fabric broker register` can reach
 	// the local health endpoint and complete the HMAC key exchange.
 	// The credential watcher will pick up keys once registration finishes.
 	if s.config.HubEnabled && !hasKeys {
@@ -726,7 +726,7 @@ func (s *Server) validateBrokerAuthStartup() error {
 		}
 		slog.Warn("Runtime Broker starting in hub mode without HMAC keys — pending registration",
 			"host", s.config.Host,
-			"hint", "run 'scion runtime-broker register' to complete setup",
+			"hint", "run 'fabric runtime-broker register' to complete setup",
 		)
 		return nil
 	}
@@ -959,7 +959,7 @@ func (s *Server) discoverAuxiliaryRuntimes() {
 	// Collect project paths to scan
 	var projectPaths []string
 
-	// Hub-managed projects: ~/.scion/{projects,groves}/<slug>/.scion/
+	// Hub-managed projects: ~/.fabric/{projects,groves}/<slug>/.fabric/
 	globalDir, err := config.GetGlobalDir()
 	if err == nil {
 		for _, dirName := range []string{"projects", "groves"} {
@@ -972,9 +972,9 @@ func (s *Server) discoverAuxiliaryRuntimes() {
 				if !e.IsDir() {
 					continue
 				}
-				scionDir := filepath.Join(projectsDir, e.Name(), ".scion")
-				if _, err := os.Stat(scionDir); err == nil {
-					projectPaths = append(projectPaths, scionDir)
+				fabricDir := filepath.Join(projectsDir, e.Name(), ".fabric")
+				if _, err := os.Stat(fabricDir); err == nil {
+					projectPaths = append(projectPaths, fabricDir)
 				}
 			}
 		}
@@ -1028,7 +1028,7 @@ func (s *Server) LookupContainerID(ctx context.Context, slug, projectID string) 
 
 	slug = strings.ToLower(slug)
 
-	filter := map[string]string{"scion.name": slug}
+	filter := map[string]string{"fabric.name": slug}
 	agents, err := s.manager.List(ctx, filter)
 	if err != nil {
 		return "", fmt.Errorf("failed to list agents: %w", err)
@@ -1062,7 +1062,7 @@ func (s *Server) LookupContainerID(ctx context.Context, slug, projectID string) 
 	// mode). A container labeled for a different project must not match a
 	// project-scoped request, or same-slug agents across projects would collide.
 	if len(agents) == 0 && projectID != "" {
-		fallbackFilter := map[string]string{"scion.name": slug}
+		fallbackFilter := map[string]string{"fabric.name": slug}
 		agents, err = s.manager.List(ctx, fallbackFilter)
 		agents = agentsWithoutProjectLabel(agents)
 		if err == nil && len(agents) == 0 {
@@ -1094,7 +1094,7 @@ func (s *Server) LookupContainerID(ctx context.Context, slug, projectID string) 
 	agent := agents[0]
 
 	// Get container ID - prefer label, then ContainerID from runtime, then ID
-	containerID := agent.Labels["scion.container.id"]
+	containerID := agent.Labels["fabric.container.id"]
 	if containerID == "" {
 		containerID = agent.ContainerID
 	}
@@ -1117,7 +1117,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 	}
 
 	slug = strings.ToLower(slug)
-	filter := map[string]string{"scion.name": slug}
+	filter := map[string]string{"fabric.name": slug}
 
 	// Try default manager first
 	agents, err := s.manager.List(ctx, filter)
@@ -1127,7 +1127,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 	agents = agentsForProject(agents, projectID)
 
 	runtimeName := s.runtime.Name()
-	var matchedRuntime scionrt.Runtime
+	var matchedRuntime fabricrt.Runtime
 
 	// Fall back to auxiliary runtimes
 	if len(agents) == 0 {
@@ -1158,7 +1158,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 	// mode). A container labeled for a different project must not match a
 	// project-scoped request, or same-slug agents across projects would collide.
 	if len(agents) == 0 && projectID != "" {
-		fallbackFilter := map[string]string{"scion.name": slug}
+		fallbackFilter := map[string]string{"fabric.name": slug}
 		agents, err = s.manager.List(ctx, fallbackFilter)
 		agents = agentsWithoutProjectLabel(agents)
 		if err == nil && len(agents) == 0 {
@@ -1191,7 +1191,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 
 	ag := agents[0]
 
-	containerID := ag.Labels["scion.container.id"]
+	containerID := ag.Labels["fabric.container.id"]
 	if containerID == "" {
 		containerID = ag.ContainerID
 	}
@@ -1200,7 +1200,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 	}
 
 	// Determine the exec user from the runtime that owns this agent.
-	execUser := "scion"
+	execUser := "fabric"
 	if matchedRuntime != nil {
 		execUser = matchedRuntime.ExecUser()
 	} else if s.runtime != nil {
@@ -1224,7 +1224,7 @@ func (s *Server) LookupAgent(ctx context.Context, slug, projectID string) (*Agen
 		if matchedRuntime == nil {
 			matchedRuntime = s.runtime
 		}
-		if k8sRT, ok := matchedRuntime.(*scionrt.KubernetesRuntime); ok && k8sRT.Client != nil {
+		if k8sRT, ok := matchedRuntime.(*fabricrt.KubernetesRuntime); ok && k8sRT.Client != nil {
 			result.K8sConfig = k8sRT.Client.Config
 			result.K8sClientset = k8sRT.Client.Clientset
 		}
@@ -1443,7 +1443,7 @@ func (s *Server) isGlobalProject(projectID, projectPath string) bool {
 }
 
 // resolveHydrator resolves the hydrator for a request, routing to the correct
-// hub connection based on the X-Scion-Hub-Connection header.
+// hub connection based on the X-Fabric-Hub-Connection header.
 func (s *Server) resolveHydrator(r *http.Request) *templatecache.Hydrator {
 	conn := s.resolveHubConnection(r)
 	if conn != nil {
@@ -1453,9 +1453,9 @@ func (s *Server) resolveHydrator(r *http.Request) *templatecache.Hydrator {
 }
 
 // resolveHubConnection resolves the hub connection for a request, routing to
-// the correct connection based on the X-Scion-Hub-Connection header.
+// the correct connection based on the X-Fabric-Hub-Connection header.
 func (s *Server) resolveHubConnection(r *http.Request) *HubConnection {
-	connName := r.Header.Get("X-Scion-Hub-Connection")
+	connName := r.Header.Get("X-Fabric-Hub-Connection")
 	if connName != "" {
 		s.hubMu.RLock()
 		conn, ok := s.hubConnections[connName]
@@ -1477,11 +1477,11 @@ func (s *Server) resolveHubConnection(r *http.Request) *HubConnection {
 }
 
 // resolveHubEndpointFromRequest returns the hub endpoint for the hub connection
-// identified by the X-Scion-Hub-Connection header. This allows the broker to
+// identified by the X-Fabric-Hub-Connection header. This allows the broker to
 // use the correct hub endpoint when dispatched by a remote hub, rather than
 // falling back to its own config.HubEndpoint (which may point to a different hub).
 func (s *Server) resolveHubEndpointFromRequest(r *http.Request) string {
-	connName := r.Header.Get("X-Scion-Hub-Connection")
+	connName := r.Header.Get("X-Fabric-Hub-Connection")
 	if connName == "" {
 		return ""
 	}

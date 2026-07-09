@@ -185,10 +185,10 @@ func TestNoopCommandBus_NotifyBrokerCmd(t *testing.T) {
 	bus.Close()
 }
 
-// --- integration tests (require a live Postgres via SCION_TEST_POSTGRES_DSN) ---
+// --- integration tests (require a live Postgres via FABRIC_TEST_POSTGRES_DSN) ---
 
 // TestCommandBusIntegration_SignalDelivery starts a real PostgresCommandBus and
-// verifies a NOTIFY on scion_broker_cmd is received and invokes the callback.
+// verifies a NOTIFY on fabric_broker_cmd is received and invokes the callback.
 func TestCommandBusIntegration_SignalDelivery(t *testing.T) {
 	dsn := requirePostgres(t)
 	ctx := context.Background()

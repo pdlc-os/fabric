@@ -23,16 +23,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 type Manager interface {
 	// Provision prepares the agent directory and configuration without starting it
-	Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error)
+	Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error)
 
 	// Start launches a new agent with the given configuration
 	Start(ctx context.Context, opts api.StartOptions) (*api.AgentInfo, error)
@@ -96,7 +96,7 @@ func (m *AgentManager) Stop(ctx context.Context, agentID string, projectPath str
 	// not support lookup-by-name (e.g. Apple's `container` CLI) receive
 	// the actual container ID.  This mirrors the resolution logic in Delete().
 	slug := api.Slugify(agentID)
-	agents, err := m.Runtime.List(ctx, map[string]string{"scion.name": slug})
+	agents, err := m.Runtime.List(ctx, map[string]string{"fabric.name": slug})
 	// Resolve project name from projectPath (if provided) to scope the container lookup
 	stopProjectName := ""
 	if projectPath != "" {
@@ -128,7 +128,7 @@ func (m *AgentManager) Delete(ctx context.Context, agentID string, deleteFiles b
 	util.Debugf("delete: listing containers in mgr.Delete for %s", agentID)
 	listStart := time.Now()
 	slug := api.Slugify(agentID)
-	agents, err := m.Runtime.List(ctx, map[string]string{"scion.name": slug})
+	agents, err := m.Runtime.List(ctx, map[string]string{"fabric.name": slug})
 	util.Debugf("delete: mgr.Delete container list completed in %v", time.Since(listStart))
 	containerExists := false
 	var targetID string
@@ -207,9 +207,9 @@ func (m *AgentManager) Message(ctx context.Context, agentID, projectID string, m
 // debounce buffer, sending directly via tmux send-keys so that control
 // sequences (arrow keys, Escape, etc.) are interpreted by the terminal.
 func (m *AgentManager) MessageRaw(ctx context.Context, agentID, projectID string, keys string) error {
-	filter := map[string]string{"scion.name": strings.ToLower(agentID)}
+	filter := map[string]string{"fabric.name": strings.ToLower(agentID)}
 	if projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	}
 	agents, err := m.List(ctx, filter)
 	if err != nil {
@@ -228,7 +228,7 @@ func (m *AgentManager) MessageRaw(ctx context.Context, agentID, projectID string
 		return fmt.Errorf("agent '%s' not found or not running", agentID)
 	}
 
-	cmd := []string{"tmux", "send-keys", "-t", "scion:0", "--", keys}
+	cmd := []string{"tmux", "send-keys", "-t", "fabric:0", "--", keys}
 	if _, err := m.Runtime.Exec(ctx, agent.ContainerID, cmd); err != nil {
 		return fmt.Errorf("failed to send raw keys to agent '%s': %w", agent.Name, err)
 	}
@@ -242,9 +242,9 @@ func (m *AgentManager) MessageRaw(ctx context.Context, agentID, projectID string
 // messages (called by the MessageBuffer when the debounce timer fires).
 func (m *AgentManager) deliverImmediate(ctx context.Context, agentID, projectID string, message string, interrupt bool) error {
 	// 1. Find the agent, scoped to project to prevent cross-project delivery
-	filter := map[string]string{"scion.name": strings.ToLower(agentID)}
+	filter := map[string]string{"fabric.name": strings.ToLower(agentID)}
 	if projectID != "" {
-		filter["scion.project_id"] = projectID
+		filter["fabric.project_id"] = projectID
 	}
 	agents, err := m.List(ctx, filter)
 	if err != nil {
@@ -272,9 +272,9 @@ func (m *AgentManager) deliverImmediate(ctx context.Context, agentID, projectID 
 		if projectDir == "" {
 			projectDir = agent.ProjectPath
 		}
-		scionJSON := filepath.Join(config.ResolveAgentDir(projectDir, agent.Name), "scion-agent.json")
-		if data, err := os.ReadFile(scionJSON); err == nil {
-			var cfg api.ScionConfig
+		fabricJSON := filepath.Join(config.ResolveAgentDir(projectDir, agent.Name), "fabric-agent.json")
+		if data, err := os.ReadFile(fabricJSON); err == nil {
+			var cfg api.FabricConfig
 			if err := json.Unmarshal(data, &cfg); err == nil && cfg.Harness != "" {
 				harnessName = cfg.Harness
 			}
@@ -288,17 +288,17 @@ func (m *AgentManager) deliverImmediate(ctx context.Context, agentID, projectID 
 	if interrupt {
 		if seq := h.GetInterruptSequence(); len(seq) > 0 {
 			for _, key := range seq {
-				cmds = append(cmds, []string{"tmux", "send-keys", "-t", "scion:0", key})
+				cmds = append(cmds, []string{"tmux", "send-keys", "-t", "fabric:0", key})
 			}
 		} else {
 			key := h.GetInterruptKey()
-			cmds = append(cmds, []string{"tmux", "send-keys", "-t", "scion:0", key})
+			cmds = append(cmds, []string{"tmux", "send-keys", "-t", "fabric:0", key})
 		}
 	}
 
 	if message == "" {
 		// Empty messages send a bare Enter keypress to trigger confirmations
-		cmds = append(cmds, []string{"tmux", "send-keys", "-t", "scion:0", "Enter"})
+		cmds = append(cmds, []string{"tmux", "send-keys", "-t", "fabric:0", "Enter"})
 	} else {
 		// Use tmux paste buffer with bracketed paste (-p) instead of send-keys.
 		// send-keys simulates typing character-by-character, which allows TUI
@@ -307,8 +307,8 @@ func (m *AgentManager) deliverImmediate(ctx context.Context, agentID, projectID 
 		// content in escape sequences (\e[200~...\e[201~) that signal the
 		// application to treat all characters as literal pasted text.
 		cmds = append(cmds, []string{"tmux", "set-buffer", "--", message})
-		cmds = append(cmds, []string{"tmux", "paste-buffer", "-t", "scion:0", "-p"})
-		cmds = append(cmds, []string{"tmux", "send-keys", "-t", "scion:0", "Enter"})
+		cmds = append(cmds, []string{"tmux", "paste-buffer", "-t", "fabric:0", "-p"})
+		cmds = append(cmds, []string{"tmux", "send-keys", "-t", "fabric:0", "Enter"})
 	}
 
 	// 4. Execute
@@ -322,7 +322,7 @@ func (m *AgentManager) deliverImmediate(ctx context.Context, agentID, projectID 
 	// After sending a message, send two extra Enter keypresses with a brief delay
 	// to ensure the input is accepted by the agent.
 	if message != "" {
-		enterCmd := []string{"tmux", "send-keys", "-t", "scion:0", "Enter"}
+		enterCmd := []string{"tmux", "send-keys", "-t", "fabric:0", "Enter"}
 		for range 2 {
 			time.Sleep(300 * time.Millisecond)
 			if _, err := m.Runtime.Exec(ctx, agent.ContainerID, enterCmd); err != nil {

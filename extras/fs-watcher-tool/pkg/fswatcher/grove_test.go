@@ -23,12 +23,12 @@ func TestIsWorkspaceMount(t *testing.T) {
 	}{
 		{"/workspace", true},
 		{"/repo-root", true},
-		{"/repo-root/.scion/agents/my-agent/workspace", true},
-		{"/repo-root/.scion/agents/foo/workspace", true},
+		{"/repo-root/.fabric/agents/my-agent/workspace", true},
+		{"/repo-root/.fabric/agents/foo/workspace", true},
 		{"/home/user/workspace", false},
 		{"/home/gemini", false},
 		{"/tmp", false},
-		{"/repo-root/.scion/agents/foo/home", false},
+		{"/repo-root/.fabric/agents/foo/home", false},
 		{"", false},
 	}
 	for _, tt := range tests {

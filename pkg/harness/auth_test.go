@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 func TestGatherAuth_EnvVars(t *testing.T) {
@@ -782,11 +782,11 @@ func TestGatherAuthWithEnv_OverlayAllKeys(t *testing.T) {
 }
 
 func TestGatherAuthWithEnv_GCPMetadataMode(t *testing.T) {
-	t.Setenv("SCION_METADATA_MODE", "")
+	t.Setenv("FABRIC_METADATA_MODE", "")
 
 	// From overlay
 	overlay := map[string]string{
-		"SCION_METADATA_MODE": "assign",
+		"FABRIC_METADATA_MODE": "assign",
 	}
 	auth := GatherAuthWithEnv(overlay, true, nil)
 	if auth.GCPMetadataMode != "assign" {
@@ -794,21 +794,21 @@ func TestGatherAuthWithEnv_GCPMetadataMode(t *testing.T) {
 	}
 
 	// From process env
-	t.Setenv("SCION_METADATA_MODE", "block")
+	t.Setenv("FABRIC_METADATA_MODE", "block")
 	auth2 := GatherAuthWithEnv(nil, true, nil)
 	if auth2.GCPMetadataMode != "block" {
 		t.Errorf("GCPMetadataMode = %q, want %q", auth2.GCPMetadataMode, "block")
 	}
 }
 
-func TestOverlaySettings_ReadsScionAgentJSON(t *testing.T) {
+func TestOverlaySettings_ReadsFabricAgentJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	agentHome := filepath.Join(tmpDir, "home")
 	_ = os.MkdirAll(agentHome, 0755)
 
-	// Write scion-agent.json with a universal auth type
-	scionAgentPath := filepath.Join(tmpDir, "scion-agent.json")
-	_ = os.WriteFile(scionAgentPath, []byte(`{"auth_selectedType": "auth-file"}`), 0644)
+	// Write fabric-agent.json with a universal auth type
+	fabricAgentPath := filepath.Join(tmpDir, "fabric-agent.json")
+	_ = os.WriteFile(fabricAgentPath, []byte(`{"auth_selectedType": "auth-file"}`), 0644)
 
 	auth := api.AuthConfig{}
 	h := New("gemini")
@@ -829,7 +829,7 @@ func TestOverlaySettings_IgnoresHostGeminiSettings(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(geminiDir, "settings.json"),
 		[]byte(`{"security":{"auth":{"selectedType":"oauth-personal"}}}`), 0644)
 
-	// Agent dir with no scion-agent.json (or one without auth_selectedType)
+	// Agent dir with no fabric-agent.json (or one without auth_selectedType)
 	tmpDir := t.TempDir()
 	agentHome := filepath.Join(tmpDir, "home")
 	_ = os.MkdirAll(agentHome, 0755)
@@ -844,12 +844,12 @@ func TestOverlaySettings_IgnoresHostGeminiSettings(t *testing.T) {
 	}
 }
 
-func TestOverlaySettings_NoScionAgentJSON(t *testing.T) {
+func TestOverlaySettings_NoFabricAgentJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	agentHome := filepath.Join(tmpDir, "home")
 	_ = os.MkdirAll(agentHome, 0755)
 
-	// No scion-agent.json exists
+	// No fabric-agent.json exists
 	auth := api.AuthConfig{}
 	h := New("gemini")
 	OverlaySettings(&auth, h, tmpDir)
@@ -1136,12 +1136,12 @@ func TestStageCaptureAuthAssets(t *testing.T) {
 			t.Fatalf("StageCaptureAuthAssets failed: %v", err)
 		}
 
-		scriptPath := filepath.Join(agentHome, ".scion", "harness", "capture_auth.py")
+		scriptPath := filepath.Join(agentHome, ".fabric", "harness", "capture_auth.py")
 		if _, err := os.Stat(scriptPath); err != nil {
 			t.Errorf("capture_auth.py not staged: %v", err)
 		}
 
-		configPath := filepath.Join(agentHome, ".scion", "harness", "inputs", "capture-auth-config.json")
+		configPath := filepath.Join(agentHome, ".fabric", "harness", "inputs", "capture-auth-config.json")
 		data, err := os.ReadFile(configPath)
 		if err != nil {
 			t.Fatalf("capture-auth-config.json not staged: %v", err)
@@ -1179,7 +1179,7 @@ func TestStageCaptureAuthAssets(t *testing.T) {
 			t.Fatalf("StageCaptureAuthAssets failed: %v", err)
 		}
 
-		configPath := filepath.Join(agentHome, ".scion", "harness", "inputs", "capture-auth-config.json")
+		configPath := filepath.Join(agentHome, ".fabric", "harness", "inputs", "capture-auth-config.json")
 		if _, err := os.Stat(configPath); !os.IsNotExist(err) {
 			t.Error("expected no capture-auth-config.json with nil auth metadata")
 		}
@@ -1197,7 +1197,7 @@ func TestStageCaptureAuthAssets(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		scriptPath := filepath.Join(agentHome, ".scion", "harness", "capture_auth.py")
+		scriptPath := filepath.Join(agentHome, ".fabric", "harness", "capture_auth.py")
 		info, err := os.Stat(scriptPath)
 		if err != nil {
 			t.Fatal(err)
@@ -1217,7 +1217,7 @@ func TestGatherAuthWithEnv_ConfigDrivenEnvVars(t *testing.T) {
 		Types: map[string]config.HarnessAuthTypeMetadata{
 			"api-key": {
 				RequiredEnv: []config.HarnessAuthEnvRequirement{
-					{AnyOf: []string{"COPILOT_GITHUB_TOKEN", "GH_TOKEN", "SCION_TEST_UNSET_TOKEN"}},
+					{AnyOf: []string{"COPILOT_GITHUB_TOKEN", "GH_TOKEN", "FABRIC_TEST_UNSET_TOKEN"}},
 				},
 			},
 		},
@@ -1234,8 +1234,8 @@ func TestGatherAuthWithEnv_ConfigDrivenEnvVars(t *testing.T) {
 	if auth.EnvVars["GH_TOKEN"] != "gh_test456" {
 		t.Errorf("GH_TOKEN = %q, want %q", auth.EnvVars["GH_TOKEN"], "gh_test456")
 	}
-	if _, ok := auth.EnvVars["SCION_TEST_UNSET_TOKEN"]; ok {
-		t.Error("SCION_TEST_UNSET_TOKEN should not be in EnvVars when not set in environment")
+	if _, ok := auth.EnvVars["FABRIC_TEST_UNSET_TOKEN"]; ok {
+		t.Error("FABRIC_TEST_UNSET_TOKEN should not be in EnvVars when not set in environment")
 	}
 }
 

@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"gopkg.in/yaml.v3"
 )
 
@@ -386,7 +386,7 @@ func addMissingHarnessConfigFiles(targetDir string, embedsFS fs.FS, basePath, co
 		if err != nil {
 			return err
 		}
-		if relPath == "config.yaml" || relPath == "scion-agent.yaml" {
+		if relPath == "config.yaml" || relPath == "fabric-agent.yaml" {
 			return nil
 		}
 		targetPath := mapEmbedFileToHarnessConfigPath(targetDir, homeDir, configDir, relPath)

@@ -30,7 +30,7 @@ causing confusion.
 - `pkg/hub/messagebroker_test.go`
 - `pkg/hub/notifications_test.go`
 
-### CLI Command Rename: `scion broker` -> `scion runtime-broker`
+### CLI Command Rename: `fabric broker` -> `fabric runtime-broker`
 
 The CLI command was renamed using cobra's `Aliases` mechanism, keeping
 `broker` as a backward-compatible deprecated alias. All help text

@@ -32,13 +32,13 @@ func TestLoadSettingsKoanf(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// 1. Test defaults
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -58,14 +58,14 @@ func TestLoadSettingsKoanfWithYAML(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create global YAML settings
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,17 +74,17 @@ active_profile: prod
 default_template: claude
 runtimes:
   kubernetes:
-    namespace: scion-global
+    namespace: fabric-global
 profiles:
   prod:
     runtime: kubernetes
     tmux: false
 `
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -94,8 +94,8 @@ profiles:
 	if s.DefaultTemplate != "claude" {
 		t.Errorf("expected global override template 'claude', got '%s'", s.DefaultTemplate)
 	}
-	if s.Runtimes["kubernetes"].Namespace != "scion-global" {
-		t.Errorf("expected global override runtime namespace 'scion-global', got '%s'", s.Runtimes["kubernetes"].Namespace)
+	if s.Runtimes["kubernetes"].Namespace != "fabric-global" {
+		t.Errorf("expected global override runtime namespace 'fabric-global', got '%s'", s.Runtimes["kubernetes"].Namespace)
 	}
 }
 
@@ -107,14 +107,14 @@ func TestLoadSettingsKoanfWithProjectOverride(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create global settings
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,7 +122,7 @@ func TestLoadSettingsKoanfWithProjectOverride(t *testing.T) {
 active_profile: prod
 default_template: claude
 `
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -134,11 +134,11 @@ profiles:
     runtime: docker
     tmux: true
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(projectSettingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(projectSettingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -159,19 +159,19 @@ func TestLoadSettingsKoanfWithEnvOverride(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Set environment variable override
-	_ = os.Setenv("SCION_ACTIVE_PROFILE", "remote")
-	defer func() { _ = os.Unsetenv("SCION_ACTIVE_PROFILE") }()
+	_ = os.Setenv("FABRIC_ACTIVE_PROFILE", "remote")
+	defer func() { _ = os.Unsetenv("FABRIC_ACTIVE_PROFILE") }()
 
-	_ = os.Setenv("SCION_DEFAULT_TEMPLATE", "opencode")
-	defer func() { _ = os.Unsetenv("SCION_DEFAULT_TEMPLATE") }()
+	_ = os.Setenv("FABRIC_DEFAULT_TEMPLATE", "opencode")
+	defer func() { _ = os.Unsetenv("FABRIC_DEFAULT_TEMPLATE") }()
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -191,22 +191,22 @@ func TestLoadSettingsKoanfWithBucketEnvOverride(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Set bucket environment variable overrides
-	_ = os.Setenv("SCION_BUCKET_PROVIDER", "GCS")
-	defer func() { _ = os.Unsetenv("SCION_BUCKET_PROVIDER") }()
+	_ = os.Setenv("FABRIC_BUCKET_PROVIDER", "GCS")
+	defer func() { _ = os.Unsetenv("FABRIC_BUCKET_PROVIDER") }()
 
-	_ = os.Setenv("SCION_BUCKET_NAME", "my-bucket")
-	defer func() { _ = os.Unsetenv("SCION_BUCKET_NAME") }()
+	_ = os.Setenv("FABRIC_BUCKET_NAME", "my-bucket")
+	defer func() { _ = os.Unsetenv("FABRIC_BUCKET_NAME") }()
 
-	_ = os.Setenv("SCION_BUCKET_PREFIX", "agents")
-	defer func() { _ = os.Unsetenv("SCION_BUCKET_PREFIX") }()
+	_ = os.Setenv("FABRIC_BUCKET_PREFIX", "agents")
+	defer func() { _ = os.Unsetenv("FABRIC_BUCKET_PREFIX") }()
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -257,29 +257,29 @@ func TestGetSettingsPath(t *testing.T) {
 	}
 }
 
-func TestGetScionAgentConfigPath(t *testing.T) {
+func TestGetFabricAgentConfigPath(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Test with no files
-	if path := GetScionAgentConfigPath(tmpDir); path != "" {
+	if path := GetFabricAgentConfigPath(tmpDir); path != "" {
 		t.Errorf("expected empty path for no files, got '%s'", path)
 	}
 
 	// Test with YAML file
-	yamlPath := filepath.Join(tmpDir, "scion-agent.yaml")
+	yamlPath := filepath.Join(tmpDir, "fabric-agent.yaml")
 	if err := os.WriteFile(yamlPath, []byte("harness: gemini"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if path := GetScionAgentConfigPath(tmpDir); path != yamlPath {
+	if path := GetFabricAgentConfigPath(tmpDir); path != yamlPath {
 		t.Errorf("expected '%s', got '%s'", yamlPath, path)
 	}
 
 	// Test with both YAML and JSON (YAML should be preferred)
-	jsonPath := filepath.Join(tmpDir, "scion-agent.json")
+	jsonPath := filepath.Join(tmpDir, "fabric-agent.json")
 	if err := os.WriteFile(jsonPath, []byte(`{"harness": "claude"}`), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if path := GetScionAgentConfigPath(tmpDir); path != yamlPath {
+	if path := GetFabricAgentConfigPath(tmpDir); path != yamlPath {
 		t.Errorf("expected YAML to be preferred '%s', got '%s'", yamlPath, path)
 	}
 }
@@ -291,15 +291,15 @@ func TestLoadSettingsKoanfV1ProjectID(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	// Unset SCION_HUB_ENDPOINT so it doesn't override the file-loaded value
-	if orig, ok := os.LookupEnv("SCION_HUB_ENDPOINT"); ok {
-		_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-		t.Cleanup(func() { _ = os.Setenv("SCION_HUB_ENDPOINT", orig) })
+	// Unset FABRIC_HUB_ENDPOINT so it doesn't override the file-loaded value
+	if orig, ok := os.LookupEnv("FABRIC_HUB_ENDPOINT"); ok {
+		_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+		t.Cleanup(func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", orig) })
 	}
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -310,11 +310,11 @@ hub:
   endpoint: "http://localhost:9810"
   grove_id: "test-grove-uuid-1234"
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(v1Settings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(v1Settings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -344,8 +344,8 @@ func TestLoadSettingsKoanfV1ProjectIDHubWinsOverTopLevel(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -358,11 +358,11 @@ hub:
   enabled: true
   grove_id: "hub-level-id"
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(legacySettings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(legacySettings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -381,16 +381,16 @@ func TestLoadSettingsKoanfV1ProjectIDFromEnv(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	// Set SCION_HUB_GROVE_ID env var — should map to top-level grove_id
-	_ = os.Setenv("SCION_HUB_GROVE_ID", "env-grove-uuid")
-	defer func() { _ = os.Unsetenv("SCION_HUB_GROVE_ID") }()
+	// Set FABRIC_HUB_GROVE_ID env var — should map to top-level grove_id
+	_ = os.Setenv("FABRIC_HUB_GROVE_ID", "env-grove-uuid")
+	defer func() { _ = os.Unsetenv("FABRIC_HUB_GROVE_ID") }()
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -408,8 +408,8 @@ func TestLoadSettingsKoanfV1BrokerFields(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -424,11 +424,11 @@ server:
     broker_token: "test-broker-token"
     broker_nickname: "my-test-broker"
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(v1Settings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(v1Settings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -456,8 +456,8 @@ func TestLoadSettingsKoanfV1BrokerFieldsNoOverrideExisting(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -471,11 +471,11 @@ server:
     broker_id: "v1-broker-id"
     broker_token: "v1-token"
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(settings), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(settings), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -497,14 +497,14 @@ func TestLoadSettingsKoanfWithJSONFallback(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create global JSON settings (backward compatibility)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -512,11 +512,11 @@ func TestLoadSettingsKoanfWithJSONFallback(t *testing.T) {
 		"active_profile": "json-profile",
 		"default_template": "json-template"
 	}`
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.json"), []byte(globalSettingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.json"), []byte(globalSettingsJSON), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettingsKoanf failed: %v", err)
 	}
@@ -542,7 +542,7 @@ func TestV1ProjectIDSurvivesUpdateSetting(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	// Unset env vars that could interfere
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -551,18 +551,18 @@ func TestV1ProjectIDSurvivesUpdateSetting(t *testing.T) {
 
 	// Set up a global settings file with a different grove_id (simulating
 	// a previously linked global project).
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 	globalSettings := `schema_version: "1"
 hub:
   grove_id: "global-grove-id-should-not-bleed"
   endpoint: "https://hub.example.com"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	// Simulate writeProjectSettings: create a v1 project settings file with
 	// grove_id under hub.grove_id (the correct v1 location).
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	projectSettings := `schema_version: "1"
 active_profile: local
@@ -578,8 +578,8 @@ workspace_path: /tmp/my-project
 	require.NoError(t, err)
 	assert.Equal(t, "local-grove-id-12345", s.ProjectID, "grove_id should come from local settings, not global")
 
-	// Simulate what happens when the user runs "scion config set hub.endpoint"
-	// or "scion hub enable" — this calls UpdateSetting which round-trips
+	// Simulate what happens when the user runs "fabric config set hub.endpoint"
+	// or "fabric hub enable" — this calls UpdateSetting which round-trips
 	// through VersionedSettings.
 	require.NoError(t, UpdateSetting(projectDir, "hub.endpoint", "https://hub.new.example.com", false))
 
@@ -600,7 +600,7 @@ func TestLoadSettingsKoanf_ProjectIDFileOverridesGlobal(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -608,8 +608,8 @@ func TestLoadSettingsKoanf_ProjectIDFileOverridesGlobal(t *testing.T) {
 	}
 
 	// Global settings with a grove_id (simulating a linked global project)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 	globalSettings := `schema_version: "1"
 hub:
   grove_id: "global-grove-id"
@@ -617,18 +617,18 @@ hub:
   linked: true
   endpoint: "https://hub.example.com"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
-	// Git project .scion directory with grove-id file but NO grove_id in settings
-	projectScionDir := filepath.Join(tmpDir, "my-project", ".scion")
-	require.NoError(t, os.MkdirAll(projectScionDir, 0755))
+	// Git project .fabric directory with grove-id file but NO grove_id in settings
+	projectFabricDir := filepath.Join(tmpDir, "my-project", ".fabric")
+	require.NoError(t, os.MkdirAll(projectFabricDir, 0755))
 
 	// Write the grove-id file (as initInRepoProject does)
-	require.NoError(t, WriteProjectID(projectScionDir, "project-grove-id-from-file"))
+	require.NoError(t, WriteProjectID(projectFabricDir, "project-grove-id-from-file"))
 
 	// Create a minimal project settings file in the external config dir
 	// (simulating ensureProjectSettingsFile which doesn't include grove_id)
-	projectConfigDir, err := GetGitProjectExternalConfigDir(projectScionDir)
+	projectConfigDir, err := GetGitProjectExternalConfigDir(projectFabricDir)
 	require.NoError(t, err)
 	require.NoError(t, os.MkdirAll(projectConfigDir, 0755))
 	projectSettings := `schema_version: "1"
@@ -637,7 +637,7 @@ active_profile: local
 	require.NoError(t, os.WriteFile(filepath.Join(projectConfigDir, "settings.yaml"), []byte(projectSettings), 0644))
 
 	// Load settings for the project
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	require.NoError(t, err)
 
 	// The grove-id file should take precedence over global hub.grove_id
@@ -655,7 +655,7 @@ func TestLoadSettingsKoanf_GlobalProjectIDDoesNotBleedIntoProject(t *testing.T) 
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -663,17 +663,17 @@ func TestLoadSettingsKoanf_GlobalProjectIDDoesNotBleedIntoProject(t *testing.T) 
 	}
 
 	// Global settings with grove_id at top level (legacy format)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 	globalSettings := `grove_id: "global-grove-id-legacy"
 hub:
   enabled: true
   endpoint: "https://hub.example.com"
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	// Project settings with hub.grove_id (v1 format)
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	projectSettings := `schema_version: "1"
 hub:
@@ -700,7 +700,7 @@ func TestLoadSettingsKoanf_V1HubProjectIDPopulatesGetHubProjectID(t *testing.T) 
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -708,10 +708,10 @@ func TestLoadSettingsKoanf_V1HubProjectIDPopulatesGetHubProjectID(t *testing.T) 
 	}
 
 	// Create global dir to satisfy LoadSettingsKoanf
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
-	projectDir := filepath.Join(tmpDir, "my-project", ".scion")
+	projectDir := filepath.Join(tmpDir, "my-project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// V1 format settings with hub.grove_id set (the hub grove ID)
@@ -742,7 +742,7 @@ func TestLoadSettingsKoanf_V1HubProjectIDWithMarkerFile(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -750,18 +750,18 @@ func TestLoadSettingsKoanf_V1HubProjectIDWithMarkerFile(t *testing.T) {
 	}
 
 	// Create global dir
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 
-	projectScionDir := filepath.Join(tmpDir, "my-project", ".scion")
-	require.NoError(t, os.MkdirAll(projectScionDir, 0755))
+	projectFabricDir := filepath.Join(tmpDir, "my-project", ".fabric")
+	require.NoError(t, os.MkdirAll(projectFabricDir, 0755))
 
 	// Write grove-id marker file with local deterministic ID
-	require.NoError(t, WriteProjectID(projectScionDir, "local-deterministic-id"))
+	require.NoError(t, WriteProjectID(projectFabricDir, "local-deterministic-id"))
 
 	// For git projects, settings are stored in the external config dir.
 	// Write V1 settings with hub.grove_id pointing to a different hub grove.
-	projectConfigDir, err := GetGitProjectExternalConfigDir(projectScionDir)
+	projectConfigDir, err := GetGitProjectExternalConfigDir(projectFabricDir)
 	require.NoError(t, err)
 	require.NoError(t, os.MkdirAll(projectConfigDir, 0755))
 	projectSettings := `schema_version: "1"
@@ -772,7 +772,7 @@ hub:
 `
 	require.NoError(t, os.WriteFile(filepath.Join(projectConfigDir, "settings.yaml"), []byte(projectSettings), 0644))
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	require.NoError(t, err)
 
 	// ProjectID should come from the marker file (local deterministic ID)
@@ -786,7 +786,7 @@ hub:
 
 func TestLoadSettingsKoanf_InRepoSettingsLayered(t *testing.T) {
 	// Verifies that when a git project has split storage (project-id file),
-	// the in-repo .scion/settings.yaml is loaded as a layer between global
+	// the in-repo .fabric/settings.yaml is loaded as a layer between global
 	// and external config settings.
 	tmpDir := t.TempDir()
 
@@ -794,7 +794,7 @@ func TestLoadSettingsKoanf_InRepoSettingsLayered(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID", "SCION_ACTIVE_PROFILE"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID", "FABRIC_ACTIVE_PROFILE"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -802,8 +802,8 @@ func TestLoadSettingsKoanf_InRepoSettingsLayered(t *testing.T) {
 	}
 
 	// Global settings with profiles.local.runtime = podman
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 	globalSettings := `schema_version: "1"
 active_profile: local
 profiles:
@@ -815,28 +815,28 @@ runtimes:
   container:
     type: container
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
-	// In-repo .scion directory with profiles.local.runtime = container
-	projectScionDir := filepath.Join(tmpDir, "my-project", ".scion")
-	require.NoError(t, os.MkdirAll(projectScionDir, 0755))
+	// In-repo .fabric directory with profiles.local.runtime = container
+	projectFabricDir := filepath.Join(tmpDir, "my-project", ".fabric")
+	require.NoError(t, os.MkdirAll(projectFabricDir, 0755))
 	inRepoSettings := `schema_version: "1"
 active_profile: local
 profiles:
   local:
     runtime: container
 `
-	require.NoError(t, os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(inRepoSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(inRepoSettings), 0644))
 
 	// Write project-id file to trigger split storage
-	require.NoError(t, WriteProjectID(projectScionDir, "test-project-id"))
+	require.NoError(t, WriteProjectID(projectFabricDir, "test-project-id"))
 
 	// Create external config dir (empty — no settings file)
-	projectConfigDir, err := GetGitProjectExternalConfigDir(projectScionDir)
+	projectConfigDir, err := GetGitProjectExternalConfigDir(projectFabricDir)
 	require.NoError(t, err)
 	require.NoError(t, os.MkdirAll(projectConfigDir, 0755))
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	require.NoError(t, err)
 
 	// In-repo settings should override global: runtime should be "container", not "podman"
@@ -855,7 +855,7 @@ func TestLoadSettingsKoanf_ExternalOverridesInRepo(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	for _, env := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_GROVE_ID", "SCION_ACTIVE_PROFILE"} {
+	for _, env := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_GROVE_ID", "FABRIC_ACTIVE_PROFILE"} {
 		if orig, ok := os.LookupEnv(env); ok {
 			_ = os.Unsetenv(env)
 			t.Cleanup(func() { _ = os.Setenv(env, orig) })
@@ -863,8 +863,8 @@ func TestLoadSettingsKoanf_ExternalOverridesInRepo(t *testing.T) {
 	}
 
 	// Global settings
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	require.NoError(t, os.MkdirAll(globalScionDir, 0755))
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	require.NoError(t, os.MkdirAll(globalFabricDir, 0755))
 	globalSettings := `schema_version: "1"
 active_profile: local
 default_template: global-default
@@ -879,11 +879,11 @@ runtimes:
   docker:
     type: docker
 `
-	require.NoError(t, os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(globalSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(globalSettings), 0644))
 
 	// In-repo settings
-	projectScionDir := filepath.Join(tmpDir, "my-project", ".scion")
-	require.NoError(t, os.MkdirAll(projectScionDir, 0755))
+	projectFabricDir := filepath.Join(tmpDir, "my-project", ".fabric")
+	require.NoError(t, os.MkdirAll(projectFabricDir, 0755))
 	inRepoSettings := `schema_version: "1"
 active_profile: local
 default_template: in-repo-default
@@ -891,13 +891,13 @@ profiles:
   local:
     runtime: container
 `
-	require.NoError(t, os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(inRepoSettings), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(inRepoSettings), 0644))
 
 	// Write project-id file to trigger split storage
-	require.NoError(t, WriteProjectID(projectScionDir, "test-project-id"))
+	require.NoError(t, WriteProjectID(projectFabricDir, "test-project-id"))
 
 	// Create external config dir with settings that override in-repo
-	projectConfigDir, err := GetGitProjectExternalConfigDir(projectScionDir)
+	projectConfigDir, err := GetGitProjectExternalConfigDir(projectFabricDir)
 	require.NoError(t, err)
 	require.NoError(t, os.MkdirAll(projectConfigDir, 0755))
 	externalSettings := `schema_version: "1"
@@ -908,7 +908,7 @@ profiles:
 `
 	require.NoError(t, os.WriteFile(filepath.Join(projectConfigDir, "settings.yaml"), []byte(externalSettings), 0644))
 
-	s, err := LoadSettingsKoanf(projectScionDir)
+	s, err := LoadSettingsKoanf(projectFabricDir)
 	require.NoError(t, err)
 
 	// External config should override in-repo

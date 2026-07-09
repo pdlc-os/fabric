@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-30 (decisions folded in 2026-05-31)
 **Status:** Proposal — Survey & Planning (decisions confirmed)
-**Author:** Scion Agent (workstation-onboarding)
+**Author:** Fabric Agent (workstation-onboarding)
 **Sub-designs:**
 [`workstation-onboarding-wizard.md`](./workstation-onboarding-wizard.md) (W1+W4),
 [`linked-groves-ui.md`](./linked-groves-ui.md) (W5)
@@ -12,18 +12,18 @@
 ## 1. Executive Summary
 
 Today, **workstation mode** is something a user typically reaches *after* they have
-already bootstrapped a machine on the command line (`scion init --machine`, built or
-pulled images, configured a runtime). `scion server start` then lights up a co-located
+already bootstrapped a machine on the command line (`fabric init --machine`, built or
+pulled images, configured a runtime). `fabric server start` then lights up a co-located
 Hub + Runtime Broker + Web UI on `127.0.0.1` with a generated dev token. It is, in
 effect, a "phase two" convenience rather than an entry point.
 
 This document proposes treating workstation mode as a **valid — if not primary —
-first entry point** into Scion: a user installs (e.g. via the Homebrew tap), runs
-`scion server start`, and is met with a browser-based **onboarding experience** that
+first entry point** into Fabric: a user installs (e.g. via the Homebrew tap), runs
+`fabric server start`, and is met with a browser-based **onboarding experience** that
 walks them through the setup that currently only exists as disconnected CLI steps:
 
 - Choosing which **harnesses** they want (Claude Code, Gemini, Codex, OpenCode).
-- Initializing the **global directory** (`~/.scion`).
+- Initializing the **global directory** (`~/.fabric`).
 - Verifying the **container runtime** is installed and reachable.
 - **Pulling images** (default registry pre-seeded by the Homebrew install) — or
   **building them locally** once a runtime is confirmed.
@@ -48,13 +48,13 @@ match.
 | # | Decision | Effect |
 |---|---|---|
 | D1 | **Identity is cosmetic** for local single-user. Keep the stable `DevUser` UUID for DB integrity; allow a settable display name + email, defaulting to the **OS username** instead of `dev@localhost`. | W2 stays small. No real user-record creation. |
-| D2 | **Do not rename the dev token.** Keep "dev token", the `scion_dev_` format, `~/.scion/dev-token`, and `SCION_DEV_TOKEN` exactly as-is internally. **Only relabel docs/UI** to "developer token" for consistency. | W3 shrinks to a copy/label pass; no new env var, no `local auth mode`. |
-| D3 | **Images: prefer prebuilt, add local build.** The Homebrew install pre-seeds `ghcr.io/homebrew-scion` as the registry, so the pull path is the default and "just works". **Add a local image-build option** in the wizard, available **after a runtime is confirmed present**. | W4 = pull (default) + build (fallback). |
+| D2 | **Do not rename the dev token.** Keep "dev token", the `fabric_dev_` format, `~/.fabric/dev-token`, and `FABRIC_DEV_TOKEN` exactly as-is internally. **Only relabel docs/UI** to "developer token" for consistency. | W3 shrinks to a copy/label pass; no new env var, no `local auth mode`. |
+| D3 | **Images: prefer prebuilt, add local build.** The Homebrew install pre-seeds `ghcr.io/homebrew-fabric` as the registry, so the pull path is the default and "just works". **Add a local image-build option** in the wizard, available **after a runtime is confirmed present**. | W4 = pull (default) + build (fallback). |
 | D4 | **Per-image pull progress** (queued → pulling → done/exists/error). Layer-level streaming is a later enhancement. Local build streams raw build log lines into a collapsible panel. | W4 progress fidelity. |
 | D5 | **Linked-grove picker = server-side directory browser** (a custom web folder tree with a **"New folder"** button), **strictly disabled (404) when serving in production.** Not a native OS dialog (not reachable from a served web page). | W5 elevates the browser to v1. |
-| D6 | **Hard-fail** when a user tries to link a directory that is inside the hub-managed path space (`~/.scion/projects/`, legacy `groves/`). | W5 validation rule. |
-| D7 | **Two-step linked-grove create** (create project, then add the co-located broker as a provider with the local path), mirroring `scion hub link`. Recoverable on failure; revisit an atomic create-handler only if it proves flaky. | W5 submit flow. |
-| D8 | **`scion server start` auto-opens the browser** to `/onboarding` when the machine is un-onboarded, **and always prints the URL prominently** — printed **before** the daemon backgrounds itself. | W1 launch behavior. |
+| D6 | **Hard-fail** when a user tries to link a directory that is inside the hub-managed path space (`~/.fabric/projects/`, legacy `groves/`). | W5 validation rule. |
+| D7 | **Two-step linked-grove create** (create project, then add the co-located broker as a provider with the local path), mirroring `fabric hub link`. Recoverable on failure; revisit an atomic create-handler only if it proves flaky. | W5 submit flow. |
+| D8 | **`fabric server start` auto-opens the browser** to `/onboarding` when the machine is un-onboarded, **and always prints the URL prominently** — printed **before** the daemon backgrounds itself. | W1 launch behavior. |
 
 Minor implementation defaults (also confirmed): prod fence via a `Workstation` flag on
 `hub.ServerConfig` (all `/system/*` + fs endpoints 404 in prod, plus loopback assertion
@@ -70,7 +70,7 @@ exactly one co-located broker is assumed per workstation.
 
 ### 2.1 How workstation mode works today
 
-`scion server start` is the entry point. In the absence of `--production`, it applies
+`fabric server start` is the entry point. In the absence of `--production`, it applies
 workstation defaults and prints a quickstart.
 
 - **Defaults** — `applyWorkstationDefaults()` at `cmd/server_config.go:25-44` turns on
@@ -82,12 +82,12 @@ workstation defaults and prints a quickstart.
   (`runServerStart`). Default behavior is a backgrounded daemon; `--foreground` runs in
   the terminal.
 - **Quickstart** — `printWorkstationQuickstart()` at `cmd/server_daemon.go:361-384`
-  prints the Web UI URL and `export SCION_DEV_TOKEN=...`. This is the *entire* current
+  prints the Web UI URL and `export FABRIC_DEV_TOKEN=...`. This is the *entire* current
   "onboarding": a URL and a token, with no guided setup behind it. **(D8 extends this to
   print the `/onboarding` URL and auto-open the browser when un-onboarded.)**
 - **Mode detection / persistence** — `pkg/config/hub_config.go` (`Mode` field,
   `LoadServerMode`); `mode: workstation` can be set persistently in
-  `~/.scion/settings.yaml`.
+  `~/.fabric/settings.yaml`.
 
 **Key takeaway:** workstation mode is an *opinionated preset* that co-locates three
 services. It assumes the machine is already initialized. There is no first-run gate
@@ -114,15 +114,15 @@ are not stitched into a guided first-run flow. (Designed in
 
 ### 2.3 Machine init, runtime, and images
 
-- **`scion init --machine`** — `cmd/init.go:21-48` → `cmd/project.go:59-116` →
-  `config.InitMachine()` at `pkg/config/init.go:548-620`. Creates `~/.scion`, detects
+- **`fabric init --machine`** — `cmd/init.go:21-48` → `cmd/project.go:59-116` →
+  `config.InitMachine()` at `pkg/config/init.go:548-620`. Creates `~/.fabric`, detects
   the runtime, writes `settings.yaml`, seeds harness-configs for all four built-ins,
   seeds the default template, pre-generates a stable broker ID, and (Homebrew install)
-  pre-seeds `image_registry: ghcr.io/homebrew-scion`.
+  pre-seeds `image_registry: ghcr.io/homebrew-fabric`.
 - **Runtime detection** — `pkg/config/runtime_detect.go:52-75` (`DetectLocalRuntime`,
   preference podman → container[macOS] → docker). Factory: `pkg/runtime/factory.go:31-137`.
 - **Image pulling** — today a *shell script*, `image-build/scripts/pull-containers.sh`.
-  Prebuilt public images are published at `ghcr.io/homebrew-scion/` (see the Homebrew
+  Prebuilt public images are published at `ghcr.io/homebrew-fabric/` (see the Homebrew
   distribution design). W4 adds a Go-native, harness-aware pull plus a local build path.
 - **Doctor** — `cmd/doctor.go:30-261` already runs git/tmux/runtime checks with
   structured pass/warn/fail results (`pkg/runtime/doctor.go:15-41`) — the data source
@@ -131,7 +131,7 @@ are not stitched into a guided first-run flow. (Designed in
 ### 2.4 Auth, dev token, and username
 
 - **Dev token** — generated/resolved in `pkg/apiclient/devauth.go:27-157`
-  (`scion_dev_` prefix, `~/.scion/dev-token`, env `SCION_DEV_TOKEN`). Server side:
+  (`fabric_dev_` prefix, `~/.fabric/dev-token`, env `FABRIC_DEV_TOKEN`). Server side:
   `initDevAuth()` at `cmd/server_foreground.go:678-700`; middleware at
   `pkg/hub/devauth.go:53-148`. **(D2: all of this stays exactly as-is.)**
 - **Unified auth** — `pkg/hub/auth.go:60-248` (`UnifiedAuthMiddleware`).
@@ -150,14 +150,14 @@ are not stitched into a guided first-run flow. (Designed in
 - **Project types** — `pkg/store/models.go:186-246` computes `ProjectType`:
   `hub-native` vs `linked`.
 - **Managed path space** — `hubNativeProjectPath()` at `pkg/hub/handlers.go:3736-3752`
-  places hub-native/shared-workspace projects under `~/.scion/projects/<slug>/`
-  (legacy `~/.scion/groves/<slug>/`). This is "the Hub's managed section of the
+  places hub-native/shared-workspace projects under `~/.fabric/projects/<slug>/`
+  (legacy `~/.fabric/groves/<slug>/`). This is "the Hub's managed section of the
   filesystem".
 - **Linked projects already exist in the model** — `ProjectProvider`
   (`pkg/store/models.go:337-379`) carries `LocalPath`/`BrokerID`/`LinkedBy`/`LinkedAt`;
   link API `POST /api/v1/projects/{projectId}/providers`
   (`pkg/hub/handlers.go:7980-8043`); WebDAV honors a co-located broker's `LocalPath`
-  (`pkg/hub/project_webdav.go:136-190`). CLI precedent: `scion hub link`
+  (`pkg/hub/project_webdav.go:136-190`). CLI precedent: `fabric hub link`
   (`cmd/hub.go:215-235`, `runHubLink`).
 - **The browser gap** — `web/src/components/pages/project-create.ts` only supports
   git-backed / hub-native projects. There is **no UI to register an arbitrary local
@@ -169,9 +169,9 @@ are not stitched into a guided first-run flow. (Designed in
 ## 3. Goals and Non-Goals
 
 ### Goals
-1. `scion server start` on a fresh machine leads to a **guided, browser-based
-   onboarding** that can fully bootstrap Scion (and auto-opens — D8).
-2. Onboarding can: pick harnesses, init `~/.scion`, verify runtime, **pull prebuilt
+1. `fabric server start` on a fresh machine leads to a **guided, browser-based
+   onboarding** that can fully bootstrap Fabric (and auto-opens — D8).
+2. Onboarding can: pick harnesses, init `~/.fabric`, verify runtime, **pull prebuilt
    images or build them locally** (D3), set identity, and add at least one workspace.
 3. **Cosmetic configurable identity** for local mode (D1).
 4. **Relabel** dev-token references to "developer token" in docs/UI only (D2).
@@ -234,7 +234,7 @@ Coordinate with `cli-modes.md`.
 ### W4 — Harness-aware images: pull + local build (D3, D4)
 Detailed in the wizard doc §7. Go-native pull via the runtime interface
 (`pkg/runtime/interface.go` `ImageExists`/`PullImage`), defaulting to the pre-seeded
-`ghcr.io/homebrew-scion` registry, with **per-image** progress on the `/events` SSE
+`ghcr.io/homebrew-fabric` registry, with **per-image** progress on the `/events` SSE
 stream (D4). Add a **local build** option (shells out to the build scripts) enabled only
 after a runtime is confirmed, streaming build logs into a collapsible panel.
 
@@ -256,7 +256,7 @@ The original open questions are now resolved by §1a:
 | Q2 First-run detection signal | Server-computed status struct, `sessionStorage`-cached (wizard §3). |
 | Q3 Bootstrap-auth window | Dev-auth auto-login session on loopback (wizard §4). |
 | Q4 Rename naming | Build against "project" per the in-flight rename. |
-| Q5 Image / no-registry UX | Pre-seeded `ghcr.io/homebrew-scion` is the default; local build added; step skippable (D3). |
+| Q5 Image / no-registry UX | Pre-seeded `ghcr.io/homebrew-fabric` is the default; local build added; step skippable (D3). |
 | Q6 Resumability/idempotency | Idempotent endpoints + resume from status struct (wizard §5.4). |
 | Q7 Username scope | Cosmetic only, stable UUID (D1). |
 
@@ -297,7 +297,7 @@ Items within a phase can parallelize; phases are ordered by dependency.
 8. `POST /system/init` (wraps `config.InitMachine` with chosen harnesses). *(W1 — §6.4)*
 
 **Phase 3 — Wizard shell**
-9. `web/src/components/pages/onboarding.ts` (`scion-page-onboarding`), route +
+9. `web/src/components/pages/onboarding.ts` (`fabric-page-onboarding`), route +
    standalone shell, state machine, steps 0–4 & 6–7 behind the first-run gate;
    `sessionStorage` "setup complete" cache. *(W1 — wizard §5)*
 10. Daemon launch: print `/onboarding` URL **before backgrounding** and **auto-open the

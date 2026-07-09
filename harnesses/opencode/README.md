@@ -1,6 +1,6 @@
 # OpenCode Harness Bundle
 
-Scion harness configuration for [OpenCode](https://opencode.ai), an open-source
+Fabric harness configuration for [OpenCode](https://opencode.ai), an open-source
 AI coding assistant.
 
 ## Install
@@ -8,13 +8,13 @@ AI coding assistant.
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/opencode
+fabric harness-config install harnesses/opencode
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/opencode
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/opencode
 ```
 
 ## Auth Modes
@@ -30,7 +30,7 @@ scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harn
 opencode/
   config.yaml       # Harness configuration (provisioner, capabilities, auth)
   provision.py       # Container-side provisioner (pre-start hook)
-  Dockerfile         # Image build (FROM scion-base)
+  Dockerfile         # Image build (FROM fabric-base)
   cloudbuild.yaml    # Cloud Build configuration
   home/
     .config/opencode/opencode.json   # OpenCode client settings
@@ -40,7 +40,7 @@ opencode/
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-opencode:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-opencode:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

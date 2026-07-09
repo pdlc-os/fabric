@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# hack/dist.sh - Build and distribute the scion CLI binary
+# hack/dist.sh - Build and distribute the fabric CLI binary
 #
 # Usage:
 #   ./hack/dist.sh set-up    # Create bucket, configure IAM, upload installer
 #   ./hack/dist.sh publish   # Build and upload cross-platform binaries
 #
-# End users can then install scion via:
-#   gcloud storage cat gs://scion-dist-<PROJECT_ID>/install.sh | bash
+# End users can then install fabric via:
+#   gcloud storage cat gs://fabric-dist-<PROJECT_ID>/install.sh | bash
 
 set -euo pipefail
 
@@ -33,7 +33,7 @@ if [[ -z "$PROJECT_ID" ]]; then
     exit 1
 fi
 
-BUCKET_NAME="scion-dist-${PROJECT_ID}"
+BUCKET_NAME="fabric-dist-${PROJECT_ID}"
 
 # Platform matrix: GOOS/GOARCH pairs
 PLATFORMS=(
@@ -72,12 +72,12 @@ function setup() {
     echo "=== Setup complete ==="
     echo "Bucket: gs://${BUCKET_NAME}"
     echo ""
-    echo "Users can install scion with:"
+    echo "Users can install fabric with:"
     echo "  gcloud storage cat gs://${BUCKET_NAME}/install.sh | bash"
 }
 
 function publish() {
-    echo "=== Publishing scion binaries ==="
+    echo "=== Publishing fabric binaries ==="
 
     SHORT_HASH=$(git -C "${PROJECT_ROOT}" rev-parse --short HEAD)
     LDFLAGS=$(bash "${SCRIPT_DIR}/version.sh")
@@ -92,28 +92,28 @@ function publish() {
         GOARCH="${platform##*/}"
         PLATFORM_DIR="${GOOS}-${GOARCH}"
 
-        BINARY_NAME="scion"
+        BINARY_NAME="fabric"
         if [[ "$GOOS" == "windows" ]]; then
-            BINARY_NAME="scion.exe"
+            BINARY_NAME="fabric.exe"
         fi
 
         echo "Building ${GOOS}/${GOARCH}..."
         GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 \
             go build -buildvcs=false -ldflags "${LDFLAGS}" \
             -o "${BUILD_DIR}/${PLATFORM_DIR}/${BINARY_NAME}" \
-            "${PROJECT_ROOT}/cmd/scion"
+            "${PROJECT_ROOT}/cmd/fabric"
 
         # Create zip archive
-        ZIP_FILE="${BUILD_DIR}/${PLATFORM_DIR}/scion.zip"
-        (cd "${BUILD_DIR}/${PLATFORM_DIR}" && zip -q scion.zip "${BINARY_NAME}")
+        ZIP_FILE="${BUILD_DIR}/${PLATFORM_DIR}/fabric.zip"
+        (cd "${BUILD_DIR}/${PLATFORM_DIR}" && zip -q fabric.zip "${BINARY_NAME}")
 
-        # Upload to latest/<platform>/scion.zip
-        echo "  Uploading to latest/${PLATFORM_DIR}/scion.zip..."
-        gsutil -q cp "${ZIP_FILE}" "gs://${BUCKET_NAME}/latest/${PLATFORM_DIR}/scion.zip"
+        # Upload to latest/<platform>/fabric.zip
+        echo "  Uploading to latest/${PLATFORM_DIR}/fabric.zip..."
+        gsutil -q cp "${ZIP_FILE}" "gs://${BUCKET_NAME}/latest/${PLATFORM_DIR}/fabric.zip"
 
-        # Upload to versions/<platform>/scion-<hash>.zip
-        echo "  Uploading to versions/${PLATFORM_DIR}/scion-${SHORT_HASH}.zip..."
-        gsutil -q cp "${ZIP_FILE}" "gs://${BUCKET_NAME}/versions/${PLATFORM_DIR}/scion-${SHORT_HASH}.zip"
+        # Upload to versions/<platform>/fabric-<hash>.zip
+        echo "  Uploading to versions/${PLATFORM_DIR}/fabric-${SHORT_HASH}.zip..."
+        gsutil -q cp "${ZIP_FILE}" "gs://${BUCKET_NAME}/versions/${PLATFORM_DIR}/fabric-${SHORT_HASH}.zip"
     done
 
     echo ""
@@ -125,7 +125,7 @@ function publish() {
     for platform in "${PLATFORMS[@]}"; do
         GOOS="${platform%/*}"
         GOARCH="${platform##*/}"
-        echo "  gs://${BUCKET_NAME}/latest/${GOOS}-${GOARCH}/scion.zip"
+        echo "  gs://${BUCKET_NAME}/latest/${GOOS}-${GOARCH}/fabric.zip"
     done
 }
 

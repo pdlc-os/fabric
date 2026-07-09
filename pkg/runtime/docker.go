@@ -22,10 +22,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 type DockerRuntime struct {
@@ -44,12 +44,12 @@ func (r *DockerRuntime) Name() string {
 }
 
 func (r *DockerRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 func (r *DockerRuntime) Run(ctx context.Context, config RunConfig) (string, error) {
 	// Serialize file and variable secrets into an env-var blob for
-	// container-side staging by sciontool init (stateless broker support).
+	// container-side staging by fabrictool init (stateless broker support).
 	if len(config.ResolvedSecrets) > 0 {
 		encoded, err := serializeSecrets(util.GetHomeDir(config.UnixUsername), config.ResolvedSecrets)
 		if err != nil {
@@ -70,7 +70,7 @@ func (r *DockerRuntime) Run(ctx context.Context, config RunConfig) (string, erro
 		return "", err
 	}
 
-	// sciontool already handles PID 1 responsibilities (zombie reaping, signal forwarding),
+	// fabrictool already handles PID 1 responsibilities (zombie reaping, signal forwarding),
 	// so we don't use --init to avoid competing init processes.
 	newArgs := []string{"run", "-t"}
 
@@ -184,8 +184,8 @@ func (r *DockerRuntime) List(ctx context.Context, labelFilter map[string]string)
 		}
 
 		if match {
-			// Prefer the scion.name label (slugified) over Docker container name
-			agentName := labels["scion.name"]
+			// Prefer the fabric.name label (slugified) over Docker container name
+			agentName := labels["fabric.name"]
 			if agentName == "" {
 				agentName = d.Names
 			}
@@ -197,9 +197,9 @@ func (r *DockerRuntime) List(ctx context.Context, labelFilter map[string]string)
 				Image:           d.Image,
 				Labels:          labels,
 				Annotations:     labels,
-				Template:        labels["scion.template"],
-				HarnessConfig:   labels["scion.harness_config"],
-				HarnessAuth:     labels["scion.harness_auth"],
+				Template:        labels["fabric.template"],
+				HarnessConfig:   labels["fabric.harness_config"],
+				HarnessAuth:     labels["fabric.harness_auth"],
 				Project:         projectcompat.ProjectNameFromLabels(labels),
 				ProjectID:       projectcompat.ProjectIDFromLabels(labels),
 				ProjectPath:     projectcompat.ProjectPathFromLabels(labels),
@@ -239,16 +239,16 @@ func (r *DockerRuntime) Attach(ctx context.Context, id string) error {
 	// Check if running
 	status := strings.ToLower(agent.ContainerStatus)
 	if !strings.HasPrefix(status, "up") && status != "running" {
-		return fmt.Errorf("agent '%s' is not running (status: %s), use 'scion start %s' to resume it", id, agent.ContainerStatus, id)
+		return fmt.Errorf("agent '%s' is not running (status: %s), use 'fabric start %s' to resume it", id, agent.ContainerStatus, id)
 	}
 
 	// Ensure tmux uses the latest client's terminal size so the session
 	// redraws correctly on attach (handles containers started before the
 	// window-size option was added to session creation).
-	_, _ = runSimpleCommand(ctx, r.Command, "exec", "--user", "scion",
+	_, _ = runSimpleCommand(ctx, r.Command, "exec", "--user", "fabric",
 		agent.ContainerID, "tmux", "set-option", "-g", "window-size", "latest")
 
-	return runInteractiveCommand(r.Command, "exec", "-it", "--user", "scion", agent.ContainerID, "tmux", "attach", "-t", "scion")
+	return runInteractiveCommand(r.Command, "exec", "-it", "--user", "fabric", agent.ContainerID, "tmux", "attach", "-t", "fabric")
 }
 
 func (r *DockerRuntime) ImageExists(ctx context.Context, image string) (bool, error) {
@@ -294,7 +294,7 @@ func (r *DockerRuntime) Sync(ctx context.Context, id string, direction SyncDirec
 	}
 
 	// Check for GCS volumes
-	if val, ok := agent.Labels["scion.gcs_volumes"]; ok && val != "" {
+	if val, ok := agent.Labels["fabric.gcs_volumes"]; ok && val != "" {
 		decoded, err := base64.StdEncoding.DecodeString(val)
 		if err != nil {
 			return fmt.Errorf("failed to decode gcs volume info: %w", err)
@@ -341,7 +341,7 @@ func (r *DockerRuntime) Exec(ctx context.Context, id string, cmd []string) (stri
 	if agents, err := r.List(ctx, nil); err == nil {
 		id = resolveContainerID(agents, id)
 	}
-	args := append([]string{"exec", "--user", "scion", id}, cmd...)
+	args := append([]string{"exec", "--user", "fabric", id}, cmd...)
 	return runSimpleCommand(ctx, r.Command, args...)
 }
 

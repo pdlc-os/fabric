@@ -19,14 +19,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 const (
-	DotScion  = ".scion"
-	GlobalDir = ".scion"
+	DotFabric  = ".fabric"
+	GlobalDir = ".fabric"
 
 	ProjectConfigsDir = projectcompat.ProjectConfigsDir
 	ProjectsDir       = projectcompat.ProjectsDir
@@ -34,9 +34,9 @@ const (
 	GrovesDir         = projectcompat.GrovesDir
 )
 
-// FindProjectRoot walks up the directory tree to find the .scion directory or marker file.
-// When .scion is a file (project marker), it resolves to the external project-config path.
-// In hub context (SCION_HUB_ENDPOINT set), if no .scion is found on the filesystem,
+// FindProjectRoot walks up the directory tree to find the .fabric directory or marker file.
+// When .fabric is a file (project marker), it resolves to the external project-config path.
+// In hub context (FABRIC_HUB_ENDPOINT set), if no .fabric is found on the filesystem,
 // returns a synthetic path based on CWD so that settings loading can proceed using
 // environment variables for hub connectivity.
 func FindProjectRoot() (string, bool) {
@@ -47,7 +47,7 @@ func FindProjectRoot() (string, bool) {
 
 	dir := wd
 	for {
-		p := filepath.Join(dir, DotScion)
+		p := filepath.Join(dir, DotFabric)
 		info, err := os.Stat(p)
 		if err == nil {
 			if info.IsDir() {
@@ -56,7 +56,7 @@ func FindProjectRoot() (string, bool) {
 				}
 				return p, true
 			}
-			// .scion is a file (project marker) — resolve to external path
+			// .fabric is a file (project marker) — resolve to external path
 			if resolved, err := ResolveProjectMarker(p); err == nil {
 				// Verify the resolved external path actually exists on this
 				// filesystem. Inside a container the marker may reference a
@@ -66,11 +66,11 @@ func FindProjectRoot() (string, bool) {
 				}
 			}
 			// Marker file exists but external path can't be resolved
-			// (e.g., inside a container where ~/.scion/project-configs/ doesn't exist).
+			// (e.g., inside a container where ~/.fabric/project-configs/ doesn't exist).
 			// In hub context, return a synthetic path — the CLI will use the
 			// Hub API and env vars rather than filesystem-based project data.
 			if IsHubContext() {
-				return filepath.Join(filepath.Dir(p), DotScion), true
+				return filepath.Join(filepath.Dir(p), DotFabric), true
 			}
 		}
 
@@ -83,16 +83,16 @@ func FindProjectRoot() (string, bool) {
 
 	// Hub context fallback: if hub endpoint is available via env vars,
 	// the CLI is running inside a hub-connected container. Return a
-	// synthetic .scion path so that settings loading proceeds using
-	// env vars (SCION_HUB_ENDPOINT, SCION_PROJECT_ID, etc.) for hub connectivity.
+	// synthetic .fabric path so that settings loading proceeds using
+	// env vars (FABRIC_HUB_ENDPOINT, FABRIC_PROJECT_ID, etc.) for hub connectivity.
 	if IsHubContext() {
-		return filepath.Join(wd, DotScion), true
+		return filepath.Join(wd, DotFabric), true
 	}
 
 	return "", false
 }
 
-// GetResolvedProjectDir returns the active .scion directory based on precedence.
+// GetResolvedProjectDir returns the active .fabric directory based on precedence.
 // This is a convenience wrapper around ResolveProjectPath that discards the isGlobal flag.
 func GetResolvedProjectDir(explicitPath string) (string, error) {
 	path, _, err := ResolveProjectPath(explicitPath)
@@ -100,7 +100,7 @@ func GetResolvedProjectDir(explicitPath string) (string, error) {
 }
 
 func GetProjectDir() (string, error) {
-	// 1. Walk up to find .scion
+	// 1. Walk up to find .fabric
 	if p, ok := FindProjectRoot(); ok {
 		return p, nil
 	}
@@ -110,7 +110,7 @@ func GetProjectDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(wd, DotScion), nil
+	return filepath.Join(wd, DotFabric), nil
 }
 
 // GetProjectName returns the slugified name of the project.
@@ -141,7 +141,7 @@ func GetTargetProjectDir() (string, error) {
 	if util.IsGitRepo() {
 		root, err := util.RepoRoot()
 		if err == nil {
-			return filepath.Join(root, DotScion), nil
+			return filepath.Join(root, DotFabric), nil
 		}
 	}
 
@@ -150,7 +150,7 @@ func GetTargetProjectDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(wd, DotScion), nil
+	return filepath.Join(wd, DotFabric), nil
 }
 
 func GetGlobalDir() (string, error) {
@@ -163,7 +163,7 @@ func GetGlobalDir() (string, error) {
 
 // GetProjectConfigDir returns the directory where project config files (settings.yaml,
 // templates/) live. For git projects with split storage (project-id file exists), this
-// is the external path under ~/.scion/project-configs/. For all other projects
+// is the external path under ~/.fabric/project-configs/. For all other projects
 // (non-git, global), projectDir is returned as-is since it is already the config dir.
 func GetProjectConfigDir(projectDir string) string {
 	if extDir, err := GetGitProjectExternalConfigDir(projectDir); err == nil && extDir != "" {
@@ -245,11 +245,11 @@ func ResolveProjectPath(path string) (string, bool, error) {
 		return "", false, err
 	}
 
-	// If the path doesn't end with .scion, check if it contains a .scion entry.
+	// If the path doesn't end with .fabric, check if it contains a .fabric entry.
 	// This allows users to pass a project root (e.g. /path/to/project) and have it
-	// resolve to /path/to/project/.scion, matching how FindProjectRoot discovers projects.
-	if filepath.Base(abs) != DotScion {
-		candidate := filepath.Join(abs, DotScion)
+	// resolve to /path/to/project/.fabric, matching how FindProjectRoot discovers projects.
+	if filepath.Base(abs) != DotFabric {
+		candidate := filepath.Join(abs, DotFabric)
 		if info, err := os.Stat(candidate); err == nil {
 			if info.IsDir() {
 				if evaluated, err := filepath.EvalSymlinks(candidate); err == nil {
@@ -258,14 +258,14 @@ func ResolveProjectPath(path string) (string, bool, error) {
 					abs = candidate
 				}
 			} else {
-				// .scion is a marker file — resolve to external path
+				// .fabric is a marker file — resolve to external path
 				if resolved, err := ResolveProjectMarker(candidate); err == nil {
 					abs = resolved
 				}
 			}
 		}
 	} else {
-		// Path ends in .scion — check if it's a marker file (not a directory)
+		// Path ends in .fabric — check if it's a marker file (not a directory)
 		if info, err := os.Stat(abs); err == nil && !info.IsDir() {
 			if resolved, err := ResolveProjectMarker(abs); err == nil {
 				abs = resolved
@@ -300,9 +300,9 @@ func RequireProjectPath(path string) (string, bool, error) {
 		if err != nil {
 			return "", false, err
 		}
-		// If the path doesn't end with .scion, check if it contains a .scion entry.
-		if filepath.Base(abs) != DotScion {
-			candidate := filepath.Join(abs, DotScion)
+		// If the path doesn't end with .fabric, check if it contains a .fabric entry.
+		if filepath.Base(abs) != DotFabric {
+			candidate := filepath.Join(abs, DotFabric)
 			if info, err := os.Stat(candidate); err == nil {
 				if info.IsDir() {
 					if evaluated, err := filepath.EvalSymlinks(candidate); err == nil {
@@ -311,14 +311,14 @@ func RequireProjectPath(path string) (string, bool, error) {
 						abs = candidate
 					}
 				} else {
-					// .scion is a marker file — resolve to external path
+					// .fabric is a marker file — resolve to external path
 					if resolved, err := ResolveProjectMarker(candidate); err == nil {
 						abs = resolved
 					}
 				}
 			}
 		} else {
-			// Path ends in .scion — check if it's a marker file
+			// Path ends in .fabric — check if it's a marker file
 			if info, err := os.Stat(abs); err == nil && !info.IsDir() {
 				if resolved, err := ResolveProjectMarker(abs); err == nil {
 					abs = resolved
@@ -339,5 +339,5 @@ func RequireProjectPath(path string) (string, bool, error) {
 	}
 
 	// No project found and no explicit path - error
-	return "", false, fmt.Errorf("not in a scion project. Use --global for global project or run 'scion init' to create a project")
+	return "", false, fmt.Errorf("not in a fabric project. Use --global for global project or run 'fabric init' to create a project")
 }

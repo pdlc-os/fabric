@@ -24,14 +24,14 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/agentcache"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/agentcache"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +56,7 @@ var validSortFields = map[string]bool{
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List running scion agents",
+	Short:   "List running fabric agents",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if err := validateListFlags(); err != nil {
 			return err
@@ -92,7 +92,7 @@ func listAgentsLocal() error {
 	mgr := agent.NewManager(rt)
 
 	filters := map[string]string{
-		"scion.agent": "true",
+		"fabric.agent": "true",
 	}
 
 	if listAll {
@@ -101,8 +101,8 @@ func listAgentsLocal() error {
 	} else {
 		projectDir, _ := config.GetResolvedProjectDir(projectPath)
 		if projectDir != "" {
-			filters["scion.project_path"] = projectDir
-			filters["scion.project"] = config.GetProjectName(projectDir)
+			filters["fabric.project_path"] = projectDir
+			filters["fabric.project"] = config.GetProjectName(projectDir)
 		}
 	}
 

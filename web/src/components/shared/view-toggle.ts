@@ -26,8 +26,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 export type ViewMode = 'grid' | 'list';
 
-@customElement('scion-view-toggle')
-export class ScionViewToggle extends LitElement {
+@customElement('fabric-view-toggle')
+export class FabricViewToggle extends LitElement {
   /**
    * Current view mode
    */
@@ -35,7 +35,7 @@ export class ScionViewToggle extends LitElement {
   view: ViewMode = 'grid';
 
   /**
-   * localStorage key for persistence (e.g. 'scion-view-projects')
+   * localStorage key for persistence (e.g. 'fabric-view-projects')
    */
   @property({ type: String })
   storageKey = '';
@@ -47,8 +47,8 @@ export class ScionViewToggle extends LitElement {
 
     .toggle-group {
       display: inline-flex;
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
     }
 
@@ -59,23 +59,23 @@ export class ScionViewToggle extends LitElement {
       width: 2rem;
       height: 2rem;
       border: none;
-      background: var(--scion-surface, #ffffff);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-surface, #ffffff);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
       padding: 0;
       transition: all 150ms ease;
     }
 
     button:first-child {
-      border-right: 1px solid var(--scion-border, #e2e8f0);
+      border-right: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     button:hover:not(.active) {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     button.active {
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: white;
     }
 
@@ -133,6 +133,6 @@ export class ScionViewToggle extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-view-toggle': ScionViewToggle;
+    'fabric-view-toggle': FabricViewToggle;
   }
 }

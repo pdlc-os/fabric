@@ -24,14 +24,14 @@ import (
 	"github.com/a2aproject/a2a-go/v2/a2a"
 	"github.com/a2aproject/a2a-go/v2/a2asrv"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // routeKey is a context key for passing project/agent routing info to the executor.
 type routeKey struct{}
 
 // RouteInfo carries the project and agent slugs extracted from the HTTP path
-// so the executor knows which Scion agent to route to.
+// so the executor knows which Fabric agent to route to.
 type RouteInfo struct {
 	ProjectSlug string
 	AgentSlug   string
@@ -48,27 +48,27 @@ func RouteInfoFrom(ctx context.Context) (RouteInfo, bool) {
 	return info, ok
 }
 
-// ScionExecutor implements a2asrv.AgentExecutor, bridging the SDK's event model
-// to the Scion Hub message routing. Each Execute call:
-//  1. Translates the SDK message to a Scion StructuredMessage
+// FabricExecutor implements a2asrv.AgentExecutor, bridging the SDK's event model
+// to the Fabric Hub message routing. Each Execute call:
+//  1. Translates the SDK message to a Fabric StructuredMessage
 //  2. Sends it to the target agent via Hub
 //  3. Waits for the agent response via the broker
 //  4. Translates the response back to SDK events
-type ScionExecutor struct {
+type FabricExecutor struct {
 	bridge *Bridge
 	log    *slog.Logger
 }
 
-var _ a2asrv.AgentExecutor = (*ScionExecutor)(nil)
+var _ a2asrv.AgentExecutor = (*FabricExecutor)(nil)
 
-// NewScionExecutor creates a new executor that routes A2A requests to Scion agents.
-func NewScionExecutor(bridge *Bridge, log *slog.Logger) *ScionExecutor {
-	return &ScionExecutor{bridge: bridge, log: log}
+// NewFabricExecutor creates a new executor that routes A2A requests to Fabric agents.
+func NewFabricExecutor(bridge *Bridge, log *slog.Logger) *FabricExecutor {
+	return &FabricExecutor{bridge: bridge, log: log}
 }
 
 // Execute implements a2asrv.AgentExecutor. It routes the incoming A2A message
-// to a Scion agent and yields events as the agent responds.
-func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorContext) iter.Seq2[a2a.Event, error] {
+// to a Fabric agent and yields events as the agent responds.
+func (e *FabricExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorContext) iter.Seq2[a2a.Event, error] {
 	return func(yield func(a2a.Event, error) bool) {
 		route, ok := RouteInfoFrom(ctx)
 		if !ok {
@@ -83,7 +83,7 @@ func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorCon
 			return
 		}
 
-		// Resolve the Scion agent context (agent ID, project ID).
+		// Resolve the Fabric agent context (agent ID, project ID).
 		agentCtx, err := e.bridge.resolveContext(ctx, route.ProjectSlug, route.AgentSlug, "")
 		if err != nil {
 			yield(nil, fmt.Errorf("resolve agent: %w", err))
@@ -98,19 +98,19 @@ func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorCon
 			}
 		}
 
-		// Translate A2A message parts to Scion format.
-		scionMsg := TranslateA2APartsToScion(execCtx.Message.Parts)
-		scionMsg.Sender = fmt.Sprintf("user:%s", e.bridge.config.Hub.User)
-		scionMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
-		scionMsg.Metadata = map[string]string{"a2aTaskId": string(taskID)}
+		// Translate A2A message parts to Fabric format.
+		fabricMsg := TranslateA2APartsToFabric(execCtx.Message.Parts)
+		fabricMsg.Sender = fmt.Sprintf("user:%s", e.bridge.config.Hub.User)
+		fabricMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
+		fabricMsg.Metadata = map[string]string{"a2aTaskId": string(taskID)}
 
 		// Request broker subscription for responses.
 		if e.bridge.broker != nil {
-			pattern := fmt.Sprintf("scion.project.%s.user.%s.messages", agentCtx.ProjectID, e.bridge.config.Hub.User)
+			pattern := fmt.Sprintf("fabric.project.%s.user.%s.messages", agentCtx.ProjectID, e.bridge.config.Hub.User)
 			if err := e.bridge.broker.RequestSubscription(pattern); err != nil {
 				e.log.Warn("failed to request subscription", "pattern", pattern, "error", err)
 			}
-			legacyPattern := fmt.Sprintf("scion.grove.%s.user.%s.messages", agentCtx.ProjectID, e.bridge.config.Hub.User)
+			legacyPattern := fmt.Sprintf("fabric.grove.%s.user.%s.messages", agentCtx.ProjectID, e.bridge.config.Hub.User)
 			if err := e.bridge.broker.RequestSubscription(legacyPattern); err != nil {
 				e.log.Warn("failed to request legacy subscription", "pattern", legacyPattern, "error", err)
 			}
@@ -131,7 +131,7 @@ func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorCon
 		defer e.bridge.removeWaiter(string(taskID))
 
 		// Send to Hub.
-		if err := e.bridge.hubClient.Agents().SendStructuredMessage(ctx, agentCtx.AgentID, scionMsg, false, false, false); err != nil {
+		if err := e.bridge.hubClient.Agents().SendStructuredMessage(ctx, agentCtx.AgentID, fabricMsg, false, false, false); err != nil {
 			e.log.Error("failed to send message to agent", "error", err, "task_id", taskID, "agent_id", agentCtx.AgentID)
 			failMsg := a2a.NewMessage(a2a.MessageRoleAgent, a2a.NewTextPart("Failed to route message to agent"))
 			yield(a2a.NewStatusUpdateEvent(execCtx, a2a.TaskStateFailed, failMsg), nil)
@@ -167,7 +167,7 @@ func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorCon
 				return
 			}
 
-			agentMsg, _ := TranslateScionToA2AParts(response)
+			agentMsg, _ := TranslateFabricToA2AParts(response)
 
 			// Emit completed status with agent message. Content is delivered
 			// in the status message only — emitting it again as an artifact
@@ -199,9 +199,9 @@ func (e *ScionExecutor) Execute(ctx context.Context, execCtx *a2asrv.ExecutorCon
 	}
 }
 
-// Cancel implements a2asrv.AgentExecutor. It sends an interrupt to the Scion
+// Cancel implements a2asrv.AgentExecutor. It sends an interrupt to the Fabric
 // agent and emits a canceled status.
-func (e *ScionExecutor) Cancel(ctx context.Context, execCtx *a2asrv.ExecutorContext) iter.Seq2[a2a.Event, error] {
+func (e *FabricExecutor) Cancel(ctx context.Context, execCtx *a2asrv.ExecutorContext) iter.Seq2[a2a.Event, error] {
 	return func(yield func(a2a.Event, error) bool) {
 		taskID := execCtx.TaskID
 

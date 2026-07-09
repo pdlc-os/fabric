@@ -22,19 +22,19 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/managedagent"
-	"github.com/GoogleCloudPlatform/scion/pkg/managedagent/google"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/managedagent"
+	"github.com/pdlc-os/fabric/pkg/managedagent/google"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 const (
 	ManagedAgentsProfile = "managed-agents"
 	ManagedRuntimePrefix = "managed:"
 
-	annotationCloudProvider = "scion.dev/cloud-provider"
-	annotationInteractionID = "scion.dev/interaction-id"
-	annotationEnvironmentID = "scion.dev/environment-id"
+	annotationCloudProvider = "fabric.dev/cloud-provider"
+	annotationInteractionID = "fabric.dev/interaction-id"
+	annotationEnvironmentID = "fabric.dev/environment-id"
 )
 
 var (

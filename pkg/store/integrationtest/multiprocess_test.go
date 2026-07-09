@@ -25,7 +25,7 @@
 //     delivered to a listener in the parent process.
 //
 // The TestWorker_* functions are those entrypoints. They no-op (skip) unless their
-// SCION_TEST_WORKER_DSN env var is set, so they are inert in a normal suite run
+// FABRIC_TEST_WORKER_DSN env var is set, so they are inert in a normal suite run
 // and only do work when launched by a parent test via workerCommand.
 package integrationtest
 
@@ -44,10 +44,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // crossProcessLockKey is a fixed advisory-lock key for the multi-process lock
@@ -57,14 +57,14 @@ import (
 const crossProcessLockKey = int64(0x5C10FADE)
 
 // workerCommand builds an exec.Cmd that re-invokes THIS test binary to run a
-// single TestWorker_* entrypoint as a child process. SCION_TEST_POSTGRES_URL is
+// single TestWorker_* entrypoint as a child process. FABRIC_TEST_POSTGRES_URL is
 // stripped from the child's environment so its TestMain does not provision a
 // second ephemeral database; the child talks only to the DSN passed in extraEnv.
 func workerCommand(testName string, extraEnv map[string]string) *exec.Cmd {
 	cmd := exec.Command(os.Args[0], "-test.run=^"+testName+"$", "-test.v=true")
 	env := make([]string, 0, len(os.Environ())+len(extraEnv))
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "SCION_TEST_POSTGRES_URL=") {
+		if strings.HasPrefix(e, "FABRIC_TEST_POSTGRES_URL=") {
 			continue
 		}
 		env = append(env, e)
@@ -85,8 +85,8 @@ func TestMultiProcess_AdvisoryLockExclusivity(t *testing.T) {
 	dsn := enttest.NewSchemaURL(t)
 
 	env := map[string]string{
-		"SCION_TEST_WORKER_DSN":     dsn,
-		"SCION_TEST_WORKER_LOCKKEY": strconv.FormatInt(crossProcessLockKey, 10),
+		"FABRIC_TEST_WORKER_DSN":     dsn,
+		"FABRIC_TEST_WORKER_LOCKKEY": strconv.FormatInt(crossProcessLockKey, 10),
 	}
 
 	const procs = 2
@@ -119,11 +119,11 @@ func TestMultiProcess_AdvisoryLockExclusivity(t *testing.T) {
 // takes the lock (if free) and holds it long enough to guarantee the sibling
 // process's attempt overlaps, then reports the outcome on stdout.
 func TestWorker_AdvisoryLock(t *testing.T) {
-	dsn := os.Getenv("SCION_TEST_WORKER_DSN")
+	dsn := os.Getenv("FABRIC_TEST_WORKER_DSN")
 	if dsn == "" {
 		t.Skip("worker entrypoint; launched only by a parent multi-process test")
 	}
-	key, err := strconv.ParseInt(os.Getenv("SCION_TEST_WORKER_LOCKKEY"), 10, 64)
+	key, err := strconv.ParseInt(os.Getenv("FABRIC_TEST_WORKER_LOCKKEY"), 10, 64)
 	require.NoError(t, err)
 	ctx := context.Background()
 
@@ -170,9 +170,9 @@ func TestMultiProcess_CrossProcessNotify(t *testing.T) {
 
 	const n = 50
 	cmd := workerCommand("TestWorker_NotifyPublisher", map[string]string{
-		"SCION_TEST_WORKER_DSN":     dsn,
-		"SCION_TEST_WORKER_CHANNEL": channel,
-		"SCION_TEST_WORKER_COUNT":   strconv.Itoa(n),
+		"FABRIC_TEST_WORKER_DSN":     dsn,
+		"FABRIC_TEST_WORKER_CHANNEL": channel,
+		"FABRIC_TEST_WORKER_COUNT":   strconv.Itoa(n),
 	})
 	var out strings.Builder
 	cmd.Stdout = &out
@@ -196,12 +196,12 @@ func TestMultiProcess_CrossProcessNotify(t *testing.T) {
 // TestWorker_NotifyPublisher is the child entrypoint for the cross-process NOTIFY
 // test. It connects independently and publishes N notifications on the channel.
 func TestWorker_NotifyPublisher(t *testing.T) {
-	dsn := os.Getenv("SCION_TEST_WORKER_DSN")
+	dsn := os.Getenv("FABRIC_TEST_WORKER_DSN")
 	if dsn == "" {
 		t.Skip("worker entrypoint; launched only by a parent multi-process test")
 	}
-	channel := os.Getenv("SCION_TEST_WORKER_CHANNEL")
-	n, err := strconv.Atoi(os.Getenv("SCION_TEST_WORKER_COUNT"))
+	channel := os.Getenv("FABRIC_TEST_WORKER_CHANNEL")
+	n, err := strconv.Atoi(os.Getenv("FABRIC_TEST_WORKER_COUNT"))
 	require.NoError(t, err)
 	ctx := context.Background()
 

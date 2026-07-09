@@ -110,7 +110,7 @@ const (
 
 Three config-related types have overlapping fields:
 
-| Field | `api.ScionConfig` | `store.TemplateConfig` | `store.AgentAppliedConfig` |
+| Field | `api.FabricConfig` | `store.TemplateConfig` | `store.AgentAppliedConfig` |
 |-------|-------------------|------------------------|----------------------------|
 | Harness | ✓ | ✓ | ✓ |
 | ConfigDir | ✓ | ✓ | — |
@@ -130,7 +130,7 @@ The `api` package uses snake_case in some places while `store` uses camelCase co
 
 ```go
 // api/types.go - mixed case
-type ScionConfig struct {
+type FabricConfig struct {
     ConfigDir   string `json:"config_dir,omitempty" yaml:"config_dir,omitempty"`  // snake_case
     CommandArgs []string `json:"command_args,omitempty"`                           // snake_case
 }
@@ -243,7 +243,7 @@ This is more invasive but eliminates all duplication.
 ### Medium Priority
 
 5. **Define REST DTOs separately from storage models** to decouple API evolution
-6. **Unify config types** - consolidate `ScionConfig`, `TemplateConfig`, and `AgentAppliedConfig` with clear hierarchy
+6. **Unify config types** - consolidate `FabricConfig`, `TemplateConfig`, and `AgentAppliedConfig` with clear hierarchy
 7. **Resolve ID semantics** - clarify that `ID` is always UUID, `AgentID`/`Slug` is the user-facing identifier
 
 ### Low Priority (Future Work)

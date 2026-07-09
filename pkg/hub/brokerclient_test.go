@@ -25,8 +25,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func TestAuthenticatedBrokerClient_CreateAgent(t *testing.T) {
@@ -77,16 +77,16 @@ func TestAuthenticatedBrokerClient_CreateAgent(t *testing.T) {
 
 		// Verify HMAC headers are present
 		if r.Header.Get(apiclient.HeaderBrokerID) == "" {
-			t.Error("missing X-Scion-Broker-ID header")
+			t.Error("missing X-Fabric-Broker-ID header")
 		}
 		if r.Header.Get(apiclient.HeaderTimestamp) == "" {
-			t.Error("missing X-Scion-Timestamp header")
+			t.Error("missing X-Fabric-Timestamp header")
 		}
 		if r.Header.Get(apiclient.HeaderNonce) == "" {
-			t.Error("missing X-Scion-Nonce header")
+			t.Error("missing X-Fabric-Nonce header")
 		}
 		if r.Header.Get(apiclient.HeaderSignature) == "" {
-			t.Error("missing X-Scion-Signature header")
+			t.Error("missing X-Fabric-Signature header")
 		}
 
 		// Verify broker ID matches

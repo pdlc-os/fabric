@@ -22,7 +22,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // MountChecker abstracts the syscall/exec layer for NFS mount reconciliation.
@@ -32,7 +32,7 @@ type MountChecker interface {
 	// IsMountpoint returns true if the given path is currently a mountpoint.
 	IsMountpoint(path string) (bool, error)
 
-	// MountInfo returns the server:export (e.g. "10.0.0.2:/scion-workspaces")
+	// MountInfo returns the server:export (e.g. "10.0.0.2:/fabric-workspaces")
 	// for a given mountpoint. Returns ("", nil) if the path is not mounted.
 	MountInfo(path string) (serverExport string, err error)
 

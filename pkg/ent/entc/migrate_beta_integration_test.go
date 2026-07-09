@@ -26,14 +26,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/accesspolicy"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/group"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/groupmembership"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/policybinding"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/user"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
+	"github.com/pdlc-os/fabric/pkg/ent/agent"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent/group"
+	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
+	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
+	"github.com/pdlc-os/fabric/pkg/ent/user"
 )
 
 // TestMigrateBeta_SQLiteToPostgres exercises the full Migration β path against a
@@ -44,15 +44,15 @@ import (
 //   - FK relationships and a M2M edge survive the copy,
 //   - representative field values round-trip intact.
 //
-// The destination DSN comes from SCION_PG_TEST_DSN; the test skips when it is
+// The destination DSN comes from FABRIC_PG_TEST_DSN; the test skips when it is
 // unset. Run with:
 //
-//	SCION_PG_TEST_DSN='postgres://user:pass@host:5432/db?sslmode=require' \
+//	FABRIC_PG_TEST_DSN='postgres://user:pass@host:5432/db?sslmode=require' \
 //	  go test -tags integration -run TestMigrateBeta ./pkg/ent/entc/...
 func TestMigrateBeta_SQLiteToPostgres(t *testing.T) {
-	dstDSN := os.Getenv("SCION_PG_TEST_DSN")
+	dstDSN := os.Getenv("FABRIC_PG_TEST_DSN")
 	if dstDSN == "" {
-		t.Skip("SCION_PG_TEST_DSN not set; skipping Postgres integration test")
+		t.Skip("FABRIC_PG_TEST_DSN not set; skipping Postgres integration test")
 	}
 	ctx := context.Background()
 

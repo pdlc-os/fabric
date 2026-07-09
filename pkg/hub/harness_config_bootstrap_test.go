@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // makeHarnessConfigDir creates a temp harness-configs directory with a single
@@ -50,7 +50,7 @@ func TestBootstrapHarnessConfigsFromDir_ImportsConfigs(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "claude", map[string]string{
-		"config.yaml":       "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml":       "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 		"home/.claude.json": "{}",
 		"home/.bashrc":      "# bashrc",
 	})
@@ -96,7 +96,7 @@ func TestBootstrapHarnessConfigsFromDir_PersistsConfigImage(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "claude", map[string]string{
-		"config.yaml": "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml": "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 	})
 
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -110,13 +110,13 @@ func TestBootstrapHarnessConfigsFromDir_PersistsConfigImage(t *testing.T) {
 	if hc.Config == nil {
 		t.Fatal("expected Config to be populated after bootstrap, got nil")
 	}
-	if hc.Config.Image != "scion-claude:latest" {
-		t.Errorf("expected Config.Image = %q, got %q", "scion-claude:latest", hc.Config.Image)
+	if hc.Config.Image != "fabric-claude:latest" {
+		t.Errorf("expected Config.Image = %q, got %q", "fabric-claude:latest", hc.Config.Image)
 	}
 
 	// Re-bootstrap with a different image and verify it updates.
 	if err := os.WriteFile(filepath.Join(dir, "claude", "config.yaml"),
-		[]byte("harness: claude\nimage: scion-claude:v2\nuser: scion\n"), 0644); err != nil {
+		[]byte("harness: claude\nimage: fabric-claude:v2\nuser: fabric\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -127,8 +127,8 @@ func TestBootstrapHarnessConfigsFromDir_PersistsConfigImage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if hc.Config == nil || hc.Config.Image != "scion-claude:v2" {
-		t.Errorf("expected Config.Image = %q after re-sync, got %+v", "scion-claude:v2", hc.Config)
+	if hc.Config == nil || hc.Config.Image != "fabric-claude:v2" {
+		t.Errorf("expected Config.Image = %q after re-sync, got %+v", "fabric-claude:v2", hc.Config)
 	}
 }
 
@@ -148,7 +148,7 @@ func TestBootstrapHarnessConfigsFromDir_MultipleConfigs(t *testing.T) {
 		if err := os.MkdirAll(configDir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		content := "harness: " + harness + "\nimage: scion-" + name + ":latest\nuser: scion\n"
+		content := "harness: " + harness + "\nimage: fabric-" + name + ":latest\nuser: fabric\n"
 		if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(content), 0644); err != nil {
 			t.Fatal(err)
 		}
@@ -172,7 +172,7 @@ func TestBootstrapHarnessConfigsFromDir_SyncsChangedConfig(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "gemini", map[string]string{
-		"config.yaml": "harness: gemini\nimage: scion-gemini:latest\nuser: scion\n",
+		"config.yaml": "harness: gemini\nimage: fabric-gemini:latest\nuser: fabric\n",
 	})
 
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -187,7 +187,7 @@ func TestBootstrapHarnessConfigsFromDir_SyncsChangedConfig(t *testing.T) {
 
 	// Modify config.yaml
 	if err := os.WriteFile(filepath.Join(dir, "gemini", "config.yaml"),
-		[]byte("harness: gemini\nimage: scion-gemini:v2\nuser: scion\n"), 0644); err != nil {
+		[]byte("harness: gemini\nimage: fabric-gemini:v2\nuser: fabric\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -212,7 +212,7 @@ func TestBootstrapHarnessConfigsFromDir_SkipsUnchanged(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "claude", map[string]string{
-		"config.yaml": "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml": "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 	})
 
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -244,7 +244,7 @@ func TestSyncHarnessConfig_PreservesTypedConfig(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "claude", map[string]string{
-		"config.yaml": "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml": "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 	})
 
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -255,7 +255,7 @@ func TestSyncHarnessConfig_PreservesTypedConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hc.Config = &store.HarnessConfigData{Image: "scion-claude:latest", Model: "opus"}
+	hc.Config = &store.HarnessConfigData{Image: "fabric-claude:latest", Model: "opus"}
 	hc.DisplayName = "Claude Config"
 	if err := s.UpdateHarnessConfig(ctx, hc); err != nil {
 		t.Fatal(err)
@@ -263,7 +263,7 @@ func TestSyncHarnessConfig_PreservesTypedConfig(t *testing.T) {
 
 	// Change content and re-sync.
 	if err := os.WriteFile(filepath.Join(dir, "claude", "config.yaml"),
-		[]byte("harness: claude\nimage: scion-claude:v2\nuser: scion\n"), 0644); err != nil {
+		[]byte("harness: claude\nimage: fabric-claude:v2\nuser: fabric\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := srv.BootstrapHarnessConfigsFromDir(ctx, dir); err != nil {
@@ -293,7 +293,7 @@ func TestSyncHarnessConfig_ReconcilesRemovedFiles(t *testing.T) {
 	ctx := context.Background()
 
 	dir := makeHarnessConfigDir(t, "claude", map[string]string{
-		"config.yaml":  "harness: claude\nimage: scion-claude:latest\nuser: scion\n",
+		"config.yaml":  "harness: claude\nimage: fabric-claude:latest\nuser: fabric\n",
 		"home/.bashrc": "# keep",
 		"home/.stale":  "remove me",
 	})
@@ -351,7 +351,7 @@ func TestBootstrapHarnessConfigsFromDir_SkipsNonDirectories(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"),
-		[]byte("harness: gemini\nimage: scion-gemini:latest\nuser: scion\n"), 0644); err != nil {
+		[]byte("harness: gemini\nimage: fabric-gemini:latest\nuser: fabric\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -390,13 +390,13 @@ func TestImportHarnessConfigsFromWorkspace_ImportsConfig(t *testing.T) {
 	srv, s, project, wsRoot := setupWorkspaceProject(t, "hc-import")
 	ctx := context.Background()
 
-	writeHarnessConfigDir(t, wsRoot, ".scion/harness-configs", "my-config", "claude")
+	writeHarnessConfigDir(t, wsRoot, ".fabric/harness-configs", "my-config", "claude")
 	// A bonus non-yaml file to make sure extra files are walked fine.
-	if err := os.WriteFile(filepath.Join(wsRoot, ".scion", "harness-configs", "my-config", "README.md"), []byte("hello"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wsRoot, ".fabric", "harness-configs", "my-config", "README.md"), []byte("hello"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.scion/harness-configs")
+	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.fabric/harness-configs")
 	if err != nil {
 		t.Fatalf("import failed: %v", err)
 	}
@@ -426,9 +426,9 @@ func TestImportHarnessConfigsFromWorkspace_DefaultPath(t *testing.T) {
 	srv, s, project, wsRoot := setupWorkspaceProject(t, "hc-default")
 	ctx := context.Background()
 
-	writeHarnessConfigDir(t, wsRoot, ".scion/harness-configs", "default-hc", "gemini")
+	writeHarnessConfigDir(t, wsRoot, ".fabric/harness-configs", "default-hc", "gemini")
 
-	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.scion/harness-configs")
+	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.fabric/harness-configs")
 	if err != nil {
 		t.Fatalf("import failed: %v", err)
 	}
@@ -468,8 +468,8 @@ func TestImportHarnessConfigsFromWorkspace_NoConfigsFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for directory with no harness-configs")
 	}
-	if !strings.Contains(err.Error(), "no scion harness-configs found") {
-		t.Fatalf("expected 'no scion harness-configs found' error, got: %v", err)
+	if !strings.Contains(err.Error(), "no fabric harness-configs found") {
+		t.Fatalf("expected 'no fabric harness-configs found' error, got: %v", err)
 	}
 }
 
@@ -545,12 +545,12 @@ func TestImportHarnessConfigsFromWorkspace_Reimport(t *testing.T) {
 	srv, s, project, wsRoot := setupWorkspaceProject(t, "hc-reimport")
 	ctx := context.Background()
 
-	writeHarnessConfigDir(t, wsRoot, ".scion/harness-configs", "repeat", "claude")
+	writeHarnessConfigDir(t, wsRoot, ".fabric/harness-configs", "repeat", "claude")
 
-	if _, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.scion/harness-configs"); err != nil {
+	if _, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.fabric/harness-configs"); err != nil {
 		t.Fatalf("first import failed: %v", err)
 	}
-	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.scion/harness-configs")
+	imported, err := srv.importHarnessConfigsFromWorkspace(ctx, project, "/.fabric/harness-configs")
 	if err != nil {
 		t.Fatalf("second import failed: %v", err)
 	}

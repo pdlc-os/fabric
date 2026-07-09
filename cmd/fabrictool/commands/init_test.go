@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -16,14 +16,14 @@ import (
 )
 
 // hubEnvVars lists the environment variables used by the Hub client.
-// Leaking these to a subprocess (e.g., sciontool init) causes the child
+// Leaking these to a subprocess (e.g., fabrictool init) causes the child
 // to talk to the real Hub and corrupt agent state. See issue #123.
 var hubEnvVars = []string{
-	"SCION_HUB_ENDPOINT",
-	"SCION_HUB_URL",
-	"SCION_AUTH_TOKEN",
-	"SCION_AGENT_ID",
-	"SCION_AGENT_MODE",
+	"FABRIC_HUB_ENDPOINT",
+	"FABRIC_HUB_URL",
+	"FABRIC_AUTH_TOKEN",
+	"FABRIC_AGENT_ID",
+	"FABRIC_AGENT_MODE",
 }
 
 // scrubHubEnv clears all Hub-related environment variables for the
@@ -50,14 +50,14 @@ func filterHubEnv(env []string) []string {
 	return filtered
 }
 
-// TestInitProjectDataIsolation is a canary test that verifies sciontool source code
+// TestInitProjectDataIsolation is a canary test that verifies fabrictool source code
 // does NOT import the pkg/config package, which contains project path resolution logic.
 // This is a compile-time guarantee that in-container code cannot access project data paths.
-// If this test fails, it means someone added a pkg/config import to sciontool code,
+// If this test fails, it means someone added a pkg/config import to fabrictool code,
 // which would break the agent isolation model.
 func TestInitProjectDataIsolation(t *testing.T) {
-	// Use go list to get all transitive dependencies of cmd/sciontool
-	cmd := exec.Command("go", "list", "-deps", "./cmd/sciontool/...")
+	// Use go list to get all transitive dependencies of cmd/fabrictool
+	cmd := exec.Command("go", "list", "-deps", "./cmd/fabrictool/...")
 	cmd.Dir = filepath.Join(findRepoRoot(t))
 	out, err := cmd.Output()
 	if err != nil {
@@ -67,8 +67,8 @@ func TestInitProjectDataIsolation(t *testing.T) {
 	deps := string(out)
 	for _, line := range strings.Split(deps, "\n") {
 		line = strings.TrimSpace(line)
-		if line == "github.com/GoogleCloudPlatform/scion/pkg/config" {
-			t.Fatal("sciontool must NOT import pkg/config (project path resolution). " +
+		if line == "github.com/pdlc-os/fabric/pkg/config" {
+			t.Fatal("fabrictool must NOT import pkg/config (project path resolution). " +
 				"In-container code should use the Hub API or agent-local files, " +
 				"not filesystem-based project data access.")
 		}
@@ -169,19 +169,19 @@ func TestInitCommand_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test in short mode")
 	}
-	if os.Getenv("SCION_INTEGRATION_TEST") == "" {
-		t.Skip("skipping integration test: SCION_INTEGRATION_TEST not set")
+	if os.Getenv("FABRIC_INTEGRATION_TEST") == "" {
+		t.Skip("skipping integration test: FABRIC_INTEGRATION_TEST not set")
 	}
 
 	// Clear Hub env vars so the subprocess cannot talk to the real Hub
 	// and corrupt agent state. See issue #123.
 	scrubHubEnv(t)
 
-	// Build sciontool if needed for integration testing
-	binPath := filepath.Join(t.TempDir(), "sciontool-test")
+	// Build fabrictool if needed for integration testing
+	binPath := filepath.Join(t.TempDir(), "fabrictool-test")
 	cmd := exec.Command("go", "build", "-buildvcs=false", "-o", binPath, "../")
 	if err := cmd.Run(); err != nil {
-		t.Skipf("failed to build sciontool for integration test: %v", err)
+		t.Skipf("failed to build fabrictool for integration test: %v", err)
 	}
 
 	// Test running a simple command — filter Hub env vars from the
@@ -198,20 +198,20 @@ func TestInitCommand_Integration(t *testing.T) {
 }
 
 func TestGitCloneWorkspace_NoCloneURL(t *testing.T) {
-	// Ensure SCION_GIT_CLONE_URL is not set
-	orig := os.Getenv("SCION_GIT_CLONE_URL")
-	_ = os.Unsetenv("SCION_GIT_CLONE_URL")
+	// Ensure FABRIC_GIT_CLONE_URL is not set
+	orig := os.Getenv("FABRIC_GIT_CLONE_URL")
+	_ = os.Unsetenv("FABRIC_GIT_CLONE_URL")
 	defer func() {
 		if orig != "" {
-			_ = os.Setenv("SCION_GIT_CLONE_URL", orig)
+			_ = os.Setenv("FABRIC_GIT_CLONE_URL", orig)
 		}
 	}()
 
 	tmpWorkspace := t.TempDir()
-	t.Setenv("SCION_WORKSPACE_PATH", tmpWorkspace)
+	t.Setenv("FABRIC_WORKSPACE_PATH", tmpWorkspace)
 	err := gitCloneWorkspace(0, 0, "/tmp")
 	if err != nil {
-		t.Errorf("expected nil error when SCION_GIT_CLONE_URL is not set, got: %v", err)
+		t.Errorf("expected nil error when FABRIC_GIT_CLONE_URL is not set, got: %v", err)
 	}
 }
 
@@ -249,37 +249,37 @@ func TestIsWorkspaceEmpty(t *testing.T) {
 		}
 	})
 
-	t.Run("directory with only .scion marker", func(t *testing.T) {
+	t.Run("directory with only .fabric marker", func(t *testing.T) {
 		tmpDir := t.TempDir()
-		_ = os.MkdirAll(filepath.Join(tmpDir, ".scion"), 0755)
+		_ = os.MkdirAll(filepath.Join(tmpDir, ".fabric"), 0755)
 		if !isWorkspaceEmpty(tmpDir) {
-			t.Error("expected true when workspace contains only .scion marker")
+			t.Error("expected true when workspace contains only .fabric marker")
 		}
 	})
 
-	t.Run("directory with only .scion-volumes", func(t *testing.T) {
+	t.Run("directory with only .fabric-volumes", func(t *testing.T) {
 		tmpDir := t.TempDir()
-		_ = os.MkdirAll(filepath.Join(tmpDir, ".scion-volumes"), 0755)
+		_ = os.MkdirAll(filepath.Join(tmpDir, ".fabric-volumes"), 0755)
 		if !isWorkspaceEmpty(tmpDir) {
-			t.Error("expected true when workspace contains only .scion-volumes")
+			t.Error("expected true when workspace contains only .fabric-volumes")
 		}
 	})
 
-	t.Run("directory with .scion and .scion-volumes", func(t *testing.T) {
+	t.Run("directory with .fabric and .fabric-volumes", func(t *testing.T) {
 		tmpDir := t.TempDir()
-		_ = os.MkdirAll(filepath.Join(tmpDir, ".scion"), 0755)
-		_ = os.MkdirAll(filepath.Join(tmpDir, ".scion-volumes"), 0755)
+		_ = os.MkdirAll(filepath.Join(tmpDir, ".fabric"), 0755)
+		_ = os.MkdirAll(filepath.Join(tmpDir, ".fabric-volumes"), 0755)
 		if !isWorkspaceEmpty(tmpDir) {
-			t.Error("expected true when workspace contains only .scion and .scion-volumes")
+			t.Error("expected true when workspace contains only .fabric and .fabric-volumes")
 		}
 	})
 
-	t.Run("directory with .scion marker and real content", func(t *testing.T) {
+	t.Run("directory with .fabric marker and real content", func(t *testing.T) {
 		tmpDir := t.TempDir()
-		_ = os.MkdirAll(filepath.Join(tmpDir, ".scion"), 0755)
+		_ = os.MkdirAll(filepath.Join(tmpDir, ".fabric"), 0755)
 		_ = os.WriteFile(filepath.Join(tmpDir, "README.md"), []byte("content"), 0644)
 		if isWorkspaceEmpty(tmpDir) {
-			t.Error("expected false when workspace has .scion and real files")
+			t.Error("expected false when workspace has .fabric and real files")
 		}
 	})
 }
@@ -519,13 +519,13 @@ func TestUseDirectPasswdEdit(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "SCION_ALT_USERMOD set",
-			envVars:  map[string]string{"SCION_ALT_USERMOD": "1"},
+			name:     "FABRIC_ALT_USERMOD set",
+			envVars:  map[string]string{"FABRIC_ALT_USERMOD": "1"},
 			expected: true,
 		},
 		{
 			name:     "both set",
-			envVars:  map[string]string{"container": "podman", "SCION_ALT_USERMOD": "1"},
+			envVars:  map[string]string{"container": "podman", "FABRIC_ALT_USERMOD": "1"},
 			expected: true,
 		},
 	}
@@ -534,9 +534,9 @@ func TestUseDirectPasswdEdit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clear both env vars, then set what the test needs
 			t.Setenv("container", "")
-			t.Setenv("SCION_ALT_USERMOD", "")
+			t.Setenv("FABRIC_ALT_USERMOD", "")
 			_ = os.Unsetenv("container")
-			_ = os.Unsetenv("SCION_ALT_USERMOD")
+			_ = os.Unsetenv("FABRIC_ALT_USERMOD")
 			for k, v := range tt.envVars {
 				t.Setenv(k, v)
 			}
@@ -660,10 +660,10 @@ func TestIsClaude(t *testing.T) {
 		{name: "claude with args", args: []string{"claude", "--model", "opus"}, expected: true},
 		{name: "full path to claude", args: []string{"/usr/local/bin/claude"}, expected: true},
 		{name: "claude-code variant", args: []string{"claude-code"}, expected: true},
-		{name: "tmux wrapping claude", args: []string{"tmux", "new-session", "-s", "scion", "claude", "--no-chrome"}, expected: true},
-		{name: "tmux wrapping claude full path", args: []string{"tmux", "new-session", "-s", "scion", "/usr/local/bin/claude"}, expected: true},
-		{name: "tmux with joined cmdline", args: []string{"tmux", "new-session", "-s", "scion", "claude --no-chrome --dangerously-skip-permissions"}, expected: true},
-		{name: "tmux with joined cmdline full path", args: []string{"tmux", "new-session", "-s", "scion", "/usr/local/bin/claude --no-chrome"}, expected: true},
+		{name: "tmux wrapping claude", args: []string{"tmux", "new-session", "-s", "fabric", "claude", "--no-chrome"}, expected: true},
+		{name: "tmux wrapping claude full path", args: []string{"tmux", "new-session", "-s", "fabric", "/usr/local/bin/claude"}, expected: true},
+		{name: "tmux with joined cmdline", args: []string{"tmux", "new-session", "-s", "fabric", "claude --no-chrome --dangerously-skip-permissions"}, expected: true},
+		{name: "tmux with joined cmdline full path", args: []string{"tmux", "new-session", "-s", "fabric", "/usr/local/bin/claude --no-chrome"}, expected: true},
 		{name: "gemini binary", args: []string{"gemini"}, expected: false},
 		{name: "bash command", args: []string{"bash", "-c", "echo hello"}, expected: false},
 		{name: "empty args", args: []string{}, expected: false},
@@ -681,36 +681,36 @@ func TestIsClaude(t *testing.T) {
 func TestWriteEnvFile(t *testing.T) {
 	tmpHome := t.TempDir()
 
-	// Set some SCION_ env vars and a non-SCION var
-	t.Setenv("SCION_AGENT_NAME", "test-agent")
-	t.Setenv("SCION_AUTH_TOKEN", "secret-token-123")
-	t.Setenv("SCION_HARNESS", "gemini")
-	t.Setenv("NOT_SCION_VAR", "should-not-appear")
+	// Set some FABRIC_ env vars and a non-FABRIC var
+	t.Setenv("FABRIC_AGENT_NAME", "test-agent")
+	t.Setenv("FABRIC_AUTH_TOKEN", "secret-token-123")
+	t.Setenv("FABRIC_HARNESS", "gemini")
+	t.Setenv("NOT_FABRIC_VAR", "should-not-appear")
 
 	writeEnvFile(tmpHome, 0, 0)
 
-	envPath := filepath.Join(tmpHome, ".scion", "scion-env")
+	envPath := filepath.Join(tmpHome, ".fabric", "fabric-env")
 	data, err := os.ReadFile(envPath)
 	if err != nil {
-		t.Fatalf("failed to read scion-env file: %v", err)
+		t.Fatalf("failed to read fabric-env file: %v", err)
 	}
 
 	content := string(data)
 
-	// Should contain SCION_ vars
-	if !strings.Contains(content, `export SCION_AGENT_NAME="test-agent"`) {
-		t.Errorf("expected SCION_AGENT_NAME in env file, got:\n%s", content)
+	// Should contain FABRIC_ vars
+	if !strings.Contains(content, `export FABRIC_AGENT_NAME="test-agent"`) {
+		t.Errorf("expected FABRIC_AGENT_NAME in env file, got:\n%s", content)
 	}
-	if !strings.Contains(content, `export SCION_AUTH_TOKEN="secret-token-123"`) {
-		t.Errorf("expected SCION_AUTH_TOKEN in env file, got:\n%s", content)
+	if !strings.Contains(content, `export FABRIC_AUTH_TOKEN="secret-token-123"`) {
+		t.Errorf("expected FABRIC_AUTH_TOKEN in env file, got:\n%s", content)
 	}
-	if !strings.Contains(content, `export SCION_HARNESS="gemini"`) {
-		t.Errorf("expected SCION_HARNESS in env file, got:\n%s", content)
+	if !strings.Contains(content, `export FABRIC_HARNESS="gemini"`) {
+		t.Errorf("expected FABRIC_HARNESS in env file, got:\n%s", content)
 	}
 
-	// Should NOT contain non-SCION vars
-	if strings.Contains(content, "NOT_SCION_VAR") {
-		t.Errorf("unexpected NOT_SCION_VAR in env file")
+	// Should NOT contain non-FABRIC vars
+	if strings.Contains(content, "NOT_FABRIC_VAR") {
+		t.Errorf("unexpected NOT_FABRIC_VAR in env file")
 	}
 
 	// Should contain the header comment
@@ -726,10 +726,10 @@ func TestWriteEnvFile_IncludesGitHubToken(t *testing.T) {
 
 	writeEnvFile(tmpHome, 0, 0)
 
-	envPath := filepath.Join(tmpHome, ".scion", "scion-env")
+	envPath := filepath.Join(tmpHome, ".fabric", "fabric-env")
 	data, err := os.ReadFile(envPath)
 	if err != nil {
-		t.Fatalf("failed to read scion-env file: %v", err)
+		t.Fatalf("failed to read fabric-env file: %v", err)
 	}
 
 	if !strings.Contains(string(data), `export GITHUB_TOKEN="ghp_test123"`) {
@@ -744,10 +744,10 @@ func TestWriteEnvFile_ReflectsUpdatedGitHubToken(t *testing.T) {
 
 	writeEnvFile(tmpHome, 0, 0)
 
-	envPath := filepath.Join(tmpHome, ".scion", "scion-env")
+	envPath := filepath.Join(tmpHome, ".fabric", "fabric-env")
 	data, err := os.ReadFile(envPath)
 	if err != nil {
-		t.Fatalf("failed to read scion-env file: %v", err)
+		t.Fatalf("failed to read fabric-env file: %v", err)
 	}
 	if !strings.Contains(string(data), `export GITHUB_TOKEN="ghs_initial_token_abc123"`) {
 		t.Fatalf("expected initial GITHUB_TOKEN in env file, got:\n%s", string(data))
@@ -760,7 +760,7 @@ func TestWriteEnvFile_ReflectsUpdatedGitHubToken(t *testing.T) {
 
 	data, err = os.ReadFile(envPath)
 	if err != nil {
-		t.Fatalf("failed to read scion-env file after refresh: %v", err)
+		t.Fatalf("failed to read fabric-env file after refresh: %v", err)
 	}
 	content := string(data)
 
@@ -773,23 +773,23 @@ func TestWriteEnvFile_ReflectsUpdatedGitHubToken(t *testing.T) {
 }
 
 func TestGitCloneWorkspace_DefaultEnvValues(t *testing.T) {
-	// Set SCION_GIT_CLONE_URL to trigger the clone path, but use a URL
+	// Set FABRIC_GIT_CLONE_URL to trigger the clone path, but use a URL
 	// that will cause a predictable early failure (non-existent host).
 	// This tests that the env parsing logic runs with correct defaults.
-	t.Setenv("SCION_GIT_CLONE_URL", "https://nonexistent.invalid/org/repo.git")
+	t.Setenv("FABRIC_GIT_CLONE_URL", "https://nonexistent.invalid/org/repo.git")
 	// Explicitly unset branch and depth to verify defaults
-	t.Setenv("SCION_GIT_BRANCH", "")
-	t.Setenv("SCION_GIT_DEPTH", "")
-	t.Setenv("SCION_AGENT_NAME", "test-agent")
+	t.Setenv("FABRIC_GIT_BRANCH", "")
+	t.Setenv("FABRIC_GIT_DEPTH", "")
+	t.Setenv("FABRIC_AGENT_NAME", "test-agent")
 	t.Setenv("GITHUB_TOKEN", "")
 
 	// gitCloneWorkspace will fail at the git clone step, but we can verify
 	// the function doesn't panic and returns a meaningful error.
-	// uid=0 exercises the scion-user fallback path (the lookup will fail
-	// gracefully outside a container where no scion user exists).
+	// uid=0 exercises the fabric-user fallback path (the lookup will fail
+	// gracefully outside a container where no fabric user exists).
 
 	tmpWorkspace := t.TempDir()
-	t.Setenv("SCION_WORKSPACE_PATH", tmpWorkspace)
+	t.Setenv("FABRIC_WORKSPACE_PATH", tmpWorkspace)
 	err := gitCloneWorkspace(0, 0, "/tmp")
 	if err == nil {
 		t.Fatal("expected error from git clone to nonexistent host")
@@ -811,10 +811,10 @@ func TestGitCloneWorkspace_NonZeroUIDChownsWorkspace(t *testing.T) {
 	// Monkey-patch: override workspacePath by setting clone URL so the
 	// function proceeds past the early exit, but it will fail at git clone.
 	// The important thing is it doesn't panic on chown.
-	t.Setenv("SCION_GIT_CLONE_URL", "https://nonexistent.invalid/org/repo.git")
-	t.Setenv("SCION_GIT_BRANCH", "main")
-	t.Setenv("SCION_GIT_DEPTH", "1")
-	t.Setenv("SCION_AGENT_NAME", "test-chown")
+	t.Setenv("FABRIC_GIT_CLONE_URL", "https://nonexistent.invalid/org/repo.git")
+	t.Setenv("FABRIC_GIT_BRANCH", "main")
+	t.Setenv("FABRIC_GIT_DEPTH", "1")
+	t.Setenv("FABRIC_AGENT_NAME", "test-chown")
 	t.Setenv("GITHUB_TOKEN", "")
 
 	// We can't override the hardcoded /workspace path, so we test that
@@ -826,7 +826,7 @@ func TestGitCloneWorkspace_NonZeroUIDChownsWorkspace(t *testing.T) {
 	_ = tmpDir // workspace path is hardcoded; this confirms the logic flow
 
 	tmpWorkspace := t.TempDir()
-	t.Setenv("SCION_WORKSPACE_PATH", tmpWorkspace)
+	t.Setenv("FABRIC_WORKSPACE_PATH", tmpWorkspace)
 	err := gitCloneWorkspace(uid, gid, "/tmp")
 	if err == nil {
 		t.Fatal("expected error from git clone to nonexistent host")

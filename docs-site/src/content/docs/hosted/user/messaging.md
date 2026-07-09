@@ -3,7 +3,7 @@ title: Messaging & Notifications
 description: Bidirectional communication between humans and agents.
 ---
 
-Scion provides a robust messaging system that allows for bidirectional communication between humans and running agents. This is particularly useful for long-running tasks where an agent might need clarification, approval, or simply wants to notify you of its progress.
+Fabric provides a robust messaging system that allows for bidirectional communication between humans and running agents. This is particularly useful for long-running tasks where an agent might need clarification, approval, or simply wants to notify you of its progress.
 
 ## The Inbox Tray
 
@@ -14,31 +14,31 @@ In the Web Dashboard, the **Inbox Tray** provides a centralized view of all mess
 
 ## CLI Message Management
 
-You can also interact with the messaging system directly from the CLI using the `scion messages` command (aliases: `msgs`, `inbox`).
+You can also interact with the messaging system directly from the CLI using the `fabric messages` command (aliases: `msgs`, `inbox`).
 
 ```bash
 # View unread messages
-scion messages
+fabric messages
 
 # View all messages for a specific agent
-scion messages --agent <agent-name>
+fabric messages --agent <agent-name>
 
 # Mark a message as read
-scion messages read <message-id>
+fabric messages read <message-id>
 ```
 
 ## Discord Notifications
 
-For teams or individuals who prefer external notifications, Scion supports native Discord webhooks.
+For teams or individuals who prefer external notifications, Fabric supports native Discord webhooks.
 
 - **Severity-Based Color Coding:** Messages are color-coded in Discord based on their severity (e.g., info, warning, error, urgent).
 - **Mentions:** Urgent messages or explicit `ask_user` requests can trigger `@user` or `@role` mentions in Discord, ensuring that critical requests don't go unnoticed.
 
-To configure Discord notifications, see the [Hub Administration Guide](/scion/hosted/single-node/hub-server/#discord-integration).
+To configure Discord notifications, see the [Hub Administration Guide](/fabric/hosted/single-node/hub-server/#discord-integration).
 
 ## Agent `ask_user` Integration
 
-When an agent uses the `ask_user` tool (or similar mechanism depending on the harness), Scion automatically performs two actions:
+When an agent uses the `ask_user` tool (or similar mechanism depending on the harness), Fabric automatically performs two actions:
 1. **State Update:** The agent's state changes to `WAITING_FOR_INPUT`.
 2. **Explicit Message:** A persistent message is generated and delivered to your Inbox Tray (and Discord, if configured), clearly stating what the agent needs.
 

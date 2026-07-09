@@ -70,12 +70,12 @@ Development authentication provides a simple, zero-configuration mechanism for l
 ### 2.2 Token Format
 
 ```
-scion_dev_<32-character-hex-string>
+fabric_dev_<32-character-hex-string>
 ```
 
-Example: `scion_dev_a1b2c3d4e5f6789012345678901234567890abcd`
+Example: `fabric_dev_a1b2c3d4e5f6789012345678901234567890abcd`
 
-The `scion_dev_` prefix makes tokens easily identifiable and grep-able in logs.
+The `fabric_dev_` prefix makes tokens easily identifiable and grep-able in logs.
 
 ### 2.3 Server Configuration
 
@@ -91,7 +91,7 @@ server:
     devToken: ""
 
     # Path to token file (optional)
-    # Default: ~/.scion/dev-token
+    # Default: ~/.fabric/dev-token
     devTokenFile: ""
 ```
 
@@ -99,30 +99,30 @@ server:
 
 | Variable | Maps To |
 |----------|---------|
-| `SCION_SERVER_AUTH_DEV_MODE` | `server.auth.devMode` |
-| `SCION_SERVER_AUTH_DEV_TOKEN` | `server.auth.devToken` |
-| `SCION_SERVER_AUTH_DEV_TOKEN_FILE` | `server.auth.devTokenFile` |
+| `FABRIC_SERVER_AUTH_DEV_MODE` | `server.auth.devMode` |
+| `FABRIC_SERVER_AUTH_DEV_TOKEN` | `server.auth.devToken` |
+| `FABRIC_SERVER_AUTH_DEV_TOKEN_FILE` | `server.auth.devTokenFile` |
 
 ### 2.4 Token Resolution Flow
 
 When the server starts with development authentication enabled:
 
 1. Check if a token is explicitly configured (`server.auth.devToken`)
-2. If not, check for an existing token file at `~/.scion/dev-token`
+2. If not, check for an existing token file at `~/.fabric/dev-token`
 3. If no file exists, generate a new cryptographically secure token
-4. Store the token in `~/.scion/dev-token` with `0600` permissions
+4. Store the token in `~/.fabric/dev-token` with `0600` permissions
 5. Log the token to stdout for easy copy/paste
 
 **Startup Log Output:**
 ```
-Scion Hub API starting on :9810
+Fabric Hub API starting on :9810
 WARNING: Development authentication enabled - not for production use
-Dev token: scion_dev_a1b2c3d4e5f6789012345678901234567890abcd
+Dev token: fabric_dev_a1b2c3d4e5f6789012345678901234567890abcd
 
 To authenticate CLI commands, run:
-  export SCION_DEV_TOKEN=scion_dev_a1b2c3d4e5f6789012345678901234567890abcd
+  export FABRIC_DEV_TOKEN=fabric_dev_a1b2c3d4e5f6789012345678901234567890abcd
 
-Or the token has been saved to: ~/.scion/dev-token
+Or the token has been saved to: ~/.fabric/dev-token
 ```
 
 ### 2.5 Client Token Resolution
@@ -130,15 +130,15 @@ Or the token has been saved to: ~/.scion/dev-token
 The client checks for development tokens in the following order:
 
 1. **Explicit option** - `hubclient.WithBearerToken(token)` or `hubclient.WithDevToken(token)`
-2. **Environment variable** - `SCION_DEV_TOKEN`
-3. **Token file** - `~/.scion/dev-token`
+2. **Environment variable** - `FABRIC_DEV_TOKEN`
+3. **Token file** - `~/.fabric/dev-token`
 
 **Client Environment Variables:**
 
 | Variable | Purpose |
 |----------|---------|
-| `SCION_DEV_TOKEN` | Development token value |
-| `SCION_DEV_TOKEN_FILE` | Path to token file (default: `~/.scion/dev-token`) |
+| `FABRIC_DEV_TOKEN` | Development token value |
+| `FABRIC_DEV_TOKEN_FILE` | Path to token file (default: `~/.fabric/dev-token`) |
 
 ### 2.6 Wire Protocol
 
@@ -147,7 +147,7 @@ Development tokens use the standard Bearer authentication scheme:
 ```http
 GET /api/v1/agents HTTP/1.1
 Host: localhost:9810
-Authorization: Bearer scion_dev_a1b2c3d4e5f6789012345678901234567890abcd
+Authorization: Bearer fabric_dev_a1b2c3d4e5f6789012345678901234567890abcd
 ```
 
 This is identical to production Bearer token authentication, ensuring no code path differences between dev and production auth flows.
@@ -169,7 +169,7 @@ import (
 )
 
 const (
-    devTokenPrefix = "scion_dev_"
+    devTokenPrefix = "fabric_dev_"
     devTokenLength = 32 // bytes, results in 64 hex chars
 )
 
@@ -182,7 +182,7 @@ type DevAuthConfig struct {
 
 // InitDevAuth initializes development authentication.
 // Returns the token to use and any error encountered.
-func InitDevAuth(cfg DevAuthConfig, scionDir string) (string, error) {
+func InitDevAuth(cfg DevAuthConfig, fabricDir string) (string, error) {
     if !cfg.Enabled {
         return "", nil
     }
@@ -195,7 +195,7 @@ func InitDevAuth(cfg DevAuthConfig, scionDir string) (string, error) {
     // Determine token file path
     tokenFile := cfg.TokenFile
     if tokenFile == "" {
-        tokenFile = filepath.Join(scionDir, "dev-token")
+        tokenFile = filepath.Join(fabricDir, "dev-token")
     }
 
     // Priority 2: Existing token file
@@ -245,7 +245,7 @@ import (
     "path/filepath"
     "strings"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+    "github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // WithDevToken sets a development token for authentication.
@@ -256,7 +256,7 @@ func WithDevToken(token string) Option {
 }
 
 // WithAutoDevAuth attempts to load a development token automatically.
-// Checks SCION_DEV_TOKEN env var, then ~/.scion/dev-token file.
+// Checks FABRIC_DEV_TOKEN env var, then ~/.fabric/dev-token file.
 func WithAutoDevAuth() Option {
     return func(c *client) {
         token := resolveDevToken()
@@ -269,12 +269,12 @@ func WithAutoDevAuth() Option {
 // resolveDevToken finds a development token from environment or file.
 func resolveDevToken() string {
     // Priority 1: Environment variable
-    if token := os.Getenv("SCION_DEV_TOKEN"); token != "" {
+    if token := os.Getenv("FABRIC_DEV_TOKEN"); token != "" {
         return token
     }
 
     // Priority 2: Custom token file from env
-    if tokenFile := os.Getenv("SCION_DEV_TOKEN_FILE"); tokenFile != "" {
+    if tokenFile := os.Getenv("FABRIC_DEV_TOKEN_FILE"); tokenFile != "" {
         if data, err := os.ReadFile(tokenFile); err == nil {
             return strings.TrimSpace(string(data))
         }
@@ -286,7 +286,7 @@ func resolveDevToken() string {
         return ""
     }
 
-    tokenFile := filepath.Join(home, ".scion", "dev-token")
+    tokenFile := filepath.Join(home, ".fabric", "dev-token")
     if data, err := os.ReadFile(tokenFile); err == nil {
         return strings.TrimSpace(string(data))
     }
@@ -301,10 +301,10 @@ func resolveDevToken() string {
 
 ```bash
 # Start Hub with dev auth (token auto-generated)
-scion server start --enable-hub --dev-auth
+fabric server start --enable-hub --dev-auth
 
 # Or via config
-cat > ~/.scion/server.yaml << EOF
+cat > ~/.fabric/server.yaml << EOF
 server:
   hub:
     enabled: true
@@ -312,21 +312,21 @@ server:
     devMode: true
 EOF
 
-scion server start --config ~/.scion/server.yaml
+fabric server start --config ~/.fabric/server.yaml
 ```
 
 #### Using the CLI
 
 ```bash
 # Option 1: Set environment variable (explicit)
-export SCION_DEV_TOKEN=scion_dev_a1b2c3d4e5f6789012345678901234567890abcd
-scion agent list --hub http://localhost:9810
+export FABRIC_DEV_TOKEN=fabric_dev_a1b2c3d4e5f6789012345678901234567890abcd
+fabric agent list --hub http://localhost:9810
 
-# Option 2: Automatic (reads from ~/.scion/dev-token)
-scion agent list --hub http://localhost:9810
+# Option 2: Automatic (reads from ~/.fabric/dev-token)
+fabric agent list --hub http://localhost:9810
 
 # Option 3: One-liner
-SCION_DEV_TOKEN=$(cat ~/.scion/dev-token) scion agent list --hub http://localhost:9810
+FABRIC_DEV_TOKEN=$(cat ~/.fabric/dev-token) fabric agent list --hub http://localhost:9810
 ```
 
 #### CI/Testing Integration
@@ -339,16 +339,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start Scion Hub
+      - name: Start Fabric Hub
         run: |
-          scion server start --enable-hub --dev-auth --background
-          echo "SCION_DEV_TOKEN=$(cat ~/.scion/dev-token)" >> $GITHUB_ENV
+          fabric server start --enable-hub --dev-auth --background
+          echo "FABRIC_DEV_TOKEN=$(cat ~/.fabric/dev-token)" >> $GITHUB_ENV
 
       - name: Run integration tests
         run: go test ./integration/...
         env:
-          SCION_HUB_URL: http://localhost:9810
-          # SCION_DEV_TOKEN already set above
+          FABRIC_HUB_URL: http://localhost:9810
+          # FABRIC_DEV_TOKEN already set above
 ```
 
 ### 2.9 Security Constraints
@@ -395,25 +395,25 @@ When OAuth authentication is fully implemented:
 
 1. Dev auth remains available but disabled by default
 2. Production deployments set `devMode: false` explicitly
-3. The `WithAutoDevAuth()` client option becomes a no-op when `SCION_DEV_TOKEN` is unset and no token file exists
-4. Dev tokens are rejected by production servers (check for `scion_dev_` prefix)
+3. The `WithAutoDevAuth()` client option becomes a no-op when `FABRIC_DEV_TOKEN` is unset and no token file exists
+4. Dev tokens are rejected by production servers (check for `fabric_dev_` prefix)
 
 ---
 
 ## 3. Domain Authorization
 
-Scion supports restricting authentication to specific email domains. This provides an additional layer of access control beyond OAuth authentication.
+Fabric supports restricting authentication to specific email domains. This provides an additional layer of access control beyond OAuth authentication.
 
 ### 3.1 Configuration
 
-Set the `SCION_AUTHORIZED_DOMAINS` environment variable with a comma-separated list of allowed domains:
+Set the `FABRIC_AUTHORIZED_DOMAINS` environment variable with a comma-separated list of allowed domains:
 
 ```bash
 # Allow users from specific email domains
-export SCION_AUTHORIZED_DOMAINS="example.com,mycompany.org"
+export FABRIC_AUTHORIZED_DOMAINS="example.com,mycompany.org"
 
 # Leave empty to allow all domains (default)
-export SCION_AUTHORIZED_DOMAINS=""
+export FABRIC_AUTHORIZED_DOMAINS=""
 ```
 
 Alternatively, configure via `server.yaml`:
@@ -429,7 +429,7 @@ auth:
 
 | Variable | Maps To |
 |----------|---------|
-| `SCION_AUTHORIZED_DOMAINS` | `auth.authorizedDomains` |
+| `FABRIC_AUTHORIZED_DOMAINS` | `auth.authorizedDomains` |
 
 ### 3.2 How It Works
 

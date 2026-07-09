@@ -21,7 +21,7 @@ import (
 
 func TestControlChannelClient_BuildAuthHeaders_Normalization(t *testing.T) {
 	config := ControlChannelConfig{
-		HubEndpoint: "https://hub.scion.dev/", // Trailing slash
+		HubEndpoint: "https://hub.fabric.dev/", // Trailing slash
 		BrokerID:    "test-host",
 		SecretKey:   []byte("test-secret-key-12345678901234567890"),
 	}
@@ -43,11 +43,11 @@ func TestControlChannelClient_BuildAuthHeaders_Normalization(t *testing.T) {
 	// Since buildAuthHeaders is private but reachable in the same package,
 	// I can check its behavior.
 
-	if headers.Get("X-Scion-Broker-ID") != "test-host" {
-		t.Errorf("Expected Host-ID header to be 'test-host', got %q", headers.Get("X-Scion-Broker-ID"))
+	if headers.Get("X-Fabric-Broker-ID") != "test-host" {
+		t.Errorf("Expected Host-ID header to be 'test-host', got %q", headers.Get("X-Fabric-Broker-ID"))
 	}
 
-	if headers.Get("X-Scion-Signature") == "" {
+	if headers.Get("X-Fabric-Signature") == "" {
 		t.Error("Expected Signature header to be set")
 	}
 }
@@ -60,18 +60,18 @@ func TestBuildWebSocketURL_Normalization(t *testing.T) {
 	}{
 		{
 			name:        "trailing slash",
-			endpoint:    "https://hub.scion.dev/",
-			expectedURL: "wss://hub.scion.dev/api/v1/runtime-brokers/connect",
+			endpoint:    "https://hub.fabric.dev/",
+			expectedURL: "wss://hub.fabric.dev/api/v1/runtime-brokers/connect",
 		},
 		{
 			name:        "no trailing slash",
-			endpoint:    "https://hub.scion.dev",
-			expectedURL: "wss://hub.scion.dev/api/v1/runtime-brokers/connect",
+			endpoint:    "https://hub.fabric.dev",
+			expectedURL: "wss://hub.fabric.dev/api/v1/runtime-brokers/connect",
 		},
 		{
 			name:        "http endpoint",
-			endpoint:    "http://hub.scion.dev",
-			expectedURL: "ws://hub.scion.dev/api/v1/runtime-brokers/connect",
+			endpoint:    "http://hub.fabric.dev",
+			expectedURL: "ws://hub.fabric.dev/api/v1/runtime-brokers/connect",
 		},
 	}
 

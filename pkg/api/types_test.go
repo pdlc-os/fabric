@@ -176,7 +176,7 @@ func TestVolumeMountValidate(t *testing.T) {
 		{
 			name: "valid nfs",
 			vol: VolumeMount{
-				Source: "/scion-workspaces",
+				Source: "/fabric-workspaces",
 				Target: "/workspace",
 				Type:   "nfs",
 				Server: "10.0.0.2",
@@ -186,7 +186,7 @@ func TestVolumeMountValidate(t *testing.T) {
 		{
 			name: "nfs missing server",
 			vol: VolumeMount{
-				Source: "/scion-workspaces",
+				Source: "/fabric-workspaces",
 				Target: "/workspace",
 				Type:   "nfs",
 			},
@@ -500,7 +500,7 @@ func TestParseDuration(t *testing.T) {
 	}
 }
 
-func TestScionConfig_ParseMaxDuration(t *testing.T) {
+func TestFabricConfig_ParseMaxDuration(t *testing.T) {
 	tests := []struct {
 		name        string
 		maxDuration string
@@ -514,7 +514,7 @@ func TestScionConfig_ParseMaxDuration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &ScionConfig{MaxDuration: tt.maxDuration}
+			c := &FabricConfig{MaxDuration: tt.maxDuration}
 			got := c.ParseMaxDuration()
 			if got != tt.want {
 				t.Errorf("ParseMaxDuration() = %v, want %v", got, tt.want)

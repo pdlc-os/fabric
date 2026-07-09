@@ -24,11 +24,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/githubapp"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/hub/githubapp"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // OutboundMessageRequest is the request body for POST /api/v1/agents/{id}/outbound-message.
@@ -70,7 +70,7 @@ func (s *Server) handleAgentOutboundMessage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if msgLen := utf8.RuneCountInString(req.Msg); msgLen > messages.MaxMessageLength {
-		ValidationError(w, fmt.Sprintf("message exceeds %d character limit (current: %d chars). Consider splitting into multiple messages using multiple scion message invocations", messages.MaxMessageLength, msgLen), nil)
+		ValidationError(w, fmt.Sprintf("message exceeds %d character limit (current: %d chars). Consider splitting into multiple messages using multiple fabric message invocations", messages.MaxMessageLength, msgLen), nil)
 		return
 	}
 	if req.Type == "" {
@@ -500,12 +500,12 @@ func (s *Server) handleAgentMessage(w http.ResponseWriter, r *http.Request, id s
 
 		case state.PhaseStopped:
 			writeError(w, http.StatusBadRequest, ErrCodeValidationError,
-				"Agent is stopped, not suspended — use 'scion start' to start a fresh session", nil)
+				"Agent is stopped, not suspended — use 'fabric start' to start a fresh session", nil)
 			return
 
 		case state.PhaseError:
 			writeError(w, http.StatusBadRequest, ErrCodeValidationError,
-				"Agent is in error state — use 'scion start' to restart", nil)
+				"Agent is in error state — use 'fabric start' to restart", nil)
 			return
 
 		default:
@@ -526,11 +526,11 @@ func (s *Server) handleAgentMessage(w http.ResponseWriter, r *http.Request, id s
 			return
 		case state.PhaseStopped:
 			writeError(w, http.StatusConflict, ErrCodeAgentNotRunning,
-				fmt.Sprintf("Agent %q is stopped. Use 'scion start' to start a new session.", agent.Slug), nil)
+				fmt.Sprintf("Agent %q is stopped. Use 'fabric start' to start a new session.", agent.Slug), nil)
 			return
 		case state.PhaseError:
 			writeError(w, http.StatusConflict, ErrCodeAgentNotRunning,
-				fmt.Sprintf("Agent %q is in error state. Use 'scion start' to restart.", agent.Slug), nil)
+				fmt.Sprintf("Agent %q is in error state. Use 'fabric start' to restart.", agent.Slug), nil)
 			return
 		default:
 			writeError(w, http.StatusConflict, ErrCodeAgentNotRunning,

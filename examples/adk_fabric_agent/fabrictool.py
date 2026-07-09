@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Low-level wrapper for sciontool — scion's container-side status management CLI.
+"""Low-level wrapper for fabrictool — fabric's container-side status management CLI.
 
 This module provides two mechanisms for reporting agent status:
 
 1. write_agent_status() — writes directly to $HOME/agent-info.json for transient
    states (thinking, executing, idle). Uses atomic rename to prevent corruption.
 
-2. run_status() — invokes `sciontool status <type> <message>` for sticky states
+2. run_status() — invokes `fabrictool status <type> <message>` for sticky states
    (ask_user → waiting_for_input, task_completed → completed). The CLI handles
    hub reporting and logging in addition to the local file update.
 
-All functions degrade gracefully when running outside a scion container (i.e.,
-when sciontool is not on PATH). Failures are logged but never raised.
+All functions degrade gracefully when running outside a fabric container (i.e.,
+when fabrictool is not on PATH). Failures are logged but never raised.
 """
 
 import json
@@ -37,30 +37,30 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-_sciontool_path: str | None = None
-_sciontool_searched: bool = False
+_fabrictool_path: str | None = None
+_fabrictool_searched: bool = False
 
 # Sticky activities that should not be overwritten by transient updates.
-# These match the lowercase activity values used by scion's StatusHandler.
+# These match the lowercase activity values used by fabric's StatusHandler.
 _STICKY_ACTIVITIES = frozenset({"waiting_for_input", "blocked", "completed", "limits_exceeded"})
 
 
-def _find_sciontool() -> str | None:
-    """Locate the sciontool binary, caching the result."""
-    global _sciontool_path, _sciontool_searched
-    if not _sciontool_searched:
-        _sciontool_path = shutil.which("sciontool")
-        _sciontool_searched = True
-        if _sciontool_path:
-            logger.debug("Found sciontool at %s", _sciontool_path)
+def _find_fabrictool() -> str | None:
+    """Locate the fabrictool binary, caching the result."""
+    global _fabrictool_path, _fabrictool_searched
+    if not _fabrictool_searched:
+        _fabrictool_path = shutil.which("fabrictool")
+        _fabrictool_searched = True
+        if _fabrictool_path:
+            logger.debug("Found fabrictool at %s", _fabrictool_path)
         else:
-            logger.debug("sciontool not found on PATH — status reporting disabled")
-    return _sciontool_path
+            logger.debug("fabrictool not found on PATH — status reporting disabled")
+    return _fabrictool_path
 
 
 def _agent_info_path() -> Path:
     """Return the path to agent-info.json."""
-    return Path(os.environ.get("HOME", "/home/scion")) / "agent-info.json"
+    return Path(os.environ.get("HOME", "/home/fabric")) / "agent-info.json"
 
 
 def _read_current_activity() -> str | None:
@@ -83,7 +83,7 @@ def write_agent_status(activity: str) -> None:
 
     Args:
         activity: One of "thinking", "executing", "working" (or other transient
-            activities). Values are lowercase to match scion's StatusHandler.
+            activities). Values are lowercase to match fabric's StatusHandler.
     """
     try:
         current = _read_current_activity()
@@ -132,7 +132,7 @@ def write_agent_status(activity: str) -> None:
 
 
 def run_status(status_type: str, message: str) -> None:
-    """Invoke `sciontool status <type> <message>` for sticky state transitions.
+    """Invoke `fabrictool status <type> <message>` for sticky state transitions.
 
     This is used for states that require hub reporting and logging beyond the
     local agent-info.json update (ask_user, task_completed, limits_exceeded).
@@ -142,10 +142,10 @@ def run_status(status_type: str, message: str) -> None:
             "limits_exceeded".
         message: A human-readable message describing the status change.
     """
-    binary = _find_sciontool()
+    binary = _find_fabrictool()
     if not binary:
         logger.debug(
-            "sciontool not available — skipping status %s: %s", status_type, message
+            "fabrictool not available — skipping status %s: %s", status_type, message
         )
         return
 
@@ -158,14 +158,14 @@ def run_status(status_type: str, message: str) -> None:
         )
         if result.returncode != 0:
             logger.warning(
-                "sciontool status %s exited %d: %s",
+                "fabrictool status %s exited %d: %s",
                 status_type,
                 result.returncode,
                 result.stderr.strip(),
             )
         else:
-            logger.debug("sciontool status %s: %s", status_type, message)
+            logger.debug("fabrictool status %s: %s", status_type, message)
     except Exception:
         logger.warning(
-            "Failed to run sciontool status %s", status_type, exc_info=True
+            "Failed to run fabrictool status %s", status_type, exc_info=True
         )

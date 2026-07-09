@@ -9,8 +9,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // OpenAskUserModal responds to a component interaction by presenting a modal
@@ -112,8 +112,8 @@ func HandleModalSubmit(
 	if deliverInbound != nil {
 		discordUserID := interactionUserID(i)
 		sender := "discord:" + discordUserID
-		if mapping, mapErr := store.GetUserMapping(ctx, discordUserID); mapErr == nil && mapping != nil && mapping.ScionEmail != "" {
-			sender = "user:" + mapping.ScionEmail
+		if mapping, mapErr := store.GetUserMapping(ctx, discordUserID); mapErr == nil && mapping != nil && mapping.FabricEmail != "" {
+			sender = "user:" + mapping.FabricEmail
 		}
 
 		topic := projectcompat.AgentTopic(pending.ProjectID, pending.AgentSlug)

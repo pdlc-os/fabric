@@ -30,8 +30,8 @@ interface DirListResponse {
   entries: DirEntry[];
 }
 
-@customElement('scion-dir-browser')
-export class ScionDirBrowser extends LitElement {
+@customElement('fabric-dir-browser')
+export class FabricDirBrowser extends LitElement {
   @property({ type: String })
   selectedPath = '';
 
@@ -51,8 +51,8 @@ export class ScionDirBrowser extends LitElement {
     }
 
     .browser {
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
     }
 
@@ -61,14 +61,14 @@ export class ScionDirBrowser extends LitElement {
       align-items: center;
       gap: 0.25rem;
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       font-size: 0.8125rem;
       flex-wrap: wrap;
     }
 
     .breadcrumb-segment {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       cursor: pointer;
       border: none;
       background: none;
@@ -83,7 +83,7 @@ export class ScionDirBrowser extends LitElement {
     }
 
     .breadcrumb-sep {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .filter-input {
@@ -109,7 +109,7 @@ export class ScionDirBrowser extends LitElement {
       padding: 0.5rem 0.75rem;
       cursor: pointer;
       font-size: 0.875rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .entry:last-child {
@@ -117,7 +117,7 @@ export class ScionDirBrowser extends LitElement {
     }
 
     .entry:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .entry.is-file {
@@ -150,8 +150,8 @@ export class ScionDirBrowser extends LitElement {
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .new-folder-row {
@@ -159,7 +159,7 @@ export class ScionDirBrowser extends LitElement {
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .new-folder-row sl-input {
@@ -175,7 +175,7 @@ export class ScionDirBrowser extends LitElement {
     .empty-state {
       padding: 2rem 1rem;
       text-align: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -369,7 +369,7 @@ export class ScionDirBrowser extends LitElement {
           <div class="empty-state">Empty directory</div>
         ` : html`
           ${this.entries.length > 5 ? html`
-            <div style="padding: 0.375rem 0.75rem; border-bottom: 1px solid var(--scion-border, #e2e8f0);">
+            <div style="padding: 0.375rem 0.75rem; border-bottom: 1px solid var(--fabric-border, #e2e8f0);">
               <sl-input
                 size="small"
                 placeholder="Filter…"
@@ -438,6 +438,6 @@ export class ScionDirBrowser extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-dir-browser': ScionDirBrowser;
+    'fabric-dir-browser': FabricDirBrowser;
   }
 }

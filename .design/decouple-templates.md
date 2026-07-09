@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document explores the design trade-offs of decoupling agent templates from harnesses in Scion. Currently, templates and harnesses are tightly coupled (1:1 mapping). This analysis evaluates whether and how to separate them.
+This document explores the design trade-offs of decoupling agent templates from harnesses in Fabric. Currently, templates and harnesses are tightly coupled (1:1 mapping). This analysis evaluates whether and how to separate them.
 
 ## Current Architecture
 
@@ -10,7 +10,7 @@ Templates and harnesses are **tightly coupled**:
 - Each template directory (e.g., `embeds/claude/`) maps 1:1 to a harness
 - Templates contain both harness-specific files (`.claude.json`, `settings.json`) and potentially portable content (`claude.md` instructions, system prompts)
 - The harness's `SeedTemplateDir()` method creates the template structure
-- `scion-agent.yaml` declares `harness: <name>` to bind them
+- `fabric-agent.yaml` declares `harness: <name>` to bind them
 
 ### Key Files
 
@@ -20,7 +20,7 @@ Templates and harnesses are **tightly coupled**:
 | `pkg/api/harness.go` | `Harness` interface definition |
 | `pkg/config/templates.go` | Template discovery, loading, and merging |
 | `pkg/config/embeds/<harness>/` | Default template files per harness |
-| `pkg/config/embeds/<harness>/scion-agent.yaml` | Template config declaring harness binding |
+| `pkg/config/embeds/<harness>/fabric-agent.yaml` | Template config declaring harness binding |
 
 ---
 
@@ -86,7 +86,7 @@ Templates and harnesses are **tightly coupled**:
 
 **5. Breaking Change for Existing Users**
 - Current templates would need migration
-- `scion template create --harness claude` workflow would change significantly
+- `fabric template create --harness claude` workflow would change significantly
 
 ---
 
@@ -106,7 +106,7 @@ At instantiation: merge `base/` + `adapters/<harness>/`
 
 ### Option B: Harness as Runtime Override
 
-Keep templates as-is but allow `scion start --harness gemini` to override the template's declared harness. The harness would then adapt/translate what it can.
+Keep templates as-is but allow `fabric start --harness gemini` to override the template's declared harness. The harness would then adapt/translate what it can.
 
 ### Option C: Abstract System Prompt Format
 
@@ -159,11 +159,11 @@ A template becomes a **layered configuration** with:
 
 ### Directory Structure
 
-#### Template Authoring (in `.scion/templates/` or Hub storage)
+#### Template Authoring (in `.fabric/templates/` or Hub storage)
 
 ```
 code-reviewer/
-├── scion-template.yaml          # Template metadata (replaces scion-agent.yaml)
+├── fabric-template.yaml          # Template metadata (replaces fabric-agent.yaml)
 ├── base/
 │   ├── home/
 │   │   └── .config/
@@ -190,7 +190,7 @@ code-reviewer/
 
 #### New Config Files
 
-**scion-template.yaml** (template metadata):
+**fabric-template.yaml** (template metadata):
 ```yaml
 # Template identity
 name: code-reviewer
@@ -246,16 +246,16 @@ env:
 
 ```bash
 # Create template with base + adapters structure
-$ scion template create code-reviewer --decoupled
+$ fabric template create code-reviewer --decoupled
 
 # Or create from existing coupled template
-$ scion template decouple claude-default --name code-reviewer
+$ fabric template decouple claude-default --name code-reviewer
 ```
 
 The `template create --decoupled` command would:
 
 1. Create the directory structure above
-2. Generate a skeleton `scion-template.yaml`
+2. Generate a skeleton `fabric-template.yaml`
 3. Create empty `base/` and `adapters/` directories
 4. Optionally scaffold adapters for specified harnesses
 
@@ -263,7 +263,7 @@ The `template create --decoupled` command would:
 
 ```bash
 # Add gemini adapter to existing template
-$ scion template add-adapter code-reviewer --harness gemini
+$ fabric template add-adapter code-reviewer --harness gemini
 ```
 
 This would:
@@ -276,18 +276,18 @@ This would:
 #### Local Storage
 
 Templates stored in:
-- Project: `.scion/templates/<name>/`
-- Global: `~/.scion/templates/<name>/`
+- Project: `.fabric/templates/<name>/`
+- Global: `~/.fabric/templates/<name>/`
 
-No change to discovery logic in `FindTemplate()`, but `LoadConfig()` would detect decoupled templates by presence of `scion-template.yaml`.
+No change to discovery logic in `FindTemplate()`, but `LoadConfig()` would detect decoupled templates by presence of `fabric-template.yaml`.
 
 #### Hub Storage
 
 For hosted mode, templates stored in object storage:
 
 ```
-gs://<bucket>/scion/<grove-id>/templates/<template-name>/
-├── scion-template.yaml
+gs://<bucket>/fabric/<grove-id>/templates/<template-name>/
+├── fabric-template.yaml
 ├── base/
 │   └── ...
 └── adapters/
@@ -307,13 +307,13 @@ POST /api/v1/templates/{name}/adapters/{h} # Upload adapter
 #### Agent Start Sequence
 
 ```
-scion start my-agent --template code-reviewer --harness gemini
+fabric start my-agent --template code-reviewer --harness gemini
          │
          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Template Resolution                                       │
 │    FindTemplate("code-reviewer")                             │
-│    → Detect decoupled template (scion-template.yaml exists)  │
+│    → Detect decoupled template (fabric-template.yaml exists)  │
 │    → Parse template metadata                                 │
 └─────────────────────────────────────────────────────────────┘
          │
@@ -430,12 +430,12 @@ Existing "coupled" templates continue to work:
 
 ```go
 func (t *Template) IsDecoupled() bool {
-    templateYaml := filepath.Join(t.Path, "scion-template.yaml")
+    templateYaml := filepath.Join(t.Path, "fabric-template.yaml")
     _, err := os.Stat(templateYaml)
     return err == nil
 }
 
-func (t *Template) LoadConfig() (*api.ScionConfig, error) {
+func (t *Template) LoadConfig() (*api.FabricConfig, error) {
     if t.IsDecoupled() {
         return t.loadDecoupledConfig()
     }
@@ -448,23 +448,23 @@ func (t *Template) LoadConfig() (*api.ScionConfig, error) {
 
 ```bash
 # Existing (still works)
-scion start agent1 --template claude
+fabric start agent1 --template claude
 
 # New: explicit harness selection
-scion start agent1 --template code-reviewer --harness gemini
+fabric start agent1 --template code-reviewer --harness gemini
 
 # New: template management
-scion template create my-template --decoupled
-scion template add-adapter my-template --harness claude
-scion template add-adapter my-template --harness gemini
-scion template validate my-template --harness gemini  # Check compatibility
-scion template decouple old-template --name new-template  # Migrate
+fabric template create my-template --decoupled
+fabric template add-adapter my-template --harness claude
+fabric template add-adapter my-template --harness gemini
+fabric template validate my-template --harness gemini  # Check compatibility
+fabric template decouple old-template --name new-template  # Migrate
 ```
 
 ### Migration Path
 
 1. **Phase 1**: Implement decoupled template support alongside existing system
-2. **Phase 2**: Provide `scion template decouple` command for migration
+2. **Phase 2**: Provide `fabric template decouple` command for migration
 3. **Phase 3**: Update default templates in `pkg/config/embeds/` to decoupled format
 4. **Phase 4**: (Optional) Deprecate coupled format with warning
 
@@ -476,7 +476,7 @@ scion template decouple old-template --name new-template  # Migrate
 
 3. **Adapter inheritance**: Could `adapters/claude-bedrock/` extend `adapters/claude/`?
 
-4. **Validation depth**: Should `scion template validate` actually spin up a container, or just check file structure?
+4. **Validation depth**: Should `fabric template validate` actually spin up a container, or just check file structure?
 
 5. **Hub template versioning**: How do adapter versions relate to base template versions?
 
@@ -503,7 +503,7 @@ Without explicit resource specs:
 Add a `resources` section to template configuration:
 
 ```yaml
-# In scion-template.yaml (decoupled) or scion-agent.yaml (coupled)
+# In fabric-template.yaml (decoupled) or fabric-agent.yaml (coupled)
 resources:
   requests:
     cpu: "500m"        # 0.5 CPU cores (minimum guaranteed)
@@ -615,18 +615,18 @@ Final = Base Resources <- Adapter Resources <- Instance Overrides
 
 ```bash
 # Override resources at start time
-scion start my-agent --template code-reviewer \
+fabric start my-agent --template code-reviewer \
   --cpu-limit 4 \
   --memory-limit 8Gi
 
 # View resource usage
-scion status my-agent --resources
+fabric status my-agent --resources
 # Output:
 #   CPU:    0.45 / 2.00 cores (22%)
 #   Memory: 1.2Gi / 4Gi (30%)
 
 # List agents with resource info
-scion list --wide
+fabric list --wide
 # NAME          TEMPLATE        CPU-REQ  CPU-LIM  MEM-REQ  MEM-LIM  STATUS
 # code-review   code-reviewer   500m     2        512Mi    4Gi      THINKING
 # builder       build-agent     1        4        1Gi      8Gi      EXECUTING

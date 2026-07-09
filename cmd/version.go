@@ -17,16 +17,16 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	"github.com/pdlc-os/fabric/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/version"
 	"github.com/spf13/cobra"
 )
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of scion",
-	Long:  `All software has versions. This is scion's`,
+	Short: "Print the version number of fabric",
+	Long:  `All software has versions. This is fabric's`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if isJSONOutput() {
 			return outputJSON(map[string]string{

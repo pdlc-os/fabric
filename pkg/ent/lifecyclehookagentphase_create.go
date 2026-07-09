@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/lifecyclehookagentphase"
+	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehookagentphase"
 )
 
 // LifecycleHookAgentPhaseCreate is the builder for creating a LifecycleHookAgentPhase entity.

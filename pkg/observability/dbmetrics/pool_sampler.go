@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package dbmetrics
@@ -45,7 +45,7 @@ func poolStatsFrom(s sql.DBStats) PoolStats {
 // returned stop func is called (whichever happens first). stop is idempotent.
 //
 // It is the P3-6 wiring that feeds the P0-5 monitoring scaffold's pool gauges
-// (scion.db.pool.connections.{active,idle,waiting,max}). When rec is disabled
+// (fabric.db.pool.connections.{active,idle,waiting,max}). When rec is disabled
 // (no MeterProvider configured) or db is nil, sampling is skipped entirely so
 // there is no idle goroutine in the common no-exporter case.
 func StartPoolSampler(ctx context.Context, rec Recorder, db StatsProvider, interval time.Duration, attrs ...attribute.KeyValue) (stop func()) {

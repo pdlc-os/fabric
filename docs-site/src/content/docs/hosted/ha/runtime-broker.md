@@ -1,9 +1,9 @@
 ---
 title: Runtime Broker
-description: How a Hub user can register their local machine as a compute resource for your team's Scion Hub.
+description: How a Hub user can register their local machine as a compute resource for your team's Fabric Hub.
 ---
 
-A **Runtime Broker** is the component of Scion that actually runs agents (containers or VMs). While a centralized **Scion Hub** manages metadata and agent configurations, you can register your own machine as a Runtime Broker to execute agents locally while still participating in your team's Hub environment.
+A **Runtime Broker** is the component of Fabric that actually runs agents (containers or VMs). While a centralized **Fabric Hub** manages metadata and agent configurations, you can register your own machine as a Runtime Broker to execute agents locally while still participating in your team's Hub environment.
 
 This is especially useful if you need agents to access local resources (like an intranet database, local files, or specialized hardware) or if you want to contribute compute power to your team's projects.
 
@@ -30,17 +30,17 @@ To allow the Hub to dispatch agents to your machine, you must start a Runtime Br
 You can start a standalone broker process in the background:
 
 ```bash
-scion broker start
+fabric broker start
 ```
 
-*(Alternatively, if you run `scion server start --workstation`, a broker is automatically started alongside a local workstation server.)*
+*(Alternatively, if you run `fabric server start --workstation`, a broker is automatically started alongside a local workstation server.)*
 
 ### 2. Link to the Hub
 
 Before the broker can receive commands, it must be registered with the Hub you are connected to. This establishes a secure trust relationship.
 
 ```bash
-scion broker register
+fabric broker register
 ```
 
 This command will securely exchange credentials with the Hub, linking your machine's broker to your Hub user account.
@@ -52,7 +52,7 @@ Even after registration, your broker will not accept arbitrary agents. It only e
 Navigate to the directory of a project that is connected to the Hub, and run:
 
 ```bash
-scion broker provide
+fabric broker provide
 ```
 
 This tells the Hub: *"My local broker is now a provider for this specific Project."* When anyone on your team starts an agent in this Project and targets your broker, the agent will execute on your machine.
@@ -60,13 +60,13 @@ This tells the Hub: *"My local broker is now a provider for this specific Projec
 To verify which projects your broker is currently serving:
 
 ```bash
-scion broker status
+fabric broker status
 ```
 
 ## Security & Isolation
 
 When you register your machine as a broker:
-*   **Isolation**: Every agent runs in its own isolated container. In local mode each agent gets a dedicated git worktree (`.scion_worktrees/`); in hub-hosted git projects agents share a single workspace checkout, but each agent's per-agent state (task prompt, resolved config) lives outside that shared mount so sibling agents cannot read it.
+*   **Isolation**: Every agent runs in its own isolated container. In local mode each agent gets a dedicated git worktree (`.fabric_worktrees/`); in hub-hosted git projects agents share a single workspace checkout, but each agent's per-agent state (task prompt, resolved config) lives outside that shared mount so sibling agents cannot read it.
 *   **No Source Code Sharing**: The Hub does not store your source code. The broker simply creates local branches and commits.
 *   **Safe Secrets**: Sensitive API keys and environment variables managed in the Hub are injected directly into the agent container's memory at runtime. They are not saved to your local disk.
 *   **Mutual Authentication**: All communication over the Control Channel uses HMAC-SHA256 signatures, ensuring that only the authorized Hub can send commands to your machine.
@@ -76,7 +76,7 @@ When you register your machine as a broker:
 If you want to stop accepting agent workloads from the Hub, you can simply stop the broker daemon:
 
 ```bash
-scion broker stop
+fabric broker stop
 ```
 
 Agents that are currently running on your machine may be interrupted or left orphaned depending on their state.

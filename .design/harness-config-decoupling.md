@@ -6,10 +6,10 @@
 
 ## Motivation
 
-Today every harness ships compiled into the scion binary and is **installed by
+Today every harness ships compiled into the fabric binary and is **installed by
 default**. `harness.All()` returns `{gemini, claude, opencode, codex}`, and
-`scion init` / `scion server` startup seed each one's embedded config into
-`~/.scion/harness-configs/<name>/` from `pkg/harness/<name>/embeds/`.
+`fabric init` / `fabric server` startup seed each one's embedded config into
+`~/.fabric/harness-configs/<name>/` from `pkg/harness/<name>/embeds/`.
 
 We want to move to a model where **harnesses and their configs are not all
 installed by default**. The first step is to:
@@ -19,7 +19,7 @@ installed by default**. The first step is to:
 2. **Refactor OpenCode and Codex** out of `pkg/harness/*/embeds/` into that
    directory.
 3. **Port the Antigravity harness config** (from
-   [`ptone/scion-antigravity`](https://github.com/ptone/scion-antigravity)) into
+   [`ptone/fabric-antigravity`](https://github.com/ptone/fabric-antigravity)) into
    that directory.
 
 The container-script migration (`decoupled-harness-implementation.md`, Phases
@@ -34,12 +34,12 @@ they provision.
 | Concern | Where it lives today |
 |---|---|
 | Default-install set | `pkg/harness/harness.go::All()` → gemini, claude, opencode, codex |
-| Default-install call sites | `cmd/project.go` (`scion init`), `cmd/templates.go` (`templates update-default`), `cmd/server_foreground.go` (`scion server`) — all call `harness.All()` |
+| Default-install call sites | `cmd/project.go` (`fabric init`), `cmd/templates.go` (`templates update-default`), `cmd/server_foreground.go` (`fabric server`) — all call `harness.All()` |
 | Seeding from embeds | `pkg/config/harness_config.go::SeedHarnessConfig()` walks `h.GetHarnessEmbedsFS()` |
 | OpenCode bundle (embedded) | `pkg/harness/opencode/embeds/{config.yaml,opencode.json,provision.py}` + `pkg/harness/opencode/embeds.go` (`//go:embed`) |
-| Codex bundle (embedded) | `pkg/harness/codex/embeds/{config.yaml,config.toml,scion_notify.sh,bashrc,provision.py}` + `pkg/harness/codex/embeds.go` |
+| Codex bundle (embedded) | `pkg/harness/codex/embeds/{config.yaml,config.toml,fabric_notify.sh,bashrc,provision.py}` + `pkg/harness/codex/embeds.go` |
 | Built-in Go fallbacks | `pkg/harness/opencode.go`, `pkg/harness/codex.go` (+ `codex_config.go`), selected by `harness.New()` / `harness.Resolve()` |
-| Opt-in install (already exists!) | `cmd/harness_config_install.go` → `scion harness-config install <source>` supports local dir, `github.com/...` shorthand, `file://`, `:gcs:`, and `.tgz`/`.zip` archives |
+| Opt-in install (already exists!) | `cmd/harness_config_install.go` → `fabric harness-config install <source>` supports local dir, `github.com/...` shorthand, `file://`, `:gcs:`, and `.tgz`/`.zip` archives |
 | Image builds | `image-build/{opencode,codex,claude,gemini}/Dockerfile`; DAG in `image-build/scripts/lib/targets.sh`; `image-build/cloudbuild-harnesses.yaml` |
 | Antigravity source layout | `antigravity/{config.yaml,provision.py,dialect.yaml,skills/}` + root `Dockerfile` + `cloudbuild.yaml` |
 
@@ -67,14 +67,14 @@ the fate of the Go embeds and built-in fallbacks.
       cloudbuild.yaml
       home/
         .codex/config.toml
-        .codex/scion_notify.sh
+        .codex/fabric_notify.sh
         .bashrc
       README.md
     antigravity/
       config.yaml
       provision.py
       dialect.yaml
-      Dockerfile                  # ported from ptone/scion-antigravity
+      Dockerfile                  # ported from ptone/fabric-antigravity
       cloudbuild.yaml
       skills/.gitkeep
       home/
@@ -83,8 +83,8 @@ the fate of the Go embeds and built-in fallbacks.
 ```
 
 Note: the bundle root now carries non-harness-config files (`Dockerfile`,
-`cloudbuild.yaml`). `scion harness-config install` copies the whole directory, so
-these get copied into `~/.scion/harness-configs/<name>/` too. That is harmless
+`cloudbuild.yaml`). `fabric harness-config install` copies the whole directory, so
+these get copied into `~/.fabric/harness-configs/<name>/` too. That is harmless
 (they're ignored at provision time) but the install/seed allowlist and
 `ComputeHarnessConfigRevision` should be reviewed so image-build files don't
 perturb the config revision hash — see Phase D.4.
@@ -93,8 +93,8 @@ perturb the config revision hash — see Phase D.4.
   see Decision 2).
 - OpenCode / Codex / Antigravity become **opt-in**, installed with:
   ```
-  scion harness-config install harnesses/opencode      # from a repo checkout
-  scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/codex
+  fabric harness-config install harnesses/opencode      # from a repo checkout
+  fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/codex
   ```
 - The `harnesses/` bundles are the **single source of truth** for these configs.
   No duplicate copies under `pkg/harness/*/embeds/`.
@@ -134,17 +134,17 @@ proven (Phase A.4).
    (the prior design's preferred end state, §"File Seeding and Packaging
    Changes"):
    - OpenCode: `opencode.json` → `harnesses/opencode/home/.config/opencode/opencode.json`; `config.yaml`, `provision.py` at bundle root.
-   - Codex: `config.toml` → `home/.codex/config.toml`; `scion_notify.sh` → `home/.codex/scion_notify.sh`; `bashrc` → `home/.bashrc`; `config.yaml`, `provision.py` at root.
+   - Codex: `config.toml` → `home/.codex/config.toml`; `fabric_notify.sh` → `home/.codex/fabric_notify.sh`; `bashrc` → `home/.bashrc`; `config.yaml`, `provision.py` at root.
 3. Move the image build into each bundle (Decision 4): `image-build/opencode/Dockerfile`
    → `harnesses/opencode/Dockerfile`, same for codex; add a per-bundle
    `cloudbuild.yaml` (extract the opencode/codex steps from
    `image-build/cloudbuild-harnesses.yaml`, threading `BASE_IMAGE` from
-   `scion-base`).
+   `fabric-base`).
 4. **Lock down behavior before deleting the Go oracle.** Capture golden output
    from the existing built-in + container-script paths (command construction,
    seeded file layout, provision staging) as fixtures, and add a CI smoke test:
-   `scion harness-config install harnesses/<name> --name <name>-test` →
-   `scion harness-config show <name>-test` → assert config parses and a dry
+   `fabric harness-config install harnesses/<name> --name <name>-test` →
+   `fabric harness-config show <name>-test` → assert config parses and a dry
    provision stages the expected bundle. This replaces the parity oracle that
    Decision 3 removes.
 5. Add a `README.md` per bundle (purpose, `install` command, auth modes, image
@@ -153,7 +153,7 @@ proven (Phase A.4).
 ### Phase B — Port Antigravity
 
 1. Copy `antigravity/{config.yaml,provision.py,dialect.yaml,skills/}` plus the
-   root `Dockerfile` and `cloudbuild.yaml` from `ptone/scion-antigravity` into
+   root `Dockerfile` and `cloudbuild.yaml` from `ptone/fabric-antigravity` into
    `harnesses/antigravity/` (Decision 4 keeps image build in-bundle).
 2. Reconcile `config.yaml` against the current `HarnessConfigEntry` schema and
    `ValidateHarnessConfig`. The antigravity config exercises fields a relocated
@@ -162,8 +162,8 @@ proven (Phase A.4).
    with an empty `vertex-ai: {}` body). Confirm the in-repo schema accepts all of
    them; add schema support for any rejected field before merging.
 3. The antigravity image needs keyring packages (`gnome-keyring`, `libsecret`)
-   not in `scion-base` — its `Dockerfile`/`cloudbuild.yaml` already encode the
-   `core-base → scion-base → antigravity` chain; verify they reference the
+   not in `fabric-base` — its `Dockerfile`/`cloudbuild.yaml` already encode the
+   `core-base → fabric-base → antigravity` chain; verify they reference the
    in-repo base image tags rather than the external repo's registry.
 4. Confirm `ContainerScriptHarness.Provision` stages `dialect.yaml` (it does,
    `container_script_harness.go:342`).
@@ -191,14 +191,14 @@ relocated bundles.
    `harness.newBuiltin()` so resolution flows: container-script (installed
    bundle) → declarative-generic. With no bundle installed, `--harness codex`
    falls to `Generic` — acceptable now that they're opt-in (surface a clear
-   "not installed; run scion harness-config install" hint where practical).
+   "not installed; run fabric harness-config install" hint where practical).
 4. Review the install/seed allowlist and `ComputeHarnessConfigRevision` so the
    newly co-located `Dockerfile`/`cloudbuild.yaml` in each bundle don't break
    provisioning or destabilize the revision hash (either exclude them, or accept
    them as part of the hash deliberately).
-5. `scion harness-config reset codex` currently restores *embedded* defaults via
+5. `fabric harness-config reset codex` currently restores *embedded* defaults via
    `harness.New` — with embeds gone it must change. Repoint `reset` to fail
-   clearly with "reinstall from bundle: scion harness-config install
+   clearly with "reinstall from bundle: fabric harness-config install
    harnesses/codex" guidance (and update its tests).
 6. Remove `image-build/opencode/` and `image-build/codex/` and repoint the build
    DAG (`image-build/scripts/lib/targets.sh`) + `cloudbuild-harnesses.yaml` at
@@ -215,16 +215,16 @@ relocated bundles.
    `project-settings.ts` — they enumerate known/installable harnesses (incl.
    opt-in ones), not the default-install set; left as-is with clarifying
    comments.
-4. `scion harness-config list --available` deferred — out of scope for this PR;
+4. `fabric harness-config list --available` deferred — out of scope for this PR;
    noted as follow-up in `harnesses/README.md`.
 
 ### Phase F — Migration for existing installs
 
-Existing machines already have `~/.scion/harness-configs/{opencode,codex}/`
+Existing machines already have `~/.fabric/harness-configs/{opencode,codex}/`
 seeded. Shrinking defaults and dropping embeds must **not** delete a user's
 installed config.
 
-1. `scion init`/upgrade must leave existing installed configs untouched
+1. `fabric init`/upgrade must leave existing installed configs untouched
    (additive-only upgrade is already the contract —
    `decoupled-harness-implementation.md` §"Existing Installation Upgrade Plan").
 2. Existing codex/opencode configs keep resolving as container-script harnesses

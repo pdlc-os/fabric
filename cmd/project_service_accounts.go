@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -39,10 +39,10 @@ with transparent GCP identity via metadata server emulation. No key
 material is stored — the Hub impersonates the SA at token-generation time.
 
 Examples:
-  scion project service-accounts list
-  scion project service-accounts add agent-worker@project.iam.gserviceaccount.com --project my-project
-  scion project service-accounts verify <id>
-  scion project service-accounts remove <id>`,
+  fabric project service-accounts list
+  fabric project service-accounts add agent-worker@project.iam.gserviceaccount.com --project my-project
+  fabric project service-accounts verify <id>
+  fabric project service-accounts remove <id>`,
 }
 
 var saAddCmd = &cobra.Command{
@@ -55,8 +55,8 @@ IAM Credentials API. The Hub's own service account must have
 roles/iam.serviceAccountTokenCreator on the target SA.
 
 Examples:
-  scion project service-accounts add agent-worker@my-project.iam.gserviceaccount.com --project my-project
-  scion project service-accounts add agent-worker@my-project.iam.gserviceaccount.com --project my-project --name "Worker SA"`,
+  fabric project service-accounts add agent-worker@my-project.iam.gserviceaccount.com --project my-project
+  fabric project service-accounts add agent-worker@my-project.iam.gserviceaccount.com --project my-project --name "Worker SA"`,
 	Args: cobra.ExactArgs(1),
 	RunE: runSAAdd,
 }
@@ -68,8 +68,8 @@ var saListCmd = &cobra.Command{
 	Long: `List all GCP service accounts registered for this project.
 
 Examples:
-  scion project service-accounts list
-  scion project service-accounts list --json`,
+  fabric project service-accounts list
+  fabric project service-accounts list --json`,
 	Args: cobra.NoArgs,
 	RunE: runSAList,
 }
@@ -84,7 +84,7 @@ This does not delete the service account in GCP — it only removes the
 registration from the Hub.
 
 Examples:
-  scion project service-accounts remove <id>`,
+  fabric project service-accounts remove <id>`,
 	Args: cobra.ExactArgs(1),
 	RunE: runSARemove,
 }
@@ -98,7 +98,7 @@ This calls the IAM Credentials API to confirm the Hub's identity has
 roles/iam.serviceAccountTokenCreator on the target SA.
 
 Examples:
-  scion project service-accounts verify <id>`,
+  fabric project service-accounts verify <id>`,
 	Args: cobra.ExactArgs(1),
 	RunE: runSAVerify,
 }
@@ -113,9 +113,9 @@ The Hub automatically configures itself to impersonate the SA for token
 generation. You can later grant IAM permissions on your own GCP projects.
 
 Examples:
-  scion project service-accounts mint
-  scion project service-accounts mint --account-id my-pipeline
-  scion project service-accounts mint --account-id my-pipeline --name "My Pipeline SA"`,
+  fabric project service-accounts mint
+  fabric project service-accounts mint --account-id my-pipeline
+  fabric project service-accounts mint --account-id my-pipeline --name "My Pipeline SA"`,
 	Args: cobra.NoArgs,
 	RunE: runSAMint,
 }
@@ -138,7 +138,7 @@ func init() {
 	saAddCmd.Flags().StringVar(&saDisplayName, "name", "", "Display name for the service account")
 	_ = saAddCmd.MarkFlagRequired("project")
 
-	saMintCmd.Flags().StringVar(&saMintID, "account-id", "", "Custom account ID (will be prefixed with scion-)")
+	saMintCmd.Flags().StringVar(&saMintID, "account-id", "", "Custom account ID (will be prefixed with fabric-)")
 	saMintCmd.Flags().StringVar(&saDisplayName, "name", "", "Display name for the service account")
 
 	saListCmd.Flags().BoolVar(&saOutputJSON, "json", false, "Output in JSON format")
@@ -166,7 +166,7 @@ func resolveProjectForSA() (hubclient.Client, string, error) {
 		projectID = settings.Hub.ProjectID
 	}
 	if projectID == "" {
-		return nil, "", fmt.Errorf("project not linked to Hub. Use 'scion hub link' first")
+		return nil, "", fmt.Errorf("project not linked to Hub. Use 'fabric hub link' first")
 	}
 
 	return client, projectID, nil
@@ -233,7 +233,7 @@ func runSAList(cmd *cobra.Command, args []string) error {
 
 	if len(sas) == 0 {
 		fmt.Println("No GCP service accounts registered for this project.")
-		fmt.Println("Use 'scion project service-accounts add' to register one.")
+		fmt.Println("Use 'fabric project service-accounts add' to register one.")
 		return nil
 	}
 

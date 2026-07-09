@@ -57,8 +57,8 @@ const PROFILE_SECTIONS: NavSection[] = [
   },
 ];
 
-@customElement('scion-profile-nav')
-export class ScionProfileNav extends LitElement {
+@customElement('fabric-profile-nav')
+export class FabricProfileNav extends LitElement {
   @property({ type: Object })
   user: User | null = null;
 
@@ -79,14 +79,14 @@ export class ScionProfileNav extends LitElement {
       display: flex;
       flex-direction: column;
       height: 100%;
-      width: var(--scion-sidebar-width, 260px);
-      background: var(--scion-surface, #ffffff);
-      border-right: 1px solid var(--scion-border, #e2e8f0);
+      width: var(--fabric-sidebar-width, 260px);
+      background: var(--fabric-surface, #ffffff);
+      border-right: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .logo {
       padding: 1.25rem 1rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -108,20 +108,20 @@ export class ScionProfileNav extends LitElement {
       flex-direction: column;
       overflow: hidden;
       opacity: 1;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     .logo-text h1 {
       font-size: 1.125rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
       line-height: 1.2;
     }
 
     .logo-text span {
       font-size: 0.6875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       white-space: nowrap;
     }
 
@@ -132,7 +132,7 @@ export class ScionProfileNav extends LitElement {
       padding: 0.875rem 1rem;
       margin: 0.75rem;
       border-radius: 0.5rem;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 600;
@@ -143,7 +143,7 @@ export class ScionProfileNav extends LitElement {
 
     .return-link:hover {
       background: var(--sl-color-primary-100, #dbeafe);
-      border-color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
     }
 
     .return-link sl-icon {
@@ -155,12 +155,12 @@ export class ScionProfileNav extends LitElement {
       overflow: hidden;
       white-space: nowrap;
       opacity: 1;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     .user-info {
       padding: 1rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -170,11 +170,11 @@ export class ScionProfileNav extends LitElement {
       width: 2.25rem;
       height: 2.25rem;
       border-radius: 50%;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       flex-shrink: 0;
     }
 
@@ -188,13 +188,13 @@ export class ScionProfileNav extends LitElement {
       min-width: 0;
       overflow: hidden;
       opacity: 1;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     .user-name {
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -202,7 +202,7 @@ export class ScionProfileNav extends LitElement {
 
     .user-email {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -230,13 +230,13 @@ export class ScionProfileNav extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 0.5rem;
       padding: 0 0.75rem;
       opacity: 1;
       overflow: hidden;
       white-space: nowrap;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     .nav-list {
@@ -255,7 +255,7 @@ export class ScionProfileNav extends LitElement {
       gap: 0.75rem;
       padding: 0.625rem 0.75rem;
       border-radius: 0.5rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 500;
@@ -263,16 +263,16 @@ export class ScionProfileNav extends LitElement {
     }
 
     .nav-link:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .nav-link.active {
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: white;
     }
 
     .nav-link.active:hover {
-      background: var(--scion-primary-hover, #2563eb);
+      background: var(--fabric-primary-hover, #2563eb);
     }
 
     .nav-link sl-icon {
@@ -285,7 +285,7 @@ export class ScionProfileNav extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
       opacity: 1;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     .nav-link-external {
@@ -294,7 +294,7 @@ export class ScionProfileNav extends LitElement {
       gap: 0.75rem;
       padding: 0.625rem 0.75rem;
       border-radius: 0.5rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 500;
@@ -302,7 +302,7 @@ export class ScionProfileNav extends LitElement {
     }
 
     .nav-link-external:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .nav-link-external sl-icon {
@@ -318,11 +318,11 @@ export class ScionProfileNav extends LitElement {
 
     /* Collapsed state */
     :host {
-      transition: width var(--scion-transition-normal, 250ms ease);
+      transition: width var(--fabric-transition-normal, 250ms ease);
     }
 
     :host([collapsed]) {
-      width: var(--scion-sidebar-collapsed-width, 64px);
+      width: var(--fabric-sidebar-collapsed-width, 64px);
     }
 
     :host([collapsed]) .logo {
@@ -410,10 +410,10 @@ export class ScionProfileNav extends LitElement {
       gap: 0.75rem;
       margin: 0.5rem;
       padding: 0.5rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.5rem;
       background: transparent;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
       font-size: 0.875rem;
       font-weight: 500;
@@ -421,14 +421,14 @@ export class ScionProfileNav extends LitElement {
     }
 
     .collapse-toggle:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text, #1e293b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text, #1e293b);
     }
 
     .collapse-toggle sl-icon {
       font-size: 1.125rem;
       flex-shrink: 0;
-      transition: transform var(--scion-transition-normal, 250ms ease);
+      transition: transform var(--fabric-transition-normal, 250ms ease);
     }
 
     :host([collapsed]) .collapse-toggle sl-icon {
@@ -440,7 +440,7 @@ export class ScionProfileNav extends LitElement {
       text-overflow: ellipsis;
       white-space: nowrap;
       opacity: 1;
-      transition: opacity var(--scion-transition-normal, 250ms ease);
+      transition: opacity var(--fabric-transition-normal, 250ms ease);
     }
 
     :host([collapsed]) .collapse-toggle-text {
@@ -481,7 +481,7 @@ export class ScionProfileNav extends LitElement {
       <div class="logo">
         <div class="logo-icon">🌱</div>
         <div class="logo-text">
-          <h1>Scion</h1>
+          <h1>Fabric</h1>
           <span>Profile &amp; Settings</span>
         </div>
       </div>
@@ -578,6 +578,6 @@ export class ScionProfileNav extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-profile-nav': ScionProfileNav;
+    'fabric-profile-nav': FabricProfileNav;
   }
 }

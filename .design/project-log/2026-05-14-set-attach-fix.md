@@ -19,7 +19,7 @@ in `sendSetMessageViaHub` (~line 599), matching the pattern already used in
 
 ## Verification
 
-- `go vet ./cmd/scion/` passes (pre-existing unrelated error in
+- `go vet ./cmd/fabric/` passes (pre-existing unrelated error in
   `pkg/hub/telegram_link.go` is not affected by this change).
 - Single-line, low-risk change — no behavioral side effects beyond restoring
   the intended attachment propagation.

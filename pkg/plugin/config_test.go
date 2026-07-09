@@ -23,16 +23,16 @@ import (
 func TestPluginConstants(t *testing.T) {
 	assert.Equal(t, "broker", PluginTypeBroker)
 	assert.Equal(t, uint(1), uint(BrokerPluginProtocolVersion))
-	assert.Equal(t, "SCION_PLUGIN", MagicCookieKey)
-	assert.Equal(t, "scion-plugin-v1", MagicCookieValue)
-	assert.Equal(t, "scion-plugin-", PluginBinaryPrefix)
+	assert.Equal(t, "FABRIC_PLUGIN", MagicCookieKey)
+	assert.Equal(t, "fabric-plugin-v1", MagicCookieValue)
+	assert.Equal(t, "fabric-plugin-", PluginBinaryPrefix)
 }
 
 func TestPluginsConfig(t *testing.T) {
 	cfg := PluginsConfig{
 		Broker: map[string]PluginEntry{
 			"nats": {
-				Path: "/usr/local/bin/scion-plugin-nats",
+				Path: "/usr/local/bin/fabric-plugin-nats",
 				Config: map[string]string{
 					"url": "nats://localhost:4222",
 				},
@@ -41,7 +41,7 @@ func TestPluginsConfig(t *testing.T) {
 	}
 
 	assert.Len(t, cfg.Broker, 1)
-	assert.Equal(t, "/usr/local/bin/scion-plugin-nats", cfg.Broker["nats"].Path)
+	assert.Equal(t, "/usr/local/bin/fabric-plugin-nats", cfg.Broker["nats"].Path)
 	assert.Equal(t, "nats://localhost:4222", cfg.Broker["nats"].Config["url"])
 }
 

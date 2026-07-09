@@ -45,7 +45,7 @@ type HarnessConfigResolution struct {
 
 func ResolveHarnessConfig(
     cliFlag string,
-    templateCfg *api.ScionConfig,
+    templateCfg *api.FabricConfig,
     settings *VersionedSettings,
     profileName string,
     grovePath string,
@@ -53,7 +53,7 @@ func ResolveHarnessConfig(
 ) (*HarnessConfigResolution, error)
 ```
 
-All three call sites (`ProvisionAgent`, `Start`, broker `resolveHarnessConfigName`) call this one function. The result is cached on the agent's `scion-agent.json` at provision time so `Start` on resume never re-derives — it reads the stored resolution.
+All three call sites (`ProvisionAgent`, `Start`, broker `resolveHarnessConfigName`) call this one function. The result is cached on the agent's `fabric-agent.json` at provision time so `Start` on resume never re-derives — it reads the stored resolution.
 
 ### Scope
 
@@ -76,9 +76,9 @@ The runtime broker's agent creation path builds an `api.StartOptions` struct and
 | `finalizeEnv` | `handlers.go:1932-2086` | Env-gather completion: env merge → hydrate template → git-clone → start |
 
 Each handler independently:
-1. Resolves the hub-managed grove path from `GroveSlug` (identical `~/.scion/groves/<slug>` block, duplicated at lines 323-350 and 1032-1054)
+1. Resolves the hub-managed grove path from `GroveSlug` (identical `~/.fabric/groves/<slug>` block, duplicated at lines 323-350 and 1032-1054)
 2. Builds the merged env map with hub endpoint, broker name, debug flag, auth tokens
-3. Translates `SCION_TELEMETRY_ENABLED` into `TelemetryOverride`
+3. Translates `FABRIC_TELEMETRY_ENABLED` into `TelemetryOverride`
 4. Hydrates templates from Hub
 5. Handles git-clone env injection
 6. Passes through resolved secrets

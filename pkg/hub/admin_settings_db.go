@@ -28,10 +28,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/opsettings"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/opsettings"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/version"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
@@ -114,9 +114,9 @@ func (s *Server) handleGetServerConfigDB(w http.ResponseWriter, r *http.Request,
 	// Start with file-based response for Layer-0 fields.
 	resp := ServerConfigDBResponse{
 		ServerConfigResponse: ServerConfigResponse{
-			ScionVersion:   version.Short(),
-			ScionCommit:    version.GetCommit(),
-			ScionBuildTime: version.GetBuildTime(),
+			FabricVersion:   version.Short(),
+			FabricCommit:    version.GetCommit(),
+			FabricBuildTime: version.GetBuildTime(),
 			SchemaVersion:  vs.SchemaVersion,
 			ActiveProfile:  vs.ActiveProfile,
 			WorkspacePath:  vs.WorkspacePath,

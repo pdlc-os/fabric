@@ -23,7 +23,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -31,8 +31,8 @@ var configGlobal bool
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage scion configuration settings",
-	Long:  `View and modify settings for scion-agent. Settings are resolved from project (.scion/settings.json) and global (~/.scion/settings.json) locations.`,
+	Short: "Manage fabric configuration settings",
+	Long:  `View and modify settings for fabric-agent. Settings are resolved from project (.fabric/settings.json) and global (~/.fabric/settings.json) locations.`,
 }
 
 var configListCmd = &cobra.Command{
@@ -168,7 +168,7 @@ var configValidateCmd = &cobra.Command{
 	Short: "Validate settings files against the schema",
 	Long: `Validate settings files against the JSON Schema for the declared schema version.
 
-Checks both global (~/.scion/settings.yaml) and project-level (.scion/settings.yaml)
+Checks both global (~/.fabric/settings.yaml) and project-level (.fabric/settings.yaml)
 settings files. Reports whether each file uses the versioned or legacy format,
 and lists any schema validation errors found.
 
@@ -253,7 +253,7 @@ against the schema — they use the pre-versioned format.`,
 
 			case isLegacy:
 				r.Format = "legacy"
-				r.Warnings = append(r.Warnings, "Legacy settings format detected. Run 'scion config migrate' to update.")
+				r.Warnings = append(r.Warnings, "Legacy settings format detected. Run 'fabric config migrate' to update.")
 
 			default:
 				r.Format = "minimal"
@@ -330,13 +330,13 @@ Use --global to migrate only the global settings file.
 
 Examples:
   # Preview all settings migration
-  scion config migrate --dry-run
+  fabric config migrate --dry-run
 
   # Migrate all legacy settings files
-  scion config migrate
+  fabric config migrate
 
   # Migrate only global settings
-  scion config migrate --global`,
+  fabric config migrate --global`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runSettingsMigration()
 	},
@@ -493,7 +493,7 @@ var configCdProjectCmd = &cobra.Command{
 	Long: `Open a shell in the project workspace directory.
 
 For external projects (non-git), navigates to the workspace path stored in settings.
-For git projects, navigates to the project root (parent of the .scion directory).`,
+For git projects, navigates to the project root (parent of the .fabric directory).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectDir, err := config.GetResolvedProjectDir(projectPath)
 		if err != nil {
@@ -510,8 +510,8 @@ For git projects, navigates to the project root (parent of the .scion directory)
 }
 
 // resolveProjectWorkspace returns the workspace path for a project given its config dir.
-// For external projects (under ~/.scion/project-configs/), the workspace path is read from settings.
-// For git projects, the workspace is the parent directory of the .scion config dir.
+// For external projects (under ~/.fabric/project-configs/), the workspace path is read from settings.
+// For git projects, the workspace is the parent directory of the .fabric config dir.
 func resolveProjectWorkspace(configDir string) (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -534,7 +534,7 @@ func resolveProjectWorkspace(configDir string) (string, error) {
 		return settings.WorkspacePath, nil
 	}
 
-	// Git project — workspace is the project root (parent of .scion dir)
+	// Git project — workspace is the project root (parent of .fabric dir)
 	parent := filepath.Dir(configDir)
 	if _, err := os.Stat(parent); err != nil {
 		return "", fmt.Errorf("project workspace does not exist: %s", parent)
@@ -579,7 +579,7 @@ func init() {
 	configCmd.AddCommand(configCdConfigCmd)
 	configCmd.AddCommand(configCdProjectCmd)
 
-	configSetCmd.Flags().BoolVar(&configGlobal, "global", false, "Set configuration globally (~/.scion/settings.json)")
+	configSetCmd.Flags().BoolVar(&configGlobal, "global", false, "Set configuration globally (~/.fabric/settings.json)")
 	configMigrateCmd.Flags().BoolVar(&configMigrateDryRun, "dry-run", false, "Preview changes without writing files")
 	configMigrateCmd.Flags().BoolVar(&configMigrateGlobal, "global", false, "Migrate only the global settings file")
 }

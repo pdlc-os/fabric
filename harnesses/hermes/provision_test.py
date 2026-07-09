@@ -24,9 +24,9 @@ import tempfile
 import unittest
 from contextlib import contextmanager, redirect_stderr
 
-# Import scion_harness from the harnesses root (sibling of hermes/).
+# Import fabric_harness from the harnesses root (sibling of hermes/).
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-import scion_harness  # type: ignore[import-not-found]
+import fabric_harness  # type: ignore[import-not-found]
 
 PROVISION_PATH = os.path.join(os.path.dirname(__file__), "provision.py")
 SPEC = importlib.util.spec_from_file_location("hermes_provision", PROVISION_PATH)
@@ -35,10 +35,10 @@ provision = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(provision)
 
-MANAGED_BEGIN = scion_harness._MANAGED_BEGIN_STANDARD
-MANAGED_END = scion_harness._MANAGED_END_STANDARD
-LEGACY_BEGIN = "<!-- BEGIN SCION MANAGED HERMES INSTRUCTIONS -->"
-LEGACY_END = "<!-- END SCION MANAGED HERMES INSTRUCTIONS -->"
+MANAGED_BEGIN = fabric_harness._MANAGED_BEGIN_STANDARD
+MANAGED_END = fabric_harness._MANAGED_END_STANDARD
+LEGACY_BEGIN = "<!-- BEGIN FABRIC MANAGED HERMES INSTRUCTIONS -->"
+LEGACY_END = "<!-- END FABRIC MANAGED HERMES INSTRUCTIONS -->"
 
 
 @contextmanager
@@ -60,7 +60,7 @@ def _make_ctx(
     explicit_type: str = "",
     env_secret_files: dict[str, str] | None = None,
     harness_config: dict | None = None,
-) -> scion_harness.ProvisionContext:
+) -> fabric_harness.ProvisionContext:
     """Build a ProvisionContext with auth-candidates staged in bundle_dir."""
     os.makedirs(os.path.join(bundle_dir, "inputs"), exist_ok=True)
     os.makedirs(os.path.join(bundle_dir, "outputs"), exist_ok=True)
@@ -80,11 +80,11 @@ def _make_ctx(
         "harness_bundle_dir": bundle_dir,
         "harness_config": harness_config or {},
     }
-    return scion_harness.ProvisionContext("hermes", manifest)
+    return fabric_harness.ProvisionContext("hermes", manifest)
 
 
 class AuthResolutionTest(unittest.TestCase):
-    def _select(self, env_vars: list[str], explicit: str = "") -> scion_harness.ResolvedAuth:
+    def _select(self, env_vars: list[str], explicit: str = "") -> fabric_harness.ResolvedAuth:
         with tempfile.TemporaryDirectory() as tmp:
             ctx = _make_ctx(os.path.join(tmp, "bundle"), env_vars=env_vars, explicit_type=explicit)
             return ctx.select_auth(provision.AUTH)
@@ -110,12 +110,12 @@ class AuthResolutionTest(unittest.TestCase):
         self.assertEqual(result.env_key, "GOOGLE_API_KEY")
 
     def test_unknown_auth_type_raises(self) -> None:
-        with self.assertRaises(scion_harness.ProvisionError) as ctx:
+        with self.assertRaises(fabric_harness.ProvisionError) as ctx:
             self._select(["ANTHROPIC_API_KEY"], explicit="auth-file")
         self.assertIn("valid types are", str(ctx.exception))
 
     def test_no_keys_raises(self) -> None:
-        with self.assertRaises(scion_harness.ProvisionError) as ctx:
+        with self.assertRaises(fabric_harness.ProvisionError) as ctx:
             self._select([])
         self.assertIn("no valid auth method found", str(ctx.exception))
 
@@ -184,13 +184,13 @@ class InstructionProjectionTest(unittest.TestCase):
                     "system_prompt_mode": "prepend_to_instructions",
                 },
             }
-            ctx = scion_harness.ProvisionContext("hermes", manifest)
+            ctx = fabric_harness.ProvisionContext("hermes", manifest)
 
             with temporary_home(home):
-                scion_harness.project_instructions(
+                fabric_harness.project_instructions(
                     ctx, "AGENTS.md", skills_dir=".hermes/skills",
                 )
-                scion_harness.project_instructions(
+                fabric_harness.project_instructions(
                     ctx, "AGENTS.md", skills_dir=".hermes/skills",
                 )
 
@@ -227,10 +227,10 @@ class InstructionProjectionTest(unittest.TestCase):
                     "system_prompt_mode": "prepend_to_instructions",
                 },
             }
-            ctx = scion_harness.ProvisionContext("hermes", manifest)
+            ctx = fabric_harness.ProvisionContext("hermes", manifest)
 
             with temporary_home(home):
-                scion_harness.project_instructions(
+                fabric_harness.project_instructions(
                     ctx, "AGENTS.md", skills_dir=".hermes/skills",
                 )
 
@@ -264,10 +264,10 @@ class InstructionProjectionTest(unittest.TestCase):
                     "system_prompt_mode": "prepend_to_instructions",
                 },
             }
-            ctx = scion_harness.ProvisionContext("hermes", manifest)
+            ctx = fabric_harness.ProvisionContext("hermes", manifest)
 
             with temporary_home(home):
-                scion_harness.project_instructions(
+                fabric_harness.project_instructions(
                     ctx, "AGENTS.md", skills_dir=".hermes/skills",
                 )
 
@@ -283,7 +283,7 @@ class InstructionProjectionTest(unittest.TestCase):
         stderr = io.StringIO()
 
         with redirect_stderr(stderr):
-            got = scion_harness._strip_managed_block(content)
+            got = fabric_harness._strip_managed_block(content)
 
         self.assertEqual(got, content)
         self.assertIn("Aborting strip to prevent data loss", stderr.getvalue())
@@ -295,13 +295,13 @@ class MCPEntryBuildingTest(unittest.TestCase):
             "transport": "stdio",
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-filesystem"],
-            "env": {"HOME": "/home/scion"},
+            "env": {"HOME": "/home/fabric"},
         }
         entry = provision._build_mcp_entry("fs", spec)
         self.assertIsNotNone(entry)
         self.assertEqual(entry["command"], "npx")
         self.assertEqual(entry["args"], ["-y", "@modelcontextprotocol/server-filesystem"])
-        self.assertEqual(entry["env"], {"HOME": "/home/scion"})
+        self.assertEqual(entry["env"], {"HOME": "/home/fabric"})
 
     def test_sse_transport(self) -> None:
         spec = {
@@ -354,7 +354,7 @@ class MCPEntryBuildingTest(unittest.TestCase):
             self.assertTrue(os.path.isfile(mcp_path))
 
             manifest = {"harness_bundle_dir": bundle}
-            ctx = scion_harness.ProvisionContext("hermes", manifest)
+            ctx = fabric_harness.ProvisionContext("hermes", manifest)
             with temporary_home(home):
                 count = provision._apply_mcp_servers(ctx)
 

@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document defines the principal model for the Scion Hub's authorization system. A **principal** is any identity that can be referenced in access control policies. This design extends the existing user and agent identity model with a unified principal abstraction and a rich group system that supports both explicit membership and dynamic, system-derived membership.
+This document defines the principal model for the Fabric Hub's authorization system. A **principal** is any identity that can be referenced in access control policies. This design extends the existing user and agent identity model with a unified principal abstraction and a rich group system that supports both explicit membership and dynamic, system-derived membership.
 
 This document is a prerequisite for the permissions system described in `permissions-design.md`. It establishes the identities and groupings that serve as the subjects in authorization policy evaluation.
 
@@ -1045,7 +1045,7 @@ All principal and group operations are logged:
 | **Delegation** (chosen) | Leverages existing user permissions; no separate identity management | Tight coupling to creator; requires careful scope gating |
 | **Service accounts** | Independently managed identities; clear separation | Additional identity lifecycle; more policies to manage; UX complexity |
 
-**Decision:** Delegation is more natural for Scion's model where agents are ephemeral extensions of human users. Service accounts may be added later for long-lived automated agents.
+**Decision:** Delegation is more natural for Fabric's model where agents are ephemeral extensions of human users. Service accounts may be added later for long-lived automated agents.
 
 ---
 
@@ -1127,7 +1127,7 @@ The following questions were raised during the design process and have been reso
 - **Permissions System Design:** `permissions-design.md`
 - **Authentication Overview:** `auth-overview.md`
 - **Server Authentication Design:** `server-auth-design.md`
-- **Agent Token Service:** `sciontool-auth.md`
+- **Agent Token Service:** `fabrictool-auth.md`
 - **Implementation Milestones:** `auth-milestones.md`
 - **Ent Documentation:** https://entgo.io/
 - **Ent Edge Schemas:** https://entgo.io/docs/schema-edges/

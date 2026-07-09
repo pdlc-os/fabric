@@ -26,7 +26,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -545,7 +545,7 @@ func TestDiscordChannel_UsernameAndAvatar(t *testing.T) {
 
 	ch := &DiscordChannel{
 		webhookURL: server.URL,
-		username:   "scion-bot",
+		username:   "fabric-bot",
 		avatarURL:  "https://example.com/avatar.png",
 		client:     http.DefaultClient,
 	}
@@ -556,7 +556,7 @@ func TestDiscordChannel_UsernameAndAvatar(t *testing.T) {
 
 	var payload discordPayload
 	require.NoError(t, json.Unmarshal(received, &payload))
-	assert.Equal(t, "scion-bot", payload.Username)
+	assert.Equal(t, "fabric-bot", payload.Username)
 	assert.Equal(t, "https://example.com/avatar.png", payload.AvatarURL)
 }
 

@@ -48,7 +48,7 @@ type ProjectInfo struct {
 	Status        ProjectStatus `json:"status"`
 	AgentCount    int           `json:"agent_count"`
 	// agentsPath overrides the default agents directory derivation.
-	// Used for legacy git projects where agents are a sibling of .scion/.
+	// Used for legacy git projects where agents are a sibling of .fabric/.
 	agentsPath string
 }
 
@@ -61,8 +61,8 @@ func (g ProjectInfo) AgentsDir() string {
 }
 
 // DiscoverProjects scans for all known projects on this machine.
-// It checks the global project, then scans ~/.scion/project-configs/ and
-// the legacy ~/.scion/grove-configs/ for external and git project configs.
+// It checks the global project, then scans ~/.fabric/project-configs/ and
+// the legacy ~/.fabric/grove-configs/ for external and git project configs.
 func DiscoverProjects() ([]ProjectInfo, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -119,18 +119,18 @@ func scanConfigDir(projects []ProjectInfo, configDir string, seenSlugs map[strin
 			continue
 		}
 
-		configPath := filepath.Join(configDir, dirName, DotScion)
+		configPath := filepath.Join(configDir, dirName, DotFabric)
 		legacyAgentsSibling := filepath.Join(configDir, dirName, "agents")
 
-		_, scionErr := os.Stat(configPath)
+		_, fabricErr := os.Stat(configPath)
 		_, legacyAgentsErr := os.Stat(legacyAgentsSibling)
-		scionExists := scionErr == nil
+		fabricExists := fabricErr == nil
 		legacyAgentsExist := legacyAgentsErr == nil
 
 		var pi ProjectInfo
 		switch {
-		case scionExists:
-			// .scion/ exists — distinguish external vs git by checking for
+		case fabricExists:
+			// .fabric/ exists — distinguish external vs git by checking for
 			// a workspace_path in settings (external projects point back to
 			// their original project directory).
 			if settings, err := LoadSettings(configPath); err == nil && settings.WorkspacePath != "" {
@@ -140,10 +140,10 @@ func scanConfigDir(projects []ProjectInfo, configDir string, seenSlugs map[strin
 				pi = projectInfoFromGitExternalWithConfig(configPath, agentsDir, dirName, slug)
 			}
 		case legacyAgentsExist:
-			// Legacy git project: agents/ as sibling without .scion/ dir.
+			// Legacy git project: agents/ as sibling without .fabric/ dir.
 			pi = projectInfoFromGitExternal(legacyAgentsSibling, dirName, slug)
 		default:
-			// No .scion and no agents dir — orphaned leftover.
+			// No .fabric and no agents dir — orphaned leftover.
 			pi = ProjectInfo{
 				Name:       slug,
 				Type:       ProjectTypeGit,
@@ -191,7 +191,7 @@ func projectInfoFromExternal(configPath, dirName, slug string) ProjectInfo {
 }
 
 // projectInfoFromGitExternalWithConfig builds a ProjectInfo for a git project that has
-// an external config dir (.scion/) with agents stored at .scion/agents/.
+// an external config dir (.fabric/) with agents stored at .fabric/agents/.
 // This is the layout produced by initInRepoProject after the config externalization change.
 func projectInfoFromGitExternalWithConfig(configPath, agentsDir, dirName, slug string) ProjectInfo {
 	pi := ProjectInfo{
@@ -225,14 +225,14 @@ func readWorkspaceMarkerForSlug(slug string) (*ProjectMarker, string, error) {
 
 	// 1. Try projects/
 	workspacePath := filepath.Join(home, GlobalDir, ProjectsDir, slug)
-	markerPath := filepath.Join(workspacePath, DotScion)
+	markerPath := filepath.Join(workspacePath, DotFabric)
 	if marker, err := ReadProjectMarker(markerPath); err == nil {
 		return marker, workspacePath, nil
 	}
 
 	// 2. Fallback to legacy groves/
 	workspacePath = filepath.Join(home, GlobalDir, GrovesDir, slug)
-	markerPath = filepath.Join(workspacePath, DotScion)
+	markerPath = filepath.Join(workspacePath, DotFabric)
 	if marker, err := ReadProjectMarker(markerPath); err == nil {
 		return marker, workspacePath, nil
 	}
@@ -241,37 +241,37 @@ func readWorkspaceMarkerForSlug(slug string) (*ProjectMarker, string, error) {
 }
 
 // projectInfoFromGitExternal builds a ProjectInfo for a legacy git project's external agents
-// directory (no .scion/ subdir). If the agents directory is empty, the project is marked
+// directory (no .fabric/ subdir). If the agents directory is empty, the project is marked
 // as orphaned since there is no config to link back to the source project.
 func projectInfoFromGitExternal(agentsDir, dirName, slug string) ProjectInfo {
 	pi := ProjectInfo{
 		Name:       slug,
 		Type:       ProjectTypeGit,
-		ConfigPath: filepath.Join(filepath.Dir(agentsDir), DotScion),
-		agentsPath: agentsDir, // legacy: agents as sibling of .scion/
+		ConfigPath: filepath.Join(filepath.Dir(agentsDir), DotFabric),
+		agentsPath: agentsDir, // legacy: agents as sibling of .fabric/
 		Status:     ProjectStatusOK,
 	}
 
 	pi.AgentCount = countAgents(agentsDir)
 
 	if pi.AgentCount == 0 {
-		// No agents and no .scion directory — this is an orphaned leftover
+		// No agents and no .fabric directory — this is an orphaned leftover
 		// (e.g. from a deleted workspace or test run).
 		pi.Status = ProjectStatusOrphaned
 	} else {
-		// Has agents but no .scion — can't determine workspace path.
+		// Has agents but no .fabric — can't determine workspace path.
 		pi.WorkspacePath = "(git repo)"
 	}
 
 	return pi
 }
 
-// isValidWorkspace checks if a workspace path exists and has a valid .scion
+// isValidWorkspace checks if a workspace path exists and has a valid .fabric
 // marker or directory pointing back to the expected project config.
 // For external (non-git) projects, configPath is the expected project-config path;
 // the workspace marker must resolve to the same path.
 func isValidWorkspace(workspacePath, expectedProjectID string, configPath ...string) bool {
-	markerPath := filepath.Join(workspacePath, DotScion)
+	markerPath := filepath.Join(workspacePath, DotFabric)
 	info, err := os.Stat(markerPath)
 	if err != nil {
 		return false
@@ -349,10 +349,10 @@ func FindOrphanedProjectConfigs() ([]ProjectInfo, error) {
 
 // RemoveProjectConfig removes an external project config directory.
 func RemoveProjectConfig(configPath string) error {
-	// The configPath points to the .scion subdirectory or the project-configs/<slug__uuid> directory.
+	// The configPath points to the .fabric subdirectory or the project-configs/<slug__uuid> directory.
 	// We want to remove the project-configs/<slug__uuid> directory.
 	parent := configPath
-	if filepath.Base(parent) == DotScion {
+	if filepath.Base(parent) == DotFabric {
 		parent = filepath.Dir(parent)
 	}
 

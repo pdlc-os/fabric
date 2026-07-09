@@ -1,17 +1,17 @@
 ---
-title: Agent Configuration (scion-agent.yaml)
-description: Reference for Scion agent templates and configuration.
+title: Agent Configuration (fabric-agent.yaml)
+description: Reference for Fabric agent templates and configuration.
 ---
 
-The `scion-agent.yaml` file acts as the blueprint for an agent. It defines the environment, resources, and harness configuration required to run the agent.
+The `fabric-agent.yaml` file acts as the blueprint for an agent. It defines the environment, resources, and harness configuration required to run the agent.
 
 ## File Locations
 
-- **Templates**: `.scion/templates/<template-name>/scion-agent.yaml`
-- **Active Agents**: `.scion/agents/<agent-name>/scion-agent.yaml`
+- **Templates**: `.fabric/templates/<template-name>/fabric-agent.yaml`
+- **Active Agents**: `.fabric/agents/<agent-name>/fabric-agent.yaml`
 
 :::note[Format Change]
-Previous versions of Scion used `scion-agent.json`. The new versioned settings system uses `scion-agent.yaml`, though JSON is still supported as valid YAML.
+Previous versions of Fabric used `fabric-agent.json`. The new versioned settings system uses `fabric-agent.yaml`, though JSON is still supported as valid YAML.
 :::
 
 ## Configuration Fields
@@ -33,17 +33,17 @@ Previous versions of Scion used `scion-agent.json`. The new versioned settings s
 | `model` | string | LLM model identifier override. |
 
 :::caution[Harness Field Deprecated]
-The `harness` field is no longer supported in `scion-agent.yaml`. Templates must be harness-agnostic. Use `default_harness_config` to specify a preferred harness, which can be overridden by users at runtime.
+The `harness` field is no longer supported in `fabric-agent.yaml`. Templates must be harness-agnostic. Use `default_harness_config` to specify a preferred harness, which can be overridden by users at runtime.
 :::
 
 ### Automatic Instruction Extensions
 
-Scion automatically appends contextual instructions to the base `agent_instructions` during provisioning:
+Fabric automatically appends contextual instructions to the base `agent_instructions` during provisioning:
 
 - **`agents-git.md`**: Appended if the agent is running in a Git-backed workspace. Provides operational context for git worktree and branch management.
-- **`agents-hub.md`**: Appended if the agent is connected to a Scion Hub. Provides instructions for status reporting and Hub API interaction.
+- **`agents-hub.md`**: Appended if the agent is connected to a Fabric Hub. Provides instructions for status reporting and Hub API interaction.
 
-These extensions are managed by Scion and do not need to be manually included in your template definition.
+These extensions are managed by Fabric and do not need to be manually included in your template definition.
 
 ### Limits & Resources
 
@@ -113,7 +113,7 @@ hub:
 
 ### Required Secrets (`secrets`)
 
-Define secrets required by the agent. These follow the same schema as [Orchestrator Settings Secrets](/scion/reference/orchestrator-settings/#required-secrets).
+Define secrets required by the agent. These follow the same schema as [Orchestrator Settings Secrets](/fabric/reference/orchestrator-settings/#required-secrets).
 
 ### Gemini Settings (`gemini`)
 
@@ -141,7 +141,7 @@ telemetry:
     service.name: "my-specialized-agent"
 ```
 
-See the [Orchestrator Settings Reference](/scion/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference and the [Metrics guide](/scion/hosted/single-node/metrics/#configuration-hierarchy) for how telemetry settings merge across scopes.
+See the [Orchestrator Settings Reference](/fabric/reference/orchestrator-settings/#telemetry-configuration-telemetry) for the full field reference and the [Metrics guide](/fabric/hosted/single-node/metrics/#configuration-hierarchy) for how telemetry settings merge across scopes.
 
 ### Kubernetes Specifics (`kubernetes`)
 
@@ -158,7 +158,7 @@ kubernetes:
 
 When an agent starts:
 
-1.  **Template Load**: Scion loads `scion-agent.yaml` from the selected template.
+1.  **Template Load**: Fabric loads `fabric-agent.yaml` from the selected template.
 2.  **Harness Resolution**: It resolves the `harness_config` against the active profile's `harness_configs` map in `settings.yaml`.
-3.  **Overrides**: CLI flags (e.g., `--image`, `--env`) override values in `scion-agent.yaml`.
+3.  **Overrides**: CLI flags (e.g., `--image`, `--env`) override values in `fabric-agent.yaml`.
 4.  **Final Config**: The resolved configuration is written to the agent's runtime directory.

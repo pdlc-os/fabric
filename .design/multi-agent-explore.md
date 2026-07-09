@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document explores high-level patterns for orchestrating multi-agent workflows in Scion, using specialized templates for distinct roles (planner, architect, security reviewer, code reviewer, integrator, etc.). It examines what the platform currently supports, identifies gaps, and proposes a layered approach to enabling complex, decomposable project work across a set of coordinated agents.
+This document explores high-level patterns for orchestrating multi-agent workflows in Fabric, using specialized templates for distinct roles (planner, architect, security reviewer, code reviewer, integrator, etc.). It examines what the platform currently supports, identifies gaps, and proposes a layered approach to enabling complex, decomposable project work across a set of coordinated agents.
 
 ---
 
@@ -14,7 +14,7 @@ This document explores high-level patterns for orchestrating multi-agent workflo
 
 ### What Exists
 
-Scion already provides the right primitives for isolation and identity:
+Fabric already provides the right primitives for isolation and identity:
 
 - **Container-based agent isolation** with dedicated home directories and environment.
 - **Git worktrees** giving each agent an independent workspace without conflicts.
@@ -42,7 +42,7 @@ The main gap is **orchestration** -- there is no mechanism for agents to decompo
 Templates are the natural place to encode agent specialization. Today a template is mostly a harness config plus a system prompt. For role-based agents, templates should carry richer semantics:
 
 ```yaml
-# .scion/templates/architect/scion-agent.yaml
+# .fabric/templates/architect/fabric-agent.yaml
 harness: claude
 role: architect
 hub_access:
@@ -136,7 +136,7 @@ A top-level coordinator agent with broad `hub_access` scopes manages the entire 
 **Requirements:**
 - Everything from Patterns A and B.
 - **Inter-agent communication** beyond status polling. Options:
-  1. **Shared files in grove**: Agents write structured artifacts to `.scion/artifacts/<agent>/` which others can read.
+  1. **Shared files in grove**: Agents write structured artifacts to `.fabric/artifacts/<agent>/` which others can read.
   2. **Hub message queue**: A simple pub/sub or mailbox API on the Hub where agents post structured messages.
   3. **Git-based coordination**: Agents commit structured files (e.g., `REVIEW.md`, `TASKS.json`) that other agents read from the repo.
 
@@ -149,7 +149,7 @@ The most critical missing piece. This should be a lightweight protocol layered o
 ### Task Definition Format
 
 ```yaml
-# .scion/tasks/task-001.yaml  (committed to repo or stored in Hub)
+# .fabric/tasks/task-001.yaml  (committed to repo or stored in Hub)
 id: task-001
 title: "Implement user authentication middleware"
 created_by: planner-agent
@@ -210,8 +210,8 @@ Prioritized phases for building this out.
 
 ### Phase 2: Shared Artifacts and Task Tracking
 
-- Define the task artifact format (YAML/JSON files in `.scion/tasks/`).
-- Build a `scion tasks` CLI command for listing and updating tasks.
+- Define the task artifact format (YAML/JSON files in `.fabric/tasks/`).
+- Build a `fabric tasks` CLI command for listing and updating tasks.
 - Add Hub API endpoints for task CRUD in hosted mode.
 
 ### Phase 3: Workflow Templates (Declarative)
@@ -236,7 +236,7 @@ stages:
     depends_on: [security]
 ```
 
-Add a `scion workflow start <workflow.yaml> --goal "..."` command that launches the coordinator.
+Add a `fabric workflow start <workflow.yaml> --goal "..."` command that launches the coordinator.
 
 ### Phase 4: Event-Driven Coordination
 
@@ -274,7 +274,7 @@ Git itself is an excellent coordination substrate. Agents already share a reposi
 
 ### Coordinator Optionality
 
-The coordinator agent should be optional, not mandatory. Simple fan-out workflows don't need a persistent coordinator. A `scion workflow` command can handle launching and monitoring. The autonomous coordinator pattern should be reserved for complex, adaptive workflows where replanning is expected.
+The coordinator agent should be optional, not mandatory. Simple fan-out workflows don't need a persistent coordinator. A `fabric workflow` command can handle launching and monitoring. The autonomous coordinator pattern should be reserved for complex, adaptive workflows where replanning is expected.
 
 ---
 

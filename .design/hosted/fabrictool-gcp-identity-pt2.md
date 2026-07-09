@@ -4,13 +4,13 @@
 
 ## Context
 
-This document covers the remaining work to complete GCP identity support in Scion, building on the foundation established in [sciontool-gcp-identity.md](./sciontool-gcp-identity.md). Phases 1 (Foundation) and 2 (Hardening) are complete, delivering:
+This document covers the remaining work to complete GCP identity support in Fabric, building on the foundation established in [fabrictool-gcp-identity.md](./fabrictool-gcp-identity.md). Phases 1 (Foundation) and 2 (Hardening) are complete, delivering:
 
 - Hub API endpoints for GCP service account CRUD and verification
 - Hub token brokering endpoints (`/agent/gcp-token`, `/agent/gcp-identity-token`)
-- CLI commands (`scion grove service-accounts add/list/remove/verify`)
+- CLI commands (`fabric grove service-accounts add/list/remove/verify`)
 - Hub client library (`GCPServiceAccountService` interface)
-- Metadata server sidecar in sciontool with block/assign/passthrough modes
+- Metadata server sidecar in fabrictool with block/assign/passthrough modes
 - iptables interception for Docker runtime
 - Rate limiting, metrics, and audit logging
 
@@ -105,14 +105,14 @@ This can be added later if needed. For now, GCP identity is set at creation time
 
 ### 2.1 Technology & Patterns
 
-The Scion web UI uses:
+The Fabric web UI uses:
 
 - **Lit** (Web Components) with TypeScript
 - **Shoelace** component library (sl-button, sl-dialog, sl-select, etc.)
 - **Client-side router** with lazy-loaded page components
 - **SSE-based real-time state** via `StateManager`
 - **Capabilities-based authorization** (`_capabilities` on API responses)
-- **Shared reusable components** for CRUD operations (e.g., `scion-secret-list`, `scion-env-var-list`)
+- **Shared reusable components** for CRUD operations (e.g., `fabric-secret-list`, `fabric-env-var-list`)
 
 Key patterns to follow:
 
@@ -161,13 +161,13 @@ export interface GCPIdentityAssignment {
 
 **File**: `web/src/components/shared/gcp-service-account-list.ts`
 
-**Pattern**: Follows `scion-secret-list` — a reusable component that can be embedded in the grove detail Settings tab as a compact section, or used standalone.
+**Pattern**: Follows `fabric-secret-list` — a reusable component that can be embedded in the grove detail Settings tab as a compact section, or used standalone.
 
 #### Properties
 
 ```typescript
-@customElement('scion-gcp-service-account-list')
-export class ScionGCPServiceAccountList extends LitElement {
+@customElement('fabric-gcp-service-account-list')
+export class FabricGCPServiceAccountList extends LitElement {
   @property() groveId = '';
   @property({ type: Boolean }) compact = false;
 
@@ -228,10 +228,10 @@ Add the GCP service account list as a new section in the Settings tab, alongside
 
 ```html
 <sl-tab-panel name="settings">
-  <scion-env-var-list .groveId=${this.groveId} compact></scion-env-var-list>
-  <scion-secret-list scope="grove" .scopeId=${this.groveId} compact></scion-secret-list>
+  <fabric-env-var-list .groveId=${this.groveId} compact></fabric-env-var-list>
+  <fabric-secret-list scope="grove" .scopeId=${this.groveId} compact></fabric-secret-list>
   <!-- New section -->
-  <scion-gcp-service-account-list .groveId=${this.groveId} compact></scion-gcp-service-account-list>
+  <fabric-gcp-service-account-list .groveId=${this.groveId} compact></fabric-gcp-service-account-list>
 </sl-tab-panel>
 ```
 
@@ -378,7 +378,7 @@ UI elements (Add button, Delete button, Verify button) should be gated on these 
 | `pkg/api/types.go` | Add `GCPIdentityAssignment` request type (if not using hub-internal types) |
 | `web/src/shared/types.ts` | Add `GCPServiceAccount`, `GCPIdentityConfig`, `GCPIdentityAssignment` interfaces |
 | `web/src/components/shared/gcp-service-account-list.ts` | New: Reusable SA management component |
-| `web/src/components/pages/grove-detail.ts` | Embed `scion-gcp-service-account-list` in Settings tab |
+| `web/src/components/pages/grove-detail.ts` | Embed `fabric-gcp-service-account-list` in Settings tab |
 | `web/src/components/pages/agent-create.ts` | Add GCP identity section (metadata mode + SA select) |
 | `web/src/components/pages/agent-detail.ts` | Display GCP identity info in overview/settings |
 | `pkg/hub/handlers_gcp_identity.go` | Add `_capabilities` to SA API responses |
@@ -387,7 +387,7 @@ UI elements (Add button, Delete button, Verify button) should be gated on these 
 
 1. **Backend**: Wire GCP identity assignment into `CreateAgentRequest` and `buildAppliedConfig()` (prerequisite for everything else)
 2. **Types**: Add TypeScript interfaces to `web/src/shared/types.ts`
-3. **SA List Component**: Build `scion-gcp-service-account-list` following `scion-secret-list` pattern
+3. **SA List Component**: Build `fabric-gcp-service-account-list` following `fabric-secret-list` pattern
 4. **Grove Detail**: Embed SA list in Settings tab
 5. **Agent Create Form**: Add GCP identity section with mode selector and SA dropdown
 6. **Agent Detail**: Add read-only GCP identity display

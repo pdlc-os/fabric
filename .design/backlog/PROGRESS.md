@@ -1,4 +1,4 @@
-# Development Progress Log — Scion
+# Development Progress Log — Fabric
 
 ## Session 1
 
@@ -18,24 +18,24 @@
 ## Session 2 — 2026-04-13/14
 
 ### Goals
-- Build all scion container images in Artifact Registry
+- Build all fabric container images in Artifact Registry
 - Run a test Claude agent on GKE cluster
 - Investigate and fix attach issues for remote K8s agents
 
 ### Completed
 - **Built all container images via Cloud Build** (build `174bd4ab`, ~83 min)
-  - core-base, scion-base, scion-claude, scion-gemini, scion-opencode, scion-codex
+  - core-base, fabric-base, fabric-claude, fabric-gemini, fabric-opencode, fabric-codex
   - All tagged `c1713dff` + `latest` in `us-central1-docker.pkg.dev/deploy-demo-test/public-docker/`
-- **Successfully ran a test Claude agent on GKE** (`scion start test-agent --profile remote --grove global`)
+- **Successfully ran a test Claude agent on GKE** (`fabric start test-agent --profile remote --grove global`)
   - Claude Code wrote `hello.py`, ran it, reported task completion — full end-to-end verified
 - **F-0001: Fixed K8s attach pod name resolution** (`pkg/runtime/k8s_runtime.go`)
-  - `Attach()` used bare agent name as pod name but K8s pods have grove-prefixed names (e.g., `sciontest--hello`)
+  - `Attach()` used bare agent name as pod name but K8s pods have grove-prefixed names (e.g., `fabrictest--hello`)
   - Fixed by setting `podName = agent.ContainerID` after agent lookup
 - **F-0002: Fixed K8s attach su password prompt** (`pkg/runtime/k8s_runtime.go`)
-  - `su - scion` prompts for password on GKE Autopilot where container runs as non-root with `allowPrivilegeEscalation: false`
+  - `su - fabric` prompts for password on GKE Autopilot where container runs as non-root with `allowPrivilegeEscalation: false`
   - Fixed with runtime `whoami` check: skip `su` when already the target user
-- **Confirmed maintainer push access** to `github.com/GoogleCloudPlatform/scion` via test branch
-- **Researched scion attach architecture**: SPDY exec, K8s auth chain, tmux session lifecycle
+- **Confirmed maintainer push access** to `github.com/pdlc-os/fabric` via test branch
+- **Researched fabric attach architecture**: SPDY exec, K8s auth chain, tmux session lifecycle
 - **Updated CLAUDE.md** with project overview, tech stack, infrastructure details
 
 ### Key Decisions

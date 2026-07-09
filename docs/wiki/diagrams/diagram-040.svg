@@ -31,15 +31,15 @@
 <polygon fill="lightblue" stroke="black" points="282.25,-404 123.75,-404 123.75,-368 282.25,-368 282.25,-404"/>
 <text xml:space="preserve" text-anchor="middle" x="203" y="-377.95" font-family="Times,serif" font-size="14.00">Generic MCP Configs</text>
 </g>
-<!-- scion_harness.py -->
+<!-- fabric_harness.py -->
 <g id="node2" class="node">
-<title>scion_harness.py</title>
+<title>fabric_harness.py</title>
 <polygon fill="lightblue" stroke="black" points="406,-313 0,-313 0,-277 406,-277 406,-313"/>
-<text xml:space="preserve" text-anchor="middle" x="203" y="-286.95" font-family="Times,serif" font-size="14.00">scion_harness.py (MCP Translation &amp; Standardization)</text>
+<text xml:space="preserve" text-anchor="middle" x="203" y="-286.95" font-family="Times,serif" font-size="14.00">fabric_harness.py (MCP Translation &amp; Standardization)</text>
 </g>
-<!-- Generic MCP Configs&#45;&gt;scion_harness.py -->
+<!-- Generic MCP Configs&#45;&gt;fabric_harness.py -->
 <g id="edge1" class="edge">
-<title>Generic MCP Configs&#45;&gt;scion_harness.py</title>
+<title>Generic MCP Configs&#45;&gt;fabric_harness.py</title>
 <path fill="none" stroke="black" d="M203,-367.84C203,-355.61 203,-338.87 203,-324.63"/>
 <polygon fill="black" stroke="black" points="206.5,-324.92 203,-314.92 199.5,-324.92 206.5,-324.92"/>
 <text xml:space="preserve" text-anchor="middle" x="221.75" y="-331.95" font-family="Times,serif" font-size="14.00">Input</text>
@@ -51,9 +51,9 @@
 <text xml:space="preserve" text-anchor="middle" x="203" y="-200.2" font-family="Times,serif" font-size="14.00">Agent&#45;Specific Provisioners</text>
 <text xml:space="preserve" text-anchor="middle" x="203" y="-189.7" font-family="Times,serif" font-size="14.00">(e.g., Copilot, Codex, Claude)</text>
 </g>
-<!-- scion_harness.py&#45;&gt;Agent Provisioners -->
+<!-- fabric_harness.py&#45;&gt;Agent Provisioners -->
 <g id="edge2" class="edge">
-<title>scion_harness.py&#45;&gt;Agent Provisioners</title>
+<title>fabric_harness.py&#45;&gt;Agent Provisioners</title>
 <path fill="none" stroke="black" d="M203,-276.65C203,-264.2 203,-247.14 203,-232.68"/>
 <polygon fill="black" stroke="black" points="206.5,-232.81 203,-222.81 199.5,-232.81 206.5,-232.81"/>
 <text xml:space="preserve" text-anchor="middle" x="281.75" y="-240.95" font-family="Times,serif" font-size="14.00">Translates &amp; Provides</text>

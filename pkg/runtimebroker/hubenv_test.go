@@ -29,15 +29,15 @@ func TestHubEndpointFromResolvedEnv(t *testing.T) {
 		{
 			name: "prefers endpoint key",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "https://primary.example.com",
-				"SCION_HUB_URL":      "https://legacy.example.com",
+				"FABRIC_HUB_ENDPOINT": "https://primary.example.com",
+				"FABRIC_HUB_URL":      "https://legacy.example.com",
 			},
 			want: "https://primary.example.com",
 		},
 		{
 			name: "falls back to legacy url key",
 			env: map[string]string{
-				"SCION_HUB_URL": "https://legacy.example.com",
+				"FABRIC_HUB_URL": "https://legacy.example.com",
 			},
 			want: "https://legacy.example.com",
 		},
@@ -74,7 +74,7 @@ func TestResolveHubEndpointForStartPrecedence(t *testing.T) {
 		{
 			name:        "resolved env wins over broker",
 			broker:      "https://broker.example.com",
-			resolved:    map[string]string{"SCION_HUB_ENDPOINT": "https://resolved.example.com"},
+			resolved:    map[string]string{"FABRIC_HUB_ENDPOINT": "https://resolved.example.com"},
 			projectPath: projectDir,
 			want:        "https://resolved.example.com",
 		},
@@ -87,7 +87,7 @@ func TestResolveHubEndpointForStartPrecedence(t *testing.T) {
 		},
 		{
 			name:        "resolved env wins over settings",
-			resolved:    map[string]string{"SCION_HUB_URL": "https://resolved-legacy.example.com"},
+			resolved:    map[string]string{"FABRIC_HUB_URL": "https://resolved-legacy.example.com"},
 			projectPath: projectDir,
 			want:        "https://resolved-legacy.example.com",
 		},
@@ -100,7 +100,7 @@ func TestResolveHubEndpointForStartPrecedence(t *testing.T) {
 		{
 			name:                 "production combo: resolved public URL prevents bridge override over localhost broker",
 			broker:               "http://localhost:8080",
-			resolved:             map[string]string{"SCION_HUB_ENDPOINT": "https://hub.production.example.com"},
+			resolved:             map[string]string{"FABRIC_HUB_ENDPOINT": "https://hub.production.example.com"},
 			containerHubEndpoint: "http://host.docker.internal:8080",
 			want:                 "https://hub.production.example.com",
 		},
@@ -153,7 +153,7 @@ func TestResolveHubEndpointForCreatePrecedence(t *testing.T) {
 		},
 		{
 			name:        "resolved env fallback",
-			resolved:    map[string]string{"SCION_HUB_ENDPOINT": "https://resolved.example.com"},
+			resolved:    map[string]string{"FABRIC_HUB_ENDPOINT": "https://resolved.example.com"},
 			projectPath: projectDir,
 			want:        "https://resolved.example.com",
 		},
@@ -368,16 +368,16 @@ func TestColocatedExtraHosts(t *testing.T) {
 }
 
 func TestRedactEnvValueForLog(t *testing.T) {
-	if got := redactEnvValueForLog("SCION_AUTH_TOKEN", "secret-token"); got != redactedEnvValue {
-		t.Fatalf("SCION_AUTH_TOKEN should be redacted, got %q", got)
+	if got := redactEnvValueForLog("FABRIC_AUTH_TOKEN", "secret-token"); got != redactedEnvValue {
+		t.Fatalf("FABRIC_AUTH_TOKEN should be redacted, got %q", got)
 	}
-	if got := redactEnvValueForLog("SCION_BROKER_ID", "broker-1"); got != "broker-1" {
-		t.Fatalf("SCION_BROKER_ID should remain visible, got %q", got)
+	if got := redactEnvValueForLog("FABRIC_BROKER_ID", "broker-1"); got != "broker-1" {
+		t.Fatalf("FABRIC_BROKER_ID should remain visible, got %q", got)
 	}
-	if got := redactEnvValueForLog("SCION_HUB_ENDPOINT", "https://hub.example.com"); got != "https://hub.example.com" {
-		t.Fatalf("SCION_HUB_ENDPOINT should remain visible, got %q", got)
+	if got := redactEnvValueForLog("FABRIC_HUB_ENDPOINT", "https://hub.example.com"); got != "https://hub.example.com" {
+		t.Fatalf("FABRIC_HUB_ENDPOINT should remain visible, got %q", got)
 	}
-	if got := redactEnvValueForLog("SCION_HUB_URL", "https://hub.example.com"); got != "https://hub.example.com" {
-		t.Fatalf("SCION_HUB_URL should remain visible, got %q", got)
+	if got := redactEnvValueForLog("FABRIC_HUB_URL", "https://hub.example.com"); got != "https://hub.example.com" {
+		t.Fatalf("FABRIC_HUB_URL should remain visible, got %q", got)
 	}
 }

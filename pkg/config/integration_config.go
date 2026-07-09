@@ -62,7 +62,7 @@ type YAMLConfigProvider struct {
 }
 
 // NewYAMLConfigProvider creates a new YAMLConfigProvider for the given file path.
-// If path is relative, it is resolved relative to the global scion config dir (~/.scion/).
+// If path is relative, it is resolved relative to the global fabric config dir (~/.fabric/).
 func NewYAMLConfigProvider(path string) (*YAMLConfigProvider, error) {
 	if path == "" {
 		return nil, fmt.Errorf("config file path is required")
@@ -237,14 +237,14 @@ func CreatePluginConfigFile(pluginName, configFilePath string) error {
 	// Write a minimal config file with only non-secret settings.
 	// Secret keys (bot_token, public_key, etc.) are managed via the
 	// secrets backend and should not appear in the config file.
-	content := "# Scion plugin configuration for " + pluginName + "\n"
+	content := "# Fabric plugin configuration for " + pluginName + "\n"
 	switch pluginName {
 	case "discord":
 		content += "application_id: \"\"\n"
 	case "slack":
 		content += "socket_mode: \"false\"\n"
 		content += "listen_address: \":3000\"\n"
-		content += "db_path: \"~/.scion/scion-slack.db\"\n"
+		content += "db_path: \"~/.fabric/fabric-slack.db\"\n"
 		content += "agent_cache_ttl: \"5m\"\n"
 	}
 

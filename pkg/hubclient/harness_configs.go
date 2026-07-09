@@ -26,8 +26,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // HarnessConfigService handles harness config operations.

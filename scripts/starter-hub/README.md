@@ -1,6 +1,6 @@
 # Starter Hub — GCE Demo Deployment
 
-Scripts for provisioning and operating a Scion Hub on a Google Compute Engine VM.
+Scripts for provisioning and operating a Fabric Hub on a Google Compute Engine VM.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ file paths from two primary variables:
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `HUB_NAME` | `demo` | Deployment name — drives GCE instance, SA, firewall rule, cluster, and DNS names |
-| `BASE_DOMAIN` | `scion-ai.dev` | Root domain — combined with `HUB_NAME` to form `hub.<name>.<base>` |
+| `BASE_DOMAIN` | `fabric-ai.dev` | Root domain — combined with `HUB_NAME` to form `hub.<name>.<base>` |
 | `ENABLE_GKE` | `false` | Set to `true` to provision a GKE cluster, grant `container.admin`, configure credentials, and use Kubernetes as the default runtime. |
 | `REGION` | `us-central1` | GCP region for GKE and resource locations |
 | `ZONE` | `us-central1-a` | GCP zone for the GCE VM instance |
@@ -25,7 +25,7 @@ To stand up a second hub (e.g., "staging"):
 
 ```bash
 export HUB_NAME=staging
-# All scripts now target scion-staging, hub.staging.scion-ai.dev, etc.
+# All scripts now target fabric-staging, hub.staging.fabric-ai.dev, etc.
 ```
 
 Any derived variable can also be overridden individually via the environment.
@@ -43,7 +43,7 @@ See `hub-config.sh` for the full list.
    ```
 
 2. Configure OAuth credentials for Google and/or GitHub. See the
-   [Authentication & Identity docs](https://scion-ai.dev/hub-admin/auth/)
+   [Authentication & Identity docs](https://fabric-ai.dev/hub-admin/auth/)
    for how to create OAuth client IDs and secrets for both web and CLI flows.
 
 ## Initial Provision (one-time)

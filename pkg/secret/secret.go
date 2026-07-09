@@ -27,12 +27,12 @@ import (
 // ErrNoSecretBackend is returned when a secret operation requires a production
 // secrets backend (e.g., GCP Secret Manager) but only the local backend is configured.
 // The local backend does not encrypt secret values, so write operations are rejected.
-var ErrNoSecretBackend = errors.New("secret storage requires a configured secrets backend; set SCION_SERVER_SECRETS_BACKEND=gcpsm")
+var ErrNoSecretBackend = errors.New("secret storage requires a configured secrets backend; set FABRIC_SERVER_SECRETS_BACKEND=gcpsm")
 
 // Secret type constants define how a secret is projected into the agent container.
 const (
 	TypeEnvironment = "environment" // Injected as environment variable (default)
-	TypeVariable    = "variable"    // Written to ~/.scion/secrets.json for programmatic access
+	TypeVariable    = "variable"    // Written to ~/.fabric/secrets.json for programmatic access
 	TypeFile        = "file"        // Written to a file at the specified Target path
 )
 

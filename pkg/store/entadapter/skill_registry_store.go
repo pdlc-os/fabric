@@ -20,9 +20,9 @@ import (
 
 	"entgo.io/ent/dialect"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	entskillregistry "github.com/GoogleCloudPlatform/scion/pkg/ent/skillregistry"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	entskillregistry "github.com/pdlc-os/fabric/pkg/ent/skillregistry"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // SkillRegistryStore implements store.SkillRegistryStore using Ent ORM.

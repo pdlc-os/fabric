@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Build Scion Images
+name: Build Fabric Images
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ on:
           - common
           - all
           - core-base
-          - scion-base
+          - fabric-base
           - harnesses
           - hub
         default: 'common'
@@ -50,7 +50,7 @@ on:
         required: true
         type: string
       target:
-        description: 'Build target (common, all, core-base, scion-base, harnesses, hub)'
+        description: 'Build target (common, all, core-base, fabric-base, harnesses, hub)'
         type: string
         default: 'common'
       tag:

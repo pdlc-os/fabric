@@ -20,10 +20,10 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	entharnessconfig "github.com/GoogleCloudPlatform/scion/pkg/ent/harnessconfig"
-	enttemplate "github.com/GoogleCloudPlatform/scion/pkg/ent/template"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	entharnessconfig "github.com/pdlc-os/fabric/pkg/ent/harnessconfig"
+	enttemplate "github.com/pdlc-os/fabric/pkg/ent/template"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // TemplateStore implements store.TemplateStore and store.HarnessConfigStore

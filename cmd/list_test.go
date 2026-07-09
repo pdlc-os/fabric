@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func TestFormatLastSeen(t *testing.T) {
@@ -340,7 +340,7 @@ func TestDisplayAgentsFriendlyTemplateName(t *testing.T) {
 	agents := []api.AgentInfo{
 		{
 			Name:            "agent-cache-path",
-			Template:        "/home/user/.scion/templates/cache/abc123/claude",
+			Template:        "/home/user/.fabric/templates/cache/abc123/claude",
 			Runtime:         "docker",
 			Project:         "my-project",
 			Phase:           "running",

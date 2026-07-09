@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // testTemplateBootstrapServer creates a hub Server backed by an in-memory
@@ -687,7 +687,7 @@ func TestDetectHarnessFromConfig_FromConfigFile(t *testing.T) {
 
 	configContent := `harness_config: claude
 `
-	if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -705,7 +705,7 @@ func TestDetectHarnessFromConfig_DefaultHarnessConfig(t *testing.T) {
 
 	configContent := `default_harness_config: gemini-web
 `
-	if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -723,7 +723,7 @@ func TestDetectHarnessFromConfig_HarnessField(t *testing.T) {
 
 	configContent := `harness: codex
 `
-	if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -741,7 +741,7 @@ func TestDetectHarnessFromConfig_CustomDefaultHarnessConfig(t *testing.T) {
 
 	configContent := `default_harness_config: adk
 `
-	if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -807,19 +807,19 @@ func TestImportTemplatesFromWorkspace_ImportsTemplates(t *testing.T) {
 	srv, s, project, wsRoot := setupWorkspaceProject(t, "ws-import")
 	ctx := context.Background()
 
-	// Create a templates directory with one valid scion template
-	templateDir := filepath.Join(wsRoot, ".scion", "templates", "my-template")
+	// Create a templates directory with one valid fabric template
+	templateDir := filepath.Join(wsRoot, ".fabric", "templates", "my-template")
 	if err := os.MkdirAll(templateDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(templateDir, "README.md"), []byte("hello"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	imported, err := srv.importTemplatesFromWorkspace(ctx, project, "/.scion/templates")
+	imported, err := srv.importTemplatesFromWorkspace(ctx, project, "/.fabric/templates")
 	if err != nil {
 		t.Fatalf("import failed: %v", err)
 	}
@@ -846,17 +846,17 @@ func TestImportTemplatesFromWorkspace_DefaultPath(t *testing.T) {
 	srv, s, project, wsRoot := setupWorkspaceProject(t, "ws-default")
 	ctx := context.Background()
 
-	// Create a template at the default /.scion/templates path
-	templateDir := filepath.Join(wsRoot, ".scion", "templates", "default-tmpl")
+	// Create a template at the default /.fabric/templates path
+	templateDir := filepath.Join(wsRoot, ".fabric", "templates", "default-tmpl")
 	if err := os.MkdirAll(templateDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte("harness: gemini\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte("harness: gemini\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Pass default path
-	imported, err := srv.importTemplatesFromWorkspace(ctx, project, "/.scion/templates")
+	imported, err := srv.importTemplatesFromWorkspace(ctx, project, "/.fabric/templates")
 	if err != nil {
 		t.Fatalf("import failed: %v", err)
 	}
@@ -897,8 +897,8 @@ func TestImportTemplatesFromWorkspace_NoTemplatesFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for directory with no templates")
 	}
-	if !strings.Contains(err.Error(), "no scion templates found") {
-		t.Fatalf("expected 'no scion templates found' error, got: %v", err)
+	if !strings.Contains(err.Error(), "no fabric templates found") {
+		t.Fatalf("expected 'no fabric templates found' error, got: %v", err)
 	}
 }
 
@@ -926,7 +926,7 @@ func TestImportTemplatesFromWorkspace_MultipleTemplates(t *testing.T) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -970,7 +970,7 @@ func TestImportTemplatesFromWorkspace_ParallelManyTemplates(t *testing.T) {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
 			t.Fatal(err)
 		}
 		// A few files each, to also exercise per-file upload parallelism.
@@ -1010,7 +1010,7 @@ func TestImportTemplatesFromWorkspace_ParallelManyTemplates(t *testing.T) {
 }
 
 // TestImportTemplatesFromWorkspace_SkipsHiddenDirs verifies discovery ignores
-// hidden/system directories (.git, .github, .scion) when scanning a parent
+// hidden/system directories (.git, .github, .fabric) when scanning a parent
 // directory for resources, importing only the real template and not reporting
 // the hidden dirs as skipped.
 func TestImportTemplatesFromWorkspace_SkipsHiddenDirs(t *testing.T) {
@@ -1023,10 +1023,10 @@ func TestImportTemplatesFromWorkspace_SkipsHiddenDirs(t *testing.T) {
 	if err := os.MkdirAll(tmpl, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(tmpl, "scion-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tmpl, "fabric-agent.yaml"), []byte("harness: claude\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	for _, hidden := range []string{".git", ".github", ".scion"} {
+	for _, hidden := range []string{".git", ".github", ".fabric"} {
 		d := filepath.Join(base, hidden)
 		if err := os.MkdirAll(d, 0755); err != nil {
 			t.Fatal(err)
@@ -1059,7 +1059,7 @@ func TestBootstrapTemplatesFromDir_ImportsDefaultHarnessConfig(t *testing.T) {
 	ctx := context.Background()
 
 	templatesDir := makeTemplateDir(t, "web-dev", map[string]string{
-		"scion-agent.yaml":                       "default_harness_config: claude-web\n",
+		"fabric-agent.yaml":                       "default_harness_config: claude-web\n",
 		"harness-configs/claude-web/config.yaml": "harness: claude\n",
 		"harness-configs/gemini-web/config.yaml": "harness: gemini\n",
 	})
@@ -1110,7 +1110,7 @@ func TestBootstrapTemplatesFromDir_BackfillsDefaultHarnessConfig(t *testing.T) {
 	ctx := context.Background()
 
 	templatesDir := makeTemplateDir(t, "backfill-tmpl", map[string]string{
-		"scion-agent.yaml":                       "default_harness_config: claude-web\n",
+		"fabric-agent.yaml":                       "default_harness_config: claude-web\n",
 		"harness-configs/claude-web/config.yaml": "harness: claude\n",
 	})
 
@@ -1152,7 +1152,7 @@ func TestImportTemplatesFromRemote_WithProjectGithubToken(t *testing.T) {
 		ID:        projectID,
 		Name:      "test-project",
 		Slug:      "test-project",
-		GitRemote: "https://github.com/chiefkarlin/scion-experiments",
+		GitRemote: "https://github.com/chiefkarlin/fabric-experiments",
 	}
 	if err := s.CreateProject(ctx, project); err != nil {
 		t.Fatal(err)
@@ -1195,14 +1195,14 @@ func TestImportTemplatesFromRemote_WithProjectGithubToken(t *testing.T) {
 			tw := tar.NewWriter(gzw)
 
 			files := map[string]string{
-				"scion-experiments-main/templates/my-template/scion-agent.yaml": `
+				"fabric-experiments-main/templates/my-template/fabric-agent.yaml": `
 schema_version: "1"
 description: "My test template"
 agent_instructions: agents.md
 system_prompt: system-prompt.md
 `,
-				"scion-experiments-main/templates/my-template/agents.md":        "# Agents instructions",
-				"scion-experiments-main/templates/my-template/system-prompt.md": "# System prompt",
+				"fabric-experiments-main/templates/my-template/agents.md":        "# Agents instructions",
+				"fabric-experiments-main/templates/my-template/system-prompt.md": "# System prompt",
 			}
 
 			for name, body := range files {
@@ -1233,7 +1233,7 @@ system_prompt: system-prompt.md
 	}
 
 	// Import templates from remote URL matching path structure in tarball
-	imported, err := srv.importTemplatesFromRemote(ctx, projectID, "https://github.com/chiefkarlin/scion-experiments/tree/main/templates")
+	imported, err := srv.importTemplatesFromRemote(ctx, projectID, "https://github.com/chiefkarlin/fabric-experiments/tree/main/templates")
 	if err != nil {
 		t.Fatalf("importTemplatesFromRemote failed: %v", err)
 	}
@@ -1279,7 +1279,7 @@ func TestImportHarnessConfigsFromRemote_WithProjectGithubToken(t *testing.T) {
 		ID:        projectID,
 		Name:      "test-project",
 		Slug:      "test-project",
-		GitRemote: "https://github.com/chiefkarlin/scion-experiments",
+		GitRemote: "https://github.com/chiefkarlin/fabric-experiments",
 	}
 	if err := s.CreateProject(ctx, project); err != nil {
 		t.Fatal(err)
@@ -1314,8 +1314,8 @@ func TestImportHarnessConfigsFromRemote_WithProjectGithubToken(t *testing.T) {
 			gzw := gzip.NewWriter(&buf)
 			tw := tar.NewWriter(gzw)
 			files := map[string]string{
-				"scion-experiments-main/harness-configs/my-config/config.yaml": "harness: claude\n",
-				"scion-experiments-main/harness-configs/my-config/CLAUDE.md":   "# Claude instructions",
+				"fabric-experiments-main/harness-configs/my-config/config.yaml": "harness: claude\n",
+				"fabric-experiments-main/harness-configs/my-config/CLAUDE.md":   "# Claude instructions",
 			}
 			for name, body := range files {
 				if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0600, Size: int64(len(body))}); err != nil {
@@ -1335,7 +1335,7 @@ func TestImportHarnessConfigsFromRemote_WithProjectGithubToken(t *testing.T) {
 		},
 	}
 
-	imported, err := srv.importHarnessConfigsFromRemote(ctx, projectID, "https://github.com/chiefkarlin/scion-experiments/tree/main/harness-configs")
+	imported, err := srv.importHarnessConfigsFromRemote(ctx, projectID, "https://github.com/chiefkarlin/fabric-experiments/tree/main/harness-configs")
 	if err != nil {
 		t.Fatalf("importHarnessConfigsFromRemote failed: %v", err)
 	}

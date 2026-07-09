@@ -3,7 +3,7 @@
 This release focuses on enhancing the project's documentation with a new marketing landing page and improving the reliability of broker-to-hub communication in local environments.
 
 ## 🚀 Features
-* **[Docs Site]: New Project Landing Page.** A standalone marketing page has been added at `/scion/landing/`, featuring a project overview, hero graphic, quickstart guide, and embedded video tour.
+* **[Docs Site]: New Project Landing Page.** A standalone marketing page has been added at `/fabric/landing/`, featuring a project overview, hero graphic, quickstart guide, and embedded video tour.
 
 ## 🐛 Fixes
 * **[Core]: Reliable Local Broker Connections.** Resolved an issue where brokers would fail to connect to the hub in environments without hairpin NAT support. By defaulting to `localhost` for co-located communication, terminal and heartbeat reliability is significantly improved.

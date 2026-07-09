@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/agent-viz/internal/logparser"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/logparser"
 )
 
 // Engine controls playback timing, speed, seeking, and filtering.

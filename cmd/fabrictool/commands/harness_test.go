@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package commands
@@ -36,7 +36,7 @@ func writeManifest(t *testing.T, dir string, m containerProvisionManifest) strin
 
 func baseManifest(t *testing.T, home, scriptPath string) containerProvisionManifest {
 	t.Helper()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	return containerProvisionManifest{
 		SchemaVersion:    1,
 		Command:          "provision",
@@ -66,7 +66,7 @@ func TestRunHarnessProvision_Success(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "outputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestRunHarnessProvision_RejectsManifestWithEscapingPaths(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestRunHarnessProvision_TimesOut(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func TestRunHarnessProvision_RejectsUnknownSchemaVersion(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestRunHarnessProvision_RejectsMissingProvisioner(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func TestRunHarnessProvision_InvalidEnvJSONFails(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "outputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -215,7 +215,7 @@ func TestRunHarnessProvision_PropagatesScriptStderr(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -236,7 +236,7 @@ func TestRunHarnessProvision_ExitCodeTwoIsUnsupported(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(bundle, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +257,7 @@ func TestRunHarnessProvision_ResolvesHomePrefixInManifestPaths(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "outputs"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func TestRunHarnessProvision_ResolvesHomePrefixInManifestPaths(t *testing.T) {
 		AgentName:        "agent",
 		AgentHome:        "$HOME",
 		AgentWorkspace:   "$HOME/workspace",
-		HarnessBundleDir: "$HOME/.scion/harness",
+		HarnessBundleDir: "$HOME/.fabric/harness",
 		HarnessConfig: containerHarnessCfg{
 			Harness: "test",
 			Provisioner: &containerProvisioner{
@@ -290,8 +290,8 @@ func TestRunHarnessProvision_ResolvesHomePrefixInManifestPaths(t *testing.T) {
 		},
 		Inputs: map[string]string{},
 		Outputs: containerOutputs{
-			Env:          "$HOME/.scion/harness/outputs/env.json",
-			ResolvedAuth: "$HOME/.scion/harness/outputs/resolved-auth.json",
+			Env:          "$HOME/.fabric/harness/outputs/env.json",
+			ResolvedAuth: "$HOME/.fabric/harness/outputs/resolved-auth.json",
 		},
 		Platform: map[string]string{"goos": "linux"},
 	}
@@ -310,39 +310,39 @@ func TestRunHarnessProvision_ResolvesHomePrefixInManifestPaths(t *testing.T) {
 
 func TestResolveManifestHomePaths(t *testing.T) {
 	m := &containerProvisionManifest{
-		HarnessBundleDir: "$HOME/.scion/harness",
+		HarnessBundleDir: "$HOME/.fabric/harness",
 		AgentHome:        "$HOME",
 		AgentWorkspace:   "$HOME/workspace",
 		Outputs: containerOutputs{
-			Env:          "$HOME/.scion/harness/outputs/env.json",
-			ResolvedAuth: "$HOME/.scion/harness/outputs/resolved-auth.json",
-			Status:       "$HOME/.scion/harness/outputs/status.json",
+			Env:          "$HOME/.fabric/harness/outputs/env.json",
+			ResolvedAuth: "$HOME/.fabric/harness/outputs/resolved-auth.json",
+			Status:       "$HOME/.fabric/harness/outputs/status.json",
 		},
 		Inputs: map[string]string{
-			"auth_candidates": "$HOME/.scion/harness/inputs/auth-candidates.json",
+			"auth_candidates": "$HOME/.fabric/harness/inputs/auth-candidates.json",
 		},
 	}
 
-	t.Setenv("HOME", "/home/scion")
-	resolveManifestHomePaths(m, "/home/scion")
+	t.Setenv("HOME", "/home/fabric")
+	resolveManifestHomePaths(m, "/home/fabric")
 
-	if m.HarnessBundleDir != "/home/scion/.scion/harness" {
-		t.Errorf("HarnessBundleDir = %q, want /home/scion/.scion/harness", m.HarnessBundleDir)
+	if m.HarnessBundleDir != "/home/fabric/.fabric/harness" {
+		t.Errorf("HarnessBundleDir = %q, want /home/fabric/.fabric/harness", m.HarnessBundleDir)
 	}
-	if m.AgentHome != "/home/scion" {
-		t.Errorf("AgentHome = %q, want /home/scion", m.AgentHome)
+	if m.AgentHome != "/home/fabric" {
+		t.Errorf("AgentHome = %q, want /home/fabric", m.AgentHome)
 	}
-	if m.Outputs.Env != "/home/scion/.scion/harness/outputs/env.json" {
+	if m.Outputs.Env != "/home/fabric/.fabric/harness/outputs/env.json" {
 		t.Errorf("Outputs.Env = %q", m.Outputs.Env)
 	}
-	if m.Inputs["auth_candidates"] != "/home/scion/.scion/harness/inputs/auth-candidates.json" {
+	if m.Inputs["auth_candidates"] != "/home/fabric/.fabric/harness/inputs/auth-candidates.json" {
 		t.Errorf("Inputs[auth_candidates] = %q", m.Inputs["auth_candidates"])
 	}
 }
 
 func TestScrubSecrets_RedactsAuthCandidateValues(t *testing.T) {
 	home := t.TempDir()
-	bundle := filepath.Join(home, ".scion", "harness")
+	bundle := filepath.Join(home, ".fabric", "harness")
 	if err := os.MkdirAll(filepath.Join(bundle, "inputs"), 0755); err != nil {
 		t.Fatal(err)
 	}

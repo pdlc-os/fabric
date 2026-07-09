@@ -21,14 +21,14 @@
 // cases, and multi-process coordination.
 //
 // All test files are gated with the `integration` build tag and additionally skip
-// at runtime unless SCION_TEST_POSTGRES_URL points at a live Postgres (local or
+// at runtime unless FABRIC_TEST_POSTGRES_URL points at a live Postgres (local or
 // CloudSQL); see requirePG. Under the default build only this file compiles, so
 // `go test ./...` reports the package as having no tests rather than failing.
 //
 //	go test -tags integration ./pkg/store/integrationtest/... \
-//	  with SCION_TEST_POSTGRES_URL=postgres://user:pass@host:5432/db?sslmode=disable
+//	  with FABRIC_TEST_POSTGRES_URL=postgres://user:pass@host:5432/db?sslmode=disable
 //
 // Concurrency levels default to small values so the suite finishes well under the
-// 5-minute local-Postgres target; set SCION_TEST_CONCURRENCY=<N> to crank them up
+// 5-minute local-Postgres target; set FABRIC_TEST_CONCURRENCY=<N> to crank them up
 // for a heavier stress run.
 package integrationtest

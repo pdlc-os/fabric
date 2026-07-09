@@ -22,11 +22,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // resolveTemplate looks up a template by ID or name/slug.
@@ -75,8 +75,8 @@ func (s *Server) getHarnessConfigFromTemplate(template *store.Template, fallback
 }
 
 // buildAppliedConfig constructs an AgentAppliedConfig from a CreateAgentRequest.
-// When req.Config is a ScionConfig, its fields are extracted into the applied config
-// and the full ScionConfig is preserved as InlineConfig for threading to the broker.
+// When req.Config is a FabricConfig, its fields are extracted into the applied config
+// and the full FabricConfig is preserved as InlineConfig for threading to the broker.
 func (s *Server) buildAppliedConfig(req CreateAgentRequest, harnessConfig string, creatorName string) *store.AgentAppliedConfig {
 	ac := &store.AgentAppliedConfig{
 		Profile:       req.Profile,
@@ -96,7 +96,7 @@ func (s *Server) buildAppliedConfig(req CreateAgentRequest, harnessConfig string
 		ac.Env = req.Config.Env
 		ac.Model = req.Config.Model
 
-		// Extract ScionConfig-specific fields
+		// Extract FabricConfig-specific fields
 		if req.Config.HarnessConfig != "" {
 			ac.HarnessConfig = req.Config.HarnessConfig
 		}
@@ -130,8 +130,8 @@ func (s *Server) populateAgentConfig(ctx context.Context, agent *store.Agent, pr
 	// Populate GitClone config for git-anchored projects (per-agent clone mode).
 	// Shared-workspace git projects skip clone — agents mount the shared workspace instead.
 	if project != nil && project.GitRemote != "" && !project.IsSharedWorkspace() {
-		cloneURL := resolveCloneURL(project.Labels["scion.dev/clone-url"], project.GitRemote)
-		defaultBranch := project.Labels["scion.dev/default-branch"]
+		cloneURL := resolveCloneURL(project.Labels["fabric.dev/clone-url"], project.GitRemote)
+		defaultBranch := project.Labels["fabric.dev/default-branch"]
 		if defaultBranch == "" {
 			defaultBranch = "main"
 		}
@@ -153,7 +153,7 @@ func (s *Server) populateAgentConfig(ctx context.Context, agent *store.Agent, pr
 	// For shared-workspace git projects, default the branch to the project's
 	// default branch (the workspace's current branch) instead of the agent slug.
 	if project != nil && project.IsSharedWorkspace() && agent.AppliedConfig.Branch == "" {
-		defaultBranch := project.Labels["scion.dev/default-branch"]
+		defaultBranch := project.Labels["fabric.dev/default-branch"]
 		if defaultBranch == "" {
 			defaultBranch = "main"
 		}
@@ -196,7 +196,7 @@ func (s *Server) populateAgentConfig(ctx context.Context, agent *store.Agent, pr
 			// Merge template telemetry config as default (don't overwrite explicit inline telemetry)
 			if resolvedTemplate.Config.Telemetry != nil {
 				if agent.AppliedConfig.InlineConfig == nil {
-					agent.AppliedConfig.InlineConfig = &api.ScionConfig{}
+					agent.AppliedConfig.InlineConfig = &api.FabricConfig{}
 				}
 				if agent.AppliedConfig.InlineConfig.Telemetry == nil {
 					agent.AppliedConfig.InlineConfig.Telemetry = resolvedTemplate.Config.Telemetry
@@ -261,7 +261,7 @@ func (s *Server) populateAgentConfig(ctx context.Context, agent *store.Agent, pr
 	s.mu.RUnlock()
 	if hubTelemetry != nil {
 		if agent.AppliedConfig.InlineConfig == nil {
-			agent.AppliedConfig.InlineConfig = &api.ScionConfig{}
+			agent.AppliedConfig.InlineConfig = &api.FabricConfig{}
 		}
 		if agent.AppliedConfig.InlineConfig.Telemetry == nil {
 			// Deep copy to avoid sharing the pointer with the server config.
@@ -277,7 +277,7 @@ func (s *Server) populateAgentConfig(ctx context.Context, agent *store.Agent, pr
 		if val, ok := project.Annotations[projectSettingTelemetryEnabled]; ok {
 			if b, err := strconv.ParseBool(val); err == nil {
 				if agent.AppliedConfig.InlineConfig == nil {
-					agent.AppliedConfig.InlineConfig = &api.ScionConfig{}
+					agent.AppliedConfig.InlineConfig = &api.FabricConfig{}
 				}
 				if agent.AppliedConfig.InlineConfig.Telemetry == nil {
 					agent.AppliedConfig.InlineConfig.Telemetry = &api.TelemetryConfig{}

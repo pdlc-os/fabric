@@ -8,15 +8,15 @@
 
 ## 1. Overview
 
-When multiple Scion Hub instances share a single GCP project for Secret Manager, hub-scoped secrets collide because the current naming scheme uses a hardcoded `"hub"` sentinel as the scope ID. Since `sha256("hub")` is constant, every hub produces the same GCP SM secret name for a given key.
+When multiple Fabric Hub instances share a single GCP project for Secret Manager, hub-scoped secrets collide because the current naming scheme uses a hardcoded `"hub"` sentinel as the scope ID. Since `sha256("hub")` is constant, every hub produces the same GCP SM secret name for a given key.
 
 **Example of the collision:**
 ```
 Hub A sets GITHUB_APP_PRIVATE_KEY →
-  gcpsm:projects/deploy-demo-test/secrets/scion-hub-08d33503ee27-GITHUB_APP_PRIVATE_KEY
+  gcpsm:projects/deploy-demo-test/secrets/fabric-hub-08d33503ee27-GITHUB_APP_PRIVATE_KEY
 
 Hub B sets GITHUB_APP_PRIVATE_KEY →
-  gcpsm:projects/deploy-demo-test/secrets/scion-hub-08d33503ee27-GITHUB_APP_PRIVATE_KEY  ← same!
+  gcpsm:projects/deploy-demo-test/secrets/fabric-hub-08d33503ee27-GITHUB_APP_PRIVATE_KEY  ← same!
 ```
 
 Hub B's write silently overwrites Hub A's secret value (new GCP SM version), and Hub A reads the wrong value on next access.
@@ -41,7 +41,7 @@ Hub B's write silently overwrites Hub A's secret value (new GCP SM version), and
 ### Secret Naming Scheme
 
 ```
-GCP SM Secret ID: scion-{scope}-{sha256(scopeID)[:12]}-{name}
+GCP SM Secret ID: fabric-{scope}-{sha256(scopeID)[:12]}-{name}
 ```
 
 - `scope`: one of `hub`, `user`, `grove`, `runtime_broker`
@@ -103,7 +103,7 @@ server:
 ```
 
 ```bash
-SCION_SERVER_HUB_HUBID=my-prod-hub-01
+FABRIC_SERVER_HUB_HUBID=my-prod-hub-01
 ```
 
 If not explicitly set, the auto-generated hostname hash is used. The resolved value is logged at startup for operator visibility.
@@ -186,7 +186,7 @@ func (b *GCPBackend) gcpSecretName(name, scope, scopeID string) string {
     combined := b.hubID + ":" + scopeID
     hash := sha256.Sum256([]byte(combined))
     shortHash := hex.EncodeToString(hash[:6])
-    return sanitizeSecretID(fmt.Sprintf("scion-%s-%s-%s", scope, shortHash, name))
+    return sanitizeSecretID(fmt.Sprintf("fabric-%s-%s-%s", scope, shortHash, name))
 }
 ```
 
@@ -196,12 +196,12 @@ func (b *GCPBackend) gcpSecretName(name, scope, scopeID string) string {
 Hub A (hubID: "a1b2c3d4e5f6"):
   combined = "a1b2c3d4e5f6:a1b2c3d4e5f6"  (hubID is now the scopeID too)
   hash = sha256(combined)[:12]
-  → scion-hub-{unique_hash}-GITHUB_APP_PRIVATE_KEY
+  → fabric-hub-{unique_hash}-GITHUB_APP_PRIVATE_KEY
 
 Hub B (hubID: "f6e5d4c3b2a1"):
   combined = "f6e5d4c3b2a1:f6e5d4c3b2a1"
   hash = sha256(combined)[:12]
-  → scion-hub-{different_hash}-GITHUB_APP_PRIVATE_KEY  ← no collision
+  → fabric-hub-{different_hash}-GITHUB_APP_PRIVATE_KEY  ← no collision
 ```
 
 **Result for grove-scoped secrets:**
@@ -209,29 +209,29 @@ Hub B (hubID: "f6e5d4c3b2a1"):
 ```
 Hub A, Grove X (uuid: "abc-123"):
   combined = "a1b2c3d4e5f6:abc-123"
-  → scion-grove-{hash_A}-SECRET_NAME
+  → fabric-grove-{hash_A}-SECRET_NAME
 
 Hub B, Grove X (same uuid: "abc-123"):
   combined = "f6e5d4c3b2a1:abc-123"
-  → scion-grove-{hash_B}-SECRET_NAME  ← no collision
+  → fabric-grove-{hash_B}-SECRET_NAME  ← no collision
 ```
 
 ### 3.5 GCP Labels for Readability
 
-Add a `scion-hub-hostname` label to all secrets for human filtering in the GCP console:
+Add a `fabric-hub-hostname` label to all secrets for human filtering in the GCP console:
 
 ```go
 func buildLabels(input *SetSecretInput, target, hubHostname string) map[string]string {
     labels := map[string]string{
-        "scion-scope":        sanitizeLabel(input.Scope),
-        "scion-scope-id":     sanitizeLabel(input.ScopeID),
-        "scion-type":         sanitizeLabel(input.SecretType),
-        "scion-name":         sanitizeLabel(input.Name),
-        "scion-target":       sanitizeLabel(target),
-        "scion-hub-hostname": sanitizeLabel(hubHostname),  // NEW
+        "fabric-scope":        sanitizeLabel(input.Scope),
+        "fabric-scope-id":     sanitizeLabel(input.ScopeID),
+        "fabric-type":         sanitizeLabel(input.SecretType),
+        "fabric-name":         sanitizeLabel(input.Name),
+        "fabric-target":       sanitizeLabel(target),
+        "fabric-hub-hostname": sanitizeLabel(hubHostname),  // NEW
     }
     if input.Scope == ScopeUser && input.UserEmail != "" {
-        labels["scion-userid"] = sanitizeLabel(input.UserEmail)
+        labels["fabric-userid"] = sanitizeLabel(input.UserEmail)
     }
     return labels
 }
@@ -240,7 +240,7 @@ func buildLabels(input *SetSecretInput, target, hubHostname string) map[string]s
 The `hubHostname` is the raw hostname (not the hash), truncated/sanitized to fit GCP's 63-char label value limit. This allows operators to filter secrets by hub in the GCP console:
 
 ```
-gcloud secrets list --filter="labels.scion-hub-hostname=prod-hub-west"
+gcloud secrets list --filter="labels.fabric-hub-hostname=prod-hub-west"
 ```
 
 ### 3.6 Local Backend Consistency

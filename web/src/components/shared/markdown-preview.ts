@@ -59,8 +59,8 @@ async function loadRenderer(): Promise<MarkdownRenderer> {
 // Component
 // ────────────────────────────────────────────────────────────
 
-@customElement('scion-markdown-preview')
-export class ScionMarkdownPreview extends LitElement {
+@customElement('fabric-markdown-preview')
+export class FabricMarkdownPreview extends LitElement {
   /** Raw markdown text to render. */
   @property({ type: String })
   content = '';
@@ -75,15 +75,15 @@ export class ScionMarkdownPreview extends LitElement {
     }
 
     .preview-container {
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 1.5rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       min-height: 200px;
       max-height: calc(100vh - 16rem);
       overflow-y: auto;
       line-height: 1.7;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       font-size: 0.9375rem;
     }
 
@@ -99,11 +99,11 @@ export class ScionMarkdownPreview extends LitElement {
       margin-bottom: 0.5em;
       font-weight: 600;
       line-height: 1.3;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
-    .preview-container h1 { font-size: 1.75rem; border-bottom: 1px solid var(--scion-border, #e2e8f0); padding-bottom: 0.3em; }
-    .preview-container h2 { font-size: 1.375rem; border-bottom: 1px solid var(--scion-border, #e2e8f0); padding-bottom: 0.3em; }
+    .preview-container h1 { font-size: 1.75rem; border-bottom: 1px solid var(--fabric-border, #e2e8f0); padding-bottom: 0.3em; }
+    .preview-container h2 { font-size: 1.375rem; border-bottom: 1px solid var(--fabric-border, #e2e8f0); padding-bottom: 0.3em; }
     .preview-container h3 { font-size: 1.125rem; }
     .preview-container h4 { font-size: 1rem; }
 
@@ -121,18 +121,18 @@ export class ScionMarkdownPreview extends LitElement {
     }
 
     .preview-container code {
-      font-family: var(--scion-font-mono, 'SF Mono', 'Fira Code', monospace);
+      font-family: var(--fabric-font-mono, 'SF Mono', 'Fira Code', monospace);
       font-size: 0.85em;
-      background: var(--scion-bg-subtle, #f8fafc);
+      background: var(--fabric-bg-subtle, #f8fafc);
       padding: 0.15em 0.35em;
       border-radius: 0.25rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .preview-container pre {
-      background: var(--scion-bg-subtle, #f8fafc);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 1rem;
       overflow-x: auto;
       margin: 0 0 1em;
@@ -149,9 +149,9 @@ export class ScionMarkdownPreview extends LitElement {
       border-left: 4px solid var(--sl-color-primary-200, #bfdbfe);
       margin: 0 0 1em;
       padding: 0.5em 1em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f8fafc);
-      border-radius: 0 var(--scion-radius, 0.5rem) var(--scion-radius, 0.5rem) 0;
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border-radius: 0 var(--fabric-radius, 0.5rem) var(--fabric-radius, 0.5rem) 0;
     }
 
     .preview-container blockquote p:last-child {
@@ -176,26 +176,26 @@ export class ScionMarkdownPreview extends LitElement {
 
     .preview-container th,
     .preview-container td {
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       padding: 0.5em 0.75em;
       text-align: left;
     }
 
     .preview-container th {
-      background: var(--scion-bg-subtle, #f8fafc);
+      background: var(--fabric-bg-subtle, #f8fafc);
       font-weight: 600;
     }
 
     .preview-container hr {
       border: none;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
       margin: 1.5em 0;
     }
 
     .preview-container img {
       max-width: 100%;
       height: auto;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     .preview-container :first-child {
@@ -211,7 +211,7 @@ export class ScionMarkdownPreview extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 3rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -272,6 +272,6 @@ export class ScionMarkdownPreview extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-markdown-preview': ScionMarkdownPreview;
+    'fabric-markdown-preview': FabricMarkdownPreview;
   }
 }

@@ -15,20 +15,20 @@ This guide provides step-by-step instructions for testing the Runtime Broker API
 
 ```bash
 # From the project root
-go build -buildvcs=false -o scion ./cmd/scion
+go build -buildvcs=false -o fabric ./cmd/fabric
 ```
 
 ### Start Both Hub and Runtime Broker APIs
 
 ```bash
 # Start both servers together
-./scion server start --enable-hub --enable-runtime-broker
+./fabric server start --enable-hub --enable-runtime-broker
 ```
 
 You should see output like:
 ```
 2025/01/25 10:00:00 Starting Hub API server on 0.0.0.0:9810
-2025/01/25 10:00:00 Database: sqlite (/Users/you/.scion/hub.db)
+2025/01/25 10:00:00 Database: sqlite (/Users/you/.fabric/hub.db)
 2025/01/25 10:00:00 Hub API server starting on 0.0.0.0:9810
 2025/01/25 10:00:00 Starting Runtime Broker API server on 0.0.0.0:9800
 2025/01/25 10:00:00 Runtime Broker API server starting on 0.0.0.0:9800
@@ -46,14 +46,14 @@ When both servers start together, they automatically:
 If you only want to test the Runtime Broker API without the Hub:
 
 ```bash
-./scion server start --enable-runtime-broker
+./fabric server start --enable-runtime-broker
 ```
 
 ### Custom Configuration
 
 ```bash
 # Custom ports
-./scion server start --enable-hub --port 8810 \
+./fabric server start --enable-hub --port 8810 \
   --enable-runtime-broker --runtime-broker-port 8800
 ```
 
@@ -393,7 +393,7 @@ curl -s -X POST http://localhost:9810/api/v1/groves/register \
   -d '{
     "gitRemote": "https://github.com/myorg/myproject.git",
     "name": "My Project",
-    "path": "/path/to/myproject/.scion",
+    "path": "/path/to/myproject/.fabric",
     "broker": {
       "name": "My MacBook",
       "version": "0.1.0",
@@ -424,18 +424,18 @@ This section demonstrates registering a local project as a grove and creating ag
 
 ### Test Setup
 
-For this test, we'll use an existing local project at `/Users/user/src/cli-projects/qa-scion`.
+For this test, we'll use an existing local project at `/Users/user/src/cli-projects/qa-fabric`.
 
-### Step 1: Verify the Project Has a .scion Directory
+### Step 1: Verify the Project Has a .fabric Directory
 
 ```bash
-ls -la /Users/user/src/cli-projects/qa-scion/.scion
+ls -la /Users/user/src/cli-projects/qa-fabric/.fabric
 ```
 
 If it doesn't exist, you can initialize it:
 
 ```bash
-cd /Users/user/src/cli-projects/qa-scion && scion init
+cd /Users/user/src/cli-projects/qa-fabric && fabric init
 ```
 
 ### Step 2: Register the Project Grove with Local Path
@@ -448,9 +448,9 @@ BROKER_ID=$(curl -s http://localhost:9800/api/v1/info | jq -r '.brokerId')
 PROJECT_RESPONSE=$(curl -s -X POST http://localhost:9810/api/v1/groves/register \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "QA Scion",
-    "gitRemote": "https://github.com/example/qa-scion",
-    "path": "/Users/user/src/cli-projects/qa-scion/.scion",
+    "name": "QA Fabric",
+    "gitRemote": "https://github.com/example/qa-fabric",
+    "path": "/Users/user/src/cli-projects/qa-fabric/.fabric",
     "broker": {
       "id": "'$BROKER_ID'",
       "name": "Local Mac",
@@ -496,7 +496,7 @@ Expected response (note the `localPath` field included for each broker):
           "available": true
         }
       ],
-      "localPath": "/Users/user/src/cli-projects/qa-scion/.scion",
+      "localPath": "/Users/user/src/cli-projects/qa-fabric/.fabric",
       "created": "2026-01-25T11:22:02.903695-08:00",
       "updated": "2026-01-25T11:29:46.819009-08:00"
     }
@@ -527,7 +527,7 @@ The agent should now be running with the project's workspace mounted. Check the 
 curl -s http://localhost:9800/api/v1/agents/project-agent | jq
 ```
 
-The agent's container will have `/Users/user/src/cli-projects/qa-scion` as its workspace source, properly mounted at `/workspace` inside the container.
+The agent's container will have `/Users/user/src/cli-projects/qa-fabric` as its workspace source, properly mounted at `/workspace` inside the container.
 
 ### Step 6: Clean Up
 
@@ -540,7 +540,7 @@ curl -s -X DELETE "http://localhost:9800/api/v1/agents/project-agent?deleteFiles
 
 | Aspect | Global Grove | Project Grove |
 |--------|--------------|---------------|
-| Path | `~/.scion` (automatic) | Explicit `path` in registration |
+| Path | `~/.fabric` (automatic) | Explicit `path` in registration |
 | Created | Auto-created on server start | Manual registration required |
 | Workspace | Current directory or empty | Project directory mounted |
 | Git Worktrees | Not applicable | Used for isolated agent branches |
@@ -729,7 +729,7 @@ Press `Ctrl+C` to gracefully shutdown both servers.
 ### Reset Database
 
 ```bash
-rm ~/.scion/hub.db
+rm ~/.fabric/hub.db
 ```
 
 ### Clean Up Test Agents
@@ -737,8 +737,8 @@ rm ~/.scion/hub.db
 If you created real agents with containers:
 
 ```bash
-# List scion containers
-container list | grep scion
+# List fabric containers
+container list | grep fabric
 
 # Stop and remove
 container stop <container-name>
@@ -754,7 +754,7 @@ container rm <container-name>
 lsof -i :9800
 
 # Use different ports
-./scion server start --enable-runtime-broker --runtime-broker-port 9801
+./fabric server start --enable-runtime-broker --runtime-broker-port 9801
 ```
 
 ### Container Runtime Not Found
@@ -772,7 +772,7 @@ container version
 ### No Agents Listed
 
 The Runtime Broker API lists agents that are:
-1. Actually running as containers with `scion.agent=true` label
+1. Actually running as containers with `fabric.agent=true` label
 2. Have agent directories in known grove paths
 
 When both Hub and Runtime Broker are running together (co-located), agents created via the Hub are automatically dispatched to the Runtime Broker and will appear in both agent lists.
@@ -780,9 +780,9 @@ When both Hub and Runtime Broker are running together (co-located), agents creat
 ### Permission Issues
 
 ```bash
-# Ensure scion directory exists and is writable
-mkdir -p ~/.scion
-chmod 755 ~/.scion
+# Ensure fabric directory exists and is writable
+mkdir -p ~/.fabric
+chmod 755 ~/.fabric
 ```
 
 ## API Reference Summary

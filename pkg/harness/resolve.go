@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // ResolveOptions selects how a harness is constructed.
@@ -106,9 +106,9 @@ func Resolve(_ context.Context, opts ResolveOptions) (*ResolvedHarness, error) {
 
 	if entry.Harness == "opencode" || entry.Harness == "codex" {
 		if hcDir == nil {
-			slog.Warn("harness is not installed; run: scion harness-config install harnesses/"+entry.Harness, "harness", entry.Harness)
+			slog.Warn("harness is not installed; run: fabric harness-config install harnesses/"+entry.Harness, "harness", entry.Harness)
 		} else if entry.Provisioner == nil {
-			hint := "run: scion harness-config install harnesses/" + entry.Harness
+			hint := "run: fabric harness-config install harnesses/" + entry.Harness
 			slog.Warn("harness config has no provisioner; "+hint,
 				"harness", entry.Harness, "config_dir", hcDir.Path)
 		}

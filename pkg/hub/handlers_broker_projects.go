@@ -17,7 +17,7 @@ package hub
 import (
 	"net/http"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // brokerProject is a lightweight project representation returned to broker plugins.
@@ -30,7 +30,7 @@ type brokerProject struct {
 // handleBrokerProjects handles GET /api/v1/broker/projects.
 // Returns all projects as a lightweight list for broker plugins (e.g. Telegram /setup).
 //
-// Authentication: Requires broker HMAC authentication (X-Scion-Broker-ID header
+// Authentication: Requires broker HMAC authentication (X-Fabric-Broker-ID header
 // validated by BrokerAuthMiddleware).
 func (s *Server) handleBrokerProjects(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Cloud Build configuration for Scion Docs Agent
+# Cloud Build configuration for Fabric Docs Agent
 steps:
   # 1. Build the container image
   - name: 'gcr.io/cloud-builders/docker'
@@ -70,8 +70,8 @@ steps:
       - 'GEMINI_API_KEY=GEMINI_API_KEY:latest'
 
 substitutions:
-  _REGISTRY: 'us-central1-docker.pkg.dev/duet01/scion-images'
-  _SERVICE_NAME: 'scion-docs-agent'
+  _REGISTRY: 'us-central1-docker.pkg.dev/duet01/fabric-images'
+  _SERVICE_NAME: 'fabric-docs-agent'
   _REGION: 'us-west1'
   _GIT_SHA: 'latest'
 

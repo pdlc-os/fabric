@@ -1,13 +1,13 @@
 # Phase 1 Implementation Plan: Worktree-Per-Agent (Docker × node-local)
 
-**Branch:** `scion/worktree-per-agent`
+**Branch:** `fabric/worktree-per-agent`
 **Scope:** Design doc §12 Phase 1 only — Docker × node-local. NFS parity (Phase 2)
 and K8s (Phase 3) are out of scope here.
 **Tracking:** #158 (parent), #168 (shared-worktree refcount — Q7, deferred to a later phase).
 
 ---
 
-## Post-Phase-0 baseline (rebased onto `scion/storage-provisioning-phase0`)
+## Post-Phase-0 baseline (rebased onto `fabric/storage-provisioning-phase0`)
 
 Phase 0 of epic #169 (PR #170) landed the universal-provisioning extraction. This branch
 is rebased on it. The seam Phase 1 builds against is now:
@@ -43,7 +43,7 @@ What already exists and is reused as-is:
 - `util.CreateWorktree()` — already uses `--relative-paths` + reuse-branch fallback.
 - Dual-mount recipe — `pkg/runtime/common.go:188-222` (`.git` at `/repo-root/.git` +
   worktree at `/repo-root/<rel>`), gated on `RepoRoot`+`Workspace` set and `GitClone==nil`.
-- `SCION_HOST_UID` guard forcing `isGit=false` in-container (`provision.go:303-309`).
+- `FABRIC_HOST_UID` guard forcing `isGit=false` in-container (`provision.go:303-309`).
 - Teardown: `RemoveWorktree` / `PruneWorktreesIn` / `DeleteBranchIn` (`provision.go:35-146`).
 - Advisory lock + sentinel guard (`workspace_backend_nfs.go:141-268`).
 
@@ -59,12 +59,12 @@ local-repo case nests worktrees. The design doc's sibling `base/` + `worktrees/`
 the local case rather than the §3 diagram:
 
 ```
-~/.scion.projects/<slug>/        # localBackend project root == RepoRoot (the base checkout)
+~/.fabric.projects/<slug>/        # localBackend project root == RepoRoot (the base checkout)
   .git/                          # shared object store + packed-refs; gc.auto=0
   <base working tree>            # cloned, then `git switch --detach` → owns NO branch
   worktrees/<agentID>/           # per-agent worktree nested inside repo root
     .git                         #   FILE: relative gitdir (via --relative-paths)
-  .scion-provisioned             # sentinel: base clone complete
+  .fabric-provisioned             # sentinel: base clone complete
 ```
 
 Base detached at default HEAD so `main` is free for an optional coordinator worktree (Q1).
@@ -73,11 +73,11 @@ Base detached at default HEAD so `main` is free for an optional coordinator work
 > **Sentinel-location refinement (P1.4b).** `ProvisionShared` writes its sentinel at
 > `filepath.Dir(HostPath)`. To give a per-project sentinel (not a node-shared one),
 > `localBackend.Resolve` returns `HostPath = <ProjectDir>/workspace` for worktree mode, so
-> the base checkout lives at `~/.scion.projects/<slug>/workspace` and the sentinel at
-> `~/.scion.projects/<slug>/.scion-provisioned`. Worktrees nest at
+> the base checkout lives at `~/.fabric.projects/<slug>/workspace` and the sentinel at
+> `~/.fabric.projects/<slug>/.fabric-provisioned`. Worktrees nest at
 > `<ProjectDir>/workspace/worktrees/<agentID>`. This matches `ProvisionShared`'s NFS-shaped
 > contract (HostPath's parent is the per-project root).
-Per-agent non-workspace state (prompt.md, scion-agent.json, home/) continues to live in
+Per-agent non-workspace state (prompt.md, fabric-agent.json, home/) continues to live in
 external split storage — unchanged from shared-workspace mode.
 
 > Revisiting the §3 sibling layout (no base working tree) is deferred: it requires teaching
@@ -101,7 +101,7 @@ Responsibilities (design §4.1, §4.2, §4.2a, §6):
   implementation. Keep the reuse-branch fallback (attach existing branch instead of `-b`)
   for the coordinator/`main` case (§4.2a). Worktree stays nested:
   `<HostPath>/worktrees/<agentID>`.
-- Write `.scion` workspace marker into the worktree (`config.WriteWorkspaceMarker`).
+- Write `.fabric` workspace marker into the worktree (`config.WriteWorkspaceMarker`).
 - Single-worktree-per-branch invariant: clear error if the branch is already checked out
   elsewhere (don't let raw git fail opaquely).
 - Clean up the `"nfsBackend.Provision:"` error strings in `provisionShared` →
@@ -140,10 +140,10 @@ The core wiring. In `pkg/runtimebroker/start_context.go` (where `opts.GitClone` 
     (the detached base) so `common.go` takes the **dual-mount** path; **do not** set
     `opts.GitClone` (suppress in-container clone).
 - Else: existing clone-per-agent path (set `GitClone`, clone in container).
-- Keep the `SCION_HOST_UID` guard intact.
+- Keep the `FABRIC_HOST_UID` guard intact.
 
 ### P1.5 — Hub: permit worktree-per-agent on git hub-managed projects  [supports P1.4]
-- Allow/stamp `scion.dev/workspace-mode = worktree-per-agent` for git-backed
+- Allow/stamp `fabric.dev/workspace-mode = worktree-per-agent` for git-backed
   hub-managed projects (`pkg/hub/handlers.go`); update the "reserved for Phase 1+"
   doc comment on `pkg/store/models.go`.
 - Thread the resolved mode into the dispatch request (`pkg/runtimebroker/types.go`

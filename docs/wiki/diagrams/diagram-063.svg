@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 378.25)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-378.25 516.6,-378.25 516.6,4 -4,4"/>
-<!-- Scion Platform -->
+<!-- Fabric Platform -->
 <g id="node1" class="node">
-<title>Scion Platform</title>
+<title>Fabric Platform</title>
 <polygon fill="lightblue" stroke="black" points="132.25,-368 11.25,-368 11.25,-332 132.25,-332 132.25,-368"/>
-<text xml:space="preserve" text-anchor="middle" x="71.75" y="-341.95" font-family="Times,serif" font-size="14.00">Scion Platform</text>
+<text xml:space="preserve" text-anchor="middle" x="71.75" y="-341.95" font-family="Times,serif" font-size="14.00">Fabric Platform</text>
 </g>
 <!-- Harness Interface -->
 <g id="node2" class="node">
@@ -37,9 +37,9 @@
 <polygon fill="lightblue" stroke="black" points="143.5,-260 0,-260 0,-224 143.5,-224 143.5,-260"/>
 <text xml:space="preserve" text-anchor="middle" x="71.75" y="-233.95" font-family="Times,serif" font-size="14.00">Harness Interface</text>
 </g>
-<!-- Scion Platform&#45;&gt;Harness Interface -->
+<!-- Fabric Platform&#45;&gt;Harness Interface -->
 <g id="edge1" class="edge">
-<title>Scion Platform&#45;&gt;Harness Interface</title>
+<title>Fabric Platform&#45;&gt;Harness Interface</title>
 <path fill="none" stroke="black" d="M71.75,-331.97C71.75,-315.76 71.75,-291.06 71.75,-271.79"/>
 <polygon fill="black" stroke="black" points="75.25,-271.85 71.75,-261.85 68.25,-271.85 75.25,-271.85"/>
 <text xml:space="preserve" text-anchor="middle" x="131.75" y="-287.95" font-family="Times,serif" font-size="14.00">Orchestrates via</text>

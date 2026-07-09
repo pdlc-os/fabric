@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
 )
 
 func noopResolveIP(host string) ([]net.IP, error) {

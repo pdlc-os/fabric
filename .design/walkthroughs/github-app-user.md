@@ -1,7 +1,7 @@
 # GitHub App QA Walkthrough: Grove Owner (Non-Admin User)
 
 **Created:** 2026-03-19
-**Prerequisites:** A running Scion Hub with GitHub App already configured by an admin, a GitHub org/user account where you can install apps, CLI authenticated to the Hub
+**Prerequisites:** A running Fabric Hub with GitHub App already configured by an admin, a GitHub org/user account where you can install apps, CLI authenticated to the Hub
 
 ---
 
@@ -61,7 +61,7 @@ Look for your `account_login` in the results with `status: "active"`.
 ### 2.1 Create a Grove via CLI
 
 ```bash
-scion hub grove create my-project --git-remote https://github.com/your-org/your-repo.git
+fabric hub grove create my-project --git-remote https://github.com/your-org/your-repo.git
 ```
 
 Or via API:
@@ -137,7 +137,7 @@ curl -s -X PUT "$HUB_URL/api/v1/groves/$GROVE_ID/github-installation" \
 ### 3.1 Start the Agent
 
 ```bash
-scion start --grove my-project my-agent
+fabric start --grove my-project my-agent
 ```
 
 The Hub will:
@@ -148,11 +148,11 @@ The Hub will:
 ### 3.2 Verify Inside the Agent
 
 ```bash
-scion attach my-agent
+fabric attach my-agent
 
 # Inside the agent container:
 echo $GITHUB_TOKEN              # Should start with "ghs_"
-echo $SCION_GITHUB_APP_ENABLED  # Should be "true"
+echo $FABRIC_GITHUB_APP_ENABLED  # Should be "true"
 
 # Test GitHub access
 gh auth status
@@ -192,13 +192,13 @@ If your agent runs for more than 1 hour, the token is automatically refreshed:
 
 - **Git operations**: The credential helper transparently gets a fresh token on each git command
 - **`gh` CLI**: A wrapper reads the latest token from the token file before each invocation
-- **Background loop**: `sciontool` proactively refreshes the token ~10 minutes before expiry
+- **Background loop**: `fabrictool` proactively refreshes the token ~10 minutes before expiry
 
 You don't need to do anything — this is fully automatic. To verify it's working:
 
 ```bash
 # Inside the agent (after >50 minutes):
-cat $SCION_GITHUB_TOKEN_PATH    # Should show a current token
+cat $FABRIC_GITHUB_TOKEN_PATH    # Should show a current token
 gh auth status                  # Should still be authenticated
 ```
 
@@ -359,7 +359,7 @@ The grove will fall back to PAT-based auth for future agents.
 If you want to fully remove the app from your org:
 
 1. Go to **GitHub > Org Settings > Installed GitHub Apps**
-2. Click **Configure** next to the Scion app
+2. Click **Configure** next to the Fabric app
 3. Click **Uninstall**
 
 The Hub will receive a webhook and mark all affected groves with `installation_revoked`.
@@ -375,7 +375,7 @@ The Hub will receive a webhook and mark all affected groves with `installation_r
 | 3 | Create a grove with git remote matching an installed repo | |
 | 4 | Grove auto-matched (or matched via discover/manual) | |
 | 5 | Grove status shows `unchecked` before agent run | |
-| 6 | Agent starts with `ghs_` token and `SCION_GITHUB_APP_ENABLED=true` | |
+| 6 | Agent starts with `ghs_` token and `FABRIC_GITHUB_APP_ENABLED=true` | |
 | 7 | `gh auth status` and `git ls-remote` work inside agent | |
 | 8 | Grove status becomes `ok` with `last_token_mint` timestamp | |
 | 9 | Custom permissions save and apply correctly | |

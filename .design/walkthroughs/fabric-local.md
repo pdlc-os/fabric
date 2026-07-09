@@ -1,8 +1,8 @@
-# Developer QA Walkthrough: scion
+# Developer QA Walkthrough: fabric
 
-This document provides step-by-step instructions for manually building and verifying the core functionality of `scion`. 
+This document provides step-by-step instructions for manually building and verifying the core functionality of `fabric`. 
 
-**Recommendation**: To avoid "dogfooding collisions" (where `scion` clobbers its own source templates during testing), always perform manual QA in an isolated peer directory.
+**Recommendation**: To avoid "dogfooding collisions" (where `fabric` clobbers its own source templates during testing), always perform manual QA in an isolated peer directory.
 
 ## Prerequisites
 
@@ -18,38 +18,38 @@ This document provides step-by-step instructions for manually building and verif
 
 ### Create an isolated peer directory
 ```bash
-# Assuming you are in the scion source root
-mkdir -p ../scion-test
-cd ../scion-test
-# Optional: git init  (scion works in any directory, but supports git repositories)
+# Assuming you are in the fabric source root
+mkdir -p ../fabric-test
+cd ../fabric-test
+# Optional: git init  (fabric works in any directory, but supports git repositories)
 ```
 
 ### Build the binary to the test location
 ```bash
-# From the scion-test directory, build the source from the peer directory
-go build -o ../scion-test/scion ./main.go
+# From the fabric-test directory, build the source from the peer directory
+go build -o ../fabric-test/fabric ./main.go
 ```
 
 ### Initialize the test project
 ```bash
-./scion grove init
+./fabric grove init
 ```
 **Verification**:
-- Check for `.scion/` in the `scion-test` directory.
-- Check for `~/.scion/` (global config) in your home directory.
-- Verify `.scion/templates/default/.gemini/settings.json` exists in the test project.
+- Check for `.fabric/` in the `fabric-test` directory.
+- Check for `~/.fabric/` (global config) in your home directory.
+- Verify `.fabric/templates/default/.gemini/settings.json` exists in the test project.
 
 ---
 
 ## 2. Verify Authentication Discovery
 
-`scion` should pick up keys from your environment or your host's `settings.json`.
+`fabric` should pick up keys from your environment or your host's `settings.json`.
 
 ### Case A: Environment Variable
 ```bash
 export GEMINI_API_KEY="test-key-123"
 # Run start
-./scion start "test auth" --name qa-auth-env
+./fabric start "test auth" --name qa-auth-env
 ```
 **Verification**:
 - Run `docker inspect qa-auth-env` (or `container inspect`).
@@ -58,7 +58,7 @@ export GEMINI_API_KEY="test-key-123"
 ### Case B: Settings JSON Fallback
 1. Unset the env var: `unset GEMINI_API_KEY`
 2. Ensure `~/.gemini/settings.json` has an `"apiKey": "config-key-456"` field.
-3. Run: `./scion start "test settings" --name qa-auth-config`
+3. Run: `./fabric start "test settings" --name qa-auth-config`
 
 **Verification**:
 - Inspect the container.
@@ -72,7 +72,7 @@ export GEMINI_API_KEY="test-key-123"
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/tmp/test-creds.json"
 echo '{"type": "service_account"}' > /tmp/test-creds.json
-./scion start "test adc" --name qa-adc
+./fabric start "test adc" --name qa-adc
 ```
 
 **Verification**:
@@ -86,14 +86,14 @@ echo '{"type": "service_account"}' > /tmp/test-creds.json
 
 ### Force Docker
 ```bash
-GEMINI_SANDBOX=docker ./scion start "force docker" --name qa-runtime-docker
+GEMINI_SANDBOX=docker ./fabric start "force docker" --name qa-runtime-docker
 ```
 **Verification**:
 - Verify the container was created in Docker (`docker ps`).
 
 ### Force Apple Container (macOS only)
 ```bash
-GEMINI_SANDBOX=container ./scion start "force apple" --name qa-runtime-apple
+GEMINI_SANDBOX=container ./fabric start "force apple" --name qa-runtime-apple
 ```
 **Verification**:
 - Verify the container was created in Apple `container` (`container list`).
@@ -101,7 +101,7 @@ GEMINI_SANDBOX=container ./scion start "force apple" --name qa-runtime-apple
 ### Verify --no-auth
 ```bash
 export GEMINI_API_KEY="should-not-appear"
-./scion start "test no-auth" --name qa-no-auth --no-auth
+./fabric start "test no-auth" --name qa-no-auth --no-auth
 ```
 **Verification**:
 - Inspect the container.
@@ -114,13 +114,13 @@ export GEMINI_API_KEY="should-not-appear"
 After testing, remove the agents and the test directory:
 ```bash
 # Docker
-docker rm -f $(docker ps -a -q --filter "label=scion.agent=true")
+docker rm -f $(docker ps -a -q --filter "label=fabric.agent=true")
 
 # Apple Container
-container stop $(container list -a --format json | jq -r '.[] | select(.configuration.labels["scion.agent"]=="true") | .id')
-container rm $(container list -a --format json | jq -r '.[] | select(.configuration.labels["scion.agent"]=="true") | .id')
+container stop $(container list -a --format json | jq -r '.[] | select(.configuration.labels["fabric.agent"]=="true") | .id')
+container rm $(container list -a --format json | jq -r '.[] | select(.configuration.labels["fabric.agent"]=="true") | .id')
 
 # Filesystem
 cd ..
-rm -rf scion-test
+rm -rf fabric-test
 ```

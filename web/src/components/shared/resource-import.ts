@@ -65,8 +65,8 @@ interface ImportSummary {
   failed: string[];
 }
 
-@customElement('scion-resource-import')
-export class ScionResourceImport extends LitElement {
+@customElement('fabric-resource-import')
+export class FabricResourceImport extends LitElement {
   /** Which resource type to import. */
   @property({ type: String })
   kind: ResourceImportKind = 'template';
@@ -119,7 +119,7 @@ export class ScionResourceImport extends LitElement {
     .header p {
       margin: 0;
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .controls {
@@ -171,7 +171,7 @@ export class ScionResourceImport extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       margin-bottom: 0.75rem;
     }
 
@@ -202,7 +202,7 @@ export class ScionResourceImport extends LitElement {
   }
 
   private get defaultWorkspacePath(): string {
-    return this.kind === 'template' ? '/.scion/templates' : '/.scion/harness-configs';
+    return this.kind === 'template' ? '/.fabric/templates' : '/.fabric/harness-configs';
   }
 
   private get placeholder(): string {
@@ -620,6 +620,6 @@ export class ScionResourceImport extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-resource-import': ScionResourceImport;
+    'fabric-resource-import': FabricResourceImport;
   }
 }

@@ -2,16 +2,16 @@
 
 **Date:** 2026-05-13
 **Agent:** rebase-grove-v2
-**Branch:** scion/rebase-grove-v2
+**Branch:** fabric/rebase-grove-v2
 
 ## Task
 
-Rebase `scion/fix-grove-bugs` onto `origin/main` and fix PR review feedback from the v8 code review.
+Rebase `fabric/fix-grove-bugs` onto `origin/main` and fix PR review feedback from the v8 code review.
 
 ## What was done
 
 ### Rebase
-- Cherry-picked 3 commits from `scion/fix-grove-bugs` onto `origin/main` (which had one commit ahead: `76b53cf fix: repair CI`)
+- Cherry-picked 3 commits from `fabric/fix-grove-bugs` onto `origin/main` (which had one commit ahead: `76b53cf fix: repair CI`)
 - Resolved merge conflict in `pkg/projectsync/projectsync_test.go` — took the HEAD (main) version which already had correct "project" test data
 
 ### Review feedback fixes

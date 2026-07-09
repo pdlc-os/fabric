@@ -1,7 +1,7 @@
 # Google Chat App to Workspace Add-on Migration Plan
 
 ## Objective
-Migrate the `@extras/scion-chat-app` Google Chat adapter from a standard webhook-based Chat App architecture to an HTTP Service-based Workspace Add-on architecture focused on chat integration.
+Migrate the `@extras/fabric-chat-app` Google Chat adapter from a standard webhook-based Chat App architecture to an HTTP Service-based Workspace Add-on architecture focused on chat integration.
 
 ## Motivation
 Workspace Add-ons offer a more integrated experience across Google Workspace and use a standardized, richer event object (`EventObject`). This migration involves updating the payload parsing, synchronous response handling for interactive elements (like Dialogs), and action URLs.
@@ -243,13 +243,13 @@ For updating the message that triggered the event (e.g. replacing a card after b
 #### Action Items
 
 * Add an `ExternalURL` field to `GoogleChatConfig` (the publicly reachable URL of the Chat App's HTTP endpoint).
-* Update `renderCardV2` and `renderWidget` to set `onClick.action.function` to the full URL (e.g., `https://scion-chat-app-xyz.run.app`).
+* Update `renderCardV2` and `renderWidget` to set `onClick.action.function` to the full URL (e.g., `https://fabric-chat-app-xyz.run.app`).
 * Move the current action ID strings into `action.parameters`:
   ```json
   {
     "onClick": {
       "action": {
-        "function": "https://scion-chat-app-xyz.run.app",
+        "function": "https://fabric-chat-app-xyz.run.app",
         "parameters": [
           {"key": "action", "value": "agent.start.agentId123"}
         ]
@@ -275,7 +275,7 @@ For updating the message that triggered the event (e.g. replacing a card after b
 
 * Update `normalizeEvent` to detect `chat.appCommandPayload` and map it to `EventCommand`
 * Extract the command from `appCommandMetadata.appCommandId` — this is a numeric ID, not the command name. The router needs a mapping from command IDs to command names (configured in Cloud Console).
-* Add a `CommandIDMap map[string]string` to `GoogleChatConfig` (e.g., `{"1": "scion"}`) to translate numeric IDs to command names.
+* Add a `CommandIDMap map[string]string` to `GoogleChatConfig` (e.g., `{"1": "fabric"}`) to translate numeric IDs to command names.
 * Extract the message text from `appCommandPayload.message.argumentText` for the command arguments.
 
 ### 6. Deployment and Configuration

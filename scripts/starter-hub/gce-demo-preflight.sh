@@ -87,7 +87,7 @@ is_placeholder() {
     return 1
 }
 
-echo -e "${BOLD}=== Scion Hub Preflight: ${HUB_NAME} ===${NC}"
+echo -e "${BOLD}=== Fabric Hub Preflight: ${HUB_NAME} ===${NC}"
 
 # ---------------------------------------------------------------------------
 # 1. Local Tools
@@ -149,26 +149,26 @@ else
     check_pass "File exists"
 
     REQUIRED_VARS=(
-        SCION_HUB_STORAGE_BUCKET
+        FABRIC_HUB_STORAGE_BUCKET
         SESSION_SECRET
-        SCION_SERVER_BASE_URL
-        SCION_IMAGE_REGISTRY
+        FABRIC_SERVER_BASE_URL
+        FABRIC_IMAGE_REGISTRY
     )
 
     OAUTH_VARS=(
-        SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID
-        SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET
-        SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID
-        SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET
-        SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID
-        SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET
-        SCION_SERVER_OAUTH_CLI_GITHUB_CLIENTID
-        SCION_SERVER_OAUTH_CLI_GITHUB_CLIENTSECRET
-        SCION_HUB_ENDPOINT
+        FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID
+        FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET
+        FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID
+        FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET
+        FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID
+        FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET
+        FABRIC_SERVER_OAUTH_CLI_GITHUB_CLIENTID
+        FABRIC_SERVER_OAUTH_CLI_GITHUB_CLIENTSECRET
+        FABRIC_HUB_ENDPOINT
     )
 
     PROJECT_VARS=(
-        SCION_GCP_PROJECT_ID
+        FABRIC_GCP_PROJECT_ID
         GOOGLE_CLOUD_PROJECT
     )
 
@@ -204,7 +204,7 @@ else
     done
 
     # Optional vars — warn if missing
-    for var in SCION_SERVER_AUTH_AUTHORIZEDDOMAINS SCION_SERVER_HUB_ADMINEMAILS; do
+    for var in FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS FABRIC_SERVER_HUB_ADMINEMAILS; do
         val=$(get_env_value "$var" "${HUB_ENV_FILE}")
         if [[ -z "$val" ]]; then
             check_warn "${var} is not set (optional — see hub.env.sample)"

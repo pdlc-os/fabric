@@ -3,11 +3,11 @@ title: API Reference
 description: Hub and Runtime Broker REST/WebSocket specifications.
 ---
 
-The Scion ecosystem exposes several APIs for coordination, management, and observability. This reference provides an overview of the primary resource types and communication patterns.
+The Fabric ecosystem exposes several APIs for coordination, management, and observability. This reference provides an overview of the primary resource types and communication patterns.
 
 ## Hub API
 
-The Scion Hub provides a RESTful API (mostly JSON) for managing the state of the system.
+The Fabric Hub provides a RESTful API (mostly JSON) for managing the state of the system.
 
 ### Authentication
 Most endpoints require a `Bearer` token in the `Authorization` header.
@@ -64,7 +64,7 @@ Brokers maintain a persistent outbound WebSocket connection to the Hub. The Hub 
 ## Communication Patterns
 
 ### State Reporting
-Agents use the `sciontool` utility to report their state back to the Hub via the `POST /api/v1/agents/:id/status` endpoint. State updates include the agent's current phase, activity, and contextual detail (e.g., which tool is executing). This happens at high frequency during task execution.
+Agents use the `fabrictool` utility to report their state back to the Hub via the `POST /api/v1/agents/:id/status` endpoint. State updates include the agent's current phase, activity, and contextual detail (e.g., which tool is executing). This happens at high frequency during task execution.
 
 ### Log Streaming
 Logs are collected by the Runtime Broker and can be streamed in two ways:

@@ -18,18 +18,18 @@ FROM ${BASE_IMAGE}
 
 ARG COPILOT_CLI_VERSION=latest
 
-RUN mkdir -p /home/scion/.copilot /home/scion/.copilot/skills \
-             /home/scion/.github && \
-    chown -R scion:scion /home/scion/.copilot /home/scion/.github
+RUN mkdir -p /home/fabric/.copilot /home/fabric/.copilot/skills \
+             /home/fabric/.github && \
+    chown -R fabric:fabric /home/fabric/.copilot /home/fabric/.github
 
 # Pre-seed Copilot settings to prevent interactive prompts (folder trust,
 # auto-update banner) that block non-interactive operation. The provisioner
 # also writes these defaults, but baking them into the image guarantees
 # they exist even if the harness-config home-dir staging doesn't fire.
-COPY --chown=scion:scion home/.copilot/settings.json /home/scion/.copilot/settings.json
-COPY --chown=scion:scion home/.copilot/config.json /home/scion/.copilot/config.json
+COPY --chown=fabric:fabric home/.copilot/settings.json /home/fabric/.copilot/settings.json
+COPY --chown=fabric:fabric home/.copilot/config.json /home/fabric/.copilot/config.json
 
-# Install copilot binary (glibc variant — scion-base is Debian bookworm).
+# Install copilot binary (glibc variant — fabric-base is Debian bookworm).
 # The binary is a self-contained Node.js SEA — no npm/node dependency needed.
 RUN ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \
     if [ "$COPILOT_CLI_VERSION" = "latest" ]; then \

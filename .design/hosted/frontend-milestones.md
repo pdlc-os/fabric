@@ -1,8 +1,8 @@
-# Scion Web Frontend Implementation Milestones
+# Fabric Web Frontend Implementation Milestones
 
 ## Overview
 
-This document outlines the implementation milestones for the Scion Web Frontend. Each milestone is designed to be independently testable and builds upon previous work. The milestones follow a bottom-up approach: infrastructure first, then core functionality, then enhanced features.
+This document outlines the implementation milestones for the Fabric Web Frontend. Each milestone is designed to be independently testable and builds upon previous work. The milestones follow a bottom-up approach: infrastructure first, then core functionality, then enhanced features.
 
 For architectural details and component specifications, see **`web-frontend-design.md`**.
 
@@ -101,12 +101,12 @@ web/
 - [x] **SSR renderer**
    - HTML shell template with hydration script injection
    - Lit component rendering via `@lit-labs/ssr`
-   - Initial data serialization (`__SCION_DATA__` script tag)
+   - Initial data serialization (`__FABRIC_DATA__` script tag)
 
 - [x] **Basic Lit components (server + client)**
-   - `<scion-app>` - application shell
-   - `<scion-page-home>` - simple home page
-   - `<scion-page-404>` - not found page
+   - `<fabric-app>` - application shell
+   - `<fabric-page-home>` - simple home page
+   - `<fabric-page-404>` - not found page
 
 - [x] **Client hydration**
    - Client entry point (`src/client/main.ts`)
@@ -121,11 +121,11 @@ web/
 
 | Test | Method | Expected Result |
 |------|--------|-----------------|
-| SSR home page | `curl localhost:8080/` | HTML with `<scion-app>` content |
+| SSR home page | `curl localhost:8080/` | HTML with `<fabric-app>` content |
 | View source | Browser "View Source" | Complete HTML (not empty shell) |
 | Hydration | Browser console | No hydration errors |
 | Client navigation | Click internal link | Client-side route change (no reload) |
-| Initial data | `document.getElementById('__SCION_DATA__')` | JSON with page data |
+| Initial data | `document.getElementById('__FABRIC_DATA__')` | JSON with page data |
 | 404 page | `curl localhost:8080/nonexistent-page` | 404 page SSR rendered |
 
 ### Key Technical Decisions
@@ -148,10 +148,10 @@ web/
    - Component registration verification
 
 - [x] **Core UI components**
-   - `<scion-nav>` - sidebar navigation
-   - `<scion-header>` - top header bar
-   - `<scion-breadcrumb>` - breadcrumb navigation
-   - `<scion-status-badge>` - status indicator
+   - `<fabric-nav>` - sidebar navigation
+   - `<fabric-header>` - top header bar
+   - `<fabric-breadcrumb>` - breadcrumb navigation
+   - `<fabric-status-badge>` - status indicator
 
 - [x] **Layout system**
    - Responsive sidebar layout
@@ -211,7 +211,7 @@ web/
    - User context injection into SSR
 
 - [x] **Login UI**
-   - `<scion-login-page>` component
+   - `<fabric-login-page>` component
    - Provider selection buttons
    - Error handling/display
 
@@ -310,13 +310,13 @@ Create a simple mock for development without a real Hub:
 ### Deliverables
 
 - [x] **Grove pages**
-   - [x] `<scion-grove-list>` - list all groves with filtering
-   - [x] `<scion-grove-detail>` - single grove view with agent list
+   - [x] `<fabric-grove-list>` - list all groves with filtering
+   - [x] `<fabric-grove-detail>` - single grove view with agent list
    - [x] Grove card component with status summary
 
 - [x] **Agent pages**
-   - [x] `<scion-agent-list>` - agents within a grove
-   - [x] `<scion-agent-detail>` - single agent view
+   - [x] `<fabric-agent-list>` - agents within a grove
+   - [x] `<fabric-agent-detail>` - single agent view
    - [x] Agent card component with status, actions
 
 - [x] **Action handlers**
@@ -431,7 +431,7 @@ State updates use SSE (not WebSocket) because the data flow is server-to-client 
 docker run -p 4222:4222 nats:latest
 
 # Test SSE endpoint (authenticated session required)
-curl -N -H "Cookie: scion_sess=..." \
+curl -N -H "Cookie: fabric_sess=..." \
   "http://localhost:8080/events?sub=grove.test.>"
 
 # Publish test messages (in another terminal)
@@ -458,7 +458,7 @@ nats pub agent.agent1.event \
 - **NatsClient** (`src/server/services/nats-client.ts`): Wraps nats.js connection with status tracking via async status iterator. Auto-reconnect handled natively by nats.js. `subscribe()` returns raw `Subscription` objects that callers manage.
 - **SSEManager** (`src/server/services/sse-manager.ts`): Each `createConnection()` call creates a `PassThrough` stream and NATS subscriptions. Messages are bridged via async iterators. Heartbeats use `setInterval` with SSE comment lines (`:heartbeat`).
 - **SSE Route** (`src/server/routes/sse.ts`): `createSseRouter(sseManager, natsClient)` factory returns a Koa router. Validates subjects against allowed prefixes (`grove.`, `agent.`, `broker.`). Returns 503 when NATS is disconnected.
-- **Config** (`src/server/config.ts`): `SCION_NATS_URL` / `NATS_URL` (comma-separated), `NATS_TOKEN`, `NATS_ENABLED`. NATS is enabled by default when a URL is provided.
+- **Config** (`src/server/config.ts`): `FABRIC_NATS_URL` / `NATS_URL` (comma-separated), `NATS_TOKEN`, `NATS_ENABLED`. NATS is enabled by default when a URL is provided.
 - **App Integration** (`src/server/app.ts`): Services created in `createApp()` and exposed via `app.services`. NatsClient/SSEManager are `null` when NATS is disabled.
 - **Lifecycle** (`src/server/index.ts`): NATS connection is async and non-blocking — server starts even if NATS is unavailable. Shutdown drains SSE connections then NATS.
 - **Health** (`src/server/routes/health.ts`): `/readyz` reports NATS status. Returns 503 if NATS is enabled but disconnected.
@@ -498,7 +498,7 @@ The StateManager uses **view-scoped subscriptions**: the subscription scope foll
    - Clean disconnect on page unload
 
 - [x] **Hydration from SSR data** (deferred from M6)
-   - Parse `__SCION_DATA__` script tag into StateManager on page load
+   - Parse `__FABRIC_DATA__` script tag into StateManager on page load
    - SSE connection opened after hydration (deltas applied on top of snapshot)
 
 - [x] **Component wiring**
@@ -534,7 +534,7 @@ The StateManager uses **view-scoped subscriptions**: the subscription scope foll
 
 - **SSEClient** (`src/client/sse-client.ts`): Wraps `EventSource` with connection management. `connect(subjects)` builds the `/events?sub=...` URL and opens the stream. Auto-reconnect uses exponential backoff (1s base, capped at 30s, max 10 attempts). `EventSource` handles `Last-Event-ID` resume natively. Dispatches `update`, `connected`, `disconnected`, and `reconnecting` events.
 - **StateManager** (`src/client/state.ts`): Singleton managing `AppState` (agents/groves maps + connection status + current scope). `setScope()` maps view context to NATS subjects and opens/closes SSE connections. `handleUpdate()` parses NATS subject hierarchy to route deltas: grove-scoped agent events (`grove.{id}.agent.{type}`) and agent-scoped events (`agent.{id}.{type}`) both merge into the agents map. `hydrate()` loads SSR initial data.
-- **Client Entry** (`src/client/main.ts`): Imports `stateManager`, calls `hydrate()` with `__SCION_DATA__` on init, disconnects SSE on `beforeunload`.
+- **Client Entry** (`src/client/main.ts`): Imports `stateManager`, calls `hydrate()` with `__FABRIC_DATA__` on init, disconnects SSE on `beforeunload`.
 - **Component Integration**: Each page component calls `stateManager.setScope()` in `connectedCallback()` and listens for `agents-updated`/`groves-updated` events. Agent-detail sets scope after `loadData()` resolves (needs `groveId` from API response). Components merge SSE deltas into their local state arrays to trigger Lit re-renders.
 - **Scope Setting**: Groves list and Agents list use `dashboard` scope. Grove-detail uses `grove` scope. Agent-detail uses `agent-detail` scope (set after data load). Scope change closes old SSE connection and opens new one with different subjects.
 
@@ -547,7 +547,7 @@ The StateManager uses **view-scoped subscriptions**: the subscription scope foll
 ### Deliverables
 
 - [x] **Terminal component**
-   - `<scion-terminal>` Lit component (`web/src/components/pages/terminal.ts`, 553 lines)
+   - `<fabric-terminal>` Lit component (`web/src/components/pages/terminal.ts`, 553 lines)
    - xterm.js integration with addons (fit, web-links) via dynamic imports
    - Theme matching with dark terminal styling, cursor configuration
 
@@ -603,7 +603,7 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **Create agent dialog**
-   - `<scion-create-agent-dialog>` component
+   - `<fabric-create-agent-dialog>` component
    - Template selector
    - Configuration form (name, task, branch)
    - Advanced options (image, env vars)
@@ -646,30 +646,30 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **Template list page**
-   - `<scion-template-list>` - filterable template browser
+   - `<fabric-template-list>` - filterable template browser
    - Scope filtering (global/grove/user)
    - Harness type filtering
    - Search functionality
 
 - [ ] **Template detail/viewer**
-   - `<scion-template-detail>` - template configuration viewer
+   - `<fabric-template-detail>` - template configuration viewer
    - File manifest display
    - Version history (future)
 
 - [ ] **Template card component**
-   - `<scion-template-card>` - template summary card
+   - `<fabric-template-card>` - template summary card
    - Scope badge display
    - Action buttons (view, clone, delete)
 
 - [ ] **Template upload wizard**
-   - `<scion-template-upload>` - multi-step upload form
+   - `<fabric-template-upload>` - multi-step upload form
    - Metadata entry (name, description, harness)
    - File selection and upload
    - Signed URL upload integration
    - Finalization step
 
 - [ ] **Template scope selector**
-   - `<scion-scope-selector>` - reusable scope picker
+   - `<fabric-scope-selector>` - reusable scope picker
    - Support for user/grove scopes
 
 - [ ] **Template clone dialog**
@@ -705,39 +705,39 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **User list page**
-   - `<scion-user-list>` - user directory
+   - `<fabric-user-list>` - user directory
    - Role/status badges
    - Search and filtering
    - Role modification (admin only)
 
 - [ ] **User detail page**
-   - `<scion-user-detail>` - user profile view
+   - `<fabric-user-detail>` - user profile view
    - Group memberships
    - Recent activity
 
 - [ ] **User avatar component**
-   - `<scion-user-avatar>` - avatar with fallback
+   - `<fabric-user-avatar>` - avatar with fallback
    - Status indicator
 
 - [ ] **Group list page**
-   - `<scion-group-list>` - group directory
+   - `<fabric-group-list>` - group directory
    - Member count display
    - Create group button
 
 - [ ] **Group detail page**
-   - `<scion-group-detail>` - group management
+   - `<fabric-group-detail>` - group management
    - Member list with add/remove
    - Group metadata editing
    - Nested group support (display)
 
 - [ ] **Member list component**
-   - `<scion-member-list>` - reusable member table
+   - `<fabric-member-list>` - reusable member table
    - User and group members
    - Role column
    - Remove action
 
 - [ ] **Group badge component**
-   - `<scion-group-badge>` - group indicator
+   - `<fabric-group-badge>` - group indicator
 
 ### Test Criteria
 
@@ -770,12 +770,12 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **Policy list page**
-   - `<scion-policy-list>` - policy directory
+   - `<fabric-policy-list>` - policy directory
    - Scope/effect filtering
    - Principal count display
 
 - [ ] **Policy detail/editor**
-   - `<scion-policy-editor>` - policy form
+   - `<fabric-policy-editor>` - policy form
    - Scope type selection
    - Resource type selection
    - Action checkboxes
@@ -783,16 +783,16 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
    - Priority input
 
 - [ ] **Principal selector**
-   - `<scion-principal-selector>` - user/group picker
+   - `<fabric-principal-selector>` - user/group picker
    - Multi-select support
    - Search within selector
 
 - [ ] **Permission badge component**
-   - `<scion-permission-badge>` - permission indicator
+   - `<fabric-permission-badge>` - permission indicator
    - Allow/deny styling
 
 - [ ] **Access evaluation tool**
-   - `<scion-access-evaluator>` - debug interface
+   - `<fabric-access-evaluator>` - debug interface
    - Principal selection
    - Resource selection
    - Action selection
@@ -829,7 +829,7 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **Environment settings page**
-   - `<scion-settings-env>` - env/secrets management
+   - `<fabric-settings-env>` - env/secrets management
    - Tab: Environment Variables
    - Tab: Secrets
    - Scope selector (user/grove/broker)
@@ -849,13 +849,13 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
    - Grove/broker selector when applicable
 
 - [ ] **Env var editor dialog**
-   - `<scion-env-var-editor>` - create/edit form
+   - `<fabric-env-var-editor>` - create/edit form
    - Key validation (UPPER_SNAKE_CASE)
    - Sensitive toggle
    - Description field
 
 - [ ] **Secret editor dialog**
-   - `<scion-secret-editor>` - create/update form
+   - `<fabric-secret-editor>` - create/update form
    - Write-only value field
    - Description field
    - "Keep current value" option on edit
@@ -890,7 +890,7 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 ### Deliverables
 
 - [ ] **API keys page**
-   - `<scion-api-keys>` - key management
+   - `<fabric-api-keys>` - key management
    - Key list table
    - Key prefix display
    - Last used timestamp
@@ -1028,11 +1028,11 @@ Browser WS → Koa WS Proxy → Hub API WS → Runtime Broker
 
 ```bash
 # Build and push
-gcloud builds submit --tag gcr.io/PROJECT/scion-web
+gcloud builds submit --tag gcr.io/PROJECT/fabric-web
 
 # Deploy
-gcloud run deploy scion-web \
-  --image gcr.io/PROJECT/scion-web \
+gcloud run deploy fabric-web \
+  --image gcr.io/PROJECT/fabric-web \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated

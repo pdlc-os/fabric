@@ -31,16 +31,16 @@
 <polygon fill="lightblue" stroke="black" points="226,-409 0,-409 0,-373 226,-373 226,-409"/>
 <text xml:space="preserve" text-anchor="middle" x="113" y="-382.95" font-family="Times,serif" font-size="14.00">Filesystem Events (fanotify)</text>
 </g>
-<!-- scion&#45;fs&#45;watcher -->
+<!-- fabric&#45;fs&#45;watcher -->
 <g id="node2" class="node">
-<title>scion&#45;fs&#45;watcher</title>
+<title>fabric&#45;fs&#45;watcher</title>
 <polygon fill="lightblue" stroke="black" points="360.75,-233 97.25,-233 97.25,-197 360.75,-197 360.75,-233"/>
-<text xml:space="preserve" text-anchor="middle" x="229" y="-212.2" font-family="Times,serif" font-size="14.00">scion&#45;fs&#45;watcher</text>
+<text xml:space="preserve" text-anchor="middle" x="229" y="-212.2" font-family="Times,serif" font-size="14.00">fabric&#45;fs&#45;watcher</text>
 <text xml:space="preserve" text-anchor="middle" x="229" y="-201.7" font-family="Times,serif" font-size="14.00">(PID Resolver, Filter, Coalescer)</text>
 </g>
-<!-- Filesystem Events (fanotify)&#45;&gt;scion&#45;fs&#45;watcher -->
+<!-- Filesystem Events (fanotify)&#45;&gt;fabric&#45;fs&#45;watcher -->
 <g id="edge1" class="edge">
-<title>Filesystem Events (fanotify)&#45;&gt;scion&#45;fs&#45;watcher</title>
+<title>Filesystem Events (fanotify)&#45;&gt;fabric&#45;fs&#45;watcher</title>
 <path fill="none" stroke="black" d="M108.72,-372.55C104.92,-353.1 101.68,-321.31 114,-297.75 127.56,-271.82 153.5,-252.29 177.31,-238.84"/>
 <polygon fill="black" stroke="black" points="178.87,-241.98 186.01,-234.16 175.55,-235.81 178.87,-241.98"/>
 <text xml:space="preserve" text-anchor="middle" x="219" y="-294.95" font-family="Times,serif" font-size="14.00">Raw Events (PID, Path, Mask)</text>
@@ -52,9 +52,9 @@
 <text xml:space="preserve" text-anchor="middle" x="229" y="-35.2" font-family="Times,serif" font-size="14.00">NDJSON Output</text>
 <text xml:space="preserve" text-anchor="middle" x="229" y="-24.7" font-family="Times,serif" font-size="14.00">(stdout/file)</text>
 </g>
-<!-- scion&#45;fs&#45;watcher&#45;&gt;NDJSON Output\n(stdout/file) -->
+<!-- fabric&#45;fs&#45;watcher&#45;&gt;NDJSON Output\n(stdout/file) -->
 <g id="edge3" class="edge">
-<title>scion&#45;fs&#45;watcher&#45;&gt;NDJSON Output\n(stdout/file)</title>
+<title>fabric&#45;fs&#45;watcher&#45;&gt;NDJSON Output\n(stdout/file)</title>
 <path fill="none" stroke="black" d="M229,-196.58C229,-166.44 229,-104.3 229,-67.7"/>
 <polygon fill="black" stroke="black" points="232.5,-67.86 229,-57.86 225.5,-67.86 232.5,-67.86"/>
 <text xml:space="preserve" text-anchor="middle" x="289" y="-117.95" font-family="Times,serif" font-size="14.00">Formatted Events</text>
@@ -65,9 +65,9 @@
 <polygon fill="lightblue" stroke="black" points="429,-409 263,-409 263,-373 429,-373 429,-409"/>
 <text xml:space="preserve" text-anchor="middle" x="346" y="-382.95" font-family="Times,serif" font-size="14.00">Docker Daemon Events</text>
 </g>
-<!-- Docker Daemon Events&#45;&gt;scion&#45;fs&#45;watcher -->
+<!-- Docker Daemon Events&#45;&gt;fabric&#45;fs&#45;watcher -->
 <g id="edge2" class="edge">
-<title>Docker Daemon Events&#45;&gt;scion&#45;fs&#45;watcher</title>
+<title>Docker Daemon Events&#45;&gt;fabric&#45;fs&#45;watcher</title>
 <path fill="none" stroke="black" d="M345.06,-372.82C343.31,-353.33 338.31,-321.23 324,-297.75 309.73,-274.33 286.49,-254.15 266.56,-239.71"/>
 <polygon fill="black" stroke="black" points="268.83,-237.02 258.63,-234.15 264.81,-242.76 268.83,-237.02"/>
 <text xml:space="preserve" text-anchor="middle" x="400.1" y="-294.95" font-family="Times,serif" font-size="14.00">Container Lifecycle</text>

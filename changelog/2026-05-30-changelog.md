@@ -4,9 +4,9 @@ This release marks a major milestone with the introduction of the Telegram messa
 
 ## 🚀 Features
 
-* **Telegram Message Broker Plugin:** A comprehensive new integration allowing users to interact with Scion agents directly via Telegram.
+* **Telegram Message Broker Plugin:** A comprehensive new integration allowing users to interact with Fabric agents directly via Telegram.
     * **Interactive Commands:** Manage agents and view status using `/agents`, `/status`, and `/default`.
-    * **Identity Linking:** Securely link Telegram accounts to Scion identities using the `/register` flow.
+    * **Identity Linking:** Securely link Telegram accounts to Fabric identities using the `/register` flow.
     * **Rich Notifications:** Receive real-time agent state updates (started, completed, error, input needed) with formatted HTML status cards.
     * **Intelligent Routing:** Support for @mentions and native Telegram replies in group chats to direct messages to specific agents.
     * **File Support:** Send and receive file attachments (photos and documents) directly through the chat interface.

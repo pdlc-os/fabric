@@ -18,13 +18,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 func TestPostgresConfigProvider_LoadEmpty(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 	p := config.NewPostgresConfigProvider(client, "discord")
@@ -40,7 +40,7 @@ func TestPostgresConfigProvider_LoadEmpty(t *testing.T) {
 
 func TestPostgresConfigProvider_SaveAndLoad(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 	p := config.NewPostgresConfigProvider(client, "discord")
@@ -69,7 +69,7 @@ func TestPostgresConfigProvider_SaveAndLoad(t *testing.T) {
 
 func TestPostgresConfigProvider_SaveUpsert(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 	p := config.NewPostgresConfigProvider(client, "telegram")
@@ -100,7 +100,7 @@ func TestPostgresConfigProvider_SaveUpsert(t *testing.T) {
 
 func TestPostgresConfigProvider_IsolatedByIntegration(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 	discordP := config.NewPostgresConfigProvider(client, "discord")
@@ -140,7 +140,7 @@ func TestPostgresConfigProvider_IsolatedByIntegration(t *testing.T) {
 
 func TestPostgresConfigProvider_ImplementsInterface(t *testing.T) {
 	if !enttest.Active() {
-		t.Skip("requires Postgres backend; set SCION_TEST_POSTGRES_URL and build with -tags integration")
+		t.Skip("requires Postgres backend; set FABRIC_TEST_POSTGRES_URL and build with -tags integration")
 	}
 	client := enttest.NewClient(t)
 	var _ config.IntegrationConfigProvider = config.NewPostgresConfigProvider(client, "test")

@@ -22,10 +22,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin/refbroker"
-	brokerv1 "github.com/GoogleCloudPlatform/scion/proto/broker/v1"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin/refbroker"
+	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -73,13 +73,13 @@ func TestAdapterPublishSubscribe(t *testing.T) {
 
 	// Subscribe
 	handler := func(_ context.Context, _ string, _ *messages.StructuredMessage) {}
-	sub, err := adapter.Subscribe("scion.project.g1.agent.*.messages", handler)
+	sub, err := adapter.Subscribe("fabric.project.g1.agent.*.messages", handler)
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
 	// Publish
 	msg := messages.NewInstruction("user:alice", "agent:coder", "hello via grpc")
-	err = adapter.Publish(context.Background(), "scion.project.g1.agent.coder.messages", msg)
+	err = adapter.Publish(context.Background(), "fabric.project.g1.agent.coder.messages", msg)
 	require.NoError(t, err)
 
 	// Wait for async delivery in refbroker
@@ -188,13 +188,13 @@ func TestAdapterReconnectAfterServerRestart(t *testing.T) {
 
 	// Subscribe with handler.
 	handler := func(_ context.Context, _ string, _ *messages.StructuredMessage) {}
-	sub, err := adapter.Subscribe("scion.project.g1.>", handler)
+	sub, err := adapter.Subscribe("fabric.project.g1.>", handler)
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
 	// Publish successfully.
 	msg1 := messages.NewInstruction("user:alice", "agent:coder", "before restart")
-	require.NoError(t, adapter.Publish(context.Background(), "scion.project.g1.agent.coder.messages", msg1))
+	require.NoError(t, adapter.Publish(context.Background(), "fabric.project.g1.agent.coder.messages", msg1))
 
 	require.Eventually(t, func() bool {
 		mu.Lock()
@@ -237,7 +237,7 @@ func TestAdapterReconnectAfterServerRestart(t *testing.T) {
 	// ensureConnected will re-dial; tryReconnect will re-subscribe.
 	// Publish to trigger connect → subscribe → publish.
 	msg2 := messages.NewInstruction("user:bob", "agent:coder", "after restart")
-	err = adapter.Publish(context.Background(), "scion.project.g1.agent.coder.messages", msg2)
+	err = adapter.Publish(context.Background(), "fabric.project.g1.agent.coder.messages", msg2)
 	require.NoError(t, err)
 
 	// The adapter should have re-subscribed after reconnect, so the message

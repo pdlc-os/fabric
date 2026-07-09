@@ -28,13 +28,13 @@ provision = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(provision)
 
-scion_harness = provision.scion_harness
+fabric_harness = provision.fabric_harness
 
-MANAGED_BEGIN = "<!-- BEGIN SCION MANAGED -->"
-MANAGED_END = "<!-- END SCION MANAGED -->"
+MANAGED_BEGIN = "<!-- BEGIN FABRIC MANAGED -->"
+MANAGED_END = "<!-- END FABRIC MANAGED -->"
 
-LEGACY_BEGIN = "<!-- BEGIN SCION MANAGED CODEX INSTRUCTIONS -->"
-LEGACY_END = "<!-- END SCION MANAGED CODEX INSTRUCTIONS -->"
+LEGACY_BEGIN = "<!-- BEGIN FABRIC MANAGED CODEX INSTRUCTIONS -->"
+LEGACY_END = "<!-- END FABRIC MANAGED CODEX INSTRUCTIONS -->"
 
 
 @contextmanager
@@ -86,9 +86,9 @@ class CodexProvisionTest(unittest.TestCase):
             }
 
             with temporary_home(home):
-                ctx = scion_harness.ProvisionContext("codex", manifest)
-                scion_harness.project_instructions(ctx, ".codex/AGENTS.md")
-                scion_harness.project_instructions(ctx, ".codex/AGENTS.md")
+                ctx = fabric_harness.ProvisionContext("codex", manifest)
+                fabric_harness.project_instructions(ctx, ".codex/AGENTS.md")
+                fabric_harness.project_instructions(ctx, ".codex/AGENTS.md")
 
             with open(os.path.join(home, ".codex", "AGENTS.md"), "r", encoding="utf-8") as f:
                 content = f.read()
@@ -131,8 +131,8 @@ class CodexProvisionTest(unittest.TestCase):
             }
 
             with temporary_home(home):
-                ctx = scion_harness.ProvisionContext("codex", manifest)
-                scion_harness.project_instructions(ctx, ".codex/AGENTS.md")
+                ctx = fabric_harness.ProvisionContext("codex", manifest)
+                fabric_harness.project_instructions(ctx, ".codex/AGENTS.md")
 
             with open(agents_path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -166,8 +166,8 @@ class CodexProvisionTest(unittest.TestCase):
             }
 
             with temporary_home(home):
-                ctx = scion_harness.ProvisionContext("codex", manifest)
-                scion_harness.project_instructions(ctx, ".codex/AGENTS.md")
+                ctx = fabric_harness.ProvisionContext("codex", manifest)
+                fabric_harness.project_instructions(ctx, ".codex/AGENTS.md")
 
             self.assertFalse(os.path.exists(agents_path))
 
@@ -178,7 +178,7 @@ class CodexProvisionTest(unittest.TestCase):
                 "endpoint": "https://otel.example.com/v1/logs",
                 "protocol": "http",
                 "headers": {"x-otlp-meta": "abc123", "authorization": "Bearer token"},
-                "tls": {"ca_file": "/etc/scion/ca.pem"},
+                "tls": {"ca_file": "/etc/fabric/ca.pem"},
             },
             "resource": {"deployment.environment": "staging"},
             "filter": {"events": {"include": ["agent.user.prompt"]}},
@@ -199,8 +199,8 @@ class CodexProvisionTest(unittest.TestCase):
             'trace_exporter."otlp-http".headers = { "authorization" = "Bearer token", "x-otlp-meta" = "abc123" }',
             section,
         )
-        self.assertIn('exporter."otlp-http".tls.ca-certificate = "/etc/scion/ca.pem"', section)
-        self.assertIn('trace_exporter."otlp-http".tls.ca-certificate = "/etc/scion/ca.pem"', section)
+        self.assertIn('exporter."otlp-http".tls.ca-certificate = "/etc/fabric/ca.pem"', section)
+        self.assertIn('trace_exporter."otlp-http".tls.ca-certificate = "/etc/fabric/ca.pem"', section)
 
     def test_build_otel_section_uses_env_overrides_and_production_default(self) -> None:
         telemetry = {
@@ -213,9 +213,9 @@ class CodexProvisionTest(unittest.TestCase):
             "filter": {"events": {"include": ["agent.user.prompt"], "exclude": ["agent.user.prompt"]}},
         }
         env = {
-            "SCION_CODEX_OTEL_ENDPOINT": "collector.internal:4317",
-            "SCION_CODEX_OTEL_PROTOCOL": "grpc",
-            "SCION_CODEX_OTEL_ENVIRONMENT": "dev",
+            "FABRIC_CODEX_OTEL_ENDPOINT": "collector.internal:4317",
+            "FABRIC_CODEX_OTEL_PROTOCOL": "grpc",
+            "FABRIC_CODEX_OTEL_ENVIRONMENT": "dev",
         }
 
         section = provision._build_otel_section(telemetry, env)

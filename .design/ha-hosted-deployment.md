@@ -19,20 +19,20 @@ and a shared Postgres signal plane.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: scion-discord-ha
+  name: fabric-discord-ha
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: scion-discord
+      app: fabric-discord
   template:
     metadata:
       labels:
-        app: scion-discord
+        app: fabric-discord
     spec:
       containers:
         - name: discord
-          image: scion-discord:latest
+          image: fabric-discord:latest
           args: ["--standalone"]
           ports:
             - containerPort: 9090
@@ -41,7 +41,7 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: scion-postgres
+                  name: fabric-postgres
                   key: url
           livenessProbe:
             grpc:
@@ -59,10 +59,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: scion-discord
+  name: fabric-discord
 spec:
   selector:
-    app: scion-discord
+    app: fabric-discord
   ports:
     - port: 9090
       targetPort: grpc
@@ -78,7 +78,7 @@ plugins:
   broker:
     discord:
       mode: grpc
-      address: scion-discord:9090
+      address: fabric-discord:9090
 ```
 
 ### Advisory Lock Failover
@@ -104,8 +104,8 @@ WebSocket, LISTEN/NOTIFY, advisory locks). These settings are mandatory:
 ### Deploy Command
 
 ```bash
-gcloud run deploy scion-discord \
-  --image gcr.io/PROJECT/scion-discord:latest \
+gcloud run deploy fabric-discord \
+  --image gcr.io/PROJECT/fabric-discord:latest \
   --min-instances 1 \
   --cpu-always-allocated \
   --session-affinity \
@@ -133,7 +133,7 @@ plugins:
   broker:
     discord:
       mode: grpc
-      address: scion-discord-HASH-uc.a.run.app:443
+      address: fabric-discord-HASH-uc.a.run.app:443
 ```
 
 ## Update Flow

@@ -18,8 +18,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // WorkspaceService handles workspace synchronization operations.

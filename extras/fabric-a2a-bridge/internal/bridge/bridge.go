@@ -26,11 +26,11 @@ import (
 	"github.com/a2aproject/a2a-go/v2/a2asrv"
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/identity"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/identity"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 var (
@@ -277,10 +277,10 @@ func (b *Bridge) SendMessage(ctx context.Context, projectSlug, agentSlug, contex
 		b.metrics.TasksCreated.WithLabelValues(agentCtx.ProjectID).Inc()
 	}
 
-	scionMsg := TranslateA2AToScion(parts)
-	scionMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
-	scionMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
-	scionMsg.Metadata = map[string]string{"a2aTaskId": taskID}
+	fabricMsg := TranslateA2AToFabric(parts)
+	fabricMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
+	fabricMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
+	fabricMsg.Metadata = map[string]string{"a2aTaskId": taskID}
 
 	if b.broker != nil {
 		pattern := projectcompat.UserTopic(agentCtx.ProjectID, b.config.Hub.User)
@@ -302,7 +302,7 @@ func (b *Bridge) SendMessage(ctx context.Context, projectSlug, agentSlug, contex
 			defer b.wg.Done()
 			sendCtx, cancel := context.WithTimeout(b.shutdownCtx, 30*time.Second)
 			defer cancel()
-			if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentCtx.AgentID, scionMsg, false, false, false); err != nil {
+			if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentCtx.AgentID, fabricMsg, false, false, false); err != nil {
 				b.log.Error("non-blocking send failed", "error", err, "task_id", taskID)
 				if err := b.store.UpdateTaskState(taskID, TaskStateFailed); err != nil {
 					b.log.Error("failed to update task state", "error", err, "task_id", taskID)
@@ -337,7 +337,7 @@ func (b *Bridge) SendMessage(ctx context.Context, projectSlug, agentSlug, contex
 	// Keep task registered in activeTasks — the agent's eventual state-change
 	// to completed/failed will close it via dispatchToActiveTask.
 
-	if _, err := b.hubClient.Agents().SendStructuredMessage(ctx, agentCtx.AgentID, scionMsg, false, false, false); err != nil {
+	if _, err := b.hubClient.Agents().SendStructuredMessage(ctx, agentCtx.AgentID, fabricMsg, false, false, false); err != nil {
 		if err := b.store.UpdateTaskState(taskID, TaskStateFailed); err != nil {
 			b.log.Error("failed to update task state", "error", err, "task_id", taskID)
 		}
@@ -359,7 +359,7 @@ func (b *Bridge) SendMessage(ctx context.Context, projectSlug, agentSlug, contex
 
 	select {
 	case response := <-responseCh:
-		msg, artifacts := TranslateScionToA2A(response)
+		msg, artifacts := TranslateFabricToA2A(response)
 
 		return &TaskResult{
 			ID:        taskID,
@@ -409,10 +409,10 @@ func (b *Bridge) sendFollowUp(ctx context.Context, projectSlug, agentSlug, taskI
 		agentID = agent.ID
 	}
 
-	scionMsg := TranslateA2AToScion(parts)
-	scionMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
-	scionMsg.Recipient = fmt.Sprintf("agent:%s", task.AgentSlug)
-	scionMsg.Metadata = map[string]string{"a2aTaskId": taskID}
+	fabricMsg := TranslateA2AToFabric(parts)
+	fabricMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
+	fabricMsg.Recipient = fmt.Sprintf("agent:%s", task.AgentSlug)
+	fabricMsg.Metadata = map[string]string{"a2aTaskId": taskID}
 
 	// Re-request broker subscriptions in case the broker reconnected since
 	// the original task was created (subscriptions may have been lost).
@@ -439,7 +439,7 @@ func (b *Bridge) sendFollowUp(ctx context.Context, projectSlug, agentSlug, taskI
 		defer b.removeWaiter(taskID)
 		defer b.unregisterActiveTask(taskID, aKey)
 
-		if _, err := b.hubClient.Agents().SendStructuredMessage(ctx, agentID, scionMsg, false, false, false); err != nil {
+		if _, err := b.hubClient.Agents().SendStructuredMessage(ctx, agentID, fabricMsg, false, false, false); err != nil {
 			b.failFollowUpTask(taskID)
 			return nil, fmt.Errorf("send follow-up to agent: %w", err)
 		}
@@ -456,7 +456,7 @@ func (b *Bridge) sendFollowUp(ctx context.Context, projectSlug, agentSlug, taskI
 			if err := b.store.UpdateTaskState(taskID, TaskStateWorking); err != nil {
 				b.log.Error("failed to update task state", "error", err, "task_id", taskID)
 			}
-			msg, artifacts := TranslateScionToA2A(response)
+			msg, artifacts := TranslateFabricToA2A(response)
 			return &TaskResult{
 				ID:        taskID,
 				ContextID: task.ContextID,
@@ -480,7 +480,7 @@ func (b *Bridge) sendFollowUp(ctx context.Context, projectSlug, agentSlug, taskI
 		defer b.wg.Done()
 		sendCtx, cancel := context.WithTimeout(b.shutdownCtx, 30*time.Second)
 		defer cancel()
-		if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentID, scionMsg, false, false, false); err != nil {
+		if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentID, fabricMsg, false, false, false); err != nil {
 			b.log.Error("non-blocking follow-up send failed", "error", err, "task_id", taskID)
 			b.failFollowUpTask(taskID)
 			b.unregisterActiveTask(taskID, aKey)
@@ -672,7 +672,7 @@ func (b *Bridge) dispatchBrokerMessage(topic string, msg *messages.StructuredMes
 		return
 	}
 
-	// No a2aTaskId — the outbound message path (sciontool stop hook →
+	// No a2aTaskId — the outbound message path (fabrictool stop hook →
 	// SendOutboundMessage) does not carry metadata from the original inbound
 	// message, so a2aTaskId is lost in the round-trip. Fall back to agent-slug
 	// correlation using the agentTasks reverse map.
@@ -769,7 +769,7 @@ func (b *Bridge) dispatchToActiveTask(ctx context.Context, taskID, agentSlug str
 	// whose only recent activity is content messages.
 	// Use TouchTask (not UpdateTaskState) to preserve the current state —
 	// content messages must not overwrite input-required.
-	a2aMsg, artifacts := TranslateScionToA2A(msg)
+	a2aMsg, artifacts := TranslateFabricToA2A(msg)
 
 	currentState := TaskStateWorking
 	if task, err := b.store.GetTask(taskID); err != nil {
@@ -845,7 +845,7 @@ func (b *Bridge) GenerateAgentCard(ctx context.Context, projectSlug, agentSlug s
 	agentURL := fmt.Sprintf("%s/projects/%s/agents/%s", baseURL, projectSlug, agentSlug)
 
 	name := agentSlug
-	description := fmt.Sprintf("Scion agent %s in project %s", agentSlug, projectSlug)
+	description := fmt.Sprintf("Fabric agent %s in project %s", agentSlug, projectSlug)
 	var skills []map[string]interface{}
 
 	if agent := b.lookupAgent(ctx, projectSlug, agentSlug); agent != nil {
@@ -968,7 +968,7 @@ func (b *Bridge) GetProjectConfig(projectSlug string) *ProjectConfig {
 	return nil
 }
 
-// resolveContext maps an A2A context to a Scion agent, creating a new context if needed.
+// resolveContext maps an A2A context to a Fabric agent, creating a new context if needed.
 func (b *Bridge) resolveContext(ctx context.Context, projectSlug, agentSlug, contextID string) (*state.Context, error) {
 	if contextID != "" {
 		existing, err := b.store.GetContext(contextID)
@@ -1097,7 +1097,7 @@ func (b *Bridge) removeWaiter(taskID string) {
 }
 
 // parseTopic extracts project and agent identifiers from a broker topic string.
-// Canonical scion.project topics and legacy scion.grove topics are accepted.
+// Canonical fabric.project topics and legacy fabric.grove topics are accepted.
 func parseTopic(topic string) (projectID, agentSlug string, err error) {
 	parsed, err := projectcompat.ParseTopic(topic)
 	if err != nil {

@@ -1,14 +1,14 @@
-# scion Implementation Milestones
+# fabric Implementation Milestones
 
-This document tracks the evolution of `scion`. It has been updated to reflect the transition to "grove" terminology and current project status.
+This document tracks the evolution of `fabric`. It has been updated to reflect the transition to "grove" terminology and current project status.
 
 ## Milestone 1: Core Scaffolding & Configuration
 **Goal**: Establish the basic CLI structure and filesystem management.
 
-- [x] Implement `scion grove init` (**Completed**)
-    - [x] Create `.scion/` directory structure.
-    - [x] Seed `.scion/templates/default` with basic agent structure.
-    - [x] Create global `~/.scion/` structure for cross-project use.
+- [x] Implement `fabric grove init` (**Completed**)
+    - [x] Create `.fabric/` directory structure.
+    - [x] Seed `.fabric/templates/default` with basic agent structure.
+    - [x] Create global `~/.fabric/` structure for cross-project use.
 - [x] Implement Template Loading (**Completed**)
     - [x] Logic to find and load templates (Project-local vs. Global).
     - [x] Simple inheritance (custom template merged with `default`).
@@ -29,12 +29,12 @@ This document tracks the evolution of `scion`. It has been updated to reflect th
 ## Milestone 3: Agent Provisioning & Git Integration
 **Goal**: Launch isolated agents with workspace awareness.
 
-- [x] Implement `scion start` (**Completed**)
+- [x] Implement `fabric start` (**Completed**)
     - [x] Template selection and home directory provisioning.
     - [x] Environment & Credential Propagation (API keys, OAuth, ADC).
-    - [x] Labeling (scion.agent, scion.name, scion.grove).
+    - [x] Labeling (fabric.agent, fabric.name, fabric.grove).
 - [x] Git Worktree Integration (**Completed**)
-    - [x] Automated worktree creation in `.scion/agents/<name>/workspace`.
+    - [x] Automated worktree creation in `.fabric/agents/<name>/workspace`.
     - [x] Worktree cleanup on agent removal.
 - [x] Multi-agent isolation (**Completed**)
     - [x] Distinct identities and file states per agent.
@@ -42,14 +42,14 @@ This document tracks the evolution of `scion`. It has been updated to reflect th
 ## Milestone 4: Lifecycle & Observability
 **Goal**: Visibility and control over running agents.
 
-- [x] Implement `scion list` (**Completed**)
+- [x] Implement `fabric list` (**Completed**)
     - [x] Multi-grove filtering and `--all` support.
-- [x] Implement `scion stop` & `scion delete` (**Completed**)
+- [x] Implement `fabric stop` & `fabric delete` (**Completed**)
     - [x] Separate stop (pause) and delete (cleanup) operations.
     - [x] `stop --rm` convenience flag.
-- [x] Implement `scion attach` (**Completed**)
+- [x] Implement `fabric attach` (**Completed**)
     - [x] Interactive session connection (tmux support).
-- [x] Implement `scion logs` (**Completed**)
+- [x] Implement `fabric logs` (**Completed**)
 
 ## Milestone 5: Refinement & Advanced UX (Next)
 **Goal**: Improve management efficiency and user experience.
@@ -57,10 +57,10 @@ This document tracks the evolution of `scion`. It has been updated to reflect th
 add a template lifecycle sub-command - working with the default or explicit grove.
 
 - [x] Template Management Enhancements (**Completed**)
-    - [x] `scion templates new <name>`: Create a new template, cloning the default as a starting point
-    - [x] `scion templates list`: List available local and global templates.
-    - [x] `scion templates show <name>`: Inspect template configuration.
-    - [x] `scion templates delete <name>`: Inspect template configuration.
+    - [x] `fabric templates new <name>`: Create a new template, cloning the default as a starting point
+    - [x] `fabric templates list`: List available local and global templates.
+    - [x] `fabric templates show <name>`: Inspect template configuration.
+    - [x] `fabric templates delete <name>`: Inspect template configuration.
 
 
 ## Milestone 6: Inter-Agent Coordination (Future)

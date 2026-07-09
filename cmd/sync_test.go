@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 func TestResolveAgentID_AgentFound(t *testing.T) {
@@ -132,7 +132,7 @@ func TestResolveLocalWorkspacePath_WorktreeExists(t *testing.T) {
 	}
 
 	// Create worktree directory
-	worktreeDir := filepath.Join(tmpDir, ".scion_worktrees", projectName, "my-agent")
+	worktreeDir := filepath.Join(tmpDir, ".fabric_worktrees", projectName, "my-agent")
 	if err := os.MkdirAll(worktreeDir, 0755); err != nil {
 		t.Fatalf("failed to create worktree dir: %v", err)
 	}

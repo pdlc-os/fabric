@@ -1,11 +1,11 @@
-# Scion Hub API Design
+# Fabric Hub API Design
 
 ## Status
 **Proposed**
 
 ## 1. Overview
 
-This document specifies the REST API for the **Scion Hub** (State Server), the centralized service that manages agent state, groves, runtime brokers, templates, and users in the distributed Scion architecture.
+This document specifies the REST API for the **Fabric Hub** (State Server), the centralized service that manages agent state, groves, runtime brokers, templates, and users in the distributed Fabric architecture.
 
 The Hub API provides:
 - **Grove-Centric Registration**: Groves are the primary unit of registration. Runtime brokers register the groves they serve, not themselves as standalone entities.
@@ -158,7 +158,7 @@ Represents a compute node that contributes to one or more groves. **Runtime brok
   "slug": "string",            // URL-safe identifier
 
   "type": "string",            // Primary runtime type: docker, kubernetes, apple
-  "version": "string",         // Scion broker agent version (for compatibility)
+  "version": "string",         // Fabric broker agent version (for compatibility)
 
   "status": "string",          // online, offline, degraded
   "connectionState": "string", // Control channel: connected, disconnected
@@ -181,7 +181,7 @@ Represents a compute node that contributes to one or more groves. **Runtime brok
       "type": "kubernetes",
       "available": true,
       "context": "prod-cluster",
-      "namespace": "scion"
+      "namespace": "fabric"
     }
   ],
 
@@ -489,7 +489,7 @@ Execute a one-off command inside an agent container (similar to `kubectl exec`).
 }
 ```
 
-### 3.8 Agent Status Reporting (from sciontool)
+### 3.8 Agent Status Reporting (from fabrictool)
 
 ```
 POST /api/v1/agents/{agentId}/status
@@ -508,7 +508,7 @@ Internal endpoint for agents to report status updates.
 ```
 
 **Headers:**
-- `X-Scion-Agent-Token`: Agent authentication token (scoped to this agent only)
+- `X-Fabric-Agent-Token`: Agent authentication token (scoped to this agent only)
 
 **Token Scope:** Agent tokens are limited to:
 - Updating status for the specific agent
@@ -550,10 +550,10 @@ Upsert endpoint for Runtime Brokers to register locally-created agents with the 
 ```
 
 **Headers (HMAC Authentication):**
-- `X-Scion-Broker-ID`: Runtime broker identifier
-- `X-Scion-Timestamp`: Request timestamp (RFC 3339)
-- `X-Scion-Nonce`: Random nonce for replay prevention
-- `X-Scion-Signature`: HMAC-SHA256 signature
+- `X-Fabric-Broker-ID`: Runtime broker identifier
+- `X-Fabric-Timestamp`: Request timestamp (RFC 3339)
+- `X-Fabric-Nonce`: Random nonce for replay prevention
+- `X-Fabric-Signature`: HMAC-SHA256 signature
 
 See [Runtime Broker Auth](auth/runtime-broker-auth.md) for the complete authentication specification.
 
@@ -613,7 +613,7 @@ This is the **primary registration endpoint** for runtime brokers. It performs a
   "broker": {                  // Broker information
     "id": "string",            // Existing broker ID (optional, for reconnection)
     "name": "string",          // Broker display name
-    "version": "string",       // Scion version
+    "version": "string",       // Fabric version
     "capabilities": {
       "webPty": true,
       "sync": true,
@@ -852,10 +852,10 @@ Internal endpoint for runtime brokers to report health.
 ```
 
 **Headers (HMAC Authentication):**
-- `X-Scion-Broker-ID`: Runtime broker identifier
-- `X-Scion-Timestamp`: Request timestamp (RFC 3339)
-- `X-Scion-Nonce`: Random nonce for replay prevention
-- `X-Scion-Signature`: HMAC-SHA256 signature
+- `X-Fabric-Broker-ID`: Runtime broker identifier
+- `X-Fabric-Timestamp`: Request timestamp (RFC 3339)
+- `X-Fabric-Nonce`: Random nonce for replay prevention
+- `X-Fabric-Signature`: HMAC-SHA256 signature
 
 ---
 
@@ -893,7 +893,7 @@ POST /api/v1/templates
   "harness": "string",
   "scope": "grove",
   "groveId": "string",
-  "config": ScionConfig,
+  "config": FabricConfig,
   "visibility": "private"
 }
 ```
@@ -1363,15 +1363,15 @@ All error responses follow a consistent format:
 
 3. **Agent Token** (Agent-to-Hub)
    ```
-   X-Scion-Agent-Token: <token>
+   X-Fabric-Agent-Token: <token>
    ```
 
 4. **Broker HMAC Authentication** (Runtime Broker ↔ Hub)
    ```
-   X-Scion-Broker-ID: <broker-id>
-   X-Scion-Timestamp: <RFC 3339 timestamp>
-   X-Scion-Nonce: <base64-encoded nonce>
-   X-Scion-Signature: <HMAC-SHA256 signature>
+   X-Fabric-Broker-ID: <broker-id>
+   X-Fabric-Timestamp: <RFC 3339 timestamp>
+   X-Fabric-Nonce: <base64-encoded nonce>
+   X-Fabric-Signature: <HMAC-SHA256 signature>
    ```
    See [Runtime Broker Auth](auth/runtime-broker-auth.md) for the complete specification.
 
@@ -1404,7 +1404,7 @@ Runtime Brokers authenticate with the Hub using HMAC-based request signing. See 
 
 1. **Registration:** User creates a broker record, receives a short-lived join token
 2. **Join:** Broker exchanges join token for a shared secret (one-time transmission)
-3. **Storage:** Broker stores secret securely (`~/.scion/broker-credentials.json` or secret manager)
+3. **Storage:** Broker stores secret securely (`~/.fabric/broker-credentials.json` or secret manager)
 4. **Authentication:** All subsequent requests are HMAC-signed using the shared secret
 5. **Rotation:** Hub initiates secret rotation with grace period for dual-secret validation:
    ```
@@ -1415,7 +1415,7 @@ Runtime Brokers authenticate with the Hub using HMAC-based request signing. See 
 #### Agent Tokens
 
 1. **Generation:** When the Hub instructs a broker to create an agent, it generates a short-lived bootstrap token (valid 5 minutes).
-2. **Bootstrap Exchange:** The agent's `sciontool` exchanges the bootstrap token for a session token:
+2. **Bootstrap Exchange:** The agent's `fabrictool` exchanges the bootstrap token for a session token:
    ```
    POST /api/v1/auth/agent-token-exchange
    ```
@@ -1459,7 +1459,7 @@ The control channel is established **after grove registration**. The broker must
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│   Scion Hub     │                    │  Runtime Broker   │
+│   Fabric Hub     │                    │  Runtime Broker   │
 │                 │◄───────────────────│  (behind NAT)   │
 │                 │   WebSocket        │                 │
 │  Control Plane  │   Control Channel  │  Broker Agent   │
@@ -1485,10 +1485,10 @@ WS /api/v1/runtime-brokers/connect
 Runtime Broker initiates a persistent WebSocket connection to the Hub. The broker must have already completed the registration flow and obtained a shared secret.
 
 **Headers (HMAC Authentication):**
-- `X-Scion-Broker-ID`: Broker identifier
-- `X-Scion-Timestamp`: Request timestamp (RFC 3339)
-- `X-Scion-Nonce`: Random nonce for replay prevention
-- `X-Scion-Signature`: HMAC-SHA256 signature of the WebSocket upgrade request
+- `X-Fabric-Broker-ID`: Broker identifier
+- `X-Fabric-Timestamp`: Request timestamp (RFC 3339)
+- `X-Fabric-Nonce`: Random nonce for replay prevention
+- `X-Fabric-Signature`: HMAC-SHA256 signature of the WebSocket upgrade request
 
 Once the WebSocket is established with HMAC authentication, Hub→Broker commands over the connection use session-based trust (no per-message signing required). Broker→Hub requests that require authorization must use standard HMAC-authenticated HTTP requests. See [Runtime Broker Auth](auth/runtime-broker-auth.md) Section 10.5 for details.
 
@@ -1877,7 +1877,7 @@ Instead of pushing commands over persistent WebSockets, the Hub writes commands 
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│   Scion Hub     │                    │  Runtime Broker   │
+│   Fabric Hub     │                    │  Runtime Broker   │
 │   (Stateless)   │                    │  (behind NAT)   │
 │                 │                    │                 │
 │  ┌───────────┐  │    Poll (HTTP)     │                 │

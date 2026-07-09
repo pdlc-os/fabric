@@ -10,7 +10,7 @@
 
 Today, groves are created in two ways:
 
-1. **Local-first**: Run `scion grove init` inside a local git checkout, optionally register with the Hub.
+1. **Local-first**: Run `fabric grove init` inside a local git checkout, optionally register with the Hub.
 2. **Git-URL-first**: Create a grove on the Hub from a remote git URL (per `git-groves.md`). Agents clone the repo at startup.
 
 This document proposes a third mode: **Hub-managed groves** — groves whose workspace is a plain directory on the Hub server's filesystem, with no backing git repository. These groves are created entirely through the web interface (or Hub API), enabling users to spin up agent workspaces without any local machine, CLI, or git hosting involvement.
@@ -24,7 +24,7 @@ This document proposes a third mode: **Hub-managed groves** — groves whose wor
 ### Goals
 
 1. Allow grove creation entirely via the web UI or Hub API — no CLI or git URL required.
-2. Workspace directories are managed on the Hub server's local filesystem under `~/.scion/groves/`.
+2. Workspace directories are managed on the Hub server's local filesystem under `~/.fabric/groves/`.
 3. Agents provisioned against these groves receive a functional workspace without git clone.
 4. The resulting grove is a first-class Hub grove — visible in the web UI, supports agents, templates, and all existing grove operations.
 
@@ -39,24 +39,24 @@ This document proposes a third mode: **Hub-managed groves** — groves whose wor
 
 ## 2. Filesystem Layout
 
-Hub-managed groves are stored under the global Scion directory on the Hub server:
+Hub-managed groves are stored under the global Fabric directory on the Hub server:
 
 ```
-~/.scion/groves/
+~/.fabric/groves/
   ├── my-project/
-  │   └── .scion/
+  │   └── .fabric/
   │       ├── settings.yaml
   │       ├── templates/
   │       └── agents/
   ├── experiment-alpha/
-  │   └── .scion/
+  │   └── .fabric/
   │       └── ...
   └── scratch-2026-02/
-      └── .scion/
+      └── .fabric/
           └── ...
 ```
 
-Each grove directory is equivalent to what `scion grove init` produces in a local project — a `.scion/` subdirectory with settings, templates, and agent metadata. The parent directory (`my-project/`) acts as the workspace root.
+Each grove directory is equivalent to what `fabric grove init` produces in a local project — a `.fabric/` subdirectory with settings, templates, and agent metadata. The parent directory (`my-project/`) acts as the workspace root.
 
 ### 2.1 Directory Naming
 
@@ -71,10 +71,10 @@ The grove directory name is derived from the grove slug. Since slugs are already
 Creating a hub-managed grove is equivalent to:
 
 ```bash
-mkdir -p ~/.scion/groves/<slug>
-cd ~/.scion/groves/<slug>
-scion grove init            # seeds .scion/ directory structure
-scion hub enable --hub <this-hub-url>   # links grove to this Hub
+mkdir -p ~/.fabric/groves/<slug>
+cd ~/.fabric/groves/<slug>
+fabric grove init            # seeds .fabric/ directory structure
+fabric hub enable --hub <this-hub-url>   # links grove to this Hub
 ```
 
 But executed server-side by the Hub process itself, not by a CLI invocation.
@@ -84,8 +84,8 @@ But executed server-side by the Hub process itself, not by a CLI invocation.
 1. **User submits** grove creation request via web UI or API with no `gitRemote` field.
 2. **Hub server**:
    a. Creates the grove record in the database (existing `createGrove` handler).
-   b. Creates the filesystem directory: `~/.scion/groves/<slug>/`.
-   c. Runs the equivalent of `config.InitProject()` to seed `.scion/` structure.
+   b. Creates the filesystem directory: `~/.fabric/groves/<slug>/`.
+   c. Runs the equivalent of `config.InitProject()` to seed `.fabric/` structure.
    d. Writes grove settings linking to this Hub instance (hub endpoint, grove ID).
    e. Records the filesystem path on the grove record (or a label).
 3. **Response** returns the grove object, same as any other grove creation.
@@ -94,11 +94,11 @@ But executed server-side by the Hub process itself, not by a CLI invocation.
 
 **Decision: Hub calls `InitProject()` directly (library call).**
 
-The Hub server imports `pkg/config` and calls `InitProject(targetDir, harnesses)` directly, then writes the hub settings into the seeded `.scion/settings.yaml`. This works well with creating the config from a web form.
+The Hub server imports `pkg/config` and calls `InitProject(targetDir, harnesses)` directly, then writes the hub settings into the seeded `.fabric/settings.yaml`. This works well with creating the config from a web form.
 
 **Rationale:**
 - No subprocess overhead.
-- No dependency on `scion` binary being available in PATH on the Hub server.
+- No dependency on `fabric` binary being available in PATH on the Hub server.
 - Type-safe; errors are Go errors.
 - The Hub server already imports `pkg/config` for other purposes, and `InitProject()` is a pure filesystem operation with no interactive prompts.
 
@@ -107,7 +107,7 @@ The Hub server imports `pkg/config` and calls `InitProject(targetDir, harnesses)
 - Any init-time side effects (e.g., git detection) need to be accounted for in a non-git context.
 
 **Rejected alternatives:**
-- **Hub shells out to `scion` CLI** — Subprocess error handling is less ergonomic, and interactive prompts would need to be bypassed. Not worth the indirection.
+- **Hub shells out to `fabric` CLI** — Subprocess error handling is less ergonomic, and interactive prompts would need to be bypassed. Not worth the indirection.
 - **Dedicated minimal handler** — Risk of parallel code paths diverging from local behavior. Could be a later evolution if hub-managed groves develop distinct requirements.
 
 ---
@@ -121,7 +121,7 @@ When an agent is created against a hub-managed grove, the workspace must be made
 When the Runtime Broker is colocated with the Hub (same machine), the grove directory is bind-mounted into the agent container as `/workspace`, the same way local solo-mode groves work. This is the default provisioning strategy.
 
 ```
-Container /workspace  →  ~/.scion/groves/<slug>/
+Container /workspace  →  ~/.fabric/groves/<slug>/
 ```
 
 Multiple agents in the same grove share the same volume mount, matching solo-mode behavior.
@@ -130,7 +130,7 @@ Multiple agents in the same grove share the same volume mount, matching solo-mod
 
 For remote Runtime Brokers, the Hub uploads the workspace contents to GCS (using the existing sync-design pattern), and the broker downloads them at agent startup — identical to the flow described in `sync-design.md`.
 
-On the remote broker, the workspace is created at the same conventional path (`~/.scion/groves/<slug>/`) as on the Hub server, so the location is consistent across all brokers.
+On the remote broker, the workspace is created at the same conventional path (`~/.fabric/groves/<slug>/`) as on the Hub server, so the location is consistent across all brokers.
 
 **Trade-offs:**
 - Requires GCS bucket configuration.
@@ -146,9 +146,9 @@ On the remote broker, the workspace is created at the same conventional path (`~
 
 **Decision: Infer from absence of GitRemote (no schema change).**
 
-If `GitRemote == ""`, the grove is hub-managed. The workspace path is derived conventionally from `~/.scion/groves/<slug>`. No new fields needed.
+If `GitRemote == ""`, the grove is hub-managed. The workspace path is derived conventionally from `~/.fabric/groves/<slug>`. No new fields needed.
 
-Hub-managed groves should be treated as much as possible like any local non-git grove on any broker, except at a conventional path location (`~/.scion/groves/<slug>`) instead of an arbitrary pre-existing path that gets stored when a broker is linked.
+Hub-managed groves should be treated as much as possible like any local non-git grove on any broker, except at a conventional path location (`~/.fabric/groves/<slug>`) instead of an arbitrary pre-existing path that gets stored when a broker is linked.
 
 Labels can be added for metadata if needed without a migration.
 
@@ -170,11 +170,11 @@ The existing `populateAgentConfig()` in `pkg/hub/handlers.go:4397` populates `Gi
 
 ### Q2: How should the Hub server discover its own URL for `hub enable`?
 
-**Decision: Read from `~/.scion/settings.yaml`.** The Hub server's own endpoint URL can be retrieved from the global settings file, which is already configured when the Hub is set up.
+**Decision: Read from `~/.fabric/settings.yaml`.** The Hub server's own endpoint URL can be retrieved from the global settings file, which is already configured when the Hub is set up.
 
 ### Q3: What happens when a hub-managed grove is deleted?
 
-**Decision: Full cleanup.** The grove record is deleted from the database, and the filesystem directory at `~/.scion/groves/<slug>/` is removed. When `deleteAgents=true` is passed, agent deletions are dispatched to their runtime brokers before the grove record is deleted (so containers are stopped and agent files are cleaned up). Database cascade handles removal of agent, template, and provider records.
+**Decision: Full cleanup.** The grove record is deleted from the database, and the filesystem directory at `~/.fabric/groves/<slug>/` is removed. When `deleteAgents=true` is passed, agent deletions are dispatched to their runtime brokers before the grove record is deleted (so containers are stopped and agent files are cleaned up). Database cascade handles removal of agent, template, and provider records.
 
 ### Q4: Should hub-managed groves be promotable to git-remote groves?
 
@@ -226,12 +226,12 @@ A web-based file browser for hub-managed grove workspaces is a natural follow-on
 
 ### 8.1 Filesystem Access
 
-The Hub process creates and manages directories under `~/.scion/groves/`. The Hub is the sole arbitrator of access control for these directories and must avoid acting as a confused deputy — ensuring that API-level authorization checks are enforced before any filesystem operation, so that one user's request cannot access another user's grove directory.
+The Hub process creates and manages directories under `~/.fabric/groves/`. The Hub is the sole arbitrator of access control for these directories and must avoid acting as a confused deputy — ensuring that API-level authorization checks are enforced before any filesystem operation, so that one user's request cannot access another user's grove directory.
 
 Key considerations:
-- The Hub process user must have write access to `~/.scion/groves/`.
+- The Hub process user must have write access to `~/.fabric/groves/`.
 - Groves from different users share the same filesystem namespace — slug uniqueness prevents collisions, but the Hub must enforce user-level authorization at the API layer.
-- In multi-tenant deployments, consider per-user subdirectories: `~/.scion/groves/<user-id>/<slug>/`.
+- In multi-tenant deployments, consider per-user subdirectories: `~/.fabric/groves/<user-id>/<slug>/`.
 
 ### 8.2 Path Traversal
 
@@ -249,8 +249,8 @@ When bind-mounting grove directories into agent containers, standard container i
 completed
 
 - Hub API accepts grove creation with no `gitRemote`.
-- Hub creates `~/.scion/groves/<slug>/` directory with `InitProject()`.
-- Writes hub settings into `.scion/settings.yaml` (hub endpoint read from global settings).
+- Hub creates `~/.fabric/groves/<slug>/` directory with `InitProject()`.
+- Writes hub settings into `.fabric/settings.yaml` (hub endpoint read from global settings).
 - Colocated broker bind-mounts the grove directory for agents (shared mount, matching solo-mode).
 - Web UI grove creation form with distinct mode selector for git vs hub-managed workspace.
 - Grove card glyph distinguishing git-based and folder-based groves.
@@ -259,7 +259,7 @@ completed
 completed
 
 - Hub uploads workspace to GCS for remote broker provisioning.
-- Remote broker creates workspace at `~/.scion/groves/<slug>/`.
+- Remote broker creates workspace at `~/.fabric/groves/<slug>/`.
 - Reuses `sync-design.md` infrastructure.
 - Workspace sync back from agents to Hub filesystem.
 

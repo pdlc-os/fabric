@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/GoogleCloudPlatform/scion/pkg/ent/runtime.go
+// The schema-stitching logic is generated in github.com/pdlc-os/fabric/pkg/ent/runtime.go
 
 const (
 	Version = "v0.14.5"                                         // Version of ent codegen.

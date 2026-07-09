@@ -17,7 +17,7 @@
 /**
  * Agent message viewer component.
  *
- * Displays structured messages from the dedicated "scion-messages" Cloud
+ * Displays structured messages from the dedicated "fabric-messages" Cloud
  * Logging log. Shows message direction (sent/received), sender/recipient,
  * and provides a compose box for sending new messages with optional interrupt.
  */
@@ -61,8 +61,8 @@ interface ParsedMessage {
 
 const MAX_BUFFER = 500;
 
-@customElement('scion-agent-message-viewer')
-export class ScionAgentMessageViewer extends LitElement {
+@customElement('fabric-agent-message-viewer')
+export class FabricAgentMessageViewer extends LitElement {
   @property()
   agentId = '';
 
@@ -141,9 +141,9 @@ export class ScionAgentMessageViewer extends LitElement {
       gap: 0.5rem;
       padding: 1rem;
       margin-bottom: 1rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
     .compose-label {
       display: flex;
@@ -151,7 +151,7 @@ export class ScionAgentMessageViewer extends LitElement {
       gap: 0.375rem;
       font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
     .compose-row {
       display: flex;
@@ -176,13 +176,13 @@ export class ScionAgentMessageViewer extends LitElement {
       align-items: center;
       gap: 0.375rem;
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
       white-space: nowrap;
     }
     .send-error {
       font-size: 0.75rem;
-      color: var(--scion-danger-600, #dc2626);
+      color: var(--fabric-danger-600, #dc2626);
       margin-top: 0.375rem;
     }
 
@@ -196,7 +196,7 @@ export class ScionAgentMessageViewer extends LitElement {
     }
     .toolbar-label {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-right: 0.25rem;
     }
 
@@ -205,13 +205,13 @@ export class ScionAgentMessageViewer extends LitElement {
       align-items: center;
       gap: 0.375rem;
       font-size: 0.75rem;
-      color: var(--scion-success-600, #16a34a);
+      color: var(--fabric-success-600, #16a34a);
     }
     .stream-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--scion-success-500, #22c55e);
+      background: var(--fabric-success-500, #22c55e);
       animation: pulse 1.5s ease-in-out infinite;
     }
     @keyframes pulse {
@@ -231,12 +231,12 @@ export class ScionAgentMessageViewer extends LitElement {
       align-items: flex-start;
       gap: 0.75rem;
       padding: 0.625rem 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       cursor: pointer;
       transition: background 0.1s ease;
     }
     .message-row:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .msg-direction {
@@ -250,12 +250,12 @@ export class ScionAgentMessageViewer extends LitElement {
       margin-top: 0.125rem;
     }
     .msg-direction.received {
-      background: var(--scion-primary-50, #eff6ff);
-      color: var(--scion-primary-600, #2563eb);
+      background: var(--fabric-primary-50, #eff6ff);
+      color: var(--fabric-primary-600, #2563eb);
     }
     .msg-direction.sent {
-      background: var(--scion-success-50, #f0fdf4);
-      color: var(--scion-success-600, #16a34a);
+      background: var(--fabric-success-50, #f0fdf4);
+      color: var(--fabric-success-600, #16a34a);
     }
     .msg-direction sl-icon {
       font-size: 0.875rem;
@@ -276,21 +276,21 @@ export class ScionAgentMessageViewer extends LitElement {
     .msg-actor {
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #0f172a);
+      color: var(--fabric-text, #0f172a);
     }
     .msg-arrow {
       font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--scion-text, #0f172a);
+      color: var(--fabric-text, #0f172a);
     }
     .msg-target {
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #0f172a);
+      color: var(--fabric-text, #0f172a);
     }
     .msg-time {
       font-size: 0.6875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-left: auto;
       white-space: nowrap;
     }
@@ -310,21 +310,21 @@ export class ScionAgentMessageViewer extends LitElement {
       letter-spacing: 0.03em;
     }
     .badge-type {
-      background: var(--scion-neutral-100, #f1f5f9);
-      color: var(--scion-neutral-600, #475569);
+      background: var(--fabric-neutral-100, #f1f5f9);
+      color: var(--fabric-neutral-600, #475569);
     }
     .badge-urgent {
-      background: var(--scion-danger-50, #fef2f2);
-      color: var(--scion-danger-700, #b91c1c);
+      background: var(--fabric-danger-50, #fef2f2);
+      color: var(--fabric-danger-700, #b91c1c);
     }
     .badge-broadcast {
-      background: var(--scion-warning-50, #fffbeb);
-      color: var(--scion-warning-700, #b45309);
+      background: var(--fabric-warning-50, #fffbeb);
+      color: var(--fabric-warning-700, #b45309);
     }
 
     .msg-body {
       font-size: 0.8125rem;
-      color: var(--scion-text-secondary, #475569);
+      color: var(--fabric-text-secondary, #475569);
       line-height: 1.5;
       word-break: break-word;
       white-space: pre-wrap;
@@ -334,8 +334,8 @@ export class ScionAgentMessageViewer extends LitElement {
     .msg-detail {
       margin-top: 0.5rem;
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
     }
 
     /* Date divider */
@@ -343,11 +343,11 @@ export class ScionAgentMessageViewer extends LitElement {
       padding: 0.5rem 0.75rem 0.25rem;
       font-size: 0.6875rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-surface, #ffffff);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
     }
 
     /* Empty / Loading / Error */
@@ -357,7 +357,7 @@ export class ScionAgentMessageViewer extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 3rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       gap: 0.75rem;
     }
     .state-msg sl-spinner {
@@ -524,7 +524,7 @@ export class ScionAgentMessageViewer extends LitElement {
 
     // Extract message body from the payload.
     // payload['message'] and entry.message are the Cloud Logging message
-    // (e.g. "message dispatched"), NOT the scion message content.
+    // (e.g. "message dispatched"), NOT the fabric message content.
     // The actual message body is in payload['message_content'].
     const body = (payload['message_content'] as string)
       || '';
@@ -918,7 +918,7 @@ export class ScionAgentMessageViewer extends LitElement {
     }
     return html`
       <div class="msg-detail" @click=${(e: Event) => e.stopPropagation()}>
-        <scion-json-browser .data=${detail} expand-first></scion-json-browser>
+        <fabric-json-browser .data=${detail} expand-first></fabric-json-browser>
       </div>
     `;
   }
@@ -926,6 +926,6 @@ export class ScionAgentMessageViewer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-agent-message-viewer': ScionAgentMessageViewer;
+    'fabric-agent-message-viewer': FabricAgentMessageViewer;
   }
 }

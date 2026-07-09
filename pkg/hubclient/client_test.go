@@ -308,7 +308,7 @@ func TestProjectsRegister(t *testing.T) {
 	resp, err := client.Projects().Register(context.Background(), &RegisterProjectRequest{
 		Name:      "my-project",
 		GitRemote: "git@github.com:org/repo.git",
-		Path:      "/path/to/.scion",
+		Path:      "/path/to/.fabric",
 		Broker: &BrokerInfo{
 			Name:    "Dev Laptop",
 			Version: "1.0.0",
@@ -385,10 +385,10 @@ func TestWithBearerToken(t *testing.T) {
 
 func TestWithAgentToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Should use X-Scion-Agent-Token header, NOT Authorization: Bearer
-		agentToken := r.Header.Get("X-Scion-Agent-Token")
+		// Should use X-Fabric-Agent-Token header, NOT Authorization: Bearer
+		agentToken := r.Header.Get("X-Fabric-Agent-Token")
 		if agentToken != "my-agent-jwt" {
-			t.Errorf("expected X-Scion-Agent-Token 'my-agent-jwt', got %q", agentToken)
+			t.Errorf("expected X-Fabric-Agent-Token 'my-agent-jwt', got %q", agentToken)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -768,11 +768,11 @@ func TestTokenCreate(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_ = json.NewEncoder(w).Encode(CreateTokenResponse{
-			Token: "scion_pat_abc123",
+			Token: "fabric_pat_abc123",
 			AccessToken: &TokenInfo{
 				ID:        "token-uuid",
 				Name:      "ci-token",
-				Prefix:    "scion_pat_abc1",
+				Prefix:    "fabric_pat_abc1",
 				ProjectID: "grove-123",
 				Scopes:    []string{"agent:dispatch", "agent:read"},
 				ExpiresAt: &expires,
@@ -792,8 +792,8 @@ func TestTokenCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if resp.Token != "scion_pat_abc123" {
-		t.Errorf("expected token 'scion_pat_abc123', got %q", resp.Token)
+	if resp.Token != "fabric_pat_abc123" {
+		t.Errorf("expected token 'fabric_pat_abc123', got %q", resp.Token)
 	}
 	if resp.AccessToken.Name != "ci-token" {
 		t.Errorf("expected name 'ci-token', got %q", resp.AccessToken.Name)
@@ -815,8 +815,8 @@ func TestTokenList(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(ListTokensResponse{
 			Items: []TokenInfo{
-				{ID: "t1", Name: "ci-token", Prefix: "scion_pat_abc1", ProjectID: "grove-1", Scopes: []string{"agent:dispatch"}},
-				{ID: "t2", Name: "deploy", Prefix: "scion_pat_def2", ProjectID: "grove-2", Scopes: []string{"agent:manage"}},
+				{ID: "t1", Name: "ci-token", Prefix: "fabric_pat_abc1", ProjectID: "grove-1", Scopes: []string{"agent:dispatch"}},
+				{ID: "t2", Name: "deploy", Prefix: "fabric_pat_def2", ProjectID: "grove-2", Scopes: []string{"agent:manage"}},
 			},
 		})
 	}))
@@ -845,7 +845,7 @@ func TestTokenGet(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(TokenInfo{
 			ID:        "token-123",
 			Name:      "ci-token",
-			Prefix:    "scion_pat_abc1",
+			Prefix:    "fabric_pat_abc1",
 			ProjectID: "grove-1",
 			Scopes:    []string{"agent:dispatch"},
 			Created:   time.Now(),

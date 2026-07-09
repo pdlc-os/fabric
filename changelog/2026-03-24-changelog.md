@@ -5,7 +5,7 @@ This update introduces a major overhaul of the agent visualization system, movin
 ## 🚀 Features
 
 * **New `fs-watcher` Tool:** Introduced a standalone Go tool for monitoring host directories using Linux `fanotify`. It attributes filesystem events (create, modify, delete, rename) to specific agents by correlating PIDs with Docker container labels. The tool supports grove-based auto-discovery, event debouncing, and `.gitignore`-style path filtering, outputting events in NDJSON format.
-* **Log-Driven Agent Visualization:** Re-engineered the visualization engine to discover agents and files dynamically from log events (including `scion-agents`, `scion-messages`, and `scion-server`) instead of relying on the filesystem. This allows for real-time, event-accurate playback and synthetic lifecycle event generation.
+* **Log-Driven Agent Visualization:** Re-engineered the visualization engine to discover agents and files dynamically from log events (including `fabric-agents`, `fabric-messages`, and `fabric-server`) instead of relying on the filesystem. This allows for real-time, event-accurate playback and synthetic lifecycle event generation.
 * **Enhanced Agent & File Animations:**
     * **Agent Lifecycle:** Added dynamic ring rebalancing with stable placement and optimal rotation.
     * **Message Ripples:** Implemented broadcast message ripple animations with content-based deduplication and improved coordinate alignment.

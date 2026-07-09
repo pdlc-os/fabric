@@ -229,6 +229,6 @@ func TestFindBranchForAgent_NoDir(t *testing.T) {
 		t.Fatal(err)
 	}
 	if found {
-		t.Error("expected found=false when scion-sharers dir does not exist")
+		t.Error("expected found=false when fabric-sharers dir does not exist")
 	}
 }

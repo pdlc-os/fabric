@@ -17,8 +17,8 @@ package config
 import (
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 // HarnessConfigResolution holds the result of resolving a harness-config name.
@@ -30,8 +30,8 @@ type HarnessConfigResolution struct {
 // HarnessConfigInputs collects all the inputs needed to resolve a harness-config name.
 type HarnessConfigInputs struct {
 	CLIFlag      string           // --harness-config flag (highest priority)
-	StoredConfig *api.ScionConfig // existing agent's stored config (resume path)
-	TemplateCfg  *api.ScionConfig // merged template config
+	StoredConfig *api.FabricConfig // existing agent's stored config (resume path)
+	TemplateCfg  *api.FabricConfig // merged template config
 	Settings     *VersionedSettings
 	ProfileName  string
 }

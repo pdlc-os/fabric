@@ -12,7 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hub"
+	"github.com/pdlc-os/fabric/pkg/hub"
 )
 
 func main() {

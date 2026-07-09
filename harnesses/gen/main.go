@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Command gen copies the canonical harnesses/scion_harness.py into each
-// harnesses/<name>/scion_harness.py, prepending a GENERATED header.
+// Command gen copies the canonical harnesses/fabric_harness.py into each
+// harnesses/<name>/fabric_harness.py, prepending a GENERATED header.
 //
 // Usage:
 //
@@ -26,11 +26,11 @@ import (
 	"path/filepath"
 )
 
-const header = "# GENERATED FILE — DO NOT EDIT. Source: harnesses/scion_harness.py\n"
+const header = "# GENERATED FILE — DO NOT EDIT. Source: harnesses/fabric_harness.py\n"
 
 func main() {
 	harnessesDir := filepath.Join("harnesses")
-	canonical := filepath.Join(harnessesDir, "scion_harness.py")
+	canonical := filepath.Join(harnessesDir, "fabric_harness.py")
 
 	src, err := os.ReadFile(canonical)
 	if err != nil {
@@ -60,7 +60,7 @@ func main() {
 			continue
 		}
 
-		dst := filepath.Join(harnessesDir, name, "scion_harness.py")
+		dst := filepath.Join(harnessesDir, name, "fabric_harness.py")
 		if err := os.WriteFile(dst, []byte(generated), 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "error: write %s: %v\n", dst, err)
 			os.Exit(1)

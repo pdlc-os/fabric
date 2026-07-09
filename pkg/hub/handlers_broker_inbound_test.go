@@ -31,30 +31,30 @@ func TestParseAgentMessageTopic(t *testing.T) {
 	}{
 		{
 			name:      "valid topic",
-			topic:     "scion.project.my-project-123.agent.coder.messages",
+			topic:     "fabric.project.my-project-123.agent.coder.messages",
 			projectID: "my-project-123",
 			agentSlug: "coder",
 		},
 		{
 			name:      "valid topic with uuid project",
-			topic:     "scion.project.abc-def-123.agent.code-reviewer.messages",
+			topic:     "fabric.project.abc-def-123.agent.code-reviewer.messages",
 			projectID: "abc-def-123",
 			agentSlug: "code-reviewer",
 		},
 		{
 			name:      "legacy grove topic",
-			topic:     "scion.grove.my-project-123.agent.coder.messages",
+			topic:     "fabric.grove.my-project-123.agent.coder.messages",
 			projectID: "my-project-123",
 			agentSlug: "coder",
 		},
 		{
 			name:    "too few segments",
-			topic:   "scion.project.g1.agent.coder",
+			topic:   "fabric.project.g1.agent.coder",
 			wantErr: true,
 		},
 		{
 			name:    "too many segments",
-			topic:   "scion.project.g1.agent.coder.messages.extra",
+			topic:   "fabric.project.g1.agent.coder.messages.extra",
 			wantErr: true,
 		},
 		{
@@ -64,12 +64,12 @@ func TestParseAgentMessageTopic(t *testing.T) {
 		},
 		{
 			name:    "wrong structure",
-			topic:   "scion.topic.g1.agent.coder.messages",
+			topic:   "fabric.topic.g1.agent.coder.messages",
 			wantErr: true,
 		},
 		{
 			name:    "broadcast topic not agent",
-			topic:   "scion.project.g1.broadcast.all.messages",
+			topic:   "fabric.project.g1.broadcast.all.messages",
 			wantErr: true,
 		},
 		{

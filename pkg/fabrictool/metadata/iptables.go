@@ -19,7 +19,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 const metadataIP = "169.254.169.254"

@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document explores and proposes how Scion agent workloads running in Kubernetes will use `git clone` on startup instead of the git worktree approach used in local development. This design addresses the fundamental architectural difference between local container execution (where the host filesystem can be bind-mounted) and remote Kubernetes execution (where the source code must be fetched independently).
+This document explores and proposes how Fabric agent workloads running in Kubernetes will use `git clone` on startup instead of the git worktree approach used in local development. This design addresses the fundamental architectural difference between local container execution (where the host filesystem can be bind-mounted) and remote Kubernetes execution (where the source code must be fetched independently).
 
 ## Problem Statement
 
 ### Current Local Approach: Git Worktrees
 
-In the local Docker and Apple Container runtimes, Scion uses git worktrees to provide each agent with an isolated view of the repository:
+In the local Docker and Apple Container runtimes, Fabric uses git worktrees to provide each agent with an isolated view of the repository:
 
 1. **Worktree Creation**: `git worktree add --relative-paths "./workspace" "branch-name"`
 2. **Volume Mounting**: The worktree directory and `.git` reference are mounted into the container
@@ -41,7 +41,7 @@ For Kubernetes-based agents, we will use `git clone` to fetch source code at Pod
 apiVersion: v1
 kind: Pod
 metadata:
-  name: scion-agent-xyz
+  name: fabric-agent-xyz
 spec:
   initContainers:
   - name: git-clone
@@ -55,8 +55,8 @@ spec:
       
       # Configure for main container
       cd /workspace
-      git config user.name "Scion Agent"
-      git config user.email "agent@scion.dev"
+      git config user.name "Fabric Agent"
+      git config user.email "agent@fabric.dev"
     env:
     - name: GIT_REPO_URL
       value: "https://github.com/org/repo.git"
@@ -83,7 +83,7 @@ spec:
 
 The repository URL will be resolved using the following precedence:
 
-1. **Explicit Configuration**: `.scion/kubernetes-config.json`:
+1. **Explicit Configuration**: `.fabric/kubernetes-config.json`:
    ```json
    {
      "scm": {
@@ -99,13 +99,13 @@ The repository URL will be resolved using the following precedence:
    # Returns: git@github.com:org/repo.git or https://github.com/org/repo.git
    ```
 
-3. **Grove Settings**: Fall back to `.scion/settings.json` if specified
+3. **Grove Settings**: Fall back to `.fabric/settings.json` if specified
 
-4. **Prompt User**: If no URL is detected, prompt during `scion start --runtime kubernetes`
+4. **Prompt User**: If no URL is detected, prompt during `fabric start --runtime kubernetes`
 
 ### URL Normalization
 
-Since different auth methods require different URL formats, Scion will normalize URLs to support both HTTPS and SSH formats tailored to the selected authentication harness.
+Since different auth methods require different URL formats, Fabric will normalize URLs to support both HTTPS and SSH formats tailored to the selected authentication harness.
 
 ## Authentication Strategies
 
@@ -125,16 +125,16 @@ Git authentication in Kubernetes requires mounting credentials as Secrets and co
 - Rate limit isolation
 
 **Architecture**:
-The Scion CLI or Controller exchanges the App Private Key for a short-lived **Installation Access Token**. This token is injected into the Pod environment.
+The Fabric CLI or Controller exchanges the App Private Key for a short-lived **Installation Access Token**. This token is injected into the Pod environment.
 
 1. **GitHub App Setup**: Install app on target repositories and download private key.
-2. **Token Generation**: Scion generates a JWT, exchanges it for an installation token (valid for 1 hour).
+2. **Token Generation**: Fabric generates a JWT, exchanges it for an installation token (valid for 1 hour).
 3. **Secret Injection**:
    ```yaml
    apiVersion: v1
    kind: Secret
    metadata:
-     name: scion-git-credentials
+     name: fabric-git-credentials
    type: Opaque
    stringData:
      token: "ghs_xxxxx" # Short-lived installation token
@@ -144,7 +144,7 @@ The Scion CLI or Controller exchanges the App Private Key for a short-lived **In
 
 **Use Case**: Individual developer testing, simple automation.
 
-**Implementation**: User provides PAT (via `scion config`), which is stored in a Kubernetes Secret. The init container configures git to use this token via basic auth in the URL or a credential helper.
+**Implementation**: User provides PAT (via `fabric config`), which is stored in a Kubernetes Secret. The init container configures git to use this token via basic auth in the URL or a credential helper.
 
 ### 2. Cloud-Native & Enterprise Considerations
 
@@ -178,13 +178,13 @@ When running on Google Kubernetes Engine (GKE), we can leverage GCP services for
 
 Support creating agents on specific branches or commits:
 ```bash
-scion start --runtime kubernetes --branch feature/new-auth coder
+fabric start --runtime kubernetes --branch feature/new-auth coder
 ```
 
 The runtime will resolve the current branch (if not specified) or specific commit SHA and pass it to the init container.
 
 **Automatic Branch Creation**:
-If the agent is requested to start on the default branch (e.g., `main` or `master`), the initialization logic **must automatically create and checkout a new branch** named after the agent (e.g., `scion/<agent-name>`). This ensures that multiple agents do not conflict on the same branch and that the default branch remains protected.
+If the agent is requested to start on the default branch (e.g., `main` or `master`), the initialization logic **must automatically create and checkout a new branch** named after the agent (e.g., `fabric/<agent-name>`). This ensures that multiple agents do not conflict on the same branch and that the default branch remains protected.
 
 ### Phase 3: Workspace Synchronization
 
@@ -200,10 +200,10 @@ For standard operations, the agent acts like a developer:
 
 #### Sync-Back (Development Mode)
 To pull changes from the remote pod to the local machine (for "live" feel):
-- Implement `scion sync from <agent>`: Streams a tarball of the `/workspace` from the pod to the local path.
+- Implement `fabric sync from <agent>`: Streams a tarball of the `/workspace` from the pod to the local path.
 
 #### Sync-To (Iterative Mode)
-- Implement `scion sync to <agent>`: Streams local changes to the pod.
+- Implement `fabric sync to <agent>`: Streams local changes to the pod.
 
 ## Security Considerations
 

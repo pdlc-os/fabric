@@ -13,19 +13,19 @@
 // limitations under the License.
 
 // Package state defines the canonical agent state types used throughout the
-// scion platform. All other packages should import these types rather than
+// fabric platform. All other packages should import these types rather than
 // defining their own status/state constants.
 package state
 
 import "fmt"
 
 // HarnessExitCodeFile is the container-local path where the tmux agent-window
-// wrapper records the harness's real exit code, read by `sciontool init`.
+// wrapper records the harness's real exit code, read by `fabrictool init`.
 // There is one agent per container, so a fixed path is safe. It is a shared
-// contract: the runtime writes the file and `sciontool init` reads it to
+// contract: the runtime writes the file and `fabrictool init` reads it to
 // recover the authoritative harness exit code (the harness runs as a tmux
 // grandchild whose exit code is otherwise invisible to the supervisor).
-const HarnessExitCodeFile = "/tmp/scion-harness-exit-code"
+const HarnessExitCodeFile = "/tmp/fabric-harness-exit-code"
 
 // Phase represents the infrastructure lifecycle phase of an agent.
 // Phase is controlled by platform operations (broker commands, heartbeats,

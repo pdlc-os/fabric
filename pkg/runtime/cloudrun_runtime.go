@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // CloudRunRuntime implements the Runtime interface for Google Cloud Run.
@@ -58,7 +58,7 @@ func NewCloudRunRuntime(cfg *config.V1CloudRunConfig) *CloudRunRuntime {
 
 func (r *CloudRunRuntime) Name() string { return "cloudrun" }
 
-func (r *CloudRunRuntime) ExecUser() string { return "scion" }
+func (r *CloudRunRuntime) ExecUser() string { return "fabric" }
 
 // Run provisions the workspace broker-side using Tier-1 ProvisionShared,
 // then would deploy a Cloud Run service. The deployment step is deferred.

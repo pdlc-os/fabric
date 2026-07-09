@@ -4,13 +4,13 @@
 
 ## Problem Statement
 
-Scion agents running in containers may need to interact with Google Cloud APIs (GCS, BigQuery, Vertex AI, Cloud Build, etc.). Today, credentials are injected via environment variables or mounted credential files. This works for the LLM harness itself (e.g., `GOOGLE_APPLICATION_CREDENTIALS` for Vertex AI auth), but does not provide a general-purpose GCP identity to the agent's code execution environment. An agent writing a Cloud Function, querying BigQuery, or deploying infrastructure has no transparent way to authenticate.
+Fabric agents running in containers may need to interact with Google Cloud APIs (GCS, BigQuery, Vertex AI, Cloud Build, etc.). Today, credentials are injected via environment variables or mounted credential files. This works for the LLM harness itself (e.g., `GOOGLE_APPLICATION_CREDENTIALS` for Vertex AI auth), but does not provide a general-purpose GCP identity to the agent's code execution environment. An agent writing a Cloud Function, querying BigQuery, or deploying infrastructure has no transparent way to authenticate.
 
 We want agents to have seamless, transparent GCP identity so that any code using standard GCP client libraries (Go, Python, Node.js, Java) works without explicit credential management.
 
 ## Design Overview
 
-Emulate the [GCE compute metadata server](https://cloud.google.com/compute/docs/metadata/overview) inside each agent container via a sciontool sidecar service. GCP client libraries follow a well-defined Application Default Credentials (ADC) discovery chain, and one of the standard steps is querying the metadata server at `169.254.169.254`. By intercepting this and serving tokens brokered through the Hub, we give agents a GCP identity that is:
+Emulate the [GCE compute metadata server](https://cloud.google.com/compute/docs/metadata/overview) inside each agent container via a fabrictool sidecar service. GCP client libraries follow a well-defined Application Default Credentials (ADC) discovery chain, and one of the standard steps is querying the metadata server at `169.254.169.254`. By intercepting this and serving tokens brokered through the Hub, we give agents a GCP identity that is:
 
 - **Transparent**: No agent code changes required; standard client libraries just work.
 - **Centrally managed**: Service account assignments are managed at the grove level via the Hub.
@@ -20,7 +20,7 @@ Emulate the [GCE compute metadata server](https://cloud.google.com/compute/docs/
 ### High-Level Flow
 
 ```
-Agent Container                    Broker (sciontool)              Scion Hub                  GCP IAM
+Agent Container                    Broker (fabrictool)              Fabric Hub                  GCP IAM
 ┌─────────────────┐               ┌──────────────────┐           ┌──────────────┐           ┌─────────┐
 │ GCP client lib  │               │ metadata-svc     │           │              │           │         │
 │ GET /token      │──────────────>│ (sidecar service) │           │              │           │         │
@@ -28,7 +28,7 @@ Agent Container                    Broker (sciontool)              Scion Hub    
 │                 │  GCE_METADATA │  validate request │           │              │           │         │
 │                 │  _HOST        │  + agent identity │           │              │           │         │
 │                 │               │                  │──────────>│ POST         │           │         │
-│                 │               │                  │  SCION_   │ /agent/      │           │         │
+│                 │               │                  │  FABRIC_   │ /agent/      │           │         │
 │                 │               │                  │  AUTH_    │  gcp-token   │──────────>│ generate│
 │                 │               │                  │  TOKEN    │              │  SA       │ access  │
 │                 │               │                  │           │              │  imperson │ token   │
@@ -193,22 +193,22 @@ type GCPIdentityConfig struct {
 }
 ```
 
-### 3. Metadata Server Sidecar (sciontool)
+### 3. Metadata Server Sidecar (fabrictool)
 
-The metadata emulator runs as part of the already-running sciontool process inside the agent container. Rather than launching a separate process, the metadata server is started as a goroutine within sciontool, gated by environment variables that configure its mode and service account details. This avoids the overhead of managing an additional process.
+The metadata emulator runs as part of the already-running fabrictool process inside the agent container. Rather than launching a separate process, the metadata server is started as a goroutine within fabrictool, gated by environment variables that configure its mode and service account details. This avoids the overhead of managing an additional process.
 
 #### Configuration (Environment Variables)
 
-When `metadata_mode` is `block` or `assign`, the provisioning pipeline sets the following environment variables for sciontool:
+When `metadata_mode` is `block` or `assign`, the provisioning pipeline sets the following environment variables for fabrictool:
 
 ```
-SCION_METADATA_MODE=assign
-SCION_METADATA_PORT=18380
-SCION_METADATA_SA_EMAIL=agent-worker@project.iam.gserviceaccount.com
-SCION_METADATA_PROJECT_ID=my-project
+FABRIC_METADATA_MODE=assign
+FABRIC_METADATA_PORT=18380
+FABRIC_METADATA_SA_EMAIL=agent-worker@project.iam.gserviceaccount.com
+FABRIC_METADATA_PROJECT_ID=my-project
 ```
 
-On startup, sciontool checks for `SCION_METADATA_MODE`. If set to `assign` or `block`, it starts the metadata HTTP server on the configured port as part of its normal initialization.
+On startup, fabrictool checks for `FABRIC_METADATA_MODE`. If set to `assign` or `block`, it starts the metadata HTTP server on the configured port as part of its normal initialization.
 
 #### Environment Variable Injection (Agent Container)
 
@@ -266,7 +266,7 @@ The `/identity` endpoint accepts an `audience` query parameter and returns a raw
    a. If cached token exists and has >60s remaining → return cached token
    b. Otherwise → request fresh token from Hub
 4. Sidecar calls Hub: POST /api/v1/agent/gcp-token
-   - Authorization: Bearer <SCION_AUTH_TOKEN>
+   - Authorization: Bearer <FABRIC_AUTH_TOKEN>
    - Body: {"scopes": ["https://www.googleapis.com/auth/cloud-platform"]}
 5. Hub validates agent JWT, checks scope grove:gcp:token:<sa-id>
 6. Hub resolves the service account from the agent's GCP identity assignment
@@ -468,7 +468,7 @@ This scope is automatically added to the agent's JWT when provisioned with `meta
 During agent provisioning (in `pkg/agent/provision.go` and `pkg/runtimebroker/start_context.go`):
 
 1. **Resolve GCP identity**: If the agent has a GCP identity assignment, fetch the service account details.
-2. **Configure metadata server**: Set `SCION_METADATA_MODE`, `SCION_METADATA_PORT`, `SCION_METADATA_SA_EMAIL`, and `SCION_METADATA_PROJECT_ID` environment variables for sciontool.
+2. **Configure metadata server**: Set `FABRIC_METADATA_MODE`, `FABRIC_METADATA_PORT`, `FABRIC_METADATA_SA_EMAIL`, and `FABRIC_METADATA_PROJECT_ID` environment variables for fabrictool.
 3. **Set agent environment**: Add `GCE_METADATA_HOST=localhost:18380` to the agent's environment.
 4. **Configure iptables (Docker runtime)**: When using Docker, add iptables rules to redirect `169.254.169.254` traffic to the local metadata sidecar port.
 5. **Suppress conflicting auth**: When metadata mode is `assign` or `block`, ensure `GOOGLE_APPLICATION_CREDENTIALS` is **not** set (it takes higher precedence in ADC than the metadata server). If a user has explicitly set GAC via secrets, that should still win — the metadata server acts as a fallback.
@@ -574,7 +574,7 @@ Log token generation events (not sidecar cache hits) with agent ID, grove ID, SA
 2. ✅ **Hub endpoints**: CRUD for grove service accounts + verify endpoint.
 3. ✅ **Hub token endpoints**: `POST /api/v1/agent/gcp-token` and `POST /api/v1/agent/gcp-identity-token` with IAM Credentials integration.
 4. ✅ **Agent token scope**: Add `grove:gcp:token:<sa-id>` scoped scope.
-5. ✅ **sciontool metadata server**: In-process HTTP server within sciontool implementing token, identity token, and project-id endpoints, gated by `SCION_METADATA_MODE` env var.
+5. ✅ **fabrictool metadata server**: In-process HTTP server within fabrictool implementing token, identity token, and project-id endpoints, gated by `FABRIC_METADATA_MODE` env var.
 6. ✅ **Provisioning changes**: Set metadata server env vars and `GCE_METADATA_HOST`.
 7. ✅ **Agent model extension**: Add `GCPIdentityConfig` to agent creation/config.
 8. **SA assignment permission**: Deferred to Phase 2 — permission check on service account resources.
@@ -590,7 +590,7 @@ Log token generation events (not sidecar cache hits) with agent ID, grove ID, SA
 | `pkg/hub/gcp_token.go` | New: Token generation (access + ID) + Hub endpoint handlers |
 | `pkg/hub/server.go` | Register new routes |
 | `pkg/hub/agenttoken.go` | Add `grove:gcp:token:<sa-id>` scope |
-| `pkg/sciontool/metadata/server.go` | New: Metadata HTTP server (in-process) |
+| `pkg/fabrictool/metadata/server.go` | New: Metadata HTTP server (in-process) |
 | `pkg/agent/provision.go` | Set metadata env vars |
 | `pkg/runtimebroker/start_context.go` | Pass GCP identity config to provisioning |
 | `pkg/api/types.go` | Add `GCPIdentityConfig` to relevant types |
@@ -600,7 +600,7 @@ Log token generation events (not sidecar cache hits) with agent ID, grove ID, SA
 1. ✅ **Block mode**: Implemented in Phase 1 — metadata sidecar returns 403 for all token/identity/email/scopes requests in block mode.
 2. ✅ **iptables interception**: Docker runtime adds `NET_ADMIN` capability; metadata server sets up iptables DNAT rule redirecting `169.254.169.254:80` to local sidecar port. Non-fatal fallback if iptables unavailable.
 3. ✅ **Audit logging**: GCP token generation events logged via `AuditLogger` with agent ID, grove ID, SA email, success/failure status.
-4. ✅ **CLI commands**: `scion grove service-accounts add/list/remove/verify` with hub client integration.
+4. ✅ **CLI commands**: `fabric grove service-accounts add/list/remove/verify` with hub client integration.
 5. **Web UI**: Deferred — SA management and agent identity assignment via web interface.
 6. ✅ **Rate limiting**: Per-agent token bucket rate limiter (1 req/sec avg, burst of 10) on Hub GCP token endpoints.
 7. ✅ **Metrics**: `GCPTokenMetrics` tracking access/identity token requests, successes, failures, rate limit rejections, and IAM API latency percentiles. Exposed via `/metrics` endpoint.
@@ -615,8 +615,8 @@ Log token generation events (not sidecar cache hits) with agent ID, grove ID, SA
 | `pkg/hub/handlers_gcp_identity.go` | Modified: Rate limiting, metrics, audit logging integration |
 | `pkg/hub/server.go` | Modified: Initialize rate limiter and metrics |
 | `pkg/hub/handlers.go` | Modified: Include GCP metrics in `/metrics` response |
-| `pkg/sciontool/metadata/iptables.go` | New: iptables redirect setup/cleanup |
-| `pkg/sciontool/metadata/server.go` | Modified: iptables setup on Start, cleanup on Stop |
+| `pkg/fabrictool/metadata/iptables.go` | New: iptables redirect setup/cleanup |
+| `pkg/fabrictool/metadata/server.go` | Modified: iptables setup on Start, cleanup on Stop |
 | `pkg/runtime/interface.go` | Modified: `MetadataInterception` field on `RunConfig` |
 | `pkg/runtime/common.go` | Modified: `--cap-add NET_ADMIN` when metadata interception enabled |
 | `pkg/agent/run.go` | Modified: Detect metadata mode and set `MetadataInterception` |
@@ -655,4 +655,4 @@ Log token generation events (not sidecar cache hits) with agent ID, grove ID, SA
 
 - **GCP IAM Credentials API**: `google.golang.org/api/iamcredentials/v1` or the gRPC client `cloud.google.com/go/iam/credentials/apiv1`
 - **Hub must run with a GCP identity** that has `roles/iam.serviceAccountTokenCreator` on target SAs.
-- **Existing scion infrastructure**: ServiceManager (sidecar services), agent token scopes, Hub auth middleware, store layer.
+- **Existing fabric infrastructure**: ServiceManager (sidecar services), agent token scopes, Hub auth middleware, store layer.

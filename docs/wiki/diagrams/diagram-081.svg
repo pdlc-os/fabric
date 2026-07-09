@@ -87,7 +87,7 @@
 <polygon fill="lightblue" stroke="black" points="574.52,-87.25 341.02,-87.25 341.02,-26.75 574.52,-26.75 574.52,-87.25"/>
 <text xml:space="preserve" text-anchor="middle" x="457.77" y="-69.95" font-family="Times,serif" font-size="14.00">{GetInfoResponse|name: string</text>
 <text xml:space="preserve" text-anchor="middle" x="457.77" y="-59.45" font-family="Times,serif" font-size="14.00">version: string</text>
-<text xml:space="preserve" text-anchor="middle" x="457.77" y="-48.95" font-family="Times,serif" font-size="14.00">min_scion_version: string</text>
+<text xml:space="preserve" text-anchor="middle" x="457.77" y="-48.95" font-family="Times,serif" font-size="14.00">min_fabric_version: string</text>
 <text xml:space="preserve" text-anchor="middle" x="457.77" y="-38.45" font-family="Times,serif" font-size="14.00">channel_id: string</text>
 <text xml:space="preserve" text-anchor="middle" x="457.77" y="-27.95" font-family="Times,serif" font-size="14.00">capabilities: []string}</text>
 </g>

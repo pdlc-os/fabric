@@ -23,7 +23,7 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

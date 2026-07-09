@@ -19,7 +19,7 @@ This release represents a massive milestone in the evolution of the platform, fe
     * **Skill Store:** A new SQLite-backed storage layer for skills.
     * **CLI Management:** New commands for managing the skill library.
     * **Integration:** Skills are now integrated into the agent provisioning workflow.
-* **[Messaging]: Agent Wake-on-Message.** The new `--wake` flag for the `scion message` command allows users to automatically start a stopped agent when sending it a message. The Hub now handles the intermediate "starting" phase and waits for the agent to be ready before delivering the payload.
+* **[Messaging]: Agent Wake-on-Message.** The new `--wake` flag for the `fabric message` command allows users to automatically start a stopped agent when sending it a message. The Hub now handles the intermediate "starting" phase and waits for the agent to be ready before delivering the payload.
 * **[Messaging]: Composite Recipients.** Introduced the `set[]` composite recipient type, allowing a single message to be fanned out to multiple target agents or groups simultaneously.
 * **[Core]: FanOut Broker.** A new native multi-broker fan-out capability in the Hub, enabling messages to be routed across multiple communication channels (e.g., Slack and Telegram) at once.
 * **[Web UI]: Enhanced Visibility.** Added relative timestamps to agent activity badges and improved shared directory management with "Download as ZIP" support.
@@ -28,4 +28,4 @@ This release represents a massive milestone in the evolution of the platform, fe
 * **[Migrations]: Database Resilience.** Hardened migrations V50, V51, and V53 to be more resilient to missing tables and to handle term-mapping more reliably during the Grove-to-Project transition.
 * **[Installation]: Path & Privilege Management.** The installation script now defaults to `/usr/local/bin`, provides warnings if the destination is not in the user's `PATH`, and handles directory creation more robustly across different Linux distributions.
 * **[CLI]: Command Routing.** Fixed an issue where the `help` command would sometimes be incorrectly routed when passed with other arguments.
-* **[Storage]: Gitignore Validation.** Moved the `.scion/agents/` gitignore check to pre-flight validation to prevent configuration errors later in the agent lifecycle.
+* **[Storage]: Gitignore Validation.** Moved the `.fabric/agents/` gitignore check to pre-flight validation to prevent configuration errors later in the agent lifecycle.

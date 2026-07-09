@@ -1,23 +1,23 @@
 # Volume and Synchronization Approach Survey
 
-This document provides a comprehensive survey and summary of the various approaches to volume management and data synchronization in the Scion orchestration platform, as documented across several design specifications.
+This document provides a comprehensive survey and summary of the various approaches to volume management and data synchronization in the Fabric orchestration platform, as documented across several design specifications.
 
 ---
 
 ## 1. Core Synchronization Paradigms
 
-Scion employs three distinct paradigms for managing files and volumes, depending on the architecture (Solo vs. Hosted) and the lifecycle of the data.
+Fabric employs three distinct paradigms for managing files and volumes, depending on the architecture (Solo vs. Hosted) and the lifecycle of the data.
 
 ### 1.1. Local Workspace Management (Solo Mode)
-In local execution, Scion prioritizes **isolation via Git Worktrees**.
-- **Mechanism**: A new git worktree is created for each agent in a dedicated `.scion_worktrees/` directory.
+In local execution, Fabric prioritizes **isolation via Git Worktrees**.
+- **Mechanism**: A new git worktree is created for each agent in a dedicated `.fabric_worktrees/` directory.
 - **Mounting**: The worktree is bind-mounted into the container at `/workspace`. For git-aware harnesses, the parent repository's `.git` directory is also mounted to provide full repository context without duplication.
-- **Reference**: `scion.md`, `git-ws.md`.
+- **Reference**: `fabric.md`, `git-ws.md`.
 
 ### 1.2. On-Demand Workspace Sync (Hosted Relay)
-In the Hosted architecture, where CLI and Runtime Broker are decoupled, Scion uses **GCS as a synchronization relay**.
+In the Hosted architecture, where CLI and Runtime Broker are decoupled, Fabric uses **GCS as a synchronization relay**.
 - **Mechanism**: The CLI and Runtime Broker synchronize local workspace state to/from a central GCS bucket.
-- **Command**: `scion sync to/from <agent>`.
+- **Command**: `fabric sync to/from <agent>`.
 - **Flow**:
     1. **Hub as Coordinator**: The Hub generates short-lived **Signed URLs** for direct CLI ↔ GCS and Broker ↔ GCS transfer. The Hub never touches the file content.
     2. **Incremental Sync**: Files are tracked via SHA-256 content hashes in a `manifest.json`. Only new or modified files are transferred.
@@ -25,9 +25,9 @@ In the Hosted architecture, where CLI and Runtime Broker are decoupled, Scion us
 - **Reference**: `hosted/sync-design.md`, `walkthroughs/hosted-e2e.md`.
 
 ### 1.3. Persistent GCS Volumes (FUSE)
-For persistent storage that survives agent lifecycle or is shared across agents, Scion supports **native GCS FUSE mounts**.
+For persistent storage that survives agent lifecycle or is shared across agents, Fabric supports **native GCS FUSE mounts**.
 - **Mechanism**: The `gcsfuse` utility is used inside the container to mount a GCS bucket (or prefix) directly as a filesystem.
-- **Configuration**: Defined in `scion-agent.json` via the `volumes` block with `type: "gcs"`.
+- **Configuration**: Defined in `fabric-agent.json` via the `volumes` block with `type: "gcs"`.
 - **Runtime Requirements**: Containers require `SYS_ADMIN` capabilities and access to `/dev/fuse`.
 - **Reference**: `initial-gcs-volume-support.md`.
 
@@ -52,7 +52,7 @@ A critical sub-problem is how an agent's workspace is initially populated when c
 All cloud-stored resources follow a unified naming convention in the Hub's GCS bucket.
 
 ```
-gs://scion-hub-{env}/
+gs://fabric-hub-{env}/
 ├── templates/             # Base agent definitions
 │   └── {scope}/{slug}/
 ├── harness-configs/       # Harness base layers (home/ files)

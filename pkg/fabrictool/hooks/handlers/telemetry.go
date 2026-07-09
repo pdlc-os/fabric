@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/telemetry"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/telemetry"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -76,7 +76,7 @@ type TelemetryHandler struct {
 func NewTelemetryHandler(tp trace.TracerProvider, lp otellog.LoggerProvider, redactor *telemetry.Redactor, mp ...metric.MeterProvider) *TelemetryHandler {
 	var tracer trace.Tracer
 	if tp != nil {
-		tracer = tp.Tracer("github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/handlers")
+		tracer = tp.Tracer("github.com/pdlc-os/fabric/pkg/fabrictool/hooks/handlers")
 	} else {
 		tracer = noop.NewTracerProvider().Tracer("noop")
 	}
@@ -88,7 +88,7 @@ func NewTelemetryHandler(tp trace.TracerProvider, lp otellog.LoggerProvider, red
 	}
 
 	if lp != nil {
-		h.logger = slog.New(otelslog.NewHandler("sciontool.hooks",
+		h.logger = slog.New(otelslog.NewHandler("fabrictool.hooks",
 			otelslog.WithLoggerProvider(lp),
 		))
 	}
@@ -103,7 +103,7 @@ func NewTelemetryHandler(tp trace.TracerProvider, lp otellog.LoggerProvider, red
 
 // initMetrics creates OTel metric instruments on the handler.
 func (h *TelemetryHandler) initMetrics(mp metric.MeterProvider) {
-	meter := mp.Meter("github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/handlers")
+	meter := mp.Meter("github.com/pdlc-os/fabric/pkg/fabrictool/hooks/handlers")
 
 	var err error
 
@@ -488,16 +488,16 @@ func (h *TelemetryHandler) eventToEndAttributes(event *hooks.Event, startTime ti
 // metricAttrs returns common OTel metric attributes derived from environment.
 func (h *TelemetryHandler) metricAttrs() []attribute.KeyValue {
 	var attrs []attribute.KeyValue
-	if v := os.Getenv("SCION_AGENT_ID"); v != "" {
+	if v := os.Getenv("FABRIC_AGENT_ID"); v != "" {
 		attrs = append(attrs, attribute.String("agent_id", v))
 	}
-	if v := os.Getenv("SCION_HARNESS"); v != "" {
+	if v := os.Getenv("FABRIC_HARNESS"); v != "" {
 		attrs = append(attrs, attribute.String("harness", v))
 	}
-	if v := os.Getenv("SCION_GROVE_ID"); v != "" {
+	if v := os.Getenv("FABRIC_GROVE_ID"); v != "" {
 		attrs = append(attrs, attribute.String("grove_id", v))
 		attrs = append(attrs, attribute.String("project_id", v))
-	} else if v := os.Getenv("SCION_PROJECT_ID"); v != "" {
+	} else if v := os.Getenv("FABRIC_PROJECT_ID"); v != "" {
 		attrs = append(attrs, attribute.String("grove_id", v))
 		attrs = append(attrs, attribute.String("project_id", v))
 	}
@@ -537,7 +537,7 @@ func (h *TelemetryHandler) recordEndMetrics(event *hooks.Event, startEventType s
 				status = "error"
 			}
 			attrs := baseAttrs
-			if model := os.Getenv("SCION_MODEL"); model != "" {
+			if model := os.Getenv("FABRIC_MODEL"); model != "" {
 				attrs = append(attrs, attribute.String("model", model))
 			}
 			attrs = append(attrs, attribute.String("status", status))
@@ -545,7 +545,7 @@ func (h *TelemetryHandler) recordEndMetrics(event *hooks.Event, startEventType s
 		}
 		if h.apiDuration != nil {
 			attrs := baseAttrs
-			if model := os.Getenv("SCION_MODEL"); model != "" {
+			if model := os.Getenv("FABRIC_MODEL"); model != "" {
 				attrs = append(attrs, attribute.String("model", model))
 			}
 			h.apiDuration.Record(ctx, durationMs, metric.WithAttributes(attrs...))
@@ -558,7 +558,7 @@ func (h *TelemetryHandler) recordEndMetrics(event *hooks.Event, startEventType s
 
 // recordUnpairedEndMetrics records counter metrics from an end event that had no
 // matching start event in the spanStore. This is the normal case in hook-per-process
-// mode where each harness event invokes a separate sciontool process. Duration
+// mode where each harness event invokes a separate fabrictool process. Duration
 // metrics are skipped since the start time is unknown.
 func (h *TelemetryHandler) recordUnpairedEndMetrics(event *hooks.Event, startEventType string) {
 	ctx := context.Background()
@@ -585,7 +585,7 @@ func (h *TelemetryHandler) recordUnpairedEndMetrics(event *hooks.Event, startEve
 				status = "error"
 			}
 			attrs := baseAttrs
-			if model := os.Getenv("SCION_MODEL"); model != "" {
+			if model := os.Getenv("FABRIC_MODEL"); model != "" {
 				attrs = append(attrs, attribute.String("model", model))
 			}
 			attrs = append(attrs, attribute.String("status", status))
@@ -600,7 +600,7 @@ func (h *TelemetryHandler) recordUnpairedEndMetrics(event *hooks.Event, startEve
 // recordTokenMetrics records token usage counters from an event's token fields.
 func (h *TelemetryHandler) recordTokenMetrics(ctx context.Context, event *hooks.Event, baseAttrs []attribute.KeyValue) {
 	attrs := baseAttrs
-	if model := os.Getenv("SCION_MODEL"); model != "" {
+	if model := os.Getenv("FABRIC_MODEL"); model != "" {
 		attrs = append(attrs, attribute.String("model", model))
 	}
 

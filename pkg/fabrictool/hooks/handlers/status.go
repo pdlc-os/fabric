@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 // Package handlers provides hook handler implementations.
@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 )
 
 // StatusHandler manages agent status in a JSON file.
@@ -28,7 +28,7 @@ type StatusHandler struct {
 func NewStatusHandler() *StatusHandler {
 	home := os.Getenv("HOME")
 	if home == "" {
-		home = "/home/scion"
+		home = "/home/fabric"
 	}
 	return &StatusHandler{
 		StatusPath: filepath.Join(home, "agent-info.json"),

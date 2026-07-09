@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func TestParseTemplateScope(t *testing.T) {
@@ -149,7 +149,7 @@ func TestFormatTemplateNotFoundError(t *testing.T) {
 	if !contains(errMsg, "project scope") {
 		t.Error("error message should mention project scope")
 	}
-	if !contains(errMsg, "scion template sync") {
+	if !contains(errMsg, "fabric template sync") {
 		t.Error("error message should provide guidance on how to create template")
 	}
 }
@@ -214,7 +214,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("detects from harness_config field", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `harness_config: claude`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "test", Path: tmpDir}
@@ -230,7 +230,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("detects from legacy harness field", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `{"harness": "gemini"}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "test", Path: tmpDir}
@@ -246,7 +246,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("harness_config takes priority over legacy harness", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `{"harness_config": "claude", "harness": "gemini"}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "test", Path: tmpDir}
@@ -262,7 +262,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("falls back to default_harness_config", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `default_harness_config: claude`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.yaml"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "my-custom-template", Path: tmpDir}
@@ -278,7 +278,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("infers from template name", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `{}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "my-claude-template", Path: tmpDir}
@@ -294,7 +294,7 @@ func TestDetectHarnessType(t *testing.T) {
 	t.Run("returns empty string when undetectable", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configContent := `{}`
-		if err := os.WriteFile(filepath.Join(tmpDir, "scion-agent.json"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "fabric-agent.json"), []byte(configContent), 0644); err != nil {
 			t.Fatal(err)
 		}
 		tpl := &config.Template{Name: "my-custom-template", Path: tmpDir}
@@ -321,7 +321,7 @@ func TestBrokerHasLocalAccess(t *testing.T) {
 						{
 							"brokerId":   brokerID,
 							"brokerName": "local-broker",
-							"localPath":  "/home/user/project/.scion",
+							"localPath":  "/home/user/project/.fabric",
 							"status":     "online",
 						},
 					},

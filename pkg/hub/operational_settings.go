@@ -24,10 +24,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/opsettings"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/opsettings"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/knadh/koanf/v2"
 )
 
@@ -154,7 +154,7 @@ type OperationalSettings struct {
 //
 // fileFallback is a koanf instance loaded from settings.yaml (file values only,
 // no env overlay) representing the Layer-1 fallback when a section is absent
-// from the DB. envKoanf is a koanf instance containing only SCION_SERVER_*
+// from the DB. envKoanf is a koanf instance containing only FABRIC_SERVER_*
 // environment variable keys for the precedence merge.
 func NewOperationalSettings(
 	st store.HubSettingStore,
@@ -720,7 +720,7 @@ func ApplySnapshot(s *Server, snap Layer1Snapshot) map[string]interface{} {
 //   - If snap.HasMaintenanceRow is false (no DB row): no-op — MaintenanceState
 //     keeps its current value (which honors the env var set at startup).
 //   - If snap.HasMaintenanceRow is true: apply DB values, UNLESS the
-//     SCION_SERVER_ADMIN_MODE env var is set (per-node break-glass override).
+//     FABRIC_SERVER_ADMIN_MODE env var is set (per-node break-glass override).
 //
 // Phase 4 will call this on propagation events — a changed maintenance row
 // propagated from another node MUST apply, but env force-enable still wins
@@ -735,16 +735,16 @@ func ApplyMaintenanceFromSnapshot(s *Server, snap Layer1Snapshot) {
 	adminMode := snap.AdminMode
 	message := snap.MaintenanceMessage
 
-	// SCION_SERVER_ADMIN_MODE env var overrides bidirectionally: it can
+	// FABRIC_SERVER_ADMIN_MODE env var overrides bidirectionally: it can
 	// force-enable OR force-disable admin mode on this node, matching the
 	// pre-existing startup semantics in cmd/server_foreground.go:80-82.
 	// The design doc says "force-enables" but we keep parity with existing
 	// behavior (which parses the value as a boolean). The docs phase will
 	// document the bidirectional override.
-	if v := os.Getenv("SCION_SERVER_ADMIN_MODE"); v != "" {
+	if v := os.Getenv("FABRIC_SERVER_ADMIN_MODE"); v != "" {
 		adminMode = v == "true" || v == "1" || v == "yes"
 	}
-	if v := os.Getenv("SCION_SERVER_MAINTENANCE_MESSAGE"); v != "" {
+	if v := os.Getenv("FABRIC_SERVER_MAINTENANCE_MESSAGE"); v != "" {
 		message = v
 	}
 

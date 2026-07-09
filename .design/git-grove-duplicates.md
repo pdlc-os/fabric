@@ -96,9 +96,9 @@ Since SQLite doesn't support `ALTER TABLE ... DROP CONSTRAINT`, the migration wi
 ### 3.3 Enforce Unique Slugs with Serial Numbering
 
 Slugs must remain unique because they are used in:
-- Filesystem paths (`~/.scion/groves/<slug>/` for hub-managed, `~/.scion/grove-configs/<slug>__<uuid>/` for external)
+- Filesystem paths (`~/.fabric/groves/<slug>/` for hub-managed, `~/.fabric/grove-configs/<slug>__<uuid>/` for external)
 - API routing (`/api/v1/groves/<slug-or-id>/...`)
-- CLI references (`scion start agent --grove <slug>`)
+- CLI references (`fabric start agent --grove <slug>`)
 
 **Slug generation for duplicate git remotes:**
 
@@ -153,12 +153,12 @@ New flow:
 - Computes serial-numbered slug when git remote already has groves.
 - Validates slug uniqueness before insert.
 
-### 3.6 Local `scion init` Changes
+### 3.6 Local `fabric init` Changes
 
-`GenerateGroveID()` always returns a random UUID. This means re-running `scion init` in the same repository will produce a different grove ID each time (rather than the same deterministic one). This is acceptable because:
+`GenerateGroveID()` always returns a random UUID. This means re-running `fabric init` in the same repository will produce a different grove ID each time (rather than the same deterministic one). This is acceptable because:
 
-- `scion init` is typically run once per project.
-- The grove ID is persisted in `.scion/grove-id` (git groves) or the marker file (external groves), so it doesn't need to be re-derivable.
+- `fabric init` is typically run once per project.
+- The grove ID is persisted in `.fabric/grove-id` (git groves) or the marker file (external groves), so it doesn't need to be re-derivable.
 - Hub linking uses name/slug matching (not ID matching) for discovery, so a different local ID doesn't prevent linking.
 
 ### 3.7 Preserve Clone vs Shared Workspace Modes
@@ -169,7 +169,7 @@ All three workspace strategies (represented as three modes at the model layer) c
 - **Shared workspace clone** (`GitClone` unset, `SharedWorkspace=true`, `Workspace` set): A single shared git clone is mounted by all agents in the grove, rather than each agent cloning independently.
 - **Hub-managed workspace** (`GitClone` unset, `SharedWorkspace=false`, `Workspace` set): Non-git groves with a hub-managed filesystem.
 
-The workspace strategy is determined by grove configuration (specifically the `scion.dev/workspace-mode` label), not by the number of groves sharing a URL. Multiple groves sharing the same git remote may each independently choose their own workspace strategy.
+The workspace strategy is determined by grove configuration (specifically the `fabric.dev/workspace-mode` label), not by the number of groves sharing a URL. Multiple groves sharing the same git remote may each independently choose their own workspace strategy.
 
 ---
 
@@ -284,7 +284,7 @@ GetInstallationForRepository(ctx context.Context, repoFullName string) (*GitHubI
 - Simpler slug generation (no serial numbering).
 
 **Cons:**
-- Breaks CLI usability (`scion start agent --grove acme-widgets` becomes ambiguous).
+- Breaks CLI usability (`fabric start agent --grove acme-widgets` becomes ambiguous).
 - Breaks filesystem path derivation (slug is used in directory names).
 - Breaks API routing (slug is used as grove identifier in URLs).
 
@@ -396,7 +396,7 @@ If this change needs to be reverted, groves that were created as duplicates (sha
 1. ✅ **Simplify `GenerateGroveID()` and `GenerateGroveIDForDir()`:** Always return `uuid.New().String()`.
 2. ✅ **Update `createGrove()` handler:** Remove deterministic ID derivation from git remote. Use client-provided ID or random UUID. Uses `NextAvailableSlug()` and `DisplayNameWithSerial()` for serial slug/name assignment.
 3. ✅ **Update `handleGroveRegister()` handler:** Same — no deterministic ID fallback. Uses `NextAvailableSlug()` and `DisplayNameWithSerial()` for serial slug/name assignment.
-4. ✅ **Update `scion hub grove create` CLI command:** Remove `HashGroveID()` call for ID generation. Server assigns ID.
+4. ✅ **Update `fabric hub grove create` CLI command:** Remove `HashGroveID()` call for ID generation. Server assigns ID.
 5. ✅ **Retain `HashGroveID()` function:** Marked as not used for grove IDs but kept for other potential uses.
 6. ✅ **Tests:** Verify that creating two groves for the same URL produces different IDs and serial slugs.
 
@@ -417,7 +417,7 @@ If this change needs to be reverted, groves that were created as duplicates (sha
 
 **Goal:** Allow hub-first creation of duplicate groves.
 
-1. ✅ **Update `scion hub grove create`:** When the URL already has a grove, shows existing groves and the proposed serial-numbered slug. Prompts for confirmation (respects `--yes` and `--non-interactive` flags). Updated command Long description to document multi-grove support.
+1. ✅ **Update `fabric hub grove create`:** When the URL already has a grove, shows existing groves and the proposed serial-numbered slug. Prompts for confirmation (respects `--yes` and `--non-interactive` flags). Updated command Long description to document multi-grove support.
 2. ✅ **Add `--slug` override validation:** When `--slug` is provided explicitly, validates uniqueness against the Hub API before creation. Returns a clear error if the slug is already in use.
 3. ✅ **Update web UI grove creation:** Git remote URL input triggers a debounced check for existing groves sharing the same remote. An info banner lists existing groves when found. Updated the "Grove Already Exists" dialog text (now only for ID-based idempotency).
 4. ✅ **Tests:** `TestCreateGrove_DuplicateGitRemote_SerialSlug` (serial slug assignment for duplicate git remotes), `TestCreateGrove_ExplicitSlug_Unique` (server assigns serial suffix when explicit slug is taken), `TestCreateGrove_ListByGitRemote_ReturnsMultiple` (list API returns all groves sharing a git remote).
@@ -445,7 +445,7 @@ If this change needs to be reverted, groves that were created as duplicates (sha
 | `pkg/hub/handlers.go` | Update `createGrove()`, `handleGroveRegister()`, `handleGroveSyncTemplates()`. |
 | `pkg/hubsync/prompt.go` | Update `ShowMatchingGrovesPrompt()` — remove `hasGitRemote` param, show serial slug and display name with qualifier. |
 | `pkg/hubsync/sync.go` | Update `EnsureHubReady()` — ID-based lookup as universal pattern, remove git-remote auto-linking. |
-| `cmd/hub.go` | Update `runHubLink()`, `scion hub grove create`. |
+| `cmd/hub.go` | Update `runHubLink()`, `fabric hub grove create`. |
 | `pkg/util/git.go` | No changes to `HashGroveID()` itself, but callers change. |
 | `pkg/hub/handlers_grove_test.go` | Update tests for new behavior. |
 | `pkg/hub/useraccesstoken_test.go` | Update mock to remove `GetGroveByGitRemote()`, add `GetGrovesByGitRemote()`. |

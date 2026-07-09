@@ -15,13 +15,13 @@
 """OpenCode container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Projected available auth env vars into the container's launch environment
     (so the OpenCode child process will see ANTHROPIC_API_KEY, OPENAI_API_KEY,
-    etc. — but `sciontool harness provision` strips them from THIS script's env
+    etc. — but `fabrictool harness provision` strips them from THIS script's env
     for containment, so we read the *names* of available creds from
     inputs/auth-candidates.json instead of os.environ).
   * Mounted any auth file (e.g. ~/.local/share/opencode/auth.json) at the
@@ -52,11 +52,11 @@ import sys
 from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import scion_harness as sh  # noqa: E402
+import fabric_harness as sh  # noqa: E402
 
 assert sh.INTERFACE_VERSION >= 2, (
-    "opencode provision.py requires scion_harness INTERFACE_VERSION >= 2; "
-    f"got {sh.INTERFACE_VERSION}. Update the staged scion_harness.py."
+    "opencode provision.py requires fabric_harness INTERFACE_VERSION >= 2; "
+    f"got {sh.INTERFACE_VERSION}. Update the staged fabric_harness.py."
 )
 
 OPENCODE_AUTH_FILE = "~/.local/share/opencode/auth.json"

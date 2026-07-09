@@ -26,11 +26,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // createTestStore creates an in-memory SQLite store for testing.
@@ -64,7 +64,7 @@ type mockRuntimeBrokerClient struct {
 	lastMessage      string
 	lastInterrupt    bool
 	lastResolvedEnv  map[string]string
-	lastInlineConfig *api.ScionConfig
+	lastInlineConfig *api.FabricConfig
 	lastCreateReq    *RemoteCreateAgentRequest
 	lastDeleteOpts   struct{ deleteFiles, removeBranch bool }
 	returnErr        error
@@ -95,7 +95,7 @@ func (m *mockRuntimeBrokerClient) CreateAgent(ctx context.Context, brokerID, bro
 	}, nil
 }
 
-func (m *mockRuntimeBrokerClient) StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.ScionConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error) {
+func (m *mockRuntimeBrokerClient) StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.FabricConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error) {
 	m.startCalled = true
 	m.lastBrokerID = brokerID
 	m.lastEndpoint = brokerEndpoint
@@ -573,7 +573,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_WithProjectProviderPath(t *test
 		ProjectID:  tid("project-1"),
 		BrokerID:   tid("broker-1"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -599,8 +599,8 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_WithProjectProviderPath(t *test
 	if !mockClient.createCalled {
 		t.Fatal("expected CreateAgent to be called")
 	}
-	if mockClient.lastCreateReq.ProjectPath != "/home/user/projects/myproject/.scion" {
-		t.Errorf("expected ProjectPath '/home/user/projects/myproject/.scion', got '%s'", mockClient.lastCreateReq.ProjectPath)
+	if mockClient.lastCreateReq.ProjectPath != "/home/user/projects/myproject/.fabric" {
+		t.Errorf("expected ProjectPath '/home/user/projects/myproject/.fabric', got '%s'", mockClient.lastCreateReq.ProjectPath)
 	}
 }
 
@@ -1107,7 +1107,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_WithProjectProviderPath(t *testi
 		ProjectID:  tid("project-1"),
 		BrokerID:   tid("broker-1"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -1133,8 +1133,8 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_WithProjectProviderPath(t *testi
 	if !mockClient.startCalled {
 		t.Fatal("expected StartAgent to be called")
 	}
-	if mockClient.lastProjectPath != "/home/user/projects/myproject/.scion" {
-		t.Errorf("expected projectPath '/home/user/projects/myproject/.scion', got '%s'", mockClient.lastProjectPath)
+	if mockClient.lastProjectPath != "/home/user/projects/myproject/.fabric" {
+		t.Errorf("expected projectPath '/home/user/projects/myproject/.fabric', got '%s'", mockClient.lastProjectPath)
 	}
 	if mockClient.lastTask != "do task" {
 		t.Errorf("expected task 'do task', got '%s'", mockClient.lastTask)
@@ -1151,7 +1151,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_WithProjectProviderPath(t *testi
 }
 
 // TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIdentity verifies that
-// DispatchAgentStart injects SCION_AGENT_ID and SCION_AGENT_SLUG into resolvedEnv
+// DispatchAgentStart injects FABRIC_AGENT_ID and FABRIC_AGENT_SLUG into resolvedEnv
 // so the container can report status back to the Hub.
 func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIdentity(t *testing.T) {
 	ctx := context.Background()
@@ -1182,7 +1182,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIdentity(t *testing
 		ProjectID:  tid("project-1"),
 		BrokerID:   tid("broker-1"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -1209,25 +1209,25 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIdentity(t *testing
 		t.Fatal("expected StartAgent to be called")
 	}
 
-	// Verify SCION_AGENT_ID is included in resolvedEnv
-	if v, ok := mockClient.lastResolvedEnv["SCION_AGENT_ID"]; !ok {
-		t.Error("expected SCION_AGENT_ID in resolvedEnv, but not found")
+	// Verify FABRIC_AGENT_ID is included in resolvedEnv
+	if v, ok := mockClient.lastResolvedEnv["FABRIC_AGENT_ID"]; !ok {
+		t.Error("expected FABRIC_AGENT_ID in resolvedEnv, but not found")
 	} else if v != "agent-uuid-123" {
-		t.Errorf("expected SCION_AGENT_ID='agent-uuid-123', got %q", v)
+		t.Errorf("expected FABRIC_AGENT_ID='agent-uuid-123', got %q", v)
 	}
 
-	// Verify SCION_AGENT_SLUG is included in resolvedEnv
-	if v, ok := mockClient.lastResolvedEnv["SCION_AGENT_SLUG"]; !ok {
-		t.Error("expected SCION_AGENT_SLUG in resolvedEnv, but not found")
+	// Verify FABRIC_AGENT_SLUG is included in resolvedEnv
+	if v, ok := mockClient.lastResolvedEnv["FABRIC_AGENT_SLUG"]; !ok {
+		t.Error("expected FABRIC_AGENT_SLUG in resolvedEnv, but not found")
 	} else if v != "test-agent-slug" {
-		t.Errorf("expected SCION_AGENT_SLUG='test-agent-slug', got %q", v)
+		t.Errorf("expected FABRIC_AGENT_SLUG='test-agent-slug', got %q", v)
 	}
 
-	// Verify SCION_GROVE_ID is included in resolvedEnv
-	if v, ok := mockClient.lastResolvedEnv["SCION_GROVE_ID"]; !ok {
-		t.Error("expected SCION_GROVE_ID in resolvedEnv, but not found")
+	// Verify FABRIC_GROVE_ID is included in resolvedEnv
+	if v, ok := mockClient.lastResolvedEnv["FABRIC_GROVE_ID"]; !ok {
+		t.Error("expected FABRIC_GROVE_ID in resolvedEnv, but not found")
 	} else if v != tid("project-1") {
-		t.Errorf("expected SCION_GROVE_ID='project-1', got %q", v)
+		t.Errorf("expected FABRIC_GROVE_ID='project-1', got %q", v)
 	}
 }
 
@@ -1293,7 +1293,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_ProjectSlugSetForGitRemoteWithou
 
 	// Create a project with a git remote but no local provider path.
 	// The broker needs the projectSlug to resolve agent directories under
-	// ~/.scion/projects/<slug>/ instead of falling back to the global project.
+	// ~/.fabric/projects/<slug>/ instead of falling back to the global project.
 	project := &store.Project{
 		ID:        tid("project-git"),
 		Name:      "Git Project",
@@ -1335,7 +1335,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_ProjectSlugSetForGitRemoteWithou
 		t.Fatal("expected StartAgent to be called")
 	}
 	// Git-remote project without a local provider path should have projectSlug set
-	// so the broker resolves agent dirs under ~/.scion/projects/<slug>/
+	// so the broker resolves agent dirs under ~/.fabric/projects/<slug>/
 	if mockClient.lastProjectSlug != "git-project" {
 		t.Errorf("expected projectSlug='git-project' for git project without local path, got %q", mockClient.lastProjectSlug)
 	}
@@ -1372,7 +1372,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_ResolvesEnvFromStorage(t *testin
 		ProjectID:  tid("project-env"),
 		BrokerID:   tid("broker-env"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/project/.scion",
+		LocalPath:  "/home/user/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -1620,13 +1620,13 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_InjectsDevToken(t *testing.T) {
 		t.Fatal("expected CreateAgent to be called")
 	}
 
-	// Verify SCION_DEV_TOKEN was injected into ResolvedEnv
+	// Verify FABRIC_DEV_TOKEN was injected into ResolvedEnv
 	if mockClient.lastCreateReq.ResolvedEnv == nil {
 		t.Fatal("expected ResolvedEnv to be non-nil")
 	}
-	if mockClient.lastCreateReq.ResolvedEnv["SCION_DEV_TOKEN"] != "my-dev-token" {
-		t.Errorf("expected SCION_DEV_TOKEN='my-dev-token', got %q",
-			mockClient.lastCreateReq.ResolvedEnv["SCION_DEV_TOKEN"])
+	if mockClient.lastCreateReq.ResolvedEnv["FABRIC_DEV_TOKEN"] != "my-dev-token" {
+		t.Errorf("expected FABRIC_DEV_TOKEN='my-dev-token', got %q",
+			mockClient.lastCreateReq.ResolvedEnv["FABRIC_DEV_TOKEN"])
 	}
 }
 
@@ -1662,10 +1662,10 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_NoDevToken(t *testing.T) {
 		t.Fatalf("DispatchAgentCreate failed: %v", err)
 	}
 
-	// Verify SCION_DEV_TOKEN is NOT in ResolvedEnv when devAuthToken is empty
+	// Verify FABRIC_DEV_TOKEN is NOT in ResolvedEnv when devAuthToken is empty
 	if mockClient.lastCreateReq.ResolvedEnv != nil {
-		if _, exists := mockClient.lastCreateReq.ResolvedEnv["SCION_DEV_TOKEN"]; exists {
-			t.Error("expected SCION_DEV_TOKEN NOT to be present when devAuthToken is empty")
+		if _, exists := mockClient.lastCreateReq.ResolvedEnv["FABRIC_DEV_TOKEN"]; exists {
+			t.Error("expected FABRIC_DEV_TOKEN NOT to be present when devAuthToken is empty")
 		}
 	}
 }
@@ -1708,14 +1708,14 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_DevTokenMergesWithExistingEnv(t
 		t.Fatalf("DispatchAgentCreate failed: %v", err)
 	}
 
-	// Verify both existing env and SCION_DEV_TOKEN are present
+	// Verify both existing env and FABRIC_DEV_TOKEN are present
 	if mockClient.lastCreateReq.ResolvedEnv["EXISTING_VAR"] != "existing-value" {
 		t.Errorf("expected EXISTING_VAR='existing-value', got %q",
 			mockClient.lastCreateReq.ResolvedEnv["EXISTING_VAR"])
 	}
-	if mockClient.lastCreateReq.ResolvedEnv["SCION_DEV_TOKEN"] != "my-dev-token" {
-		t.Errorf("expected SCION_DEV_TOKEN='my-dev-token', got %q",
-			mockClient.lastCreateReq.ResolvedEnv["SCION_DEV_TOKEN"])
+	if mockClient.lastCreateReq.ResolvedEnv["FABRIC_DEV_TOKEN"] != "my-dev-token" {
+		t.Errorf("expected FABRIC_DEV_TOKEN='my-dev-token', got %q",
+			mockClient.lastCreateReq.ResolvedEnv["FABRIC_DEV_TOKEN"])
 	}
 }
 
@@ -1992,7 +1992,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_ProjectSlugSet_GitProject(t *te
 		t.Fatal("expected CreateAgent to be called")
 	}
 	// Git-backed projects without a local provider path should have ProjectSlug set
-	// so the broker resolves agent dirs under ~/.scion/projects/<slug>/
+	// so the broker resolves agent dirs under ~/.fabric/projects/<slug>/
 	if mockClient.lastCreateReq.ProjectSlug != "git-project" {
 		t.Errorf("expected ProjectSlug='git-project' for git-backed project without local path, got '%s'", mockClient.lastCreateReq.ProjectSlug)
 	}
@@ -2078,7 +2078,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_NoProjectSlug_LocalPathProject(
 		ProjectID:  tid("project-local"),
 		BrokerID:   tid("broker-1"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -2125,8 +2125,8 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_NoProjectSlug_LocalPathProject(
 	}
 
 	// The ProjectPath should be set from the provider
-	if mockClient.lastCreateReq.ProjectPath != "/home/user/projects/myproject/.scion" {
-		t.Errorf("expected ProjectPath '/home/user/projects/myproject/.scion', got '%s'", mockClient.lastCreateReq.ProjectPath)
+	if mockClient.lastCreateReq.ProjectPath != "/home/user/projects/myproject/.fabric" {
+		t.Errorf("expected ProjectPath '/home/user/projects/myproject/.fabric', got '%s'", mockClient.lastCreateReq.ProjectPath)
 	}
 
 	// Config.Workspace should be cleared when a local provider path exists,
@@ -2157,7 +2157,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_LinkedProjectNoGitRemote(t *tes
 	memStore := createTestStore(t)
 
 	// Create a linked project WITHOUT a GitRemote — this is what happens when
-	// a user links a local project via `scion hub projects link`.
+	// a user links a local project via `fabric hub projects link`.
 	project := &store.Project{
 		ID:   tid("project-linked-no-git"),
 		Name: "Linked No Git Project",
@@ -2184,7 +2184,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_LinkedProjectNoGitRemote(t *tes
 		ProjectID:  tid("project-linked-no-git"),
 		BrokerID:   tid("broker-1"),
 		BrokerName: "test-broker",
-		LocalPath:  "/Users/user/dev/projects/my-project/.scion",
+		LocalPath:  "/Users/user/dev/projects/my-project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -2221,8 +2221,8 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_LinkedProjectNoGitRemote(t *tes
 	}
 
 	// The ProjectPath should be set from the provider
-	if mockClient.lastCreateReq.ProjectPath != "/Users/user/dev/projects/my-project/.scion" {
-		t.Errorf("expected ProjectPath '/Users/user/dev/projects/my-project/.scion', got '%s'", mockClient.lastCreateReq.ProjectPath)
+	if mockClient.lastCreateReq.ProjectPath != "/Users/user/dev/projects/my-project/.fabric" {
+		t.Errorf("expected ProjectPath '/Users/user/dev/projects/my-project/.fabric', got '%s'", mockClient.lastCreateReq.ProjectPath)
 	}
 
 	// Config.Workspace should be cleared when a local provider path exists
@@ -2706,7 +2706,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIDAndSlug(t *testin
 		ProjectID:  tid("project-id-test"),
 		BrokerID:   tid("broker-id-test"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/project/.scion",
+		LocalPath:  "/home/user/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -2736,14 +2736,14 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesAgentIDAndSlug(t *testin
 		t.Fatal("expected StartAgent to be called")
 	}
 
-	// Verify SCION_AGENT_ID is set to the agent's UUID
-	if v, ok := mockClient.lastResolvedEnv["SCION_AGENT_ID"]; !ok || v != "agent-uuid-123" {
-		t.Errorf("expected SCION_AGENT_ID='agent-uuid-123', got '%s' (ok=%v)", v, ok)
+	// Verify FABRIC_AGENT_ID is set to the agent's UUID
+	if v, ok := mockClient.lastResolvedEnv["FABRIC_AGENT_ID"]; !ok || v != "agent-uuid-123" {
+		t.Errorf("expected FABRIC_AGENT_ID='agent-uuid-123', got '%s' (ok=%v)", v, ok)
 	}
 
-	// Verify SCION_AGENT_SLUG is set to the agent's slug
-	if v, ok := mockClient.lastResolvedEnv["SCION_AGENT_SLUG"]; !ok || v != "my-agent" {
-		t.Errorf("expected SCION_AGENT_SLUG='my-agent', got '%s' (ok=%v)", v, ok)
+	// Verify FABRIC_AGENT_SLUG is set to the agent's slug
+	if v, ok := mockClient.lastResolvedEnv["FABRIC_AGENT_SLUG"]; !ok || v != "my-agent" {
+		t.Errorf("expected FABRIC_AGENT_SLUG='my-agent', got '%s' (ok=%v)", v, ok)
 	}
 }
 
@@ -2778,7 +2778,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesInlineConfig(t *testing.
 		ProjectID:  tid("project-inline"),
 		BrokerID:   tid("broker-inline"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/project/.scion",
+		LocalPath:  "/home/user/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -2788,7 +2788,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_IncludesInlineConfig(t *testing.
 	mockClient := &mockRuntimeBrokerClient{}
 	dispatcher := NewHTTPAgentDispatcherWithClient(memStore, mockClient, false, slog.Default())
 
-	inlineCfg := &api.ScionConfig{
+	inlineCfg := &api.FabricConfig{
 		MaxTurns:    3,
 		MaxDuration: "30m",
 	}
@@ -2870,18 +2870,18 @@ func TestDispatchAgentStart_IncludesHubEndpoint(t *testing.T) {
 	}
 
 	// Verify hub endpoint is included in resolvedEnv
-	if ep, ok := mockClient.lastResolvedEnv["SCION_HUB_ENDPOINT"]; !ok {
-		t.Error("expected SCION_HUB_ENDPOINT in resolvedEnv")
+	if ep, ok := mockClient.lastResolvedEnv["FABRIC_HUB_ENDPOINT"]; !ok {
+		t.Error("expected FABRIC_HUB_ENDPOINT in resolvedEnv")
 	} else if ep != "http://hub.example.com:8080" {
-		t.Errorf("SCION_HUB_ENDPOINT = %q, want %q", ep, "http://hub.example.com:8080")
+		t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q", ep, "http://hub.example.com:8080")
 	}
 
 	// Verify agent identity vars are also present
-	if mockClient.lastResolvedEnv["SCION_AGENT_ID"] != tid("agent-1") {
-		t.Errorf("SCION_AGENT_ID = %q, want %q", mockClient.lastResolvedEnv["SCION_AGENT_ID"], tid("agent-1"))
+	if mockClient.lastResolvedEnv["FABRIC_AGENT_ID"] != tid("agent-1") {
+		t.Errorf("FABRIC_AGENT_ID = %q, want %q", mockClient.lastResolvedEnv["FABRIC_AGENT_ID"], tid("agent-1"))
 	}
-	if mockClient.lastResolvedEnv["SCION_GROVE_ID"] != tid("project-1") {
-		t.Errorf("SCION_GROVE_ID = %q, want %q", mockClient.lastResolvedEnv["SCION_GROVE_ID"], tid("project-1"))
+	if mockClient.lastResolvedEnv["FABRIC_GROVE_ID"] != tid("project-1") {
+		t.Errorf("FABRIC_GROVE_ID = %q, want %q", mockClient.lastResolvedEnv["FABRIC_GROVE_ID"], tid("project-1"))
 	}
 }
 
@@ -2925,7 +2925,7 @@ func TestHTTPAgentDispatcher_DispatchAgentCreate_PropagatesSharedWorkspace(t *te
 		RuntimeBrokerID: tid("host-1"),
 		AppliedConfig: &store.AgentAppliedConfig{
 			HarnessConfig: "claude",
-			Workspace:     "/home/user/.scion/projects/shared-ws",
+			Workspace:     "/home/user/.fabric/projects/shared-ws",
 		},
 	}
 
@@ -2981,7 +2981,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_InjectsGCPIdentityEnv(t *testing
 		ProjectID:  tid("project-gcp"),
 		BrokerID:   tid("broker-gcp"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -3017,14 +3017,14 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_InjectsGCPIdentityEnv(t *testing
 	}
 
 	// Verify GCP identity env vars
-	if v := mockClient.lastResolvedEnv["SCION_METADATA_MODE"]; v != "assign" {
-		t.Errorf("expected SCION_METADATA_MODE='assign', got %q", v)
+	if v := mockClient.lastResolvedEnv["FABRIC_METADATA_MODE"]; v != "assign" {
+		t.Errorf("expected FABRIC_METADATA_MODE='assign', got %q", v)
 	}
-	if v := mockClient.lastResolvedEnv["SCION_METADATA_SA_EMAIL"]; v != "sa@proj.iam.gserviceaccount.com" {
-		t.Errorf("expected SCION_METADATA_SA_EMAIL='sa@proj.iam.gserviceaccount.com', got %q", v)
+	if v := mockClient.lastResolvedEnv["FABRIC_METADATA_SA_EMAIL"]; v != "sa@proj.iam.gserviceaccount.com" {
+		t.Errorf("expected FABRIC_METADATA_SA_EMAIL='sa@proj.iam.gserviceaccount.com', got %q", v)
 	}
-	if v := mockClient.lastResolvedEnv["SCION_METADATA_PROJECT_ID"]; v != tid("my-project") {
-		t.Errorf("expected SCION_METADATA_PROJECT_ID='my-project', got %q", v)
+	if v := mockClient.lastResolvedEnv["FABRIC_METADATA_PROJECT_ID"]; v != tid("my-project") {
+		t.Errorf("expected FABRIC_METADATA_PROJECT_ID='my-project', got %q", v)
 	}
 }
 
@@ -3057,7 +3057,7 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_GCPBlockMode(t *testing.T) {
 		ProjectID:  tid("project-gcp-block"),
 		BrokerID:   tid("broker-gcp-block"),
 		BrokerName: "test-broker",
-		LocalPath:  "/home/user/projects/myproject/.scion",
+		LocalPath:  "/home/user/projects/myproject/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := memStore.AddProjectProvider(ctx, provider); err != nil {
@@ -3085,12 +3085,12 @@ func TestHTTPAgentDispatcher_DispatchAgentStart_GCPBlockMode(t *testing.T) {
 		t.Fatalf("DispatchAgentStart failed: %v", err)
 	}
 
-	if v := mockClient.lastResolvedEnv["SCION_METADATA_MODE"]; v != "block" {
-		t.Errorf("expected SCION_METADATA_MODE='block', got %q", v)
+	if v := mockClient.lastResolvedEnv["FABRIC_METADATA_MODE"]; v != "block" {
+		t.Errorf("expected FABRIC_METADATA_MODE='block', got %q", v)
 	}
 	// SA details should NOT be present for block mode
-	if v := mockClient.lastResolvedEnv["SCION_METADATA_SA_EMAIL"]; v != "" {
-		t.Errorf("expected empty SCION_METADATA_SA_EMAIL in block mode, got %q", v)
+	if v := mockClient.lastResolvedEnv["FABRIC_METADATA_SA_EMAIL"]; v != "" {
+		t.Errorf("expected empty FABRIC_METADATA_SA_EMAIL in block mode, got %q", v)
 	}
 }
 
@@ -3176,14 +3176,14 @@ func TestBuildCreateRequest_UserGitHubTokenPrecedesApp(t *testing.T) {
 		t.Errorf("expected user GITHUB_TOKEN to be preserved, got %q", got)
 	}
 
-	// SCION_USER_GITHUB_TOKEN flag must be set
-	if got := req.ResolvedEnv["SCION_USER_GITHUB_TOKEN"]; got != "true" {
-		t.Errorf("expected SCION_USER_GITHUB_TOKEN=true, got %q", got)
+	// FABRIC_USER_GITHUB_TOKEN flag must be set
+	if got := req.ResolvedEnv["FABRIC_USER_GITHUB_TOKEN"]; got != "true" {
+		t.Errorf("expected FABRIC_USER_GITHUB_TOKEN=true, got %q", got)
 	}
 
 	// GitHub App should still be marked as enabled (for credential helper)
-	if got := req.ResolvedEnv["SCION_GITHUB_APP_ENABLED"]; got != "true" {
-		t.Errorf("expected SCION_GITHUB_APP_ENABLED=true, got %q", got)
+	if got := req.ResolvedEnv["FABRIC_GITHUB_APP_ENABLED"]; got != "true" {
+		t.Errorf("expected FABRIC_GITHUB_APP_ENABLED=true, got %q", got)
 	}
 
 	// Minter should NOT have been called since user token takes precedence
@@ -3257,13 +3257,13 @@ func TestBuildCreateRequest_GitHubAppTokenWhenNoUserToken(t *testing.T) {
 		t.Errorf("expected GitHub App token, got %q", got)
 	}
 
-	if got := req.ResolvedEnv["SCION_GITHUB_APP_ENABLED"]; got != "true" {
-		t.Errorf("expected SCION_GITHUB_APP_ENABLED=true, got %q", got)
+	if got := req.ResolvedEnv["FABRIC_GITHUB_APP_ENABLED"]; got != "true" {
+		t.Errorf("expected FABRIC_GITHUB_APP_ENABLED=true, got %q", got)
 	}
 
 	// User token flag should NOT be set
-	if got := req.ResolvedEnv["SCION_USER_GITHUB_TOKEN"]; got != "" {
-		t.Errorf("expected empty SCION_USER_GITHUB_TOKEN, got %q", got)
+	if got := req.ResolvedEnv["FABRIC_USER_GITHUB_TOKEN"]; got != "" {
+		t.Errorf("expected empty FABRIC_USER_GITHUB_TOKEN, got %q", got)
 	}
 
 	if !minter.called {

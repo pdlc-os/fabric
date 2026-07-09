@@ -1,7 +1,7 @@
 # Rename Strategy: v8 Review Fixes
 
 ## Problem
-Several protocol mismatches between the Scion Hub and Runtime Broker were identified where 'project' and 'grove' nomenclature were mixed, leading to communication failures.
+Several protocol mismatches between the Fabric Hub and Runtime Broker were identified where 'project' and 'grove' nomenclature were mixed, leading to communication failures.
 
 ## Solution
 Implemented dual-support (backward compatibility) for both 'project' and 'grove' nomenclature in JSON payloads and query parameters across `hubclient` and `runtimebroker`.

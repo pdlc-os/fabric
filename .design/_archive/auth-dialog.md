@@ -18,7 +18,7 @@ The authentication dialog is appearing unexpectedly during startup, even when th
 
 2.  **Hook State:** `packages/cli/src/ui/auth/useAuth.ts` might be defaulting to `AuthState.Updating` or `AuthState.Unauthenticated` in a way that triggers the UI.
 
-3.  **Environment Variable Propagation:** In the context of `scion`, verify that `GEMINI_API_KEY` is being correctly passed into the container environment.
+3.  **Environment Variable Propagation:** In the context of `fabric`, verify that `GEMINI_API_KEY` is being correctly passed into the container environment.
 
 4.  **Enforced Auth Type Mismatch:** If `security.auth.enforcedType` is set and doesn't match the effective auth type, it may be triggering a re-authentication prompt.
 
@@ -33,4 +33,4 @@ The authentication dialog is appearing unexpectedly during startup, even when th
 - `packages/cli/src/ui/auth/useAuth.ts`
 - `packages/cli/src/ui/auth/AuthDialog.tsx`
 - `packages/cli/src/validateNonInterActiveAuth.ts`
-- `scion/pkg/config/auth.go`
+- `fabric/pkg/config/auth.go`

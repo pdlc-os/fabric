@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug to help us improve Scion
+about: Report a bug to help us improve Fabric
 labels: bug
 ---
 
@@ -27,7 +27,7 @@ What actually happened.
 For CLI issues, re-run the command with the `--debug` flag and paste the relevant output below:
 
 ```
-scion <command> --debug
+fabric <command> --debug
 ```
 
 <details>
@@ -52,7 +52,7 @@ For Hub or Runtime Broker server issues, include server logs from a run started 
 
 ## Environment
 
-- **Scion version**: (`scion version`)
+- **Fabric version**: (`fabric version`)
 - **OS/Platform**:
 - **Runtime**: (Docker / Apple Virtualization / Kubernetes)
 - **Harness**: (Claude / Gemini / etc)

@@ -25,7 +25,7 @@ import (
 
 	"log/slog"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // newTestScheduler creates a scheduler with a fast tick interval for testing.

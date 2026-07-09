@@ -15,12 +15,12 @@
 """Gemini CLI container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Written inputs/auth-candidates.json with the env-var names + paths to
-    secret-value files under $HOME/.scion/harness/secrets/<NAME>.
+    secret-value files under $HOME/.fabric/harness/secrets/<NAME>.
   * Mounted any auth file (e.g. ~/.gemini/oauth_creds.json) at the declared
     container_path, when auth-file mode is in use.
   * Mounted ADC credentials when vertex-ai mode is in use.
@@ -47,10 +47,10 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness
+import fabric_harness
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    f"scion_harness INTERFACE_VERSION {scion_harness.INTERFACE_VERSION} < 2; "
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    f"fabric_harness INTERFACE_VERSION {fabric_harness.INTERFACE_VERSION} < 2; "
     "update the shared library"
 )
 
@@ -63,21 +63,21 @@ _GEMINI_AUTH_TYPE_MAP = {
     "vertex-ai": "vertex-ai",
 }
 
-AUTH = scion_harness.AuthSpec(
+AUTH = fabric_harness.AuthSpec(
     "gemini-cli",
     [
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "api-key",
             any_of=["GEMINI_API_KEY", "GOOGLE_API_KEY"],
             hint="set GEMINI_API_KEY or GOOGLE_API_KEY",
         ),
-        scion_harness.file_method(
+        fabric_harness.file_method(
             "auth-file",
             path=GEMINI_OAUTH_CREDS_FILE,
             hint=f"provide OAuth credentials at {GEMINI_OAUTH_CREDS_FILE}",
             secret_key="GEMINI_OAUTH_CREDS",
         ),
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "vertex-ai",
             any_of=["GOOGLE_CLOUD_PROJECT"],
             hint="set GOOGLE_CLOUD_PROJECT (with ADC or GCP service account) for Vertex AI",
@@ -88,11 +88,11 @@ AUTH = scion_harness.AuthSpec(
 
 def _update_gemini_settings(settings_path: str, gemini_auth_type: str) -> None:
     """Update ~/.gemini/settings.json with the Gemini-native auth type."""
-    expanded = scion_harness.expand_path(settings_path)
+    expanded = fabric_harness.expand_path(settings_path)
     settings: dict[str, Any] = {}
     if os.path.isfile(expanded):
         try:
-            settings = scion_harness.load_json(expanded) or {}
+            settings = fabric_harness.load_json(expanded) or {}
         except (OSError, json.JSONDecodeError):
             settings = {}
     if not isinstance(settings, dict):
@@ -112,7 +112,7 @@ def _update_gemini_settings(settings_path: str, gemini_auth_type: str) -> None:
         return
 
     auth["selectedType"] = gemini_auth_type
-    scion_harness.atomic_write_json(expanded, settings)
+    fabric_harness.atomic_write_json(expanded, settings)
 
 
 def _build_env_overlay(method: str, env_key: str) -> dict[str, str]:
@@ -133,7 +133,7 @@ def _build_env_overlay(method: str, env_key: str) -> dict[str, str]:
     return {}
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     resolved = ctx.select_auth(AUTH)
 
     gemini_auth_type = _GEMINI_AUTH_TYPE_MAP.get(resolved.method, "")
@@ -150,4 +150,4 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
 
 if __name__ == "__main__":
-    scion_harness.run("gemini-cli", provision)
+    fabric_harness.run("gemini-cli", provision)

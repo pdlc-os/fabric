@@ -1,6 +1,6 @@
 # Message Broker Plugin Design
 
-This document covers the design concerns specific to message broker plugins — the RPC interface, message delivery patterns, authentication, and operational behavior. For the general plugin system architecture (discovery, loading, lifecycle, registry), see [scion-plugins.md](scion-plugins.md).
+This document covers the design concerns specific to message broker plugins — the RPC interface, message delivery patterns, authentication, and operational behavior. For the general plugin system architecture (discovery, loading, lifecycle, registry), see [fabric-plugins.md](fabric-plugins.md).
 
 **Terminology note:** This document uses "message broker" exclusively to refer to the messaging subsystem (publish/subscribe infrastructure). The term "broker" alone is avoided to prevent confusion with "Runtime Broker" (the compute node that executes agents). See also [Naming Disambiguation](#naming-disambiguation-code-artifacts) below.
 
@@ -79,7 +79,7 @@ POST /api/v1/broker/inbound
 Body: { "topic": "<original-topic>", "message": <StructuredMessage> }
 ```
 
-The hub's routing logic parses the topic (e.g., `scion.grove.<groveId>.agent.<agentSlug>.messages`) and dispatches to the appropriate agent or grove. This keeps routing logic in the hub where it belongs and avoids duplicating topic-parsing logic in every plugin.
+The hub's routing logic parses the topic (e.g., `fabric.grove.<groveId>.agent.<agentSlug>.messages`) and dispatches to the appropriate agent or grove. This keeps routing logic in the hub where it belongs and avoids duplicating topic-parsing logic in every plugin.
 
 **Note:** This routing logic is not strictly plugin-specific — it's a general message broker subsystem concern. The topic convention and routing rules should be defined as part of the broader messaging architecture, with the plugin inbound endpoint being one consumer of that routing layer.
 
@@ -90,7 +90,7 @@ The hub's routing logic parses the topic (e.g., `scion.grove.<groveId>.agent.<ag
 When a message broker plugin delivers inbound messages via the hub API, it authenticates using the existing message broker HMAC mechanism. The plugin receives message broker credentials as part of its `Configure()` config map.
 
 **Logging concern:** Plugin API calls must not appear in logs as if they came from the built-in message broker itself. To distinguish plugin activity:
-- The plugin should include a `X-Scion-Plugin-Name` header (or similar identifier) on its hub API calls
+- The plugin should include a `X-Fabric-Plugin-Name` header (or similar identifier) on its hub API calls
 - The hub's request logging should surface this header to differentiate plugin-originated requests from built-in message broker requests
 - This is a logging/observability concern, not a security boundary — the HMAC credentials grant the same access either way
 
@@ -105,7 +105,7 @@ When a message broker plugin delivers an inbound message via the hub API, the hu
 - **Inbound path**: External system -> plugin -> hub API -> `DispatchAgentMessage()` directly (bypasses message broker)
 
 **Primary responsibility: the plugin.** The message broker plugin must filter out messages that originated from the hub before delivering them back. The plugin has the most context about the external message broker's implementation-specific metadata (message headers, sender fields, deduplication IDs) and is best positioned to identify echoes. Strategies include:
-- Tagging outbound messages with a scion origin marker and filtering on inbound
+- Tagging outbound messages with a fabric origin marker and filtering on inbound
 - Using separate external message broker topics/channels for inbound vs outbound
 - Maintaining a message ID seen-set with TTL
 
@@ -177,13 +177,13 @@ A minimal reference message broker plugin that validates the plugin interface en
 - Implements the full `MessageBrokerPlugin` interface with in-memory topic routing
 - Provides a CLI REPL mode for manual send/receive — useful for development and debugging:
   ```
-  $ scion-broker-repl --hub-url http://localhost:8080 --hmac-key <key>
-  repl> sub scion.grove.mygrove.agent.*.messages
-  Subscribed to: scion.grove.mygrove.agent.*.messages
-  repl> pub scion.grove.mygrove.agent.alice.messages '{"type":"text","body":"hello"}'
-  Published to: scion.grove.mygrove.agent.alice.messages
-  [inbound] scion.grove.mygrove.agent.bob.messages: {"type":"text","body":"reply from bob"}
-  repl> unsub scion.grove.mygrove.agent.*.messages
+  $ fabric-broker-repl --hub-url http://localhost:8080 --hmac-key <key>
+  repl> sub fabric.grove.mygrove.agent.*.messages
+  Subscribed to: fabric.grove.mygrove.agent.*.messages
+  repl> pub fabric.grove.mygrove.agent.alice.messages '{"type":"text","body":"hello"}'
+  Published to: fabric.grove.mygrove.agent.alice.messages
+  [inbound] fabric.grove.mygrove.agent.bob.messages: {"type":"text","body":"reply from bob"}
+  repl> unsub fabric.grove.mygrove.agent.*.messages
   repl> quit
   ```
 - Runs as a plugin process (discovered and loaded by the plugin manager) or standalone for manual testing
@@ -195,7 +195,7 @@ A minimal reference message broker plugin that validates the plugin interface en
 - Supports the hub API callback path for inbound delivery (validates the full message flow)
 
 **Deliverables:**
-- `cmd/scion-broker-repl/` — standalone REPL binary (also usable as a plugin)
+- `cmd/fabric-broker-repl/` — standalone REPL binary (also usable as a plugin)
 - `pkg/plugin/refbroker/` — reference message broker plugin implementation
 - Integration tests exercising: Configure, Publish, Subscribe, inbound delivery via hub API, echo filtering, Unsubscribe, Close, GetInfo, full lifecycle
 
@@ -210,6 +210,6 @@ A minimal reference message broker plugin that validates the plugin interface en
 
 ## Related Design Documents
 
-- [Plugin System](scion-plugins.md) - General plugin architecture and management
+- [Plugin System](fabric-plugins.md) - General plugin architecture and management
 - [Message Broker](hosted/hub-messaging.md) - Current messaging architecture
 - [Hosted Architecture](hosted/hosted-architecture.md) - Hub/Runtime Broker separation

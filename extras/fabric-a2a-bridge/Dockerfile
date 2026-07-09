@@ -24,12 +24,12 @@ COPY cmd/ cmd/
 COPY web/ web/
 
 # Copy the extras module
-COPY extras/scion-a2a-bridge/ extras/scion-a2a-bridge/
+COPY extras/fabric-a2a-bridge/ extras/fabric-a2a-bridge/
 
-WORKDIR /src/extras/scion-a2a-bridge
+WORKDIR /src/extras/fabric-a2a-bridge
 
 RUN go mod download
-RUN CGO_ENABLED=1 go build -o /scion-a2a-bridge ./cmd/scion-a2a-bridge/
+RUN CGO_ENABLED=1 go build -o /fabric-a2a-bridge ./cmd/fabric-a2a-bridge/
 
 # Runtime stage
 FROM debian:bookworm-slim@sha256:f9c6a2fd2ddbc23e336b6257a5245e31f996953ef06cd13a59fa0a1df2d5c252
@@ -40,16 +40,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN groupadd -r -g 1000 bridge && useradd -r -u 1000 -g bridge -s /sbin/nologin bridge
 
-COPY --from=builder /scion-a2a-bridge /usr/local/bin/scion-a2a-bridge
-RUN chmod 0755 /usr/local/bin/scion-a2a-bridge
+COPY --from=builder /fabric-a2a-bridge /usr/local/bin/fabric-a2a-bridge
+RUN chmod 0755 /usr/local/bin/fabric-a2a-bridge
 
-RUN mkdir -p /var/lib/scion-a2a-bridge && chown bridge:bridge /var/lib/scion-a2a-bridge && chmod 0700 /var/lib/scion-a2a-bridge
+RUN mkdir -p /var/lib/fabric-a2a-bridge && chown bridge:bridge /var/lib/fabric-a2a-bridge && chmod 0700 /var/lib/fabric-a2a-bridge
 
-ENV SCION_A2A_STATE_DB=/var/lib/scion-a2a-bridge/state.db
+ENV FABRIC_A2A_STATE_DB=/var/lib/fabric-a2a-bridge/state.db
 
 EXPOSE 8443 9090
 
 USER bridge
 
-ENTRYPOINT ["scion-a2a-bridge"]
-CMD ["--config", "/etc/scion-a2a-bridge/config.yaml"]
+ENTRYPOINT ["fabric-a2a-bridge"]
+CMD ["--config", "/etc/fabric-a2a-bridge/config.yaml"]

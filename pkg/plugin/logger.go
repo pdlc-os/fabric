@@ -23,7 +23,7 @@ import (
 )
 
 // hclogAdapter wraps slog.Logger to implement hashicorp/go-hclog.Logger.
-// This allows go-plugin to use scion's existing slog-based logging.
+// This allows go-plugin to use fabric's existing slog-based logging.
 type hclogAdapter struct {
 	logger *slog.Logger
 	name   string

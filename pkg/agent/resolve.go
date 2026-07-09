@@ -15,7 +15,7 @@
 package agent
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // ResolveRuntime determines the runtime to use for an agent.

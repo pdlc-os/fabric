@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-# Scion image build orchestrator.
+# Fabric image build orchestrator.
 #
 # Owns the target DAG (which images to build, in what order, with which
 # tags). Dispatches each step to a pluggable builder backend selected by
@@ -47,24 +47,24 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0") [options]
 
-Build Scion container images via a pluggable builder backend.
+Build Fabric container images via a pluggable builder backend.
 
 Options:
   --registry <path>     Target registry path (e.g., ghcr.io/myorg).
                         Required when --push is set or with --builder cloud-build.
                         When omitted, images are tagged with bare names
-                        (e.g., scion-claude:latest) and stay in the local store.
+                        (e.g., fabric-claude:latest) and stay in the local store.
   --builder <name>      Build backend (default: local-docker)
                           local-docker  - docker buildx, local
                           local-podman  - podman build, local (single-arch by default)
                           cloud-build   - Google Cloud Build (submits a static cloudbuild-*.yaml)
   --target <target>     Build target (default: common)
                           core-base   - just the core-base layer
-                          scion-base  - just scion-base (uses existing core-base:<tag>)
+                          fabric-base  - just fabric-base (uses existing core-base:<tag>)
                           harnesses   - all catalog harness images with Dockerfiles
-                                        (uses existing scion-base:<tag>)
-                          hub         - just scion-hub (uses existing scion-base:<tag>)
-                          common      - scion-base + harnesses + hub (skip core-base)
+                                        (uses existing fabric-base:<tag>)
+                          hub         - just fabric-hub (uses existing fabric-base:<tag>)
+                          common      - fabric-base + harnesses + hub (skip core-base)
                           all         - full rebuild including core-base
   --tag <tag>           Mutable image tag (default: latest). The :<short-sha> tag
                         is always added when run inside a git repo.
@@ -140,7 +140,7 @@ if [[ "${PLATFORMS}" == *","* && "${PUSH}" != "true" ]]; then
 fi
 
 # --registry is required for any path that publishes images. Without it,
-# we tag with bare names (scion-claude:latest) and the images stay local.
+# we tag with bare names (fabric-claude:latest) and the images stay local.
 if [[ -z "${REGISTRY}" ]]; then
   if [[ "${BUILDER}" == "cloud-build" ]]; then
     echo "Error: --registry is required with --builder cloud-build" >&2
@@ -237,7 +237,7 @@ resolve_base_tag() {
 
 # Build the comma-separated tag list for an image: always :<tag>, plus
 # :<short-sha> when available. Omits the registry prefix when REGISTRY is
-# empty (local-only build), so tags are bare like "scion-claude:latest".
+# empty (local-only build), so tags are bare like "fabric-claude:latest".
 compute_tags() {
   local image_name="$1"
   local prefix=""
@@ -292,7 +292,7 @@ else
   echo "Done."
   if [[ "${BUILDER_MODE}" == "per-image" && -n "${REGISTRY}" ]]; then
     echo ""
-    echo "To configure scion to use these images, run:"
-    echo "  scion config set image_registry ${REGISTRY}"
+    echo "To configure fabric to use these images, run:"
+    echo "  fabric config set image_registry ${REGISTRY}"
   fi
 fi

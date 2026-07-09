@@ -44,8 +44,8 @@ import { isSharedWorkspace } from '../../shared/types.js';
 import { apiFetch, parseApiError } from '../../client/api.js';
 import '../shared/status-badge.js';
 
-@customElement('scion-page-agent-create')
-export class ScionPageAgentCreate extends LitElement {
+@customElement('fabric-page-agent-create')
+export class FabricPageAgentCreate extends LitElement {
   @state()
   private projects: Project[] = [];
 
@@ -165,14 +165,14 @@ export class ScionPageAgentCreate extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .page-header {
@@ -182,7 +182,7 @@ export class ScionPageAgentCreate extends LitElement {
     .page-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
       display: flex;
       align-items: center;
@@ -190,20 +190,20 @@ export class ScionPageAgentCreate extends LitElement {
     }
 
     .page-header h1 sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .page-header p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
       font-size: 0.875rem;
     }
 
     .form-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       max-width: 640px;
     }
@@ -216,13 +216,13 @@ export class ScionPageAgentCreate extends LitElement {
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
 
     .form-field .hint {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
@@ -238,12 +238,12 @@ export class ScionPageAgentCreate extends LitElement {
 
     .form-field sl-select::part(expand-icon) {
       font-size: 1.25rem;
-      color: var(--scion-text-secondary, #475569);
-      border-left: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-secondary, #475569);
+      border-left: 1px solid var(--fabric-border, #e2e8f0);
       padding: 0 0.625rem;
       margin-left: 0.5rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: 0 var(--scion-radius, 0.5rem) var(--scion-radius, 0.5rem) 0;
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: 0 var(--fabric-radius, 0.5rem) var(--fabric-radius, 0.5rem) 0;
     }
 
     .broker-option {
@@ -280,7 +280,7 @@ export class ScionPageAgentCreate extends LitElement {
 
     .notify-field sl-checkbox::part(label) {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .help-badge {
@@ -290,8 +290,8 @@ export class ScionPageAgentCreate extends LitElement {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--scion-text-muted, #64748b);
-      color: var(--scion-surface, #ffffff);
+      background: var(--fabric-text-muted, #64748b);
+      color: var(--fabric-surface, #ffffff);
       font-size: 0.6875rem;
       font-weight: 700;
       cursor: help;
@@ -303,13 +303,13 @@ export class ScionPageAgentCreate extends LitElement {
       gap: 0.75rem;
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .error-banner {
       background: var(--sl-color-danger-50, #fef2f2);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.25rem;
       display: flex;
@@ -335,7 +335,7 @@ export class ScionPageAgentCreate extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -546,7 +546,7 @@ export class ScionPageAgentCreate extends LitElement {
       // Pass config options
       const config: Record<string, unknown> = {
         env: {
-          SCION_TELEMETRY_ENABLED: this.telemetryEnabled ? 'true' : 'false',
+          FABRIC_TELEMETRY_ENABLED: this.telemetryEnabled ? 'true' : 'false',
         },
       };
 
@@ -1259,7 +1259,7 @@ private selectBrokerForProject(): void {
                     required
                   ></sl-input>
                   <div class="hint">
-                    Name of the harness config directory (from .scion/harness-configs/).
+                    Name of the harness config directory (from .fabric/harness-configs/).
                   </div>
                 </div>
               `
@@ -1517,6 +1517,6 @@ private selectBrokerForProject(): void {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-agent-create': ScionPageAgentCreate;
+    'fabric-page-agent-create': FabricPageAgentCreate;
   }
 }

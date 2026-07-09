@@ -33,8 +33,8 @@ interface OAuthProvider {
   available: boolean;
 }
 
-@customElement('scion-login-page')
-export class ScionLoginPage extends LitElement {
+@customElement('fabric-login-page')
+export class FabricLoginPage extends LitElement {
   /**
    * Error message to display (from query param)
    */
@@ -83,14 +83,14 @@ export class ScionLoginPage extends LitElement {
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
       padding: 1rem;
     }
 
     .login-container {
       width: 100%;
       max-width: 400px;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border-radius: 1rem;
       box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -106,27 +106,27 @@ export class ScionLoginPage extends LitElement {
     .logo-text {
       font-size: 2rem;
       font-weight: 700;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       letter-spacing: -0.02em;
     }
 
     .logo-subtitle {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
     h1 {
       font-size: 1.5rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       text-align: center;
       margin: 0 0 0.5rem 0;
     }
 
     .subtitle {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-align: center;
       margin-bottom: 2rem;
     }
@@ -182,10 +182,10 @@ export class ScionLoginPage extends LitElement {
       width: 100%;
       box-sizing: border-box;
       padding: 0.875rem 1.25rem;
-      border: 1px solid var(--scion-border, #e2e8f0);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.5rem;
-      background: var(--scion-surface, #ffffff);
-      color: var(--scion-text, #1e293b);
+      background: var(--fabric-surface, #ffffff);
+      color: var(--fabric-text, #1e293b);
       font-size: 0.9375rem;
       font-weight: 500;
       cursor: pointer;
@@ -197,14 +197,14 @@ export class ScionLoginPage extends LitElement {
     }
 
     .provider-btn:hover {
-      background: var(--scion-bg-subtle, #f8fafc);
-      border-color: var(--scion-primary, #3b82f6);
+      background: var(--fabric-bg-subtle, #f8fafc);
+      border-color: var(--fabric-primary, #3b82f6);
     }
 
     .provider-btn:focus {
       outline: none;
-      box-shadow: 0 0 0 2px var(--scion-primary-50, #eff6ff);
-      border-color: var(--scion-primary, #3b82f6);
+      box-shadow: 0 0 0 2px var(--fabric-primary-50, #eff6ff);
+      border-color: var(--fabric-primary, #3b82f6);
     }
 
     .provider-btn:disabled {
@@ -213,8 +213,8 @@ export class ScionLoginPage extends LitElement {
     }
 
     .provider-btn:disabled:hover {
-      background: var(--scion-surface, #ffffff);
-      border-color: var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border-color: var(--fabric-border, #e2e8f0);
     }
 
     .provider-icon {
@@ -236,7 +236,7 @@ export class ScionLoginPage extends LitElement {
       display: flex;
       align-items: center;
       margin: 1.5rem 0;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -247,7 +247,7 @@ export class ScionLoginPage extends LitElement {
       content: '';
       flex: 1;
       height: 1px;
-      background: var(--scion-border, #e2e8f0);
+      background: var(--fabric-border, #e2e8f0);
     }
 
     .divider::before {
@@ -260,7 +260,7 @@ export class ScionLoginPage extends LitElement {
 
     .no-providers {
       text-align: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       padding: 1rem;
     }
@@ -269,11 +269,11 @@ export class ScionLoginPage extends LitElement {
       margin-top: 2rem;
       text-align: center;
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .footer a {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: none;
     }
 
@@ -288,7 +288,7 @@ export class ScionLoginPage extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--scion-bg, #f8fafc);
+      background: var(--fabric-bg, #f8fafc);
       z-index: 100;
     }
 
@@ -297,14 +297,14 @@ export class ScionLoginPage extends LitElement {
     }
 
     .loading-content sl-spinner {
-      --indicator-color: var(--scion-primary, #3b82f6);
-      --track-color: var(--scion-border, #e2e8f0);
+      --indicator-color: var(--fabric-primary, #3b82f6);
+      --track-color: var(--fabric-border, #e2e8f0);
       font-size: 2rem;
     }
 
     .loading-text {
       margin-top: 1rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
   `;
@@ -357,7 +357,7 @@ export class ScionLoginPage extends LitElement {
 
       <div class="login-container">
         <div class="logo">
-          <div class="logo-text">Scion</div>
+          <div class="logo-text">Fabric</div>
           <div class="logo-subtitle">Agent Orchestration Platform</div>
         </div>
 
@@ -527,6 +527,6 @@ export class ScionLoginPage extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-login-page': ScionLoginPage;
+    'fabric-login-page': FabricLoginPage;
   }
 }

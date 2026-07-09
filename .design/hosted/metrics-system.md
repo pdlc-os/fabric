@@ -1,21 +1,21 @@
-# Hosted Scion Metrics System Design
+# Hosted Fabric Metrics System Design
 
 ## Status
 **In Progress** - Milestones 1-2.5 complete. Milestones 3-4 pending.
 
 ## 1. Overview
 
-This document defines the metrics and observability architecture for the Hosted Scion platform. The design synthesizes research on LLM agent telemetry patterns (Codex, Gemini CLI, OpenCode) with the Hosted Scion architecture to create a unified observability strategy.
+This document defines the metrics and observability architecture for the Hosted Fabric platform. The design synthesizes research on LLM agent telemetry patterns (Codex, Gemini CLI, OpenCode) with the Hosted Fabric architecture to create a unified observability strategy.
 
 ### Design Principles
 
-1. **Sciontool as Primary Collector**: The `sciontool` binary running inside each agent container serves as the single point of telemetry collection, normalization, and forwarding.
+1. **Fabrictool as Primary Collector**: The `fabrictool` binary running inside each agent container serves as the single point of telemetry collection, normalization, and forwarding.
 
 2. **Cloud-Native Observability Backend**: Raw telemetry data (logs, traces, metrics) is forwarded to a dedicated cloud-based observability platform (e.g., Google Cloud Observability, Datadog, Honeycomb). The Hub does not become a general-purpose metrics or logging backend.
 
 3. **Hub for High-Level Aggregates Only**: The Hub receives lightweight, pre-aggregated session and agent metrics for dashboard display, not raw telemetry streams. It can also fetch query-based aggregate data or recent logs from the cloud observability backend for presentation layer use.
 
-4. **Configurable Filtering**: Sciontool provides event filtering to control volume, respect privacy settings, and honor debug mode configurations.
+4. **Configurable Filtering**: Fabrictool provides event filtering to control volume, respect privacy settings, and honor debug mode configurations.
 
 5. **Progressive Enhancement**: Initial implementation focuses on core metrics flow; advanced analytics via the web UI will come in a future phase.
 
@@ -40,7 +40,7 @@ This document defines the metrics and observability architecture for the Hosted 
 │           │ Hook calls            │ OTLP                                   │
 │           ▼                       ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────┐           │
-│  │                     Sciontool                                │           │
+│  │                     Fabrictool                                │           │
 │  │                                                              │           │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │           │
 │  │  │ Event        │  │ OTLP         │  │ Aggregation  │       │           │
@@ -71,7 +71,7 @@ This document defines the metrics and observability architecture for the Hosted 
              │                 │
              ▼                 ▼
     ┌─────────────────┐  ┌─────────────────┐
-    │ Cloud           │  │ Scion Hub       │
+    │ Cloud           │  │ Fabric Hub       │
     │ Observability   │  │                 │
     │ Backend         │  │ Stores:         │
     │                 │  │ - Session       │
@@ -95,11 +95,11 @@ This document defines the metrics and observability architecture for the Hosted 
 
 ---
 
-## 3. Sciontool as Primary Collector
+## 3. Fabrictool as Primary Collector
 
 ### 3.1 Data Ingestion
 
-Sciontool receives telemetry from agent processes through multiple channels:
+Fabrictool receives telemetry from agent processes through multiple channels:
 
 | Channel | Source | Format | Example Events |
 |---------|--------|--------|----------------|
@@ -139,7 +139,7 @@ All ingested data is normalized to a common schema before processing. This enabl
 
 #### Event Type Catalog
 
-Based on the normalized metrics research, sciontool recognizes these event types:
+Based on the normalized metrics research, fabrictool recognizes these event types:
 
 | Event Type | Category | Description |
 |------------|----------|-------------|
@@ -156,7 +156,7 @@ Based on the normalized metrics research, sciontool recognizes these event types
 
 ### 3.3 Dialect Parsing
 
-Each harness emits events in its native format. Sciontool's dialect parsers translate these to the normalized schema.
+Each harness emits events in its native format. Fabrictool's dialect parsers translate these to the normalized schema.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -186,17 +186,17 @@ Each harness emits events in its native format. Sciontool's dialect parsers tran
 
 ### 3.4 Harness Telemetry Injection
 
-When `telemetry.enabled` is `true` in the scion configuration, each harness implementation injects configuration into the agent container to direct the harness's native telemetry to the sciontool OTLP collector. These settings are **hardcoded in the harness-specific implementation code** (`pkg/harness/`) and are distinct from sciontool's own forwarding configuration (Section 4/10), which controls how sciontool exports processed telemetry to the cloud.
+When `telemetry.enabled` is `true` in the fabric configuration, each harness implementation injects configuration into the agent container to direct the harness's native telemetry to the fabrictool OTLP collector. These settings are **hardcoded in the harness-specific implementation code** (`pkg/harness/`) and are distinct from fabrictool's own forwarding configuration (Section 4/10), which controls how fabrictool exports processed telemetry to the cloud.
 
 **Key distinction:**
-- **Harness config** (this section): Tells the agent process where to *emit* its native telemetry → sciontool collector at `localhost`
-- **Sciontool config** (Section 10): Tells sciontool where to *forward* processed telemetry → cloud backend
+- **Harness config** (this section): Tells the agent process where to *emit* its native telemetry → fabrictool collector at `localhost`
+- **Fabrictool config** (Section 10): Tells fabrictool where to *forward* processed telemetry → cloud backend
 
-The sciontool OTLP collector listens on:
+The fabrictool OTLP collector listens on:
 - **gRPC**: `localhost:4317`
 - **HTTP**: `localhost:4318`
 
-There is no namespace collision between harness telemetry variables and sciontool's own configuration. Sciontool uses the `SCION_*` prefix (e.g., `SCION_OTEL_ENDPOINT`), while harnesses use their own namespaces (`GEMINI_TELEMETRY_*`, standard `OTEL_*`, or config files).
+There is no namespace collision between harness telemetry variables and fabrictool's own configuration. Fabrictool uses the `FABRIC_*` prefix (e.g., `FABRIC_OTEL_ENDPOINT`), while harnesses use their own namespaces (`GEMINI_TELEMETRY_*`, standard `OTEL_*`, or config files).
 
 #### 3.4.1 Gemini CLI
 
@@ -207,13 +207,13 @@ Gemini CLI supports telemetry configuration via `GEMINI_TELEMETRY_*` environment
 | `GEMINI_TELEMETRY_ENABLED` | `true` | Enables Gemini's built-in telemetry |
 | `GEMINI_TELEMETRY_TARGET` | `local` | Prevents Gemini from exporting directly to GCP |
 | `GEMINI_TELEMETRY_USE_COLLECTOR` | `true` | Directs output to an external OTLP collector |
-| `GEMINI_TELEMETRY_OTLP_ENDPOINT` | `http://localhost:4317` | Points to sciontool's gRPC receiver |
+| `GEMINI_TELEMETRY_OTLP_ENDPOINT` | `http://localhost:4317` | Points to fabrictool's gRPC receiver |
 | `GEMINI_TELEMETRY_OTLP_PROTOCOL` | `grpc` | Uses gRPC transport |
 | `GEMINI_TELEMETRY_LOG_PROMPTS` | `false` | Respects privacy defaults; prompts not forwarded |
 
 **Notes:**
-- `target=local` is critical — it prevents Gemini from attempting its own direct-to-GCP export, which would bypass sciontool's filtering and aggregation.
-- `useCliAuth` is not set (defaults to `false`) since authentication to the cloud backend is handled by sciontool, not the harness.
+- `target=local` is critical — it prevents Gemini from attempting its own direct-to-GCP export, which would bypass fabrictool's filtering and aggregation.
+- `useCliAuth` is not set (defaults to `false`) since authentication to the cloud backend is handled by fabrictool, not the harness.
 
 #### 3.4.2 Claude Code
 
@@ -225,7 +225,7 @@ Claude Code uses standard OpenTelemetry environment variables for configuration.
 | `OTEL_METRICS_EXPORTER` | `otlp` | Routes metrics via OTLP |
 | `OTEL_LOGS_EXPORTER` | `otlp` | Routes events/logs via OTLP |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc` | Uses gRPC transport |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Points to sciontool's gRPC receiver |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Points to fabrictool's gRPC receiver |
 | `OTEL_METRIC_EXPORT_INTERVAL` | `30000` | 30-second export interval (default 60s) |
 
 **Not set (privacy defaults):**
@@ -235,7 +235,7 @@ Claude Code uses standard OpenTelemetry environment variables for configuration.
 
 **Notes:**
 - Claude Code emits both **metrics** (counters like `claude_code.token.usage`, `claude_code.session.count`) and **events** (structured logs like `claude_code.tool_result`, `claude_code.api_request`) as separate OTel signals. Both exporters must be enabled to capture the full telemetry picture.
-- The `OTEL_*` variables are standard OTel SDK variables and do not collide with sciontool's `SCION_OTEL_*` namespace.
+- The `OTEL_*` variables are standard OTel SDK variables and do not collide with fabrictool's `FABRIC_OTEL_*` namespace.
 - Claude Code's metrics use `delta` temporality by default (`OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`), which is the preferred setting for the OTLP pipeline.
 
 #### 3.4.3 Codex (OpenAI)
@@ -254,8 +254,8 @@ log_user_prompt = false
 
 | Setting | Value | Purpose |
 |---|---|---|
-| `exporter` | `otlp-grpc` | Routes telemetry via gRPC to sciontool |
-| `endpoint` | `http://localhost:4317` | Points to sciontool's gRPC receiver |
+| `exporter` | `otlp-grpc` | Routes telemetry via gRPC to fabrictool |
+| `endpoint` | `http://localhost:4317` | Points to fabrictool's gRPC receiver |
 | `log_user_prompt` | `false` | Respects privacy defaults; prompts redacted |
 
 **Notes:**
@@ -269,7 +269,7 @@ Deferred. Future harnesses will follow the same pattern: inject configuration di
 
 #### 3.4.5 Data Signal Summary
 
-The following table summarizes what each harness emits natively and how it reaches the sciontool pipeline:
+The following table summarizes what each harness emits natively and how it reaches the fabrictool pipeline:
 
 | Harness | Traces/Spans | Metrics | Logs/Events | Config Method |
 |---|---|---|---|---|
@@ -277,7 +277,7 @@ The following table summarizes what each harness emits natively and how it reach
 | Claude Code | — | ✓ (OTel native) | ✓ (OTel native) | Environment variables |
 | Codex | — | — | ✓ (OTel logs) | TOML config file |
 
-For harnesses that do not emit certain signal types natively (e.g., Claude Code does not emit traces), sciontool's hook-based normalization (Section 3.3) and the TelemetryHandler (Milestone 2) fill the gap by converting hook events into OTLP spans.
+For harnesses that do not emit certain signal types natively (e.g., Claude Code does not emit traces), fabrictool's hook-based normalization (Section 3.3) and the TelemetryHandler (Milestone 2) fill the gap by converting hook events into OTLP spans.
 
 ---
 
@@ -302,7 +302,7 @@ The majority of telemetry data is forwarded to a cloud-based observability platf
 #### Forward Configuration
 
 ```yaml
-# sciontool config (injected via env or config file)
+# fabrictool config (injected via env or config file)
 telemetry:
   cloud:
     enabled: true
@@ -346,7 +346,7 @@ The Hub receives only lightweight, pre-aggregated data for display in the web da
 
 #### Hub Reporting Protocol
 
-Sciontool reports to the Hub via the existing daemon heartbeat channel, extending the payload:
+Fabrictool reports to the Hub via the existing daemon heartbeat channel, extending the payload:
 
 ```json
 {
@@ -421,11 +421,11 @@ CREATE INDEX idx_session_metrics_time ON agent_session_metrics(started_at);
 
 ### 4.3 Local Debug Output
 
-In debug mode or when cloud forwarding is disabled, sciontool can output telemetry locally for troubleshooting.
+In debug mode or when cloud forwarding is disabled, fabrictool can output telemetry locally for troubleshooting.
 
 | Output | Trigger | Format |
 |--------|---------|--------|
-| Console (stderr) | `SCION_LOG_LEVEL=debug` | Structured text |
+| Console (stderr) | `FABRIC_LOG_LEVEL=debug` | Structured text |
 | File | `telemetry.local.file` configured | JSONL |
 | Debug endpoint | `telemetry.local.endpoint` | OTLP to localhost |
 
@@ -433,7 +433,7 @@ In debug mode or when cloud forwarding is disabled, sciontool can output telemet
 
 ## 5. Filtering and Sampling
 
-Sciontool provides configurable filtering to manage telemetry volume and respect privacy requirements.
+Fabrictool provides configurable filtering to manage telemetry volume and respect privacy requirements.
 
 ### 5.1 Filter Configuration
 
@@ -443,7 +443,7 @@ telemetry:
     # Global enable/disable
     enabled: true
 
-    # Respect debug mode (SCION_LOG_LEVEL)
+    # Respect debug mode (FABRIC_LOG_LEVEL)
     respectDebugMode: true
 
     # Event type filtering
@@ -480,7 +480,7 @@ telemetry:
 
 ### 5.2 Debug Mode Behavior
 
-When debug mode is enabled (`SCION_LOG_LEVEL=debug`):
+When debug mode is enabled (`FABRIC_LOG_LEVEL=debug`):
 
 1. All filtering is bypassed for local output
 2. Sampling rates are ignored for local output
@@ -489,7 +489,7 @@ When debug mode is enabled (`SCION_LOG_LEVEL=debug`):
 
 ### 5.3 Privacy Defaults
 
-Out of the box, sciontool applies these privacy-preserving defaults:
+Out of the box, fabrictool applies these privacy-preserving defaults:
 
 | Data | Default Behavior | Rationale |
 |------|------------------|-----------|
@@ -606,7 +606,7 @@ In a future phase, the web UI will provide deeper observability by fetching data
             │                          │
             ▼                          ▼
      ┌─────────────┐          ┌─────────────────────┐
-     │  Scion Hub  │          │ Cloud Observability │
+     │  Fabric Hub  │          │ Cloud Observability │
      │  API        │          │ Query API           │
      └─────────────┘          └─────────────────────┘
 ```
@@ -643,10 +643,10 @@ The specific approach will be determined based on the chosen cloud backend.
 
 | Task | Component | Notes |
 |------|-----------|-------|
-| OTLP receiver in sciontool | `pkg/sciontool/telemetry` | Receive from OTel-native agents |
-| Cloud forwarder | `pkg/sciontool/telemetry` | OTLP export to cloud backend |
-| Basic filtering | `pkg/sciontool/telemetry` | Event include/exclude |
-| Configuration loading | `cmd/sciontool` | Environment + config file |
+| OTLP receiver in fabrictool | `pkg/fabrictool/telemetry` | Receive from OTel-native agents |
+| Cloud forwarder | `pkg/fabrictool/telemetry` | OTLP export to cloud backend |
+| Basic filtering | `pkg/fabrictool/telemetry` | Event include/exclude |
+| Configuration loading | `cmd/fabrictool` | Environment + config file |
 
 ### Phase 2: Harness Integration
 
@@ -654,9 +654,9 @@ The specific approach will be determined based on the chosen cloud backend.
 
 | Task | Component | Notes |
 |------|-----------|-------|
-| Hook event normalization | `pkg/sciontool/hooks` | Convert hook calls to events |
-| ~~Gemini session file parsing~~ | ~~`pkg/sciontool/hooks/dialects`~~ | ~~Read session-*.json~~ (Removed) |
-| Claude dialect parser | `pkg/sciontool/hooks/dialects` | Parse CC hook payloads |
+| Hook event normalization | `pkg/fabrictool/hooks` | Convert hook calls to events |
+| ~~Gemini session file parsing~~ | ~~`pkg/fabrictool/hooks/dialects`~~ | ~~Read session-*.json~~ (Removed) |
+| Claude dialect parser | `pkg/fabrictool/hooks/dialects` | Parse CC hook payloads |
 
 ### Phase 3: Hub Aggregation
 
@@ -664,8 +664,8 @@ The specific approach will be determined based on the chosen cloud backend.
 
 | Task | Component | Notes |
 |------|-----------|-------|
-| In-memory aggregation engine | `pkg/sciontool/telemetry` | Per-session accumulators |
-| Hub reporter | `pkg/sciontool/hub` | Extend heartbeat protocol |
+| In-memory aggregation engine | `pkg/fabrictool/telemetry` | Per-session accumulators |
+| Hub reporter | `pkg/fabrictool/hub` | Extend heartbeat protocol |
 | Hub metrics storage | `pkg/hub/store` | agent_session_metrics table |
 | Hub metrics API | `pkg/hub/api` | Summary endpoints |
 
@@ -691,7 +691,7 @@ The specific approach will be determined based on the chosen cloud backend.
 
 ## 9. System Component Logging
 
-While `sciontool` handles telemetry for agents, the Hub and Runtime Broker servers require a robust internal logging strategy for operational observability.
+While `fabrictool` handles telemetry for agents, the Hub and Runtime Broker servers require a robust internal logging strategy for operational observability.
 
 ### 9.1 Structured Logging with slog
 
@@ -709,7 +709,7 @@ Logs are emitted at several levels:
 - `WARN`: Unexpected events that don't stop the service (e.g., transient network errors).
 - `ERROR`: Critical failures requiring attention.
 
-Debug logging can be enabled globally or per-component via the `SCION_LOG_LEVEL=debug` environment variable.
+Debug logging can be enabled globally or per-component via the `FABRIC_LOG_LEVEL=debug` environment variable.
 
 ### 9.3 OTel Log Bridge Architecture
 
@@ -737,8 +737,8 @@ func main() {
     lp := setupOTelLoggerProvider()
 
     // 2. Create the slog handler using the bridge
-    // The "scion-hub" string defines the Instrumentation Scope
-    otlpHandler := otelslog.NewHandler("scion-hub", otelslog.WithLoggerProvider(lp))
+    // The "fabric-hub" string defines the Instrumentation Scope
+    otlpHandler := otelslog.NewHandler("fabric-hub", otelslog.WithLoggerProvider(lp))
 
     // 3. Set as default
     logger := slog.New(otlpHandler)
@@ -765,15 +765,15 @@ To facilitate debugging across distributed components, the following fields shou
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SCION_OTEL_ENDPOINT` | Cloud OTLP endpoint | (required if cloud enabled) |
-| `SCION_OTEL_PROTOCOL` | OTLP protocol (grpc, http) | `grpc` |
-| `SCION_OTEL_HEADERS` | Additional headers (JSON) | `{}` |
-| `SCION_OTEL_INSECURE` | Skip TLS verification | `false` |
-| `SCION_TELEMETRY_ENABLED` | Enable telemetry collection | `true` |
-| `SCION_TELEMETRY_CLOUD_ENABLED` | Forward to cloud backend | `true` |
-| `SCION_TELEMETRY_HUB_ENABLED` | Report to Hub | `true` (if hosted mode) |
-| `SCION_TELEMETRY_DEBUG` | Local debug output | `false` |
-| `SCION_LOG_LEVEL` | Logging verbosity | `info` |
+| `FABRIC_OTEL_ENDPOINT` | Cloud OTLP endpoint | (required if cloud enabled) |
+| `FABRIC_OTEL_PROTOCOL` | OTLP protocol (grpc, http) | `grpc` |
+| `FABRIC_OTEL_HEADERS` | Additional headers (JSON) | `{}` |
+| `FABRIC_OTEL_INSECURE` | Skip TLS verification | `false` |
+| `FABRIC_TELEMETRY_ENABLED` | Enable telemetry collection | `true` |
+| `FABRIC_TELEMETRY_CLOUD_ENABLED` | Forward to cloud backend | `true` |
+| `FABRIC_TELEMETRY_HUB_ENABLED` | Report to Hub | `true` (if hosted mode) |
+| `FABRIC_TELEMETRY_DEBUG` | Local debug output | `false` |
+| `FABRIC_LOG_LEVEL` | Logging verbosity | `info` |
 
 ### 10.2 Full Configuration File
 
@@ -784,7 +784,7 @@ telemetry:
   # Cloud forwarding
   cloud:
     enabled: true
-    endpoint: "${SCION_OTEL_ENDPOINT}"
+    endpoint: "${FABRIC_OTEL_ENDPOINT}"
     protocol: "grpc"
     headers:
       Authorization: "Bearer ${OTEL_API_KEY}"
@@ -830,7 +830,7 @@ telemetry:
 
   # Resource attributes (added to all events)
   resource:
-    service.name: "scion-agent"
+    service.name: "fabric-agent"
     # Additional attributes from environment:
     # agent.id, grove.id, runtime.broker populated automatically
 ```
@@ -838,7 +838,7 @@ telemetry:
 ### 10.3 Implementation Notes: Settings Schema Integration
 
 The telemetry configuration block from section 10.2 has been integrated into the
-Scion v1 settings schema, enabling configuration at every scope in the hierarchy.
+Fabric v1 settings schema, enabling configuration at every scope in the hierarchy.
 
 #### Field Naming Convention
 
@@ -861,17 +861,17 @@ inherit from the previous scope.
 
 ```
 1. Embedded defaults (pkg/config/embeds/default_settings.yaml)
-2. Global settings   (~/.scion/settings.yaml)         → telemetry.*
-3. Grove settings    (.scion/settings.yaml)            → telemetry.*
-4. Template config   (scion-agent.yaml in template)    → telemetry.*
-5. Agent config      (scion-agent.yaml in agent home)  → telemetry.*
-6. Environment vars  (SCION_TELEMETRY_*, SCION_OTEL_*) → highest priority
+2. Global settings   (~/.fabric/settings.yaml)         → telemetry.*
+3. Grove settings    (.fabric/settings.yaml)            → telemetry.*
+4. Template config   (fabric-agent.yaml in template)    → telemetry.*
+5. Agent config      (fabric-agent.yaml in agent home)  → telemetry.*
+6. Environment vars  (FABRIC_TELEMETRY_*, FABRIC_OTEL_*) → highest priority
 ```
 
 Scopes 1–3 use the `VersionedSettings.Telemetry` field (`V1TelemetryConfig`)
 loaded via Koanf with automatic merging. Scopes 4–5 use the
-`ScionConfig.Telemetry` field (`api.TelemetryConfig`) merged via
-`MergeScionConfig` → `mergeTelemetryConfig`. Scope 6 applies via env var mapping
+`FabricConfig.Telemetry` field (`api.TelemetryConfig`) merged via
+`MergeFabricConfig` → `mergeTelemetryConfig`. Scope 6 applies via env var mapping
 in Koanf's env provider.
 
 #### Environment Variable Mapping
@@ -880,26 +880,26 @@ Telemetry env vars map to settings paths via `versionedEnvKeyMapper`:
 
 | Environment Variable                          | Settings Path                                |
 |------------------------------------------------|----------------------------------------------|
-| `SCION_TELEMETRY_ENABLED`                      | `telemetry.enabled`                          |
-| `SCION_TELEMETRY_CLOUD_ENABLED`                | `telemetry.cloud.enabled`                    |
-| `SCION_TELEMETRY_CLOUD_TLS_INSECURE_SKIP_VERIFY` | `telemetry.cloud.tls.insecure_skip_verify` |
-| `SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE`         | `telemetry.cloud.batch.max_size`             |
-| `SCION_TELEMETRY_HUB_ENABLED`                  | `telemetry.hub.enabled`                      |
-| `SCION_TELEMETRY_HUB_REPORT_INTERVAL`          | `telemetry.hub.report_interval`              |
-| `SCION_TELEMETRY_LOCAL_ENABLED`                 | `telemetry.local.enabled`                    |
-| `SCION_TELEMETRY_FILTER_ENABLED`                | `telemetry.filter.enabled`                   |
-| `SCION_TELEMETRY_FILTER_RESPECT_DEBUG_MODE`     | `telemetry.filter.respect_debug_mode`        |
-| `SCION_TELEMETRY_DEBUG`                         | `telemetry.local.enabled`                    |
+| `FABRIC_TELEMETRY_ENABLED`                      | `telemetry.enabled`                          |
+| `FABRIC_TELEMETRY_CLOUD_ENABLED`                | `telemetry.cloud.enabled`                    |
+| `FABRIC_TELEMETRY_CLOUD_TLS_INSECURE_SKIP_VERIFY` | `telemetry.cloud.tls.insecure_skip_verify` |
+| `FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE`         | `telemetry.cloud.batch.max_size`             |
+| `FABRIC_TELEMETRY_HUB_ENABLED`                  | `telemetry.hub.enabled`                      |
+| `FABRIC_TELEMETRY_HUB_REPORT_INTERVAL`          | `telemetry.hub.report_interval`              |
+| `FABRIC_TELEMETRY_LOCAL_ENABLED`                 | `telemetry.local.enabled`                    |
+| `FABRIC_TELEMETRY_FILTER_ENABLED`                | `telemetry.filter.enabled`                   |
+| `FABRIC_TELEMETRY_FILTER_RESPECT_DEBUG_MODE`     | `telemetry.filter.respect_debug_mode`        |
+| `FABRIC_TELEMETRY_DEBUG`                         | `telemetry.local.enabled`                    |
 
-The `SCION_OTEL_*` variables from section 10.1 are aliased into the
+The `FABRIC_OTEL_*` variables from section 10.1 are aliased into the
 `telemetry.cloud` sub-tree:
 
 | Environment Variable    | Settings Path                                |
 |-------------------------|----------------------------------------------|
-| `SCION_OTEL_ENDPOINT`  | `telemetry.cloud.endpoint`                   |
-| `SCION_OTEL_PROTOCOL`  | `telemetry.cloud.protocol`                   |
-| `SCION_OTEL_HEADERS`   | `telemetry.cloud.headers`                    |
-| `SCION_OTEL_INSECURE`  | `telemetry.cloud.tls.insecure_skip_verify`   |
+| `FABRIC_OTEL_ENDPOINT`  | `telemetry.cloud.endpoint`                   |
+| `FABRIC_OTEL_PROTOCOL`  | `telemetry.cloud.protocol`                   |
+| `FABRIC_OTEL_HEADERS`   | `telemetry.cloud.headers`                    |
+| `FABRIC_OTEL_INSECURE`  | `telemetry.cloud.tls.insecure_skip_verify`   |
 
 #### Files Modified
 
@@ -910,12 +910,12 @@ The `SCION_OTEL_*` variables from section 10.1 are aliased into the
 - `pkg/config/schemas/agent-v1.schema.json` — `telemetry` property and
   `telemetryConfig` definition for template/agent-level overrides.
 - `pkg/api/types.go` — `TelemetryConfig` and sub-structs; `Telemetry` field on
-  `ScionConfig`.
+  `FabricConfig`.
 - `pkg/config/templates.go` — `mergeTelemetryConfig` function and its invocation
-  in `MergeScionConfig`.
+  in `MergeFabricConfig`.
 - `pkg/config/settings_v1_test.go` — Round-trip, validation, hierarchy merge,
   and env override tests.
-- `pkg/config/templates_test.go` — `MergeScionConfig` telemetry merge tests;
+- `pkg/config/templates_test.go` — `MergeFabricConfig` telemetry merge tests;
   agent config validation test.
 
 #### Harness-Specific Env Vars
@@ -923,7 +923,7 @@ The `SCION_OTEL_*` variables from section 10.1 are aliased into the
 Harness-native telemetry env vars (e.g., `GEMINI_TELEMETRY_*`, standard
 `OTEL_EXPORTER_*`) are injected at agent start time via the existing harness
 `Env` mechanism. These tell the harness process where to emit raw OTLP data
-(typically `localhost:4317` for the sciontool collector). They are not part of
+(typically `localhost:4317` for the fabrictool collector). They are not part of
 this settings schema since they use provider-specific namespaces.
 
 ---
@@ -994,7 +994,7 @@ this settings schema since they use provider-specific namespaces.
 
 **Details:**
 - We will assume that the key libraries will be able to load via the 'application default credentials' pattern.
-- It will be up to the runtime broker design to ensure these are available to the sciontool environment.
+- It will be up to the runtime broker design to ensure these are available to the fabrictool environment.
 
 ### 11.9 Data Resiliency
 
@@ -1015,30 +1015,30 @@ this settings schema since they use provider-specific namespaces.
 
 ## 12. Engineering Milestones
 
-### Milestone 1: Telemetry Foundation (Sciontool) ✅ COMPLETE
+### Milestone 1: Telemetry Foundation (Fabrictool) ✅ COMPLETE
 
-**Goal:** Enable `sciontool` to accept OTLP data and forward it to the Google Cloud backend.
+**Goal:** Enable `fabrictool` to accept OTLP data and forward it to the Google Cloud backend.
 
 **Status:** Completed 2026-02-05
 
 **Deliverables:**
-- [x] **OTLP Receiver**: Embedded receiver in `sciontool` listening on default ports (4317/4318).
+- [x] **OTLP Receiver**: Embedded receiver in `fabrictool` listening on default ports (4317/4318).
 - [x] **Cloud Forwarder**: Exporter for Google Cloud Trace/Monitoring/Logging.
 - [x] **Configuration**: `telemetry` config block parsing and environment variable injection.
 - [x] **Basic Filtering**: Implementation of include/exclude logic for event types.
 
 **Test Criteria:**
-- `sciontool` starts without errors with telemetry enabled.
+- `fabrictool` starts without errors with telemetry enabled.
 - Can send dummy OTLP data (via `otel-cli` or similar) to localhost:4317.
 - Dummy data appears in Google Cloud Console (Trace/Log Viewer).
 
 #### Implementation Notes
 
-**Package Structure:** `pkg/sciontool/telemetry/`
+**Package Structure:** `pkg/fabrictool/telemetry/`
 
 | File | Description |
 |------|-------------|
-| `config.go` | Configuration loading from env vars (SCION_TELEMETRY_*, SCION_OTEL_*) |
+| `config.go` | Configuration loading from env vars (FABRIC_TELEMETRY_*, FABRIC_OTEL_*) |
 | `filter.go` | Include/exclude filtering with privacy default (agent.user.prompt excluded) |
 | `exporter.go` | OTLP gRPC/HTTP exporter with raw proto forwarding (traces + metrics) |
 | `receiver.go` | Embedded OTLP gRPC (4317) and HTTP (4318) receivers (TraceService + MetricsService) |
@@ -1048,13 +1048,13 @@ this settings schema since they use provider-specific namespaces.
 
 **Key Design Decisions:**
 
-1. **Environment-first configuration**: Follows `hub/client.go` pattern with `SCION_*` env vars.
+1. **Environment-first configuration**: Follows `hub/client.go` pattern with `FABRIC_*` env vars.
 2. **Non-blocking startup**: Telemetry failures log errors but don't block agent startup.
 3. **Privacy default**: `agent.user.prompt` excluded by default.
 4. **Raw proto forwarding**: Uses `ExportProtoSpans()` to forward OTLP data directly without SDK span conversion (avoids `ReadOnlySpan` private method constraint).
 5. **Graceful shutdown**: 5-second timeout for telemetry flush on shutdown.
 
-**Integration Point:** `cmd/sciontool/commands/init.go`
+**Integration Point:** `cmd/fabrictool/commands/init.go`
 - Pipeline starts after `setupHostUser()` and before lifecycle hooks.
 - Deferred shutdown ensures flush before container exit.
 
@@ -1086,8 +1086,8 @@ this settings schema since they use provider-specific namespaces.
 
 | File | Description |
 |------|-------------|
-| `pkg/sciontool/hooks/handlers/telemetry.go` | TelemetryHandler converts hook events to OTLP spans |
-| `pkg/sciontool/telemetry/filter.go` | Extended with `Redactor` for attribute redaction/hashing |
+| `pkg/fabrictool/hooks/handlers/telemetry.go` | TelemetryHandler converts hook events to OTLP spans |
+| `pkg/fabrictool/telemetry/filter.go` | Extended with `Redactor` for attribute redaction/hashing |
 | `pkg/util/logging/otel.go` | Multi-handler and OTel bridge support |
 | `pkg/util/logging/otel_provider.go` | LoggerProvider initialization for OTel log bridge |
 
@@ -1107,8 +1107,8 @@ this settings schema since they use provider-specific namespaces.
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
-| `SCION_TELEMETRY_REDACT` | `prompt,user.email,tool_output,tool_input` | Fields replaced with `[REDACTED]` |
-| `SCION_TELEMETRY_HASH` | `session_id` | Fields replaced with SHA256 hash |
+| `FABRIC_TELEMETRY_REDACT` | `prompt,user.email,tool_output,tool_input` | Fields replaced with `[REDACTED]` |
+| `FABRIC_TELEMETRY_HASH` | `session_id` | Fields replaced with SHA256 hash |
 
 **OTel Log Bridge Pattern:**
 
@@ -1117,7 +1117,7 @@ The Hub and Runtime Broker use a multi-handler approach:
 2. OTel bridge handler for forwarding to OTLP endpoint
 3. Both handlers receive all log records simultaneously
 
-Enabled via `SCION_OTEL_LOG_ENABLED=true` with endpoint in `SCION_OTEL_ENDPOINT`.
+Enabled via `FABRIC_OTEL_LOG_ENABLED=true` with endpoint in `FABRIC_OTEL_ENDPOINT`.
 
 **Dependencies Added:**
 - `go.opentelemetry.io/contrib/bridges/otelslog`
@@ -1163,9 +1163,9 @@ Token counters (`gen_ai.tokens.*`) are populated via the native OTel metrics pip
 **Label Sources:**
 
 Labels are derived from environment variables injected into the agent container:
-- `agent_id` from `SCION_AGENT_ID`
-- `harness` from `SCION_HARNESS`
-- `model` from `SCION_MODEL`
+- `agent_id` from `FABRIC_AGENT_ID`
+- `harness` from `FABRIC_HARNESS`
+- `model` from `FABRIC_MODEL`
 - `tool_name` and `status` from the hook event data
 
 **Architecture:**
@@ -1193,13 +1193,13 @@ Each hook event emits a log record via `otelslog` with the span name as the log 
 
 | File | Changes |
 |------|---------|
-| `pkg/sciontool/telemetry/providers.go` | Added `MeterProvider` field, `otlpmetricgrpc` exporter, periodic reader, shutdown |
-| `pkg/sciontool/telemetry/receiver.go` | Added `MetricHandler`, `MetricsServiceServer`, `/v1/metrics` HTTP handler, `ReceiverOption` |
-| `pkg/sciontool/telemetry/exporter.go` | Added `MetricsServiceClient`, `ExportProtoMetrics()` method |
-| `pkg/sciontool/telemetry/pipeline.go` | Added `handleMetrics()`, wired metric handler to receiver |
-| `pkg/sciontool/hooks/handlers/telemetry.go` | Added 8 metric instruments, `initMetrics()`, `recordEndMetrics()`, `recordSessionMetrics()` (session count only; session file parsing removed), correlated log emission |
-| `cmd/sciontool/commands/hook.go` | Pass `MeterProvider` to `NewTelemetryHandler` |
-| `cmd/sciontool/commands/init.go` | Pass `MeterProvider` to `NewTelemetryHandler` |
+| `pkg/fabrictool/telemetry/providers.go` | Added `MeterProvider` field, `otlpmetricgrpc` exporter, periodic reader, shutdown |
+| `pkg/fabrictool/telemetry/receiver.go` | Added `MetricHandler`, `MetricsServiceServer`, `/v1/metrics` HTTP handler, `ReceiverOption` |
+| `pkg/fabrictool/telemetry/exporter.go` | Added `MetricsServiceClient`, `ExportProtoMetrics()` method |
+| `pkg/fabrictool/telemetry/pipeline.go` | Added `handleMetrics()`, wired metric handler to receiver |
+| `pkg/fabrictool/hooks/handlers/telemetry.go` | Added 8 metric instruments, `initMetrics()`, `recordEndMetrics()`, `recordSessionMetrics()` (session count only; session file parsing removed), correlated log emission |
+| `cmd/fabrictool/commands/hook.go` | Pass `MeterProvider` to `NewTelemetryHandler` |
+| `cmd/fabrictool/commands/init.go` | Pass `MeterProvider` to `NewTelemetryHandler` |
 
 **Dependencies Added:**
 - `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc`
@@ -1212,7 +1212,7 @@ Each hook event emits a log record via `otelslog` with the span name as the log 
 **Goal:** Aggregate session data and persist it to the Hub for state management.
 
 **Deliverables:**
-- [ ] **Aggregation Engine**: In-memory accumulation of session stats in `sciontool` (token counts, tool usage).
+- [ ] **Aggregation Engine**: In-memory accumulation of session stats in `fabrictool` (token counts, tool usage).
 - [ ] **Hub Protocol**: Extension of daemon heartbeat/status updates to carry metrics payloads.
 - [ ] **Hub Database**: Schema migration for the `agent_session_metrics` table.
 - [ ] **Hub Ingestion**: Logic in Hub to receive metrics payloads and write to DB.
@@ -1252,20 +1252,20 @@ Two conversion functions in `pkg/config/telemetry_convert.go` bridge the gap:
 - `ConvertV1TelemetryToAPI()` — converts settings-level `V1TelemetryConfig` to
   `api.TelemetryConfig` with nil-safe field-by-field copy.
 - `TelemetryConfigToEnv()` — converts a resolved `api.TelemetryConfig` into a
-  `map[string]string` of `SCION_TELEMETRY_*` / `SCION_OTEL_*` env vars, emitting
+  `map[string]string` of `FABRIC_TELEMETRY_*` / `FABRIC_OTEL_*` env vars, emitting
   only non-nil/non-zero fields.
 
 Integration points:
 
 - `pkg/agent/provision.go` — settings telemetry is set on `settingsCfg.Telemetry`
-  before `MergeScionConfig(settingsCfg, finalScionCfg)`, so template/agent-level
+  before `MergeFabricConfig(settingsCfg, finalFabricCfg)`, so template/agent-level
   telemetry fields correctly override settings-level values via the existing
   `mergeTelemetryConfig` logic.
 - `pkg/agent/run.go` — after hub endpoint injection and before `buildAgentEnv()`,
   `TelemetryConfigToEnv()` is called and each resulting env var is added to
   `opts.Env` only if not already present, preserving explicit Hub/broker overrides.
 
-Priority chain (lowest → highest): `scionCfg.Env` (template raw env) →
+Priority chain (lowest → highest): `fabricCfg.Env` (template raw env) →
 telemetry config vars → explicit `opts.Env` (Hub/broker/CLI).
 
 Tests in `pkg/config/telemetry_convert_test.go` (9 cases) and
@@ -1277,12 +1277,12 @@ structs, bool/CSV/JSON formatting, injection, and override-preservation.
 **Status:** Not started
 **Blocks:** QA of metrics persistence and Hub-side visibility
 
-The sciontool `TelemetryHandler` records OTel metrics on hook events, but these
+The fabrictool `TelemetryHandler` records OTel metrics on hook events, but these
 metrics are only forwarded to the cloud OTLP backend. There is no path for
-reporting session-level metric summaries to the Scion Hub.
+reporting session-level metric summaries to the Fabric Hub.
 
 **Current state:**
-- `StatusUpdate` struct (`pkg/sciontool/hub/client.go`) has status and session
+- `StatusUpdate` struct (`pkg/fabrictool/hub/client.go`) has status and session
   fields but no metrics payload.
 - Heartbeat loop sends status only; no aggregated metrics.
 - No Hub API endpoint to receive metrics.
@@ -1290,7 +1290,7 @@ reporting session-level metric summaries to the Scion Hub.
 
 **Required work:**
 - [ ] **Aggregation engine**: In-memory accumulation of session stats (token
-  counts, tool usage) in sciontool, derived from `TelemetryHandler` counters or
+  counts, tool usage) in fabrictool, derived from `TelemetryHandler` counters or
   session file parsing.
 - [ ] **Hub protocol**: Extend `StatusUpdate` (or define a new `MetricsPayload`)
   to carry session metrics. Send on `session-end` or as part of heartbeat.
@@ -1319,7 +1319,7 @@ The following matrix maps test scenarios to their blocking gaps:
 
 | Test Scenario | Status | Blocker |
 |:---|:---|:---|
-| Sciontool pipeline: receive → filter → export to cloud | Ready | — |
+| Fabrictool pipeline: receive → filter → export to cloud | Ready | — |
 | Hook events produce correct spans and metrics | Ready | — |
 | Privacy filtering (redact/hash/exclude) | Ready | — |
 | Correlated logs emitted with trace context | Ready | — |

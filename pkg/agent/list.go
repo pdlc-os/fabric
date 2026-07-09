@@ -23,10 +23,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	scionruntime "github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	fabricruntime "github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 const legacyFailedContainerStatusPrefix = "failed"
@@ -39,11 +39,11 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 
 	// Also find "created" agents that don't have a container yet
 	// We need to know which projects to scan.
-	// Preference is given to scion.project, then scion.grove.
+	// Preference is given to fabric.project, then fabric.grove.
 	var projectName string
-	if pn, ok := filter["scion.project"]; ok {
+	if pn, ok := filter["fabric.project"]; ok {
 		projectName = pn
-	} else if pn, ok := filter["scion.grove"]; ok {
+	} else if pn, ok := filter["fabric.grove"]; ok {
 		projectName = pn
 	}
 
@@ -51,7 +51,7 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 	if projectName != "" {
 		_ = projectName
 		// We need to resolve projectName to a path. This is currently not easy without searching.
-		// For now, if scion.project is provided, we assume we only care about running ones
+		// For now, if fabric.project is provided, we assume we only care about running ones
 		// OR we need to be passed a project path.
 	}
 
@@ -59,13 +59,13 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 	// Let's at least support scanning a specific project if provided in filter?
 	// Or maybe Add a special filter key for ProjectPath.
 
-	projectPath := filter["scion.project_path"]
+	projectPath := filter["fabric.project_path"]
 	if projectPath == "" {
-		projectPath = filter["scion.grove_path"]
+		projectPath = filter["fabric.grove_path"]
 	}
 	if projectPath != "" {
 		projectsToScan = append(projectsToScan, projectPath)
-	} else if len(filter) == 0 || (len(filter) == 1 && filter["scion.agent"] == "true") {
+	} else if len(filter) == 0 || (len(filter) == 1 && filter["fabric.agent"] == "true") {
 		// Default: scan current resolved project dir and global dir
 		pd, _ := config.GetResolvedProjectDir("")
 		if pd != "" {
@@ -85,7 +85,7 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 			// layouts (see .design/hub-shared-workspace-isolation.md) since
 			// the runtime label set doesn't carry the workspace mode.
 			agentDir := config.ResolveAgentDir(agents[i].ProjectPath, agents[i].Name)
-			scionJSON := filepath.Join(agentDir, "scion-agent.json")
+			fabricJSON := filepath.Join(agentDir, "fabric-agent.json")
 			agentHome := config.GetAgentHomePath(agents[i].ProjectPath, agents[i].Name)
 			agentInfoJSON := filepath.Join(agentHome, "agent-info.json")
 			terminalPhase := terminalRuntimePhase(agents[i])
@@ -133,9 +133,9 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 				agents[i].LastSeen = fi.ModTime()
 			}
 
-			// Then load scion-agent.json for legacy support or missing fields
-			if data, err := os.ReadFile(scionJSON); err == nil {
-				var cfg api.ScionConfig
+			// Then load fabric-agent.json for legacy support or missing fields
+			if data, err := os.ReadFile(fabricJSON); err == nil {
+				var cfg api.FabricConfig
 				if err := json.Unmarshal(data, &cfg); err == nil && cfg.Info != nil {
 					if agents[i].Phase == "" {
 						agents[i].Phase = cfg.Info.Phase
@@ -169,7 +169,7 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 			// A non-zero exit code means the agent crashed; map to error
 			// (restartable) rather than a clean stop. A zero exit (or a plain
 			// "stopped" with no embedded code) is a clean stop.
-			exitCode, hasCode := scionruntime.ExitCodeFromContainerStatus(agents[i].ContainerStatus)
+			exitCode, hasCode := fabricruntime.ExitCodeFromContainerStatus(agents[i].ContainerStatus)
 			crashed := hasCode && exitCode != 0
 			p := state.Phase(agents[i].Phase)
 			switch p {
@@ -217,9 +217,9 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 				}
 				seenNames[e.Name()] = true
 
-				// Check scion-agent.json and home/agent-info.json
+				// Check fabric-agent.json and home/agent-info.json
 				agentDir := filepath.Join(agentsDir, e.Name())
-				agentScionJSON := filepath.Join(agentDir, "scion-agent.json")
+				agentFabricJSON := filepath.Join(agentDir, "fabric-agent.json")
 				agentHome := config.GetAgentHomePath(gp, e.Name())
 				agentInfoJSON := filepath.Join(agentHome, "agent-info.json")
 
@@ -233,20 +233,20 @@ func (m *AgentManager) List(ctx context.Context, filter map[string]string) ([]ap
 					}
 				}
 
-				// Fallback to scion-agent.json if info is missing (legacy)
+				// Fallback to fabric-agent.json if info is missing (legacy)
 				if info == nil {
-					if data, err := os.ReadFile(agentScionJSON); err == nil {
-						var cfg api.ScionConfig
+					if data, err := os.ReadFile(agentFabricJSON); err == nil {
+						var cfg api.FabricConfig
 						if err := json.Unmarshal(data, &cfg); err == nil {
 							info = cfg.Info
 						}
 					}
 				}
 
-				// If we still have no info, check if scion-agent.json exists at all to confirm it's an agent
+				// If we still have no info, check if fabric-agent.json exists at all to confirm it's an agent
 				// but we can't report much.
 				if info == nil {
-					if _, err := os.Stat(agentScionJSON); err == nil {
+					if _, err := os.Stat(agentFabricJSON); err == nil {
 						// It's an agent directory but we can't read info.
 						// Maybe report minimal info?
 						info = &api.AgentInfo{
@@ -312,7 +312,7 @@ func terminalRuntimePhase(agent api.AgentInfo) string {
 		state.PhaseStarting, state.PhaseRunning, state.PhaseStopping:
 		return ""
 	}
-	if agent.Phase != scionruntime.LegacyAgentPhaseEnded {
+	if agent.Phase != fabricruntime.LegacyAgentPhaseEnded {
 		return ""
 	}
 	containerStatus := strings.ToLower(agent.ContainerStatus)

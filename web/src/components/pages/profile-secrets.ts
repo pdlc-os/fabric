@@ -17,7 +17,7 @@
 /**
  * Profile Secrets Management page
  *
- * Thin wrapper around the shared <scion-secret-list> component,
+ * Thin wrapper around the shared <fabric-secret-list> component,
  * providing the page header and user scope configuration.
  */
 
@@ -26,8 +26,8 @@ import { customElement } from 'lit/decorators.js';
 
 import '../shared/secret-list.js';
 
-@customElement('scion-page-profile-secrets')
-export class ScionPageProfileSecrets extends LitElement {
+@customElement('fabric-page-profile-secrets')
+export class FabricPageProfileSecrets extends LitElement {
   static override styles = css`
     :host {
       display: block;
@@ -44,12 +44,12 @@ export class ScionPageProfileSecrets extends LitElement {
     .page-header-info h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .page-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
@@ -67,13 +67,13 @@ export class ScionPageProfileSecrets extends LitElement {
         </div>
       </div>
 
-      <scion-secret-list scope="user" apiBasePath="/api/v1"></scion-secret-list>
+      <fabric-secret-list scope="user" apiBasePath="/api/v1"></fabric-secret-list>
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-profile-secrets': ScionPageProfileSecrets;
+    'fabric-page-profile-secrets': FabricPageProfileSecrets;
   }
 }

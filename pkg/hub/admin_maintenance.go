@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // maintenanceLogAttrs returns common slog attributes for maintenance operation logging.
@@ -486,7 +486,7 @@ func (s *Server) listMaintenanceOperations(w http.ResponseWriter, r *http.Reques
 	var migrations []maintenanceOperationResponse
 	var operations []maintenanceOperationWithLastRunResponse
 
-	devBinaries := os.Getenv("SCION_DEV_BINARIES") != ""
+	devBinaries := os.Getenv("FABRIC_DEV_BINARIES") != ""
 	for _, op := range ops {
 		if op.Key == "rebuild-container-binaries" && !devBinaries {
 			continue

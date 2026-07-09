@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-11
 **Commit:** 23bd23e6
-**Branch:** scion/rename-strategy
+**Branch:** fabric/rename-strategy
 
 ## Problem
 

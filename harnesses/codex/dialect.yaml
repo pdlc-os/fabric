@@ -1,5 +1,5 @@
-# Scion data-driven dialect spec for Codex hook events.
-# Staged to $HOME/.scion/harness/dialect.yaml at agent start.
+# Fabric data-driven dialect spec for Codex hook events.
+# Staged to $HOME/.fabric/harness/dialect.yaml at agent start.
 dialect: codex
 
 # Backward-compatible single field for current MappingDialect loaders.

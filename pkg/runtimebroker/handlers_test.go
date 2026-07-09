@@ -26,10 +26,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // mockManager implements agent.Manager for testing
@@ -46,8 +46,8 @@ type mockManager struct {
 	lastStopAgentID       string
 }
 
-func (m *mockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
-	return &api.ScionConfig{}, nil
+func (m *mockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
+	return &api.FabricConfig{}, nil
 }
 
 func (m *mockManager) Start(ctx context.Context, opts api.StartOptions) (*api.AgentInfo, error) {
@@ -100,7 +100,7 @@ func newTestServer(t *testing.T) *Server {
 	t.Helper()
 	t.Setenv("HOME", t.TempDir())
 
-	// Isolate from repo .scion by changing CWD to a temp dir containing its own .scion
+	// Isolate from repo .fabric by changing CWD to a temp dir containing its own .fabric
 	origWd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -113,8 +113,8 @@ func newTestServer(t *testing.T) *Server {
 		_ = os.Chdir(origWd)
 	})
 
-	dotScion := filepath.Join(tmpDir, ".scion")
-	if err := os.Mkdir(dotScion, 0755); err != nil {
+	dotFabric := filepath.Join(tmpDir, ".fabric")
+	if err := os.Mkdir(dotFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 	settingsYAML := `schema_version: "1"
@@ -126,27 +126,27 @@ runtimes:
     mock:
         type: mock
 `
-	if err := os.WriteFile(filepath.Join(dotScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dotFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// Create templates with scion-agent.yaml so harness-config resolution
+	// Create templates with fabric-agent.yaml so harness-config resolution
 	// finds a harness_config value instead of falling through to the
 	// embedded default ("gemini") which has no on-disk directory.
 	for _, tpl := range []string{"default", "claude"} {
-		tplDir := filepath.Join(dotScion, "templates", tpl)
+		tplDir := filepath.Join(dotFabric, "templates", tpl)
 		if err := os.MkdirAll(tplDir, 0755); err != nil {
 			t.Fatal(err)
 		}
 		cfg := "harness_config: " + tpl + "\n"
-		if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.yaml"), []byte(cfg), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.yaml"), []byte(cfg), 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Create harness-config directories so FindHarnessConfigDir can resolve them.
 	for _, hc := range []string{"default", "claude"} {
-		hcDir := filepath.Join(dotScion, "harness-configs", hc)
+		hcDir := filepath.Join(dotFabric, "harness-configs", hc)
 		if err := os.MkdirAll(hcDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -598,8 +598,8 @@ func TestAgentLogsReadsFileWhenSlugEmpty(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chdir(origWd) })
 
-	dotScion := filepath.Join(tmpDir, ".scion")
-	if err := os.Mkdir(dotScion, 0755); err != nil {
+	dotFabric := filepath.Join(tmpDir, ".fabric")
+	if err := os.Mkdir(dotFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 	settingsYAML := `schema_version: "1"
@@ -611,17 +611,17 @@ runtimes:
     mock:
         type: mock
 `
-	if err := os.WriteFile(filepath.Join(dotScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dotFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 	for _, tmpl := range []string{"default", "claude"} {
-		if err := os.MkdirAll(filepath.Join(dotScion, "templates", tmpl), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(dotFabric, "templates", tmpl), 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Create agent.log at the path derived from Name (not Slug)
-	agentHome := filepath.Join(dotScion, "agents", "my-agent", "home")
+	agentHome := filepath.Join(dotFabric, "agents", "my-agent", "home")
 	if err := os.MkdirAll(agentHome, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -645,7 +645,7 @@ runtimes:
 				ID:          "container-abc",
 				Name:        "my-agent",
 				Slug:        "",       // empty slug — handler must fall back to Name
-				ProjectPath: dotScion, // matches production: ProjectPath is the resolved .scion directory
+				ProjectPath: dotFabric, // matches production: ProjectPath is the resolved .fabric directory
 				Phase:       "running",
 			},
 		},
@@ -686,8 +686,8 @@ func TestAgentLogsFallbackUsesContainerID(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chdir(origWd) })
 
-	dotScion := filepath.Join(tmpDir, ".scion")
-	if err := os.Mkdir(dotScion, 0755); err != nil {
+	dotFabric := filepath.Join(tmpDir, ".fabric")
+	if err := os.Mkdir(dotFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 	settingsYAML := `schema_version: "1"
@@ -699,11 +699,11 @@ runtimes:
     mock:
         type: mock
 `
-	if err := os.WriteFile(filepath.Join(dotScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dotFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 	for _, tmpl := range []string{"default", "claude"} {
-		if err := os.MkdirAll(filepath.Join(dotScion, "templates", tmpl), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(dotFabric, "templates", tmpl), 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -784,7 +784,7 @@ func newTestServerWithEnvCapture() (*Server, *envCapturingManager) {
 }
 
 // TestCreateAgentWithHubCredentials tests that Hub authentication env vars are passed to agent.
-// This verifies the fix from progress-report.md: RuntimeBroker sets SCION_HUB_URL, SCION_AUTH_TOKEN, SCION_AGENT_ID.
+// This verifies the fix from progress-report.md: RuntimeBroker sets FABRIC_HUB_URL, FABRIC_AUTH_TOKEN, FABRIC_AGENT_ID.
 func TestCreateAgentWithHubCredentials(t *testing.T) {
 	srv, mgr := newTestServerWithEnvCapture()
 
@@ -811,34 +811,34 @@ func TestCreateAgentWithHubCredentials(t *testing.T) {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	// Check SCION_HUB_ENDPOINT (primary)
-	if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.example.com" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.example.com', got %q", got)
+	// Check FABRIC_HUB_ENDPOINT (primary)
+	if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.example.com" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.example.com', got %q", got)
 	}
 
-	// Check SCION_HUB_URL (legacy compat)
-	if got := mgr.lastEnv["SCION_HUB_URL"]; got != "https://hub.example.com" {
-		t.Errorf("expected SCION_HUB_URL='https://hub.example.com' (legacy compat), got %q", got)
+	// Check FABRIC_HUB_URL (legacy compat)
+	if got := mgr.lastEnv["FABRIC_HUB_URL"]; got != "https://hub.example.com" {
+		t.Errorf("expected FABRIC_HUB_URL='https://hub.example.com' (legacy compat), got %q", got)
 	}
 
-	// Check SCION_AUTH_TOKEN
-	if got := mgr.lastEnv["SCION_AUTH_TOKEN"]; got != "secret-token-xyz" {
-		t.Errorf("expected SCION_AUTH_TOKEN='secret-token-xyz', got %q", got)
+	// Check FABRIC_AUTH_TOKEN
+	if got := mgr.lastEnv["FABRIC_AUTH_TOKEN"]; got != "secret-token-xyz" {
+		t.Errorf("expected FABRIC_AUTH_TOKEN='secret-token-xyz', got %q", got)
 	}
 
-	// Check SCION_AGENT_ID
-	if got := mgr.lastEnv["SCION_AGENT_ID"]; got != "agent-uuid-123" {
-		t.Errorf("expected SCION_AGENT_ID='agent-uuid-123', got %q", got)
+	// Check FABRIC_AGENT_ID
+	if got := mgr.lastEnv["FABRIC_AGENT_ID"]; got != "agent-uuid-123" {
+		t.Errorf("expected FABRIC_AGENT_ID='agent-uuid-123', got %q", got)
 	}
 
-	// Check SCION_GROVE_ID
-	if got := mgr.lastEnv["SCION_GROVE_ID"]; got != "grove-uuid-456" {
-		t.Errorf("expected SCION_GROVE_ID='grove-uuid-456', got %q", got)
+	// Check FABRIC_GROVE_ID
+	if got := mgr.lastEnv["FABRIC_GROVE_ID"]; got != "grove-uuid-456" {
+		t.Errorf("expected FABRIC_GROVE_ID='grove-uuid-456', got %q", got)
 	}
 }
 
-// TestCreateAgentWithDebugMode tests that SCION_DEBUG env var is set when debug mode is enabled.
-// This verifies Fix 4 from progress-report.md: Pass SCION_DEBUG env var.
+// TestCreateAgentWithDebugMode tests that FABRIC_DEBUG env var is set when debug mode is enabled.
+// This verifies Fix 4 from progress-report.md: Pass FABRIC_DEBUG env var.
 func TestCreateAgentWithDebugMode(t *testing.T) {
 	srv, mgr := newTestServerWithEnvCapture()
 
@@ -853,17 +853,17 @@ func TestCreateAgentWithDebugMode(t *testing.T) {
 		t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, w.Code, w.Body.String())
 	}
 
-	// Verify SCION_DEBUG was set
+	// Verify FABRIC_DEBUG was set
 	if mgr.lastEnv == nil {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	if got := mgr.lastEnv["SCION_DEBUG"]; got != "1" {
-		t.Errorf("expected SCION_DEBUG='1' when server in debug mode, got %q", got)
+	if got := mgr.lastEnv["FABRIC_DEBUG"]; got != "1" {
+		t.Errorf("expected FABRIC_DEBUG='1' when server in debug mode, got %q", got)
 	}
 }
 
-// TestCreateAgentWithBrokerID tests that SCION_BROKER_ID env var is set from server config.
+// TestCreateAgentWithBrokerID tests that FABRIC_BROKER_ID env var is set from server config.
 func TestCreateAgentWithBrokerID(t *testing.T) {
 	srv, mgr := newTestServerWithEnvCapture()
 
@@ -882,12 +882,12 @@ func TestCreateAgentWithBrokerID(t *testing.T) {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	if got := mgr.lastEnv["SCION_BROKER_ID"]; got != "test-broker-id" {
-		t.Errorf("expected SCION_BROKER_ID='test-broker-id', got %q", got)
+	if got := mgr.lastEnv["FABRIC_BROKER_ID"]; got != "test-broker-id" {
+		t.Errorf("expected FABRIC_BROKER_ID='test-broker-id', got %q", got)
 	}
 
-	if got := mgr.lastEnv["SCION_BROKER_NAME"]; got != "test-host" {
-		t.Errorf("expected SCION_BROKER_NAME='test-host', got %q", got)
+	if got := mgr.lastEnv["FABRIC_BROKER_NAME"]; got != "test-host" {
+		t.Errorf("expected FABRIC_BROKER_NAME='test-host', got %q", got)
 	}
 }
 
@@ -940,7 +940,7 @@ func TestCreateAgentWithResolvedEnv(t *testing.T) {
 // TestCreateAgentWithoutHubCredentials tests agent creation without Hub integration.
 func TestCreateAgentWithoutHubCredentials(t *testing.T) {
 	// Clear dev token env var to prevent broker from forwarding it to agents
-	t.Setenv("SCION_AUTH_TOKEN", "")
+	t.Setenv("FABRIC_AUTH_TOKEN", "")
 
 	srv, mgr := newTestServerWithEnvCapture()
 
@@ -955,26 +955,26 @@ func TestCreateAgentWithoutHubCredentials(t *testing.T) {
 		t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, w.Code, w.Body.String())
 	}
 
-	// Env should still be set (at minimum SCION_DEBUG since debug mode is on)
+	// Env should still be set (at minimum FABRIC_DEBUG since debug mode is on)
 	if mgr.lastEnv == nil {
 		t.Fatal("expected environment to be initialized")
 	}
 
 	// Hub credentials should NOT be present
-	if _, exists := mgr.lastEnv["SCION_HUB_ENDPOINT"]; exists {
-		t.Error("expected SCION_HUB_ENDPOINT to not be set when no hubEndpoint provided")
+	if _, exists := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; exists {
+		t.Error("expected FABRIC_HUB_ENDPOINT to not be set when no hubEndpoint provided")
 	}
 
-	if _, exists := mgr.lastEnv["SCION_HUB_URL"]; exists {
-		t.Error("expected SCION_HUB_URL to not be set when no hubEndpoint provided")
+	if _, exists := mgr.lastEnv["FABRIC_HUB_URL"]; exists {
+		t.Error("expected FABRIC_HUB_URL to not be set when no hubEndpoint provided")
 	}
 
-	if _, exists := mgr.lastEnv["SCION_AUTH_TOKEN"]; exists {
-		t.Error("expected SCION_AUTH_TOKEN to not be set when no agentToken provided")
+	if _, exists := mgr.lastEnv["FABRIC_AUTH_TOKEN"]; exists {
+		t.Error("expected FABRIC_AUTH_TOKEN to not be set when no agentToken provided")
 	}
 
-	if _, exists := mgr.lastEnv["SCION_AGENT_ID"]; exists {
-		t.Error("expected SCION_AGENT_ID to not be set when no id provided")
+	if _, exists := mgr.lastEnv["FABRIC_AGENT_ID"]; exists {
+		t.Error("expected FABRIC_AGENT_ID to not be set when no id provided")
 	}
 }
 
@@ -986,10 +986,10 @@ type provisionCapturingManager struct {
 	lastOpts        api.StartOptions
 }
 
-func (m *provisionCapturingManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *provisionCapturingManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	m.provisionCalled = true
 	m.lastOpts = opts
-	return &api.ScionConfig{Harness: "claude", HarnessConfig: "claude"}, nil
+	return &api.FabricConfig{Harness: "claude", HarnessConfig: "claude"}, nil
 }
 
 func (m *provisionCapturingManager) Start(ctx context.Context, opts api.StartOptions) (*api.AgentInfo, error) {
@@ -1095,7 +1095,7 @@ func TestCreateAgentProvisionOnlyHarnessConfig(t *testing.T) {
 		t.Fatal("expected agent to be present")
 	}
 
-	// HarnessConfig should be populated from Provision's ScionConfig
+	// HarnessConfig should be populated from Provision's FabricConfig
 	if resp.Agent.HarnessConfig != "claude" {
 		t.Errorf("expected HarnessConfig 'claude', got '%s'", resp.Agent.HarnessConfig)
 	}
@@ -1270,8 +1270,8 @@ func TestCreateAgentWithCreatorName(t *testing.T) {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	if got := mgr.lastEnv["SCION_CREATOR"]; got != "alice@example.com" {
-		t.Errorf("expected SCION_CREATOR='alice@example.com', got %q", got)
+	if got := mgr.lastEnv["FABRIC_CREATOR"]; got != "alice@example.com" {
+		t.Errorf("expected FABRIC_CREATOR='alice@example.com', got %q", got)
 	}
 }
 
@@ -1293,8 +1293,8 @@ func TestCreateAgentWithoutCreatorName(t *testing.T) {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	if _, exists := mgr.lastEnv["SCION_CREATOR"]; exists {
-		t.Error("expected SCION_CREATOR to not be set when no creatorName provided")
+	if _, exists := mgr.lastEnv["FABRIC_CREATOR"]; exists {
+		t.Error("expected FABRIC_CREATOR to not be set when no creatorName provided")
 	}
 }
 
@@ -1333,12 +1333,12 @@ func TestCreateAgentHubEndpointFromProjectSettings(t *testing.T) {
 		srv, mgr := newTestServerWithEnvCapture()
 
 		// Create a project directory with settings.yaml containing hub.endpoint
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
 		settingsContent := `hub:
-  endpoint: "https://scionhub.loophole.site"
+  endpoint: "https://fabrichub.loophole.site"
 `
 		if err := os.WriteFile(filepath.Join(projectDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 			t.Fatalf("failed to write settings: %v", err)
@@ -1366,18 +1366,18 @@ func TestCreateAgentHubEndpointFromProjectSettings(t *testing.T) {
 
 		// Request hub endpoint takes priority over project settings (project settings
 		// are only a fallback when no endpoint is provided by dispatch/broker).
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:9810' from request, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:9810' from request, got %q", got)
 		}
-		if got := mgr.lastEnv["SCION_HUB_URL"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_URL='http://localhost:9810' from request, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_URL"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_URL='http://localhost:9810' from request, got %q", got)
 		}
 	})
 
 	t.Run("project settings used when request hub endpoint empty", func(t *testing.T) {
 		srv, mgr := newTestServerWithEnvCapture()
 
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
@@ -1403,8 +1403,8 @@ func TestCreateAgentHubEndpointFromProjectSettings(t *testing.T) {
 			t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, w.Code, w.Body.String())
 		}
 
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.example.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.example.com' from project settings, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.example.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.example.com' from project settings, got %q", got)
 		}
 	})
 
@@ -1426,8 +1426,8 @@ func TestCreateAgentHubEndpointFromProjectSettings(t *testing.T) {
 			t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, w.Code, w.Body.String())
 		}
 
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.direct.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.direct.com' from request, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.direct.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.direct.com' from request, got %q", got)
 		}
 	})
 }
@@ -1439,13 +1439,13 @@ func TestCreateAgentProjectHubEndpointSuppressedWhenDisabled(t *testing.T) {
 		srv, mgr := newTestServerWithEnvCapture()
 
 		// Create a project directory with hub.enabled=false but endpoint configured
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
 		settingsContent := `hub:
   enabled: false
-  endpoint: "https://scionhub.loophole.site"
+  endpoint: "https://fabrichub.loophole.site"
 `
 		if err := os.WriteFile(filepath.Join(projectDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 			t.Fatalf("failed to write settings: %v", err)
@@ -1471,11 +1471,11 @@ func TestCreateAgentProjectHubEndpointSuppressedWhenDisabled(t *testing.T) {
 		}
 
 		// Project endpoint should NOT be used when hub.enabled=false
-		if _, exists := mgr.lastEnv["SCION_HUB_ENDPOINT"]; exists {
-			t.Error("expected SCION_HUB_ENDPOINT to NOT be set when project has hub.enabled=false")
+		if _, exists := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; exists {
+			t.Error("expected FABRIC_HUB_ENDPOINT to NOT be set when project has hub.enabled=false")
 		}
-		if _, exists := mgr.lastEnv["SCION_HUB_URL"]; exists {
-			t.Error("expected SCION_HUB_URL to NOT be set when project has hub.enabled=false")
+		if _, exists := mgr.lastEnv["FABRIC_HUB_URL"]; exists {
+			t.Error("expected FABRIC_HUB_URL to NOT be set when project has hub.enabled=false")
 		}
 	})
 
@@ -1483,13 +1483,13 @@ func TestCreateAgentProjectHubEndpointSuppressedWhenDisabled(t *testing.T) {
 		srv, mgr := newTestServerWithEnvCapture()
 
 		// Create a project directory with hub.enabled=false
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
 		settingsContent := `hub:
   enabled: false
-  endpoint: "https://scionhub.loophole.site"
+  endpoint: "https://fabrichub.loophole.site"
 `
 		if err := os.WriteFile(filepath.Join(projectDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 			t.Fatalf("failed to write settings: %v", err)
@@ -1517,15 +1517,15 @@ func TestCreateAgentProjectHubEndpointSuppressedWhenDisabled(t *testing.T) {
 		}
 
 		// Dispatcher-provided endpoint should still be used (it's authoritative)
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.authoritative.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.authoritative.com' from dispatcher, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.authoritative.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.authoritative.com' from dispatcher, got %q", got)
 		}
 	})
 }
 
 // TestCreateAgentHubManagedProjectSettingsEndpoint tests that createAgent with a
 // hub-managed project (ProjectSlug set, no ProjectPath) correctly resolves the project
-// path and uses project settings hub.endpoint from the .scion subdirectory.
+// path and uses project settings hub.endpoint from the .fabric subdirectory.
 func TestCreateAgentHubManagedProjectSettingsEndpoint(t *testing.T) {
 	cfg := DefaultServerConfig()
 	cfg.BrokerID = "test-broker-id"
@@ -1544,15 +1544,15 @@ func TestCreateAgentHubManagedProjectSettingsEndpoint(t *testing.T) {
 		t.Fatalf("failed to get global dir: %v", err)
 	}
 	projectPath := filepath.Join(globalDir, "projects", "settings-test-grove")
-	scionDir := filepath.Join(projectPath, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		t.Fatalf("failed to create .scion dir: %v", err)
+	fabricDir := filepath.Join(projectPath, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		t.Fatalf("failed to create .fabric dir: %v", err)
 	}
 	t.Cleanup(func() { _ = os.RemoveAll(projectPath) })
 
-	// Place settings.yaml in the .scion subdirectory (hub-managed project layout)
+	// Place settings.yaml in the .fabric subdirectory (hub-managed project layout)
 	settingsContent := "hub:\n  endpoint: https://hub.external.example.com\n"
-	if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 		t.Fatalf("failed to write settings.yaml: %v", err)
 	}
 
@@ -1579,11 +1579,11 @@ func TestCreateAgentHubManagedProjectSettingsEndpoint(t *testing.T) {
 
 	// Request hub endpoint takes priority over project settings (project settings
 	// are only a fallback when no endpoint is provided by dispatch/broker).
-	if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:9810' from request, got %q", got)
+	if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:9810' from request, got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_HUB_URL"]; got != "http://localhost:9810" {
-		t.Errorf("expected SCION_HUB_URL='http://localhost:9810' from request, got %q", got)
+	if got := mgr.lastEnv["FABRIC_HUB_URL"]; got != "http://localhost:9810" {
+		t.Errorf("expected FABRIC_HUB_URL='http://localhost:9810' from request, got %q", got)
 	}
 }
 
@@ -1591,8 +1591,8 @@ func TestCreateAgentHubManagedProjectSettingsEndpoint(t *testing.T) {
 // settings directory for both linked and hub-managed projects.
 func TestResolveProjectSettingsDir(t *testing.T) {
 	t.Run("linked project - settings at projectPath directly", func(t *testing.T) {
-		// Linked project: projectPath = /path/to/project/.scion, settings.yaml is there
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		// Linked project: projectPath = /path/to/project/.fabric, settings.yaml is there
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
@@ -1606,20 +1606,20 @@ func TestResolveProjectSettingsDir(t *testing.T) {
 		}
 	})
 
-	t.Run("hub-managed project - settings in .scion subdirectory", func(t *testing.T) {
-		// Hub-managed project: projectPath = ~/.scion.groves/<slug>, settings in .scion/
+	t.Run("hub-managed project - settings in .fabric subdirectory", func(t *testing.T) {
+		// Hub-managed project: projectPath = ~/.fabric.groves/<slug>, settings in .fabric/
 		projectDir := t.TempDir()
-		scionDir := filepath.Join(projectDir, ".scion")
-		if err := os.MkdirAll(scionDir, 0755); err != nil {
-			t.Fatalf("failed to create .scion dir: %v", err)
+		fabricDir := filepath.Join(projectDir, ".fabric")
+		if err := os.MkdirAll(fabricDir, 0755); err != nil {
+			t.Fatalf("failed to create .fabric dir: %v", err)
 		}
-		if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte("hub:\n  endpoint: https://example.com\n"), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte("hub:\n  endpoint: https://example.com\n"), 0644); err != nil {
 			t.Fatalf("failed to write settings.yaml: %v", err)
 		}
 
 		result := resolveProjectSettingsDir(projectDir)
-		if result != scionDir {
-			t.Errorf("expected %q (with .scion), got %q", scionDir, result)
+		if result != fabricDir {
+			t.Errorf("expected %q (with .fabric), got %q", fabricDir, result)
 		}
 	})
 
@@ -1666,11 +1666,11 @@ func TestCreateAgentContainerHubEndpointOverride(t *testing.T) {
 		}
 
 		// ContainerHubEndpoint should override the request's localhost value
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://host.containers.internal:8080' from container override, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://host.containers.internal:8080' from container override, got %q", got)
 		}
-		if got := mgr.lastEnv["SCION_HUB_URL"]; got != "http://host.containers.internal:8080" {
-			t.Errorf("expected SCION_HUB_URL='http://host.containers.internal:8080' from container override, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_URL"]; got != "http://host.containers.internal:8080" {
+			t.Errorf("expected FABRIC_HUB_URL='http://host.containers.internal:8080' from container override, got %q", got)
 		}
 	})
 
@@ -1687,7 +1687,7 @@ func TestCreateAgentContainerHubEndpointOverride(t *testing.T) {
 		srv := New(cfg, mgr, rt)
 
 		// Create a project directory with settings.yaml containing hub.endpoint
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -1717,8 +1717,8 @@ hub:
 
 		// ContainerHubEndpoint override applies last to localhost endpoints;
 		// project settings are only a fallback when no dispatch/broker endpoint exists.
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://host.containers.internal:8080' from container bridge override, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://host.containers.internal:8080' from container bridge override, got %q", got)
 		}
 	})
 
@@ -1740,8 +1740,8 @@ hub:
 		}
 
 		// Without ContainerHubEndpoint, request endpoint is used
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.public.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.public.com' from request, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.public.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.public.com' from request, got %q", got)
 		}
 	})
 
@@ -1771,8 +1771,8 @@ hub:
 		}
 
 		// Non-localhost endpoint should NOT be overridden by ContainerHubEndpoint
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.example.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.example.com' (non-localhost preserved), got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.example.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.example.com' (non-localhost preserved), got %q", got)
 		}
 	})
 
@@ -1791,7 +1791,7 @@ hub:
 
 		// Create a project dir with kubernetes settings so resolveManagerForOpts
 		// matches the "kubernetes" runtime without trying to create a real manager.
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		_ = os.MkdirAll(projectDir, 0755)
 		k8sSettings := `schema_version: "1"
 profiles:
@@ -1819,8 +1819,8 @@ runtimes:
 		}
 
 		// Kubernetes runtime should NOT use bridge address
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://localhost:8080" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:8080' (k8s skips bridge), got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:8080" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:8080' (k8s skips bridge), got %q", got)
 		}
 	})
 }
@@ -1844,9 +1844,9 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 
 		// Register a remote hub connection (as would happen via control channel)
 		srv.hubMu.Lock()
-		srv.hubConnections["hub-demo-scion-ai-dev"] = &HubConnection{
-			Name:        "hub-demo-scion-ai-dev",
-			HubEndpoint: "https://hub.demo.scion-ai.dev",
+		srv.hubConnections["hub-demo-fabric-ai-dev"] = &HubConnection{
+			Name:        "hub-demo-fabric-ai-dev",
+			HubEndpoint: "https://hub.demo.fabric-ai.dev",
 		}
 		srv.hubMu.Unlock()
 
@@ -1856,7 +1856,7 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		}`
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Scion-Hub-Connection", "hub-demo-scion-ai-dev")
+		req.Header.Set("X-Fabric-Hub-Connection", "hub-demo-fabric-ai-dev")
 		w := httptest.NewRecorder()
 
 		srv.Handler().ServeHTTP(w, req)
@@ -1866,8 +1866,8 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		}
 
 		// Should use the remote hub's endpoint, NOT the broker's local hub
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.demo.scion-ai.dev" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.demo.scion-ai.dev' from connection, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.demo.fabric-ai.dev" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.demo.fabric-ai.dev' from connection, got %q", got)
 		}
 	})
 
@@ -1884,7 +1884,7 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		srv.hubMu.Lock()
 		srv.hubConnections["hub-demo"] = &HubConnection{
 			Name:        "hub-demo",
-			HubEndpoint: "https://hub.demo.scion-ai.dev",
+			HubEndpoint: "https://hub.demo.fabric-ai.dev",
 		}
 		srv.hubMu.Unlock()
 
@@ -1895,7 +1895,7 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		}`
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Scion-Hub-Connection", "hub-demo")
+		req.Header.Set("X-Fabric-Hub-Connection", "hub-demo")
 		w := httptest.NewRecorder()
 
 		srv.Handler().ServeHTTP(w, req)
@@ -1905,8 +1905,8 @@ func TestCreateAgentConnectionHubEndpoint(t *testing.T) {
 		}
 
 		// Explicit request endpoint wins over connection
-		if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "https://hub.explicit.example.com" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.explicit.example.com' from request, got %q", got)
+		if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "https://hub.explicit.example.com" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.explicit.example.com' from request, got %q", got)
 		}
 	})
 }
@@ -1971,14 +1971,14 @@ func TestCreateAgentWithGitClone(t *testing.T) {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
 
-	if got := mgr.lastEnv["SCION_GIT_CLONE_URL"]; got != "https://github.com/example/repo.git" {
-		t.Errorf("expected SCION_GIT_CLONE_URL='https://github.com/example/repo.git', got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_CLONE_URL"]; got != "https://github.com/example/repo.git" {
+		t.Errorf("expected FABRIC_GIT_CLONE_URL='https://github.com/example/repo.git', got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_GIT_BRANCH"]; got != "develop" {
-		t.Errorf("expected SCION_GIT_BRANCH='develop', got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_BRANCH"]; got != "develop" {
+		t.Errorf("expected FABRIC_GIT_BRANCH='develop', got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_GIT_DEPTH"]; got != "1" {
-		t.Errorf("expected SCION_GIT_DEPTH='1', got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_DEPTH"]; got != "1" {
+		t.Errorf("expected FABRIC_GIT_DEPTH='1', got %q", got)
 	}
 
 	// Verify workspace and projectPath were cleared
@@ -2026,11 +2026,11 @@ func TestCreateAgentWithGitCloneAndBranch(t *testing.T) {
 	if mgr.lastEnv == nil {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
-	if got := mgr.lastEnv["SCION_AGENT_BRANCH"]; got != "my-feature" {
-		t.Errorf("expected SCION_AGENT_BRANCH='my-feature', got %q", got)
+	if got := mgr.lastEnv["FABRIC_AGENT_BRANCH"]; got != "my-feature" {
+		t.Errorf("expected FABRIC_AGENT_BRANCH='my-feature', got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_GIT_BRANCH"]; got != "main" {
-		t.Errorf("expected SCION_GIT_BRANCH='main', got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_BRANCH"]; got != "main" {
+		t.Errorf("expected FABRIC_GIT_BRANCH='main', got %q", got)
 	}
 }
 
@@ -2076,14 +2076,14 @@ func TestFinalizeEnvPassesAgentBranch(t *testing.T) {
 	if mgr.lastEnv == nil {
 		t.Fatal("expected environment variables to be set, got nil")
 	}
-	if got := mgr.lastEnv["SCION_AGENT_BRANCH"]; got != "my-feature" {
-		t.Errorf("expected SCION_AGENT_BRANCH='my-feature', got %q", got)
+	if got := mgr.lastEnv["FABRIC_AGENT_BRANCH"]; got != "my-feature" {
+		t.Errorf("expected FABRIC_AGENT_BRANCH='my-feature', got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_GIT_BRANCH"]; got != "main" {
-		t.Errorf("expected SCION_GIT_BRANCH='main', got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_BRANCH"]; got != "main" {
+		t.Errorf("expected FABRIC_GIT_BRANCH='main', got %q", got)
 	}
-	if got := mgr.lastEnv["SCION_GIT_CLONE_URL"]; got != "https://github.com/example/repo.git" {
-		t.Errorf("expected SCION_GIT_CLONE_URL set, got %q", got)
+	if got := mgr.lastEnv["FABRIC_GIT_CLONE_URL"]; got != "https://github.com/example/repo.git" {
+		t.Errorf("expected FABRIC_GIT_CLONE_URL set, got %q", got)
 	}
 }
 
@@ -2106,8 +2106,8 @@ func TestCreateAgentWithoutGitClone(t *testing.T) {
 
 	// Verify no git clone env vars are set
 	if mgr.lastEnv != nil {
-		if _, exists := mgr.lastEnv["SCION_GIT_CLONE_URL"]; exists {
-			t.Error("expected SCION_GIT_CLONE_URL to NOT be set for regular agent")
+		if _, exists := mgr.lastEnv["FABRIC_GIT_CLONE_URL"]; exists {
+			t.Error("expected FABRIC_GIT_CLONE_URL to NOT be set for regular agent")
 		}
 	}
 
@@ -2147,7 +2147,7 @@ func TestResolveManagerForOpts_ProfileNotInSettings(t *testing.T) {
 func TestResolveManagerForOpts_ProfileWithDifferentRuntime(t *testing.T) {
 	// Create a temp project directory with settings that specify a different runtime
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(projectPath, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -2186,7 +2186,7 @@ runtimes:
 func TestResolveManagerForOpts_ProfileWithSameRuntime(t *testing.T) {
 	// Create a temp project directory with settings that specify the same runtime as the broker
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	if err := os.MkdirAll(projectPath, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -2274,7 +2274,7 @@ func TestCreateAgentWithoutProfile(t *testing.T) {
 
 func TestProjectSlugWorkspacePath(t *testing.T) {
 	// Verify the workspace directory path for hub-managed projects uses
-	// ~/.scion.groves/<slug>/ instead of the worktree-based path.
+	// ~/.fabric.groves/<slug>/ instead of the worktree-based path.
 	globalDir, err := config.GetGlobalDir()
 	if err != nil {
 		t.Fatalf("failed to get global dir: %v", err)
@@ -2325,7 +2325,7 @@ func TestCreateAgentRequest_ProjectSlugField(t *testing.T) {
 func TestCreateAgentProjectSlugResolvesProjectPath(t *testing.T) {
 	// When ProjectSlug is set and ProjectPath is empty (hub-managed project with no
 	// local provider path), the handler should resolve ProjectPath to the
-	// conventional ~/.scion.groves/<slug>/ path so the agent is created in the
+	// conventional ~/.fabric.groves/<slug>/ path so the agent is created in the
 	// correct project instead of the broker's local project.
 	srv, mgr := newTestServerWithProvisionCapture()
 
@@ -2374,7 +2374,7 @@ func TestCreateAgentProjectSlugNotUsedWhenProjectPathSet(t *testing.T) {
 		"slug": "local-grove-agent",
 		"groveId": "grove-def",
 		"groveSlug": "my-hub-grove",
-		"grovePath": "/projects/my-local-grove/.scion",
+		"grovePath": "/projects/my-local-grove/.fabric",
 		"provisionOnly": true,
 		"config": {"template": "claude"}
 	}`
@@ -2393,8 +2393,8 @@ func TestCreateAgentProjectSlugNotUsedWhenProjectPathSet(t *testing.T) {
 	}
 
 	// ProjectPath should remain as explicitly provided, not overridden by ProjectSlug
-	if mgr.lastOpts.ProjectPath != "/projects/my-local-grove/.scion" {
-		t.Errorf("expected ProjectPath %q, got %q", "/projects/my-local-grove/.scion", mgr.lastOpts.ProjectPath)
+	if mgr.lastOpts.ProjectPath != "/projects/my-local-grove/.fabric" {
+		t.Errorf("expected ProjectPath %q, got %q", "/projects/my-local-grove/.fabric", mgr.lastOpts.ProjectPath)
 	}
 }
 
@@ -2414,8 +2414,8 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
 		srv := New(cfg, mgr, rt)
 
-		// Linked project: projectPath ends in .scion, settings.yaml is directly there
-		projectDir := filepath.Join(t.TempDir(), ".scion")
+		// Linked project: projectPath ends in .fabric, settings.yaml is directly there
+		projectDir := filepath.Join(t.TempDir(), ".fabric")
 		if err := os.MkdirAll(projectDir, 0755); err != nil {
 			t.Fatalf("failed to create project dir: %v", err)
 		}
@@ -2440,15 +2440,15 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		}
 
 		// Broker config HubEndpoint takes priority over project settings
-		if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
+		if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
 		}
-		if got := mgr.lastOpts.Env["SCION_HUB_URL"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_URL='http://localhost:9810' from broker config, got %q", got)
+		if got := mgr.lastOpts.Env["FABRIC_HUB_URL"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_URL='http://localhost:9810' from broker config, got %q", got)
 		}
 	})
 
-	t.Run("hub-managed project with settings in .scion subdirectory", func(t *testing.T) {
+	t.Run("hub-managed project with settings in .fabric subdirectory", func(t *testing.T) {
 		cfg := DefaultServerConfig()
 		cfg.BrokerID = "test-broker-id"
 		cfg.BrokerName = "test-host"
@@ -2460,15 +2460,15 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
 		srv := New(cfg, mgr, rt)
 
-		// Hub-managed project: projectPath is the workspace parent (~/.scion.groves/<slug>),
-		// settings.yaml lives in the .scion subdirectory
+		// Hub-managed project: projectPath is the workspace parent (~/.fabric.groves/<slug>),
+		// settings.yaml lives in the .fabric subdirectory
 		projectDir := t.TempDir()
-		scionDir := filepath.Join(projectDir, ".scion")
-		if err := os.MkdirAll(scionDir, 0755); err != nil {
-			t.Fatalf("failed to create .scion dir: %v", err)
+		fabricDir := filepath.Join(projectDir, ".fabric")
+		if err := os.MkdirAll(fabricDir, 0755); err != nil {
+			t.Fatalf("failed to create .fabric dir: %v", err)
 		}
 		settingsContent := "hub:\n  endpoint: https://hub.native.example.com\n"
-		if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 			t.Fatalf("failed to write settings.yaml: %v", err)
 		}
 
@@ -2488,11 +2488,11 @@ func TestStartAgentProjectSettingsFallbackHubEndpoint(t *testing.T) {
 		}
 
 		// Broker config HubEndpoint takes priority over project settings
-		if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
+		if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
 		}
-		if got := mgr.lastOpts.Env["SCION_HUB_URL"]; got != "http://localhost:9810" {
-			t.Errorf("expected SCION_HUB_URL='http://localhost:9810' from broker config, got %q", got)
+		if got := mgr.lastOpts.Env["FABRIC_HUB_URL"]; got != "http://localhost:9810" {
+			t.Errorf("expected FABRIC_HUB_URL='http://localhost:9810' from broker config, got %q", got)
 		}
 	})
 }
@@ -2534,8 +2534,8 @@ func TestStartAgentBrokerConfigUsedWhenNoProjectSettings(t *testing.T) {
 	}
 
 	// Without project settings hub.endpoint, broker config should be used
-	if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://localhost:9810" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://localhost:9810" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://localhost:9810' from broker config, got %q", got)
 	}
 }
 
@@ -2554,7 +2554,7 @@ func TestStartAgentResolvedEnvHubEndpointFallback(t *testing.T) {
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
 	srv := New(cfg, mgr, rt)
 
-	body := `{"resolvedEnv": {"SCION_HUB_ENDPOINT": "http://hub.example.com:8080", "SCION_GROVE_ID": "grove-1"}}`
+	body := `{"resolvedEnv": {"FABRIC_HUB_ENDPOINT": "http://hub.example.com:8080", "FABRIC_GROVE_ID": "grove-1"}}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/test-agent/start", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -2570,13 +2570,13 @@ func TestStartAgentResolvedEnvHubEndpointFallback(t *testing.T) {
 	}
 
 	// Hub endpoint should fall back to the resolvedEnv value
-	if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://hub.example.com:8080" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://hub.example.com:8080' from resolvedEnv, got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://hub.example.com:8080" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://hub.example.com:8080' from resolvedEnv, got %q", got)
 	}
 }
 
 // TestStartAgentResolvedEnvHubURLFallback verifies legacy parity: when the broker
-// has no HubEndpoint configured, SCION_HUB_URL from resolvedEnv is accepted as
+// has no HubEndpoint configured, FABRIC_HUB_URL from resolvedEnv is accepted as
 // the fallback endpoint in the start path.
 func TestStartAgentResolvedEnvHubURLFallback(t *testing.T) {
 	cfg := DefaultServerConfig()
@@ -2590,7 +2590,7 @@ func TestStartAgentResolvedEnvHubURLFallback(t *testing.T) {
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
 	srv := New(cfg, mgr, rt)
 
-	body := `{"resolvedEnv": {"SCION_HUB_URL": "http://hub.example.com:9090"}}`
+	body := `{"resolvedEnv": {"FABRIC_HUB_URL": "http://hub.example.com:9090"}}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/test-agent/start", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -2605,11 +2605,11 @@ func TestStartAgentResolvedEnvHubURLFallback(t *testing.T) {
 		t.Fatal("expected Start to be called")
 	}
 
-	if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://hub.example.com:9090" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://hub.example.com:9090' from SCION_HUB_URL fallback, got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://hub.example.com:9090" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://hub.example.com:9090' from FABRIC_HUB_URL fallback, got %q", got)
 	}
-	if got := mgr.lastOpts.Env["SCION_HUB_URL"]; got != "http://hub.example.com:9090" {
-		t.Errorf("expected SCION_HUB_URL='http://hub.example.com:9090', got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_HUB_URL"]; got != "http://hub.example.com:9090" {
+		t.Errorf("expected FABRIC_HUB_URL='http://hub.example.com:9090', got %q", got)
 	}
 }
 
@@ -2630,7 +2630,7 @@ func TestStartAgentResolvedEnvHubEndpointWithContainerOverride(t *testing.T) {
 	srv := New(cfg, mgr, rt)
 
 	// resolvedEnv has localhost endpoint from the hub
-	body := `{"resolvedEnv": {"SCION_HUB_ENDPOINT": "http://localhost:9810"}}`
+	body := `{"resolvedEnv": {"FABRIC_HUB_ENDPOINT": "http://localhost:9810"}}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/test-agent/start", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -2646,8 +2646,8 @@ func TestStartAgentResolvedEnvHubEndpointWithContainerOverride(t *testing.T) {
 	}
 
 	// ContainerHubEndpoint override should be applied since resolvedEnv was localhost
-	if got := mgr.lastOpts.Env["SCION_HUB_ENDPOINT"]; got != "http://host.containers.internal:9810" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://host.containers.internal:9810', got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_HUB_ENDPOINT"]; got != "http://host.containers.internal:9810" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://host.containers.internal:9810', got %q", got)
 	}
 }
 
@@ -2685,12 +2685,12 @@ func TestCreateAgentPortPreservedAcrossBridge(t *testing.T) {
 
 	// The bridge host should be applied but the port from the actual
 	// endpoint (8080) must be preserved, not the pre-computed port (9810).
-	if got := mgr.lastEnv["SCION_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='http://host.containers.internal:8080' (port preserved), got %q", got)
+	if got := mgr.lastEnv["FABRIC_HUB_ENDPOINT"]; got != "http://host.containers.internal:8080" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='http://host.containers.internal:8080' (port preserved), got %q", got)
 	}
 }
 
-// TestStartAgentBrokerIDEnv verifies that startAgent sets SCION_BROKER_ID from broker config.
+// TestStartAgentBrokerIDEnv verifies that startAgent sets FABRIC_BROKER_ID from broker config.
 func TestStartAgentBrokerIDEnv(t *testing.T) {
 	srv, mgr := newTestServerWithProvisionCapture()
 
@@ -2709,12 +2709,12 @@ func TestStartAgentBrokerIDEnv(t *testing.T) {
 		t.Fatal("expected Start to be called")
 	}
 
-	if got := mgr.lastOpts.Env["SCION_BROKER_ID"]; got != "test-broker-id" {
-		t.Errorf("expected SCION_BROKER_ID='test-broker-id', got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_BROKER_ID"]; got != "test-broker-id" {
+		t.Errorf("expected FABRIC_BROKER_ID='test-broker-id', got %q", got)
 	}
 
-	if got := mgr.lastOpts.Env["SCION_BROKER_NAME"]; got != "test-host" {
-		t.Errorf("expected SCION_BROKER_NAME='test-host', got %q", got)
+	if got := mgr.lastOpts.Env["FABRIC_BROKER_NAME"]; got != "test-host" {
+		t.Errorf("expected FABRIC_BROKER_NAME='test-host', got %q", got)
 	}
 }
 
@@ -2774,18 +2774,18 @@ func TestStartAgentProjectSlugNotUsedWhenProjectPathSet(t *testing.T) {
 	}{
 		{
 			name:         "legacy grovePath wins over legacy groveSlug",
-			body:         `{"grovePath": "/projects/my-local-project/.scion", "groveSlug": "my-hub-project"}`,
-			expectedPath: "/projects/my-local-project/.scion",
+			body:         `{"grovePath": "/projects/my-local-project/.fabric", "groveSlug": "my-hub-project"}`,
+			expectedPath: "/projects/my-local-project/.fabric",
 		},
 		{
 			name: "projectPath wins over projectSlug and legacy keys",
 			body: `{
-				"projectPath": "/projects/my-local-project/.scion",
+				"projectPath": "/projects/my-local-project/.fabric",
 				"projectSlug": "my-hub-project",
-				"grovePath": "/projects/legacy-project/.scion",
+				"grovePath": "/projects/legacy-project/.fabric",
 				"groveSlug": "legacy-hub-project"
 			}`,
-			expectedPath: "/projects/my-local-project/.scion",
+			expectedPath: "/projects/my-local-project/.fabric",
 		},
 	}
 
@@ -2819,15 +2819,15 @@ func TestStartAgentProjectSlugNotUsedWhenProjectPathSet(t *testing.T) {
 func TestStartAgentInlineConfigModelUpdatesExistingAgentConfig(t *testing.T) {
 	srv, mgr := newTestServerWithProvisionCapture()
 
-	projectDir := filepath.Join(t.TempDir(), ".scion")
+	projectDir := filepath.Join(t.TempDir(), ".fabric")
 	agentName := "configured-agent"
 	agentDir := config.GetAgentDir(projectDir, agentName, false)
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	cfgPath := filepath.Join(agentDir, "scion-agent.json")
+	cfgPath := filepath.Join(agentDir, "fabric-agent.json")
 	if err := os.WriteFile(cfgPath, []byte(`{"harness":"gemini","max_turns":3}`), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.json: %v", err)
+		t.Fatalf("failed to write fabric-agent.json: %v", err)
 	}
 
 	body := fmt.Sprintf(`{
@@ -2852,11 +2852,11 @@ func TestStartAgentInlineConfigModelUpdatesExistingAgentConfig(t *testing.T) {
 
 	data, err := os.ReadFile(cfgPath)
 	if err != nil {
-		t.Fatalf("failed to read updated scion-agent.json: %v", err)
+		t.Fatalf("failed to read updated fabric-agent.json: %v", err)
 	}
-	var updated api.ScionConfig
+	var updated api.FabricConfig
 	if err := json.Unmarshal(data, &updated); err != nil {
-		t.Fatalf("failed to parse updated scion-agent.json: %v", err)
+		t.Fatalf("failed to parse updated fabric-agent.json: %v", err)
 	}
 
 	if updated.Harness != "gemini" {
@@ -2873,7 +2873,7 @@ func TestStartAgentInlineConfigModelUpdatesExistingAgentConfig(t *testing.T) {
 func TestStartAgentInlineConfigPassedForProvisionOnStart(t *testing.T) {
 	srv, mgr := newTestServerWithProvisionCapture()
 
-	projectDir := filepath.Join(t.TempDir(), ".scion")
+	projectDir := filepath.Join(t.TempDir(), ".fabric")
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
 		t.Fatalf("failed to create project dir: %v", err)
 	}
@@ -2905,12 +2905,12 @@ func TestStartAgentInlineConfigPassedForProvisionOnStart(t *testing.T) {
 }
 
 func TestStartAgentTelemetryOverrideFromResolvedEnv(t *testing.T) {
-	// When resolvedEnv contains SCION_TELEMETRY_ENABLED=true, startAgent
+	// When resolvedEnv contains FABRIC_TELEMETRY_ENABLED=true, startAgent
 	// should translate it to opts.TelemetryOverride so that Start() enables
 	// harness telemetry env injection and cloud config merging.
 	srv, mgr := newTestServerWithProvisionCapture()
 
-	body := `{"resolvedEnv": {"SCION_TELEMETRY_ENABLED": "true"}}`
+	body := `{"resolvedEnv": {"FABRIC_TELEMETRY_ENABLED": "true"}}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/telemetry-agent/start", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -2932,11 +2932,11 @@ func TestStartAgentTelemetryOverrideFromResolvedEnv(t *testing.T) {
 }
 
 func TestStartAgentTelemetryOverrideDisabled(t *testing.T) {
-	// When resolvedEnv contains SCION_TELEMETRY_ENABLED=false, startAgent
+	// When resolvedEnv contains FABRIC_TELEMETRY_ENABLED=false, startAgent
 	// should set TelemetryOverride to false.
 	srv, mgr := newTestServerWithProvisionCapture()
 
-	body := `{"resolvedEnv": {"SCION_TELEMETRY_ENABLED": "false"}}`
+	body := `{"resolvedEnv": {"FABRIC_TELEMETRY_ENABLED": "false"}}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/telemetry-agent/start", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -2957,7 +2957,7 @@ func TestStartAgentTelemetryOverrideDisabled(t *testing.T) {
 	}
 }
 
-func TestCreateAgentProjectSlugInitializesScionDir(t *testing.T) {
+func TestCreateAgentProjectSlugInitializesFabricDir(t *testing.T) {
 	restore := config.OverrideRuntimeDetection(
 		func(file string) (string, error) { return "/usr/bin/" + file, nil },
 		func(binary string, args []string) error { return nil },
@@ -2967,9 +2967,9 @@ func TestCreateAgentProjectSlugInitializesScionDir(t *testing.T) {
 	restoreGit := config.OverrideIsGitRepo(func() bool { return true })
 	defer restoreGit()
 
-	// When ProjectSlug is set and the broker has no .scion subdirectory for
+	// When ProjectSlug is set and the broker has no .fabric subdirectory for
 	// the hub-managed project, the handler should create it so that
-	// ResolveProjectPath resolves to projects/<slug>/.scion (not projects/<slug>).
+	// ResolveProjectPath resolves to projects/<slug>/.fabric (not projects/<slug>).
 	// This prevents agents from being created at the wrong directory level.
 
 	// Use a temporary directory to simulate the project workspace.
@@ -2979,13 +2979,13 @@ func TestCreateAgentProjectSlugInitializesScionDir(t *testing.T) {
 		t.Fatalf("failed to create test project dir: %v", err)
 	}
 
-	// Verify .scion does NOT exist yet
-	scionDir := filepath.Join(projectPath, ".scion")
-	if _, err := os.Stat(scionDir); !os.IsNotExist(err) {
-		t.Fatal(".scion should not exist before initialization")
+	// Verify .fabric does NOT exist yet
+	fabricDir := filepath.Join(projectPath, ".fabric")
+	if _, err := os.Stat(fabricDir); !os.IsNotExist(err) {
+		t.Fatal(".fabric should not exist before initialization")
 	}
 
-	// Verify ResolveProjectPath does NOT resolve to .scion when it doesn't exist
+	// Verify ResolveProjectPath does NOT resolve to .fabric when it doesn't exist
 	resolved, _, err := config.ResolveProjectPath(projectPath)
 	if err != nil {
 		t.Fatalf("ResolveProjectPath failed: %v", err)
@@ -2994,23 +2994,23 @@ func TestCreateAgentProjectSlugInitializesScionDir(t *testing.T) {
 		t.Errorf("before init: expected ResolveProjectPath to return %q, got %q", projectPath, resolved)
 	}
 
-	// Initialize .scion (mirrors what the handler now does)
-	if err := config.InitProject(scionDir, nil); err != nil {
+	// Initialize .fabric (mirrors what the handler now does)
+	if err := config.InitProject(fabricDir, nil); err != nil {
 		t.Fatalf("InitProject failed: %v", err)
 	}
 
-	// Verify .scion was created
-	if info, err := os.Stat(scionDir); err != nil || !info.IsDir() {
-		t.Fatal(".scion directory should exist after InitProject")
+	// Verify .fabric was created
+	if info, err := os.Stat(fabricDir); err != nil || !info.IsDir() {
+		t.Fatal(".fabric directory should exist after InitProject")
 	}
 
-	// Verify ResolveProjectPath now resolves to the .scion subdirectory
+	// Verify ResolveProjectPath now resolves to the .fabric subdirectory
 	resolved, _, err = config.ResolveProjectPath(projectPath)
 	if err != nil {
 		t.Fatalf("ResolveProjectPath failed: %v", err)
 	}
-	if resolved != scionDir {
-		t.Errorf("after init: expected ResolveProjectPath to resolve to %q, got %q", scionDir, resolved)
+	if resolved != fabricDir {
+		t.Errorf("after init: expected ResolveProjectPath to resolve to %q, got %q", fabricDir, resolved)
 	}
 }
 
@@ -3023,16 +3023,16 @@ func TestDeleteProject_RemovesDirectory(t *testing.T) {
 
 	// Create a temporary projects directory structure
 	tmpHome := t.TempDir()
-	projectsDir := filepath.Join(tmpHome, ".scion", "projects")
+	projectsDir := filepath.Join(tmpHome, ".fabric", "projects")
 	projectDir := filepath.Join(projectsDir, "test-grove")
-	scionDir := filepath.Join(projectDir, ".scion")
+	fabricDir := filepath.Join(projectDir, ".fabric")
 
-	if err := os.MkdirAll(scionDir, 0o755); err != nil {
+	if err := os.MkdirAll(fabricDir, 0o755); err != nil {
 		t.Fatalf("failed to create test project dir: %v", err)
 	}
 
 	// Write a dummy file so we can verify deletion
-	dummyFile := filepath.Join(scionDir, "settings.yaml")
+	dummyFile := filepath.Join(fabricDir, "settings.yaml")
 	if err := os.WriteFile(dummyFile, []byte("test: true"), 0o644); err != nil {
 		t.Fatalf("failed to write dummy file: %v", err)
 	}
@@ -3059,7 +3059,7 @@ func TestDeleteProject_NonExistent_Returns204(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	// Create the projects parent but NOT the specific project directory
-	projectsDir := filepath.Join(tmpHome, ".scion", "projects")
+	projectsDir := filepath.Join(tmpHome, ".fabric", "projects")
 	if err := os.MkdirAll(projectsDir, 0o755); err != nil {
 		t.Fatalf("failed to create projects dir: %v", err)
 	}
@@ -3097,16 +3097,16 @@ func TestFindAgentInHubManagedProjects(t *testing.T) {
 
 	// Create hub-managed project structure with an agent directory
 	projectSlug := "my-project"
-	scionDir := filepath.Join(tmpHome, ".scion", "projects", projectSlug, ".scion")
-	agentDir := filepath.Join(scionDir, "agents", "test-agent")
+	fabricDir := filepath.Join(tmpHome, ".fabric", "projects", projectSlug, ".fabric")
+	agentDir := filepath.Join(fabricDir, "agents", "test-agent")
 	if err := os.MkdirAll(agentDir, 0o755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
 
 	// Should find the agent in the hub-managed project
 	result := findAgentInHubManagedProjects("test-agent")
-	if result != scionDir {
-		t.Errorf("expected %q, got %q", scionDir, result)
+	if result != fabricDir {
+		t.Errorf("expected %q, got %q", fabricDir, result)
 	}
 
 	// Should not find a non-existent agent
@@ -3142,14 +3142,14 @@ func TestDeleteAgent_HubManagedProject_NoContainer(t *testing.T) {
 
 	// Create hub-managed project with an agent directory and config file
 	projectSlug := "hub-grove"
-	scionDir := filepath.Join(tmpHome, ".scion", "projects", projectSlug, ".scion")
+	fabricDir := filepath.Join(tmpHome, ".fabric", "projects", projectSlug, ".fabric")
 	agentName := "orphaned-agent"
-	agentDir := filepath.Join(scionDir, "agents", agentName)
+	agentDir := filepath.Join(fabricDir, "agents", agentName)
 	if err := os.MkdirAll(agentDir, 0o755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	// Write a scion-agent.json so it looks like a real agent
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.json"), []byte(`{}`), 0o644); err != nil {
+	// Write a fabric-agent.json so it looks like a real agent
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.json"), []byte(`{}`), 0o644); err != nil {
 		t.Fatalf("failed to write config: %v", err)
 	}
 
@@ -3168,8 +3168,8 @@ func TestDeleteAgent_HubManagedProject_NoContainer(t *testing.T) {
 	if mgr.deleteCalls != 1 {
 		t.Fatalf("expected 1 Delete call, got %d", mgr.deleteCalls)
 	}
-	if mgr.lastDeleteProjectPath != scionDir {
-		t.Errorf("expected projectPath %q, got %q", scionDir, mgr.lastDeleteProjectPath)
+	if mgr.lastDeleteProjectPath != fabricDir {
+		t.Errorf("expected projectPath %q, got %q", fabricDir, mgr.lastDeleteProjectPath)
 	}
 	if mgr.lastDeleteAgentID != agentName {
 		t.Errorf("expected agentID %q, got %q", agentName, mgr.lastDeleteAgentID)
@@ -3210,14 +3210,14 @@ func TestIsLocalhostEndpoint(t *testing.T) {
 func TestCreateAgentStartFailure_CleansUpFiles(t *testing.T) {
 	// Create a temp directory to act as the project path with agent files
 	tmpDir := t.TempDir()
-	projectPath := filepath.Join(tmpDir, ".scion")
+	projectPath := filepath.Join(tmpDir, ".fabric")
 	agentDir := filepath.Join(projectPath, "agents", "fail-agent")
 	if err := os.MkdirAll(agentDir, 0755); err != nil {
 		t.Fatalf("failed to create agent dir: %v", err)
 	}
-	// Write a scion-agent.yaml so the agent is discoverable
-	if err := os.WriteFile(filepath.Join(agentDir, "scion-agent.yaml"), []byte("harness: gemini\n"), 0644); err != nil {
-		t.Fatalf("failed to write scion-agent.yaml: %v", err)
+	// Write a fabric-agent.yaml so the agent is discoverable
+	if err := os.WriteFile(filepath.Join(agentDir, "fabric-agent.yaml"), []byte("harness: gemini\n"), 0644); err != nil {
+		t.Fatalf("failed to write fabric-agent.yaml: %v", err)
 	}
 
 	cfg := DefaultServerConfig()

@@ -45,13 +45,13 @@ if output=$(try_merge); then
     echo "$output"
     echo "Merge successful!"
     echo "Stopping agent '$AGENT_NAME'..."
-    scion stop "$AGENT_NAME"
+    fabric stop "$AGENT_NAME"
     exit 0
 fi
 
 # Merge failed - send rebase message and start retry loop
 echo "Merge failed, sending rebase request to agent..."
-scion message "$AGENT_NAME" 'please rebase on main'
+fabric message "$AGENT_NAME" 'please rebase on main'
 
 for i in $(seq 1 $MAX_RETRIES); do
     echo "Waiting ${WAIT_SECONDS} seconds before retry $i of $MAX_RETRIES..."
@@ -62,7 +62,7 @@ for i in $(seq 1 $MAX_RETRIES); do
         echo "$output"
         echo "Merge successful!"
         echo "Stopping agent '$AGENT_NAME'..."
-        scion stop "$AGENT_NAME"
+        fabric stop "$AGENT_NAME"
         exit 0
     fi
 

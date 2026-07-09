@@ -12,4 +12,4 @@ Today's updates introduce significant improvements to the file browsing experien
 ## 🐛 Fixes
 * **Harness Image List:** Included `opencode` and `codex` in the default `pull-images` harness list. (Commit: `e256b999`)
 * **Web UI - SA Verification:** Added a note regarding IAM propagation delay to the Service Account verification dialog to improve user clarity. (Commit: `03be867f`)
-* **Sciontool Provisioning:** Resolved a `HOME` directory mismatch during container-script harness provisioning. (Commit: `600f75d7`)
+* **Fabrictool Provisioning:** Resolved a `HOME` directory mismatch during container-script harness provisioning. (Commit: `600f75d7`)

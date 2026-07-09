@@ -46,8 +46,8 @@ interface ListResponse {
   serverTime?: string;
 }
 
-@customElement('scion-scheduled-event-list')
-export class ScionScheduledEventList extends LitElement {
+@customElement('fabric-scheduled-event-list')
+export class FabricScheduledEventList extends LitElement {
   @property() projectId = '';
   @property({ type: Boolean }) compact = false;
 
@@ -498,6 +498,6 @@ export class ScionScheduledEventList extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-scheduled-event-list': ScionScheduledEventList;
+    'fabric-scheduled-event-list': FabricScheduledEventList;
   }
 }

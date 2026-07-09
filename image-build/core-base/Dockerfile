@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Core Base Image - Foundation tools only (Go, Git, unix tools, GCS fuse)
-# No scion-specific tooling or user setup
+# No fabric-specific tooling or user setup
 
 # Bun runtime source
 FROM oven/bun:latest AS bun-source
@@ -173,5 +173,5 @@ RUN npm install -g chrome-devtools-mcp
 # Install playwright CLI
 RUN npm install -g @playwright/cli@latest
 
-# Default to bash - no scion-specific entrypoint
+# Default to bash - no fabric-specific entrypoint
 CMD ["bash"]

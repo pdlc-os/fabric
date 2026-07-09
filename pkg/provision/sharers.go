@@ -31,7 +31,7 @@ type sharerMarker struct {
 	Sharers      []string `json:"sharers"`
 }
 
-const sharerDir = "scion-sharers"
+const sharerDir = "fabric-sharers"
 
 // sharerPath returns the marker file path for a branch under the base repo.
 func sharerPath(base, branch string) string {

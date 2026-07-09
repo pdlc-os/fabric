@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // lastSeenRecorder is a minimal store stub that records UpdateUserLastSeen calls.

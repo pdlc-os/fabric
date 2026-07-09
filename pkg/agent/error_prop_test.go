@@ -25,14 +25,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 func TestStart_ErrorPropagation_Tmux(t *testing.T) {
 	// Create a temporary project directory
-	tmpDir, err := os.MkdirTemp("", "scion-test-project")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-project")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -42,8 +42,8 @@ func TestStart_ErrorPropagation_Tmux(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	// Setup global templates (needed by GetAgent)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	if err := os.MkdirAll(globalTemplatesDir, 0755); err != nil {
 		t.Fatalf("failed to create global templates dir: %v", err)
 	}
@@ -54,19 +54,19 @@ func TestStart_ErrorPropagation_Tmux(t *testing.T) {
 		t.Fatalf("failed to create gemini template dir: %v", err)
 	}
 	tplConfig := `{"default_harness_config": "generic"}`
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644); err != nil {
 		t.Fatalf("failed to write template config: %v", err)
 	}
 
 	// Create harness-config for "generic"
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
 
-	// Create .scion/settings.json with tmux enabled for "mock" runtime
+	// Create .fabric/settings.json with tmux enabled for "mock" runtime
 	// We put this in the project dir
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
-		t.Fatalf("failed to create project .scion dir: %v", err)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create project .fabric dir: %v", err)
 	}
 
 	settingsJSON := `
@@ -83,7 +83,7 @@ func TestStart_ErrorPropagation_Tmux(t *testing.T) {
   }
 }
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
 		t.Fatalf("failed to write settings.json: %v", err)
 	}
 
@@ -114,7 +114,7 @@ func TestStart_ErrorPropagation_Tmux(t *testing.T) {
 	// Run Start
 	opts := api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		Profile:     "test",
 		Task:        "do something",
 		Template:    "gemini",
@@ -141,7 +141,7 @@ func TestStart_ErrorPropagation_Tmux(t *testing.T) {
 
 func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
 	// Create a temporary project directory
-	tmpDir, err := os.MkdirTemp("", "scion-test-project-missing")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-project-missing")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -151,8 +151,8 @@ func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	// Setup global templates (needed by GetAgent)
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	if err := os.MkdirAll(globalTemplatesDir, 0755); err != nil {
 		t.Fatalf("failed to create global templates dir: %v", err)
 	}
@@ -163,18 +163,18 @@ func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
 		t.Fatalf("failed to create gemini template dir: %v", err)
 	}
 	tplConfig := `{"default_harness_config": "generic"}`
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644); err != nil {
 		t.Fatalf("failed to write template config: %v", err)
 	}
 
 	// Create harness-config for "generic"
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
 
-	// Create .scion/settings.json for "mock" runtime
+	// Create .fabric/settings.json for "mock" runtime
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
-		t.Fatalf("failed to create project .scion dir: %v", err)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create project .fabric dir: %v", err)
 	}
 
 	settingsJSON := `
@@ -189,7 +189,7 @@ func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
   }
 }
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
 		t.Fatalf("failed to write settings.json: %v", err)
 	}
 
@@ -218,7 +218,7 @@ func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
 	// Run Start
 	opts := api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		Profile:     "test",
 		Task:        "do something",
 		Template:    "gemini",
@@ -240,7 +240,7 @@ func TestStart_ErrorPropagation_Tmux_Missing(t *testing.T) {
 }
 
 func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "scion-test-run-failure")
+	tmpDir, err := os.MkdirTemp("", "fabric-test-run-failure")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -248,8 +248,8 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
 
 	t.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	if err := os.MkdirAll(globalTemplatesDir, 0755); err != nil {
 		t.Fatalf("failed to create global templates dir: %v", err)
 	}
@@ -259,16 +259,16 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
 		t.Fatalf("failed to create gemini template dir: %v", err)
 	}
 	tplConfig := `{"default_harness_config": "generic"}`
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644); err != nil {
 		t.Fatalf("failed to write template config: %v", err)
 	}
 
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
 
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
-		t.Fatalf("failed to create project .scion dir: %v", err)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create project .fabric dir: %v", err)
 	}
 
 	settingsJSON := `
@@ -283,7 +283,7 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
   }
 }
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
 		t.Fatalf("failed to write settings.json: %v", err)
 	}
 
@@ -303,7 +303,7 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
 
 	_, err = manager.Start(context.Background(), api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		Profile:     "test",
 		Task:        "do something",
 		Template:    "gemini",
@@ -312,7 +312,7 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	agentInfoPath := filepath.Join(config.GetAgentHomePath(projectScionDir, "test-agent"), "agent-info.json")
+	agentInfoPath := filepath.Join(config.GetAgentHomePath(projectFabricDir, "test-agent"), "agent-info.json")
 	data, err := os.ReadFile(agentInfoPath)
 	if err != nil {
 		t.Fatalf("failed to read agent-info.json: %v", err)
@@ -333,7 +333,7 @@ func TestStart_RunFailureMarksAgentInfoError(t *testing.T) {
 
 func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
 	// Create a temporary project directory
-	tmpDir, err := os.MkdirTemp("", "scion-repro-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-repro-test")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -343,8 +343,8 @@ func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	// Setup global templates
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	if err := os.MkdirAll(globalTemplatesDir, 0755); err != nil {
 		t.Fatalf("failed to create global templates dir: %v", err)
 	}
@@ -355,18 +355,18 @@ func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
 		t.Fatalf("failed to create gemini template dir: %v", err)
 	}
 	tplConfig := `{"default_harness_config": "generic"}`
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644); err != nil {
 		t.Fatalf("failed to write template config: %v", err)
 	}
 
 	// Create harness-config for "generic"
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
 
 	// Create project structure
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
-		t.Fatalf("failed to create project .scion dir: %v", err)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create project .fabric dir: %v", err)
 	}
 
 	// Create settings.json with tmux enabled
@@ -384,7 +384,7 @@ func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
   }
 }
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
 		t.Fatalf("failed to write settings.json: %v", err)
 	}
 
@@ -412,7 +412,7 @@ func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
 
 	opts := api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		Profile:     "test",
 		Task:        "do something",
 		Template:    "gemini",
@@ -432,7 +432,7 @@ func TestStart_ErrorPropagation_FalsePositive_Tmux(t *testing.T) {
 
 func TestStart_ErrorPropagation_Tmux_CommandNotFound(t *testing.T) {
 	// Create a temporary project directory
-	tmpDir, err := os.MkdirTemp("", "scion-repro-test-missing")
+	tmpDir, err := os.MkdirTemp("", "fabric-repro-test-missing")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
@@ -442,8 +442,8 @@ func TestStart_ErrorPropagation_Tmux_CommandNotFound(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	// Setup global templates
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	globalTemplatesDir := filepath.Join(globalScionDir, "templates")
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	globalTemplatesDir := filepath.Join(globalFabricDir, "templates")
 	if err := os.MkdirAll(globalTemplatesDir, 0755); err != nil {
 		t.Fatalf("failed to create global templates dir: %v", err)
 	}
@@ -454,18 +454,18 @@ func TestStart_ErrorPropagation_Tmux_CommandNotFound(t *testing.T) {
 		t.Fatalf("failed to create gemini template dir: %v", err)
 	}
 	tplConfig := `{"default_harness_config": "generic"}`
-	if err := os.WriteFile(filepath.Join(tplDir, "scion-agent.json"), []byte(tplConfig), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(tplDir, "fabric-agent.json"), []byte(tplConfig), 0644); err != nil {
 		t.Fatalf("failed to write template config: %v", err)
 	}
 
 	// Create harness-config for "generic"
-	seedTestHarnessConfig(t, globalScionDir, "generic", "generic")
+	seedTestHarnessConfig(t, globalFabricDir, "generic", "generic")
 
 	// Create project structure
 	projectDir := filepath.Join(tmpDir, "project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
-		t.Fatalf("failed to create project .scion dir: %v", err)
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create project .fabric dir: %v", err)
 	}
 
 	// Create settings.json with tmux enabled
@@ -483,7 +483,7 @@ func TestStart_ErrorPropagation_Tmux_CommandNotFound(t *testing.T) {
   }
 }
 `
-	if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"), []byte(settingsJSON), 0644); err != nil {
 		t.Fatalf("failed to write settings.json: %v", err)
 	}
 
@@ -508,7 +508,7 @@ func TestStart_ErrorPropagation_Tmux_CommandNotFound(t *testing.T) {
 
 	opts := api.StartOptions{
 		Name:        "test-agent",
-		ProjectPath: projectScionDir,
+		ProjectPath: projectFabricDir,
 		Profile:     "test",
 		Task:        "do something",
 		Template:    "gemini",

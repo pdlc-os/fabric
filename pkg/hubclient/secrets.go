@@ -18,7 +18,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // SecretService handles secret operations.

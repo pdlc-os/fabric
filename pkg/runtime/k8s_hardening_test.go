@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -140,7 +140,7 @@ func TestBuildPod_SecurityContext_FSGroup(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := rt.buildPod("default", config)
@@ -177,7 +177,7 @@ func TestBuildPod_ContainerSecurityContextRestrictedDefaults(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := rt.buildPod("default", config)
@@ -209,7 +209,7 @@ func TestBuildPod_NodeSelector(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Kubernetes: &api.KubernetesConfig{
 			NodeSelector: map[string]string{
 				"gpu":  "true",
@@ -237,7 +237,7 @@ func TestBuildPod_Tolerations(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Kubernetes: &api.KubernetesConfig{
 			Tolerations: []api.K8sToleration{
 				{
@@ -275,7 +275,7 @@ func TestBuildPod_RuntimeClassName(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Kubernetes: &api.KubernetesConfig{
 			RuntimeClassName: "gvisor",
 		},
@@ -300,7 +300,7 @@ func TestBuildPod_EphemeralStorageLimits(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Resources: &api.ResourceSpec{
 			Disk: "10Gi",
 		},
@@ -399,7 +399,7 @@ func TestBuildPod_ImagePullPolicy(t *testing.T) {
 			config := RunConfig{
 				Name:         "test-agent",
 				Image:        "test:latest",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 			}
 			if tt.policy != "" {
 				config.Kubernetes = &api.KubernetesConfig{
@@ -423,7 +423,7 @@ func TestBuildPod_ImagePullPolicy_Invalid(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Kubernetes: &api.KubernetesConfig{
 			ImagePullPolicy: "InvalidPolicy",
 		},
@@ -470,9 +470,9 @@ func TestList_AllNamespaces(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("agent-%s", ns),
 				Namespace: ns,
-				Labels:    map[string]string{"scion.name": fmt.Sprintf("agent-%s", ns)},
+				Labels:    map[string]string{"fabric.name": fmt.Sprintf("agent-%s", ns)},
 				Annotations: map[string]string{
-					"scion.namespace": ns,
+					"fabric.namespace": ns,
 				},
 			},
 			Status: corev1.PodStatus{Phase: corev1.PodRunning},
@@ -521,7 +521,7 @@ func TestList_SingleNamespace(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      fmt.Sprintf("agent-%s", ns),
 				Namespace: ns,
-				Labels:    map[string]string{"scion.name": fmt.Sprintf("agent-%s", ns)},
+				Labels:    map[string]string{"fabric.name": fmt.Sprintf("agent-%s", ns)},
 			},
 			Status: corev1.PodStatus{Phase: corev1.PodRunning},
 			Spec:   corev1.PodSpec{Containers: []corev1.Container{{Image: "test:latest"}}},
@@ -554,9 +554,9 @@ func TestResolveNamespace_FromAnnotation(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-agent",
 			Namespace: "default",
-			Labels:    map[string]string{"scion.name": "test-agent"},
+			Labels:    map[string]string{"fabric.name": "test-agent"},
 			Annotations: map[string]string{
-				"scion.namespace": "production",
+				"fabric.namespace": "production",
 			},
 		},
 		Status: corev1.PodStatus{Phase: corev1.PodRunning},
@@ -583,7 +583,7 @@ func TestResolveNamespace_Default(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-agent",
 			Namespace: "default",
-			Labels:    map[string]string{"scion.name": "test-agent"},
+			Labels:    map[string]string{"fabric.name": "test-agent"},
 		},
 		Status: corev1.PodStatus{Phase: corev1.PodRunning},
 		Spec:   corev1.PodSpec{Containers: []corev1.Container{{Image: "test:latest"}}},
@@ -609,7 +609,7 @@ func TestDelete_NamespaceSlashFormat(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-agent",
 			Namespace: "production",
-			Labels:    map[string]string{"scion.name": "test-agent"},
+			Labels:    map[string]string{"fabric.name": "test-agent"},
 		},
 		Status: corev1.PodStatus{Phase: corev1.PodRunning},
 		Spec:   corev1.PodSpec{Containers: []corev1.Container{{Image: "test:latest"}}},
@@ -640,9 +640,9 @@ func TestNamespaceAnnotation_Persisted(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.namespace": "custom-ns",
+			"fabric.namespace": "custom-ns",
 		},
 	}
 
@@ -650,7 +650,7 @@ func TestNamespaceAnnotation_Persisted(t *testing.T) {
 	// that annotations flow through. The namespace annotation is set in Run()
 	// before buildPod, so we simulate it here.
 	config.Annotations = map[string]string{
-		"scion.namespace": "custom-ns",
+		"fabric.namespace": "custom-ns",
 	}
 
 	pod, err := rt.buildPod("custom-ns", config)
@@ -658,8 +658,8 @@ func TestNamespaceAnnotation_Persisted(t *testing.T) {
 		t.Fatalf("buildPod failed: %v", err)
 	}
 
-	if pod.Annotations["scion.namespace"] != "custom-ns" {
-		t.Errorf("expected scion.namespace annotation 'custom-ns', got %s", pod.Annotations["scion.namespace"])
+	if pod.Annotations["fabric.namespace"] != "custom-ns" {
+		t.Errorf("expected fabric.namespace annotation 'custom-ns', got %s", pod.Annotations["fabric.namespace"])
 	}
 }
 
@@ -670,7 +670,7 @@ func TestBuildPod_FullConfig_Stage2(t *testing.T) {
 	config := RunConfig{
 		Name:             "full-test",
 		Image:            "gcr.io/test/image:v1",
-		UnixUsername:     "scion",
+		UnixUsername:     "fabric",
 		Harness:          &EnvHarness{},
 		TelemetryEnabled: true,
 		Resources: &api.ResourceSpec{
@@ -766,7 +766,7 @@ func TestBuildPod_ReturnsError(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-agent",
 		Image:        "test:latest",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := rt.buildPod("default", config)

@@ -3,10 +3,10 @@
 A milestone cleanup and expansion day: the entire builtin harness system was deleted (-3486 lines), Slack landed as a full chat integration, the hub gained graceful SSE reconnect for Cloud Run, and Claude's provisioner received OAuth capture and Vertex AI fixes.
 
 ## 🚀 Features
-* **[Slack]:** Full Slack chat integration as a standalone plugin module — Events API and Socket Mode support, Block Kit formatting, slash command tree (`/scion setup, register, msg, agents, status`), ask-user modal flow, SQLite state store with WAL, hub API client with HMAC signing, per-user registration with code flow (#591).
+* **[Slack]:** Full Slack chat integration as a standalone plugin module — Events API and Socket Mode support, Block Kit formatting, slash command tree (`/fabric setup, register, msg, agents, status`), ask-user modal flow, SQLite state store with WAL, hub API client with HMAC signing, per-user registration with code flow (#591).
 * **[Slack]:** Slack integration management added to the chat admin UI (#599).
 * **[Hub]:** Auto no-auth fallback in pre-dispatch validation — when auth is `auto` and the harness supports `drop-to-shell`, the hub now accepts the agent without credentials instead of rejecting it for missing env vars (#595).
-* **[Hub]:** `SCION_IMAGE_REGISTRY` env var takes precedence over `settings.yaml` for image registry resolution (#594).
+* **[Hub]:** `FABRIC_IMAGE_REGISTRY` env var takes precedence over `settings.yaml` for image registry resolution (#594).
 
 ## 🐛 Fixes
 * **[Hub]:** Graceful SSE reconnect before Cloud Run's 3600s hard timeout — server sends a `reconnect` event at 3500s and closes cleanly so the client auto-reconnects per the SSE spec (#590).
@@ -25,4 +25,4 @@ A milestone cleanup and expansion day: the entire builtin harness system was del
 * **[Harness]:** Removed the entire dead builtin harness system — **-3486 lines**. All harnesses now use container-script provisioning (#600).
 
 ## 🔧 Chores
-* **[Deps]:** Bumped `golang.org/x/net` in scion-broker-log (#597).
+* **[Deps]:** Bumped `golang.org/x/net` in fabric-broker-log (#597).

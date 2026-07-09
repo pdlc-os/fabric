@@ -22,7 +22,7 @@ import (
 	osuser "os/user"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // DevUserID is the well-known UUID for the development pseudo-user.
@@ -125,12 +125,12 @@ func DevAuthMiddlewareWithDebug(validToken string, userCfg DevUserConfig, debug 
 				return
 			}
 
-			// Check for X-Scion-Agent-Token header - if present, skip dev auth
+			// Check for X-Fabric-Agent-Token header - if present, skip dev auth
 			// (the agent token middleware will have validated it or rejected it)
-			if r.Header.Get("X-Scion-Agent-Token") != "" {
+			if r.Header.Get("X-Fabric-Agent-Token") != "" {
 				// Agent token was present but not validated - reject
 				if debug {
-					slog.Debug("Auth failed: X-Scion-Agent-Token present but not validated")
+					slog.Debug("Auth failed: X-Fabric-Agent-Token present but not validated")
 				}
 				writeError(w, http.StatusUnauthorized, ErrCodeUnauthorized,
 					"invalid agent token", nil)

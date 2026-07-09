@@ -256,15 +256,15 @@ func TestPrintUsingHubWritesToStderr(t *testing.T) {
 func TestInteractiveOnlyCommands(t *testing.T) {
 	// Verify key interactive commands are in the map
 	expectedCommands := []string{
-		"scion attach",
-		"scion logs",
-		"scion runtime-broker start",
-		"scion runtime-broker stop",
-		"scion broker start",
-		"scion broker stop",
-		"scion server start",
-		"scion cdw",
-		"scion message",
+		"fabric attach",
+		"fabric logs",
+		"fabric runtime-broker start",
+		"fabric runtime-broker stop",
+		"fabric broker start",
+		"fabric broker stop",
+		"fabric server start",
+		"fabric cdw",
+		"fabric message",
 	}
 
 	for _, cmd := range expectedCommands {
@@ -275,14 +275,14 @@ func TestInteractiveOnlyCommands(t *testing.T) {
 
 	// Verify non-interactive commands are NOT in the map
 	nonInteractiveCmds := []string{
-		"scion list",
-		"scion version",
-		"scion config list",
-		"scion create",
-		"scion start",
-		"scion stop",
-		"scion delete",
-		"scion look",
+		"fabric list",
+		"fabric version",
+		"fabric config list",
+		"fabric create",
+		"fabric start",
+		"fabric stop",
+		"fabric delete",
+		"fabric look",
 	}
 
 	for _, cmd := range nonInteractiveCmds {
@@ -293,7 +293,7 @@ func TestInteractiveOnlyCommands(t *testing.T) {
 
 func TestJSONNoOpCommands(t *testing.T) {
 	// Verify expected commands are in the no-op map
-	assert.True(t, jsonNoOpCommands["scion look"], "scion look should be in jsonNoOpCommands")
+	assert.True(t, jsonNoOpCommands["fabric look"], "fabric look should be in jsonNoOpCommands")
 
 	// Verify no-op commands are not also in the interactive-only map
 	for cmd := range jsonNoOpCommands {

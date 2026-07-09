@@ -1,15 +1,15 @@
 # Workspace Skills
 
-Platform-level skill definitions that are auto-injected into every Scion agent during provisioning. These skills provide the foundational knowledge every agent needs to operate within the Scion ecosystem.
+Platform-level skill definitions that are auto-injected into every Fabric agent during provisioning. These skills provide the foundational knowledge every agent needs to operate within the Fabric ecosystem.
 
 ## Skills
 
 | Skill | Description | Injection |
 |---|---|---|
-| `scion/` | Scion CLI reference — agent management, templates, configuration commands | Unconditional |
+| `fabric/` | Fabric CLI reference — agent management, templates, configuration commands | Unconditional |
 | `team-creation/` | Team template creation and extension guide | Unconditional |
-| `scion-cli-operations/` | Operational constraints — non-interactive mode, prohibited commands, hub-only access, message format | Unconditional |
-| `scion-messaging/` | Messaging patterns — recipient types, timing, flags, coordination patterns | Unconditional |
+| `fabric-cli-operations/` | Operational constraints — non-interactive mode, prohibited commands, hub-only access, message format | Unconditional |
+| `fabric-messaging/` | Messaging patterns — recipient types, timing, flags, coordination patterns | Unconditional |
 | `agent-status-signals/` | Status signaling protocol — ask_user, blocked, task_completed | Unconditional |
 | `git-sandbox/` | Git workflow protocol for sandbox/worktree environments — local-only ops, conflict resolution | Conditional: `git_workspace` only |
 

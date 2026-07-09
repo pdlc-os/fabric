@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -36,7 +36,7 @@ func (p ProjectOption) DisplayName() string {
 	return p.ID
 }
 
-// HubClient provides access to the Scion hub API for project and agent listing.
+// HubClient provides access to the Fabric hub API for project and agent listing.
 type HubClient interface {
 	ListProjects(ctx context.Context) ([]ProjectOption, error)
 	ListProjectsFresh(ctx context.Context) ([]ProjectOption, error)
@@ -74,16 +74,16 @@ func NewCommandHandler(store Store, session *discordgo.Session, hubClient HubCli
 	}
 }
 
-// RegisterCommands registers the /scion command and its subcommands with Discord.
+// RegisterCommands registers the /fabric command and its subcommands with Discord.
 func (h *CommandHandler) RegisterCommands() error {
 	cmd := &discordgo.ApplicationCommand{
-		Name:        "scion",
-		Description: "Scion agent management",
+		Name:        "fabric",
+		Description: "Fabric agent management",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "setup",
-				Description: "Link this channel to a Scion project",
+				Description: "Link this channel to a Fabric project",
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -171,12 +171,12 @@ func (h *CommandHandler) RegisterCommands() error {
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "register",
-				Description: "Link your Discord account to Scion Hub",
+				Description: "Link your Discord account to Fabric Hub",
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 				Name:        "unregister",
-				Description: "Unlink your Discord account from Scion Hub",
+				Description: "Unlink your Discord account from Fabric Hub",
 			},
 			{
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -198,10 +198,10 @@ func (h *CommandHandler) RegisterCommands() error {
 
 	_, err := h.session.ApplicationCommandCreate(h.appID, h.guildID, cmd)
 	if err != nil {
-		return fmt.Errorf("registering /scion command: %w", err)
+		return fmt.Errorf("registering /fabric command: %w", err)
 	}
 
-	h.log.Info("Registered /scion slash command", "app_id", h.appID, "guild_id", h.guildID)
+	h.log.Info("Registered /fabric slash command", "app_id", h.appID, "guild_id", h.guildID)
 	return nil
 }
 
@@ -233,7 +233,7 @@ func ephemeralFlag(i *discordgo.InteractionCreate) discordgo.MessageFlags {
 // calls respond immediately; others defer and process asynchronously.
 func (h *CommandHandler) HandleSlashCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
-	if data.Name != "scion" || len(data.Options) == 0 {
+	if data.Name != "fabric" || len(data.Options) == 0 {
 		return
 	}
 
@@ -356,21 +356,21 @@ func (h *CommandHandler) HandleAutocomplete(s *discordgo.Session, i *discordgo.I
 
 // helpText returns the help message listing available commands.
 func helpText() string {
-	return "**Scion Bot Commands**\n\n" +
-		"`/scion setup` — Link this channel to a Scion project\n" +
-		"`/scion unlink` — Unlink this channel from its project\n" +
-		"`/scion agents` — List agents in the linked project\n" +
-		"`/scion status <agent>` — Show agent status\n" +
-		"`/scion start <agent>` — Start an agent\n" +
-		"`/scion stop <agent>` — Stop an agent\n" +
-		"`/scion msg <agent> <text>` — Send a message to an agent\n" +
-		"`/scion logs <agent>` — View agent logs\n" +
-		"`/scion default` — Set or clear the default agent\n" +
-		"`/scion register` — Link your Discord account to Scion Hub\n" +
-		"`/scion unregister` — Unlink your Discord account\n" +
-		"`/scion settings` — Configure channel notification settings\n" +
-		"`/scion info` — Show your registration info\n" +
-		"`/scion help` — Show this help message\n\n" +
+	return "**Fabric Bot Commands**\n\n" +
+		"`/fabric setup` — Link this channel to a Fabric project\n" +
+		"`/fabric unlink` — Unlink this channel from its project\n" +
+		"`/fabric agents` — List agents in the linked project\n" +
+		"`/fabric status <agent>` — Show agent status\n" +
+		"`/fabric start <agent>` — Start an agent\n" +
+		"`/fabric stop <agent>` — Stop an agent\n" +
+		"`/fabric msg <agent> <text>` — Send a message to an agent\n" +
+		"`/fabric logs <agent>` — View agent logs\n" +
+		"`/fabric default` — Set or clear the default agent\n" +
+		"`/fabric register` — Link your Discord account to Fabric Hub\n" +
+		"`/fabric unregister` — Unlink your Discord account\n" +
+		"`/fabric settings` — Configure channel notification settings\n" +
+		"`/fabric info` — Show your registration info\n" +
+		"`/fabric help` — Show this help message\n\n" +
 		"Mention the bot or an agent by name in a linked channel to send messages."
 }
 
@@ -430,7 +430,7 @@ func (h *CommandHandler) HandleSetup(s *discordgo.Session, i *discordgo.Interact
 		return
 	}
 	if mapping == nil {
-		h.followup(s, i, "Please link your Discord account first with `/scion register`.")
+		h.followup(s, i, "Please link your Discord account first with `/fabric register`.")
 		return
 	}
 
@@ -443,7 +443,7 @@ func (h *CommandHandler) HandleSetup(s *discordgo.Session, i *discordgo.Interact
 	}
 	if link != nil {
 		h.followup(s, i, fmt.Sprintf(
-			"This channel is already linked to project **%s**.\nUse `/scion unlink` first to change it.",
+			"This channel is already linked to project **%s**.\nUse `/fabric unlink` first to change it.",
 			link.ProjectSlug,
 		))
 		return
@@ -451,10 +451,10 @@ func (h *CommandHandler) HandleSetup(s *discordgo.Session, i *discordgo.Interact
 
 	// Get user's projects.
 	var projects []ProjectOption
-	if mapping.ScionUserID != "" {
-		projects, err = h.hubClient.ListProjectsForUser(ctx, mapping.ScionUserID)
+	if mapping.FabricUserID != "" {
+		projects, err = h.hubClient.ListProjectsForUser(ctx, mapping.FabricUserID)
 		if err != nil {
-			h.log.Warn("Failed to list user projects", "error", err, "user_id", mapping.ScionUserID)
+			h.log.Warn("Failed to list user projects", "error", err, "user_id", mapping.FabricUserID)
 		}
 	}
 
@@ -544,7 +544,7 @@ func (h *CommandHandler) HandleAgents(s *discordgo.Session, i *discordgo.Interac
 		return
 	}
 	if link == nil {
-		h.followup(s, i, "This channel is not linked to a project. Use `/scion setup` first.")
+		h.followup(s, i, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -597,14 +597,14 @@ func (h *CommandHandler) HandleInfo(s *discordgo.Session, i *discordgo.Interacti
 	var sb strings.Builder
 	if mapping == nil {
 		sb.WriteString("**Registration:** Not registered\n")
-		sb.WriteString("Use `/scion register` to link your Discord account to Scion Hub.")
+		sb.WriteString("Use `/fabric register` to link your Discord account to Fabric Hub.")
 	} else {
 		sb.WriteString("**Registration:** Linked\n")
-		if mapping.ScionEmail != "" {
-			sb.WriteString(fmt.Sprintf("**Email:** %s\n", mapping.ScionEmail))
+		if mapping.FabricEmail != "" {
+			sb.WriteString(fmt.Sprintf("**Email:** %s\n", mapping.FabricEmail))
 		}
-		if mapping.ScionUserID != "" {
-			sb.WriteString(fmt.Sprintf("**User ID:** %s\n", mapping.ScionUserID))
+		if mapping.FabricUserID != "" {
+			sb.WriteString(fmt.Sprintf("**User ID:** %s\n", mapping.FabricUserID))
 		}
 		sb.WriteString(fmt.Sprintf("**Linked at:** %s\n", mapping.LinkedAt.UTC().Format(time.RFC3339)))
 	}
@@ -636,7 +636,7 @@ func (h *CommandHandler) HandleStatus(s *discordgo.Session, i *discordgo.Interac
 
 	link, err := h.store.GetChannelLink(ctx, i.ChannelID)
 	if err != nil || link == nil {
-		h.followup(s, i, "This channel is not linked to a project. Use `/scion setup` first.")
+		h.followup(s, i, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -700,7 +700,7 @@ func (h *CommandHandler) HandleMessage(s *discordgo.Session, i *discordgo.Intera
 		}
 	}
 	if err != nil || link == nil {
-		h.followup(s, i, "This channel is not linked to a project. Use `/scion setup` first.")
+		h.followup(s, i, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -712,12 +712,12 @@ func (h *CommandHandler) HandleMessage(s *discordgo.Session, i *discordgo.Intera
 
 	mapping, err := h.store.GetUserMapping(ctx, discordUserID)
 	if err != nil || mapping == nil {
-		h.followup(s, i, "Please link your Discord account first with `/scion register`.")
+		h.followup(s, i, "Please link your Discord account first with `/fabric register`.")
 		return
 	}
 
-	sender := "user:" + mapping.ScionEmail
-	if mapping.ScionEmail == "" {
+	sender := "user:" + mapping.FabricEmail
+	if mapping.FabricEmail == "" {
 		sender = "discord:" + mapping.DiscordUsername
 	}
 
@@ -735,7 +735,7 @@ func (h *CommandHandler) HandleMessage(s *discordgo.Session, i *discordgo.Intera
 		}
 	}
 	if !found {
-		h.followup(s, i, fmt.Sprintf("Agent **%s** not found in this project. Use `/scion agents` to see available agents.", agentSlug))
+		h.followup(s, i, fmt.Sprintf("Agent **%s** not found in this project. Use `/fabric agents` to see available agents.", agentSlug))
 		return
 	}
 
@@ -807,7 +807,7 @@ func (h *CommandHandler) HandleDefault(s *discordgo.Session, i *discordgo.Intera
 		return
 	}
 	if link == nil {
-		h.followup(s, i, "This channel is not linked to a project. Use `/scion setup` first.")
+		h.followup(s, i, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 
@@ -878,7 +878,7 @@ func (h *CommandHandler) HandleSettings(s *discordgo.Session, i *discordgo.Inter
 		return
 	}
 	if link == nil {
-		h.followup(s, i, "This channel is not linked to a project. Use `/scion setup` first.")
+		h.followup(s, i, "This channel is not linked to a project. Use `/fabric setup` first.")
 		return
 	}
 

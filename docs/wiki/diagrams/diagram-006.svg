@@ -24,11 +24,11 @@
 </style>
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 423.5)">
 <title>G</title>
-<!-- Scion CLI -->
+<!-- Fabric CLI -->
 <g id="node1" class="node">
-<title>Scion CLI</title>
+<title>Fabric CLI</title>
 <polygon fill="lightblue" stroke="black" points="329.75,-402 201.25,-402 201.25,-366 329.75,-366 329.75,-402"/>
-<text xml:space="preserve" text-anchor="middle" x="265.5" y="-385" font-family="Sans-serif" font-size="10.00">Scion CLI/</text>
+<text xml:space="preserve" text-anchor="middle" x="265.5" y="-385" font-family="Sans-serif" font-size="10.00">Fabric CLI/</text>
 <text xml:space="preserve" text-anchor="middle" x="265.5" y="-374.5" font-family="Sans-serif" font-size="10.00">Daemon Launcher</text>
 </g>
 <!-- Hub Credential Store -->
@@ -38,9 +38,9 @@
 <text xml:space="preserve" text-anchor="middle" x="90.5" y="-200" font-family="Sans-serif" font-size="10.00">Hub Credential Store</text>
 <text xml:space="preserve" text-anchor="middle" x="90.5" y="-189.5" font-family="Sans-serif" font-size="10.00">(credentials.json)</text>
 </g>
-<!-- Scion CLI&#45;&gt;Hub Credential Store -->
+<!-- Fabric CLI&#45;&gt;Hub Credential Store -->
 <g id="edge1" class="edge">
-<title>Scion CLI&#45;&gt;Hub Credential Store</title>
+<title>Fabric CLI&#45;&gt;Hub Credential Store</title>
 <path fill="none" stroke="#333333" d="M242.47,-365.67C222.49,-350.13 193.26,-326.2 170.5,-302.5 147.31,-278.36 124.14,-247.79 108.75,-226.35"/>
 <polygon fill="#333333" stroke="#333333" points="111.77,-224.55 103.13,-218.42 106.07,-228.6 111.77,-224.55"/>
 <text xml:space="preserve" text-anchor="middle" x="215.5" y="-293.95" font-family="Sans-serif" font-size="9.00">Loads/Stores</text>
@@ -53,9 +53,9 @@
 <text xml:space="preserve" text-anchor="middle" x="285.5" y="-200" font-family="Sans-serif" font-size="10.00">Broker Credential Store</text>
 <text xml:space="preserve" text-anchor="middle" x="285.5" y="-189.5" font-family="Sans-serif" font-size="10.00">(multi&#45;file)</text>
 </g>
-<!-- Scion CLI&#45;&gt;Broker Credential Store -->
+<!-- Fabric CLI&#45;&gt;Broker Credential Store -->
 <g id="edge2" class="edge">
-<title>Scion CLI&#45;&gt;Broker Credential Store</title>
+<title>Fabric CLI&#45;&gt;Broker Credential Store</title>
 <path fill="none" stroke="#333333" d="M264.52,-365.68C263.64,-345.42 262.97,-310.89 266.5,-281.5 268.65,-263.57 273.19,-243.83 277.3,-228.28"/>
 <polygon fill="#333333" stroke="#333333" points="280.64,-229.32 279.9,-218.75 273.89,-227.47 280.64,-229.32"/>
 <text xml:space="preserve" text-anchor="middle" x="334" y="-293.95" font-family="Sans-serif" font-size="9.00">Manages</text>
@@ -68,9 +68,9 @@
 <text xml:space="preserve" text-anchor="middle" x="351.5" y="-37" font-family="Sans-serif" font-size="10.00">Daemon Files</text>
 <text xml:space="preserve" text-anchor="middle" x="351.5" y="-26.5" font-family="Sans-serif" font-size="10.00">(PID, Log, Args)</text>
 </g>
-<!-- Scion CLI&#45;&gt;Daemon Files -->
+<!-- Fabric CLI&#45;&gt;Daemon Files -->
 <g id="edge3" class="edge">
-<title>Scion CLI&#45;&gt;Daemon Files</title>
+<title>Fabric CLI&#45;&gt;Daemon Files</title>
 <path fill="none" stroke="#333333" d="M320.45,-365.63C350.11,-353.13 384.11,-333.01 401.5,-302.5 443.27,-229.24 425.75,-193.52 401.5,-112.75 396.09,-94.72 384.84,-77.03 374.38,-63.28"/>
 <polygon fill="#333333" stroke="#333333" points="377.26,-61.27 368.29,-55.62 371.78,-65.63 377.26,-61.27"/>
 <text xml:space="preserve" text-anchor="middle" x="471.58" y="-200.95" font-family="Sans-serif" font-size="9.00">Manages</text>

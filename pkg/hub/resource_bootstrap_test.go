@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 func TestBootstrapBundledResources_EmptyDB(t *testing.T) {
@@ -202,7 +202,7 @@ func TestBootstrapBundledResources_NoLocalDirRequired(t *testing.T) {
 	ctx := context.Background()
 
 	// BootstrapBundledResources reads from the embedded FS, not from
-	// ~/.scion/templates/default. This test verifies it succeeds even
+	// ~/.fabric/templates/default. This test verifies it succeeds even
 	// when no local template directory exists (which is always the case
 	// in the test environment).
 	err := srv.BootstrapBundledResources(ctx, BootstrapOptions{
@@ -254,7 +254,7 @@ func TestArchiveObsoleteBundledHarnessConfigs(t *testing.T) {
 		Name:       "old-removed-harness",
 		Harness:    "generic",
 		Scope:      store.HarnessConfigScopeGlobal,
-		SourceURL:  "git+https://github.com/GoogleCloudPlatform/scion/harnesses/old-removed-harness",
+		SourceURL:  "git+https://github.com/pdlc-os/fabric/harnesses/old-removed-harness",
 		Visibility: "public",
 		Status:     store.HarnessConfigStatusActive,
 		Created:    now,

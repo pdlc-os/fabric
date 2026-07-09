@@ -1,5 +1,5 @@
-// Package discord implements a Discord bot message broker plugin for Scion.
-// It provides bidirectional messaging between Discord channels and Scion agents:
+// Package discord implements a Discord bot message broker plugin for Fabric.
+// It provides bidirectional messaging between Discord channels and Fabric agents:
 //   - Outbound: Hub publishes StructuredMessages which are formatted and sent
 //     to Discord channels via the Discord API / gateway session.
 //   - Inbound: Discord messages received via the Gateway WebSocket are converted
@@ -27,10 +27,10 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 const (
@@ -41,8 +41,8 @@ const (
 	dedupTTL = 5 * time.Minute
 
 	// OriginMarkerKey is the config key injected into outbound messages
-	// to identify messages originating from the scion hub.
-	OriginMarkerKey = "scion_origin"
+	// to identify messages originating from the fabric hub.
+	OriginMarkerKey = "fabric_origin"
 
 	// OriginMarkerValue is the marker value for hub-originated messages.
 	OriginMarkerValue = "hub"
@@ -79,7 +79,7 @@ func (e *hubError) Error() string {
 func (e *hubError) userFacingMessage() string {
 	switch e.Code {
 	case "agent_not_found":
-		return "Target agent not found. Use `/scion agents` to see available agents."
+		return "Target agent not found. Use `/fabric agents` to see available agents."
 	case "forbidden":
 		return "You don't have permission to message this agent."
 	case "broker_auth_failed", "unauthorized":
@@ -868,7 +868,7 @@ func (b *DiscordBroker) handleInteractionCreate(s *discordgo.Session, i *discord
 				"user", interactionUserID(i),
 			)
 			// Check if this is a register/unregister command handled by registration.
-			if data.Name == "scion" && len(data.Options) > 0 {
+			if data.Name == "fabric" && len(data.Options) > 0 {
 				sub := data.Options[0].Name
 				if (sub == "register" || sub == "unregister") && registration != nil {
 					// Acknowledge immediately (ephemeral).
@@ -1033,7 +1033,7 @@ func (b *DiscordBroker) handleIncomingMessage(s *discordgo.Session, m *discordgo
 		if isBotMentioned(m, botUserID) {
 			unresolved := extractUnresolvedMentions(m.Content, botUserID, agents)
 			if len(unresolved) > 0 {
-				errMsg := fmt.Sprintf("Unknown agent: %q. Use `/scion agents` to see available agents.", unresolved[0])
+				errMsg := fmt.Sprintf("Unknown agent: %q. Use `/fabric agents` to see available agents.", unresolved[0])
 				s.ChannelMessageSend(channelID, errMsg)
 			}
 		}
@@ -1045,11 +1045,11 @@ func (b *DiscordBroker) handleIncomingMessage(s *discordgo.Session, m *discordgo
 	senderID := m.Author.ID
 
 	mapping, err := store.GetUserMapping(ctx, senderID)
-	if err == nil && mapping != nil && mapping.ScionEmail != "" {
-		sender = "user:" + mapping.ScionEmail
+	if err == nil && mapping != nil && mapping.FabricEmail != "" {
+		sender = "user:" + mapping.FabricEmail
 	} else if mapping == nil {
 		b.log.Debug("Unregistered user tried to mention agent", "sender_id", senderID)
-		s.ChannelMessageSend(channelID, "Please use `/scion register` first to interact with agents.")
+		s.ChannelMessageSend(channelID, "Please use `/fabric register` first to interact with agents.")
 		return
 	}
 
@@ -1150,7 +1150,7 @@ func (b *DiscordBroker) deliverInbound(topic string, msg *messages.StructuredMes
 	}
 	req.ContentLength = int64(len(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Scion-Plugin-Name", pluginName)
+	req.Header.Set("X-Fabric-Plugin-Name", pluginName)
 
 	if brokerID != "" && hmacKey != "" {
 		if err := signInboundRequest(req, brokerID, hmacKey); err != nil {
@@ -1422,8 +1422,8 @@ func (b *DiscordBroker) resolveStaleChannelSlugs(ctx context.Context) {
 // --- Attachment helpers ---
 
 // resolveAttachmentPath translates an agent-relative /workspace path to the
-// host-side path under /home/scion/.scion/projects/<slug>/. Agent containers
-// mount /home/scion/.scion/projects/<slug> as /workspace.
+// host-side path under /home/fabric/.fabric/projects/<slug>/. Agent containers
+// mount /home/fabric/.fabric/projects/<slug> as /workspace.
 // Returns empty string if the path is unsafe or cannot be resolved.
 func (b *DiscordBroker) resolveAttachmentPath(ctx context.Context, attachPath, projectID string) string {
 	var relPath string
@@ -1468,7 +1468,7 @@ func (b *DiscordBroker) resolveAttachmentPath(ctx context.Context, attachPath, p
 		return ""
 	}
 
-	projectDir := filepath.Join("/home/scion/.scion/projects", slug)
+	projectDir := filepath.Join("/home/fabric/.fabric/projects", slug)
 	var hostPath string
 	if relPath == "." {
 		hostPath = projectDir
@@ -1488,7 +1488,7 @@ func (b *DiscordBroker) resolveAttachmentPath(ctx context.Context, attachPath, p
 // --- Topic parsing ---
 
 // parseTopicComponents extracts projectID and agentSlug from a broker topic.
-// Legacy scion.grove topics are accepted by projectcompat at this adapter boundary.
+// Legacy fabric.grove topics are accepted by projectcompat at this adapter boundary.
 func parseTopicComponents(topic string) (projectID, agentSlug string) {
 	parsed, err := projectcompat.ParseTopic(topic)
 	if err == nil {
@@ -1603,7 +1603,7 @@ func truncateMessage(text string) string {
 
 // --- Dedup helpers ---
 
-// isEcho returns true if the message was tagged with the scion origin marker.
+// isEcho returns true if the message was tagged with the fabric origin marker.
 func isEcho(msg *messages.StructuredMessage) bool {
 	if msg == nil {
 		return false

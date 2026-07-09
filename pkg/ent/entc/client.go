@@ -30,8 +30,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/migrate"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/migrate"
 )
 
 // PoolConfig holds connection pool settings applied to the underlying
@@ -128,7 +128,7 @@ func OpenSQLiteReadOnly(dsn string, opts ...ent.Option) (*ent.Client, error) {
 
 // OpenPostgres creates an Ent client backed by PostgreSQL.
 // The dsn should be a PostgreSQL connection string
-// (e.g. "host=localhost port=5432 user=scion dbname=scion sslmode=disable").
+// (e.g. "host=localhost port=5432 user=fabric dbname=fabric sslmode=disable").
 func OpenPostgres(dsn string, pool PoolConfig, opts ...ent.Option) (*ent.Client, error) {
 	// Parse the DSN with pgx (accepts both keyword/value DSNs "host=... port=..."
 	// and URL-style "postgres://..." connection strings) so we can attach TCP

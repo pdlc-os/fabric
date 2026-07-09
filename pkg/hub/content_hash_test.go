@@ -17,8 +17,8 @@ package hub
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // TestComputeContentHashMatchesTransfer guards against drift between the hub's

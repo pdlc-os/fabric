@@ -184,7 +184,7 @@ func Spec() []TableFixture {
 		{Table: "templates", Rows: []row{
 			{
 				"id": "7e000000-0000-0000-0000-000000000001", "name": "claude", "slug": "claude",
-				"harness": "claude", "image": "scion/claude:latest", "config": nestedConfigJSON,
+				"harness": "claude", "image": "fabric/claude:latest", "config": nestedConfigJSON,
 				"scope": "global", "status": "active", "visibility": "public",
 				"created_at": baseTime, "updated_at": baseTime,
 			},
@@ -304,21 +304,21 @@ func Spec() []TableFixture {
 		{Table: "invite_codes", Rows: []row{
 			{
 				"id": "1c000000-0000-0000-0000-000000000001", "code_hash": "hash_of_code",
-				"code_prefix": "scion_in", "max_uses": 5, "use_count": 1,
+				"code_prefix": "fabric_in", "max_uses": 5, "use_count": 1,
 				"expires_at": baseTime.Add(48 * time.Hour), "created_by": userID, "created": baseTime,
 			},
 		}},
 		{Table: "user_access_tokens", Rows: []row{
 			{
 				"id": "0a000000-0000-0000-0000-000000000001", "user_id": userID, "name": "ci-token",
-				"prefix": "scion_pat_ab", "key_hash": "tokenhash", "project_id": projectID,
+				"prefix": "fabric_pat_ab", "key_hash": "tokenhash", "project_id": projectID,
 				"scopes": `["agent:read","agent:list"]`, "created_at": baseTime,
 			},
 		}},
 		{Table: "api_keys", Rows: []row{
 			{ // NULL expires_at / last_used optionals
 				"id": "a9000000-0000-0000-0000-000000000001", "user_id": userID, "name": "legacy-key",
-				"prefix": "scion_ak", "key_hash": "apikeyhash", "scopes": `["read"]`, "created_at": baseTime,
+				"prefix": "fabric_ak", "key_hash": "apikeyhash", "scopes": `["read"]`, "created_at": baseTime,
 			},
 		}},
 		{Table: "skill_registries", Rows: []row{

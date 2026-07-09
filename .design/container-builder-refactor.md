@@ -9,7 +9,7 @@ The `image-build/` tooling currently has two parallel implementations of the sam
 1. **`scripts/build-images.sh`** — orchestrates `docker buildx` invocations locally (and in GitHub Actions, which just shells out to this script).
 2. **`cloudbuild*.yaml` + `scripts/trigger-cloudbuild.sh`** — encodes the same target DAG as Google Cloud Build steps, submitted with `gcloud builds submit`.
 
-Both flows produce the same image hierarchy (`core-base → scion-base → {claude, gemini, opencode, codex}`) and accept overlapping but inconsistent logical targets. The sequencing logic, build args, tagging conventions, and platform handling are duplicated across the bash script and the Cloud Build YAML files.
+Both flows produce the same image hierarchy (`core-base → fabric-base → {claude, gemini, opencode, codex}`) and accept overlapping but inconsistent logical targets. The sequencing logic, build args, tagging conventions, and platform handling are duplicated across the bash script and the Cloud Build YAML files.
 
 This proposal refactors the build tooling so that **target sequencing lives in one place** (the shell entry point) and the **execution backend** (local Docker, local Podman, Cloud Build, etc.) is selected via a `--builder` flag. Each builder is a small adapter responsible for "build one image with these inputs"; the script owns "which images to build, in what order, with which tags."
 
@@ -17,7 +17,7 @@ This proposal refactors the build tooling so that **target sequencing lives in o
 
 - **Local-first development.** Contributors on Linux/macOS without a GCP project should be able to `image-build/scripts/build-images.sh --builder local-docker` (or `local-podman`) without touching Cloud Build.
 - **Single source of truth for target sequencing.** Today, adding a new harness or changing the build-arg wiring requires edits in two places (the bash script and ~3 cloudbuild YAML files) and they drift.
-- **Pluggability for new backends.** Podman is already a first-class runtime in Scion (see `.design/podman-runtime.md`); the build tooling should match. Future backends (Kaniko, buildah, GitHub Actions cache exporters, remote BuildKit) should be additive.
+- **Pluggability for new backends.** Podman is already a first-class runtime in Fabric (see `.design/podman-runtime.md`); the build tooling should match. Future backends (Kaniko, buildah, GitHub Actions cache exporters, remote BuildKit) should be additive.
 - **Same UX everywhere.** Whether running locally, in CI, or against Cloud Build, the same target names and flags apply.
 
 ## Non-Goals
@@ -37,19 +37,19 @@ image-build/
 │   ├── pull-containers.sh       # consumer-side image pull
 │   └── setup-cloud-build.sh     # one-time GCP setup
 ├── cloudbuild.yaml              # GCB: full rebuild
-├── cloudbuild-common.yaml       # GCB: scion-base + harnesses
+├── cloudbuild-common.yaml       # GCB: fabric-base + harnesses
 ├── cloudbuild-core-base.yaml    # GCB: core-base only
-├── cloudbuild-scion-base.yaml   # GCB: scion-base only
+├── cloudbuild-fabric-base.yaml   # GCB: fabric-base only
 ├── cloudbuild-harnesses.yaml    # GCB: harnesses only
 ├── core-base/Dockerfile
-├── scion-base/Dockerfile
+├── fabric-base/Dockerfile
 ├── claude/Dockerfile
 ├── gemini/Dockerfile
 ├── opencode/Dockerfile
 └── codex/Dockerfile
 ```
 
-Targets supported today: `common` (default), `all`, `core-base`, `harnesses` (both scripts); `scion-base` (GCB only — missing from local script). No `hub` image exists yet.
+Targets supported today: `common` (default), `all`, `core-base`, `harnesses` (both scripts); `fabric-base` (GCB only — missing from local script). No `hub` image exists yet.
 
 `.github/workflows/build-images.yml` simply shells out to `build-images.sh` after `docker/setup-buildx-action`, so the GHA path already piggybacks on the local-docker builder. **GHA is a runner, not a builder.**
 
@@ -64,7 +64,7 @@ Targets supported today: `common` (default), `all`, `core-base`, `harnesses` (bo
 │  1. Parse flags (--builder, --target, --tag,    │
 │     --platform, --registry, --push)             │
 │  2. Resolve target → ordered list of build      │
-│     steps (core-base, scion-base, scion-*)      │
+│     steps (core-base, fabric-base, fabric-*)      │
 │  3. For each step, dispatch to selected         │
 │     builder via a uniform contract              │
 └─────────────────────────────────────────────────┘
@@ -115,43 +115,43 @@ A new (private) function `resolve_targets <target>` returns an ordered list of s
 | Target | Steps | Notes |
 |---|---|---|
 | `core-base` | `core-base` | |
-| `scion-base` | `scion-base` | Was missing from local script — now parity with GCB |
-| `harnesses` | `scion-claude`, `scion-gemini`, `scion-opencode`, `scion-codex` | |
-| `hub` | `scion-hub` | New image; extends `scion-base` |
-| `common` | `scion-base`, all harnesses, `scion-hub` | Default rebuild |
-| `all` | `core-base`, `scion-base`, all harnesses, `scion-hub` | Full rebuild |
+| `fabric-base` | `fabric-base` | Was missing from local script — now parity with GCB |
+| `harnesses` | `fabric-claude`, `fabric-gemini`, `fabric-opencode`, `fabric-codex` | |
+| `hub` | `fabric-hub` | New image; extends `fabric-base` |
+| `common` | `fabric-base`, all harnesses, `fabric-hub` | Default rebuild |
+| `all` | `core-base`, `fabric-base`, all harnesses, `fabric-hub` | Full rebuild |
 
-Each step ID maps to a step descriptor (image name, dockerfile path, context dir, build-args function). This descriptor table replaces the per-target inline functions (`build_core_base`, `build_scion_base`, `build_harness`) in today's script.
+Each step ID maps to a step descriptor (image name, dockerfile path, context dir, build-args function). This descriptor table replaces the per-target inline functions (`build_core_base`, `build_fabric_base`, `build_harness`) in today's script.
 
 ### Step Descriptors and Inter-step Dependencies
 
 A step descriptor is a small record per image:
 
-| Field | Example (for `scion-claude`) |
+| Field | Example (for `fabric-claude`) |
 |---|---|
-| `image_name` | `scion-claude` (also the step ID) |
+| `image_name` | `fabric-claude` (also the step ID) |
 | `dockerfile` | `image-build/claude/Dockerfile` |
 | `context_dir` | `image-build/claude` |
-| `build_args_fn` | `step_build_args_scion_claude` |
+| `build_args_fn` | `step_build_args_fabric_claude` |
 
 `build_args_fn` is a shell function that emits one `KEY=VALUE` line per build-arg on stdout. It receives the orchestrator's resolved state via environment (`REGISTRY`, `TAG`, `SHORT_SHA`, `BASE_TAG`) and is responsible for producing per-image args like `BASE_IMAGE=...` and `GIT_COMMIT=...`. The orchestrator collects the lines and threads each one through `builder_build --build-arg`.
 
 **BASE_IMAGE threading.** When step N depends on an image produced by step N-1 in the same run, the orchestrator references it by `:<short-sha>` (matching today's GCB behavior — reproducible, immune to concurrent overwrites of `:latest`). When SHA is unavailable, it falls back to `:<tag>`.
 
-**Standalone-target base resolution.** When a step's base image is not built in the current run (e.g. `--target scion-base` or `--target harnesses`), `BASE_TAG` resolves to `<tag>` (default `latest`). Concretely:
+**Standalone-target base resolution.** When a step's base image is not built in the current run (e.g. `--target fabric-base` or `--target harnesses`), `BASE_TAG` resolves to `<tag>` (default `latest`). Concretely:
 
 | Target | Step | BASE_IMAGE resolves to |
 |---|---|---|
-| `scion-base` (standalone) | `scion-base` | `<registry>/core-base:<tag>` |
-| `harnesses` (standalone) | `scion-*` | `<registry>/scion-base:<tag>` |
-| `hub` (standalone) | `scion-hub` | `<registry>/scion-base:<tag>` |
+| `fabric-base` (standalone) | `fabric-base` | `<registry>/core-base:<tag>` |
+| `harnesses` (standalone) | `fabric-*` | `<registry>/fabric-base:<tag>` |
+| `hub` (standalone) | `fabric-hub` | `<registry>/fabric-base:<tag>` |
 | `common`, `all` | (chained) | `<registry>/<base>:<short-sha>` (built earlier in same run) |
 
 ### Builder Implementations
 
 #### `local-docker`
 
-Wraps `docker buildx build`. Equivalent to today's `build-images.sh` body. Handles the `--load` vs `--push` mutual exclusion, ensures a `scion-builder` buildx instance exists, bootstraps it.
+Wraps `docker buildx build`. Equivalent to today's `build-images.sh` body. Handles the `--load` vs `--push` mutual exclusion, ensures a `fabric-builder` buildx instance exists, bootstraps it.
 
 #### `local-podman`
 
@@ -172,7 +172,7 @@ Target → config mapping:
 | `common` | `cloudbuild-common.yaml` | Updated: include hub step; reference `$_TAG` |
 | `all` | `cloudbuild.yaml` | Updated: include hub step; reference `$_TAG` |
 | `core-base` | `cloudbuild-core-base.yaml` | Updated: reference `$_TAG` |
-| `scion-base` | `cloudbuild-scion-base.yaml` | Updated: reference `$_TAG` |
+| `fabric-base` | `cloudbuild-fabric-base.yaml` | Updated: reference `$_TAG` |
 | `harnesses` | `cloudbuild-harnesses.yaml` | Updated: reference `$_TAG` |
 | `hub` | `cloudbuild-hub.yaml` | New file |
 
@@ -203,7 +203,7 @@ image-build/scripts/
 
 image-build/
 ├── hub/
-│   └── Dockerfile                   # produces image `scion-hub` (mirrors harness naming)
+│   └── Dockerfile                   # produces image `fabric-hub` (mirrors harness naming)
 └── cloudbuild-hub.yaml              # new GCB config for hub target
 ```
 
@@ -217,10 +217,10 @@ image-build/scripts/build-images.sh --registry ghcr.io/myorg --target common --p
 
 # New explicit builder selection:
 image-build/scripts/build-images.sh --builder local-podman --registry quay.io/myorg --target common --push
-image-build/scripts/build-images.sh --builder cloud-build --registry us-central1-docker.pkg.dev/myproj/scion --target all
+image-build/scripts/build-images.sh --builder cloud-build --registry us-central1-docker.pkg.dev/myproj/fabric --target all
 
 # Dry-run: see what would be built/submitted without executing:
-image-build/scripts/build-images.sh --builder cloud-build --registry us-central1-docker.pkg.dev/myproj/scion --target all --dry-run
+image-build/scripts/build-images.sh --builder cloud-build --registry us-central1-docker.pkg.dev/myproj/fabric --target all --dry-run
 ```
 
 `--builder` defaults to `local-docker` to preserve current behavior. The GitHub Actions workflow keeps calling `build-images.sh` unchanged.
@@ -242,7 +242,7 @@ Builders assume the caller is already authenticated to the target registry and a
 1. Land the new orchestrator + `local-docker` builder behind `--builder local-docker` (default). Behavior matches today's `build-images.sh` for all existing flag combinations, with the addition of the SHA tag (see §Tagging).
 2. Add `local-podman` builder. Hand-test on Linux + macOS (via `podman machine`).
 3. Add `cloud-build` builder. Update existing `cloudbuild-*.yaml` files to reference `$_TAG` (default `latest`) for the mutable tag, so `--tag` flows through. Cut over `trigger-cloudbuild.sh` to a thin deprecation shim. Validate against the existing GCP project that produces `us-central1-docker.pkg.dev/.../public-docker`.
-4. Add `image-build/hub/Dockerfile` (producing image `scion-hub`, mirroring the harness naming pattern) and `cloudbuild-hub.yaml`. Wire `scion-hub` and `scion-base` as standalone targets across all builders. Update `common` and `all` cloudbuild configs to include the hub step.
+4. Add `image-build/hub/Dockerfile` (producing image `fabric-hub`, mirroring the harness naming pattern) and `cloudbuild-hub.yaml`. Wire `fabric-hub` and `fabric-base` as standalone targets across all builders. Update `common` and `all` cloudbuild configs to include the hub step.
 5. Update `image-build/README.md`.
 
 Each step is independently shippable.
@@ -256,23 +256,23 @@ Each step is independently shippable.
 ## Open Questions
 
 1. **Cloud Build orchestration model.** ✅ *Resolved.* Retain the static `cloudbuild-*.yaml` files as part of the `cloud-build` builder implementation. `builder_run_target` selects and submits the right file. No YAML generation at runtime.
-2. **Local-script `scion-base` target.** ✅ *Resolved.* Confirmed gap — `scion-base` is added as a standalone target across all builders.
+2. **Local-script `fabric-base` target.** ✅ *Resolved.* Confirmed gap — `fabric-base` is added as a standalone target across all builders.
 3. **Podman multi-arch.** ✅ *Resolved.* `local-podman` builds native arch only by default. If `--platform` specifies multiple architectures, the builder exits with an error explaining that multi-arch Podman builds require manual QEMU binfmt setup and must be opted into explicitly (e.g. `--platform linux/amd64,linux/arm64`). Future improvement: downgrade to a warning and proceed (option B), once multi-arch Podman is validated on supported platforms.
 4. **Caching strategy.** ✅ *Resolved.* Each builder owns its caching entirely. The orchestrator passes no cache-related hints. The cloud-build builder's split build/push trick for `core-base` stays baked into the static YAML files.
 5. **Authentication scope.** ✅ *Resolved.* Builders assume the caller is already authenticated. No login steps in `builder_check`, `builder_prepare`, or anywhere in the script. Prerequisites are documented in the README.
 6. **GitHub Actions as a builder?** ✅ *Resolved.* GHA remains a runner, not a builder — it calls `build-images.sh --builder local-docker` and shares all Dockerfiles. No `--builder github-actions` mode. The entrypoint script's `--help` output will mention `gh workflow run build-images.yml` as the path for triggering GHA-based builds remotely.
 7. **Future builders.** ✅ *Resolved.* Deferred. Contract stays path-based. Remote-context builders (Kaniko, remote BuildKit) would require a contract extension; `BUILDER_MODE=remote` is the natural future extension point when there's a concrete need.
 8. **Naming.** ✅ *Resolved.* `--builder`. The buildx instance name is an internal implementation detail of `local-docker`, not a UX concern.
-9. **Shell vs Go.** ✅ *Resolved.* Stay in bash. A Go-based `scion image build` subcommand remains a future option if the orchestration outgrows what bash handles well.
+9. **Shell vs Go.** ✅ *Resolved.* Stay in bash. A Go-based `fabric image build` subcommand remains a future option if the orchestration outgrows what bash handles well.
 10. **Builder discovery.** ✅ *Resolved.* Hard-coded allow-list in the orchestrator; the named file under `builders/` is sourced when the name validates. Predictable `--help` output; adding a builder requires both an allow-list edit and a new file.
 11. **Tag policy.** ✅ *Resolved.* Always emit both `:<tag>` (default `latest`) and `:<short-sha>` for every image. The orchestrator computes the short SHA once and threads it through all steps. Falls back to `latest`-only if the working directory is not a git repo or the SHA is unavailable. For `cloud-build`, `--tag` is forwarded as the `_TAG` substitution; YAMLs reference `$_TAG` and `$_SHORT_SHA`.
 12. **Static cloudbuild YAMLs.** ✅ *Resolved.* Retained as part of the `cloud-build` builder — not generated, not deleted. They live alongside the builder script in `image-build/`. Updated to reference `$_TAG` so `--tag` flows through uniformly.
 13. **`pull-containers.sh` and `setup-cloud-build.sh`.** ✅ *Resolved.* Left unchanged. They serve distinct lifecycle stages and have no overlap with the builder abstraction.
 14. **Dry-run / plan mode.** ✅ *Resolved.* Include `--dry-run`. For per-image builders, prints the resolved step list and the exact `docker`/`podman` command the builder would execute for each step. For target-mode builders (`cloud-build`), prints the resolved target, the YAML file path, and the `gcloud builds submit` invocation (with substitutions). Implemented in the orchestrator before the execution loop; each builder script prints its command rather than running it when `DRY_RUN=true`.
 15. **Concurrency.** ✅ *Resolved.* Deferred. Harnesses build serially. A `--jobs N` flag can be added later without contract changes if build times become a pain point.
-16. **Hub image base.** ✅ *Resolved.* `hub/Dockerfile` (image `scion-hub`) extends `scion-base`, consistent with all harness images. A dedicated server base image is a future option but not in scope here.
-17. **Hub in `common` target.** ✅ *Resolved.* `scion-hub` is included in `common`. It is a first-class image alongside the harnesses and rebuilds with the default target.
-18. **Hub build context and binary.** ✅ *Resolved.* Answered by Q16 — hub extends `scion-base`, so build context follows the same pattern as all other images in the hierarchy. No special handling required.
+16. **Hub image base.** ✅ *Resolved.* `hub/Dockerfile` (image `fabric-hub`) extends `fabric-base`, consistent with all harness images. A dedicated server base image is a future option but not in scope here.
+17. **Hub in `common` target.** ✅ *Resolved.* `fabric-hub` is included in `common`. It is a first-class image alongside the harnesses and rebuilds with the default target.
+18. **Hub build context and binary.** ✅ *Resolved.* Answered by Q16 — hub extends `fabric-base`, so build context follows the same pattern as all other images in the hierarchy. No special handling required.
 
 ## Appendix: Mapping Today → Tomorrow
 

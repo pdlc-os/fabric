@@ -1,10 +1,10 @@
-# Scion Documentation Meta-Guide
+# Fabric Documentation Meta-Guide
 
-This guide outlines the organizational philosophy, architecture, and curation standards for the Scion documentation project. It serves as a blueprint for both human and AI contributors to ensure a consistent and navigable documentation experience.
+This guide outlines the organizational philosophy, architecture, and curation standards for the Fabric documentation project. It serves as a blueprint for both human and AI contributors to ensure a consistent and navigable documentation experience.
 
 ## 1. The Primary Axis: Operational Mode
 
-Scion documentation is organized on the **operational-mode spine** defined in the
+Fabric documentation is organized on the **operational-mode spine** defined in the
 root [`GLOSSARY.md`](../GLOSSARY.md) — the single source of truth for terminology.
 The site is **not** organized by persona. Instead, readers self-select by the
 deployment target they are running:
@@ -16,7 +16,7 @@ dimensions:
 
 | Dimension | Meaning | Control |
 | :--- | :--- | :--- |
-| **Availability tier** | Whether the Hub is a single instance on an embedded database or replicated on an external one. | `SCION_SERVER_DATABASE_DRIVER` (`sqlite` vs `postgres`) |
+| **Availability tier** | Whether the Hub is a single instance on an embedded database or replicated on an external one. | `FABRIC_SERVER_DATABASE_DRIVER` (`sqlite` vs `postgres`) |
 | **Tenancy** | Single-user vs multi-user. Only opens up once hosted. | Orthogonal to the tier |
 
 | Mode | Control plane | State & durability | Tenancy |
@@ -103,14 +103,14 @@ Key distinctions to preserve:
 - A **Project** is not a **Group**. A Group is a permissions-system collection of
   users (multi-user, hosted only).
 - **Harnesses are not plugins.** They are external, vendor-supplied agent software
-  Scion drives, integrated via a harness-config, not the `go-plugin` interface.
+  Fabric drives, integrated via a harness-config, not the `go-plugin` interface.
 - **Message Broker** (chat/notification transport) ≠ **Event Bus** (internal event
   fan-out). Keep them distinct.
 
 ## 4. Config Files
 
-Scion accepts **both** `settings.yaml` and `settings.json` on disk, in precedence
-order `settings.yaml` → `settings.yml` → `settings.json` (YAML preferred). `scion init`
+Fabric accepts **both** `settings.yaml` and `settings.json` on disk, in precedence
+order `settings.yaml` → `settings.yml` → `settings.json` (YAML preferred). `fabric init`
 writes YAML by default. The JSON schema lives at
 `pkg/config/schemas/settings-v1.schema.json`. Never show a JSON object inside a
 ` ```yaml ` fence.
@@ -129,7 +129,7 @@ writes YAML by default. The JSON schema lives at
    and detail-oriented; *reference docs* are exhaustive and dry.
 5. **Diagrams**: Use **D2** in `d2` code blocks within Markdown files.
 6. **Cross-Linking**: Link from high-level guides to specific references to avoid
-   duplication. Internal links use the absolute form `/scion/<slug>/`.
+   duplication. Internal links use the absolute form `/fabric/<slug>/`.
 
 ## 6. Verification
 

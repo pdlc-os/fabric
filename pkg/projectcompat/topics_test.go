@@ -22,13 +22,13 @@ func TestTopicBuildersUseCanonicalProjectPrefix(t *testing.T) {
 		got  string
 		want string
 	}{
-		{"agent", AgentTopic("p1", "coder"), "scion.project.p1.agent.coder.messages"},
-		{"user", UserTopic("p1", "alice"), "scion.project.p1.user.alice.messages"},
-		{"broadcast", BroadcastTopic("p1"), "scion.project.p1.broadcast"},
-		{"all agents", AllAgentTopic("p1"), "scion.project.p1.agent.*.messages"},
-		{"all users", AllUserTopic("p1"), "scion.project.p1.user.*.messages"},
-		{"project pattern", ProjectPattern("p1"), "scion.project.p1.>"},
-		{"all projects pattern", AllProjectsPattern(), "scion.project.>"},
+		{"agent", AgentTopic("p1", "coder"), "fabric.project.p1.agent.coder.messages"},
+		{"user", UserTopic("p1", "alice"), "fabric.project.p1.user.alice.messages"},
+		{"broadcast", BroadcastTopic("p1"), "fabric.project.p1.broadcast"},
+		{"all agents", AllAgentTopic("p1"), "fabric.project.p1.agent.*.messages"},
+		{"all users", AllUserTopic("p1"), "fabric.project.p1.user.*.messages"},
+		{"project pattern", ProjectPattern("p1"), "fabric.project.p1.>"},
+		{"all projects pattern", AllProjectsPattern(), "fabric.project.>"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -47,22 +47,22 @@ func TestParseTopicAcceptsCanonicalAndLegacy(t *testing.T) {
 	}{
 		{
 			name: "canonical agent",
-			in:   "scion.project.p1.agent.coder.messages",
+			in:   "fabric.project.p1.agent.coder.messages",
 			want: Topic{ProjectID: "p1", Kind: TopicKindAgent, Actor: "coder"},
 		},
 		{
 			name: "legacy agent",
-			in:   "scion.grove.p1.agent.coder.messages",
+			in:   "fabric.grove.p1.agent.coder.messages",
 			want: Topic{ProjectID: "p1", Kind: TopicKindAgent, Actor: "coder", Legacy: true},
 		},
 		{
 			name: "canonical user wildcard",
-			in:   "scion.project.p1.user.*.messages",
+			in:   "fabric.project.p1.user.*.messages",
 			want: Topic{ProjectID: "p1", Kind: TopicKindUser, Actor: "*"},
 		},
 		{
 			name: "legacy broadcast",
-			in:   "scion.grove.p1.broadcast",
+			in:   "fabric.grove.p1.broadcast",
 			want: Topic{ProjectID: "p1", Kind: TopicKindBroadcast, Legacy: true},
 		},
 	}
@@ -82,13 +82,13 @@ func TestParseTopicAcceptsCanonicalAndLegacy(t *testing.T) {
 func TestParseTopicRejectsMalformedTopics(t *testing.T) {
 	for _, topic := range []string{
 		"",
-		"scion.global.broadcast",
-		"scion.project",
-		"scion.project..broadcast",
-		"scion.project.p1.agent.coder",
-		"scion.project.p1.agent.coder.messages.extra",
-		"scion.project.p1.user..messages",
-		"scion.project.p1.unknown",
+		"fabric.global.broadcast",
+		"fabric.project",
+		"fabric.project..broadcast",
+		"fabric.project.p1.agent.coder",
+		"fabric.project.p1.agent.coder.messages.extra",
+		"fabric.project.p1.user..messages",
+		"fabric.project.p1.unknown",
 	} {
 		t.Run(topic, func(t *testing.T) {
 			if _, err := ParseTopic(topic); err == nil {

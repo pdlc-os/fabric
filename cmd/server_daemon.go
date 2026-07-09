@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/daemon"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/daemon"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ func runServerStartOrDaemon(cmd *cobra.Command, args []string) error {
 	// Check if already running
 	running, pid, _ := daemon.StatusComponent(serverDaemonComponent, globalDir)
 	if running {
-		return fmt.Errorf("server is already running (PID: %d)\n\nUse 'scion server stop' to stop it, or check the log at %s",
+		return fmt.Errorf("server is already running (PID: %d)\n\nUse 'fabric server stop' to stop it, or check the log at %s",
 			pid, daemon.GetLogPathComponent(serverDaemonComponent, globalDir))
 	}
 
@@ -56,7 +56,7 @@ func runServerStartOrDaemon(cmd *cobra.Command, args []string) error {
 	if phantomPorts := daemon.DetectOccupiedPorts(serverPorts); len(phantomPorts) > 0 {
 		fmt.Fprintf(os.Stderr, "Error: the following ports are already in use: %v\n", phantomPorts)
 		fmt.Fprintf(os.Stderr, "A previous server process may be running without a PID file.\n")
-		fmt.Fprintf(os.Stderr, "Run 'scion server stop --force' to kill any process on these ports.\n")
+		fmt.Fprintf(os.Stderr, "Run 'fabric server stop --force' to kill any process on these ports.\n")
 		return fmt.Errorf("port conflict: ports %v are occupied", phantomPorts)
 	}
 
@@ -80,10 +80,10 @@ func runServerStartOrDaemon(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no server components enabled; use --enable-hub, --enable-runtime-broker, or --enable-web")
 	}
 
-	// Find the scion executable
+	// Find the fabric executable
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to find scion executable: %w", err)
+		return fmt.Errorf("failed to find fabric executable: %w", err)
 	}
 
 	// Build args for the daemon process — pass through all flags
@@ -172,8 +172,8 @@ func runServerStartOrDaemon(cmd *cobra.Command, args []string) error {
 		printWorkstationQuickstart(needsOnboarding, globalDir, hubHost, webPort, enableWeb, enableDevAuth)
 	}
 
-	fmt.Println("Use 'scion server stop' to stop the daemon.")
-	fmt.Println("Use 'scion server status' to check status.")
+	fmt.Println("Use 'fabric server stop' to stop the daemon.")
+	fmt.Println("Use 'fabric server status' to check status.")
 
 	return nil
 }
@@ -245,7 +245,7 @@ func runServerStop(cmd *cobra.Command, args []string) error {
 	time.Sleep(500 * time.Millisecond)
 	running, _, _ = daemon.StatusComponent(serverDaemonComponent, globalDir)
 	if running {
-		return fmt.Errorf("daemon may still be running. Check with 'scion server status'")
+		return fmt.Errorf("daemon may still be running. Check with 'fabric server status'")
 	}
 
 	fmt.Println("Server daemon stopped.")
@@ -303,7 +303,7 @@ func runServerRestart(cmd *cobra.Command, args []string) error {
 
 	running, pid, _ := daemon.StatusComponent(serverDaemonComponent, globalDir)
 	if !running {
-		return fmt.Errorf("server daemon is not running\n\nUse 'scion server start' to start it")
+		return fmt.Errorf("server daemon is not running\n\nUse 'fabric server start' to start it")
 	}
 
 	// Stop the daemon
@@ -318,10 +318,10 @@ func runServerRestart(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("Server daemon stopped.")
 
-	// Find the current scion executable
+	// Find the current fabric executable
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to find scion executable: %w", err)
+		return fmt.Errorf("failed to find fabric executable: %w", err)
 	}
 
 	// Load saved args from previous start, or fall back to reconstructing from flags.
@@ -455,7 +455,7 @@ func runServerStatus(cmd *cobra.Command, args []string) error {
 	}
 
 	// Human-readable output
-	fmt.Println("Scion Server Status")
+	fmt.Println("Fabric Server Status")
 	if status.DaemonRunning {
 		fmt.Printf("  Daemon:        running (PID: %d)\n", status.DaemonPID)
 		fmt.Printf("  Log file:      %s\n", status.LogFile)
@@ -534,7 +534,7 @@ func printWorkstationQuickstart(needsOnboarding bool, globalDir string, host str
 		fmt.Printf("Web UI:  %s\n", url)
 
 		// Auto-open the browser in interactive terminals once the server is ready.
-		if os.Getenv("SCION_NO_BROWSER") == "" && util.IsTerminal() && !util.IsHeadlessEnvironment() {
+		if os.Getenv("FABRIC_NO_BROWSER") == "" && util.IsTerminal() && !util.IsHeadlessEnvironment() {
 			if waitForServerReady(displayHost, wPort, 20*time.Second) {
 				_ = util.OpenBrowser(url)
 			} else {
@@ -551,7 +551,7 @@ func printWorkstationQuickstart(needsOnboarding bool, globalDir string, host str
 			if token != "" {
 				fmt.Println()
 				fmt.Println("Developer token (for CLI authentication):")
-				fmt.Printf("  export SCION_DEV_TOKEN=%s\n", token)
+				fmt.Printf("  export FABRIC_DEV_TOKEN=%s\n", token)
 			}
 		}
 	}

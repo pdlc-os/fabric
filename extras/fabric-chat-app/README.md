@@ -1,11 +1,11 @@
-# Scion Chat App
+# Fabric Chat App
 
-A standalone service that bridges Google Chat (and future Slack) with the Scion Hub, enabling users to manage agents and receive notifications directly from their chat workspace. Built as a Google Workspace Add-on (HTTP Service), it runs as both a message broker plugin for real-time agent communication and an API proxy for operational commands.
+A standalone service that bridges Google Chat (and future Slack) with the Fabric Hub, enabling users to manage agents and receive notifications directly from their chat workspace. Built as a Google Workspace Add-on (HTTP Service), it runs as both a message broker plugin for real-time agent communication and an API proxy for operational commands.
 
 ## Features
 
-- Bidirectional messaging between chat users and Scion agents
-- Agent management via slash commands (`/scion list`, `/scion start`, etc.)
+- Bidirectional messaging between chat users and Fabric agents
+- Agent management via slash commands (`/fabric list`, `/fabric start`, etc.)
 - Automatic user identity mapping (chat user to Hub account)
 - Space-to-grove linking for scoped interactions
 - Real-time notification cards for agent status changes (`COMPLETED`, `ERROR`, `WAITING_FOR_INPUT`, etc.)
@@ -15,7 +15,7 @@ A standalone service that bridges Google Chat (and future Slack) with the Scion 
 ## Prerequisites
 
 - Go 1.25+
-- A running Scion Hub instance
+- A running Fabric Hub instance
 - A GCP project with the Google Chat API enabled
 - A GCP service account with:
   - Google Chat API permissions (for sending/receiving messages)
@@ -28,8 +28,8 @@ A standalone service that bridges Google Chat (and future Slack) with the Scion 
 ### 1. Create a GCP Project (or use existing)
 
 ```bash
-gcloud projects create my-scion-chat --name="Scion Chat App"
-gcloud config set project my-scion-chat
+gcloud projects create my-fabric-chat --name="Fabric Chat App"
+gcloud config set project my-fabric-chat
 ```
 
 ### 2. Enable Required APIs
@@ -45,23 +45,23 @@ gcloud services enable run.googleapis.com                # if deploying to Cloud
 
 ```bash
 # Create the service account
-gcloud iam service-accounts create scion-chat-app \
-  --display-name="Scion Chat App"
+gcloud iam service-accounts create fabric-chat-app \
+  --display-name="Fabric Chat App"
 
 # Grant access to the Hub's signing key in Secret Manager
 gcloud secrets add-iam-policy-binding <HUB_SIGNING_KEY_SECRET> \
-  --member="serviceAccount:scion-chat-app@my-scion-chat.iam.gserviceaccount.com" \
+  --member="serviceAccount:fabric-chat-app@my-fabric-chat.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 
 # Create and download a key file (for local development)
 gcloud iam service-accounts keys create chat-sa-key.json \
-  --iam-account=scion-chat-app@my-scion-chat.iam.gserviceaccount.com
+  --iam-account=fabric-chat-app@my-fabric-chat.iam.gserviceaccount.com
 ```
 
 ### 4. Register as a Workspace Add-on
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com) > **APIs & Services** > **Google Chat API** > **Configuration**
-2. Set **App name** and **Avatar URL** (e.g., "Scion")
+2. Set **App name** and **Avatar URL** (e.g., "Fabric")
 3. Under **Functionality**, enable:
    - Receive 1:1 messages
    - Join spaces and group conversations
@@ -72,8 +72,8 @@ gcloud iam service-accounts keys create chat-sa-key.json \
 5. Under **Slash commands**, add:
    | Command ID | Command        | Description                |
    |------------|----------------|----------------------------|
-   | 1          | `/scion`       | Message agents             |
-   | 2          | `/scionAdmin`  | Agent & space admin        |
+   | 1          | `/fabric`       | Message agents             |
+   | 2          | `/fabricAdmin`  | Agent & space admin        |
 
    Note the numeric **Command ID** assigned by the console — you'll need it for the `command_id_map` configuration.
 6. Set the **Card interaction URL** to the same endpoint URL (for backward compatibility with pre-migration cards)
@@ -82,11 +82,11 @@ gcloud iam service-accounts keys create chat-sa-key.json \
 
 ## Configuration
 
-Create a YAML configuration file (e.g., `scion-chat-app.yaml`):
+Create a YAML configuration file (e.g., `fabric-chat-app.yaml`):
 
 ```yaml
 hub:
-  # Scion Hub endpoint
+  # Fabric Hub endpoint
   endpoint: "https://hub.example.com"
   # Hub admin user for system-level operations
   user: "chat-app@example.com"
@@ -103,7 +103,7 @@ platforms:
   google_chat:
     enabled: true
     # GCP project ID where the Chat app is registered
-    project_id: "my-scion-chat"
+    project_id: "my-fabric-chat"
     # Optional: path to a service account key file for Google Chat API calls.
     # If omitted, Application Default Credentials (ADC) are used — on a GCE VM
     # this is the instance's attached service account.
@@ -111,13 +111,13 @@ platforms:
     # HTTP endpoint for receiving Google Chat events
     listen_address: ":8443"
     # Public URL of this endpoint (used for action URLs in cards and token audience verification)
-    external_url: "https://scion-chat-app-xxxxx.run.app/chat/events"
+    external_url: "https://fabric-chat-app-xxxxx.run.app/chat/events"
     # Per-project service account email for request verification (from Chat API config page)
-    service_account_email: "chat@my-scion-chat.iam.gserviceaccount.com"
+    service_account_email: "chat@my-fabric-chat.iam.gserviceaccount.com"
     # Mapping of numeric command IDs (assigned in Console) to command names
     command_id_map:
-      "1": "scion"
-      "2": "scionAdmin"
+      "1": "fabric"
+      "2": "fabricAdmin"
 
   slack:
     enabled: false
@@ -127,7 +127,7 @@ platforms:
 
 state:
   # SQLite database for user mappings, space links, and subscriptions
-  database: "/var/lib/scion-chat-app/state.db"
+  database: "/var/lib/fabric-chat-app/state.db"
 
 notifications:
   # Which agent activities to relay to chat spaces
@@ -161,7 +161,7 @@ plugins:
 ## Local Development
 
 ```bash
-cd extras/scion-chat-app
+cd extras/fabric-chat-app
 
 # Download dependencies
 go mod download
@@ -181,17 +181,17 @@ platforms:
     external_url: "https://<YOUR_TUNNEL_URL>/chat/events"
     service_account_email: "chat@my-gcp-project.iam.gserviceaccount.com"
     command_id_map:
-      "1": "scion"
-      "2": "scionAdmin"
+      "1": "fabric"
+      "2": "fabricAdmin"
 state:
-  database: "./scion-chat-app.db"
+  database: "./fabric-chat-app.db"
 logging:
   level: "debug"
   format: "text"
 EOF
 
 # Run the server
-go run ./cmd/scion-chat-app/ --config dev-config.yaml
+go run ./cmd/fabric-chat-app/ --config dev-config.yaml
 ```
 
 The app starts two servers:
@@ -211,7 +211,7 @@ Then update both the **HTTP endpoint URL** and the **Card interaction URL** in t
 ## Testing
 
 ```bash
-cd extras/scion-chat-app
+cd extras/fabric-chat-app
 go test ./...
 ```
 
@@ -223,14 +223,14 @@ The install is idempotent — re-run it after any hub update (`gce-start-hub.sh 
 
 ### Remote install via `gcloud compute ssh`
 
-The install script requires sudo (for systemd, Caddy, and `/usr/local/bin`). On a starter-hub VM, the SSH user has passwordless sudo while the `scion` user does not. Run the install remotely:
+The install script requires sudo (for systemd, Caddy, and `/usr/local/bin`). On a starter-hub VM, the SSH user has passwordless sudo while the `fabric` user does not. Run the install remotely:
 
 ```bash
 # Replace INSTANCE and ZONE with your hub VM values.
-# Instance name is "scion-${HUB_NAME}" (e.g., scion-gteam).
+# Instance name is "fabric-${HUB_NAME}" (e.g., fabric-gteam).
 gcloud compute ssh INSTANCE --zone=ZONE --command '
-  sudo -u scion sh -c "cd /home/scion/scion/extras/scion-chat-app && make build"
-  sudo /home/scion/scion/extras/scion-chat-app/install.sh
+  sudo -u fabric sh -c "cd /home/fabric/fabric/extras/fabric-chat-app && make build"
+  sudo /home/fabric/fabric/extras/fabric-chat-app/install.sh
 '
 ```
 
@@ -240,13 +240,13 @@ Before running `make install`, create the chat-app env file on the VM:
 
 ```bash
 gcloud compute ssh INSTANCE --zone=ZONE --command '
-  sudo install -m 600 -o scion -g scion \
-    /home/scion/scion/extras/scion-chat-app/chat-app.env.sample \
-    /home/scion/.scion/chat-app.env
+  sudo install -m 600 -o fabric -g fabric \
+    /home/fabric/fabric/extras/fabric-chat-app/chat-app.env.sample \
+    /home/fabric/.fabric/chat-app.env
 '
 # Then SSH in and edit with your values (project ID, SA email, hub user):
 gcloud compute ssh INSTANCE --zone=ZONE
-sudo -u scion nano /home/scion/.scion/chat-app.env
+sudo -u fabric nano /home/fabric/.fabric/chat-app.env
 ```
 
 > **Note:** `CHAT_APP_CREDENTIALS` is optional. On a GCE VM the app uses Application Default Credentials (ADC) from the instance's attached service account. If the service account lacks Chat API permissions, the app prints remediation steps including the required `gcloud` commands at startup.
@@ -254,38 +254,38 @@ sudo -u scion nano /home/scion/.scion/chat-app.env
 ### On-VM install (if you have sudo)
 
 ```bash
-cd ~/scion/extras/scion-chat-app
+cd ~/fabric/extras/fabric-chat-app
 make install
 ```
 
 After install, restart the Hub to pick up the new plugin config:
 
 ```bash
-sudo systemctl restart scion-hub
+sudo systemctl restart fabric-hub
 ```
 
 Check status:
 
 ```bash
-sudo systemctl status scion-chat-app
-journalctl -u scion-chat-app -f
+sudo systemctl status fabric-chat-app
+journalctl -u fabric-chat-app -f
 ```
 
 ## Docker Build
 
-The Dockerfile uses a multi-stage build. It must be built from the repo root because the chat app module has a `replace` directive pointing to the parent Scion module:
+The Dockerfile uses a multi-stage build. It must be built from the repo root because the chat app module has a `replace` directive pointing to the parent Fabric module:
 
 ```bash
-docker build -t scion-chat-app -f extras/scion-chat-app/Dockerfile .
+docker build -t fabric-chat-app -f extras/fabric-chat-app/Dockerfile .
 ```
 
 Run the container:
 
 ```bash
 docker run -p 8443:8443 -p 9090:9090 \
-  -v /path/to/config.yaml:/etc/scion-chat-app/config.yaml \
-  -v /path/to/chat-sa-key.json:/etc/scion-chat-app/chat-sa-key.json \
-  scion-chat-app
+  -v /path/to/config.yaml:/etc/fabric-chat-app/config.yaml \
+  -v /path/to/chat-sa-key.json:/etc/fabric-chat-app/chat-sa-key.json \
+  fabric-chat-app
 ```
 
 ## Deploy to Cloud Run
@@ -294,13 +294,13 @@ The included `cloudbuild.yaml` builds, pushes, and deploys the app to Cloud Run.
 
 ```bash
 gcloud builds submit \
-  --config=extras/scion-chat-app/cloudbuild.yaml \
+  --config=extras/fabric-chat-app/cloudbuild.yaml \
   --substitutions=_GIT_SHA=$(git rev-parse --short HEAD)
 ```
 
 Override defaults with substitutions:
-- `_REGISTRY` - Artifact Registry path (default: `us-central1-docker.pkg.dev/$PROJECT_ID/scion`)
-- `_SERVICE_NAME` - Cloud Run service name (default: `scion-chat-app`)
+- `_REGISTRY` - Artifact Registry path (default: `us-central1-docker.pkg.dev/$PROJECT_ID/fabric`)
+- `_SERVICE_NAME` - Cloud Run service name (default: `fabric-chat-app`)
 - `_REGION` - Deployment region (default: `us-central1`)
 
 The deployment configures:
@@ -315,23 +315,23 @@ After deploying, mount the config file and service account key as secrets or vol
 
 ```bash
 # Store config as a secret
-gcloud secrets create scion-chat-app-config \
+gcloud secrets create fabric-chat-app-config \
   --data-file=config.yaml
 
 # Update the Cloud Run service to mount it
-gcloud run services update scion-chat-app \
+gcloud run services update fabric-chat-app \
   --region=us-central1 \
-  --update-secrets=/etc/scion-chat-app/config.yaml=scion-chat-app-config:latest
+  --update-secrets=/etc/fabric-chat-app/config.yaml=fabric-chat-app-config:latest
 ```
 
-Update the **HTTP endpoint URL** and **Card interaction URL** in the Chat API configuration page to point to the Cloud Run service URL (e.g., `https://scion-chat-app-xxxxx.run.app/chat/events`). Use the same URL as the `external_url` in your config.
+Update the **HTTP endpoint URL** and **Card interaction URL** in the Chat API configuration page to point to the Cloud Run service URL (e.g., `https://fabric-chat-app-xxxxx.run.app/chat/events`). Use the same URL as the `external_url` in your config.
 
 ### Co-hosting with the Hub behind Caddy
 
-The chat app uses the `/chat/` path prefix so it can share a domain with the Scion Hub via a reverse proxy. `make install` patches the Caddyfile automatically, but if you're configuring manually, the resulting Caddyfile looks like:
+The chat app uses the `/chat/` path prefix so it can share a domain with the Fabric Hub via a reverse proxy. `make install` patches the Caddyfile automatically, but if you're configuring manually, the resulting Caddyfile looks like:
 
 ```
-scion.example.com {
+fabric.example.com {
     # Chat app (Google Workspace Add-on endpoint)
     handle /chat/* {
         reverse_proxy localhost:8443
@@ -342,44 +342,44 @@ scion.example.com {
         reverse_proxy localhost:8080
     }
 
-    tls /etc/letsencrypt/live/scion.example.com/fullchain.pem /etc/letsencrypt/live/scion.example.com/privkey.pem
+    tls /etc/letsencrypt/live/fabric.example.com/fullchain.pem /etc/letsencrypt/live/fabric.example.com/privkey.pem
 }
 ```
 
-In this setup, set `external_url` to `https://scion.example.com/chat/events` and register that as the HTTP endpoint URL in the Chat API configuration.
+In this setup, set `external_url` to `https://fabric.example.com/chat/events` and register that as the HTTP endpoint URL in the Chat API configuration.
 
 ## Slash Commands
 
-Once the app is running and connected, users interact via `/scion` in Google Chat:
+Once the app is running and connected, users interact via `/fabric` in Google Chat:
 
 | Command | Description |
 |---------|-------------|
-| `/scion help` | Show available commands |
-| `/scion register` | Link your chat account to your Hub user (auto-matches by email, falls back to device auth) |
-| `/scion unregister` | Remove your chat-to-Hub account link |
-| `/scion link <grove-slug>` | Link the current space to a grove (admin only) |
-| `/scion unlink` | Unlink the current space from its grove (admin only) |
-| `/scion list` | List agents in the linked grove |
-| `/scion status <agent>` | Show agent status card with action buttons |
-| `/scion create <agent>` | Create a new agent |
-| `/scion start <agent>` | Start an agent |
-| `/scion stop <agent>` | Stop an agent |
-| `/scion delete <agent>` | Delete an agent (with confirmation) |
-| `/scion logs <agent>` | Show recent agent logs |
-| `/scion message <agent> <text>` | Send a message to an agent (supports `--thread <id>`) |
-| `/scion subscribe <agent>` | Subscribe to agent notifications (with activity filter dialog) |
-| `/scion unsubscribe <agent>` | Unsubscribe from agent notifications |
+| `/fabric help` | Show available commands |
+| `/fabric register` | Link your chat account to your Hub user (auto-matches by email, falls back to device auth) |
+| `/fabric unregister` | Remove your chat-to-Hub account link |
+| `/fabric link <grove-slug>` | Link the current space to a grove (admin only) |
+| `/fabric unlink` | Unlink the current space from its grove (admin only) |
+| `/fabric list` | List agents in the linked grove |
+| `/fabric status <agent>` | Show agent status card with action buttons |
+| `/fabric create <agent>` | Create a new agent |
+| `/fabric start <agent>` | Start an agent |
+| `/fabric stop <agent>` | Stop an agent |
+| `/fabric delete <agent>` | Delete an agent (with confirmation) |
+| `/fabric logs <agent>` | Show recent agent logs |
+| `/fabric message <agent> <text>` | Send a message to an agent (supports `--thread <id>`) |
+| `/fabric subscribe <agent>` | Subscribe to agent notifications (with activity filter dialog) |
+| `/fabric unsubscribe <agent>` | Unsubscribe from agent notifications |
 
 You can also @mention the bot to send messages to agents:
 
 ```
-@Scion tell deploy-agent to check the staging cluster
+@Fabric tell deploy-agent to check the staging cluster
 ```
 
 ## Architecture
 
 ```
-Google Chat ──HTTP events──> scion-chat-app ──Hub API──> Scion Hub
+Google Chat ──HTTP events──> fabric-chat-app ──Hub API──> Fabric Hub
                                   │  │                       │
                    sync responses─┘  │◄──broker plugin (RPC)─┘
                                      │

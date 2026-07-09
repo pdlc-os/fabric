@@ -326,7 +326,7 @@ Minor additions needed:
 
 **Files**: `pkg/hub/handlers.go`
 
-The `handleGroveRegister` handler's registration path already calls `createGroveGroup`. Added a call to `createGroveMembersGroupAndPolicy` immediately after, ensuring groves created via `scion hub register` (the CLI registration flow) get the same policy treatment as groves created via the web API.
+The `handleGroveRegister` handler's registration path already calls `createGroveGroup`. Added a call to `createGroveMembersGroupAndPolicy` immediately after, ensuring groves created via `fabric hub register` (the CLI registration flow) get the same policy treatment as groves created via the web API.
 
 ### Step 9: Tests ✅
 

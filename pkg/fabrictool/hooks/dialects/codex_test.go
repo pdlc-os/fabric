@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package dialects
@@ -7,7 +7,7 @@ package dialects
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

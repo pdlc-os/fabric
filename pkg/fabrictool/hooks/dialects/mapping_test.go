@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package dialects
@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -442,7 +442,7 @@ func TestDiscoverMappingDialect(t *testing.T) {
 		home := t.TempDir()
 		t.Setenv("HOME", home)
 
-		bundleDir := filepath.Join(home, ".scion", "harness")
+		bundleDir := filepath.Join(home, ".fabric", "harness")
 		require.NoError(t, os.MkdirAll(bundleDir, 0755))
 		err := os.WriteFile(filepath.Join(bundleDir, "dialect.yaml"), []byte(`
 dialect: my-harness
@@ -462,7 +462,7 @@ mappings:
 		home := t.TempDir()
 		t.Setenv("HOME", home)
 
-		bundleDir := filepath.Join(home, ".scion", "harness")
+		bundleDir := filepath.Join(home, ".fabric", "harness")
 		require.NoError(t, os.MkdirAll(bundleDir, 0755))
 		err := os.WriteFile(filepath.Join(bundleDir, "dialect.yaml"), []byte(`
 dialect: other-harness

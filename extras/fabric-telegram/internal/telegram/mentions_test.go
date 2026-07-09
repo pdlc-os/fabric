@@ -23,12 +23,12 @@ import (
 
 func TestResolveTargetAgents_BotMentionOnly(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot please help",
+		Text: "@FabricHubBot please help",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"coder"}, result)
 	assert.False(t, isAll)
 }
@@ -37,7 +37,7 @@ func TestResolveTargetAgents_SingleAgentMention(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@reviewer check this PR",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"reviewer"}, result)
 	assert.False(t, isAll)
 }
@@ -46,7 +46,7 @@ func TestResolveTargetAgents_MultipleAgentMentions(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@coder @reviewer both of you look at this",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer", "tester"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer", "tester"})
 	assert.Equal(t, []string{"coder", "reviewer"}, result)
 	assert.False(t, isAll)
 }
@@ -55,19 +55,19 @@ func TestResolveTargetAgents_DuplicateMentions(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@coder @coder help me",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"coder"}, result)
 	assert.False(t, isAll)
 }
 
 func TestResolveTargetAgents_BotPlusExplicitDefault(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot @coder hello",
+		Text: "@FabricHubBot @coder hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"coder"}, result)
 	assert.False(t, isAll)
 }
@@ -77,7 +77,7 @@ func TestResolveTargetAgents_All(t *testing.T) {
 		Text: "@all deploy update",
 	}
 	known := []string{"coder", "reviewer", "tester"}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", known)
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", known)
 	assert.Equal(t, known, result)
 	assert.True(t, isAll)
 }
@@ -86,7 +86,7 @@ func TestResolveTargetAgents_NoMentions(t *testing.T) {
 	msg := &TGMessage{
 		Text: "just a regular message",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Nil(t, result)
 	assert.False(t, isAll)
 }
@@ -95,13 +95,13 @@ func TestResolveTargetAgents_UnknownMention(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@stranger hello",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Nil(t, result)
 	assert.False(t, isAll)
 }
 
 func TestResolveTargetAgents_NilMessage(t *testing.T) {
-	result, isAll := resolveTargetAgents(nil, "ScionHubBot", "coder", []string{"coder"})
+	result, isAll := resolveTargetAgents(nil, "FabricHubBot", "coder", []string{"coder"})
 	assert.Nil(t, result)
 	assert.False(t, isAll)
 }
@@ -110,7 +110,7 @@ func TestResolveTargetAgents_MentionWithTrailingPunctuation(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@coder, can you help?",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"coder"}, result)
 	assert.False(t, isAll)
 }
@@ -119,7 +119,7 @@ func TestResolveTargetAgents_MentionWithPeriod(t *testing.T) {
 	msg := &TGMessage{
 		Text: "Hey @reviewer.",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"reviewer"}, result)
 	assert.False(t, isAll)
 }
@@ -128,50 +128,50 @@ func TestResolveTargetAgents_MentionWithExclamation(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@coder!",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder"})
 	assert.Equal(t, []string{"coder"}, result)
 	assert.False(t, isAll)
 }
 
 func TestIsBotMentioned_CaseInsensitive(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@scionhubbot hello",
+		Text: "@fabrichubbot hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	assert.True(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.True(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_UpperCase(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@SCIONHUBBOT hello",
+		Text: "@FABRICHUBBOT hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	assert.True(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.True(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_NoEntities(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot hello",
+		Text: "@FabricHubBot hello",
 	}
-	assert.False(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.False(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_WrongEntityType(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot hello",
+		Text: "@FabricHubBot hello",
 		Entities: []MessageEntity{
 			{Type: "bot_command", Offset: 0, Length: 12},
 		},
 	}
-	assert.False(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.False(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_NilMessage(t *testing.T) {
-	assert.False(t, isBotMentioned(nil, "ScionHubBot"))
+	assert.False(t, isBotMentioned(nil, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_EmptyBotUsername(t *testing.T) {
@@ -181,12 +181,12 @@ func TestIsBotMentioned_EmptyBotUsername(t *testing.T) {
 
 func TestIsBotMentioned_MidText(t *testing.T) {
 	msg := &TGMessage{
-		Text: "hey @ScionHubBot help",
+		Text: "hey @FabricHubBot help",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 4, Length: 12},
 		},
 	}
-	assert.True(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.True(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_InvalidOffset(t *testing.T) {
@@ -196,7 +196,7 @@ func TestIsBotMentioned_InvalidOffset(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 100},
 		},
 	}
-	assert.False(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.False(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestExtractAgentMentions_Basic(t *testing.T) {
@@ -230,60 +230,60 @@ func TestExtractAgentMentions_WithHyphen(t *testing.T) {
 }
 
 func TestStripMentions_BotAndAgent(t *testing.T) {
-	result := stripMentions("@ScionHubBot @coder please review this", "ScionHubBot", []string{"coder"})
+	result := stripMentions("@FabricHubBot @coder please review this", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, "please review this", result)
 }
 
 func TestStripMentions_OnlyBot(t *testing.T) {
-	result := stripMentions("@ScionHubBot hello world", "ScionHubBot", nil)
+	result := stripMentions("@FabricHubBot hello world", "FabricHubBot", nil)
 	assert.Equal(t, "hello world", result)
 }
 
 func TestStripMentions_PreservesUnknownMentions(t *testing.T) {
-	result := stripMentions("@ScionHubBot @stranger hello", "ScionHubBot", []string{"coder"})
+	result := stripMentions("@FabricHubBot @stranger hello", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, "@stranger hello", result)
 }
 
 func TestStripMentions_WithTrailingPunctuation(t *testing.T) {
-	result := stripMentions("@coder, please help", "ScionHubBot", []string{"coder"})
+	result := stripMentions("@coder, please help", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, ", please help", result)
 }
 
 func TestStripMentions_AllMention(t *testing.T) {
-	result := stripMentions("@all attention please", "ScionHubBot", []string{"coder"})
+	result := stripMentions("@all attention please", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, "attention please", result)
 }
 
 func TestStripMentions_EmptyAfterStrip(t *testing.T) {
-	result := stripMentions("@coder", "ScionHubBot", []string{"coder"})
+	result := stripMentions("@coder", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, "", result)
 }
 
 func TestStripMentions_NoMentions(t *testing.T) {
-	result := stripMentions("just regular text", "ScionHubBot", []string{"coder"})
+	result := stripMentions("just regular text", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, "just regular text", result)
 }
 
 func TestResolveTargetAgents_BotMentionEmptyDefault(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot hello",
+		Text: "@FabricHubBot hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "", []string{"coder"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "", []string{"coder"})
 	assert.Nil(t, result)
 	assert.False(t, isAll)
 }
 
 func TestResolveTargetAgents_BotAndOtherAgents(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot @reviewer check this",
+		Text: "@FabricHubBot @reviewer check this",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "reviewer"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"coder", "reviewer"}, result)
 	assert.False(t, isAll)
 }
@@ -371,44 +371,44 @@ func TestExtractAgentFromBotMessage_UnderscoreSlug(t *testing.T) {
 // --- utf16Extract tests ---
 
 func TestUtf16Extract_ASCIIOnly(t *testing.T) {
-	s := "@ScionHubBot hello"
+	s := "@FabricHubBot hello"
 	got, ok := utf16Extract(s, 0, 12)
 	assert.True(t, ok)
-	assert.Equal(t, "@ScionHubBot", got)
+	assert.Equal(t, "@FabricHubBot", got)
 }
 
 func TestUtf16Extract_ASCIIMidString(t *testing.T) {
-	s := "hey @ScionHubBot help"
+	s := "hey @FabricHubBot help"
 	got, ok := utf16Extract(s, 4, 12)
 	assert.True(t, ok)
-	assert.Equal(t, "@ScionHubBot", got)
+	assert.Equal(t, "@FabricHubBot", got)
 }
 
 func TestUtf16Extract_EmojiBeforeMention(t *testing.T) {
 	// 🎉 is U+1F389 — a supplementary-plane character: 4 bytes in UTF-8, 2 UTF-16 code units.
 	// So "🎉 " is 2 + 1 = 3 UTF-16 code units, but 4 + 1 = 5 bytes.
-	// Telegram would report offset=3, length=12 for "@ScionHubBot".
-	s := "🎉 @ScionHubBot hello"
+	// Telegram would report offset=3, length=12 for "@FabricHubBot".
+	s := "🎉 @FabricHubBot hello"
 	got, ok := utf16Extract(s, 3, 12)
 	assert.True(t, ok)
-	assert.Equal(t, "@ScionHubBot", got)
+	assert.Equal(t, "@FabricHubBot", got)
 }
 
 func TestUtf16Extract_MultipleEmojisBeforeMention(t *testing.T) {
 	// Two supplementary emoji: "🎉🚀 " = 2+2+1 = 5 UTF-16 code units.
-	s := "🎉🚀 @ScionHubBot"
+	s := "🎉🚀 @FabricHubBot"
 	got, ok := utf16Extract(s, 5, 12)
 	assert.True(t, ok)
-	assert.Equal(t, "@ScionHubBot", got)
+	assert.Equal(t, "@FabricHubBot", got)
 }
 
 func TestUtf16Extract_CJKBeforeMention(t *testing.T) {
 	// CJK characters are BMP (1 UTF-16 code unit each, but 3 bytes in UTF-8).
 	// "你好 " = 3 UTF-16 code units.
-	s := "你好 @ScionHubBot"
+	s := "你好 @FabricHubBot"
 	got, ok := utf16Extract(s, 3, 12)
 	assert.True(t, ok)
-	assert.Equal(t, "@ScionHubBot", got)
+	assert.Equal(t, "@FabricHubBot", got)
 }
 
 func TestUtf16Extract_MixedEmojiAndCJK(t *testing.T) {
@@ -464,26 +464,26 @@ func TestUtf16Extract_EntireString(t *testing.T) {
 // --- Integration: isBotMentioned with emoji ---
 
 func TestIsBotMentioned_EmojiBeforeMention(t *testing.T) {
-	// "🎉 @ScionHubBot hello" — emoji is 2 UTF-16 code units, space is 1.
+	// "🎉 @FabricHubBot hello" — emoji is 2 UTF-16 code units, space is 1.
 	// Telegram reports mention entity at offset=3, length=12.
 	msg := &TGMessage{
-		Text: "🎉 @ScionHubBot hello",
+		Text: "🎉 @FabricHubBot hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 3, Length: 12},
 		},
 	}
-	assert.True(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.True(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 func TestIsBotMentioned_MultipleEmojisBeforeMention(t *testing.T) {
-	// "🎉🚀 @ScionHubBot" — offset=5 (2+2+1), length=12.
+	// "🎉🚀 @FabricHubBot" — offset=5 (2+2+1), length=12.
 	msg := &TGMessage{
-		Text: "🎉🚀 @ScionHubBot",
+		Text: "🎉🚀 @FabricHubBot",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 5, Length: 12},
 		},
 	}
-	assert.True(t, isBotMentioned(msg, "ScionHubBot"))
+	assert.True(t, isBotMentioned(msg, "FabricHubBot"))
 }
 
 // --- hasNonBotUserMention tests ---
@@ -495,17 +495,17 @@ func TestHasNonBotUserMention_UserMention(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 4},
 		},
 	}
-	assert.True(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder", "reviewer"}))
+	assert.True(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder", "reviewer"}))
 }
 
 func TestHasNonBotUserMention_BotMention(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot hello",
+		Text: "@FabricHubBot hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_AgentMention(t *testing.T) {
@@ -515,7 +515,7 @@ func TestHasNonBotUserMention_AgentMention(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 6},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder", "reviewer"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder", "reviewer"}))
 }
 
 func TestHasNonBotUserMention_TextMentionNonBot(t *testing.T) {
@@ -525,40 +525,40 @@ func TestHasNonBotUserMention_TextMentionNonBot(t *testing.T) {
 			{Type: "text_mention", Offset: 0, Length: 9, User: &TGUser{ID: 12345, FirstName: "Bob", LastName: "Smith"}},
 		},
 	}
-	assert.True(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.True(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_TextMentionBot(t *testing.T) {
 	msg := &TGMessage{
-		Text: "ScionHubBot do something",
+		Text: "FabricHubBot do something",
 		Entities: []MessageEntity{
-			{Type: "text_mention", Offset: 0, Length: 11, User: &TGUser{ID: 999, Username: "ScionHubBot", IsBot: true}},
+			{Type: "text_mention", Offset: 0, Length: 11, User: &TGUser{ID: 999, Username: "FabricHubBot", IsBot: true}},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_NoEntities(t *testing.T) {
 	msg := &TGMessage{
 		Text: "just a regular message",
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_NilMessage(t *testing.T) {
-	assert.False(t, hasNonBotUserMention(nil, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(nil, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_MixedBotAndUserMention(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@ScionHubBot @alice hello",
+		Text: "@FabricHubBot @alice hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 			{Type: "mention", Offset: 13, Length: 6},
 		},
 	}
 	// @alice is at offset>0 so it does not block default routing.
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_MentionAtOffsetGtZero(t *testing.T) {
@@ -568,7 +568,7 @@ func TestHasNonBotUserMention_MentionAtOffsetGtZero(t *testing.T) {
 			{Type: "mention", Offset: 4, Length: 4},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_TextMentionAtOffsetGtZero(t *testing.T) {
@@ -578,17 +578,17 @@ func TestHasNonBotUserMention_TextMentionAtOffsetGtZero(t *testing.T) {
 			{Type: "text_mention", Offset: 4, Length: 9, User: &TGUser{ID: 12345, FirstName: "Bob", LastName: "Smith"}},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_CaseInsensitive(t *testing.T) {
 	msg := &TGMessage{
-		Text: "@scionhubbot hello",
+		Text: "@fabrichubbot hello",
 		Entities: []MessageEntity{
 			{Type: "mention", Offset: 0, Length: 12},
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 // --- isPartialMentionEntity tests ---
@@ -670,7 +670,7 @@ func TestHasNonBotUserMention_HyphenatedAgentEntityAtStart(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 6}, // covers "@agent"
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"agent-dev"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"agent-dev"}))
 }
 
 func TestHasNonBotUserMention_HyphenatedNonAgentEntityAtStart(t *testing.T) {
@@ -682,7 +682,7 @@ func TestHasNonBotUserMention_HyphenatedNonAgentEntityAtStart(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 6}, // covers "@agent"
 		},
 	}
-	assert.False(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.False(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 func TestHasNonBotUserMention_NonPartialUserMention(t *testing.T) {
@@ -694,7 +694,7 @@ func TestHasNonBotUserMention_NonPartialUserMention(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 6}, // covers "@alice"
 		},
 	}
-	assert.True(t, hasNonBotUserMention(msg, "ScionHubBot", []string{"coder"}))
+	assert.True(t, hasNonBotUserMention(msg, "FabricHubBot", []string{"coder"}))
 }
 
 // --- entityMentionSet tests ---
@@ -776,32 +776,32 @@ func TestEntityMentionSet_IgnoresTextMention(t *testing.T) {
 // --- extractUnresolvedMentions tests ---
 
 func TestExtractUnresolvedMentions_TypoAgent(t *testing.T) {
-	result := extractUnresolvedMentions("@agent-typo hello", "ScionHubBot", []string{"coder", "reviewer"})
+	result := extractUnresolvedMentions("@agent-typo hello", "FabricHubBot", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"agent-typo"}, result)
 }
 
 func TestExtractUnresolvedMentions_AllKnown(t *testing.T) {
-	result := extractUnresolvedMentions("@coder @reviewer hello", "ScionHubBot", []string{"coder", "reviewer"})
+	result := extractUnresolvedMentions("@coder @reviewer hello", "FabricHubBot", []string{"coder", "reviewer"})
 	assert.Nil(t, result)
 }
 
 func TestExtractUnresolvedMentions_BotFiltered(t *testing.T) {
-	result := extractUnresolvedMentions("@ScionHubBot hello", "ScionHubBot", []string{"coder"})
+	result := extractUnresolvedMentions("@FabricHubBot hello", "FabricHubBot", []string{"coder"})
 	assert.Nil(t, result)
 }
 
 func TestExtractUnresolvedMentions_MixedKnownAndUnknown(t *testing.T) {
-	result := extractUnresolvedMentions("@coder @agent-typo hello", "ScionHubBot", []string{"coder", "reviewer"})
+	result := extractUnresolvedMentions("@coder @agent-typo hello", "FabricHubBot", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"agent-typo"}, result)
 }
 
 func TestExtractUnresolvedMentions_MultipleUnknown(t *testing.T) {
-	result := extractUnresolvedMentions("@typo1 @typo2 hello", "ScionHubBot", []string{"coder"})
+	result := extractUnresolvedMentions("@typo1 @typo2 hello", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, []string{"typo1", "typo2"}, result)
 }
 
 func TestExtractUnresolvedMentions_NoMentions(t *testing.T) {
-	result := extractUnresolvedMentions("just regular text", "ScionHubBot", []string{"coder"})
+	result := extractUnresolvedMentions("just regular text", "FabricHubBot", []string{"coder"})
 	assert.Nil(t, result)
 }
 
@@ -812,7 +812,7 @@ func TestTypoDetection_TypoAgentNoEntity(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@agent-typo hello",
 	}
-	unresolved := extractUnresolvedMentions(msg.Text, "ScionHubBot", []string{"coder", "reviewer"})
+	unresolved := extractUnresolvedMentions(msg.Text, "FabricHubBot", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"agent-typo"}, unresolved)
 
 	entityMentions := entityMentionSet(msg)
@@ -837,7 +837,7 @@ func TestTypoDetection_RealUserWithEntity(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 5},
 		},
 	}
-	unresolved := extractUnresolvedMentions(msg.Text, "ScionHubBot", []string{"coder", "reviewer"})
+	unresolved := extractUnresolvedMentions(msg.Text, "FabricHubBot", []string{"coder", "reviewer"})
 	assert.Equal(t, []string{"john"}, unresolved)
 
 	entityMentions := entityMentionSet(msg)
@@ -858,7 +858,7 @@ func TestTypoDetection_MixedTypoAndRealUser(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 5},
 		},
 	}
-	unresolved := extractUnresolvedMentions(msg.Text, "ScionHubBot", []string{"coder"})
+	unresolved := extractUnresolvedMentions(msg.Text, "FabricHubBot", []string{"coder"})
 	assert.Equal(t, []string{"john", "agent-typo"}, unresolved)
 
 	entityMentions := entityMentionSet(msg)
@@ -877,7 +877,7 @@ func TestResolveTargetAgents_HyphenatedAgent(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@deploy-agent run the deploy",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "deploy-agent"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "deploy-agent"})
 	assert.Equal(t, []string{"deploy-agent"}, result)
 	assert.False(t, isAll)
 }
@@ -890,7 +890,7 @@ func TestResolveTargetAgents_HyphenatedAgentWithEntity(t *testing.T) {
 			{Type: "mention", Offset: 0, Length: 7}, // covers "@deploy"
 		},
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "deploy-agent"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "deploy-agent"})
 	assert.Equal(t, []string{"deploy-agent"}, result)
 	assert.False(t, isAll)
 }
@@ -899,7 +899,7 @@ func TestResolveTargetAgents_MultipleHyphens(t *testing.T) {
 	msg := &TGMessage{
 		Text: "@my-cool-agent help me",
 	}
-	result, isAll := resolveTargetAgents(msg, "ScionHubBot", "coder", []string{"coder", "my-cool-agent"})
+	result, isAll := resolveTargetAgents(msg, "FabricHubBot", "coder", []string{"coder", "my-cool-agent"})
 	assert.Equal(t, []string{"my-cool-agent"}, result)
 	assert.False(t, isAll)
 }
@@ -944,9 +944,9 @@ func TestStripMentions_PreservesMultipleSpaces(t *testing.T) {
 }
 
 func TestStripMentions_MentionBeforeMultilineCode(t *testing.T) {
-	input := "@ScionHubBot @coder ```\n    if x > 0 {\n        return x\n    }\n```"
+	input := "@FabricHubBot @coder ```\n    if x > 0 {\n        return x\n    }\n```"
 	expected := "```\n    if x > 0 {\n        return x\n    }\n```"
-	result := stripMentions(input, "ScionHubBot", []string{"coder"})
+	result := stripMentions(input, "FabricHubBot", []string{"coder"})
 	assert.Equal(t, expected, result)
 }
 
@@ -956,28 +956,28 @@ func TestStripMentions_MidTextMentionPreservesNewlines(t *testing.T) {
 }
 
 func TestStripMentions_HyphenatedAgent(t *testing.T) {
-	result := stripMentions("@ScionHubBot @deploy-agent please review this", "ScionHubBot", []string{"deploy-agent"})
+	result := stripMentions("@FabricHubBot @deploy-agent please review this", "FabricHubBot", []string{"deploy-agent"})
 	assert.Equal(t, "please review this", result)
 }
 
 func TestStripMentions_HyphenatedAgentWithTrailingPunctuation(t *testing.T) {
-	result := stripMentions("@deploy-agent, please help", "ScionHubBot", []string{"deploy-agent"})
+	result := stripMentions("@deploy-agent, please help", "FabricHubBot", []string{"deploy-agent"})
 	assert.Equal(t, ", please help", result)
 }
 
 func TestStripMentions_MultipleHyphenatedAgents(t *testing.T) {
-	result := stripMentions("@deploy-agent @code-reviewer check this", "ScionHubBot", []string{"deploy-agent", "code-reviewer"})
+	result := stripMentions("@deploy-agent @code-reviewer check this", "FabricHubBot", []string{"deploy-agent", "code-reviewer"})
 	assert.Equal(t, "check this", result)
 }
 
 func TestExtractUnresolvedMentions_HyphenatedKnownAgent(t *testing.T) {
 	// Known hyphenated agent should NOT appear in unresolved.
-	result := extractUnresolvedMentions("@deploy-agent hello", "ScionHubBot", []string{"deploy-agent"})
+	result := extractUnresolvedMentions("@deploy-agent hello", "FabricHubBot", []string{"deploy-agent"})
 	assert.Nil(t, result)
 }
 
 func TestExtractUnresolvedMentions_HyphenatedUnknownAgent(t *testing.T) {
 	// Unknown hyphenated agent should appear in unresolved with full name.
-	result := extractUnresolvedMentions("@deploy-agent hello", "ScionHubBot", []string{"coder"})
+	result := extractUnresolvedMentions("@deploy-agent hello", "FabricHubBot", []string{"coder"})
 	assert.Equal(t, []string{"deploy-agent"}, result)
 }

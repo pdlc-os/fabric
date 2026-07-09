@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# cloud-build builder for the scion image build orchestrator.
+# cloud-build builder for the fabric image build orchestrator.
 #
 # Operates in target mode: instead of looping per image, the orchestrator
 # calls builder_run_target once per invocation and this builder hands the
@@ -45,7 +45,7 @@ cloud_build_config_for_target() {
     common)     file="cloudbuild-common.yaml" ;;
     all)        file="cloudbuild.yaml" ;;
     core-base)  file="cloudbuild-core-base.yaml" ;;
-    scion-base) file="cloudbuild-scion-base.yaml" ;;
+    fabric-base) file="cloudbuild-fabric-base.yaml" ;;
     harnesses)  file="cloudbuild-harnesses.yaml" ;;
     hub)        file="cloudbuild-hub.yaml" ;;
     *)

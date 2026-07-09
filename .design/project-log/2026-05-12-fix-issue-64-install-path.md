@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-12
 **PR:** #65
-**Branch:** scion/fix-issue-64
+**Branch:** fabric/fix-issue-64
 
 ## Summary
 
@@ -12,7 +12,7 @@ Updated the Makefile `install` target to address issue #64 where the default ins
 
 - Changed default install location from `~/.local/bin` to `/usr/local/bin` via configurable `PREFIX` variable
 - Added post-install PATH check that warns users if the install directory is not in `$PATH`
-- Added verification hint (`scion --version`) in post-install output
+- Added verification hint (`fabric --version`) in post-install output
 - Switched from `mkdir -p` to `install -d` for standard directory creation
 
 ## Usage

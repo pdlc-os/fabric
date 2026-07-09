@@ -26,7 +26,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/fs-watcher-tool/pkg/fswatcher"
+	"github.com/pdlc-os/fabric/extras/fs-watcher-tool/pkg/fswatcher"
 	"github.com/docker/docker/client"
 )
 
@@ -55,7 +55,7 @@ func main() {
 	flag.StringVar(&project, "grove", "", "Deprecated alias for --project")
 	flag.Var(&watchDirs, "watch", "Directory to watch explicitly (repeatable)")
 	flag.StringVar(&logFile, "log", "-", "Output log file path (- for stdout)")
-	flag.StringVar(&labelKey, "label-key", "scion.name", "Docker label key to use as agent ID")
+	flag.StringVar(&labelKey, "label-key", "fabric.name", "Docker label key to use as agent ID")
 	flag.Var(&ignore, "ignore", "Glob patterns to exclude (repeatable)")
 	flag.StringVar(&filterFile, "filter-file", "", "Path to .gitignore-style filter file")
 	flag.DurationVar(&debounce, "debounce", 300*time.Millisecond, "Duration to collapse rapid edits to the same file")
@@ -211,7 +211,7 @@ func run(cfg fswatcher.Config) error {
 		errCh <- watcher.Run(ctx)
 	}()
 
-	log.Printf("scion-fs-watcher started, watching %d directories", len(roots))
+	log.Printf("fabric-fs-watcher started, watching %d directories", len(roots))
 
 	// Wait for signal or error.
 	for {

@@ -7,7 +7,7 @@ This release delivers a complete maturation of the Kubernetes runtime, introduce
 
 ## 🚀 Features
 * **Kubernetes Runtime Maturation (Stages 1-3):** Successfully implemented Parity, Production Hardening, and Launch Readiness for the Kubernetes runtime, establishing it as a fully-supported, robust platform for agent execution.
-* **Agent Isolation & Grove Security:** Enhanced agent security by externalizing non-git grove data and agent home directories. Introduced tmpfs shadow mounts to definitively prevent agents from cross-accessing `.scion` configuration data or other agents' workspaces within the same grove.
+* **Agent Isolation & Grove Security:** Enhanced agent security by externalizing non-git grove data and agent home directories. Introduced tmpfs shadow mounts to definitively prevent agents from cross-accessing `.fabric` configuration data or other agents' workspaces within the same grove.
 * **Web UI Performance & Responsiveness:** Drastically improved the frontend experience by implementing optimistic UI updates and background data refreshes. Re-architected the application shell to reuse components on navigation and consolidated Server-Sent Event (SSE) connections to prevent browser connection pool exhaustion.
 * **Contextual Agent Instructions:** Added support for conditional instruction extensions (`agents-git.md` and `agents-hub.md`), allowing agents to receive tailored operational context based on their specific workspace type.
 * **Hub API & Infrastructure:** Completed Phase 5 of the Hub API consolidation with full mode awareness and isolation. Enabled HTTP/2 cleartext (h2c) support on the web server, and introduced new grove management CLI commands (`list`, `prune`, `reconnect`).

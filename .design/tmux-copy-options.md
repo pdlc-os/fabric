@@ -14,7 +14,7 @@ Browser (xterm.js + ClipboardAddon)
   ↕ WebSocket (JSON { type:"data", data: base64 })
 Go PTY server (pty_handlers.go)
   ↕ PTY fd (raw bytes, no filtering)
-docker exec -it <container> tmux attach-session -t scion
+docker exec -it <container> tmux attach-session -t fabric
   ↕ container TTY
 tmux (inside container)
 ```

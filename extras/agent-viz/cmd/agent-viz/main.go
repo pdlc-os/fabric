@@ -22,9 +22,9 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/GoogleCloudPlatform/scion/extras/agent-viz/internal/logparser"
-	"github.com/GoogleCloudPlatform/scion/extras/agent-viz/internal/playback"
-	"github.com/GoogleCloudPlatform/scion/extras/agent-viz/internal/server"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/logparser"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/playback"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/server"
 )
 
 func main() {

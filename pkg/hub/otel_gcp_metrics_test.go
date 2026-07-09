@@ -73,13 +73,13 @@ func TestOTelGCPRecordAccessTokenRequest(t *testing.T) {
 
 	metrics := collectGCPMetrics(t, reader)
 
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.access.requests"]); got != 2 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.access.requests"]); got != 2 {
 		t.Errorf("access.requests = %d, want 2", got)
 	}
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.access.successes"]); got != 1 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.access.successes"]); got != 1 {
 		t.Errorf("access.successes = %d, want 1", got)
 	}
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.access.failures"]); got != 1 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.access.failures"]); got != 1 {
 		t.Errorf("access.failures = %d, want 1", got)
 	}
 
@@ -103,13 +103,13 @@ func TestOTelGCPRecordIDTokenRequest(t *testing.T) {
 
 	metrics := collectGCPMetrics(t, reader)
 
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.identity.requests"]); got != 2 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.identity.requests"]); got != 2 {
 		t.Errorf("identity.requests = %d, want 2", got)
 	}
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.identity.successes"]); got != 1 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.identity.successes"]); got != 1 {
 		t.Errorf("identity.successes = %d, want 1", got)
 	}
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.identity.failures"]); got != 1 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.identity.failures"]); got != 1 {
 		t.Errorf("identity.failures = %d, want 1", got)
 	}
 
@@ -133,7 +133,7 @@ func TestOTelGCPRecordRateLimitRejection(t *testing.T) {
 
 	metrics := collectGCPMetrics(t, reader)
 
-	if got := gcpSumCounter(metrics["scion.hub.gcp.token.ratelimit.rejections"]); got != 2 {
+	if got := gcpSumCounter(metrics["fabric.hub.gcp.token.ratelimit.rejections"]); got != 2 {
 		t.Errorf("ratelimit.rejections = %d, want 2", got)
 	}
 
@@ -149,9 +149,9 @@ func TestOTelGCPIAMDurationHistogram(t *testing.T) {
 	rec.RecordAccessTokenRequest(true, 42*time.Millisecond)
 
 	metrics := collectGCPMetrics(t, reader)
-	m, ok := metrics["scion.hub.gcp.iam.duration"]
+	m, ok := metrics["fabric.hub.gcp.iam.duration"]
 	if !ok {
-		t.Fatal("scion.hub.gcp.iam.duration not found")
+		t.Fatal("fabric.hub.gcp.iam.duration not found")
 	}
 	hist, ok := m.Data.(metricdata.Histogram[float64])
 	if !ok {

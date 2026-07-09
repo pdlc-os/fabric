@@ -5,7 +5,7 @@
 
 ## Problem
 
-`scion message someone@example.com "hello"` (without the `user:` prefix) silently converted the recipient to `user:someone@example.com` and reported "Message sent" with exit code 0, even when the message was never delivered.
+`fabric message someone@example.com "hello"` (without the `user:` prefix) silently converted the recipient to `user:someone@example.com` and reported "Message sent" with exit code 0, even when the message was never delivered.
 
 ## Fix
 
@@ -15,7 +15,7 @@ Changed the bare email detection branch in `cmd/message.go` to return an explici
 Error: recipient "someone@example.com" looks like an email address but is missing the "user:" prefix.
 
 Did you mean?
-  scion message user:someone@example.com "hello"
+  fabric message user:someone@example.com "hello"
 ```
 
 ## Files Changed

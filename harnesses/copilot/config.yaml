@@ -13,14 +13,14 @@
 # limitations under the License.
 
 harness: copilot
-image: scion-copilot:latest
-user: scion
+image: fabric-copilot:latest
+user: fabric
 
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -47,7 +47,7 @@ command:
   task_position: after_base_args
 
 env_template:
-  SCION_AGENT_NAME: "{{ .AgentName }}"
+  FABRIC_AGENT_NAME: "{{ .AgentName }}"
   COPILOT_AUTO_UPDATE: "false"
   NO_COLOR: "1"
   CI: "1"
@@ -90,7 +90,7 @@ no_auth:
     This agent started without credentials.
     Run: copilot login
     Complete the interactive login flow.
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 
 auth:
   default_type: api-key

@@ -22,7 +22,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -124,7 +124,7 @@ func runScheduleList(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -245,7 +245,7 @@ func runScheduleGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -376,7 +376,7 @@ func runScheduleCancel(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -428,7 +428,7 @@ func runScheduleCreate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -497,7 +497,7 @@ func runScheduleCreateRecurring(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -549,7 +549,7 @@ func runSchedulePause(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -583,7 +583,7 @@ func runScheduleResume(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -623,7 +623,7 @@ func runScheduleDelete(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -655,7 +655,7 @@ func runScheduleHistory(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if hubCtx == nil {
-		return fmt.Errorf("scheduled events require Hub mode (use 'scion hub enable' first)")
+		return fmt.Errorf("scheduled events require Hub mode (use 'fabric hub enable' first)")
 	}
 
 	if !isJSONOutput() {
@@ -672,7 +672,7 @@ func runScheduleHistory(cmd *cobra.Command, args []string) error {
 
 	if len(args) == 0 {
 		// No schedule ID - list all events (already done via 'schedule list --type events')
-		return fmt.Errorf("schedule ID is required for history (usage: scion schedule history <id>)")
+		return fmt.Errorf("schedule ID is required for history (usage: fabric schedule history <id>)")
 	}
 
 	scheduleID := args[0]

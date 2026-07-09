@@ -31,28 +31,28 @@
 <polygon fill="lightblue" stroke="black" points="143.5,-282 45,-282 45,-246 143.5,-246 143.5,-282"/>
 <text xml:space="preserve" text-anchor="middle" x="94.25" y="-255.95" font-family="Times,serif" font-size="14.00">Google Chat</text>
 </g>
-<!-- Scion Chat App -->
+<!-- Fabric Chat App -->
 <g id="node2" class="node">
-<title>Scion Chat App</title>
+<title>Fabric Chat App</title>
 <polygon fill="lightblue" stroke="black" points="188.5,-163 0,-163 0,-127 188.5,-127 188.5,-163"/>
-<text xml:space="preserve" text-anchor="middle" x="94.25" y="-136.95" font-family="Times,serif" font-size="14.00">Scion Chat App (Add&#45;on)</text>
+<text xml:space="preserve" text-anchor="middle" x="94.25" y="-136.95" font-family="Times,serif" font-size="14.00">Fabric Chat App (Add&#45;on)</text>
 </g>
-<!-- Google Chat&#45;&gt;Scion Chat App -->
+<!-- Google Chat&#45;&gt;Fabric Chat App -->
 <g id="edge1" class="edge">
-<title>Google Chat&#45;&gt;Scion Chat App</title>
+<title>Google Chat&#45;&gt;Fabric Chat App</title>
 <path fill="none" stroke="black" d="M94.25,-245.74C94.25,-227.07 94.25,-197.01 94.25,-174.77"/>
 <polygon fill="black" stroke="black" points="97.75,-174.85 94.25,-164.85 90.75,-174.85 97.75,-174.85"/>
 <text xml:space="preserve" text-anchor="middle" x="135.5" y="-196.95" font-family="Times,serif" font-size="14.00">HTTP Events</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node3" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <polygon fill="lightblue" stroke="black" points="98,-44 14.5,-44 14.5,-8 98,-8 98,-44"/>
-<text xml:space="preserve" text-anchor="middle" x="56.25" y="-17.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="56.25" y="-17.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- Scion Chat App&#45;&gt;Scion Hub -->
+<!-- Fabric Chat App&#45;&gt;Fabric Hub -->
 <g id="edge2" class="edge">
-<title>Scion Chat App&#45;&gt;Scion Hub</title>
+<title>Fabric Chat App&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M56.23,-126.74C42.1,-118.22 27.61,-106.45 19.75,-91.25 13.08,-78.36 19.44,-64.31 28.61,-52.64"/>
 <polygon fill="black" stroke="black" points="31.02,-55.2 35,-45.39 25.77,-50.58 31.02,-55.2"/>
 <text xml:space="preserve" text-anchor="middle" x="46" y="-77.95" font-family="Times,serif" font-size="14.00">Hub API</text>
@@ -63,15 +63,15 @@
 <polygon fill="lightblue" stroke="black" points="290.25,-44 214.25,-44 214.25,-8 290.25,-8 290.25,-44"/>
 <text xml:space="preserve" text-anchor="middle" x="252.25" y="-17.95" font-family="Times,serif" font-size="14.00">State DB</text>
 </g>
-<!-- Scion Chat App&#45;&gt;State DB -->
+<!-- Fabric Chat App&#45;&gt;State DB -->
 <g id="edge4" class="edge">
-<title>Scion Chat App&#45;&gt;State DB</title>
+<title>Fabric Chat App&#45;&gt;State DB</title>
 <path fill="none" stroke="black" d="M163.51,-126.59C184.68,-118.59 206.71,-107.21 223.25,-91.25 233.36,-81.49 240.24,-67.56 244.75,-55.16"/>
 <polygon fill="black" stroke="black" points="248.02,-56.4 247.78,-45.81 241.37,-54.24 248.02,-56.4"/>
 </g>
-<!-- Scion Hub&#45;&gt;Scion Chat App -->
+<!-- Fabric Hub&#45;&gt;Fabric Chat App -->
 <g id="edge3" class="edge">
-<title>Scion Hub&#45;&gt;Scion Chat App</title>
+<title>Fabric Hub&#45;&gt;Fabric Chat App</title>
 <path fill="none" stroke="black" d="M61.88,-44.33C68.01,-63.2 77.9,-93.65 85.13,-115.93"/>
 <polygon fill="black" stroke="black" points="81.76,-116.87 88.18,-125.3 88.42,-114.7 81.76,-116.87"/>
 <text xml:space="preserve" text-anchor="middle" x="147.64" y="-77.95" font-family="Times,serif" font-size="14.00">Broker Plugin (RPC)</text>

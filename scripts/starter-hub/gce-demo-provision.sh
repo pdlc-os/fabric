@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# scripts/starter-hub/gce-demo-provision.sh - Provision or delete a GCE VM for Scion Demo
+# scripts/starter-hub/gce-demo-provision.sh - Provision or delete a GCE VM for Fabric Demo
 
 set -euo pipefail
 
@@ -28,7 +28,7 @@ fi
 SERVICE_ACCOUNT_EMAIL="${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 function delete_resources() {
-    echo "=== Deleting Scion Demo Resources ==="
+    echo "=== Deleting Fabric Demo Resources ==="
     
     if gcloud compute instances describe "${INSTANCE_NAME}" --zone "${ZONE}" &>/dev/null; then
         echo "Deleting instance ${INSTANCE_NAME}..."
@@ -69,7 +69,7 @@ if [[ "${1:-}" == "delete" ]]; then
     exit 0
 fi
 
-echo "=== Scion Demo Provisioning ==="
+echo "=== Fabric Demo Provisioning ==="
 
 # Enable required APIs
 echo "Enabling required Google Cloud APIs..."
@@ -140,7 +140,7 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT_EMAIL}" &>/dev/null
     echo "Creating service account ${SERVICE_ACCOUNT_NAME}..."
     gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}" \
         --project="${PROJECT_ID}" \
-        --display-name "Scion Demo Service Account"
+        --display-name "Fabric Demo Service Account"
     
     echo "Waiting for service account to propagate..."
     sleep 10
@@ -199,7 +199,7 @@ if ! gcloud compute firewall-rules describe "${FIREWALL_RULE}" &>/dev/null; then
     gcloud compute firewall-rules create "${FIREWALL_RULE}" \
         --allow=tcp:80,tcp:443 \
         --target-tags=https-server \
-        --description="Allow HTTP and HTTPS traffic for Scion Hub (${HUB_NAME})"
+        --description="Allow HTTP and HTTPS traffic for Fabric Hub (${HUB_NAME})"
 else
     echo "Firewall rule ${FIREWALL_RULE} already exists."
 fi
@@ -216,8 +216,8 @@ if [[ "${INSTANCE_EXISTS}" == "false" ]]; then
         --provisioning-model=STANDARD \
         --service-account="${SERVICE_ACCOUNT_EMAIL}" \
         --scopes=https://www.googleapis.com/auth/cloud-platform \
-        --tags=https-server,scion-hub \
-        --labels=env=${HUB_NAME},project=scion,type=scion-hub \
+        --tags=https-server,fabric-hub \
+        --labels=env=${HUB_NAME},project=fabric,type=fabric-hub \
         --create-disk=auto-delete=yes,boot=yes,device-name=${INSTANCE_NAME},image=projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts,mode=rw,size=200,type=projects/${PROJECT_ID}/zones/${ZONE}/diskTypes/pd-balanced \
         --metadata-from-file=user-data="${CLOUD_INIT_FILE}"
 else

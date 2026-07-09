@@ -8,8 +8,8 @@ Fixed incomplete Hub CLI command renames as part of Code Review v2.
     - Renamed primary subcommands from `groves` to `projects`.
     - Added `groves` as a hidden alias for backward compatibility.
     - Updated all help and usage strings to use "project" instead of "grove".
-    - Updated `scion hub projects create`, `scion hub projects info`, and `scion hub projects delete` (and their aliases).
-    - Updated `scion hub link` and `scion hub unlink` messages.
+    - Updated `fabric hub projects create`, `fabric hub projects info`, and `fabric hub projects delete` (and their aliases).
+    - Updated `fabric hub link` and `fabric hub unlink` messages.
     - Updated `runHubStatus` to report "Project ID" and "Project Context".
 
 ### Configuration System Updates
@@ -35,5 +35,5 @@ Fixed incomplete Hub CLI command renames as part of Code Review v2.
 
 ## Verification
 - Ran `go build ./...` successfully.
-- Verified that all "scion hub" commands now use "project" terminology in help strings.
+- Verified that all "fabric hub" commands now use "project" terminology in help strings.
 - Verified that hidden aliases for "groves" are preserved.

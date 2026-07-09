@@ -337,9 +337,9 @@ func TestConfigureOIDCTransport_MetadataMode(t *testing.T) {
 	cleanup := overrideGCPDetection(true)
 	defer cleanup()
 
-	// Ensure no injected token and no scion metadata server
+	// Ensure no injected token and no fabric metadata server
 	_ = os.Unsetenv(EnvTransportToken)
-	_ = os.Unsetenv("SCION_METADATA_MODE")
+	_ = os.Unsetenv("FABRIC_METADATA_MODE")
 
 	c := &Client{
 		hubURL: "https://hub.example.com",
@@ -359,7 +359,7 @@ func TestConfigureOIDCTransport_MetadataMode_AudienceOverride(t *testing.T) {
 	defer cleanup()
 
 	_ = os.Unsetenv(EnvTransportToken)
-	_ = os.Unsetenv("SCION_METADATA_MODE")
+	_ = os.Unsetenv("FABRIC_METADATA_MODE")
 	_ = os.Setenv(EnvHubOIDCAudience, "https://custom-audience.example.com")
 	defer func() { _ = os.Unsetenv(EnvHubOIDCAudience) }()
 
@@ -392,12 +392,12 @@ func TestConfigureOIDCTransport_NotOnGCP(t *testing.T) {
 	assert.Nil(t, c.client.Transport, "transport should not be wrapped")
 }
 
-func TestConfigureOIDCTransport_SkipsMetadataWhenScionMetadataActive(t *testing.T) {
+func TestConfigureOIDCTransport_SkipsMetadataWhenFabricMetadataActive(t *testing.T) {
 	cleanup := overrideGCPDetection(true)
 	defer cleanup()
 
 	t.Setenv(EnvTransportToken, "")
-	t.Setenv("SCION_METADATA_MODE", "assign")
+	t.Setenv("FABRIC_METADATA_MODE", "assign")
 
 	c := &Client{
 		hubURL: "https://hub.example.com",
@@ -406,7 +406,7 @@ func TestConfigureOIDCTransport_SkipsMetadataWhenScionMetadataActive(t *testing.
 
 	c.configureOIDCTransport()
 
-	assert.Nil(t, c.oidcSource, "should not configure OIDC metadata mode when scion metadata server is active")
+	assert.Nil(t, c.oidcSource, "should not configure OIDC metadata mode when fabric metadata server is active")
 }
 
 func TestConfigureOIDCTransport_InjectedPriority(t *testing.T) {
@@ -442,7 +442,7 @@ func TestOIDC_EndToEnd_BothHeaders(t *testing.T) {
 	var gotAuth, gotAgentToken string
 	hubSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotAuth = r.Header.Get("Authorization")
-		gotAgentToken = r.Header.Get("X-Scion-Agent-Token")
+		gotAgentToken = r.Header.Get("X-Fabric-Agent-Token")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	}))
@@ -468,7 +468,7 @@ func TestOIDC_EndToEnd_BothHeaders(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "Bearer "+token, gotAuth, "OIDC Authorization header should be set")
-	assert.Equal(t, "test-agent-token", gotAgentToken, "X-Scion-Agent-Token should still be set")
+	assert.Equal(t, "test-agent-token", gotAgentToken, "X-Fabric-Agent-Token should still be set")
 }
 
 // --- applyRefreshTokens tests ---
@@ -479,7 +479,7 @@ func TestApplyRefreshTokens_TransportToken(t *testing.T) {
 
 	newToken := makeTestJWT(time.Now().Add(1 * time.Hour))
 	tokens := []RefreshTokenEntry{
-		{Layer: "app", Type: "scion_access", Value: "app-token", ExpiresIn: 36000},
+		{Layer: "app", Type: "fabric_access", Value: "app-token", ExpiresIn: 36000},
 		{Layer: "transport", Type: "google_oidc", Value: newToken, ExpiresIn: 3600, Audience: "https://hub.example.com"},
 	}
 

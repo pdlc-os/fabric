@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature or improvement for Scion
+about: Suggest a new feature or improvement for Fabric
 labels: enhancement
 ---
 

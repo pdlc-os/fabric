@@ -28,13 +28,13 @@ func TestCLISettings(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	projectDir := filepath.Join(tmpDir, "my-project")
-	projectScionDir := filepath.Join(projectDir, ".scion")
-	if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+	projectFabricDir := filepath.Join(projectDir, ".fabric")
+	if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// 1. Test defaults (embedded)
-	s, err := LoadSettings(projectScionDir)
+	s, err := LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}
@@ -49,12 +49,12 @@ func TestCLISettings(t *testing.T) {
 	}
 
 	// 2. Test override via UpdateSetting
-	err = UpdateSetting(projectScionDir, "cli.autohelp", "false", false)
+	err = UpdateSetting(projectFabricDir, "cli.autohelp", "false", false)
 	if err != nil {
 		t.Fatalf("UpdateSetting failed: %v", err)
 	}
 
-	s, err = LoadSettings(projectScionDir)
+	s, err = LoadSettings(projectFabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings failed: %v", err)
 	}

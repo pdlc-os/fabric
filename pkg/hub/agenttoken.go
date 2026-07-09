@@ -29,11 +29,11 @@ import (
 
 const (
 	// AgentTokenIssuer is the issuer claim for agent tokens.
-	AgentTokenIssuer = "scion-hub"
+	AgentTokenIssuer = "fabric-hub"
 	// AgentTokenAudience is the audience claim for agent tokens.
-	AgentTokenAudience = "scion-hub-api"
+	AgentTokenAudience = "fabric-hub-api"
 	// DefaultAgentTokenDuration is the default validity duration for agent tokens.
-	// Tokens are refreshed by sciontool 2 hours before expiry.
+	// Tokens are refreshed by fabrictool 2 hours before expiry.
 	DefaultAgentTokenDuration = 10 * time.Hour
 )
 
@@ -261,7 +261,7 @@ func GetAgentFromContext(ctx context.Context) *AgentTokenClaims {
 }
 
 // AgentAuthMiddleware creates middleware that validates agent tokens.
-// It looks for tokens in the Authorization header (Bearer) or X-Scion-Agent-Token header.
+// It looks for tokens in the Authorization header (Bearer) or X-Fabric-Agent-Token header.
 // If valid, it adds the agent claims to the request context.
 func (s *AgentTokenService) AgentAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -288,10 +288,10 @@ func (s *AgentTokenService) AgentAuthMiddleware(next http.Handler) http.Handler 
 }
 
 // extractAgentToken extracts the agent token from the request.
-// It checks both the Authorization header and X-Scion-Agent-Token header.
+// It checks both the Authorization header and X-Fabric-Agent-Token header.
 func extractAgentToken(r *http.Request) string {
-	// Check X-Scion-Agent-Token header first (takes precedence)
-	if token := r.Header.Get("X-Scion-Agent-Token"); token != "" {
+	// Check X-Fabric-Agent-Token header first (takes precedence)
+	if token := r.Header.Get("X-Fabric-Agent-Token"); token != "" {
 		return token
 	}
 

@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -208,7 +208,7 @@ func TestHandleNotifications_RejectAgentToken(t *testing.T) {
 
 	// Try to access notifications with an agent token
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/notifications", nil)
-	req.Header.Set("X-Scion-Agent-Token", agentToken)
+	req.Header.Set("X-Fabric-Agent-Token", agentToken)
 
 	rec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rec, req)

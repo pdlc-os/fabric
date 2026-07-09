@@ -32,7 +32,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
 )
 
 // PostgresEventPublisher is an EventPublisher backed by PostgreSQL LISTEN/NOTIFY.
@@ -46,7 +46,7 @@ import (
 // Postgres channels do not support wildcards):
 //
 //   - Grove-scoped subjects ("project.<id>.*" / "grove.<id>.*") are published
-//     to a per-grove channel (scion_ev_g_<id>) AND to the global channel. The
+//     to a per-grove channel (fabric_ev_g_<id>) AND to the global channel. The
 //     per-grove channel lets a replica that only watches a specific grove (e.g.
 //     a browser SSE stream) LISTEN on just that channel instead of the firehose.
 //   - All other subjects ("agent.*", "user.*", "broker.*", "admin.*",
@@ -64,7 +64,7 @@ import (
 // sent, so subscribers — local or remote — never observe it.
 //
 // Payloads larger than the Postgres 8000-byte NOTIFY limit are stored in the
-// scion_event_payloads table and the NOTIFY carries a reference id; the listener
+// fabric_event_payloads table and the NOTIFY carries a reference id; the listener
 // refetches the payload on receipt (reference-and-refetch). A background
 // goroutine purges old payload rows on a TTL so multiple replicas can each
 // refetch the same oversized event.
@@ -112,8 +112,8 @@ type pgEnvelope struct {
 }
 
 const (
-	pgChannelPrefix = "scion_ev_"
-	pgGlobalChannel = "scion_ev_global"
+	pgChannelPrefix = "fabric_ev_"
+	pgGlobalChannel = "fabric_ev_global"
 	// pgNotifyMaxPayload is the threshold above which an event is offloaded to
 	// the payload table. Postgres rejects NOTIFY payloads of 8000 bytes or more;
 	// the margin leaves room for the envelope wrapping around the data.
@@ -205,16 +205,16 @@ func NewPostgresEventPublisher(ctx context.Context, dsn string, metrics dbmetric
 // ensurePayloadTable creates the oversized-payload offload table if absent.
 func (p *PostgresEventPublisher) ensurePayloadTable(ctx context.Context) error {
 	const ddl = `
-CREATE TABLE IF NOT EXISTS scion_event_payloads (
+CREATE TABLE IF NOT EXISTS fabric_event_payloads (
 	id         UUID PRIMARY KEY,
 	subject    TEXT NOT NULL,
 	data       BYTEA NOT NULL,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS scion_event_payloads_created_at_idx
-	ON scion_event_payloads (created_at);`
+CREATE INDEX IF NOT EXISTS fabric_event_payloads_created_at_idx
+	ON fabric_event_payloads (created_at);`
 	if _, err := p.pool.Exec(ctx, ddl); err != nil {
-		return fmt.Errorf("creating scion_event_payloads table: %w", err)
+		return fmt.Errorf("creating fabric_event_payloads table: %w", err)
 	}
 	return nil
 }
@@ -268,7 +268,7 @@ func (p *PostgresEventPublisher) buildAndNotify(ctx context.Context, exec pgExec
 	if len(payload) > pgNotifyMaxPayload {
 		id := uuid.NewString()
 		if _, err := exec.Exec(ctx,
-			`INSERT INTO scion_event_payloads (id, subject, data) VALUES ($1, $2, $3)`,
+			`INSERT INTO fabric_event_payloads (id, subject, data) VALUES ($1, $2, $3)`,
 			id, subject, data,
 		); err != nil {
 			return fmt.Errorf("storing oversized payload for %s: %w", subject, err)
@@ -562,7 +562,7 @@ func (p *PostgresEventPublisher) handleNotification(channel, payload string) {
 // here so every replica can refetch the same event; a TTL sweep reclaims them.
 func (p *PostgresEventPublisher) refetchPayload(ref string) ([]byte, error) {
 	var data []byte
-	err := p.pool.QueryRow(p.ctx, `SELECT data FROM scion_event_payloads WHERE id = $1`, ref).Scan(&data)
+	err := p.pool.QueryRow(p.ctx, `SELECT data FROM fabric_event_payloads WHERE id = $1`, ref).Scan(&data)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +613,7 @@ func (p *PostgresEventPublisher) runMaintenance() {
 			return
 		case <-ticker.C:
 			if _, err := p.pool.Exec(p.ctx,
-				`DELETE FROM scion_event_payloads WHERE created_at < now() - $1::interval`,
+				`DELETE FROM fabric_event_payloads WHERE created_at < now() - $1::interval`,
 				fmt.Sprintf("%d seconds", int(payloadTTL.Seconds())),
 			); err != nil && p.ctx.Err() == nil {
 				p.log.Warn("Failed to purge expired event payloads", "error", err)

@@ -1,13 +1,13 @@
-# Hosted Scion Architecture Overview
+# Hosted Fabric Architecture Overview
 
 **Status:** Living Document
 **Updated:** 2026-02-08
 
-This document provides a high-level overview of the Scion hosted architecture, a distributed platform designed to manage concurrent LLM-based code agents across diverse runtime environments.
+This document provides a high-level overview of the Fabric hosted architecture, a distributed platform designed to manage concurrent LLM-based code agents across diverse runtime environments.
 
 ## 1. Core Philosophy
 
-The primary goal of the hosted architecture is to separate **State Management** (centralized metadata and coordination) from **Runtime Execution** (isolated container orchestration). This allows Scion to scale from a single developer's laptop to a global fleet of agents running in multiple cloud regions and on-premise clusters.
+The primary goal of the hosted architecture is to separate **State Management** (centralized metadata and coordination) from **Runtime Execution** (isolated container orchestration). This allows Fabric to scale from a single developer's laptop to a global fleet of agents running in multiple cloud regions and on-premise clusters.
 
 ### Key Architectural Principles
 
@@ -23,7 +23,7 @@ The primary goal of the hosted architecture is to separate **State Management** 
 
 ```mermaid
 graph TD
-    User[User (CLI/Web)] -->|HTTPS/WS| Hub[Scion Hub (State Server)]
+    User[User (CLI/Web)] -->|HTTPS/WS| Hub[Fabric Hub (State Server)]
     
     subgraph "Control Plane"
         Hub -->|DB| DB[(SQLite/Postgres)]
@@ -58,7 +58,7 @@ graph TD
 
 ## 3. Core Components
 
-### 3.1 Scion Hub (State Server)
+### 3.1 Fabric Hub (State Server)
 The centralized authority and coordination point.
 *   **Registry**: Maintains the canonical registry of Groves, Agents, Templates, and Users.
 *   **Router**: Dispatches lifecycle commands to the appropriate Runtime Broker.
@@ -78,7 +78,7 @@ An execution host (Developer laptop, VM, or K8s cluster) that runs agents.
 *   **Template Hydration**: Manages a local cache of agent templates fetched from cloud storage.
 *   **Workspace Management**: Handles Git worktrees and snapshotting for agent isolation.
 
-### 3.4 sciontool (Agent Helper)
+### 3.4 fabrictool (Agent Helper)
 A binary running inside every agent container.
 *   **Heartbeat**: Reports real-time status (THINKING, EXECUTING, etc.) to the Hub using JWT auth.
 *   **Observability**: Collects and forwards OTel-compatible traces, logs, and metrics to cloud backends.
@@ -92,13 +92,13 @@ A binary running inside every agent container.
 Runtime Brokers initiate a persistent **WebSocket Control Channel** to the Hub. This channel tunnels standard HTTP requests from the Hub to the Broker's internal API, enabling the Hub to "dial" brokers that lack public IP addresses.
 
 ### 4.2 Storage & Incremental Sync
-To handle large agent workspaces efficiently, Scion uses a **Direct-to-Storage** pattern:
+To handle large agent workspaces efficiently, Fabric uses a **Direct-to-Storage** pattern:
 1.  **Metadata**: The Hub manages manifests and content hashes.
 2.  **Transfer**: The CLI and Runtime Brokers upload/download files directly to Cloud Storage (GCS) using short-lived **Signed URLs**.
 3.  **Optimization**: Incremental sync skips unchanged files by comparing content hashes, significantly reducing bandwidth for large repositories.
 
 ### 4.3 Unified Authentication
-Scion uses a unified middleware stack to handle multiple identity contexts:
+Fabric uses a unified middleware stack to handle multiple identity contexts:
 *   **User Auth**: OAuth 2.0 (Google/GitHub) with Device Flow for CLI and Session Cookies for Web.
 *   **Infrastructure Auth**: HMAC-based request signing for bidirectional trust between Hub and Brokers.
 *   **Agent Auth**: Scoped, short-lived JWT tokens issued by the Hub during provisioning.
@@ -117,14 +117,14 @@ Secrets are write-only metadata in the Hub API and are decrypted only during the
 ## 5. Key Workflows
 
 ### 5.1 Grove Registration
-When a developer runs `scion hub register` or starts a local broker, the broker registers its local Groves with the Hub. If the Git remote is already known, the broker is added as a "Provider" to the existing Grove.
+When a developer runs `fabric hub register` or starts a local broker, the broker registers its local Groves with the Hub. If the Git remote is already known, the broker is added as a "Provider" to the existing Grove.
 
 ### 5.2 Agent Provisioning
 1.  **Request**: User sends a creation request to the Hub.
 2.  **Resolution**: Hub selects an online Broker for the Grove (default or explicit).
 3.  **Command**: Hub sends a `CreateAgent` command over the WebSocket Control Channel.
 4.  **Execution**: Broker pulls the template, creates a Git worktree, and starts the container.
-5.  **Activation**: sciontool inside the container reports a `RUNNING` status to the Hub.
+5.  **Activation**: fabrictool inside the container reports a `RUNNING` status to the Hub.
 
 ### 5.3 Interactive Attachment (PTY)
 Users connect to the Hub via WebSocket. The Hub locates the Broker running the agent and opens a multiplexed stream over the existing Control Channel. The Broker then attaches to the agent's `tmux` session, relaying terminal I/O in real-time.
@@ -133,7 +133,7 @@ Users connect to the Hub via WebSocket. The Hub locates the Broker running the a
 
 ## 6. Observability
 
-Scion leverages OpenTelemetry (OTel) for system-wide observability:
+Fabric leverages OpenTelemetry (OTel) for system-wide observability:
 *   **Metrics**: Token usage, tool execution counts, and API latency are reported to the Hub and cloud backends.
 *   **Tracing**: Agent task execution is captured as traces, allowing users to visualize the "thought process" and tool usage hierarchy.
 *   **Logging**: System logs from Hub and Brokers are bridged to OTLP for centralized analysis.
@@ -143,10 +143,10 @@ Scion leverages OpenTelemetry (OTel) for system-wide observability:
 ## 7. Operational Modes
 
 ### 7.1 Solo Mode (Standalone)
-The `scion` CLI acts as its own Hub and Runtime Broker using local SQLite state and Docker. No external connectivity is required.
+The `fabric` CLI acts as its own Hub and Runtime Broker using local SQLite state and Docker. No external connectivity is required.
 
 ### 7.2 Hosted/Hybrid Mode
-The CLI connects to a remote Scion Hub. Operations are routed to cloud Runtime Brokers or local providers depending on the Grove configuration.
+The CLI connects to a remote Fabric Hub. Operations are routed to cloud Runtime Brokers or local providers depending on the Grove configuration.
 
 ### 7.3 Multi-Broker/Team Mode
 A single Hub coordinates multiple developers and cloud clusters. Teams can share Groves, templates, and secrets, providing a unified collaborative environment for AI agents.

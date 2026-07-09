@@ -38,7 +38,7 @@ const (
 	defaultTimeout   = 60 * time.Second
 	maxQueryLength   = 1000
 	defaultWorkspace = "/workspace"
-	defaultRepoDir   = "scion"
+	defaultRepoDir   = "fabric"
 	defaultSystemMD  = "extras/docs-agent/system-prompt.md"
 	defaultModel     = "gemini-3.1-flash-lite-preview"
 )

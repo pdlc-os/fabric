@@ -1,10 +1,10 @@
-# scion-a2a-bridge
+# fabric-a2a-bridge
 
-A protocol bridge that exposes Scion agents as [A2A (Agent-to-Agent)](https://google.github.io/A2A/) endpoints, allowing any A2A-compatible client to discover and interact with agents managed by a Scion Hub.
+A protocol bridge that exposes Fabric agents as [A2A (Agent-to-Agent)](https://google.github.io/A2A/) endpoints, allowing any A2A-compatible client to discover and interact with agents managed by a Fabric Hub.
 
 ## What it does
 
-- Translates A2A JSON-RPC requests into Scion Hub API calls and vice versa.
+- Translates A2A JSON-RPC requests into Fabric Hub API calls and vice versa.
 - Generates A2A Agent Cards for each exposed agent, enriched with metadata from the Hub.
 - Supports blocking request/response, SSE streaming, and push notification (webhook) delivery modes.
 - Manages task lifecycle state in a local SQLite database.
@@ -15,7 +15,7 @@ A protocol bridge that exposes Scion agents as [A2A (Agent-to-Agent)](https://go
 Copy and edit the sample configuration file:
 
 ```sh
-cp scion-a2a-bridge.yaml.sample scion-a2a-bridge.yaml
+cp fabric-a2a-bridge.yaml.sample fabric-a2a-bridge.yaml
 ```
 
 Key sections:
@@ -23,7 +23,7 @@ Key sections:
 | Section | Purpose |
 |---------|---------|
 | `bridge` | A2A HTTP server address, external URL, provider metadata |
-| `hub` | Scion Hub endpoint, admin user, signing key (file path or GCP Secret Manager) |
+| `hub` | Fabric Hub endpoint, admin user, signing key (file path or GCP Secret Manager) |
 | `plugin` | Broker plugin RPC listen address (default `localhost:9090`) |
 | `auth` | Client authentication — API key or bearer token |
 | `projects` | Which projects and agents to expose, with optional auto-provisioning |
@@ -39,17 +39,17 @@ Environment variables can be referenced as `${VAR_NAME}` in the YAML file. **Not
 ### Locally
 
 ```sh
-go build -o scion-a2a-bridge ./cmd/scion-a2a-bridge/
-./scion-a2a-bridge --config scion-a2a-bridge.yaml
+go build -o fabric-a2a-bridge ./cmd/fabric-a2a-bridge/
+./fabric-a2a-bridge --config fabric-a2a-bridge.yaml
 ```
 
 ### Docker
 
 ```sh
-docker build -t scion-a2a-bridge -f Dockerfile ../..
+docker build -t fabric-a2a-bridge -f Dockerfile ../..
 docker run -p 8443:8443 -p 9090:9090 \
-  -v /path/to/config.yaml:/etc/scion-a2a-bridge/config.yaml \
-  scion-a2a-bridge
+  -v /path/to/config.yaml:/etc/fabric-a2a-bridge/config.yaml \
+  fabric-a2a-bridge
 ```
 
 ## Key endpoints
@@ -93,7 +93,7 @@ Step-by-step instructions for installing, configuring, and running the A2A bridg
 ### 1. Prerequisites
 
 1. Install Go 1.25 or later. Confirm with `go version`.
-2. Have network access to a running Scion Hub instance. Note its HTTP API URL (e.g., `https://hub.example.com`).
+2. Have network access to a running Fabric Hub instance. Note its HTTP API URL (e.g., `https://hub.example.com`).
 3. Obtain the Hub's HS256 signing key, base64-encoded. This is either:
    - A file on disk containing the raw base64 string, or
    - A GCP Secret Manager resource name (e.g., `projects/my-project/secrets/hub-signing-key`).
@@ -105,14 +105,14 @@ Step-by-step instructions for installing, configuring, and running the A2A bridg
 From the repository root:
 
 ```sh
-cd extras/scion-a2a-bridge
-go build -o scion-a2a-bridge ./cmd/scion-a2a-bridge/
+cd extras/fabric-a2a-bridge
+go build -o fabric-a2a-bridge ./cmd/fabric-a2a-bridge/
 ```
 
 Verify the binary exists:
 
 ```sh
-ls -l scion-a2a-bridge
+ls -l fabric-a2a-bridge
 ```
 
 ### 3. Create and edit the config file
@@ -120,10 +120,10 @@ ls -l scion-a2a-bridge
 Copy the sample config:
 
 ```sh
-cp scion-a2a-bridge.yaml.sample scion-a2a-bridge.yaml
+cp fabric-a2a-bridge.yaml.sample fabric-a2a-bridge.yaml
 ```
 
-Edit `scion-a2a-bridge.yaml`. The required fields are:
+Edit `fabric-a2a-bridge.yaml`. The required fields are:
 
 | Field | Description | Example |
 |-------|-------------|---------|
@@ -164,7 +164,7 @@ projects:
     auto_provision: false
 
 state:
-  database: "/var/lib/scion-a2a-bridge/state.db"
+  database: "/var/lib/fabric-a2a-bridge/state.db"
 
 logging:
   level: "info"
@@ -200,7 +200,7 @@ export A2A_API_KEY="your-api-key-here"
 Start the bridge:
 
 ```sh
-./scion-a2a-bridge --config scion-a2a-bridge.yaml
+./fabric-a2a-bridge --config fabric-a2a-bridge.yaml
 ```
 
 ### 6. Verify it is running
@@ -254,7 +254,7 @@ The Docker build requires `CGO_ENABLED=1` (for `go-sqlite3`). The default runtim
 Build the image from the repository root (the Dockerfile expects the full repo context):
 
 ```sh
-docker build -t scion-a2a-bridge -f extras/scion-a2a-bridge/Dockerfile .
+docker build -t fabric-a2a-bridge -f extras/fabric-a2a-bridge/Dockerfile .
 ```
 
 Run the container, mounting your config file:
@@ -262,12 +262,12 @@ Run the container, mounting your config file:
 ```sh
 docker run -p 8443:8443 -p 9090:9090 \
   -e A2A_API_KEY="your-api-key-here" \
-  -v /path/to/scion-a2a-bridge.yaml:/etc/scion-a2a-bridge/config.yaml \
-  -v /path/to/signing-key.b64:/etc/scion-a2a-bridge/signing-key.b64 \
-  scion-a2a-bridge
+  -v /path/to/fabric-a2a-bridge.yaml:/etc/fabric-a2a-bridge/config.yaml \
+  -v /path/to/signing-key.b64:/etc/fabric-a2a-bridge/signing-key.b64 \
+  fabric-a2a-bridge
 ```
 
-The container runs as non-root user `bridge` (UID 1000). The state database directory `/var/lib/scion-a2a-bridge/` is writable by this user inside the container (mode `0700`). To persist state across restarts, mount a volume at that path.
+The container runs as non-root user `bridge` (UID 1000). The state database directory `/var/lib/fabric-a2a-bridge/` is writable by this user inside the container (mode `0700`). To persist state across restarts, mount a volume at that path.
 
 ## Known Limitations
 

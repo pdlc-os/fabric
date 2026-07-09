@@ -80,9 +80,9 @@ The `ancestry` and `scopes` parameters are swapped. This isn't a bug because `Se
 
 **Recommendation:** Align the parameter order across both signatures.
 
-### 4. Local dev config in `.scion/settings.yaml`
+### 4. Local dev config in `.fabric/settings.yaml`
 
-The diff changes the hub endpoint from `localhost:8080` to `https://gteam.projects.scion-ai.dev` and adds a specific `grove_id`. This appears to be local environment configuration and should not be committed with the feature.
+The diff changes the hub endpoint from `localhost:8080` to `https://gteam.projects.fabric-ai.dev` and adds a specific `grove_id`. This appears to be local environment configuration and should not be committed with the feature.
 
 ---
 
@@ -155,7 +155,7 @@ The test suite for progeny access is thorough and covers:
 ## Recommendations
 
 1. **Fix the `AuthzCheck` doc comment** (critical, pre-merge).
-2. **Exclude `.scion/settings.yaml`** from the commit.
+2. **Exclude `.fabric/settings.yaml`** from the commit.
 3. **Replace `defer` with direct call** in secret delete handler for clarity.
 4. **Align parameter order** between `AgentTokenGenerator` interface and `AgentTokenService`.
 5. **Extract shared secret-construction helper** in backends to reduce duplication.

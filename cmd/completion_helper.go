@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agentcache"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/credentials"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/agentcache"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/credentials"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -79,10 +79,10 @@ func completeAgentNames(cmd *cobra.Command, args []string, toComplete string) ([
 
 		for _, e := range entries {
 			if e.IsDir() && strings.HasPrefix(e.Name(), toComplete) {
-				// Verify it looks like an agent (has scion-agent.json)
+				// Verify it looks like an agent (has fabric-agent.json)
 				// This check might be too slow for thousands of dirs, but for typical usage it's fine
 				// and prevents completing random directories.
-				if _, err := os.Stat(filepath.Join(agentsDir, e.Name(), "scion-agent.json")); err == nil {
+				if _, err := os.Stat(filepath.Join(agentsDir, e.Name(), "fabric-agent.json")); err == nil {
 					if !seen[e.Name()] {
 						names = append(names, e.Name())
 						seen[e.Name()] = true

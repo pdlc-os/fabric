@@ -20,7 +20,7 @@ The current settings system evolved organically and has several structural probl
 
 5. **No deprecation path.** Changing the settings structure would silently break existing users. There is no mechanism to detect legacy vs modern settings, warn about deprecated fields, or guide migration.
 
-6. **Inconsistent field naming.** The current code mixes camelCase koanf tags (`groveId`, `apiKey`, `brokerNickname`) with snake_case tags (`active_profile`, `grove_id`, `local_only`). Some env var overrides (e.g., `SCION_HUB_GROVE_ID`, `SCION_HUB_BROKER_NICKNAME`) do not work because the Koanf key mapping produces snake_case keys that don't match the camelCase struct tags. The versioned settings will standardize on snake_case everywhere.
+6. **Inconsistent field naming.** The current code mixes camelCase koanf tags (`groveId`, `apiKey`, `brokerNickname`) with snake_case tags (`active_profile`, `grove_id`, `local_only`). Some env var overrides (e.g., `FABRIC_HUB_GROVE_ID`, `FABRIC_HUB_BROKER_NICKNAME`) do not work because the Koanf key mapping produces snake_case keys that don't match the camelCase struct tags. The versioned settings will standardize on snake_case everywhere.
 
 ---
 
@@ -30,12 +30,12 @@ The new settings structure recognizes these primary domain groups:
 
 ### 2.1 `server` (global-only)
 
-Server/broker process configuration. Only valid at the global level (`~/.scion/settings.yaml`), never in grove-level settings.
+Server/broker process configuration. Only valid at the global level (`~/.fabric/settings.yaml`), never in grove-level settings.
 
 ```yaml
 server:
   env: prod                        # deployment environment label (new)
-  hub:                             # hub API server settings (when running scion-server)
+  hub:                             # hub API server settings (when running fabric-server)
     port: 9810
     host: "0.0.0.0"
     # public_url is the externally-reachable URL for this Hub server.
@@ -48,7 +48,7 @@ server:
       enabled: true
       allowed_origins: ["*"]
       allowed_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-      allowed_headers: ["Authorization", "Content-Type", "X-Scion-Broker-Token", "X-Scion-Agent-Token", "X-API-Key"]
+      allowed_headers: ["Authorization", "Content-Type", "X-Fabric-Broker-Token", "X-Fabric-Agent-Token", "X-API-Key"]
       max_age: 3600
     admin_emails: []
   broker:
@@ -66,7 +66,7 @@ server:
       enabled: true
       allowed_origins: ["*"]
       allowed_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-      allowed_headers: ["Authorization", "Content-Type", "X-Scion-Broker-Token", "X-API-Key"]
+      allowed_headers: ["Authorization", "Content-Type", "X-Fabric-Broker-Token", "X-API-Key"]
       max_age: 3600
   database:
     driver: sqlite
@@ -103,14 +103,14 @@ server:
 - `broker_nickname` and `broker_token` moved from `hub` client section (Section 2.2) into `server.broker`. These fields describe this machine's identity as a broker and are inherently machine-scoped (global-only), not per-grove.
 - `server.hub.endpoint` renamed to `server.hub.public_url` to distinguish from the hub CLIENT endpoint.
 - `server.broker` now includes `read_timeout`, `write_timeout`, and full CORS settings to match the current `RuntimeBrokerConfig` struct.
-- CORS `allowed_headers` defaults updated to match actual code (includes `X-Scion-Broker-Token`, `X-Scion-Agent-Token`, `X-API-Key`).
+- CORS `allowed_headers` defaults updated to match actual code (includes `X-Fabric-Broker-Token`, `X-Fabric-Agent-Token`, `X-API-Key`).
 - **Renamed** `server.runtime_broker` → `server.broker` for brevity. The current Go struct `RuntimeBrokerConfig` will be renamed to `BrokerConfig` in Phase 4.
 
 **Rationale:** This consolidates the current `GlobalConfig`/`server.yaml` system into the unified settings file. The separate `server.yaml` continues to work during the transition but the canonical location becomes `settings.yaml` under the `server` key.
 
 ### 2.2 `hub` (hub client)
 
-Settings for connecting to a remote Scion Hub as a client. Valid at global or grove level (grove overrides global).
+Settings for connecting to a remote Fabric Hub as a client. Valid at global or grove level (grove overrides global).
 
 ```yaml
 hub:
@@ -175,8 +175,8 @@ Named harness configurations. This replaces the current `harnesses` map. Multipl
 harness_configs:
   gemini:                          # default config for gemini harness
     harness: gemini
-    image: "us-central1-docker.pkg.dev/.../scion-gemini:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-gemini:latest"
+    user: fabric
     model: ""
     args: []
     env: {}
@@ -184,24 +184,24 @@ harness_configs:
     auth_selected_type: ""         # e.g., "gemini-api-key", "vertex-ai", "oauth-personal"
   claude:                          # default config for claude harness
     harness: claude
-    image: "us-central1-docker.pkg.dev/.../scion-claude:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-claude:latest"
+    user: fabric
     model: ""
     args: []
     env: {}
     volumes: []
   opencode:                        # default config for opencode harness
     harness: opencode
-    image: "us-central1-docker.pkg.dev/.../scion-opencode:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-opencode:latest"
+    user: fabric
   codex:                           # default config for codex harness
     harness: codex
-    image: "us-central1-docker.pkg.dev/.../scion-codex:latest"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-codex:latest"
+    user: fabric
   gemini-high-security:            # named variant (arbitrary name)
     harness: gemini
-    image: "us-central1-docker.pkg.dev/.../scion-gemini:hardened"
-    user: scion
+    image: "us-central1-docker.pkg.dev/.../fabric-gemini:hardened"
+    user: fabric
     model: "gemini-2.5-pro"
     args: ["--sandbox=strict"]
     env:
@@ -210,7 +210,7 @@ harness_configs:
 
 **Change from current:** The `harnesses` map only allowed one entry per harness type (keyed by harness name). The new `harness_configs` map is keyed by an arbitrary config name, with an explicit `harness` field specifying the harness type. There is a convention that each harness has a "default" config whose name matches the harness (e.g., config named `gemini` with `harness: gemini`).
 
-**New fields:** `model` and `args` are new additions to harness configs. The current `HarnessConfig` struct does not have these — they exist only in the agent-level `ScionConfig`. Adding them to `harness_configs` allows setting model and arguments as defaults at the settings level.
+**New fields:** `model` and `args` are new additions to harness configs. The current `HarnessConfig` struct does not have these — they exist only in the agent-level `FabricConfig`. Adding them to `harness_configs` allows setting model and arguments as defaults at the settings level.
 
 ### 2.6 `profiles` (named map)
 
@@ -240,10 +240,10 @@ profiles:
 
 ### 2.7 `agent` (template configuration)
 
-Agent/template-level settings. These live in `scion-agent.yaml` within template directories, not in `settings.yaml`.
+Agent/template-level settings. These live in `fabric-agent.yaml` within template directories, not in `settings.yaml`.
 
 ```yaml
-# In .scion/templates/<name>/scion-agent.yaml
+# In .fabric/templates/<name>/fabric-agent.yaml
 harness_config: gemini             # references a key in harness_configs
 env: {}
 volumes: []
@@ -274,7 +274,7 @@ services:                          # sidecar services
 ### 2.8 Top-level metadata
 
 ```yaml
-$schema: "https://scion.dev/schemas/settings/v1.json"
+$schema: "https://fabric.dev/schemas/settings/v1.json"
 schema_version: "1"
 
 active_profile: local
@@ -283,14 +283,14 @@ default_template: gemini           # preserved for backward compatibility
 
 ### 2.9 `state.yaml` (grove-level runtime state)
 
-Runtime-managed state that should not be mixed with user-editable configuration lives in a separate `state.yaml` file. This file is present only in non-global groves (i.e., project-level `.scion/` directories), not in `~/.scion/`.
+Runtime-managed state that should not be mixed with user-editable configuration lives in a separate `state.yaml` file. This file is present only in non-global groves (i.e., project-level `.fabric/` directories), not in `~/.fabric/`.
 
 ```yaml
-# .scion/state.yaml (managed by scion, not user-edited)
+# .fabric/state.yaml (managed by fabric, not user-edited)
 last_synced_at: "2026-02-16T10:30:00Z"   # RFC3339 timestamp of last successful Hub sync
 ```
 
-**Rationale:** Mixing runtime state with configuration complicates validation, makes `settings.yaml` harder to edit safely, and creates spurious diffs in version-controlled `.scion/` directories. The `state.yaml` file is explicitly excluded from schema validation and is managed programmatically.
+**Rationale:** Mixing runtime state with configuration complicates validation, makes `settings.yaml` harder to edit safely, and creates spurious diffs in version-controlled `.fabric/` directories. The `state.yaml` file is explicitly excluded from schema validation and is managed programmatically.
 
 **Migration:** The current `hub.last_synced_at` field in `settings.yaml` will be read during migration and relocated to `state.yaml`. The legacy adapter handles this transparently.
 
@@ -305,7 +305,7 @@ Schemas are stored in the repository at `pkg/config/schemas/` and embedded into 
 ```
 pkg/config/schemas/
   settings-v1.schema.json          # settings.yaml schema
-  agent-v1.schema.json             # scion-agent.yaml schema
+  agent-v1.schema.json             # fabric-agent.yaml schema
 ```
 
 ### 3.2 Schema Standard
@@ -318,8 +318,8 @@ Each schema property that can be set via environment variable includes:
 
 ```json
 {
-  "x-env-var": "SCION_HUB_ENDPOINT",
-  "x-env-var-prefix": "SCION_"
+  "x-env-var": "FABRIC_HUB_ENDPOINT",
+  "x-env-var-prefix": "FABRIC_"
 }
 ```
 
@@ -344,13 +344,13 @@ Each schema property includes scope metadata:
 
 main settings schema kept in './settings-schema.md'
 
-A separate agent schema (`agent-v1.schema.json`) will be defined for `scion-agent.yaml` files. Its structure mirrors the existing `ScionConfig` with additions:
+A separate agent schema (`agent-v1.schema.json`) will be defined for `fabric-agent.yaml` files. Its structure mirrors the existing `FabricConfig` with additions:
 
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://scion.dev/schemas/agent/v1.json",
-  "title": "Scion Agent Configuration",
+  "$id": "https://fabric.dev/schemas/agent/v1.json",
+  "title": "Fabric Agent Configuration",
   "type": "object",
   "properties": {
     "schema_version": { "type": "string", "const": "1" },
@@ -423,87 +423,87 @@ A separate agent schema (`agent-v1.schema.json`) will be defined for `scion-agen
 
 ### 4.1 Convention
 
-All environment variables use the `SCION_` prefix. Nesting is represented by underscores. The schema's `x-env-var` annotation is the canonical source of truth.
+All environment variables use the `FABRIC_` prefix. Nesting is represented by underscores. The schema's `x-env-var` annotation is the canonical source of truth.
 
 **Important:** The new versioned settings will use snake_case consistently for all koanf struct tags. This fixes the current inconsistency where some tags use camelCase (`groveId`, `apiKey`, `brokerNickname`) while env var mappings produce snake_case keys, causing silent mismatches.
 
 ### 4.2 Settings Env Vars
 
-These override values in `settings.yaml`. Prefix: `SCION_`.
+These override values in `settings.yaml`. Prefix: `FABRIC_`.
 
 | Settings Path | Env Var | Type |
 |---|---|---|
-| `active_profile` | `SCION_ACTIVE_PROFILE` | string |
-| `default_template` | `SCION_DEFAULT_TEMPLATE` | string |
-| `grove_id` | `SCION_GROVE_ID` | string |
-| `hub.enabled` | `SCION_HUB_ENABLED` | bool |
-| `hub.endpoint` | `SCION_HUB_ENDPOINT` | string |
-| `hub.grove_id` | `SCION_HUB_GROVE_ID` | string |
-| `hub.local_only` | `SCION_HUB_LOCAL_ONLY` | bool |
-| `cli.autohelp` | `SCION_CLI_AUTOHELP` | bool |
-| `cli.interactive_disabled` | `SCION_CLI_INTERACTIVE_DISABLED` | bool |
+| `active_profile` | `FABRIC_ACTIVE_PROFILE` | string |
+| `default_template` | `FABRIC_DEFAULT_TEMPLATE` | string |
+| `grove_id` | `FABRIC_GROVE_ID` | string |
+| `hub.enabled` | `FABRIC_HUB_ENABLED` | bool |
+| `hub.endpoint` | `FABRIC_HUB_ENDPOINT` | string |
+| `hub.grove_id` | `FABRIC_HUB_GROVE_ID` | string |
+| `hub.local_only` | `FABRIC_HUB_LOCAL_ONLY` | bool |
+| `cli.autohelp` | `FABRIC_CLI_AUTOHELP` | bool |
+| `cli.interactive_disabled` | `FABRIC_CLI_INTERACTIVE_DISABLED` | bool |
 
 **Note:** `cli.*` and `hub.grove_id` env var mappings are new — they don't work in the current (legacy) Koanf loader due to missing key transformations. The versioned loader must implement these.
 
 ### 4.3 Server Env Vars
 
-These override values in `server.yaml` / `settings.yaml` `server` section. Prefix: `SCION_SERVER_`.
+These override values in `server.yaml` / `settings.yaml` `server` section. Prefix: `FABRIC_SERVER_`.
 
 | Settings Path | Env Var | Type |
 |---|---|---|
 | **Hub Server** | | |
-| `server.hub.port` | `SCION_SERVER_HUB_PORT` | int |
-| `server.hub.host` | `SCION_SERVER_HUB_HOST` | string |
-| `server.hub.public_url` | `SCION_SERVER_HUB_ENDPOINT` | string |
-| `server.hub.read_timeout` | `SCION_SERVER_HUB_READTIMEOUT` | duration |
-| `server.hub.write_timeout` | `SCION_SERVER_HUB_WRITETIMEOUT` | duration |
-| `server.hub.cors_enabled` | `SCION_SERVER_HUB_CORSENABLED` | bool |
-| `server.hub.admin_emails` | `SCION_SERVER_HUB_ADMINEMAIL` | string (CSV) |
+| `server.hub.port` | `FABRIC_SERVER_HUB_PORT` | int |
+| `server.hub.host` | `FABRIC_SERVER_HUB_HOST` | string |
+| `server.hub.public_url` | `FABRIC_SERVER_HUB_ENDPOINT` | string |
+| `server.hub.read_timeout` | `FABRIC_SERVER_HUB_READTIMEOUT` | duration |
+| `server.hub.write_timeout` | `FABRIC_SERVER_HUB_WRITETIMEOUT` | duration |
+| `server.hub.cors_enabled` | `FABRIC_SERVER_HUB_CORSENABLED` | bool |
+| `server.hub.admin_emails` | `FABRIC_SERVER_HUB_ADMINEMAIL` | string (CSV) |
 | **Broker** | | |
-| `server.broker.enabled` | `SCION_SERVER_BROKER_ENABLED` | bool |
-| `server.broker.port` | `SCION_SERVER_BROKER_PORT` | int |
-| `server.broker.host` | `SCION_SERVER_BROKER_HOST` | string |
-| `server.broker.read_timeout` | `SCION_SERVER_BROKER_READTIMEOUT` | duration |
-| `server.broker.write_timeout` | `SCION_SERVER_BROKER_WRITETIMEOUT` | duration |
-| `server.broker.hub_endpoint` | `SCION_SERVER_BROKER_HUBENDPOINT` | string |
-| `server.broker.broker_id` | `SCION_SERVER_BROKER_BROKERID` | string |
-| `server.broker.broker_name` | `SCION_SERVER_BROKER_BROKERNAME` | string |
-| `server.broker.broker_nickname` | `SCION_SERVER_BROKER_BROKERNICKNAME` | string |
-| `server.broker.broker_token` | `SCION_SERVER_BROKER_BROKERTOKEN` | string |
+| `server.broker.enabled` | `FABRIC_SERVER_BROKER_ENABLED` | bool |
+| `server.broker.port` | `FABRIC_SERVER_BROKER_PORT` | int |
+| `server.broker.host` | `FABRIC_SERVER_BROKER_HOST` | string |
+| `server.broker.read_timeout` | `FABRIC_SERVER_BROKER_READTIMEOUT` | duration |
+| `server.broker.write_timeout` | `FABRIC_SERVER_BROKER_WRITETIMEOUT` | duration |
+| `server.broker.hub_endpoint` | `FABRIC_SERVER_BROKER_HUBENDPOINT` | string |
+| `server.broker.broker_id` | `FABRIC_SERVER_BROKER_BROKERID` | string |
+| `server.broker.broker_name` | `FABRIC_SERVER_BROKER_BROKERNAME` | string |
+| `server.broker.broker_nickname` | `FABRIC_SERVER_BROKER_BROKERNICKNAME` | string |
+| `server.broker.broker_token` | `FABRIC_SERVER_BROKER_BROKERTOKEN` | string |
 | **Database** | | |
-| `server.database.driver` | `SCION_SERVER_DATABASE_DRIVER` | string |
-| `server.database.url` | `SCION_SERVER_DATABASE_URL` | string |
+| `server.database.driver` | `FABRIC_SERVER_DATABASE_DRIVER` | string |
+| `server.database.url` | `FABRIC_SERVER_DATABASE_URL` | string |
 | **Auth** | | |
-| `server.auth.dev_mode` | `SCION_SERVER_AUTH_DEVMODE` | bool |
-| `server.auth.dev_token` | `SCION_SERVER_AUTH_DEVTOKEN` | string |
-| `server.auth.dev_token_file` | `SCION_SERVER_AUTH_DEVTOKENFILE` | string |
-| `server.auth.authorized_domains` | `SCION_SERVER_AUTH_AUTHORIZEDDOMAINS` | string (CSV) |
+| `server.auth.dev_mode` | `FABRIC_SERVER_AUTH_DEVMODE` | bool |
+| `server.auth.dev_token` | `FABRIC_SERVER_AUTH_DEVTOKEN` | string |
+| `server.auth.dev_token_file` | `FABRIC_SERVER_AUTH_DEVTOKENFILE` | string |
+| `server.auth.authorized_domains` | `FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS` | string (CSV) |
 | **OAuth — Web** | | |
-| `server.oauth.web.google.client_id` | `SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID` | string |
-| `server.oauth.web.google.client_secret` | `SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET` | string |
-| `server.oauth.web.github.client_id` | `SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID` | string |
-| `server.oauth.web.github.client_secret` | `SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET` | string |
+| `server.oauth.web.google.client_id` | `FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID` | string |
+| `server.oauth.web.google.client_secret` | `FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET` | string |
+| `server.oauth.web.github.client_id` | `FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID` | string |
+| `server.oauth.web.github.client_secret` | `FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET` | string |
 | **OAuth — CLI** | | |
-| `server.oauth.cli.google.client_id` | `SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID` | string |
-| `server.oauth.cli.google.client_secret` | `SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET` | string |
-| `server.oauth.cli.github.client_id` | `SCION_SERVER_OAUTH_CLI_GITHUB_CLIENTID` | string |
-| `server.oauth.cli.github.client_secret` | `SCION_SERVER_OAUTH_CLI_GITHUB_CLIENTSECRET` | string |
+| `server.oauth.cli.google.client_id` | `FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID` | string |
+| `server.oauth.cli.google.client_secret` | `FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET` | string |
+| `server.oauth.cli.github.client_id` | `FABRIC_SERVER_OAUTH_CLI_GITHUB_CLIENTID` | string |
+| `server.oauth.cli.github.client_secret` | `FABRIC_SERVER_OAUTH_CLI_GITHUB_CLIENTSECRET` | string |
 | **OAuth — Device** | | |
-| `server.oauth.device.google.client_id` | `SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID` | string |
-| `server.oauth.device.google.client_secret` | `SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET` | string |
-| `server.oauth.device.github.client_id` | `SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID` | string |
-| `server.oauth.device.github.client_secret` | `SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET` | string |
+| `server.oauth.device.google.client_id` | `FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID` | string |
+| `server.oauth.device.google.client_secret` | `FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET` | string |
+| `server.oauth.device.github.client_id` | `FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID` | string |
+| `server.oauth.device.github.client_secret` | `FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET` | string |
 | **Storage** | | |
-| `server.storage.provider` | `SCION_SERVER_STORAGE_PROVIDER` | string |
-| `server.storage.bucket` | `SCION_SERVER_STORAGE_BUCKET` | string |
-| `server.storage.local_path` | `SCION_SERVER_STORAGE_LOCALPATH` | string |
+| `server.storage.provider` | `FABRIC_SERVER_STORAGE_PROVIDER` | string |
+| `server.storage.bucket` | `FABRIC_SERVER_STORAGE_BUCKET` | string |
+| `server.storage.local_path` | `FABRIC_SERVER_STORAGE_LOCALPATH` | string |
 | **Secrets** | | |
-| `server.secrets.backend` | `SCION_SERVER_SECRETS_BACKEND` | string |
-| `server.secrets.gcp_project_id` | `SCION_SERVER_SECRETS_GCPPROJECTID` | string |
-| `server.secrets.gcp_credentials` | `SCION_SERVER_SECRETS_GCPCREDENTIALS` | string |
+| `server.secrets.backend` | `FABRIC_SERVER_SECRETS_BACKEND` | string |
+| `server.secrets.gcp_project_id` | `FABRIC_SERVER_SECRETS_GCPPROJECTID` | string |
+| `server.secrets.gcp_credentials` | `FABRIC_SERVER_SECRETS_GCPCREDENTIALS` | string |
 | **Logging** | | |
-| `server.log_level` | `SCION_SERVER_LOG_LEVEL` | string |
-| `server.log_format` | `SCION_SERVER_LOG_FORMAT` | string |
+| `server.log_level` | `FABRIC_SERVER_LOG_LEVEL` | string |
+| `server.log_format` | `FABRIC_SERVER_LOG_FORMAT` | string |
 
 **Note on CORS env vars:** The current `envKeyToConfigKey()` function in `hub_config.go` does not have camelCase mappings for CORS-related fields (`corsEnabled`, `corsAllowedOrigins`, etc.). This means CORS settings cannot currently be overridden via environment variables. The versioned settings will switch to snake_case koanf tags throughout, which resolves this issue (Phase 4 deliverable).
 
@@ -513,21 +513,21 @@ These are environment variables injected into agent containers by the runtime/br
 
 | Env Var | Set By | Description |
 |---|---|---|
-| `SCION_AGENT_NAME` | `agent/run.go`, `harness/generic.go` | Agent display name |
-| `SCION_AGENT_ID` | `runtimebroker/handlers.go` | Hub UUID for the agent (hosted mode) |
-| `SCION_TEMPLATE_NAME` | `agent/run.go` | Template used to create the agent |
-| `SCION_BROKER_NAME` | `agent/run.go`, `runtimebroker/handlers.go` | Broker name (defaults to "local") |
-| `SCION_CREATOR` | `agent/run.go`, `runtimebroker/handlers.go` | User who created the agent (OS user or Hub email) |
-| `SCION_HOST_UID` | `runtime/common.go` | Host user ID (for file ownership mapping) |
-| `SCION_HOST_GID` | `runtime/common.go` | Host group ID (for file ownership mapping) |
-| `SCION_HUB_ENDPOINT` | `runtimebroker/handlers.go` | Hub API endpoint for agent status reporting (hosted mode). Standardized from former `SCION_HUB_URL`. |
-| `SCION_HUB_TOKEN` | `runtimebroker/handlers.go` | Hub auth token for agent callbacks (hosted mode) |
-| `SCION_HOOKS_DIR` | (user-set or default) | Override path for agent lifecycle hooks directory |
-| `SCION_GRACE_PERIOD` | (user-set) | Override container shutdown grace period |
-| `SCION_MODEL` | Harness-specific | Model identifier used by the harness |
-| `SCION_HARNESS` | Harness-specific | Harness type identifier |
+| `FABRIC_AGENT_NAME` | `agent/run.go`, `harness/generic.go` | Agent display name |
+| `FABRIC_AGENT_ID` | `runtimebroker/handlers.go` | Hub UUID for the agent (hosted mode) |
+| `FABRIC_TEMPLATE_NAME` | `agent/run.go` | Template used to create the agent |
+| `FABRIC_BROKER_NAME` | `agent/run.go`, `runtimebroker/handlers.go` | Broker name (defaults to "local") |
+| `FABRIC_CREATOR` | `agent/run.go`, `runtimebroker/handlers.go` | User who created the agent (OS user or Hub email) |
+| `FABRIC_HOST_UID` | `runtime/common.go` | Host user ID (for file ownership mapping) |
+| `FABRIC_HOST_GID` | `runtime/common.go` | Host group ID (for file ownership mapping) |
+| `FABRIC_HUB_ENDPOINT` | `runtimebroker/handlers.go` | Hub API endpoint for agent status reporting (hosted mode). Standardized from former `FABRIC_HUB_URL`. |
+| `FABRIC_HUB_TOKEN` | `runtimebroker/handlers.go` | Hub auth token for agent callbacks (hosted mode) |
+| `FABRIC_HOOKS_DIR` | (user-set or default) | Override path for agent lifecycle hooks directory |
+| `FABRIC_GRACE_PERIOD` | (user-set) | Override container shutdown grace period |
+| `FABRIC_MODEL` | Harness-specific | Model identifier used by the harness |
+| `FABRIC_HARNESS` | Harness-specific | Harness type identifier |
 
-**Note on `SCION_HUB_URL` → `SCION_HUB_ENDPOINT` rename:** The former `SCION_HUB_URL` injected into agent containers serves the same purpose as the host-side `SCION_HUB_ENDPOINT` settings override — both identify the Hub API endpoint. The name is standardized to `SCION_HUB_ENDPOINT` everywhere. Code changes required: `runtimebroker/handlers.go` (injection), `sciontool/hub/client.go` (reading), and associated tests.
+**Note on `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT` rename:** The former `FABRIC_HUB_URL` injected into agent containers serves the same purpose as the host-side `FABRIC_HUB_ENDPOINT` settings override — both identify the Hub API endpoint. The name is standardized to `FABRIC_HUB_ENDPOINT` everywhere. Code changes required: `runtimebroker/handlers.go` (injection), `fabrictool/hub/client.go` (reading), and associated tests.
 
 ### 4.5 Utility / Debug Env Vars
 
@@ -535,17 +535,17 @@ These are standalone environment variables used by the CLI and server binaries f
 
 | Env Var | Description |
 |---|---|
-| `SCION_DEBUG` | Enable debug logging when set to "1" |
-| `SCION_LOG_LEVEL` | Override log level at runtime ("debug", "info", etc.) |
-| `SCION_LOG_GCP` | Enable GCP Cloud Logging when set to "true" |
-| `SCION_CLOUD_LOGGING` | Enable Cloud Logging integration |
-| `SCION_CLOUD_LOGGING_LOG_ID` | Log ID for Cloud Logging |
-| `SCION_GCP_PROJECT_ID` | GCP project ID (for Cloud Logging; priority over `GOOGLE_CLOUD_PROJECT`) |
-| `SCION_HEADLESS` | Force headless mode when set to "1" (skips browser-open operations) |
-| `SCION_GIT_BINARY` | Override path to the git binary |
-| `SCION_DEV_TOKEN` | Dev auth token for Hub/Broker API client authentication |
-| `SCION_DEV_TOKEN_FILE` | Path to file containing dev auth token (fallback: `~/.scion/dev-token`) |
-| `SCION_HUB_STORAGE_BUCKET` | Override Hub storage bucket (used in `cmd/server.go`) |
+| `FABRIC_DEBUG` | Enable debug logging when set to "1" |
+| `FABRIC_LOG_LEVEL` | Override log level at runtime ("debug", "info", etc.) |
+| `FABRIC_LOG_GCP` | Enable GCP Cloud Logging when set to "true" |
+| `FABRIC_CLOUD_LOGGING` | Enable Cloud Logging integration |
+| `FABRIC_CLOUD_LOGGING_LOG_ID` | Log ID for Cloud Logging |
+| `FABRIC_GCP_PROJECT_ID` | GCP project ID (for Cloud Logging; priority over `GOOGLE_CLOUD_PROJECT`) |
+| `FABRIC_HEADLESS` | Force headless mode when set to "1" (skips browser-open operations) |
+| `FABRIC_GIT_BINARY` | Override path to the git binary |
+| `FABRIC_DEV_TOKEN` | Dev auth token for Hub/Broker API client authentication |
+| `FABRIC_DEV_TOKEN_FILE` | Path to file containing dev auth token (fallback: `~/.fabric/dev-token`) |
+| `FABRIC_HUB_STORAGE_BUCKET` | Override Hub storage bucket (used in `cmd/server.go`) |
 
 ### 4.5.1 Web Frontend Env Vars
 
@@ -553,9 +553,9 @@ These are environment variables used by the web frontend server (`web/src/server
 
 | Env Var | Description |
 |---|---|
-| `SCION_WEB_HUB_API_URL` | Hub API endpoint for the web server's reverse proxy. Defaults to `http://localhost:9810`. Renamed from former `HUB_API_URL` to follow the `SCION_` prefix convention. |
+| `FABRIC_WEB_HUB_API_URL` | Hub API endpoint for the web server's reverse proxy. Defaults to `http://localhost:9810`. Renamed from former `HUB_API_URL` to follow the `FABRIC_` prefix convention. |
 
-**Note on `HUB_API_URL` rename:** The web server uses this env var to configure its proxy to the Hub API. It is being renamed to `SCION_WEB_HUB_API_URL` to follow the `SCION_` prefix convention and to clarify that this is a web-server-specific setting, distinct from `SCION_HUB_ENDPOINT` (which is the client/agent-side Hub API endpoint). Code change required: `web/src/server/config.ts`.
+**Note on `HUB_API_URL` rename:** The web server uses this env var to configure its proxy to the Hub API. It is being renamed to `FABRIC_WEB_HUB_API_URL` to follow the `FABRIC_` prefix convention and to clarify that this is a web-server-specific setting, distinct from `FABRIC_HUB_ENDPOINT` (which is the client/agent-side Hub API endpoint). Code change required: `web/src/server/config.ts`.
 
 ### 4.6 LLM Provider Env Vars (pass-through)
 
@@ -615,12 +615,12 @@ func AdaptLegacySettings(legacy *LegacySettings) (*VersionedSettings, []string) 
 WARNING: Legacy settings format detected in /path/to/settings.yaml
   The following fields are deprecated and will be removed in a future version:
     - "harnesses" → use "harness_configs" with explicit "harness" field
-    - "bucket" → consolidated into "server.storage" (run 'scion config migrate')
-    - "hub.token" → dev auth uses "server.auth.dev_token" / SCION_DEV_TOKEN
+    - "bucket" → consolidated into "server.storage" (run 'fabric config migrate')
+    - "hub.token" → dev auth uses "server.auth.dev_token" / FABRIC_DEV_TOKEN
     - "hub.last_synced_at" → moved to state.yaml (grove-level)
     - "hub.broker_id", "hub.broker_nickname", "hub.broker_token"
         → moved to "server.broker" (global settings only)
-  Run 'scion config migrate' to automatically update your settings.
+  Run 'fabric config migrate' to automatically update your settings.
 ```
 
 ---
@@ -637,7 +637,7 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 3. ✅ Embed schemas via `//go:embed` in a new `pkg/config/schema.go`.
 4. ✅ Implement `DetectSettingsFormat(data []byte) (version string, isLegacy bool)` — inspects a settings file to determine if it's versioned or legacy.
 5. ✅ Implement `ValidateSettings(data []byte, schemaVersion string) []ValidationError` — validates a settings file against its declared schema using an embedded JSON Schema validator.
-6. ✅ Add a `scion config validate` command that validates the current effective settings and reports errors.
+6. ✅ Add a `fabric config validate` command that validates the current effective settings and reports errors.
 7. ✅ Write tests for schema validation with valid, invalid, and legacy input.
 
 **No behavior changes.** Existing settings loading continues to use the legacy path.
@@ -669,7 +669,7 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 - `V1ServerConfig` is a minimal stub (Env, LogLevel, LogFormat only); full decomposition deferred to Phase 4.
 - `convertVersionedToLegacy` helper enables `GetDefaultSettingsData()` to produce backward-compatible JSON from versioned defaults.
 - `resolveEffectiveGrovePath` extracted as shared helper for both `LoadSettingsKoanf` and `LoadVersionedSettings`.
-- `versionedEnvKeyMapper` uses simpler snake_case-native mapping (no camelCase conversion), fixing `SCION_HUB_GROVE_ID`, `SCION_HUB_LOCAL_ONLY`, `SCION_CLI_AUTOHELP`, `SCION_CLI_INTERACTIVE_DISABLED`.
+- `versionedEnvKeyMapper` uses simpler snake_case-native mapping (no camelCase conversion), fixing `FABRIC_HUB_GROVE_ID`, `FABRIC_HUB_LOCAL_ONLY`, `FABRIC_CLI_AUTOHELP`, `FABRIC_CLI_INTERACTIVE_DISABLED`.
 - 24 new tests in `settings_v1_test.go`; all existing tests pass unchanged.
 
 ### Phase 3: Consumer Migration — Core Resolution ✅
@@ -684,16 +684,16 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 3. ✅ Update `pkg/agent/provision.go` — `ProvisionAgent` and `GetAgent` use `LoadEffectiveSettings` and `ResolveHarnessConfig`.
 4. ✅ Update `pkg/agent/run.go` — `Start` uses `LoadEffectiveSettings` and `ResolveHarnessConfig` for image, user, tmux resolution.
 5. ✅ Update `pkg/runtime/factory.go` — `GetRuntime` uses `LoadEffectiveSettings` and `vs.ResolveRuntime`.
-6. ✅ Introduce `--harness-config` flag to `scion create` and `scion start` commands, with `HarnessConfig` field in `api.ScionConfig` and `api.StartOptions`.
+6. ✅ Introduce `--harness-config` flag to `fabric create` and `fabric start` commands, with `HarnessConfig` field in `api.FabricConfig` and `api.StartOptions`.
 7. ✅ Wire deprecation warnings to stderr via `PrintDeprecationWarnings` helper.
 8. ✅ Test that existing settings files (legacy format) produce identical behavior via `TestLegacyAndVersionedResolution_SameResult`.
 9. ✅ Hub helper methods (`GetHubEndpoint`, `IsHubConfigured`, `IsHubEnabled`, `IsHubExplicitlyDisabled`, `IsHubLocalOnly`) added to `VersionedSettings` for parity with legacy `Settings`.
 
 **Implementation notes:**
 - Consumer migration is scoped to the local agent path. Hub/broker commands and `hubsync.HubContext` continue using legacy `Settings` (deferred to Phase 4).
-- Harness config name resolution priority: CLI `--harness-config` flag > `ScionConfig.HarnessConfig` (from template) > `ScionConfig.Harness` (legacy fallback).
+- Harness config name resolution priority: CLI `--harness-config` flag > `FabricConfig.HarnessConfig` (from template) > `FabricConfig.Harness` (legacy fallback).
 - `ResolveRuntime` returns `(V1RuntimeConfig, runtimeType, error)` — the `runtimeType` is the `Type` field when set, otherwise the map key name.
-- `MergeScionConfig` updated to propagate the new `HarnessConfig` field.
+- `MergeFabricConfig` updated to propagate the new `HarnessConfig` field.
 - 17 new tests in `settings_v1_test.go` covering resolution methods, hub helpers, and legacy/versioned compatibility.
 
 ### Phase 4: Server Config Consolidation ✅ COMPLETE
@@ -703,14 +703,14 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 **Deliverables:**
 1. ✅ Update `LoadGlobalConfig` to check for `server` key in `settings.yaml` first, falling back to `server.yaml` for backward compatibility.
 2. ✅ Add `V1ServerConfig` struct hierarchy (mirrors `GlobalConfig`) to `VersionedSettings` with full sub-structs: `V1ServerHubConfig`, `V1BrokerConfig`, `V1DatabaseConfig`, `V1AuthConfig`, `V1OAuthConfig`, `V1OAuthClientConfig`, `V1OAuthProviderConfig`, `V1StorageConfig`, `V1SecretsConfig`, `V1CORSConfig`. All use snake_case koanf tags.
-3. ✅ Map `SCION_SERVER_*` env vars to `server.*` paths in the unified Koanf loader via `mapServerEnvKey` which recognizes known compound field names (e.g., `broker_id`, `read_timeout`, `dev_token_file`).
+3. ✅ Map `FABRIC_SERVER_*` env vars to `server.*` paths in the unified Koanf loader via `mapServerEnvKey` which recognizes known compound field names (e.g., `broker_id`, `read_timeout`, `dev_token_file`).
 4. ✅ When both `server.yaml` and `settings.yaml.server` exist, emit a deprecation warning to stderr and prefer `settings.yaml`.
-5. ✅ Add `scion config migrate --server` to merge `server.yaml` into `settings.yaml`. Supports `--dry-run` for preview.
+5. ✅ Add `fabric config migrate --server` to merge `server.yaml` into `settings.yaml`. Supports `--dry-run` for preview.
 6. ✅ Update `cmd/server.go` broker identity resolution to try `V1ServerConfig.Broker` first, then fall back to legacy `settings.Hub.BrokerID` / `settings.Hub.BrokerNickname`.
 7. ✅ `server.yaml` is deprecated in favor of `settings.yaml` `server` section.
 8. ✅ Legacy `GlobalConfig` koanf tags remain unchanged for backward compat with existing `server.yaml` files. The versioned V1ServerConfig (snake_case) handles env vars correctly when loading from `settings.yaml`.
 9. ✅ Implement `state.yaml` read/write logic for grove-level runtime state (`pkg/config/state.go`). `hubsync.UpdateLastSyncedAt` now writes to `state.yaml`. `CompareAgents` reads from `state.yaml` with fallback to legacy `settings.Hub.LastSyncedAt`.
-10. ✅ Remove `hub.token` and `hub.apiKey` from hub client auth in both `cmd/hub.go` (`getHubClient`, `getAuthInfo`) and `pkg/hubsync/sync.go` (`createHubClient`). Auth priority is now: OAuth credentials > SCION_HUB_TOKEN env var > auto dev auth.
+10. ✅ Remove `hub.token` and `hub.apiKey` from hub client auth in both `cmd/hub.go` (`getHubClient`, `getAuthInfo`) and `pkg/hubsync/sync.go` (`createHubClient`). Auth priority is now: OAuth credentials > FABRIC_HUB_TOKEN env var > auto dev auth.
 
 **Implementation notes:**
 - `ConvertV1ServerToGlobalConfig` and `ConvertGlobalToV1ServerConfig` provide bidirectional conversion between the versioned and legacy server config formats.
@@ -724,37 +724,37 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 **Goal:** Implement features gated on versioned settings and standardize env var naming.
 
 **Implementation Notes:**
-- `MaxTurns` (int) and `MaxDuration` (string) added to `ScionConfig` with `ParseMaxDuration()` helper.
-- `MergeScionConfig` updated to merge both fields (override > 0 replaces base for turns, non-empty replaces for duration).
-- Agent runner injects `SCION_MAX_TURNS` and `SCION_MAX_DURATION` env vars into containers when configured.
+- `MaxTurns` (int) and `MaxDuration` (string) added to `FabricConfig` with `ParseMaxDuration()` helper.
+- `MergeFabricConfig` updated to merge both fields (override > 0 replaces base for turns, non-empty replaces for duration).
+- Agent runner injects `FABRIC_MAX_TURNS` and `FABRIC_MAX_DURATION` env vars into containers when configured.
 - `startDurationTimer` helper spawns a goroutine that stops the container after the configured duration.
 - `cli.interactive_disabled` wired via `LoadEffectiveSettings` in `cmd/root.go`, sets `nonInteractive` and `autoConfirm`.
 - Items 4 (named harness configs) and 5 (runtime type field) were already complete from Phase 3.
-- `SCION_HUB_URL` → `SCION_HUB_ENDPOINT`: runtime broker injects both (new primary + legacy compat); sciontool hub client reads `SCION_HUB_ENDPOINT` first, falls back to `SCION_HUB_URL`.
-- `HUB_API_URL` → `SCION_WEB_HUB_API_URL`: web server reads new var first, falls back to `HUB_API_URL`.
+- `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT`: runtime broker injects both (new primary + legacy compat); fabrictool hub client reads `FABRIC_HUB_ENDPOINT` first, falls back to `FABRIC_HUB_URL`.
+- `HUB_API_URL` → `FABRIC_WEB_HUB_API_URL`: web server reads new var first, falls back to `HUB_API_URL`.
 
 **Deliverables:**
-1. **`max_turns`**: In the agent runner, check `scionConfig.MaxTurns`. Only available when `schema_version >= 1` in the agent template. If the agent's harness supports turn counting (requires harness-level support), enforce the limit by sending a stop signal.
-2. **`max_duration`**: In the agent runner, start a timer based on `scionConfig.MaxDuration`. Terminate the agent container after the duration elapses. Only available when `schema_version >= 1`.
+1. **`max_turns`**: In the agent runner, check `fabricConfig.MaxTurns`. Only available when `schema_version >= 1` in the agent template. If the agent's harness supports turn counting (requires harness-level support), enforce the limit by sending a stop signal.
+2. **`max_duration`**: In the agent runner, start a timer based on `fabricConfig.MaxDuration`. Terminate the agent container after the duration elapses. Only available when `schema_version >= 1`.
 3. **`cli.interactive_disabled`**: Check this setting in interactive prompts (attach, confirmations). When `true`, skip prompts and use defaults or fail with an error.
-4. **Named harness configs**: With `harness_configs` fully wired, users can create agents with `scion create --harness-config gemini-high-security myagent`.
+4. **Named harness configs**: With `harness_configs` fully wired, users can create agents with `fabric create --harness-config gemini-high-security myagent`.
 5. **Runtime type field**: Runtimes with explicit `type` fields resolve correctly through the factory.
-6. **Standardize `SCION_HUB_URL` → `SCION_HUB_ENDPOINT`**: Update `runtimebroker/handlers.go` to inject `SCION_HUB_ENDPOINT` instead of `SCION_HUB_URL`. Update `sciontool/hub/client.go` to read `SCION_HUB_ENDPOINT`. Support reading the legacy `SCION_HUB_URL` as fallback during transition.
-7. **Rename `HUB_API_URL` → `SCION_WEB_HUB_API_URL`**: Update `web/src/server/config.ts` to read `SCION_WEB_HUB_API_URL` (falling back to `HUB_API_URL` for backward compat). This aligns the web server env var with the `SCION_` prefix convention.
+6. **Standardize `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT`**: Update `runtimebroker/handlers.go` to inject `FABRIC_HUB_ENDPOINT` instead of `FABRIC_HUB_URL`. Update `fabrictool/hub/client.go` to read `FABRIC_HUB_ENDPOINT`. Support reading the legacy `FABRIC_HUB_URL` as fallback during transition.
+7. **Rename `HUB_API_URL` → `FABRIC_WEB_HUB_API_URL`**: Update `web/src/server/config.ts` to read `FABRIC_WEB_HUB_API_URL` (falling back to `HUB_API_URL` for backward compat). This aligns the web server env var with the `FABRIC_` prefix convention.
 
 ### Phase 6: Migration Tooling & Documentation ✅ COMPLETE
 
 **Goal:** Provide automated migration tooling and update documentation for the versioned settings format.
 
 **Deliverables:**
-1. Implement `scion config migrate` command for general settings migration:
+1. Implement `fabric config migrate` command for general settings migration:
    - Reads legacy settings file, converts via `AdaptLegacySettings()`.
    - Validates output against JSON Schema.
    - Backs up the original with incremental naming (`.bak`, `.bak.1`, `.bak.2`).
    - Migrates `hub.lastSyncedAt` to `state.yaml`.
    - Reports changes made, including deprecation warnings.
    - Supports `--dry-run`, `--global`, and JSON output.
-2. Implement `scion config migrate --server` to fold `server.yaml` into `settings.yaml` (completed in Phase 4).
+2. Implement `fabric config migrate --server` to fold `server.yaml` into `settings.yaml` (completed in Phase 4).
 3. Add `SaveVersionedSettings()` and `MigrateSettingsFile()` to `pkg/config/settings_v1.go`.
 4. Update documentation (`docs-site/`) with new versioned settings reference.
 5. Legacy code path removal is deferred to a future release cycle.
@@ -787,26 +787,26 @@ WARNING: Legacy settings format detected in /path/to/settings.yaml
 
 ### Before (legacy)
 ```
-~/.scion/
+~/.fabric/
   settings.yaml              # flat Settings struct
   server.yaml                # separate GlobalConfig
-.scion/
+.fabric/
   settings.yaml              # grove-level Settings
   templates/
     gemini/
-      scion-agent.json       # agent config (no schema)
+      fabric-agent.json       # agent config (no schema)
 ```
 
 ### After (versioned)
 ```
-~/.scion/
+~/.fabric/
   settings.yaml              # VersionedSettings with schema_version, includes server section
-.scion/
+.fabric/
   settings.yaml              # grove-level VersionedSettings (no server section)
   state.yaml                 # grove-level runtime state (last_synced_at, etc.)
   templates/
     gemini/
-      scion-agent.yaml       # agent config with schema_version
+      fabric-agent.yaml       # agent config with schema_version
 ```
 
 ---
@@ -843,11 +843,11 @@ A server should only have one GCS bucket configured. Templates, workspaces, volu
 
 ### 8.8 Why remove `hub.token` and consolidate into `server.auth.dev_token`?
 
-The `hub.token` field stored a bearer token used for Hub API authentication. In practice, this was always a dev token — the same token configured on the server side via `server.auth.dev_token`. Having two separate token fields (`hub.token` on the client, `server.auth.dev_token` on the server) for what is semantically the same value creates confusion. In production, OAuth handles authentication and no static token is needed. Consolidating to a single `server.auth.dev_token` / `SCION_DEV_TOKEN` makes it clear this mechanism is for development only.
+The `hub.token` field stored a bearer token used for Hub API authentication. In practice, this was always a dev token — the same token configured on the server side via `server.auth.dev_token`. Having two separate token fields (`hub.token` on the client, `server.auth.dev_token` on the server) for what is semantically the same value creates confusion. In production, OAuth handles authentication and no static token is needed. Consolidating to a single `server.auth.dev_token` / `FABRIC_DEV_TOKEN` makes it clear this mechanism is for development only.
 
 ### 8.9 Why separate runtime state into `state.yaml`?
 
-Runtime-managed state (like `last_synced_at`) is written programmatically and should not be mixed with user-editable configuration. Keeping it in `settings.yaml` complicates schema validation, creates noisy diffs in version-controlled directories, and makes it unclear which fields are safe to edit. A separate `state.yaml` (grove-level only, not in `~/.scion/`) cleanly separates concerns.
+Runtime-managed state (like `last_synced_at`) is written programmatically and should not be mixed with user-editable configuration. Keeping it in `settings.yaml` complicates schema validation, creates noisy diffs in version-controlled directories, and makes it unclear which fields are safe to edit. A separate `state.yaml` (grove-level only, not in `~/.fabric/`) cleanly separates concerns.
 
 ---
 
@@ -862,9 +862,9 @@ Runtime-managed state (like `last_synced_at`) is written programmatically and sh
 | Koanf deep merge behavior changes between legacy and versioned structs | Subtle config differences | Test merge behavior exhaustively with multi-layer configs |
 | Moving broker identity from `hub` to `server.broker` breaks save logic | Broker registration writes to wrong location | Migration adapter must detect and relocate these fields; `SaveSettings` must handle the new location |
 | CORS env vars don't work in current code | Server CORS can't be configured via env | Switch to snake_case koanf tags (Phase 4 deliverable) |
-| Removing `hub.token` breaks existing dev setups | Users can't authenticate with Hub after upgrade | Migration emits clear warning; `SCION_DEV_TOKEN` env var and `~/.scion/dev-token` file continue to work as before |
+| Removing `hub.token` breaks existing dev setups | Users can't authenticate with Hub after upgrade | Migration emits clear warning; `FABRIC_DEV_TOKEN` env var and `~/.fabric/dev-token` file continue to work as before |
 | Unified storage refactor touches multiple code paths | Risk of data loss or broken storage | Phase 7 is independent; can be deferred without blocking other phases. Thorough integration tests required |
-| `SCION_HUB_URL` → `SCION_HUB_ENDPOINT` rename breaks running agents | Agents in containers can't reach Hub | Support reading both env vars with fallback during transition (Phase 5 deliverable) |
+| `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT` rename breaks running agents | Agents in containers can't reach Hub | Support reading both env vars with fallback during transition (Phase 5 deliverable) |
 
 ---
 
@@ -878,7 +878,7 @@ Runtime-managed state (like `last_synced_at`) is written programmatically and sh
 - Env var mapping: every `x-env-var` in the schema is honored by the Koanf loader.
 - Broker identity migration: fields move from `hub` to `server.broker` correctly.
 - State file: `last_synced_at` reads from and writes to `state.yaml`, not `settings.yaml`.
-- Dev token consolidation: hub client auth reads `server.auth.dev_token` / `SCION_DEV_TOKEN`.
+- Dev token consolidation: hub client auth reads `server.auth.dev_token` / `FABRIC_DEV_TOKEN`.
 
 ### Integration Tests
 - Round-trip: write a `VersionedSettings` to YAML, reload it, compare.
@@ -898,9 +898,9 @@ The following questions were raised during design review and have been resolved.
 
 ### RQ-1: `hub.token` consolidated into `server.auth.dev_token`
 
-**Decision:** Remove `hub.token` from the hub client settings. All dev-mode authentication uses `server.auth.dev_token` / `server.auth.dev_token_file` / `SCION_DEV_TOKEN` / `~/.scion/dev-token`. This token should only ever be used in development; production deployments use OAuth.
+**Decision:** Remove `hub.token` from the hub client settings. All dev-mode authentication uses `server.auth.dev_token` / `server.auth.dev_token_file` / `FABRIC_DEV_TOKEN` / `~/.fabric/dev-token`. This token should only ever be used in development; production deployments use OAuth.
 
-**Code impact:** Hub client auth code must be updated to read dev token from `server.auth.dev_token` instead of `hub.token`. The `SCION_HUB_TOKEN` env var remains supported for container injection (Section 4.4) where the broker passes a token to agents, but is no longer a settings override. See Phase 4, item 10.
+**Code impact:** Hub client auth code must be updated to read dev token from `server.auth.dev_token` instead of `hub.token`. The `FABRIC_HUB_TOKEN` env var remains supported for container injection (Section 4.4) where the broker passes a token to agents, but is no longer a settings override. See Phase 4, item 10.
 
 ### RQ-2: Unified storage — one bucket, path-namespaced
 
@@ -910,13 +910,13 @@ The following questions were raised during design review and have been resolved.
 
 ### RQ-3: Runtime state moved to `state.yaml`
 
-**Decision:** `hub.last_synced_at` and future runtime-managed state moves to a separate `state.yaml` file, present only in non-global groves (project-level `.scion/` directories). See Section 2.9.
+**Decision:** `hub.last_synced_at` and future runtime-managed state moves to a separate `state.yaml` file, present only in non-global groves (project-level `.fabric/` directories). See Section 2.9.
 
 **Code impact:** Sync logic must be updated to read/write `state.yaml` instead of `settings.yaml`. See Phase 4, item 9.
 
 ### RQ-4: `server.hub.public_url` env var — support both names
 
-**Decision:** Support both `SCION_SERVER_HUB_ENDPOINT` (legacy) and `SCION_SERVER_HUB_PUBLIC_URL` (new) during the transition period.
+**Decision:** Support both `FABRIC_SERVER_HUB_ENDPOINT` (legacy) and `FABRIC_SERVER_HUB_PUBLIC_URL` (new) during the transition period.
 
 **Note:** The purpose of storing the Hub's own endpoint on the server configuration may need further investigation and cleanup. Currently `server.hub.public_url` is used to construct agent callback URLs (so agents know where to report status). Whether this should be auto-detected or configured differently is a future consideration.
 
@@ -928,11 +928,11 @@ The following questions were raised during design review and have been resolved.
 
 **Decision:** Switch all `GlobalConfig` koanf tags to snake_case as part of Phase 4. This fixes the CORS env var mapping bug and aligns with the versioned settings convention. No camelCase shim needed since the env var names themselves don't change (they map to lowercase anyway).
 
-### RQ-7: `SCION_HUB_URL` standardized to `SCION_HUB_ENDPOINT`
+### RQ-7: `FABRIC_HUB_URL` standardized to `FABRIC_HUB_ENDPOINT`
 
-**Decision:** Standardize on `SCION_HUB_ENDPOINT` everywhere. The container-injected env var (formerly `SCION_HUB_URL`) serves the same purpose as the host-side settings override — both identify the Hub API endpoint. Code changes in `runtimebroker/handlers.go` and `sciontool/hub/client.go` (Phase 5, items 6-7). `SCION_HUB_URL` is supported as a fallback during transition.
+**Decision:** Standardize on `FABRIC_HUB_ENDPOINT` everywhere. The container-injected env var (formerly `FABRIC_HUB_URL`) serves the same purpose as the host-side settings override — both identify the Hub API endpoint. Code changes in `runtimebroker/handlers.go` and `fabrictool/hub/client.go` (Phase 5, items 6-7). `FABRIC_HUB_URL` is supported as a fallback during transition.
 
-**Additional:** The web frontend env var `HUB_API_URL` (used for the web server's reverse proxy to the Hub API) is renamed to `SCION_WEB_HUB_API_URL` to follow the `SCION_` prefix convention and distinguish from `SCION_HUB_ENDPOINT`. See Section 4.5.1.
+**Additional:** The web frontend env var `HUB_API_URL` (used for the web server's reverse proxy to the Hub API) is renamed to `FABRIC_WEB_HUB_API_URL` to follow the `FABRIC_` prefix convention and distinguish from `FABRIC_HUB_ENDPOINT`. See Section 4.5.1.
 
 ---
 
@@ -947,14 +947,14 @@ This section summarizes code changes implied by the design decisions, organized 
 | Switch all `GlobalConfig` koanf tags to snake_case | `pkg/config/hub_config.go`, `pkg/config/global_config.go` | Medium — fixes CORS env vars |
 | Remove `hub.token` from settings; update hub client auth | `pkg/config/settings.go`, `pkg/hubclient/`, `pkg/config/koanf.go` | Medium — auth flow change |
 | Implement `state.yaml` read/write | `pkg/config/` (new file), `pkg/hubclient/sync.go` | Medium — new file handling |
-| Support legacy `SCION_SERVER_RUNTIMEBROKER_*` env vars as fallback | `pkg/config/koanf.go` or new loader | Small — env var aliasing |
+| Support legacy `FABRIC_SERVER_RUNTIMEBROKER_*` env vars as fallback | `pkg/config/koanf.go` or new loader | Small — env var aliasing |
 
 ### Phase 5 Code Changes (Feature Gates & Env Var Standardization)
 | Change | Files Affected | Scope |
 |---|---|---|
-| `SCION_HUB_URL` → `SCION_HUB_ENDPOINT` in container injection | `pkg/runtimebroker/handlers.go`, tests | Small |
-| `SCION_HUB_URL` → `SCION_HUB_ENDPOINT` in sciontool reader | `pkg/sciontool/hub/client.go`, tests | Small |
-| `HUB_API_URL` → `SCION_WEB_HUB_API_URL` in web server | `web/src/server/config.ts` | Small |
+| `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT` in container injection | `pkg/runtimebroker/handlers.go`, tests | Small |
+| `FABRIC_HUB_URL` → `FABRIC_HUB_ENDPOINT` in fabrictool reader | `pkg/fabrictool/hub/client.go`, tests | Small |
+| `HUB_API_URL` → `FABRIC_WEB_HUB_API_URL` in web server | `web/src/server/config.ts` | Small |
 
 ### Phase 7 Code Changes (Unified Storage — substantial refactor)
 | Change | Files Affected | Scope |

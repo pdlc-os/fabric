@@ -16,7 +16,7 @@ After running successfully for several hours, all agents on a starter-hub VM sim
 
 2. Agents are created over time. Because the Hub runs on localhost, `ResolveDockerNetworking()` returns `"host"`, and containers launch with `--network=host` (shared network namespace).
 
-3. Each agent's metadata sidecar (`sciontool init`) creates an iptables REDIRECT rule in the nat OUTPUT chain:
+3. Each agent's metadata sidecar (`fabrictool init`) creates an iptables REDIRECT rule in the nat OUTPUT chain:
    ```
    iptables -t nat -A OUTPUT -d 169.254.169.254 -p tcp --dport 80 -j REDIRECT --to-port 18380
    ```
@@ -34,7 +34,7 @@ Three factors combined to create this failure:
 
 **1. iptables rule created in host network namespace (the bug)**
 
-`setupIPTablesRedirect()` in `pkg/sciontool/metadata/iptables.go` creates a REDIRECT rule with no scope limiters — no interface restriction, no UID filter, no source IP constraint. When executed inside a `--network=host` container, the rule applies to ALL processes on the host, including the Hub.
+`setupIPTablesRedirect()` in `pkg/fabrictool/metadata/iptables.go` creates a REDIRECT rule with no scope limiters — no interface restriction, no UID filter, no source IP constraint. When executed inside a `--network=host` container, the rule applies to ALL processes on the host, including the Hub.
 
 **2. Host networking used for localhost Hub connectivity**
 
@@ -63,9 +63,9 @@ Metadata access restored immediately after rule removal.
 
 | Change | File | Effect |
 |--------|------|--------|
-| Skip iptables in host network mode | `pkg/sciontool/metadata/server.go` | Prevents the leak entirely; `GCE_METADATA_HOST` env var is sufficient |
-| Shorten sidecar timeout 30s -> 10s | `pkg/sciontool/metadata/server.go` | Fail fast instead of hanging for 30s |
-| Wire in singleflight on sidecar | `pkg/sciontool/metadata/server.go` | Collapse concurrent token requests into one Hub call |
+| Skip iptables in host network mode | `pkg/fabrictool/metadata/server.go` | Prevents the leak entirely; `GCE_METADATA_HOST` env var is sufficient |
+| Shorten sidecar timeout 30s -> 10s | `pkg/fabrictool/metadata/server.go` | Fail fast instead of hanging for 30s |
+| Wire in singleflight on sidecar | `pkg/fabrictool/metadata/server.go` | Collapse concurrent token requests into one Hub call |
 | Hub-side token cache per SA | `pkg/hub/gcp_token_cache.go` | Avoid redundant IAM API calls across agents sharing the same SA |
 | Rate limiter context cancellation | `pkg/hub/gcp_ratelimit.go` | Fix goroutine leak on shutdown |
 
@@ -92,7 +92,7 @@ This added days to the resolution timeline. When a hypothesis fits the evidence 
 
 2. **Delayed-onset failures need explicit correlation.** When a failure manifests an hour after its cause, standard debugging (what changed recently?) points in the wrong direction. The iptables rule was created successfully with no errors, so there was no log entry to correlate.
 
-3. **Error messages should be unique and traceable.** The sidecar returned a generic `"token generation failed"` that could be confused with a GCE metadata server error. Including something like `"scion-metadata-sidecar: token generation failed"` would have made the source immediately obvious.
+3. **Error messages should be unique and traceable.** The sidecar returned a generic `"token generation failed"` that could be confused with a GCE metadata server error. Including something like `"fabric-metadata-sidecar: token generation failed"` would have made the source immediately obvious.
 
 4. **Defense-in-depth can backfire.** The iptables redirect was defense-in-depth for tools that don't respect `GCE_METADATA_HOST`. In host network mode, this defense became the vulnerability. Defense-in-depth mechanisms need to be aware of their deployment context.
 
@@ -102,13 +102,13 @@ This added days to the resolution timeline. When a hypothesis fits the evidence 
 - [x] Shorten sidecar timeout for fail-fast
 - [x] Wire in singleflight for concurrent token dedup
 - [x] Add Hub-side token caching per service account
-- [ ] Consider prefixing sidecar error messages with a scion-specific identifier
+- [ ] Consider prefixing sidecar error messages with a fabric-specific identifier
 - [ ] Add a startup health check that verifies the Hub can reach the real metadata server
 - [ ] Document the `--network=host` + iptables interaction in the architecture docs
 
 ## Related
 
 - [Investigation: GCP Auth Token Failure](../investigations/gcp-auth-fail.md) — the initial investigation that identified the hypothesis
-- `pkg/sciontool/metadata/iptables.go` — iptables rule creation
+- `pkg/fabrictool/metadata/iptables.go` — iptables rule creation
 - `pkg/runtime/common.go:538` — `ResolveDockerNetworking()` host mode decision
 - `pkg/hub/gcp_token_cache.go` — new Hub-side token cache

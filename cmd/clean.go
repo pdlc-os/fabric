@@ -21,9 +21,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -34,28 +34,28 @@ var (
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
-	Short: "Remove scion from a project",
-	Long: `Remove the scion project configuration from the current project or global location.
+	Short: "Remove fabric from a project",
+	Long: `Remove the fabric project configuration from the current project or global location.
 
 This command will:
 1. Check if the project is linked to a Hub (unless --skip-hub-check is set)
 2. Offer to unlink from Hub if linked
-3. Remove the local .scion directory
+3. Remove the local .fabric directory
 
-This is the reverse of 'scion init'.
+This is the reverse of 'fabric init'.
 
 Examples:
   # Clean the current project
-  scion clean
+  fabric clean
 
   # Clean the global project
-  scion clean --global
+  fabric clean --global
 
   # Clean without checking Hub status
-  scion clean --skip-hub-check
+  fabric clean --skip-hub-check
 
   # Non-interactive mode (auto-confirm all prompts)
-  scion clean --yes`,
+  fabric clean --yes`,
 	RunE: runClean,
 }
 
@@ -76,9 +76,9 @@ func runClean(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to resolve project path: %w", err)
 	}
 
-	// Check if .scion directory exists
+	// Check if .fabric directory exists
 	if _, err := os.Stat(resolvedPath); os.IsNotExist(err) {
-		return fmt.Errorf("no scion project found at %s", resolvedPath)
+		return fmt.Errorf("no fabric project found at %s", resolvedPath)
 	}
 
 	// Get project name for display
@@ -172,12 +172,12 @@ func runClean(cmd *cobra.Command, args []string) error {
 		// unlinking locally. The project record on Hub will remain for other brokers.
 	}
 
-	// Show final confirmation to remove .scion directory
+	// Show final confirmation to remove .fabric directory
 	if !hubsync.ShowCleanConfirmPrompt(projectName, resolvedPath, isGlobal, autoConfirm) {
 		return fmt.Errorf("clean cancelled")
 	}
 
-	// Remove the .scion directory
+	// Remove the .fabric directory
 	if err := os.RemoveAll(resolvedPath); err != nil {
 		return fmt.Errorf("failed to remove project directory: %w", err)
 	}
@@ -198,11 +198,11 @@ func runClean(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 	fmt.Printf("Project '%s' has been removed.\n", projectName)
 	if isGlobal {
-		fmt.Println("The global scion configuration has been cleaned.")
+		fmt.Println("The global fabric configuration has been cleaned.")
 	} else {
-		fmt.Println("The project scion configuration has been cleaned.")
+		fmt.Println("The project fabric configuration has been cleaned.")
 	}
-	fmt.Println("Run 'scion init' to create a new project.")
+	fmt.Println("Run 'fabric init' to create a new project.")
 
 	return nil
 }

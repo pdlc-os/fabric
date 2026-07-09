@@ -58,7 +58,7 @@ EOF
 # --- Create NATS config file ---
 TMP_CONF=$(mktemp)
 cat <<EOF > "$TMP_CONF"
-# /etc/nats-server.conf - Scion NATS Server Configuration
+# /etc/nats-server.conf - Fabric NATS Server Configuration
 
 port: 4222
 monitor_port: 8222

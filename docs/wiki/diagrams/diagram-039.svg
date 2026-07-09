@@ -28,13 +28,13 @@
 <g id="clust1" class="cluster">
 <title>cluster_inputs</title>
 <polygon fill="none" stroke="black" points="276.75,-481.83 276.75,-698.2 714.75,-698.2 714.75,-481.83 276.75,-481.83"/>
-<text xml:space="preserve" text-anchor="middle" x="495.75" y="-680.9" font-family="Times,serif" font-size="14.00">Input Files (Scion Staged)</text>
+<text xml:space="preserve" text-anchor="middle" x="495.75" y="-680.9" font-family="Times,serif" font-size="14.00">Input Files (Fabric Staged)</text>
 </g>
-<!-- Input Files (Scion Staged) -->
+<!-- Input Files (Fabric Staged) -->
 <g id="node1" class="node">
-<title>Input Files (Scion Staged)</title>
+<title>Input Files (Fabric Staged)</title>
 <polygon fill="lightblue" stroke="black" points="267.25,-580 56.25,-580 56.25,-544 267.25,-544 267.25,-580"/>
-<text xml:space="preserve" text-anchor="middle" x="161.75" y="-553.95" font-family="Times,serif" font-size="14.00">Input Files (Scion Staged)</text>
+<text xml:space="preserve" text-anchor="middle" x="161.75" y="-553.95" font-family="Times,serif" font-size="14.00">Input Files (Fabric Staged)</text>
 </g>
 <!-- ProvisionContext -->
 <g id="node2" class="node">
@@ -42,9 +42,9 @@
 <polygon fill="lightblue" stroke="black" points="229.75,-326 93.75,-326 93.75,-290 229.75,-290 229.75,-326"/>
 <text xml:space="preserve" text-anchor="middle" x="161.75" y="-299.95" font-family="Times,serif" font-size="14.00">ProvisionContext</text>
 </g>
-<!-- Input Files (Scion Staged)&#45;&gt;ProvisionContext -->
+<!-- Input Files (Fabric Staged)&#45;&gt;ProvisionContext -->
 <g id="edge1" class="edge">
-<title>Input Files (Scion Staged)&#45;&gt;ProvisionContext</title>
+<title>Input Files (Fabric Staged)&#45;&gt;ProvisionContext</title>
 <path fill="none" stroke="black" d="M161.75,-543.68C161.75,-500.97 161.75,-390.27 161.75,-337.63"/>
 <polygon fill="black" stroke="black" points="165.25,-337.96 161.75,-327.96 158.25,-337.96 165.25,-337.96"/>
 <text xml:space="preserve" text-anchor="middle" x="188" y="-426.95" font-family="Times,serif" font-size="14.00">read by</text>

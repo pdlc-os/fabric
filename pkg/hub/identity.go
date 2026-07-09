@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package hub provides the Scion Hub API server.
+// Package hub provides the Fabric Hub API server.
 package hub
 
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 )
 
 // Identity represents an authenticated identity (user or agent).

@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 type Generic struct{}
@@ -43,7 +43,7 @@ func (g *Generic) AdvancedCapabilities() api.HarnessAdvancedCapabilities {
 			NativeEmitter: api.CapabilityField{Support: api.SupportNo, Reason: "Native telemetry forwarding is not defined for generic harnesses"},
 		},
 		Prompts: api.HarnessPromptCapabilities{
-			SystemPrompt:      api.CapabilityField{Support: api.SupportPartial, Reason: "Saved under .scion/system_prompt.md, without harness-native behavior"},
+			SystemPrompt:      api.CapabilityField{Support: api.SupportPartial, Reason: "Saved under .fabric/system_prompt.md, without harness-native behavior"},
 			AgentInstructions: api.CapabilityField{Support: api.SupportYes},
 		},
 		Auth: api.HarnessAuthCapabilities{
@@ -57,7 +57,7 @@ func (g *Generic) AdvancedCapabilities() api.HarnessAdvancedCapabilities {
 
 func (g *Generic) GetEnv(agentName string, agentHome string, unixUsername string) map[string]string {
 	env := make(map[string]string)
-	env["SCION_AGENT_NAME"] = agentName
+	env["FABRIC_AGENT_NAME"] = agentName
 	return env
 }
 
@@ -70,11 +70,11 @@ func (g *Generic) GetCommand(task string, resume bool, baseArgs []string) []stri
 }
 
 func (g *Generic) DefaultConfigDir() string {
-	return ".scion"
+	return ".fabric"
 }
 
 func (g *Generic) SkillsDir() string {
-	return ".scion/skills"
+	return ".fabric/skills"
 }
 
 func (g *Generic) HasSystemPrompt(agentHome string) bool {
@@ -151,7 +151,7 @@ func (g *Generic) ResolveAuth(auth api.AuthConfig) (*api.ResolvedAuth, error) {
 	if auth.OAuthCreds != "" {
 		result.Files = append(result.Files, api.FileMapping{
 			SourcePath:    auth.OAuthCreds,
-			ContainerPath: "~/.scion/oauth_creds.json",
+			ContainerPath: "~/.fabric/oauth_creds.json",
 		})
 	}
 	if auth.CodexAuthFile != "" {
@@ -171,7 +171,7 @@ func (g *Generic) ResolveAuth(auth api.AuthConfig) (*api.ResolvedAuth, error) {
 }
 
 func (g *Generic) InjectSystemPrompt(agentHome string, content []byte) error {
-	target := filepath.Join(agentHome, ".scion", "system_prompt.md")
+	target := filepath.Join(agentHome, ".fabric", "system_prompt.md")
 	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for system prompt: %w", err)
 	}

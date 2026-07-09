@@ -19,8 +19,8 @@
 package opsettings
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // AccessSettings holds Layer-1 access control settings.

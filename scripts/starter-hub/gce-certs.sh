@@ -38,7 +38,7 @@ if ! gcloud dns managed-zones describe "${ZONE_NAME}" &>/dev/null; then
     echo "Creating Cloud DNS managed zone: ${ZONE_NAME}..."
     gcloud dns managed-zones create "${ZONE_NAME}" \
         --dns-name="${DOMAIN}." \
-        --description="Managed zone for scion-ai.dev sub-domain" \
+        --description="Managed zone for fabric-ai.dev sub-domain" \
         --visibility="public"
 else
     echo "DNS zone ${ZONE_NAME} already exists."

@@ -76,7 +76,7 @@ CLI                          Hub                         Broker
 
 1. **User initiates remote agent start:**
    ```bash
-   scion start fooAgent --broker remote "hello world"
+   fabric start fooAgent --broker remote "hello world"
    ```
 
 2. **CLI sends creation request to Hub:**
@@ -96,7 +96,7 @@ CLI                          Hub                         Broker
 
 5. **Broker determines env requirements:**
    - Loads the template configuration.
-   - Extracts all environment variable keys from `scionCfg.Env`.
+   - Extracts all environment variable keys from `fabricCfg.Env`.
    - For each required key:
      - If Broker has it locally → use Broker's value (highest priority).
      - Else if Hub provided it → use Hub's value.
@@ -123,7 +123,7 @@ CLI                          Hub                         Broker
 
      Warning: 1 required variable is missing. Agent may fail to start.
 
-     Tip: Use 'scion hub env set SLACK_WEBHOOK_URL' to store this variable.
+     Tip: Use 'fabric hub env set SLACK_WEBHOOK_URL' to store this variable.
           Scopes: --user (your account), --grove (this project), --global (hub-wide)
 
      Continue? [Y/n]:
@@ -234,7 +234,7 @@ type FinalizeAgentCommand struct {
 
 #### New Flag
 ```bash
-scion start <agent> --broker <name> [--no-env-gather] "task"
+fabric start <agent> --broker <name> [--no-env-gather] "task"
 ```
 - `--no-env-gather`: Skip the multi-phase flow; use only Hub/Broker-scoped env vars.
 
@@ -250,7 +250,7 @@ Located in `cmd/start.go`:
 #### Hub Storage Hint
 When variables are missing, CLI should display a helpful message:
 ```
-Tip: Use 'scion hub env set <KEY>' to store this variable in the Hub.
+Tip: Use 'fabric hub env set <KEY>' to store this variable in the Hub.
      Scopes: --user (your account), --grove (this project), --global (hub-wide)
 ```
 
@@ -269,7 +269,7 @@ Before dispatching to the Broker, the Hub must:
 
 The Broker must load and parse the template to determine required env vars without starting the container. This requires:
 1. Template hydration (already exists for normal flow).
-2. Parsing `scionCfg.Env` to extract variable references.
+2. Parsing `fabricCfg.Env` to extract variable references.
 3. Expanding variable names (e.g., `${API_KEY}` → `API_KEY`).
 4. Checking Hub-provided values and local environment for each key.
 
@@ -300,7 +300,7 @@ When the Hub and Broker together satisfy all required variables:
 
 For CI/CD or scripted usage:
 ```bash
-scion start agent --broker remote --no-env-gather "task"
+fabric start agent --broker remote --no-env-gather "task"
 ```
 Falls back to existing behavior: Broker uses its own env, CLI-provided `--env` flags, and Hub-scoped variables only.
 
@@ -332,7 +332,7 @@ Falls back to existing behavior: Broker uses its own env, CLI-provided `--env` f
 
 ### 8.1. Happy Path (Fully Satisfied Server-Side)
 ```bash
-$ scion start analyzer --broker prod-k8s "analyze the auth module"
+$ fabric start analyzer --broker prod-k8s "analyze the auth module"
 
 Environment variables for agent 'analyzer':
   Broker provides: ANTHROPIC_API_KEY
@@ -344,7 +344,7 @@ Agent started successfully.
 
 ### 8.2. Happy Path (CLI Provides Remaining)
 ```bash
-$ scion start analyzer --broker prod-k8s "analyze the auth module"
+$ fabric start analyzer --broker prod-k8s "analyze the auth module"
 
 Environment variables for agent 'analyzer':
   Broker provides: ANTHROPIC_API_KEY
@@ -357,7 +357,7 @@ Agent started successfully.
 
 ### 8.3. Missing Variables (Interactive)
 ```bash
-$ scion start analyzer --broker prod-k8s "analyze the auth module"
+$ fabric start analyzer --broker prod-k8s "analyze the auth module"
 
 Environment variables for agent 'analyzer':
   Broker provides: ANTHROPIC_API_KEY
@@ -367,7 +367,7 @@ Environment variables for agent 'analyzer':
 
 Warning: 1 required variable is missing.
 
-Tip: Use 'scion hub env set GITHUB_TOKEN' to store this variable in the Hub.
+Tip: Use 'fabric hub env set GITHUB_TOKEN' to store this variable in the Hub.
      Scopes: --user (your account), --grove (this project), --global (hub-wide)
 
 Continue anyway? [y/N]: n
@@ -376,7 +376,7 @@ Aborted.
 
 ### 8.4. Missing Variables (Forced)
 ```bash
-$ scion start analyzer --broker prod-k8s --force "analyze the auth module"
+$ fabric start analyzer --broker prod-k8s --force "analyze the auth module"
 
 Environment variables for agent 'analyzer':
   Broker provides: ANTHROPIC_API_KEY
@@ -386,7 +386,7 @@ Environment variables for agent 'analyzer':
 
 Warning: 1 required variable is missing.
 
-Tip: Use 'scion hub env set GITHUB_TOKEN' to store this variable in the Hub.
+Tip: Use 'fabric hub env set GITHUB_TOKEN' to store this variable in the Hub.
      Scopes: --user (your account), --grove (this project), --global (hub-wide)
 
 Starting agent anyway (--force specified)...
@@ -441,7 +441,7 @@ Example: Hub has `API_HOST`, Broker has `API_PORT`.
 *   **TTL:** Pending agents expire after N minutes.
 *   **Resume:** Should CLI be able to resume a pending env gather?
 
-**Recommendation:** Implement TTL with cleanup. Consider a `scion env submit <agent-id>` command for recovery.
+**Recommendation:** Implement TTL with cleanup. Consider a `fabric env submit <agent-id>` command for recovery.
 
 ### 9.5. Hub Env Caching on Broker
 

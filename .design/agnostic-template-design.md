@@ -8,11 +8,11 @@
 
 ## 1. Executive Summary
 
-This document defines the design for transforming Scion's template system from a harness-coupled model (each template is 1:1 with a harness) to a harness-agnostic model where a template defines the *role* of an agent (system prompt, agent instructions, skills, resources) and is combined with a harness-config at creation time.
+This document defines the design for transforming Fabric's template system from a harness-coupled model (each template is 1:1 with a harness) to a harness-agnostic model where a template defines the *role* of an agent (system prompt, agent instructions, skills, resources) and is combined with a harness-config at creation time.
 
 The refactor is feasible but touches many layers of the system. The key challenges are: (1) separating harness-specific home directory content from portable template content, (2) rethinking how embedded defaults work, (3) adapting the provisioning flow to a two-phase "compose template + apply harness-config" model, and (4) organizing harness-config directories on disk to co-locate configuration and home directory base files.
 
-The decided approach is **Harness-Config Base Layers with Optional Template Overrides**: harness-configs stored on disk at `~/.scion/harness-configs/<name>/` provide the default base layer, while templates may optionally include a `harness-configs/` directory for template-specific overrides or defaults.
+The decided approach is **Harness-Config Base Layers with Optional Template Overrides**: harness-configs stored on disk at `~/.fabric/harness-configs/<name>/` provide the default base layer, while templates may optionally include a `harness-configs/` directory for template-specific overrides or defaults.
 
 ---
 
@@ -32,29 +32,29 @@ pkg/config/embeds/
 │   ├── .gitconfig
 │   └── .gemini/.geminiignore
 ├── claude/                    # Claude-coupled template
-│   ├── scion-agent.yaml       # declares harness: claude
+│   ├── fabric-agent.yaml       # declares harness: claude
 │   ├── .claude.json           # Claude Code state file
 │   ├── settings.json          # Claude Code settings (hooks, env, permissions)
-│   ├── claude.md              # Agent instructions (sciontool hooks)
+│   ├── claude.md              # Agent instructions (fabrictool hooks)
 │   └── bashrc                 # harness-specific aliases
 ├── gemini/                    # Gemini-coupled template
-│   ├── scion-agent.yaml       # declares harness: gemini + auth config
+│   ├── fabric-agent.yaml       # declares harness: gemini + auth config
 │   ├── settings.json          # Gemini CLI settings (hooks, model, security)
-│   ├── gemini.md              # Agent instructions (sciontool hooks)
+│   ├── gemini.md              # Agent instructions (fabrictool hooks)
 │   ├── system_prompt.md       # Placeholder
 │   └── bashrc                 # harness-specific aliases
 ├── codex/                     # Codex-coupled template
-│   ├── scion-agent.yaml       # declares harness: codex
+│   ├── fabric-agent.yaml       # declares harness: codex
 │   ├── config.toml            # Codex config (model, approval policy)
 │   └── bashrc                 # harness-specific aliases
 └── opencode/                  # OpenCode-coupled template
-    ├── scion-agent.yaml       # declares harness: opencode
+    ├── fabric-agent.yaml       # declares harness: opencode
     └── opencode.json          # OpenCode config (theme)
 ```
 
 **Template seeding** (`Harness.SeedTemplateDir()`): Each harness implementation controls its own template directory layout. The `SeedAgnosticTemplate()` function in `pkg/config/init.go` seeds the default template (including common home files) in a single `fs.WalkDir()` pass.
 
-**Template discovery** (`pkg/config/templates.go`): Templates are discovered by name (e.g., `gemini`, `claude`) and their `scion-agent.yaml` declares which harness they bind to. The template name conventionally matches the harness name.
+**Template discovery** (`pkg/config/templates.go`): Templates are discovered by name (e.g., `gemini`, `claude`) and their `fabric-agent.yaml` declares which harness they bind to. The template name conventionally matches the harness name.
 
 **Agent provisioning** (`pkg/agent/provision.go`): The provisioning flow copies `template/home/` into `agent/home/`, then calls `harness.Provision()` to do harness-specific setup (e.g., Claude updates `.claude.json` with workspace paths).
 
@@ -74,7 +74,7 @@ To determine feasibility, we must classify every piece of template content:
 | Auth discovery logic | All | Each harness finds credentials differently |
 | Container command | All | Each harness has different CLI invocation (`gemini --yolo`, `claude --no-chrome`, etc.) |
 | Interrupt key | All | Claude uses Escape, others use C-c |
-| Hook dialect | All | `sciontool hook --dialect=claude` vs `--dialect=gemini` |
+| Hook dialect | All | `fabrictool hook --dialect=claude` vs `--dialect=gemini` |
 
 #### Abstract Harness Capabilities
 
@@ -85,7 +85,7 @@ While many commands are harness-specific, several common behaviors can be define
 | Resume/Continue | Mechanism to resume the harness after it pauses or completes a turn |
 | Message delivery | Getting the harness a message, with optional interrupt of current work |
 | Telemetry on/off | Controlling whether the harness sends telemetry, with potential sub-settings |
-| Supported dialect | Which sciontool hook dialect the harness uses |
+| Supported dialect | Which fabrictool hook dialect the harness uses |
 
 These abstract capabilities allow the template and agent system to reason about harness behavior without coupling to specific implementation details.
 
@@ -94,16 +94,16 @@ These abstract capabilities allow the template and agent system to reason about 
 | Content | Current Location | Purpose |
 |---------|-----------------|---------|
 | System prompt | Not consistently present | Defines the agent's role and capabilities |
-| Agent instructions | `.claude/claude.md`, `.gemini/gemini.md` | Agent-level guidance (e.g., sciontool integration, workflow rules) |
+| Agent instructions | `.claude/claude.md`, `.gemini/gemini.md` | Agent-level guidance (e.g., fabrictool integration, workflow rules) |
 | `.bashrc` (common portion) | Per-harness embeds | Common shell aliases and setup |
 | `.zshrc` | Needs adding to common | Common zsh setup |
 | `.tmux.conf` | `common/` | Terminal multiplexer config (already shared) |
-| `scion-agent.yaml` fields: `env`, `volumes`, `resources`, `services`, `max_turns`, `max_duration` | Template | Agent runtime configuration |
+| `fabric-agent.yaml` fields: `env`, `volumes`, `resources`, `services`, `max_turns`, `max_duration` | Template | Agent runtime configuration |
 | Telemetry settings | Per-harness | Abstract on/off control that maps to harness-specific config |
 
 #### Agent Instructions and System Prompts
 
-Agent instructions are a common feature of agent harnesses — they are not scion-specific. They provide guidance to the agent such as workflow rules, tool usage patterns, and integration instructions. System prompts define the agent's role, capabilities, and behavioral constraints.
+Agent instructions are a common feature of agent harnesses — they are not fabric-specific. They provide guidance to the agent such as workflow rules, tool usage patterns, and integration instructions. System prompts define the agent's role, capabilities, and behavioral constraints.
 
 A harness-agnostic template supports **both** system prompts and agent instructions as distinct portable artifacts. At the harness layer, these are generally combined and delivered to the harness CLI through its native mechanisms.
 
@@ -125,14 +125,14 @@ System prompt delivery remains a challenge that this design addresses through th
 
 ## 3. Decided Approach: Harness-Config Base Layers with Optional Template Overrides
 
-Harness-configs stored on disk at `~/.scion/harness-configs/<name>/` provide the default base layer. Templates may **optionally** include a `harness-configs/` directory that provides template-specific overrides or defaults for specific harnesses.
+Harness-configs stored on disk at `~/.fabric/harness-configs/<name>/` provide the default base layer. Templates may **optionally** include a `harness-configs/` directory that provides template-specific overrides or defaults for specific harnesses.
 
 ### 3.1 Target Template Structure
 
 A harness-agnostic template defines the agent's *purpose*, not its *execution mechanics*:
 
 ```yaml
-# .scion/templates/code-reviewer/scion-agent.yaml
+# .fabric/templates/code-reviewer/fabric-agent.yaml
 schema_version: "1"
 name: code-reviewer
 description: "Thorough code review agent with security focus"
@@ -172,8 +172,8 @@ services:
 The YAML format supports inline plain text content for both `agent_instructions` and `system_prompt` fields (e.g., using YAML `|` multi-line syntax), in addition to file path references. This is supported by standard YAML libraries and is convenient for simple templates, but will not be used in our default templates or documented initially.
 
 ```
-.scion/templates/code-reviewer/
-├── scion-agent.yaml             # Agent/template configuration (harness-agnostic)
+.fabric/templates/code-reviewer/
+├── fabric-agent.yaml             # Agent/template configuration (harness-agnostic)
 ├── agents.md                    # Portable agent instructions
 ├── system-prompt.md             # Portable system prompt (optional)
 ├── home/                        # Portable home directory content (optional)
@@ -186,19 +186,19 @@ The YAML format supports inline plain text content for both `agent_instructions`
         └── config.yaml          # Override settings for this template
 ```
 
-**Note on naming:** We retain `scion-agent.yaml` rather than introducing `scion-template.yaml`. A template defines an agent, and after provisioning, the `scion-agent.yaml` in the agent directory represents the composed configuration (template settings + profile env vars + harness-config). Keeping the same filename creates a natural lineage from template to provisioned agent.
+**Note on naming:** We retain `fabric-agent.yaml` rather than introducing `fabric-template.yaml`. A template defines an agent, and after provisioning, the `fabric-agent.yaml` in the agent directory represents the composed configuration (template settings + profile env vars + harness-config). Keeping the same filename creates a natural lineage from template to provisioned agent.
 
 ### 3.2 How It Combines with Harness-Config
 
-At `scion create`, the user specifies a template and optionally a harness-config:
+At `fabric create`, the user specifies a template and optionally a harness-config:
 
 ```bash
 # Explicit harness-config
-scion create my-agent --template code-reviewer --harness-config gemini
+fabric create my-agent --template code-reviewer --harness-config gemini
 
 # Uses template's default_harness_config if set, otherwise falls back to
 # the default_harness_config from settings.yaml
-scion create my-agent --template code-reviewer
+fabric create my-agent --template code-reviewer
 ```
 
 Settings must include a `default_harness_config` field to replace the notion of "default_template" implying a harness. The `default_template` setting is retained but no longer implies a harness — it only selects which portable template to use.
@@ -206,7 +206,7 @@ Settings must include a `default_harness_config` field to replace the notion of 
 The system resolves:
 1. **Template** → `code-reviewer` (provides agent instructions, system prompt, env, resources, services)
 2. **Harness-config** → resolved from: CLI `--harness-config` flag → template's `default_harness_config` → settings `default_harness_config`
-3. **Harness-config on disk** → `~/.scion/harness-configs/<name>/` (provides home dir base files, runtime config)
+3. **Harness-config on disk** → `~/.fabric/harness-configs/<name>/` (provides home dir base files, runtime config)
 4. **Harness** → derived from harness-config's `harness` field (provides behavior, auth, command, hooks)
 
 The agent home directory is assembled by composing:
@@ -222,7 +222,7 @@ The agent home directory is assembled by composing:
 Each harness-config is a named directory containing both its runtime configuration and base home files:
 
 ```
-~/.scion/
+~/.fabric/
 ├── harness-configs/              # Harness-config base layers
 │   ├── claude/                   # Default claude harness-config
 │   │   ├── config.yaml           # Runtime params: image, user, model, env, auth
@@ -257,20 +257,20 @@ Each harness-config is a named directory containing both its runtime configurati
 │               └── settings.json
 ├── templates/                    # Harness-agnostic templates
 │   ├── code-reviewer/
-│   │   ├── scion-agent.yaml
+│   │   ├── fabric-agent.yaml
 │   │   ├── agents.md
 │   │   ├── system-prompt.md
 │   │   └── harness-configs/      # Optional: template-specific overrides
 │   │       └── gemini/
 │   │           └── config.yaml   # e.g., set a specific model for this template
 │   └── researcher/
-│       ├── scion-agent.yaml
+│       ├── fabric-agent.yaml
 │       ├── agents.md
 │       └── system-prompt.md
 └── settings.yaml                 # References harness-configs by name, no longer inline
 ```
 
-Grove-level overrides are also supported: `.scion/harness-configs/<name>/` at the project level takes precedence over the global `~/.scion/harness-configs/<name>/`.
+Grove-level overrides are also supported: `.fabric/harness-configs/<name>/` at the project level takes precedence over the global `~/.fabric/harness-configs/<name>/`.
 
 Custom harness-config variants (e.g., `gemini-experimental`) are created manually by copying and modifying an existing harness-config directory. No dedicated CLI command is provided; the process is documented.
 
@@ -280,7 +280,7 @@ Templates can optionally include a `harness-configs/` directory. This preserves 
 
 ```
 templates/researcher/
-├── scion-agent.yaml
+├── fabric-agent.yaml
 │   # default_harness_config: gemini
 ├── agents.md
 ├── system-prompt.md
@@ -291,14 +291,14 @@ templates/researcher/
 
 When the template specifies a `default_harness_config` and also has a matching override in `harness-configs/`, the template's override `config.yaml` scalar values take precedence over the base harness-config's `config.yaml` values during composition.
 
-**Important limitation (initial release):** Deep merging of hooks (combining base harness-config hooks with template-specific hooks) is deferred to a future refactor. For the initial implementation, template-specific harness-config overrides apply to scalar `config.yaml` values only (e.g., `model`, `image`, `env` additions). Authors who want custom hooks must create a complete custom harness-config that includes both the standard scion integration hooks and their custom hooks.
+**Important limitation (initial release):** Deep merging of hooks (combining base harness-config hooks with template-specific hooks) is deferred to a future refactor. For the initial implementation, template-specific harness-config overrides apply to scalar `config.yaml` values only (e.g., `model`, `image`, `env` additions). Authors who want custom hooks must create a complete custom harness-config that includes both the standard fabric integration hooks and their custom hooks.
 
 **Future direction:** The long-term goal is to support deep-merge of hooks, allowing template authors to add hooks that are merged with the base harness-config's hook settings. This may take the form of allowing an array of harness-configs that are merged in order, enabling composable configuration layers. This is deferred because it introduces significant complexity around merge semantics (append vs replace vs deduplicate) and validation.
 
 ### 3.5 Composition at Agent Creation
 
 ```
-Agent Home = Harness-Config Base Layer (from ~/.scion/harness-configs/<name>/home/)
+Agent Home = Harness-Config Base Layer (from ~/.fabric/harness-configs/<name>/home/)
            + Template Harness-Config Overrides (if template has harness-configs/<name>/)
            + Template Home (if any)
            + Agent Instructions Injection
@@ -345,7 +345,7 @@ Implementations for `InjectSystemPrompt`:
 - **Gemini**: Writes to `{agentHome}/.gemini/system_prompt.md`
 - **Codex**: Downgrade — prepends system prompt content to agent instructions
 - **OpenCode**: Downgrade — prepends system prompt content to agent instructions
-- **Generic**: Writes to `{agentHome}/.scion/system_prompt.md`
+- **Generic**: Writes to `{agentHome}/.fabric/system_prompt.md`
 
 ### 3.7 Embed Restructuring
 
@@ -357,7 +357,7 @@ pkg/config/embeds/
 │   └── zshrc                      # Common zsh setup
 ├── templates/                     # Default agnostic templates
 │   ├── default/
-│   │   ├── scion-agent.yaml
+│   │   ├── fabric-agent.yaml
 │   │   ├── agents.md
 │   │   └── system-prompt.md
 │   └── (future: code-reviewer/, researcher/, etc.)
@@ -418,7 +418,7 @@ These files are currently embedded in templates. In a harness-agnostic world, th
 Storage on disk:
 
 ```
-~/.scion/harness-configs/<name>/
+~/.fabric/harness-configs/<name>/
 ├── config.yaml          # Runtime parameters (image, user, model, args, env, volumes, auth)
 └── home/                # Base home directory files
     ├── .claude.json     # (for claude harness-configs)
@@ -465,8 +465,8 @@ The `settings.json` files for Claude and Gemini contain critical integration hoo
 ```json
 {
   "hooks": {
-    "SessionStart": [{"command": "sciontool hook --dialect=claude"}],
-    "PostToolUse": [{"command": "sciontool hook --dialect=claude"}],
+    "SessionStart": [{"command": "fabrictool hook --dialect=claude"}],
+    "PostToolUse": [{"command": "fabrictool hook --dialect=claude"}],
     ...
   },
   "env": { "CLAUDE_CODE_USE_VERTEX": "1", ... },
@@ -478,8 +478,8 @@ The `settings.json` files for Claude and Gemini contain critical integration hoo
 ```json
 {
   "hooks": {
-    "SessionStart": [{"command": "sciontool hook --dialect=gemini"}],
-    "BeforeAgent": [{"command": "sciontool hook --dialect=gemini"}],
+    "SessionStart": [{"command": "fabrictool hook --dialect=gemini"}],
+    "BeforeAgent": [{"command": "fabrictool hook --dialect=gemini"}],
     ...
   },
   "yolo": true,
@@ -489,7 +489,7 @@ The `settings.json` files for Claude and Gemini contain critical integration hoo
 
 These are harness-specific in format and content. They cannot be made portable. They live in the harness-config's `home/` directory.
 
-**Hook customization (initial release):** Deep merging of hooks from multiple sources (base harness-config + template overrides) is deferred. For the initial implementation, any author who wants custom hooks must create a complete custom harness-config that preserves the common/base hooks needed for scion integration alongside their custom hooks.
+**Hook customization (initial release):** Deep merging of hooks from multiple sources (base harness-config + template overrides) is deferred. For the initial implementation, any author who wants custom hooks must create a complete custom harness-config that preserves the common/base hooks needed for fabric integration alongside their custom hooks.
 
 **Future direction:** Allow template authors to include custom hooks in the template that are merged with the harness-config's hook settings. This would likely take the form of allowing an array of harness-configs that merge in order, providing composable configuration layers. This is a natural extension once the base infrastructure is established.
 
@@ -502,13 +502,13 @@ Currently the harness controls template creation via `SeedTemplateDir()`. With h
 
 The current `SeedTemplateDir()` conflates both. It must be split.
 
-### 4.5 Keeping `scion-agent.yaml`
+### 4.5 Keeping `fabric-agent.yaml`
 
-The template configuration file remains `scion-agent.yaml`. The `harness` field is removed entirely — harness binding is determined exclusively by the resolved harness-config at agent creation time.
+The template configuration file remains `fabric-agent.yaml`. The `harness` field is removed entirely — harness binding is determined exclusively by the resolved harness-config at agent creation time.
 
-A `scion-agent.yaml` without a `harness` field is a harness-agnostic template. Templates that previously declared `harness: claude` (or similar) with that field present are invalid under the new format and will produce an error prompting the user to update their template.
+A `fabric-agent.yaml` without a `harness` field is a harness-agnostic template. Templates that previously declared `harness: claude` (or similar) with that field present are invalid under the new format and will produce an error prompting the user to update their template.
 
-The `scion-agent.yaml` file serves as the base for the `scion-agent.yaml` in the provisioned agent directory, which represents the full composed configuration (template + harness-config + profile overrides).
+The `fabric-agent.yaml` file serves as the base for the `fabric-agent.yaml` in the provisioned agent directory, which represents the full composed configuration (template + harness-config + profile overrides).
 
 ### 4.6 Embed Restructuring
 
@@ -532,13 +532,13 @@ In hosted mode, templates are stored in the Hub. The Hub API and storage must su
 
 ### 5.1 Template config file naming
 
-**Decision:** Keep `scion-agent.yaml`. The `harness` field is removed entirely. A template defines an agent, and the same file format carries forward into provisioned agents as the composed configuration.
+**Decision:** Keep `fabric-agent.yaml`. The `harness` field is removed entirely. A template defines an agent, and the same file format carries forward into provisioned agents as the composed configuration.
 
-**Rationale:** Introducing `scion-template.yaml` would create two parallel config formats. Since `scion-agent.yaml` in a provisioned agent will represent the composed result of template + harness-config + profile, keeping the same filename provides a natural lineage.
+**Rationale:** Introducing `fabric-template.yaml` would create two parallel config formats. Since `fabric-agent.yaml` in a provisioned agent will represent the composed result of template + harness-config + profile, keeping the same filename provides a natural lineage.
 
 ### 5.2 Where do harness-config base files live?
 
-**Decision:** On disk at `~/.scion/harness-configs/<name>/` (global) and `.scion/harness-configs/<name>/` (grove-level override). Each directory contains `config.yaml` plus a `home/` subdirectory with base files.
+**Decision:** On disk at `~/.fabric/harness-configs/<name>/` (global) and `.fabric/harness-configs/<name>/` (grove-level override). Each directory contains `config.yaml` plus a `home/` subdirectory with base files.
 
 **Rationale:** Co-locating `config.yaml` and `home/` keeps all aspects of a harness-config associated. Named references (`--harness-config gemini`) map directly to directory names. Grove-level overrides allow per-project customization.
 
@@ -550,38 +550,38 @@ In hosted mode, templates are stored in the Hub. The Hub API and storage must su
 
 ### 5.4 How does a user customize harness-config files?
 
-**Decision:** Users edit files directly in `~/.scion/harness-configs/<name>/`. For example, to add custom hooks to Claude's settings.json, they edit `~/.scion/harness-configs/claude/home/.claude/settings.json`. To change the default model, they edit `~/.scion/harness-configs/claude/config.yaml`.
+**Decision:** Users edit files directly in `~/.fabric/harness-configs/<name>/`. For example, to add custom hooks to Claude's settings.json, they edit `~/.fabric/harness-configs/claude/home/.claude/settings.json`. To change the default model, they edit `~/.fabric/harness-configs/claude/config.yaml`.
 
-A reset mechanism is provided: `scion harness-config reset claude` restores defaults from embedded files.
+A reset mechanism is provided: `fabric harness-config reset claude` restores defaults from embedded files.
 
 ### 5.5 What happens during initialization?
 
 **Decision:** Split initialization into two tiers:
 
-- **`scion init --machine`** (global, first-time): Sets up `~/.scion/`, seeds all default harness-configs, creates `settings.yaml` with `default_harness_config`, seeds default template(s). This is a prerequisite.
-- **`scion init`** (project-level): Creates `.scion/` in the project. Lightweight — does not populate harness-config defaults or global templates. If `~/.scion/` does not exist, errors with guidance to run `scion init --machine` first.
+- **`fabric init --machine`** (global, first-time): Sets up `~/.fabric/`, seeds all default harness-configs, creates `settings.yaml` with `default_harness_config`, seeds default template(s). This is a prerequisite.
+- **`fabric init`** (project-level): Creates `.fabric/` in the project. Lightweight — does not populate harness-config defaults or global templates. If `~/.fabric/` does not exist, errors with guidance to run `fabric init --machine` first.
 
 ### 5.6 What about legacy templates?
 
-**Decision:** Breaking change. Templates with a `harness` field in `scion-agent.yaml` are invalid under the new format. The system will error with a clear message: "Invalid template: 'harness' field is no longer supported in scion-agent.yaml. Remove it and use --harness-config to specify the harness."
+**Decision:** Breaking change. Templates with a `harness` field in `fabric-agent.yaml` are invalid under the new format. The system will error with a clear message: "Invalid template: 'harness' field is no longer supported in fabric-agent.yaml. Remove it and use --harness-config to specify the harness."
 
 Templates must also have required front-matter fields (e.g., `name`). Invalid or incomplete templates produce an error.
 
 **Rationale:** The project is in alpha. Maintaining backward compatibility with a format that is being fundamentally redesigned adds complexity for limited benefit. A clean break with clear error messages is preferable.
 
-### 5.7 Harness-config resolution for `scion create`
+### 5.7 Harness-config resolution for `fabric create`
 
 **Decision:** The harness-config is resolved from (in priority order):
 1. CLI `--harness-config` flag
-2. Template's `default_harness_config` field in `scion-agent.yaml`
+2. Template's `default_harness_config` field in `fabric-agent.yaml`
 3. Settings `default_harness_config` field
 4. Error if none resolved
 
-The resolved harness-config name maps to a directory, from which the `harness` type is read from `config.yaml`. There is no `harness` field in templates or in the provisioned agent's `scion-agent.yaml` — the harness is always derived from the harness-config.
+The resolved harness-config name maps to a directory, from which the `harness` type is read from `config.yaml`. There is no `harness` field in templates or in the provisioned agent's `fabric-agent.yaml` — the harness is always derived from the harness-config.
 
 ### 5.8 System prompt and agent instructions
 
-**Decision:** Templates support both `system_prompt` and `agent_instructions` as distinct portable artifacts. Both fields in `scion-agent.yaml` accept either a file path (relative to template dir) or inline YAML content.
+**Decision:** Templates support both `system_prompt` and `agent_instructions` as distinct portable artifacts. Both fields in `fabric-agent.yaml` accept either a file path (relative to template dir) or inline YAML content.
 
 At the harness layer:
 - Agent instructions are delivered via `InjectAgentInstructions()` — all harnesses support this
@@ -608,7 +608,7 @@ This work is divided into four progressive phases. Each phase produces a working
 **Scope:**
 - Create `pkg/harness/<harness>/embeds/` directories by extracting harness-specific home files (`.claude.json`, `settings.json`, `config.toml`, etc.) and harness-specific `.bashrc` additions from the current `pkg/config/embeds/<harness>/` directories
 - Define the `config.yaml` schema for harness-configs (harness type, image, user, model, args, env, volumes, auth)
-- Implement harness-config loading and resolution from on-disk `~/.scion/harness-configs/<name>/` and grove-level `.scion/harness-configs/<name>/` directories
+- Implement harness-config loading and resolution from on-disk `~/.fabric/harness-configs/<name>/` and grove-level `.fabric/harness-configs/<name>/` directories
 - Implement `SeedHarnessConfig()` to populate harness-config directories from embedded defaults
 - Add `.zshrc` to `pkg/config/embeds/common/`
 
@@ -621,7 +621,7 @@ This work is divided into four progressive phases. Each phase produces a working
 **Goal:** Templates become harness-agnostic. Harnesses gain methods to inject agent instructions and system prompts from portable template artifacts.
 
 **Scope:**
-- Update `scion-agent.yaml` schema: remove the `harness` field entirely, add `agent_instructions`, `system_prompt`, and `default_harness_config` fields
+- Update `fabric-agent.yaml` schema: remove the `harness` field entirely, add `agent_instructions`, `system_prompt`, and `default_harness_config` fields
 - Update template loading and validation — templates with a legacy `harness` field produce an error with migration guidance
 - Add `InjectAgentInstructions()` and `InjectSystemPrompt()` to the `Harness` interface
 - Implement both methods for each harness (Claude, Gemini, Codex, OpenCode, Generic), including the system prompt downgrade-to-agent-instructions fallback for harnesses without native system prompt support
@@ -639,10 +639,10 @@ This work is divided into four progressive phases. Each phase produces a working
 **Scope:**
 - Implement harness-config resolution chain: CLI `--harness-config` flag → template's `default_harness_config` → settings `default_harness_config` → error
 - Build the composition flow in `ProvisionAgent()`: copy harness-config base home, apply template harness-config scalar overrides (if present), overlay template home (common files are included via the default template base layer), inject agent instructions and system prompt, call `Harness.Provision()`
-- Add `--harness-config` flag to `scion create`
+- Add `--harness-config` flag to `fabric create`
 - Update `Harness.Provision()` to handle cases where base files may already exist from the harness-config layer (rather than assuming the template placed them)
 
-**Milestone:** End-to-end agent creation works with the new composition model. `scion create --template X --harness-config Y` produces a correctly assembled agent home directory. The old `SeedTemplateDir()` flow is replaced.
+**Milestone:** End-to-end agent creation works with the new composition model. `fabric create --template X --harness-config Y` produces a correctly assembled agent home directory. The old `SeedTemplateDir()` flow is replaced.
 
 **Key references:** §3.2 (how it combines), §3.4 (template-specific overrides), §3.5 (composition at agent creation), §4.4 (SeedTemplateDir inversion), §5.7 (harness-config resolution)
 
@@ -651,11 +651,11 @@ This work is divided into four progressive phases. Each phase produces a working
 **Goal:** Restructure initialization into machine/project tiers, update settings to reference harness-configs by name, and provide management commands.
 
 **Scope:**
-- Implement `scion init --machine` for global setup: seeds all default harness-configs to `~/.scion/harness-configs/`, creates `settings.yaml` with `default_harness_config`
-- Make `scion init` (project-level) lightweight: creates `.scion/` without populating harness-config defaults; errors with guidance if `~/.scion/` is not set up
+- Implement `fabric init --machine` for global setup: seeds all default harness-configs to `~/.fabric/harness-configs/`, creates `settings.yaml` with `default_harness_config`
+- Make `fabric init` (project-level) lightweight: creates `.fabric/` without populating harness-config defaults; errors with guidance if `~/.fabric/` is not set up
 - Add `default_harness_config` to `settings.yaml` schema
 - Remove inline `harness_configs` block from `settings.yaml` (moved to on-disk directories; no migration needed as this block has no existing users)
-- Implement `scion harness-config reset <name>` to restore defaults from embedded files
+- Implement `fabric harness-config reset <name>` to restore defaults from embedded files
 - Clean up any remaining legacy code paths from the old template-harness coupling
 
 **Milestone:** The full harness-agnostic template system is operational. Initialization, settings, and CLI commands reflect the new model. The transition from harness-coupled to harness-agnostic templates is complete.
@@ -674,7 +674,7 @@ This work is divided into four progressive phases. Each phase produces a working
 | `pkg/harness/*.go` | Implement new interface methods; add `embeds/` directories per harness; implement system prompt downgrade for harnesses that lack native support | Medium |
 | `pkg/config/init.go` | Add `SeedHarnessConfig()`, split `InitProject()`/`InitGlobal()`, add `InitMachine()` | Medium |
 | `pkg/config/embeds/` | Remove per-harness directories (moved to `pkg/harness/`); add `templates/`, update `common/` with `.zshrc` | Medium |
-| `pkg/config/templates.go` | Remove `harness` field handling; validate new `scion-agent.yaml` format; support `default_harness_config`, `agent_instructions`, and `system_prompt` fields | Medium |
+| `pkg/config/templates.go` | Remove `harness` field handling; validate new `fabric-agent.yaml` format; support `default_harness_config`, `agent_instructions`, and `system_prompt` fields | Medium |
 | `pkg/agent/provision.go` | Implement composition logic (harness-config base + template overlay) | Large |
 | `cmd/create.go`, `cmd/start.go` | Add `--harness-config` flag; implement resolution chain; remove legacy template flow | Medium |
 | `cmd/init.go` | Add `--machine` flag; implement two-tier initialization | Medium |
@@ -711,11 +711,11 @@ Existing user templates with a `harness` field will produce a clear error after 
 | Composition order bugs (harness-config base vs template override vs common) | Files in wrong location or overwritten | Comprehensive tests with all harness × template combinations |
 | Agent instructions delivery fails for new harnesses | Agent runs without instructions | `InjectAgentInstructions` returns error; provisioning fails early |
 | System prompt downgrade produces poor results | Agent role definition lost in noise of agent instructions | Downgraded content is prepended with clear section delimiter; test with each harness |
-| Users customize harness-configs then `scion init --machine --force` overwrites them | Lost customizations | Backup before overwrite, warn user, add `--no-harness-configs` flag |
+| Users customize harness-configs then `fabric init --machine --force` overwrites them | Lost customizations | Backup before overwrite, warn user, add `--no-harness-configs` flag |
 | Agnostic template + missing harness-config = confusing error | User doesn't understand what to specify | Clear error message: "No harness-config resolved. Specify --harness-config, set default_harness_config in the template, or set default_harness_config in settings." |
 | Hub storage format for harness-configs | Complex Hub API | Mirror existing template storage approach |
-| Harness-config base files drift from embedded defaults | Stale config | `scion harness-config check` to compare on-disk files with embedded defaults |
-| Breaking change invalidates existing user templates | User friction on upgrade | Clear error messages with migration guidance; provide `scion template migrate` helper |
+| Harness-config base files drift from embedded defaults | Stale config | `fabric harness-config check` to compare on-disk files with embedded defaults |
+| Breaking change invalidates existing user templates | User friction on upgrade | Clear error messages with migration guidance; provide `fabric template migrate` helper |
 
 ---
 

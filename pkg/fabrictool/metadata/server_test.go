@@ -742,7 +742,7 @@ func TestMetadataServer_ShutdownEndpoint(t *testing.T) {
 	}
 
 	// GET should be rejected
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/_scion/shutdown", port), nil)
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("http://127.0.0.1:%d/_fabric/shutdown", port), nil)
 	req.Header.Set("Metadata-Flavor", "Google")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -754,7 +754,7 @@ func TestMetadataServer_ShutdownEndpoint(t *testing.T) {
 	}
 
 	// POST without Metadata-Flavor header should be rejected
-	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_scion/shutdown", port), nil)
+	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_fabric/shutdown", port), nil)
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
@@ -765,7 +765,7 @@ func TestMetadataServer_ShutdownEndpoint(t *testing.T) {
 	}
 
 	// POST with Metadata-Flavor but no shutdown token should be rejected
-	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_scion/shutdown", port), nil)
+	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_fabric/shutdown", port), nil)
 	req.Header.Set("Metadata-Flavor", "Google")
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
@@ -782,9 +782,9 @@ func TestMetadataServer_ShutdownEndpoint(t *testing.T) {
 	}
 
 	// POST with Metadata-Flavor and shutdown token should succeed and shut down
-	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_scion/shutdown", port), nil)
+	req, _ = http.NewRequest(http.MethodPost, fmt.Sprintf("http://127.0.0.1:%d/_fabric/shutdown", port), nil)
 	req.Header.Set("Metadata-Flavor", "Google")
-	req.Header.Set("X-Scion-Shutdown-Token", strings.TrimSpace(string(token)))
+	req.Header.Set("X-Fabric-Shutdown-Token", strings.TrimSpace(string(token)))
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)

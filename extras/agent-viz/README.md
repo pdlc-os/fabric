@@ -54,14 +54,14 @@ The input is a JSON array of log entries exported from Google Cloud Logging. The
 
 | Log stream | Used for |
 |------------|----------|
-| `scion-agents` | Agent state changes, tool calls, file edit detection |
-| `scion-messages` | Message flow between agents |
-| `scion-server` | Context (grove setup, broker registration) |
+| `fabric-agents` | Agent state changes, tool calls, file edit detection |
+| `fabric-messages` | Message flow between agents |
+| `fabric-server` | Context (grove setup, broker registration) |
 
 Export logs from GCP with:
 
 ```bash
-gcloud logging read 'logName=~"scion-"' --format=json --order=asc > logs.json
+gcloud logging read 'logName=~"fabric-"' --format=json --order=asc > logs.json
 ```
 
 ## Development

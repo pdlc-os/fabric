@@ -31,8 +31,8 @@ import type { User, Message } from '../../shared/types.js';
 
 const POLL_INTERVAL_MS = 5 * 60_000; // 5 minutes — fallback only; SSE delivers in real-time
 
-@customElement('scion-inbox-tray')
-export class ScionInboxTray extends LitElement {
+@customElement('fabric-inbox-tray')
+export class FabricInboxTray extends LitElement {
   @property({ type: Object })
   user: User | null = null;
 
@@ -233,7 +233,7 @@ export class ScionInboxTray extends LitElement {
       border: none;
       border-radius: 0.5rem;
       background: transparent;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       cursor: pointer;
       transition:
         background 0.15s ease,
@@ -241,8 +241,8 @@ export class ScionInboxTray extends LitElement {
     }
 
     .inbox-btn:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text, #1e293b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text, #1e293b);
     }
 
     .inbox-btn sl-icon {
@@ -258,7 +258,7 @@ export class ScionInboxTray extends LitElement {
       height: 16px;
       padding: 0 4px;
       border-radius: 8px;
-      background: var(--scion-primary, #3b82f6);
+      background: var(--fabric-primary, #3b82f6);
       color: #fff;
       font-size: 0.625rem;
       font-weight: 700;
@@ -292,8 +292,8 @@ export class ScionInboxTray extends LitElement {
       max-height: 480px;
       display: flex;
       flex-direction: column;
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.75rem;
       box-shadow:
         0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -307,20 +307,20 @@ export class ScionInboxTray extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .panel-title {
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .mark-all-btn {
       border: none;
       background: transparent;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 0.75rem;
       font-weight: 500;
       cursor: pointer;
@@ -330,7 +330,7 @@ export class ScionInboxTray extends LitElement {
     }
 
     .mark-all-btn:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .panel-list {
@@ -344,7 +344,7 @@ export class ScionInboxTray extends LitElement {
       display: flex;
       gap: 0.625rem;
       padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       transition: background 0.1s ease;
     }
 
@@ -353,7 +353,7 @@ export class ScionInboxTray extends LitElement {
     }
 
     .msg-item:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .msg-icon {
@@ -368,15 +368,15 @@ export class ScionInboxTray extends LitElement {
     }
 
     .type-warning sl-icon {
-      color: var(--scion-warning, #f59e0b);
+      color: var(--fabric-warning, #f59e0b);
     }
 
     .type-info sl-icon {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .type-default sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .msg-body {
@@ -387,14 +387,14 @@ export class ScionInboxTray extends LitElement {
     .msg-from {
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-bottom: 0.125rem;
     }
 
     .msg-text {
       font-size: 0.8125rem;
       line-height: 1.4;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       word-break: break-word;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -408,15 +408,15 @@ export class ScionInboxTray extends LitElement {
       gap: 0.5rem;
       margin-top: 0.25rem;
       font-size: 0.6875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .msg-type-badge {
       display: inline-block;
       padding: 0.0625rem 0.3125rem;
       border-radius: 9999px;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.625rem;
       font-weight: 600;
       text-transform: uppercase;
@@ -426,7 +426,7 @@ export class ScionInboxTray extends LitElement {
     .mark-read-link {
       border: none;
       background: transparent;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.6875rem;
       cursor: pointer;
       padding: 0;
@@ -434,7 +434,7 @@ export class ScionInboxTray extends LitElement {
     }
 
     .mark-read-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     /* Empty state */
@@ -445,7 +445,7 @@ export class ScionInboxTray extends LitElement {
       justify-content: center;
       padding: 2.5rem 1rem;
       gap: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state sl-icon {
@@ -553,6 +553,6 @@ export class ScionInboxTray extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-inbox-tray': ScionInboxTray;
+    'fabric-inbox-tray': FabricInboxTray;
   }
 }

@@ -1,4 +1,4 @@
-# Exclude files not needed by the scion-a2a-bridge build.
+# Exclude files not needed by the fabric-a2a-bridge build.
 # The Dockerfile COPYs from the repo root, so paths are relative to that.
 .git
 .github

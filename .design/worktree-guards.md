@@ -5,7 +5,7 @@
 
 ## Problem Statement
 
-A scion agent running inside its container created multiple git worktrees based off its own worktree. This led to "scrambled" worktree identifiers where multiple agents associated with entries like `workspace22` in `.git/worktrees/`, making it difficult to reason about which worktree belongs to which agent.
+A fabric agent running inside its container created multiple git worktrees based off its own worktree. This led to "scrambled" worktree identifiers where multiple agents associated with entries like `workspace22` in `.git/worktrees/`, making it difficult to reason about which worktree belongs to which agent.
 
 The root issue is that nothing prevents worktree creation from inside a container, and several design properties of the current worktree system amplify the resulting confusion.
 
@@ -13,11 +13,11 @@ The root issue is that nothing prevents worktree creation from inside a containe
 
 ### 1. All worktree paths share the basename `workspace`
 
-Every agent's worktree is created at `.scion/agents/<name>/workspace` (`pkg/agent/provision.go:268`). Git tracks worktrees internally in `.git/worktrees/` using the **basename** of the worktree path as the entry name. Since every agent workspace has the same basename, git auto-suffixes them: `workspace`, `workspace1`, `workspace2`, ..., `workspace22`.
+Every agent's worktree is created at `.fabric/agents/<name>/workspace` (`pkg/agent/provision.go:268`). Git tracks worktrees internally in `.git/worktrees/` using the **basename** of the worktree path as the entry name. Since every agent workspace has the same basename, git auto-suffixes them: `workspace`, `workspace1`, `workspace2`, ..., `workspace22`.
 
 These numeric suffixes are non-deterministic across sessions. If worktrees are pruned and recreated in a different order, the numbering changes. The entries are opaque when inspected via `git worktree list`.
 
-Scion associates agents with worktrees via **branch name** (`FindWorktreeByBranch` at `pkg/util/git.go:289`), not the `.git/worktrees/` entry name, so this doesn't cause functional mis-association at the scion level. But it makes the problem difficult to diagnose when it occurs.
+Fabric associates agents with worktrees via **branch name** (`FindWorktreeByBranch` at `pkg/util/git.go:289`), not the `.git/worktrees/` entry name, so this doesn't cause functional mis-association at the fabric level. But it makes the problem difficult to diagnose when it occurs.
 
 ### 2. `RepoRootDir` returns the worktree root, not the main repo root
 
@@ -45,15 +45,15 @@ containerWorkspace := filepath.Join("/repo-root", relWorkspace)
 registerMount(config.Workspace, containerWorkspace, false, true)
 ```
 
-The container sees the workspace at `/repo-root/.scion/agents/<name>/workspace` and `.git` at `/repo-root/.git`. When an agent inside the container creates new worktrees, `--relative-paths` computes paths relative to the **container's mount layout**, not the host's actual filesystem. These relative paths are valid inside the container but meaningless on the host.
+The container sees the workspace at `/repo-root/.fabric/agents/<name>/workspace` and `.git` at `/repo-root/.git`. When an agent inside the container creates new worktrees, `--relative-paths` computes paths relative to the **container's mount layout**, not the host's actual filesystem. These relative paths are valid inside the container but meaningless on the host.
 
 The `--relative-paths` flag (requiring git 2.47.0+) exists precisely to make worktrees portable across mount boundaries. This works correctly for the **primary use case** (host-created worktrees mounted into containers) because the mount layout preserves the relative distances between the worktree and `.git`. But when worktrees are created **inside** the container, the paths baked into `.git` files and `.git/worktrees/` entries reflect the container namespace.
 
 ### 4. No guard against recursive worktree creation
 
-There is no check in `CreateWorktree` or `ProvisionAgent` to detect that the current repo root is itself a worktree, or that the process is running inside a container. The existing `checkAgentContainerContext` guard in `cmd/root.go:339-414` blocks most CLI commands when `SCION_HOST_UID` is set, but allows operations through when a non-localhost Hub endpoint is configured (by design, for hub-dispatched sub-agent creation).
+There is no check in `CreateWorktree` or `ProvisionAgent` to detect that the current repo root is itself a worktree, or that the process is running inside a container. The existing `checkAgentContainerContext` guard in `cmd/root.go:339-414` blocks most CLI commands when `FABRIC_HOST_UID` is set, but allows operations through when a non-localhost Hub endpoint is configured (by design, for hub-dispatched sub-agent creation).
 
-More fundamentally, LLM agents have shell access and can run `git worktree add` directly, bypassing all scion-level guards entirely.
+More fundamentally, LLM agents have shell access and can run `git worktree add` directly, bypassing all fabric-level guards entirely.
 
 ## Mitigation Options
 
@@ -69,7 +69,7 @@ More fundamentally, LLM agents have shell access and can run `git worktree add` 
 
 ### Option 2: Use unique worktree basenames
 
-**Change:** Instead of `.scion/agents/<name>/workspace`, use `.scion/agents/<name>/<slug>-ws` (e.g., `.scion/agents/my-agent/my-agent-ws`).
+**Change:** Instead of `.fabric/agents/<name>/workspace`, use `.fabric/agents/<name>/<slug>-ws` (e.g., `.fabric/agents/my-agent/my-agent-ws`).
 
 **Effect:** Git's `.git/worktrees/` entries become `my-agent-ws`, `other-agent-ws` instead of `workspace`, `workspace1`, `workspace22`. Human-readable and stable across prune/recreate cycles.
 
@@ -87,21 +87,21 @@ The container workdir calculation in `common.go` uses `filepath.Rel(config.RepoR
 
 The strongest defense. Several sub-approaches:
 
-#### 3a. Scion-level guard in `CreateWorktree`
+#### 3a. Fabric-level guard in `CreateWorktree`
 
 Detect that the process is running inside an agent container and refuse to create worktrees.
 
 **Detection signals available:**
-- `SCION_HOST_UID` env var — set by the runtime when launching containers (`pkg/runtime/k8s_runtime.go:993`). Most reliable signal but only present for scion-managed containers.
-- `SCION_AGENT_MODE` env var — set for hosted mode agents.
-- `SCION_GROVE_ID` env var — always set for broker-dispatched agents.
-- Workspace `.scion` marker file — present in worktree workspaces, written by `WriteWorkspaceMarker` during provisioning (`pkg/agent/provision.go:400`). A marker file (as opposed to a `.scion` directory) indicates we're in a worktree workspace, not the main repo.
+- `FABRIC_HOST_UID` env var — set by the runtime when launching containers (`pkg/runtime/k8s_runtime.go:993`). Most reliable signal but only present for fabric-managed containers.
+- `FABRIC_AGENT_MODE` env var — set for hosted mode agents.
+- `FABRIC_GROVE_ID` env var — always set for broker-dispatched agents.
+- Workspace `.fabric` marker file — present in worktree workspaces, written by `WriteWorkspaceMarker` during provisioning (`pkg/agent/provision.go:400`). A marker file (as opposed to a `.fabric` directory) indicates we're in a worktree workspace, not the main repo.
 - The `.git` file pointing through a mount boundary — if `.git` is a file (not a directory) containing a `gitdir:` pointer, we're in a worktree. If that pointer resolves through `/repo-root/.git/worktrees/`, we're in a container mount.
 
 **Implementation:** Add a check in `CreateWorktree` or at the top of `ProvisionAgent`:
 
 ```go
-if os.Getenv("SCION_HOST_UID") != "" {
+if os.Getenv("FABRIC_HOST_UID") != "" {
     return fmt.Errorf("cannot create worktrees inside an agent container")
 }
 ```
@@ -119,7 +119,7 @@ func IsWorktree(dir string) bool {
 }
 ```
 
-**Verdict:** Addresses the root cause for scion-managed agent creation. Does not cover raw `git worktree add` from the LLM shell.
+**Verdict:** Addresses the root cause for fabric-managed agent creation. Does not cover raw `git worktree add` from the LLM shell.
 
 #### 3b. Filesystem-level protection
 
@@ -131,7 +131,7 @@ Make `.git/worktrees/` read-only inside the container, or mount `.git` as read-o
 
 #### 3c. Agent instructions
 
-The CLAUDE.md and agent instruction templates already tell agents not to create worktrees or mess with `.scion`. But LLM agents don't always follow instructions perfectly, especially under complex multi-step task pressure.
+The CLAUDE.md and agent instruction templates already tell agents not to create worktrees or mess with `.fabric`. But LLM agents don't always follow instructions perfectly, especially under complex multi-step task pressure.
 
 **Verdict:** Defense-in-depth layer, not a primary control. Already partially in place via the project CLAUDE.md.
 
@@ -153,7 +153,7 @@ The options are not mutually exclusive. In priority order:
 
 | Priority | Option | Value | Effort |
 |----------|--------|-------|--------|
-| 1 | **3a**: Scion-level guard | High — prevents root cause | Low |
+| 1 | **3a**: Fabric-level guard | High — prevents root cause | Low |
 | 2 | **2**: Unique basenames | Medium — diagnosability | Medium |
 | 3 | **1**: Use `GetCommonGitDir` | Low — correctness | Trivial |
 | 4 | **3c**: Agent instructions | Low — defense-in-depth | Trivial |
@@ -162,7 +162,7 @@ The options are not mutually exclusive. In priority order:
 
 ### Remaining gap
 
-After all scion-level guards, an LLM agent can still run `git worktree add` directly via shell. This is a broader agent-containment question. Possible future mitigations:
+After all fabric-level guards, an LLM agent can still run `git worktree add` directly via shell. This is a broader agent-containment question. Possible future mitigations:
 - Git `pre-worktree` hooks (not currently a git feature)
 - A wrapper `git` binary inside the container that intercepts `worktree add`
 - Monitoring `.git/worktrees/` for unexpected entries and alerting/pruning

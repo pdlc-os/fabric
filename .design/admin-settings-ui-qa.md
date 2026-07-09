@@ -8,7 +8,7 @@
 
 ## Test Environment
 
-- Server started in workstation mode with `scion server start --foreground --enable-hub --enable-web --dev-auth`
+- Server started in workstation mode with `fabric server start --foreground --enable-hub --enable-web --dev-auth`
 - Settings.yaml pre-populated with sample data across all sections
 - Dev auth enabled with test token; user authenticated as `dev@localhost` with admin role
 - Screenshots saved to `.scratch/` directory
@@ -18,7 +18,7 @@
 | Area | Status | Notes |
 |------|--------|-------|
 | Page loads & renders | PASS | All 6 tabs render correctly |
-| GET API returns settings | PASS | Correctly reads ~/.scion/settings.yaml |
+| GET API returns settings | PASS | Correctly reads ~/.fabric/settings.yaml |
 | Sensitive field masking | PASS | dev_token, broker_token, db URL masked as "********" |
 | Form populates from API | PASS | All fields correctly hydrated from API response |
 | PUT API saves settings | PASS | Changes written correctly to settings.yaml |
@@ -46,7 +46,7 @@
 - **Write Timeout** displays `60s` (line 1238: `value=${this.hubWriteTimeout || '60s'}`)
 - **Hub Endpoint** placeholder shows `https://hub.example.com`
 - **OTLP Endpoint** placeholder shows `https://otel-collector.example.com:4317`
-- **Log File** placeholder shows `/var/log/scion/telemetry.log`
+- **Log File** placeholder shows `/var/log/fabric/telemetry.log`
 - **Hub Report Interval** displays `30s`
 
 These use `value=X` rather than `placeholder=X` syntax for some fields, meaning the fallback value is treated as the actual value. However, the `buildPayload()` function correctly guards with `if (this.hubReadTimeout)` checks, so empty values (from the API) remain empty in the state variables and are NOT sent on save. The display is misleading but does not cause data corruption.

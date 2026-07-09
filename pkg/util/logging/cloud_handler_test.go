@@ -102,13 +102,13 @@ func TestAddAttrToMap(t *testing.T) {
 }
 
 func TestResolveProjectID(t *testing.T) {
-	t.Run("SCION_GCP_PROJECT_ID takes priority", func(t *testing.T) {
-		t.Setenv(EnvGCPProjectID, "scion-project")
+	t.Run("FABRIC_GCP_PROJECT_ID takes priority", func(t *testing.T) {
+		t.Setenv(EnvGCPProjectID, "fabric-project")
 		t.Setenv(EnvGoogleCloudProject, "google-project")
 
 		got := resolveProjectID()
-		if got != "scion-project" {
-			t.Errorf("resolveProjectID() = %s, want scion-project", got)
+		if got != "fabric-project" {
+			t.Errorf("resolveProjectID() = %s, want fabric-project", got)
 		}
 	})
 
@@ -147,8 +147,8 @@ func TestResolveLogID(t *testing.T) {
 		t.Setenv(EnvCloudLoggingLogID, "")
 
 		got := resolveLogID()
-		if got != "scion-server" {
-			t.Errorf("resolveLogID() = %s, want scion-server", got)
+		if got != "fabric-server" {
+			t.Errorf("resolveLogID() = %s, want fabric-server", got)
 		}
 	})
 }
@@ -281,14 +281,14 @@ func TestCloudHandler_WithGroupChain(t *testing.T) {
 }
 
 func TestEnvVarCloudLoggingConstants(t *testing.T) {
-	if EnvCloudLogging != "SCION_CLOUD_LOGGING" {
-		t.Errorf("EnvCloudLogging = %s, want SCION_CLOUD_LOGGING", EnvCloudLogging)
+	if EnvCloudLogging != "FABRIC_CLOUD_LOGGING" {
+		t.Errorf("EnvCloudLogging = %s, want FABRIC_CLOUD_LOGGING", EnvCloudLogging)
 	}
-	if EnvCloudLoggingLogID != "SCION_CLOUD_LOGGING_LOG_ID" {
-		t.Errorf("EnvCloudLoggingLogID = %s, want SCION_CLOUD_LOGGING_LOG_ID", EnvCloudLoggingLogID)
+	if EnvCloudLoggingLogID != "FABRIC_CLOUD_LOGGING_LOG_ID" {
+		t.Errorf("EnvCloudLoggingLogID = %s, want FABRIC_CLOUD_LOGGING_LOG_ID", EnvCloudLoggingLogID)
 	}
-	if EnvGCPProjectID != "SCION_GCP_PROJECT_ID" {
-		t.Errorf("EnvGCPProjectID = %s, want SCION_GCP_PROJECT_ID", EnvGCPProjectID)
+	if EnvGCPProjectID != "FABRIC_GCP_PROJECT_ID" {
+		t.Errorf("EnvGCPProjectID = %s, want FABRIC_GCP_PROJECT_ID", EnvGCPProjectID)
 	}
 	if EnvGoogleCloudProject != "GOOGLE_CLOUD_PROJECT" {
 		t.Errorf("EnvGoogleCloudProject = %s, want GOOGLE_CLOUD_PROJECT", EnvGoogleCloudProject)
@@ -303,14 +303,14 @@ func TestResolveLogLevel(t *testing.T) {
 	})
 
 	t.Run("env var debug", func(t *testing.T) {
-		t.Setenv("SCION_LOG_LEVEL", "debug")
+		t.Setenv("FABRIC_LOG_LEVEL", "debug")
 		if ResolveLogLevel(false) != slog.LevelDebug {
-			t.Error("expected LevelDebug when SCION_LOG_LEVEL=debug")
+			t.Error("expected LevelDebug when FABRIC_LOG_LEVEL=debug")
 		}
 	})
 
 	t.Run("default info", func(t *testing.T) {
-		t.Setenv("SCION_LOG_LEVEL", "")
+		t.Setenv("FABRIC_LOG_LEVEL", "")
 		if ResolveLogLevel(false) != slog.LevelInfo {
 			t.Error("expected LevelInfo by default")
 		}
@@ -376,7 +376,7 @@ func TestMapToCloudHTTPRequest(t *testing.T) {
 		"requestSize":   int64(256),
 		"status":        int64(201),
 		"responseSize":  int64(128),
-		"userAgent":     "scion-cli/0.1.0",
+		"userAgent":     "fabric-cli/0.1.0",
 		"remoteIp":      "10.0.0.1:54321",
 		"referer":       "https://example.com",
 		"latency":       "0.042s",
@@ -402,8 +402,8 @@ func TestMapToCloudHTTPRequest(t *testing.T) {
 	if req.ResponseSize != 128 {
 		t.Errorf("expected responseSize=128, got %d", req.ResponseSize)
 	}
-	if req.Request.UserAgent() != "scion-cli/0.1.0" {
-		t.Errorf("expected userAgent=scion-cli/0.1.0, got %s", req.Request.UserAgent())
+	if req.Request.UserAgent() != "fabric-cli/0.1.0" {
+		t.Errorf("expected userAgent=fabric-cli/0.1.0, got %s", req.Request.UserAgent())
 	}
 	if req.RemoteIP != "10.0.0.1:54321" {
 		t.Errorf("expected remoteIp=10.0.0.1:54321, got %s", req.RemoteIP)

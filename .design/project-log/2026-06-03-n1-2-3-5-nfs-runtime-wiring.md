@@ -28,7 +28,7 @@
 ### N1-5: Stable UID/GID branch for NFS (745f967c)
 - Added `WorkspaceBackendName`, `NFSUID`, `NFSGID` to `RunConfig` (minimal threading)
 - `buildCommonRunArgs`: local→os.Getuid(), nfs→NFS.UID/GID (default 1000:1000)
-- Exports `SCION_WORKSPACE_BACKEND` env var for sciontool init chown skip
+- Exports `FABRIC_WORKSPACE_BACKEND` env var for fabrictool init chown skip
 - Podman rootless + NFS rejected with clear error message
 - 8 unit tests covering UID branching, default values, backend env, rootless rejection
 

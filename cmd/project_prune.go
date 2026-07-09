@@ -21,25 +21,25 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 var projectPruneCmd = &cobra.Command{
 	Use:   "prune",
 	Short: "Remove orphaned project configs",
-	Long: `Detect and remove project configs in ~/.scion/project-configs/ whose
+	Long: `Detect and remove project configs in ~/.fabric/project-configs/ whose
 workspaces no longer exist. This cleans up leftover configuration from
 deleted or moved projects.
 
 Any running agent containers belonging to orphaned projects will be stopped
 and removed before the project config is deleted.
 
-Use 'scion project list' to see all projects and their status first.
-Use 'scion project reconnect' to fix a project whose workspace moved.`,
+Use 'fabric project list' to see all projects and their status first.
+Use 'fabric project reconnect' to fix a project whose workspace moved.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		orphaned, err := config.FindOrphanedProjectConfigs()
 		if err != nil {

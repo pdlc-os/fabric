@@ -13,14 +13,14 @@
 # limitations under the License.
 
 harness: hermes
-image: scion-hermes:latest
-user: scion
+image: fabric-hermes:latest
+user: fabric
 
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -73,7 +73,7 @@ no_auth:
   message: |
     This agent started without credentials.
     Run: hermes setup
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 
 auth:
   default_type: api-key

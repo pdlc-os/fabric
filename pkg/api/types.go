@@ -70,7 +70,7 @@ const (
 )
 
 // MCPServerConfig is the universal, harness-agnostic MCP server description.
-// Template authors define MCP servers once in scion-agent.yaml's mcp_servers
+// Template authors define MCP servers once in fabric-agent.yaml's mcp_servers
 // block; the container-side provisioner translates this into each harness's
 // native format (.claude.json, .gemini/settings.json, opencode.json, etc.).
 type MCPServerConfig struct {
@@ -353,7 +353,7 @@ type ResourceList struct {
 }
 
 // AgentHubConfig holds hub connection settings that can be specified per-agent
-// or per-template in scion-agent.yaml. When set, these take highest priority
+// or per-template in fabric-agent.yaml. When set, these take highest priority
 // for the agent's hub endpoint, overriding project settings and server config.
 type AgentHubConfig struct {
 	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
@@ -434,7 +434,7 @@ type TelemetrySamplingConfig struct {
 	Rates   map[string]float64 `json:"rates,omitempty" yaml:"rates,omitempty"`
 }
 
-type ScionConfig struct {
+type FabricConfig struct {
 	Harness          string            `json:"harness,omitempty" yaml:"harness,omitempty"`
 	HarnessConfig    string            `json:"harness_config,omitempty" yaml:"harness_config,omitempty"`
 	ConfigDir        string            `json:"config_dir,omitempty" yaml:"config_dir,omitempty"`
@@ -486,11 +486,11 @@ type ScionConfig struct {
 }
 
 // ParseMaxDuration returns the parsed max duration, or 0 for empty/invalid values.
-func (c *ScionConfig) ParseMaxDuration() time.Duration {
+func (c *FabricConfig) ParseMaxDuration() time.Duration {
 	return ParseDuration(c.MaxDuration)
 }
 
-func (c *ScionConfig) IsDetached() bool {
+func (c *FabricConfig) IsDetached() bool {
 	if c.Detached == nil {
 		return true
 	}
@@ -548,7 +548,7 @@ type FileMapping struct {
 	ContainerPath string // target path in container (~ = home placeholder)
 }
 
-// AgentInfo contains metadata about a scion agent.
+// AgentInfo contains metadata about a fabric agent.
 // It supports both local/solo mode and hosted/distributed mode.
 type AgentInfo struct {
 	// Identity fields
@@ -607,7 +607,7 @@ type AgentInfo struct {
 	RuntimeBrokerName string `json:"runtimeBrokerName,omitempty"` // Name of the Runtime Broker
 	RuntimeBrokerType string `json:"runtimeBrokerType,omitempty"` // Type: docker, kubernetes, apple
 	RuntimeState      string `json:"runtimeState,omitempty"`      // Low-level runtime state
-	HubEndpoint       string `json:"hubEndpoint,omitempty"`       // Scion Hub URL if connected
+	HubEndpoint       string `json:"hubEndpoint,omitempty"`       // Fabric Hub URL if connected
 	WebPTYEnabled     bool   `json:"webPtyEnabled,omitempty"`     // Whether web terminal access is available
 	TaskSummary       string `json:"taskSummary,omitempty"`       // Current task description (for dashboard)
 
@@ -665,7 +665,7 @@ type AgentDetail struct {
 }
 
 // RequiredSecret declares a secret that must be available for an agent to start.
-// Declared in templates (scion-agent.yaml), settings harness configs, or settings profiles.
+// Declared in templates (fabric-agent.yaml), settings harness configs, or settings profiles.
 type RequiredSecret struct {
 	Key         string `json:"key" yaml:"key"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -678,7 +678,7 @@ type RequiredSecret struct {
 	AlternativeEnvKeys []string `json:"alternative_env_keys,omitempty" yaml:"alternative_env_keys,omitempty"`
 }
 
-// SkillReference declares a skill dependency in a template's scion-agent.yaml.
+// SkillReference declares a skill dependency in a template's fabric-agent.yaml.
 type SkillReference struct {
 	URI      string `json:"uri" yaml:"uri" koanf:"uri"`
 	As       string `json:"as,omitempty" yaml:"as,omitempty" koanf:"as"`
@@ -735,7 +735,7 @@ func (s ResolvedSecret) MarshalJSON() ([]byte, error) {
 
 // GitCloneConfig specifies how to clone a git repository into the workspace.
 // When present, the runtime skips local worktree creation and workspace
-// mounting — sciontool clones the repo inside the container at startup.
+// mounting — fabrictool clones the repo inside the container at startup.
 type GitCloneConfig struct {
 	URL    string `json:"url"`              // HTTPS clone URL (without credentials)
 	Branch string `json:"branch,omitempty"` // Branch to clone (default: main)
@@ -829,10 +829,10 @@ type StartOptions struct {
 	NoAuth            bool
 	Branch            string
 	Workspace         string
-	GitClone          *GitCloneConfig // When set, skip workspace creation; sciontool clones inside container
+	GitClone          *GitCloneConfig // When set, skip workspace creation; fabrictool clones inside container
 	SharedWorkspace   bool            // When true, workspace is a shared git clone (git-workspace hybrid); skip worktree, configure credential helper
 	TelemetryOverride *bool           // Explicit telemetry override from CLI flags (--enable-telemetry / --disable-telemetry)
-	InlineConfig      *ScionConfig    // Inline config from --config flag, merged over template config
+	InlineConfig      *FabricConfig    // Inline config from --config flag, merged over template config
 	SharedDirs        []SharedDir     // Project-level shared directories (from Hub, merged with settings)
 	ExtraHosts        []string        // Extra --add-host entries for container networking (e.g. "example.com:host-gateway")
 }
@@ -876,7 +876,7 @@ type ProjectInfo struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// Hosted mode fields
-	HubEndpoint string `json:"hubEndpoint,omitempty"` // Scion Hub URL if registered
+	HubEndpoint string `json:"hubEndpoint,omitempty"` // Fabric Hub URL if registered
 
 	// Statistics (computed, not persisted)
 	AgentCount int `json:"agentCount,omitempty"` // Number of agents in this project

@@ -44,7 +44,7 @@ See [hosted-e2e.md](../walkthroughs/hosted-e2e.md) Section 2.3 - workspace sync 
 ### 1.2 Current State
 
 **What Exists:**
-- Local sync via `scion sync to/from <agent>` using tar or mutagen
+- Local sync via `fabric sync to/from <agent>` using tar or mutagen
 - Template storage using GCS with signed URLs (see [hosted-templates.md](hosted-templates.md))
 - WebSocket control channel for Hub → Runtime Broker communication (see [runtimebroker-websocket.md](runtimebroker-websocket.md))
 - Storage abstraction layer (`pkg/storage/storage.go`)
@@ -76,7 +76,7 @@ This pattern provides excellent performance for large workspaces while keeping t
 
 | Goal | Description |
 |------|-------------|
-| **Functional parity** | `scion sync to/from` works identically in solo and hosted modes |
+| **Functional parity** | `fabric sync to/from` works identically in solo and hosted modes |
 | **Incremental sync** | Only transfer changed files (via content hashing) |
 | **Large workspace support** | Handle multi-GB workspaces efficiently |
 | **NAT traversal** | Work with Runtime Brokers behind NAT/firewalls |
@@ -282,7 +282,7 @@ Apply the same pattern used for templates (see [hosted-templates.md](hosted-temp
 ```
                          ┌────────────────────────────────────────┐
                          │          Hub Storage Bucket            │
-                         │  gs://scion-hub-{env}/                 │
+                         │  gs://fabric-hub-{env}/                 │
                          │    ├── templates/...                   │
                          │    └── workspaces/                     │
                          │        └── {groveId}/{agentId}/        │
@@ -294,7 +294,7 @@ Apply the same pattern used for templates (see [hosted-templates.md](hosted-temp
               │                           │                       │
               ▼                           │                       ▼
        ┌─────────────┐                    │              ┌─────────────────┐
-       │   Scion     │                    │              │  Runtime Broker   │
+       │   Fabric     │                    │              │  Runtime Broker   │
        │   CLI       │                    │              │                 │
        │             │◄───────────────────┘              │  ┌───────────┐  │
        │  Workspace  │    Signed URLs                    │  │ Container │  │
@@ -325,7 +325,7 @@ The sync commands are tunneled as standard HTTP requests:
 Workspaces share the Hub storage bucket with templates, under a `/workspaces` prefix:
 
 ```
-gs://scion-hub-{env}/
+gs://fabric-hub-{env}/
 ├── templates/                          # Existing (see hosted-templates.md)
 │   ├── global/{templateName}/
 │   └── groves/{groveId}/{templateName}/
@@ -536,7 +536,7 @@ GET /api/v1/agents/{agentId}/workspace
 {
   "agentId": "agent-abc123",
   "groveId": "grove-xyz",
-  "storageUri": "gs://scion-hub-dev/workspaces/grove-xyz/agent-abc123/",
+  "storageUri": "gs://fabric-hub-dev/workspaces/grove-xyz/agent-abc123/",
   "lastSync": {
     "direction": "from",
     "timestamp": "2026-02-03T10:30:00Z",
@@ -612,18 +612,18 @@ POST /api/v1/workspace/apply
 
 ### 8.1 Command Syntax
 
-The existing `scion sync` command is extended to support hosted mode:
+The existing `fabric sync` command is extended to support hosted mode:
 
 ```bash
 # Sync workspace FROM remote agent to local
-scion sync from <agent-name>
+fabric sync from <agent-name>
 
 # Sync workspace TO remote agent from local
-scion sync to <agent-name>
+fabric sync to <agent-name>
 
 # Options
-scion sync from <agent-name> [--exclude <pattern>]... [--dry-run]
-scion sync to <agent-name> [--exclude <pattern>]... [--dry-run]
+fabric sync from <agent-name> [--exclude <pattern>]... [--dry-run]
+fabric sync to <agent-name> [--exclude <pattern>]... [--dry-run]
 ```
 
 ### 8.2 Mode Detection
@@ -645,26 +645,26 @@ return rt.Sync(ctx, agentName, direction)
 
 ```bash
 # Start an agent on remote Runtime Broker
-scion start my-agent --type claude "Fix the login bug"
+fabric start my-agent --type claude "Fix the login bug"
 
 # Agent makes changes to workspace...
 
 # Sync changes back to local machine
-scion sync from my-agent
+fabric sync from my-agent
 
 # Make local edits...
 
 # Push local changes to running agent
-scion sync to my-agent
+fabric sync to my-agent
 
 # Verify sync status
-scion sync status my-agent
+fabric sync status my-agent
 ```
 
 ### 8.4 Output Format
 
 ```
-$ scion sync from my-agent
+$ fabric sync from my-agent
 Using Hub: https://hub.example.com
 Requesting workspace sync from agent 'my-agent'...
 Uploading workspace to storage... done
@@ -674,7 +674,7 @@ Downloading 15 files (102.4 KB)...
   ...
 Sync complete: 15 files, 102.4 KB transferred
 
-$ scion sync to my-agent --dry-run
+$ fabric sync to my-agent --dry-run
 Using Hub: https://hub.example.com
 Scanning local workspace...
 Would upload 3 changed files (5.2 KB):
@@ -1060,7 +1060,7 @@ Default exclude patterns prevent accidental sync of:
 - `.git/**` - Git internals
 - `node_modules/**` - Package caches
 - `*.env` - Environment files
-- `.scion/**` - Scion metadata
+- `.fabric/**` - Fabric metadata
 
 ---
 
@@ -1087,7 +1087,7 @@ Today, the agent creation flow through Hub → Broker works as follows:
 
 #### 13.1.3 Relationship to On-Demand Sync
 
-The existing on-demand sync (`scion sync to <agent>`) cannot fill this gap because:
+The existing on-demand sync (`fabric sync to <agent>`) cannot fill this gap because:
 
 - `handleWorkspaceSyncToFinalize()` requires `agent.Status == "running"` — but the agent needs workspace content to start meaningfully.
 - Even if the status check were relaxed, the broker's provisioning has already created the worktree from its local state before the agent starts, so the sync would be a corrective overwrite rather than a clean bootstrap.
@@ -1134,7 +1134,7 @@ If the working tree has uncommitted modifications, the CLI warns but proceeds. T
 ```
 Warning: Working tree has uncommitted changes that will not be present
 on the remote agent's workspace. Commit and push, or use
-'scion sync to <agent>' after creation to transfer local state.
+'fabric sync to <agent>' after creation to transfer local state.
 ```
 
 **Check 3: Remote URL is resolvable.**
@@ -1195,7 +1195,7 @@ type RemoteCreateAgentRequest struct {
 }
 ```
 
-The Hub passes these fields through from the CLI request to the broker dispatch. It also stores them on the agent record for observability (e.g., `scion status` can show what ref an agent was created from).
+The Hub passes these fields through from the CLI request to the broker dispatch. It also stores them on the agent record for observability (e.g., `fabric status` can show what ref an agent was created from).
 
 #### 13.3.4 Broker Provisioning Changes
 
@@ -1308,7 +1308,7 @@ CLI                          Hub                    GCS              Runtime Bro
 | Aspect | On-demand sync-to (existing) | Bootstrap sync-to (new) |
 |--------|------------------------------|-------------------------|
 | Agent status required | `running` | `provisioning` (new status) |
-| Triggered by | Explicit `scion sync to` | Automatic during `scion start` / `scion create` |
+| Triggered by | Explicit `fabric sync to` | Automatic during `fabric start` / `fabric create` |
 | Workspace pre-exists | Yes (already mounted in container) | No (broker creates empty dir, populates from GCS) |
 | Finalize action | Tunnel apply to running container | Trigger broker to populate dir + start container |
 
@@ -1324,7 +1324,7 @@ CLI                          Hub                    GCS              Runtime Bro
 The CLI determines which bootstrap strategy to use automatically based on the grove type:
 
 ```
-scion start my-agent "Fix the bug"
+fabric start my-agent "Fix the bug"
     │
     ├── Is Hub mode?
     │       │
@@ -1393,7 +1393,7 @@ scion start my-agent "Fix the bug"
 |---|----------|----------|-----------|
 | Q1 | **Should the CLI block until the agent is fully provisioned?** | **Yes, poll until running.** | The CLI should poll agent status until the agent transitions to `running`. The broker should update agent status with provisioning detail (e.g., `provisioning:cloning`, `provisioning:syncing`) so the CLI can display meaningful progress. For GCS bootstrap, the CLI already blocks during upload; for git bootstrap (deferred), polling handles variable clone times. |
 | Q2 | **Should the broker cache bare clones across agents in the same grove?** | **Deferred** | Deferred to the future remote git workflow design. The question of shared clones, locking, and lifecycle management is closely tied to how brokers manage git state at scale. Carried forward as an open question for that design. |
-| Q3 | **How should `scion create` (without start) interact with bootstrap?** | **Option (a): `create` does not bootstrap.** | Workspace provisioning happens at `start` time, not `create` time. This matches the current `create` vs `start` distinction and supports late binding of configuration. See also: config and late-binding patterns (to be documented separately). |
+| Q3 | **How should `fabric create` (without start) interact with bootstrap?** | **Option (a): `create` does not bootstrap.** | Workspace provisioning happens at `start` time, not `create` time. This matches the current `create` vs `start` distinction and supports late binding of configuration. See also: config and late-binding patterns (to be documented separately). |
 | Q4 | **Should submodules be supported in the git bootstrap path?** | **No, defer.** | Submodules are not supported in the initial implementation. This can be revisited if a concrete use case requires it. |
 
 ---
@@ -1406,7 +1406,7 @@ All open questions have been resolved with the following decisions:
 
 | # | Question | Decision | Rationale |
 |---|----------|----------|-----------|
-| Q1 | **Automatic upload on agent stop?** | **Explicit only** | Keeps behavior predictable, matches milestone requirement. Users can always run `scion sync from` before stopping. |
+| Q1 | **Automatic upload on agent stop?** | **Explicit only** | Keeps behavior predictable, matches milestone requirement. Users can always run `fabric sync from` before stopping. |
 | Q2 | **Conflict handling for sync-to?** | **Last-write-wins** | Simple for MVP. Agent can always re-generate changes. More sophisticated conflict handling deferred. |
 | Q3 | **Signed URL expiry duration?** | **15 minutes** | Matches template system. Sufficient for large transfers. Consistent across codebase. |
 | Q4 | **Large file handling?** | **No limit** | GCS handles large files natively. rclone supports resumable uploads. No artificial constraints needed. |

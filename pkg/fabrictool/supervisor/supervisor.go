@@ -1,8 +1,8 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
-// Package supervisor provides process lifecycle management for sciontool init.
+// Package supervisor provides process lifecycle management for fabrictool init.
 // It handles spawning child processes, signal forwarding, and graceful shutdown.
 package supervisor
 
@@ -17,7 +17,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 // ErrNoCommand is returned when no command is specified for the supervisor to run.
@@ -109,7 +109,7 @@ func (s *Supervisor) Run(ctx context.Context, args []string) (int, error) {
 	// Set the child's user environment when dropping privileges OR in
 	// rootless mode. In rootless containers, init runs as UID 0 (which
 	// maps to the unprivileged host user), so no Credential is needed,
-	// but HOME/USER/LOGNAME must still point to the scion user's home
+	// but HOME/USER/LOGNAME must still point to the fabric user's home
 	// so harnesses find their configuration.
 	if s.config.Username != "" && (s.config.UID > 0 || s.config.Rootless) {
 		home := "/home/" + s.config.Username
@@ -135,12 +135,12 @@ func (s *Supervisor) Run(ctx context.Context, args []string) (int, error) {
 		}
 	}
 
-	// Apply SCION_EXTRA_PATH: prepend its value to PATH, then remove it from env.
+	// Apply FABRIC_EXTRA_PATH: prepend its value to PATH, then remove it from env.
 	// Initialize s.cmd.Env from os.Environ() if the privilege-drop block above didn't set it.
 	if s.cmd.Env == nil {
 		s.cmd.Env = os.Environ()
 	}
-	if extraPath := getEnvVar(s.cmd.Env, "SCION_EXTRA_PATH"); extraPath != "" {
+	if extraPath := getEnvVar(s.cmd.Env, "FABRIC_EXTRA_PATH"); extraPath != "" {
 		currentPath := getEnvVar(s.cmd.Env, "PATH")
 		var newPath string
 		if currentPath != "" {
@@ -149,8 +149,8 @@ func (s *Supervisor) Run(ctx context.Context, args []string) (int, error) {
 			newPath = extraPath
 		}
 		s.cmd.Env = setEnvVar(s.cmd.Env, "PATH", newPath)
-		s.cmd.Env = removeEnvVar(s.cmd.Env, "SCION_EXTRA_PATH")
-		log.Debug("Applied SCION_EXTRA_PATH: PATH=%s", newPath)
+		s.cmd.Env = removeEnvVar(s.cmd.Env, "FABRIC_EXTRA_PATH")
+		log.Debug("Applied FABRIC_EXTRA_PATH: PATH=%s", newPath)
 	}
 
 	// Merge harness-generated env overlay. Runtime env wins on conflict so a

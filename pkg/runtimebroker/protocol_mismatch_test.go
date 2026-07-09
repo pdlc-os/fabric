@@ -22,7 +22,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestHandleAgentByID_QueryParameters(t *testing.T) {
@@ -34,7 +34,7 @@ func TestHandleAgentByID_QueryParameters(t *testing.T) {
 			ID:        agentID,
 			Slug:      agentID,
 			ProjectID: projectID,
-			Labels:    map[string]string{"scion.agent": "true"},
+			Labels:    map[string]string{"fabric.agent": "true"},
 		},
 	}
 
@@ -84,7 +84,7 @@ type protocolMockManager struct {
 	agents []api.AgentInfo
 }
 
-func (m *protocolMockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) {
+func (m *protocolMockManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) {
 	return nil, nil
 }
 func (m *protocolMockManager) Start(ctx context.Context, opts api.StartOptions) (*api.AgentInfo, error) {

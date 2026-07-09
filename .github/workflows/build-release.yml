@@ -32,17 +32,17 @@ jobs:
           # Linux builds
           - goos: linux
             goarch: amd64
-            output: scion-linux-amd64
+            output: fabric-linux-amd64
           - goos: linux
             goarch: arm64
-            output: scion-linux-arm64
+            output: fabric-linux-arm64
           # macOS builds
           - goos: darwin
             goarch: amd64
-            output: scion-darwin-amd64
+            output: fabric-darwin-amd64
           - goos: darwin
             goarch: arm64
-            output: scion-darwin-arm64
+            output: fabric-darwin-arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -80,7 +80,7 @@ jobs:
           
           COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
           BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          PKG="github.com/GoogleCloudPlatform/scion/pkg/version"
+          PKG="github.com/pdlc-os/fabric/pkg/version"
           
           # Build ldflags, only including version if available
           LDFLAGS="-X ${PKG}.Commit=${COMMIT} -X ${PKG}.BuildTime=${BUILD_TIME}"
@@ -98,8 +98,8 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          go build -ldflags "${{ steps.version.outputs.ldflags }}" -o dist/scion ./cmd/scion
-          tar -czvf ${{ matrix.output }}.tar.gz -C dist scion
+          go build -ldflags "${{ steps.version.outputs.ldflags }}" -o dist/fabric ./cmd/fabric
+          tar -czvf ${{ matrix.output }}.tar.gz -C dist fabric
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -20,13 +20,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <title>Scion - Agent Orchestration Platform</title>
+  <title>Fabric - Agent Orchestration Platform</title>
   <link rel="stylesheet" href="/node_modules/@shoelace-style/shoelace/dist/themes/light.css" />
   <link rel="stylesheet" href="/node_modules/@shoelace-style/shoelace/dist/themes/dark.css" />
   <script>
     // Apply saved theme immediately to prevent flash of wrong theme.
     (function() {
-      var saved = localStorage.getItem('scion-theme');
+      var saved = localStorage.getItem('fabric-theme');
       var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       var dark = saved ? saved === 'dark' : prefersDark;
       if (dark) {
@@ -39,8 +39,8 @@
   </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: var(--scion-font-sans, system-ui, sans-serif); }
-    body { background: var(--scion-bg, #f8fafc); color: var(--scion-text, #1e293b); }
+    html, body { height: 100%; font-family: var(--fabric-font-sans, system-ui, sans-serif); }
+    body { background: var(--fabric-bg, #f8fafc); color: var(--fabric-text, #1e293b); }
   </style>
 </head>
 <body>

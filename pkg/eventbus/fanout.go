@@ -21,7 +21,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 const InProcessBusName = "inprocess"

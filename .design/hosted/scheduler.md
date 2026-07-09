@@ -5,7 +5,7 @@
 
 ## Problem
 
-The Scion Hub currently has limited background scheduling capability — a single `startPurgeLoop` goroutine that runs every hour to remove expired soft-deleted agents. As the Hub's responsibilities grow, several features require time-based automation:
+The Fabric Hub currently has limited background scheduling capability — a single `startPurgeLoop` goroutine that runs every hour to remove expired soft-deleted agents. As the Hub's responsibilities grow, several features require time-based automation:
 
 - **Agent heartbeat timeout detection**: Agents that stop reporting heartbeats should be marked as `undetermined` so operators and peer agents are aware of stale state.
 - **Recurring maintenance tasks**: Broker health checks, orphaned resource cleanup, and other periodic operations.
@@ -25,7 +25,7 @@ Today, adding each new scheduled task means adding another ad-hoc goroutine and 
 ### Non-Goals (This Iteration)
 
 - **User-submitted cron schedules**: Full unix-cron parsing and user-facing schedule management API. Noted for future work.
-- **Scheduled message commands**: New `scion message --at` or `scion message --every` flags. Noted for future work.
+- **Scheduled message commands**: New `fabric message --at` or `fabric message --every` flags. Noted for future work.
 - **Distributed scheduling**: Multi-Hub leader election or distributed locking. The scheduler runs on a single Hub instance, consistent with the existing `ChannelEventPublisher` and `NotificationDispatcher` single-node model.
 - **Sub-second precision**: The minimum granularity is 1 second for one-shot timers and 1 minute for recurring timers.
 
@@ -787,7 +787,7 @@ Non-pending scheduled events older than 7 days are cleaned up by the existing pu
 
 ### 7. Broker disconnect does not imply `undetermined` — No
 
-A disconnected Runtime Broker does **not** warrant immediately marking its agents as `undetermined`. The `sciontool` (running inside each agent container) sends heartbeat updates to the Hub independently of the broker's control channel. A broker disconnect means the Hub can no longer issue commands to agents on that broker, but the agents themselves continue reporting their status directly. The heartbeat timeout mechanism (2-minute `last_seen` threshold) remains the correct signal — if the agent itself stops reporting, *then* it becomes `undetermined`.
+A disconnected Runtime Broker does **not** warrant immediately marking its agents as `undetermined`. The `fabrictool` (running inside each agent container) sends heartbeat updates to the Hub independently of the broker's control channel. A broker disconnect means the Hub can no longer issue commands to agents on that broker, but the agents themselves continue reporting their status directly. The heartbeat timeout mechanism (2-minute `last_seen` threshold) remains the correct signal — if the agent itself stops reporting, *then* it becomes `undetermined`.
 
 ### 8. Tick-zero behavior — Keep, document prominently
 
@@ -814,17 +814,17 @@ A future iteration can add support for user-defined recurring schedules in unix-
 
 ### Scheduled Message Commands
 
-New flags on `scion message`:
+New flags on `fabric message`:
 
 ```bash
 # Send a message in 30 minutes
-scion message --in 30m agent-foo "Time to wrap up"
+fabric message --in 30m agent-foo "Time to wrap up"
 
 # Send a message at a specific time
-scion message --at "2026-02-26T14:00:00Z" agent-foo "Standup time"
+fabric message --at "2026-02-26T14:00:00Z" agent-foo "Standup time"
 
 # Send a recurring message every 2 hours
-scion message --every 2h agent-foo "Status check: how's it going?"
+fabric message --every 2h agent-foo "Status check: how's it going?"
 ```
 
 These would create `scheduled_events` (one-shot) or recurring handler registrations (recurring) via the Hub API. The recurring message feature would depend on the cron schedule infrastructure above.
@@ -874,7 +874,7 @@ When the Hub moves to a multi-node deployment, the scheduler will need leader el
 
 ### Phase 4: Scheduler API and CLI ✅
 17. ~~Hub API endpoints for creating, listing, getting, and cancelling scheduled events.~~
-18. ~~CLI `--in`/`--at` flags on `scion message` for scheduling future message delivery.~~
+18. ~~CLI `--in`/`--at` flags on `fabric message` for scheduling future message delivery.~~
 19. ~~Event handler registry, message event handler, Hub client service, and integration tests.~~
 
 ---

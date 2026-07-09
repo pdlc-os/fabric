@@ -1,4 +1,4 @@
-# scion agent bashrc
-# Source scion environment (written by sciontool init)
-[ -f ~/.scion/scion-env ] && . ~/.scion/scion-env
+# fabric agent bashrc
+# Source fabric environment (written by fabrictool init)
+[ -f ~/.fabric/fabric-env ] && . ~/.fabric/fabric-env
 alias c="copilot"

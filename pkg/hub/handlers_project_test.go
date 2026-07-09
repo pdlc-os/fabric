@@ -27,12 +27,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +45,7 @@ func TestHubManagedProjectPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Default (no content in either dir) should resolve to projects/
-	expected := filepath.Join(homeDir, ".scion", "projects", "my-test-project")
+	expected := filepath.Join(homeDir, ".fabric", "projects", "my-test-project")
 	assert.Equal(t, expected, path)
 }
 
@@ -54,7 +54,7 @@ func TestHubManagedProjectPath_PrefersProjectsOverGroves(t *testing.T) {
 	t.Setenv("HOME", tmpHome)
 
 	slug := "both-dirs-exist"
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 
 	// Create both directories with workspace content
 	projectsDir := filepath.Join(globalDir, "projects", slug)
@@ -76,11 +76,11 @@ func TestHubManagedProjectPath_FallsBackToGrovesWhenProjectsEmpty(t *testing.T) 
 	t.Setenv("HOME", tmpHome)
 
 	slug := "projects-empty-groves-has-content"
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 
 	// Create projects/{slug} with only infrastructure dirs (no real content)
 	projectsDir := filepath.Join(globalDir, "projects", slug)
-	require.NoError(t, os.MkdirAll(filepath.Join(projectsDir, ".scion"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(projectsDir, ".fabric"), 0755))
 
 	// Create groves/{slug} with actual workspace content (legacy)
 	grovesDir := filepath.Join(globalDir, "groves", slug)
@@ -98,11 +98,11 @@ func TestHubManagedProjectPath_DefaultsToProjectsWhenNeitherHasContent(t *testin
 	t.Setenv("HOME", tmpHome)
 
 	slug := "neither-has-content"
-	globalDir := filepath.Join(tmpHome, ".scion")
+	globalDir := filepath.Join(tmpHome, ".fabric")
 
 	// Create both directories with only infrastructure dirs
 	grovesDir := filepath.Join(globalDir, "groves", slug)
-	require.NoError(t, os.MkdirAll(filepath.Join(grovesDir, ".scion"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(grovesDir, ".fabric"), 0755))
 
 	projectsDir := filepath.Join(globalDir, "projects", slug)
 	require.NoError(t, os.MkdirAll(filepath.Join(projectsDir, "shared-dirs"), 0755))
@@ -140,8 +140,8 @@ func TestCreateProject_HubManaged_NoGitRemote(t *testing.T) {
 	workspacePath, err := hubManagedProjectPath(project.Slug)
 	require.NoError(t, err)
 
-	scionDir := filepath.Join(workspacePath, ".scion")
-	settingsPath := filepath.Join(scionDir, "settings.yaml")
+	fabricDir := filepath.Join(workspacePath, ".fabric")
+	settingsPath := filepath.Join(fabricDir, "settings.yaml")
 
 	_, err = os.Stat(settingsPath)
 	assert.NoError(t, err, "settings.yaml should exist for hub-managed project")
@@ -403,7 +403,7 @@ func TestPopulateAgentConfig_InlineTelemetryNotOverwritten(t *testing.T) {
 	agent := &store.Agent{
 		ID: "agent-telem2",
 		AppliedConfig: &store.AgentAppliedConfig{
-			InlineConfig: &api.ScionConfig{
+			InlineConfig: &api.FabricConfig{
 				Telemetry: inlineTelemetry,
 			},
 		},
@@ -1117,7 +1117,7 @@ func TestProjectRegisterPreservesProviderLocalPath(t *testing.T) {
 		"name":      "preserve-path-project",
 		"gitRemote": "github.com/test/preserve-path",
 		"brokerId":  broker.ID,
-		"path":      "/original/path/.scion",
+		"path":      "/original/path/.fabric",
 	}
 	rec := doRequest(t, srv, http.MethodPost, "/api/v1/projects/register", body)
 	require.Equal(t, http.StatusOK, rec.Code, "body: %s", rec.Body.String())
@@ -1130,7 +1130,7 @@ func TestProjectRegisterPreservesProviderLocalPath(t *testing.T) {
 	// Verify provider has localPath from initial registration
 	provider, err := s.GetProjectProvider(ctx, projectID, broker.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "/original/path/.scion", provider.LocalPath,
+	assert.Equal(t, "/original/path/.fabric", provider.LocalPath,
 		"newly created project should have localPath from registration")
 
 	// Now simulate converting to hub-managed: clear localPath directly
@@ -1155,7 +1155,7 @@ func TestProjectRegisterPreservesProviderLocalPath(t *testing.T) {
 		"name":      "preserve-path-project",
 		"gitRemote": "github.com/test/preserve-path",
 		"brokerId":  broker.ID,
-		"path":      "/new/local/checkout/.scion",
+		"path":      "/new/local/checkout/.fabric",
 	}
 	rec2 := doRequest(t, srv, http.MethodPost, "/api/v1/projects/register", body2)
 	require.Equal(t, http.StatusOK, rec2.Code, "body: %s", rec2.Body.String())
@@ -1330,7 +1330,7 @@ func TestDeleteProject_CascadesEnvVarsSecretsHarnessConfigs(t *testing.T) {
 }
 
 // TestDeleteProject_CleansUpProjectConfigsDir verifies that deleting a project
-// removes the ~/.scion/project-configs/<slug>__<short-uuid>/ directory.
+// removes the ~/.fabric/project-configs/<slug>__<short-uuid>/ directory.
 func TestDeleteProject_CleansUpProjectConfigsDir(t *testing.T) {
 	srv, s := testServer(t)
 	ctx := context.Background()
@@ -1345,7 +1345,7 @@ func TestDeleteProject_CleansUpProjectConfigsDir(t *testing.T) {
 	extPath, err := marker.ExternalProjectPath()
 	require.NoError(t, err)
 
-	// Create the directory structure: ~/.scion/project-configs/<slug>__<uuid>/.scion/
+	// Create the directory structure: ~/.fabric/project-configs/<slug>__<uuid>/.fabric/
 	require.NoError(t, os.MkdirAll(extPath, 0755))
 	// Also create an agents/ sibling directory
 	agentsDir := filepath.Join(filepath.Dir(extPath), "agents", "test-agent", "home")
@@ -1482,8 +1482,8 @@ func TestCreateProject_SharedWorkspace_SetsLabelAndInitFilesystem(t *testing.T) 
 		GitRemote:     "github.com/test/shared-ws",
 		WorkspaceMode: "shared",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      sourceDir,
-			"scion.dev/default-branch": "master",
+			"fabric.dev/clone-url":      sourceDir,
+			"fabric.dev/default-branch": "master",
 		},
 	}
 
@@ -1505,10 +1505,10 @@ func TestCreateProject_SharedWorkspace_SetsLabelAndInitFilesystem(t *testing.T) 
 
 	assert.True(t, util.IsGitRepoDir(workspacePath), "workspace should be a git repo")
 
-	// Verify .scion directory was seeded
-	scionDir := filepath.Join(workspacePath, ".scion")
-	_, err = os.Stat(scionDir)
-	assert.NoError(t, err, ".scion directory should exist for shared-workspace project")
+	// Verify .fabric directory was seeded
+	fabricDir := filepath.Join(workspacePath, ".fabric")
+	_, err = os.Stat(fabricDir)
+	assert.NoError(t, err, ".fabric directory should exist for shared-workspace project")
 }
 
 func TestCreateProject_PerAgentGit_NoWorkspaceLabel(t *testing.T) {
@@ -1608,7 +1608,7 @@ func TestPopulateAgentConfig_SharedWorkspace_DefaultsBranch(t *testing.T) {
 		GitRemote: "github.com/test/shared-branch",
 		Labels: map[string]string{
 			store.LabelWorkspaceMode:   store.WorkspaceModeShared,
-			"scion.dev/default-branch": "develop",
+			"fabric.dev/default-branch": "develop",
 		},
 	}
 
@@ -1665,7 +1665,7 @@ func TestPopulateAgentConfig_WorktreePerAgent_SetsCloneNotWorkspace(t *testing.T
 		GitRemote: "github.com/test/worktree",
 		Labels: map[string]string{
 			store.LabelWorkspaceMode:   store.WorkspaceModeWorktreePerAgent,
-			"scion.dev/default-branch": "main",
+			"fabric.dev/default-branch": "main",
 		},
 	}
 
@@ -1707,8 +1707,8 @@ func TestCloneSharedWorkspaceProject_Success(t *testing.T) {
 		GitRemote: "local/test/repo",
 		Labels: map[string]string{
 			store.LabelWorkspaceMode:   store.WorkspaceModeShared,
-			"scion.dev/clone-url":      sourceDir,
-			"scion.dev/default-branch": "master",
+			"fabric.dev/clone-url":      sourceDir,
+			"fabric.dev/default-branch": "master",
 		},
 	}
 
@@ -1722,16 +1722,16 @@ func TestCloneSharedWorkspaceProject_Success(t *testing.T) {
 
 	assert.True(t, util.IsGitRepoDir(workspacePath), "workspace should be a git repo")
 
-	// Verify .scion directory was created
-	scionDir := filepath.Join(workspacePath, ".scion")
-	_, err = os.Stat(scionDir)
-	assert.NoError(t, err, ".scion directory should exist in cloned workspace")
+	// Verify .fabric directory was created
+	fabricDir := filepath.Join(workspacePath, ".fabric")
+	_, err = os.Stat(fabricDir)
+	assert.NoError(t, err, ".fabric directory should exist in cloned workspace")
 
 	// Verify git identity
 	cmd := exec.Command("git", "-C", workspacePath, "config", "user.name")
 	output, err := cmd.Output()
 	require.NoError(t, err)
-	assert.Equal(t, "Scion", strings.TrimSpace(string(output)))
+	assert.Equal(t, "Fabric", strings.TrimSpace(string(output)))
 }
 
 func TestCloneSharedWorkspaceProject_Failure_CleansUp(t *testing.T) {
@@ -1889,8 +1889,8 @@ func TestCreateProject_AutoAssociatesGitHubInstallation(t *testing.T) {
 		GitRemote:     "github.com/myorg/myrepo",
 		WorkspaceMode: "shared",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      sourceDir,
-			"scion.dev/default-branch": "master",
+			"fabric.dev/clone-url":      sourceDir,
+			"fabric.dev/default-branch": "master",
 		},
 	}
 

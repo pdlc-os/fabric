@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 
@@ -398,7 +398,7 @@ func TestValidateBrokerSignature_MissingHeaders(t *testing.T) {
 				r.Header.Set(HeaderTimestamp, strconv.FormatInt(time.Now().Unix(), 10))
 				r.Header.Set(HeaderSignature, "sig")
 			},
-			expectedErr: "missing X-Scion-Broker-ID",
+			expectedErr: "missing X-Fabric-Broker-ID",
 		},
 		{
 			name: "missing timestamp",
@@ -406,7 +406,7 @@ func TestValidateBrokerSignature_MissingHeaders(t *testing.T) {
 				r.Header.Set(HeaderBrokerID, "host-id")
 				r.Header.Set(HeaderSignature, "sig")
 			},
-			expectedErr: "missing X-Scion-Timestamp",
+			expectedErr: "missing X-Fabric-Timestamp",
 		},
 		{
 			name: "missing signature",
@@ -414,7 +414,7 @@ func TestValidateBrokerSignature_MissingHeaders(t *testing.T) {
 				r.Header.Set(HeaderBrokerID, "host-id")
 				r.Header.Set(HeaderTimestamp, strconv.FormatInt(time.Now().Unix(), 10))
 			},
-			expectedErr: "missing X-Scion-Signature",
+			expectedErr: "missing X-Fabric-Signature",
 		},
 		{
 			name: "missing nonce",
@@ -423,7 +423,7 @@ func TestValidateBrokerSignature_MissingHeaders(t *testing.T) {
 				r.Header.Set(HeaderTimestamp, strconv.FormatInt(time.Now().Unix(), 10))
 				r.Header.Set(HeaderSignature, "sig")
 			},
-			expectedErr: "missing X-Scion-Nonce",
+			expectedErr: "missing X-Fabric-Nonce",
 		},
 	}
 
@@ -481,7 +481,7 @@ func TestValidateBrokerSignatureWithRotation_RequiresNonce(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing nonce header")
 	}
-	if !strings.Contains(err.Error(), "missing X-Scion-Nonce") {
+	if !strings.Contains(err.Error(), "missing X-Fabric-Nonce") {
 		t.Fatalf("expected missing nonce error, got: %v", err)
 	}
 }

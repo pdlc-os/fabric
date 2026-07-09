@@ -13,10 +13,10 @@
 # limitations under the License.
 
 harness: generic
-image: scion-adk-agent:latest
-user: scion
+image: fabric-adk-agent:latest
+user: fabric
 task_flag: "--input"
 args:
   - python
   - -m
-  - adk_scion_agent
+  - adk_fabric_agent

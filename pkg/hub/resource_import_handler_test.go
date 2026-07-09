@@ -28,7 +28,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // mockTemplateTarball installs a mock HTTP transport that serves a gzip tarball
@@ -44,7 +44,7 @@ func mockTemplateTarball(t *testing.T) func() {
 			gzw := gzip.NewWriter(&buf)
 			tw := tar.NewWriter(gzw)
 			files := map[string]string{
-				"repo-main/templates/my-template/scion-agent.yaml": "schema_version: \"1\"\nharness: claude\n",
+				"repo-main/templates/my-template/fabric-agent.yaml": "schema_version: \"1\"\nharness: claude\n",
 				"repo-main/templates/my-template/README.md":        "hello",
 			}
 			for name, body := range files {

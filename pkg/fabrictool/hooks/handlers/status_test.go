@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	state "github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	state "github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -434,7 +434,7 @@ func TestStatusHandler_Handle_ClaudeAskUserQuestion(t *testing.T) {
 	statusPath := filepath.Join(tmpDir, "agent-info.json")
 	h := &StatusHandler{StatusPath: statusPath}
 
-	// Pre-set activity to waiting_for_input (simulating sciontool status ask_user)
+	// Pre-set activity to waiting_for_input (simulating fabrictool status ask_user)
 	err := h.UpdateActivity(state.ActivityWaitingForInput, "")
 	require.NoError(t, err)
 

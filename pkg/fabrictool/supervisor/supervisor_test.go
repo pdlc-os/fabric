@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package supervisor
@@ -185,10 +185,10 @@ func TestSupervisor_ExitCode(t *testing.T) {
 
 func TestSupervisor_RootlessEnvVars(t *testing.T) {
 	// In rootless mode, the supervisor should set HOME/USER/LOGNAME
-	// to the scion user without dropping privileges via Credential.
+	// to the fabric user without dropping privileges via Credential.
 	config := Config{
 		GracePeriod: 10 * time.Second,
-		Username:    "scion",
+		Username:    "fabric",
 		Rootless:    true,
 		// UID and GID are 0 (no privilege drop)
 	}
@@ -293,27 +293,27 @@ func TestRemoveEnvVar(t *testing.T) {
 
 func TestApplyExtraPath(t *testing.T) {
 	t.Run("prepends to existing PATH", func(t *testing.T) {
-		env := []string{"PATH=/usr/bin", "SCION_EXTRA_PATH=/home/scion/bin"}
-		extraPath := getEnvVar(env, "SCION_EXTRA_PATH")
+		env := []string{"PATH=/usr/bin", "FABRIC_EXTRA_PATH=/home/fabric/bin"}
+		extraPath := getEnvVar(env, "FABRIC_EXTRA_PATH")
 		if extraPath == "" {
-			t.Fatal("SCION_EXTRA_PATH not found")
+			t.Fatal("FABRIC_EXTRA_PATH not found")
 		}
 		currentPath := getEnvVar(env, "PATH")
 		newPath := extraPath + ":" + currentPath
 		env = setEnvVar(env, "PATH", newPath)
-		env = removeEnvVar(env, "SCION_EXTRA_PATH")
+		env = removeEnvVar(env, "FABRIC_EXTRA_PATH")
 
-		if got := getEnvVar(env, "PATH"); got != "/home/scion/bin:/usr/bin" {
-			t.Errorf("expected '/home/scion/bin:/usr/bin', got %q", got)
+		if got := getEnvVar(env, "PATH"); got != "/home/fabric/bin:/usr/bin" {
+			t.Errorf("expected '/home/fabric/bin:/usr/bin', got %q", got)
 		}
-		if got := getEnvVar(env, "SCION_EXTRA_PATH"); got != "" {
-			t.Errorf("SCION_EXTRA_PATH should be removed, got %q", got)
+		if got := getEnvVar(env, "FABRIC_EXTRA_PATH"); got != "" {
+			t.Errorf("FABRIC_EXTRA_PATH should be removed, got %q", got)
 		}
 	})
 
 	t.Run("handles missing PATH", func(t *testing.T) {
-		env := []string{"SCION_EXTRA_PATH=/home/scion/bin"}
-		extraPath := getEnvVar(env, "SCION_EXTRA_PATH")
+		env := []string{"FABRIC_EXTRA_PATH=/home/fabric/bin"}
+		extraPath := getEnvVar(env, "FABRIC_EXTRA_PATH")
 		currentPath := getEnvVar(env, "PATH")
 		var newPath string
 		if currentPath != "" {
@@ -322,31 +322,31 @@ func TestApplyExtraPath(t *testing.T) {
 			newPath = extraPath
 		}
 		env = setEnvVar(env, "PATH", newPath)
-		env = removeEnvVar(env, "SCION_EXTRA_PATH")
+		env = removeEnvVar(env, "FABRIC_EXTRA_PATH")
 
-		if got := getEnvVar(env, "PATH"); got != "/home/scion/bin" {
-			t.Errorf("expected '/home/scion/bin', got %q", got)
+		if got := getEnvVar(env, "PATH"); got != "/home/fabric/bin" {
+			t.Errorf("expected '/home/fabric/bin', got %q", got)
 		}
 	})
 
 	t.Run("handles multiple colon-separated entries", func(t *testing.T) {
-		env := []string{"PATH=/usr/bin", "SCION_EXTRA_PATH=/home/scion/bin:/home/scion/.local/bin"}
-		extraPath := getEnvVar(env, "SCION_EXTRA_PATH")
+		env := []string{"PATH=/usr/bin", "FABRIC_EXTRA_PATH=/home/fabric/bin:/home/fabric/.local/bin"}
+		extraPath := getEnvVar(env, "FABRIC_EXTRA_PATH")
 		currentPath := getEnvVar(env, "PATH")
 		newPath := extraPath + ":" + currentPath
 		env = setEnvVar(env, "PATH", newPath)
-		env = removeEnvVar(env, "SCION_EXTRA_PATH")
+		env = removeEnvVar(env, "FABRIC_EXTRA_PATH")
 
-		if got := getEnvVar(env, "PATH"); got != "/home/scion/bin:/home/scion/.local/bin:/usr/bin" {
-			t.Errorf("expected '/home/scion/bin:/home/scion/.local/bin:/usr/bin', got %q", got)
+		if got := getEnvVar(env, "PATH"); got != "/home/fabric/bin:/home/fabric/.local/bin:/usr/bin" {
+			t.Errorf("expected '/home/fabric/bin:/home/fabric/.local/bin:/usr/bin', got %q", got)
 		}
 	})
 
-	t.Run("no SCION_EXTRA_PATH is no-op", func(t *testing.T) {
+	t.Run("no FABRIC_EXTRA_PATH is no-op", func(t *testing.T) {
 		env := []string{"PATH=/usr/bin", "FOO=bar"}
-		extraPath := getEnvVar(env, "SCION_EXTRA_PATH")
+		extraPath := getEnvVar(env, "FABRIC_EXTRA_PATH")
 		if extraPath != "" {
-			t.Fatal("should not have found SCION_EXTRA_PATH")
+			t.Fatal("should not have found FABRIC_EXTRA_PATH")
 		}
 		// PATH should remain unchanged
 		if got := getEnvVar(env, "PATH"); got != "/usr/bin" {

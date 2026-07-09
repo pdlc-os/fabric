@@ -23,9 +23,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	scionruntime "github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	fabricruntime "github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 type ListRuntimeBrokersResponse struct {
@@ -694,9 +694,9 @@ func (s *Server) handleBrokerHeartbeat(w http.ResponseWriter, r *http.Request, i
 					// based on the container being exited, not on the exit code).
 					// A non-zero exit means the agent crashed → error, with the
 					// exit code recorded so the UI can show it. This works even
-					// if sciontool's own crash report never reached the hub.
+					// if fabrictool's own crash report never reached the hub.
 					if hbPhase == state.PhaseStopped {
-						if code, ok := scionruntime.ExitCodeFromContainerStatus(agentHB.ContainerStatus); ok && code != 0 {
+						if code, ok := fabricruntime.ExitCodeFromContainerStatus(agentHB.ContainerStatus); ok && code != 0 {
 							hbPhase = state.PhaseError
 							agentHB.Phase = string(state.PhaseError)
 							c := code
@@ -748,7 +748,7 @@ func (s *Server) handleBrokerHeartbeat(w http.ResponseWriter, r *http.Request, i
 					case strings.HasPrefix(containerStatusLower, "exited") || containerStatusLower == "stopped":
 						// A non-zero exit code means the agent crashed → error
 						// (restartable); a zero/absent code is a clean stop.
-						if code, ok := scionruntime.ExitCodeFromContainerStatus(agentHB.ContainerStatus); ok && code != 0 {
+						if code, ok := fabricruntime.ExitCodeFromContainerStatus(agentHB.ContainerStatus); ok && code != 0 {
 							statusUpdate.Phase = string(state.PhaseError)
 							c := code
 							statusUpdate.ExitCode = &c

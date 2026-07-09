@@ -22,26 +22,26 @@ import (
 
 func TestIsHeadlessEnvironment(t *testing.T) {
 	// Save and restore env vars
-	origHeadless := os.Getenv("SCION_HEADLESS")
+	origHeadless := os.Getenv("FABRIC_HEADLESS")
 	origDisplay := os.Getenv("DISPLAY")
 	origWayland := os.Getenv("WAYLAND_DISPLAY")
 	t.Cleanup(func() {
-		_ = os.Setenv("SCION_HEADLESS", origHeadless)
+		_ = os.Setenv("FABRIC_HEADLESS", origHeadless)
 		_ = os.Setenv("DISPLAY", origDisplay)
 		_ = os.Setenv("WAYLAND_DISPLAY", origWayland)
 	})
 
-	t.Run("SCION_HEADLESS=1 forces headless", func(t *testing.T) {
-		t.Setenv("SCION_HEADLESS", "1")
+	t.Run("FABRIC_HEADLESS=1 forces headless", func(t *testing.T) {
+		t.Setenv("FABRIC_HEADLESS", "1")
 		t.Setenv("DISPLAY", ":0")
 		t.Setenv("WAYLAND_DISPLAY", "wayland-0")
 		if !IsHeadlessEnvironment() {
-			t.Error("expected headless when SCION_HEADLESS=1")
+			t.Error("expected headless when FABRIC_HEADLESS=1")
 		}
 	})
 
-	t.Run("SCION_HEADLESS=0 does not force headless", func(t *testing.T) {
-		t.Setenv("SCION_HEADLESS", "0")
+	t.Run("FABRIC_HEADLESS=0 does not force headless", func(t *testing.T) {
+		t.Setenv("FABRIC_HEADLESS", "0")
 		t.Setenv("DISPLAY", ":0")
 		t.Setenv("WAYLAND_DISPLAY", "")
 		if runtime.GOOS == "darwin" {
@@ -57,7 +57,7 @@ func TestIsHeadlessEnvironment(t *testing.T) {
 	})
 
 	t.Run("no display vars on linux means headless", func(t *testing.T) {
-		t.Setenv("SCION_HEADLESS", "")
+		t.Setenv("FABRIC_HEADLESS", "")
 		t.Setenv("DISPLAY", "")
 		t.Setenv("WAYLAND_DISPLAY", "")
 		if runtime.GOOS == "darwin" {
@@ -72,7 +72,7 @@ func TestIsHeadlessEnvironment(t *testing.T) {
 	})
 
 	t.Run("DISPLAY set means not headless", func(t *testing.T) {
-		_ = os.Setenv("SCION_HEADLESS", "")
+		_ = os.Setenv("FABRIC_HEADLESS", "")
 		_ = os.Setenv("DISPLAY", ":0")
 		_ = os.Setenv("WAYLAND_DISPLAY", "")
 		if IsHeadlessEnvironment() {
@@ -81,7 +81,7 @@ func TestIsHeadlessEnvironment(t *testing.T) {
 	})
 
 	t.Run("WAYLAND_DISPLAY set means not headless", func(t *testing.T) {
-		_ = os.Setenv("SCION_HEADLESS", "")
+		_ = os.Setenv("FABRIC_HEADLESS", "")
 		_ = os.Setenv("DISPLAY", "")
 		_ = os.Setenv("WAYLAND_DISPLAY", "wayland-0")
 		if IsHeadlessEnvironment() {

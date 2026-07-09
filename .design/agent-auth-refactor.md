@@ -65,7 +65,7 @@ Broker: createAgent()
 | Harness  | DiscoverAuth Sources | File Creds | Env Vars in GetEnv | Auth Modes |
 |----------|---------------------|------------|-------------------|------------|
 | Claude   | `ANTHROPIC_API_KEY` only | None | `ANTHROPIC_API_KEY` | API key only (Vertex via harness-config env) |
-| Gemini   | Env + scion-agent.json + agent settings + host settings + files | OAuth, GCP ADC | `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `VERTEX_API_KEY`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_APPLICATION_CREDENTIALS` | gemini-api-key, vertex-ai, oauth-personal, compute-default-credentials |
+| Gemini   | Env + fabric-agent.json + agent settings + host settings + files | OAuth, GCP ADC | `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `VERTEX_API_KEY`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_APPLICATION_CREDENTIALS` | gemini-api-key, vertex-ai, oauth-personal, compute-default-credentials |
 | Generic  | Env + settings + files | OAuth, GCP ADC | All mapped from AuthConfig | Passthrough |
 | OpenCode | `ANTHROPIC_API_KEY` + file | auth.json | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` (direct) | API key + auth file |
 | Codex    | File only | auth.json | `OPENAI_API_KEY`, `CODEX_API_KEY` (both direct) | Auth file + API keys |
@@ -169,7 +169,7 @@ func GatherAuth() AuthConfig {
 }
 ```
 
-**Settings overlay**: After `GatherAuth()`, the caller can overlay values from settings (agent settings, host settings, scion-agent.json) for things like `SelectedType`. This overlay logic currently lives in Gemini's `DiscoverAuth()` and should be extracted. The overlay should be limited to `SelectedType` and similar mode-selection fields; API keys in settings files should not silently supersede environment-sourced credentials.
+**Settings overlay**: After `GatherAuth()`, the caller can overlay values from settings (agent settings, host settings, fabric-agent.json) for things like `SelectedType`. This overlay logic currently lives in Gemini's `DiscoverAuth()` and should be extracted. The overlay should be limited to `SelectedType` and similar mode-selection fields; API keys in settings files should not silently supersede environment-sourced credentials.
 
 > **Out of scope**: The Gemini `selectedAuth` mechanism in `~/.gemini/settings.json` has its own complexity and should be refactored in a separate effort. This refactor provides the overlay hook but does not redesign the Gemini settings chain.
 

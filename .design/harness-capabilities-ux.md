@@ -18,10 +18,10 @@ The user experience target is:
   - `pkg/harness/codex.go`
   - `pkg/harness/generic.go`
 - Hook processing and dialect support:
-  - `cmd/sciontool/commands/hook.go`
-  - `pkg/sciontool/hooks/dialects/claude.go`
-  - `pkg/sciontool/hooks/dialects/gemini.go`
-  - `pkg/sciontool/hooks/handlers/limits.go`
+  - `cmd/fabrictool/commands/hook.go`
+  - `pkg/fabrictool/hooks/dialects/claude.go`
+  - `pkg/fabrictool/hooks/dialects/gemini.go`
+  - `pkg/fabrictool/hooks/handlers/limits.go`
 - Runtime env injection and telemetry wiring:
   - `pkg/agent/run.go`
   - `pkg/runtime/common.go`
@@ -36,7 +36,7 @@ The user experience target is:
 `web/src/components/pages/agent-configure.ts` renders all advanced fields as editable and does not resolve harness type/capabilities before save.
 
 ### 2) Hook-based features only work for harnesses with supported hook dialects
-`sciontool hook` only registers `claude` and `gemini` dialect parsers. There are no `codex` or `opencode` dialects in `pkg/sciontool/hooks/dialects`.
+`fabrictool hook` only registers `claude` and `gemini` dialect parsers. There are no `codex` or `opencode` dialects in `pkg/fabrictool/hooks/dialects`.
 
 This matters because limits and status detail updates are driven by normalized hook events.
 
@@ -53,10 +53,10 @@ Event mapping:
 Result:
 - `max_turns`: effectively supported for Gemini and Claude.
 - `max_model_calls`: effectively supported only for Gemini.
-- `max_duration`: enforced by sciontool init (harness-agnostic), supported for all harnesses.
+- `max_duration`: enforced by fabrictool init (harness-agnostic), supported for all harnesses.
 
 ### 4) Telemetry has two layers of support
-Layer A: Scion telemetry pipeline (`SCION_TELEMETRY_*`, `SCION_OTEL_*`) is harness-agnostic, driven by `pkg/agent/run.go` + `cmd/sciontool/commands/init.go`.
+Layer A: Fabric telemetry pipeline (`FABRIC_TELEMETRY_*`, `FABRIC_OTEL_*`) is harness-agnostic, driven by `pkg/agent/run.go` + `cmd/fabrictool/commands/init.go`.
 
 Layer B: harness-native telemetry forwarding is harness-specific via `Harness.GetTelemetryEnv()` and only injected when `TelemetryEnabled` is true (`pkg/runtime/common.go`).
 
@@ -68,7 +68,7 @@ Current harness-native telemetry support:
 - Generic: returns nil.
 
 So telemetry checkbox semantics need to be explicit:
-- Scion telemetry config itself is broadly available.
+- Fabric telemetry config itself is broadly available.
 - Native harness telemetry emission is currently only first-class for Gemini/Claude.
 
 ### 5) System prompt support differs by harness
@@ -76,7 +76,7 @@ So telemetry checkbox semantics need to be explicit:
 - Claude: native file + CLI `--system-prompt` usage.
 - OpenCode: downgraded by prepending to `AGENTS.md`.
 - Codex: TODO/no-op currently in `InjectSystemPrompt`.
-- Generic: writes `.scion/system_prompt.md` (no harness-native behavior).
+- Generic: writes `.fabric/system_prompt.md` (no harness-native behavior).
 
 This should be represented as capability quality, not just boolean.
 
@@ -107,7 +107,7 @@ Legend:
 | `max_turns` | Y | Y | N | N | N | Requires hook `agent-end` events. |
 | `max_model_calls` | Y | N | N | N | N | Requires hook `model-end`; only Gemini maps it. |
 | `max_duration` | N | N | N | N | N | Env is set but no enforcement implementation found. |
-| `telemetry.enabled` (Scion pipeline config) | Y | Y | Y | Y | Y | Harness-agnostic pipeline config.
+| `telemetry.enabled` (Fabric pipeline config) | Y | Y | Y | Y | Y | Harness-agnostic pipeline config.
 | Native harness telemetry forwarding | Y | Y | N | P | N | Codex has comment/TOML intent but no active wiring path.
 | `system_prompt` native behavior | Y | Y | P | N | P | OpenCode/generic are downgrade paths.
 | `agent_instructions` | Y | Y | Y | Y | Y | Implemented for all harnesses.
@@ -220,7 +220,7 @@ In `web/src/components/pages/agent-configure.ts`:
 
 ## Notes and Follow-up Work
 - `max_duration` currently appears designed but not implemented. Either:
-  - Implement enforcement in `sciontool` init/supervisor and mark supported where applicable, or
+  - Implement enforcement in `fabrictool` init/supervisor and mark supported where applicable, or
   - Keep disabled with explicit tooltip: "Not implemented yet".
 - Codex telemetry likely needs explicit implementation if we want to advertise native telemetry support (e.g., mutate `~/.codex/config.toml` at start/provision).
 - Existing docs include at least one likely stale claim (Codex OpenTelemetry support) relative to current code path; docs should be updated after implementation.

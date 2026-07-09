@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Multi-stage build for scion-plugin-telegram standalone mode.
+# Multi-stage build for fabric-plugin-telegram standalone mode.
 # Produces a minimal distroless image suitable for Cloud Run or k8s.
 
 FROM golang:1.26-bookworm AS builder
@@ -25,21 +25,21 @@ COPY pkg/ pkg/
 COPY cmd/ cmd/
 
 # Copy the telegram module.
-COPY extras/scion-telegram/ extras/scion-telegram/
+COPY extras/fabric-telegram/ extras/fabric-telegram/
 
-WORKDIR /src/extras/scion-telegram
+WORKDIR /src/extras/fabric-telegram
 
 RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
-    -o /scion-plugin-telegram ./cmd/scion-plugin-telegram
+    -o /fabric-plugin-telegram ./cmd/fabric-plugin-telegram
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY --from=builder /scion-plugin-telegram /scion-plugin-telegram
+COPY --from=builder /fabric-plugin-telegram /fabric-plugin-telegram
 
-ENV SCION_TELEGRAM_STANDALONE=1
+ENV FABRIC_TELEGRAM_STANDALONE=1
 
 EXPOSE 9094
 
-ENTRYPOINT ["/scion-plugin-telegram", "--standalone"]
+ENTRYPOINT ["/fabric-plugin-telegram", "--standalone"]

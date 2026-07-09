@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// scion-plugin-telegram is the Telegram message broker plugin for scion.
+// fabric-plugin-telegram is the Telegram message broker plugin for fabric.
 // It can run as:
-//   - A go-plugin subprocess (when launched by the scion plugin manager)
+//   - A go-plugin subprocess (when launched by the fabric plugin manager)
 //   - A standalone gRPC service with HA support (--standalone flag or TELEGRAM_STANDALONE=true)
 //   - A migration tool (SQLite → Postgres)
 //   - A standalone binary that prints usage information
 //
-// Plugin mode is auto-detected via the SCION_PLUGIN magic cookie environment variable.
+// Plugin mode is auto-detected via the FABRIC_PLUGIN magic cookie environment variable.
 // Standalone mode is selected via the --standalone flag or TELEGRAM_STANDALONE=true.
 package main
 
@@ -40,13 +40,13 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-telegram/internal/telegram"
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/lockloop"
-	"github.com/GoogleCloudPlatform/scion/pkg/integration/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin/grpcbroker"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	brokerv1 "github.com/GoogleCloudPlatform/scion/proto/broker/v1"
+	"github.com/pdlc-os/fabric/extras/fabric-telegram/internal/telegram"
+	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
+	"github.com/pdlc-os/fabric/pkg/integration/runtime"
+	"github.com/pdlc-os/fabric/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/plugin/grpcbroker"
+	"github.com/pdlc-os/fabric/pkg/store"
+	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
 	goplugin "github.com/hashicorp/go-plugin"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -72,20 +72,20 @@ func main() {
 	}
 
 	// Check env var for standalone mode
-	if os.Getenv("TELEGRAM_STANDALONE") == "true" || os.Getenv("SCION_TELEGRAM_STANDALONE") == "1" {
+	if os.Getenv("TELEGRAM_STANDALONE") == "true" || os.Getenv("FABRIC_TELEGRAM_STANDALONE") == "1" {
 		serveStandalone()
 		return
 	}
 
 	// Otherwise, print usage information
-	fmt.Println("scion-plugin-telegram: Telegram message broker plugin for Scion")
+	fmt.Println("fabric-plugin-telegram: Telegram message broker plugin for Fabric")
 	fmt.Println()
-	fmt.Println("This binary is intended to be launched by the Scion plugin manager.")
+	fmt.Println("This binary is intended to be launched by the Fabric plugin manager.")
 	fmt.Println("It communicates with the Telegram Bot API to provide bidirectional")
-	fmt.Println("messaging between Telegram chats and Scion agents.")
+	fmt.Println("messaging between Telegram chats and Fabric agents.")
 	fmt.Println()
 	fmt.Println("Modes:")
-	fmt.Println("  (default)      Run as go-plugin subprocess (requires SCION_PLUGIN cookie)")
+	fmt.Println("  (default)      Run as go-plugin subprocess (requires FABRIC_PLUGIN cookie)")
 	fmt.Println("  --standalone   Run as standalone HA service with Postgres")
 	fmt.Println("  migrate        Migrate data from SQLite to Postgres")
 	fmt.Println()
@@ -107,7 +107,7 @@ func servePlugin() {
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	var impl plugin.MessageBrokerPluginInterface
-	if os.Getenv("SCION_TELEGRAM_V2") == "1" {
+	if os.Getenv("FABRIC_TELEGRAM_V2") == "1" {
 		impl = telegram.NewV2(log)
 		log.Info("Using Telegram broker v2")
 	} else {

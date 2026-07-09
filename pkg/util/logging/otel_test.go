@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package logging
@@ -116,8 +116,8 @@ func TestCreateBaseHandler(t *testing.T) {
 
 func TestInitOTelLogging_Disabled(t *testing.T) {
 	// Clear environment
-	t.Setenv("SCION_OTEL_ENDPOINT", "")
-	t.Setenv("SCION_OTEL_LOG_ENABLED", "false")
+	t.Setenv("FABRIC_OTEL_ENDPOINT", "")
+	t.Setenv("FABRIC_OTEL_LOG_ENABLED", "false")
 
 	lp, cleanup, err := InitOTelLogging(context.Background(), OTelConfig{})
 	if err != nil {
@@ -133,8 +133,8 @@ func TestInitOTelLogging_Disabled(t *testing.T) {
 }
 
 func TestInitOTelLogging_NoEndpoint(t *testing.T) {
-	t.Setenv("SCION_OTEL_LOG_ENABLED", "true")
-	t.Setenv("SCION_OTEL_ENDPOINT", "")
+	t.Setenv("FABRIC_OTEL_LOG_ENABLED", "true")
+	t.Setenv("FABRIC_OTEL_ENDPOINT", "")
 
 	lp, cleanup, err := InitOTelLogging(context.Background(), OTelConfig{})
 	if err != nil {
@@ -148,13 +148,13 @@ func TestInitOTelLogging_NoEndpoint(t *testing.T) {
 
 func TestEnvVarConstants(t *testing.T) {
 	// Verify constants are set correctly
-	if EnvOTelEndpoint != "SCION_OTEL_ENDPOINT" {
-		t.Errorf("EnvOTelEndpoint = %s, want SCION_OTEL_ENDPOINT", EnvOTelEndpoint)
+	if EnvOTelEndpoint != "FABRIC_OTEL_ENDPOINT" {
+		t.Errorf("EnvOTelEndpoint = %s, want FABRIC_OTEL_ENDPOINT", EnvOTelEndpoint)
 	}
-	if EnvOTelInsecure != "SCION_OTEL_INSECURE" {
-		t.Errorf("EnvOTelInsecure = %s, want SCION_OTEL_INSECURE", EnvOTelInsecure)
+	if EnvOTelInsecure != "FABRIC_OTEL_INSECURE" {
+		t.Errorf("EnvOTelInsecure = %s, want FABRIC_OTEL_INSECURE", EnvOTelInsecure)
 	}
-	if EnvOTelLogEnable != "SCION_OTEL_LOG_ENABLED" {
-		t.Errorf("EnvOTelLogEnable = %s, want SCION_OTEL_LOG_ENABLED", EnvOTelLogEnable)
+	if EnvOTelLogEnable != "FABRIC_OTEL_LOG_ENABLED" {
+		t.Errorf("EnvOTelLogEnable = %s, want FABRIC_OTEL_LOG_ENABLED", EnvOTelLogEnable)
 	}
 }

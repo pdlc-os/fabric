@@ -5,7 +5,7 @@
 
 ## Problem
 
-When one agent creates another (via `scion start`), the creating agent currently has no way to be notified when the spawned agent reaches a terminal or actionable state — `COMPLETED`, `WAITING_FOR_INPUT`, or `LIMITS_EXCEEDED`. The creating agent must either poll the Hub API or rely on ad-hoc coordination.
+When one agent creates another (via `fabric start`), the creating agent currently has no way to be notified when the spawned agent reaches a terminal or actionable state — `COMPLETED`, `WAITING_FOR_INPUT`, or `LIMITS_EXCEEDED`. The creating agent must either poll the Hub API or rely on ad-hoc coordination.
 
 This is a critical gap for multi-agent orchestration workflows where a "lead" agent delegates tasks and needs to react when sub-agents finish or need intervention.
 
@@ -14,17 +14,17 @@ Beyond agent-to-agent notification, human users managing agents also need visibi
 ### Initial priority Use Case: Agent-to-Agent
 ```
 # The creating agent spawns fooagent and opts into notifications
-scion start --notify fooagent "Implement the auth module"
+fabric start --notify fooagent "Implement the auth module"
 
 # When fooagent reaches COMPLETED:
 # → notification is stored, then immediately dispatched as:
-#   scion message <creating-agent> "fooagent has reached a state of COMPLETED"
+#   fabric message <creating-agent> "fooagent has reached a state of COMPLETED"
 
 # When fooagent reaches WAITING_FOR_INPUT with a question:
-# → scion message <creating-agent> "fooagent is WAITING_FOR_INPUT: <question>"
+# → fabric message <creating-agent> "fooagent is WAITING_FOR_INPUT: <question>"
 ```
 
-The `--notify` flag is a binary flag. The notification target is always the agent that issued the `scion start` command (resolved from its JWT identity). It is not an arbitrary recipient selector.
+The `--notify` flag is a binary flag. The notification target is always the agent that issued the `fabric start` command (resolved from its JWT identity). It is not an arbitrary recipient selector.
 
 ### Near-Term Use Case: Human Notifications
 
@@ -32,13 +32,13 @@ Human users can query their accumulated notifications via the Hub CLI:
 
 ```bash
 # List unacknowledged notifications
-scion hub notifications
+fabric hub notifications
 
 # Acknowledge a specific notification
-scion hub notifications ack <notification-id>
+fabric hub notifications ack <notification-id>
 
 # Acknowledge all notifications
-scion hub notifications ack --all
+fabric hub notifications ack --all
 ```
 
 Human notification delivery (web UI tray, email, Slack, push) will be covered in a separate design. The initial implementation stores notifications for all subscriber types, but only dispatches immediately for agent targets. Human-targeted notifications accumulate in the store for retrieval via the CLI (and eventually the web UI).
@@ -47,7 +47,7 @@ Human notification delivery (web UI tray, email, Slack, push) will be covered in
 
 - **Web UI notification tray** — real-time display of accumulated notifications in the browser.
 - **Stale/stalled detection** — notify when an agent hasn't produced an event within a configurable timeout. *(Deferred.)*
-- **`scion get-notified <agent>`** — a separate command for additional actors to subscribe to an already-running agent's events.
+- **`fabric get-notified <agent>`** — a separate command for additional actors to subscribe to an already-running agent's events.
 - **Multiple subscribers per agent** — initial implementation stores subscribers as a list, even if only one is common at first.
 
 ---
@@ -56,12 +56,12 @@ Human notification delivery (web UI tray, email, Slack, push) will be covered in
 
 ### Event Flow Today
 
-1. **Inside the container**: `sciontool` hooks intercept harness events (Claude Code, Gemini CLI) and translate them into status updates via the Hub API (`POST /api/v1/agents/{id}/status`). See `pkg/sciontool/hooks/handlers/hub.go`.
+1. **Inside the container**: `fabrictool` hooks intercept harness events (Claude Code, Gemini CLI) and translate them into status updates via the Hub API (`POST /api/v1/agents/{id}/status`). See `pkg/fabrictool/hooks/handlers/hub.go`.
 2. **Hub handler**: `updateAgentStatus()` in `pkg/hub/handlers.go:1212` persists the status change to the store and publishes an event via `EventPublisher`.
 3. **EventPublisher** (`pkg/hub/events.go`): `ChannelEventPublisher` fans out to in-process subscribers using NATS-style subject matching. Subjects: `agent.{id}.status`, `grove.{groveId}.agent.status`.
 4. **SSE endpoint** (`/events?sub=...`): Browser clients subscribe to events for real-time UI updates.
 
-### Key Status Values (from `pkg/sciontool/hooks/types.go`)
+### Key Status Values (from `pkg/fabrictool/hooks/types.go`)
 
 | Status | Sticky? | Notification-Worthy |
 |---|---|---|
@@ -74,11 +74,11 @@ Human notification delivery (web UI tray, email, Slack, push) will be covered in
 
 ### Messaging Today
 
-`scion message <agent> <text>` sends a message to an agent via the Hub API (`POST /api/v1/agents/{id}/message`), which dispatches through the runtime broker's control channel to inject text into the agent's tmux session.
+`fabric message <agent> <text>` sends a message to an agent via the Hub API (`POST /api/v1/agents/{id}/message`), which dispatches through the runtime broker's control channel to inject text into the agent's tmux session.
 
 ### Agent-to-Hub Access Today
 
-Agents receive a JWT token (`SCION_HUB_TOKEN`) with scopes. Per the `agent-hub-access.md` design, agents with `grove:agent:create` and `grove:agent:lifecycle` scopes can already create and manage peer agents within their grove. The `scion` CLI inside containers reads `SCION_HUB_ENDPOINT` and `SCION_HUB_TOKEN` to communicate with the Hub.
+Agents receive a JWT token (`FABRIC_HUB_TOKEN`) with scopes. Per the `agent-hub-access.md` design, agents with `grove:agent:create` and `grove:agent:lifecycle` scopes can already create and manage peer agents within their grove. The `fabric` CLI inside containers reads `FABRIC_HUB_ENDPOINT` and `FABRIC_HUB_TOKEN` to communicate with the Hub.
 
 ---
 
@@ -121,7 +121,7 @@ CREATE TABLE notifications (
 
 #### Flow
 
-1. **CLI**: `scion start --notify fooagent "task..."` → `CreateAgentRequest` includes `Notify: true`. The Hub resolves the issuing agent's identity from the JWT.
+1. **CLI**: `fabric start --notify fooagent "task..."` → `CreateAgentRequest` includes `Notify: true`. The Hub resolves the issuing agent's identity from the JWT.
 2. **Hub** `createAgent` handler: After creating the agent, inserts a subscription row with the creating agent as the subscriber.
 3. **Hub** `NotificationDispatcher` goroutine: Subscribes to `grove.{groveId}.agent.status` via `ChannelEventPublisher.Subscribe(...)`. On each event:
    - Query `notification_subscriptions` for the agent ID.
@@ -134,7 +134,7 @@ CREATE TABLE notifications (
 
 ```
 ┌──────────────┐     status update     ┌──────────────┐
-│  sciontool   │ ──────────────────────>│   Hub API    │
+│  fabrictool   │ ──────────────────────>│   Hub API    │
 │  (in agent)  │   POST /agents/id/    │  handlers.go │
 └──────────────┘      status           └──────┬───────┘
                                               │
@@ -385,7 +385,7 @@ func init() {
 
 Usage:
 ```bash
-scion start --notify fooagent "Do the thing"
+fabric start --notify fooagent "Do the thing"
 ```
 
 #### Passing to Hub
@@ -627,7 +627,7 @@ func (s *Server) Start() error {
 
 ### 6. Status Normalization
 
-Status values must be normalized to **UPPER CASE** throughout the notification system. The codebase currently uses both uppercase (`COMPLETED` from `hooks/types.go` `AgentState` constants) and lowercase (`completed` from `pkg/sciontool/hub/client.go` `AgentStatus` constants). The notification system normalizes all comparisons and storage to uppercase.
+Status values must be normalized to **UPPER CASE** throughout the notification system. The codebase currently uses both uppercase (`COMPLETED` from `hooks/types.go` `AgentState` constants) and lowercase (`completed` from `pkg/fabrictool/hub/client.go` `AgentStatus` constants). The notification system normalizes all comparisons and storage to uppercase.
 
 Longer term, the codebase should converge on uppercase status values and use strongly typed constants in models rather than bare strings.
 
@@ -671,13 +671,13 @@ Future work could implement local-mode notifications via a lightweight file-base
 
 ```bash
 # List unacknowledged notifications for the current user
-scion hub notifications
+fabric hub notifications
 
 # Acknowledge a specific notification
-scion hub notifications ack <notification-id>
+fabric hub notifications ack <notification-id>
 
 # Acknowledge all notifications
-scion hub notifications ack --all
+fabric hub notifications ack --all
 ```
 
 These commands call Hub API endpoints that query the `notifications` table filtered by `subscriber_type = 'user'` and `subscriber_id = <current-user>`.
@@ -694,7 +694,7 @@ e5f6g7h8    bar-agent     WAITING_FOR_INPUT   2026-02-24 14:35    bar-agent is W
 
 ## Message Format
 
-Notifications are delivered as plain-text messages via `scion message` (for agent targets) or stored for retrieval (for human targets). The format is designed to be parseable by LLMs (since the primary subscriber is another agent):
+Notifications are delivered as plain-text messages via `fabric message` (for agent targets) or stored for retrieval (for human targets). The format is designed to be parseable by LLMs (since the primary subscriber is another agent):
 
 | Status | Message Format |
 |---|---|
@@ -708,9 +708,9 @@ Notifications are delivered as plain-text messages via `scion message` (for agen
 
 ### 1. `--notify` flag semantics
 
-**Decision**: `--notify` is a binary flag on `scion start`. The notification target is always the issuer of the command (resolved from JWT identity). It is not an arbitrary recipient selector.
+**Decision**: `--notify` is a binary flag on `fabric start`. The notification target is always the issuer of the command (resolved from JWT identity). It is not an arbitrary recipient selector.
 
-Future work may add `scion get-notified <agent>` to allow additional actors to subscribe to an already-running agent.
+Future work may add `fabric get-notified <agent>` to allow additional actors to subscribe to an already-running agent.
 
 ### 2. Subscription expiration
 
@@ -726,7 +726,7 @@ Future work may add `scion get-notified <agent>` to allow additional actors to s
 
 ### 5. REST API for managing subscriptions
 
-**Decision**: Deferred. The initial implementation creates subscriptions implicitly via the `--notify` flag on `CreateAgentRequest`. An explicit REST API for subscription management will be added later to support `scion get-notified <agent>` and other use cases.
+**Decision**: Deferred. The initial implementation creates subscriptions implicitly via the `--notify` flag on `CreateAgentRequest`. An explicit REST API for subscription management will be added later to support `fabric get-notified <agent>` and other use cases.
 
 ### 6. Cross-grove notifications
 
@@ -758,8 +758,8 @@ Future work may add `scion get-notified <agent>` to allow additional actors to s
 11. ~~Error messaging for local-mode `--notify` usage.~~
 
 ### Phase 4: Human Notification CLI ✓
-12. ~~Add `scion hub notifications` command to list unacknowledged notifications.~~
-13. ~~Add `scion hub notifications ack <id>` and `scion hub notifications ack --all` commands.~~
+12. ~~Add `fabric hub notifications` command to list unacknowledged notifications.~~
+13. ~~Add `fabric hub notifications ack <id>` and `fabric hub notifications ack --all` commands.~~
 14. ~~Add Hub API endpoints for notification retrieval and acknowledgment.~~
 
 ### Phase 5: Testing and Polish ✓
@@ -770,7 +770,7 @@ Future work may add `scion get-notified <agent>` to allow additional actors to s
 
 ### Future Phases
 - REST API for subscription management (`GET/POST/DELETE /subscriptions`).
-- `scion get-notified <agent>` CLI command.
+- `fabric get-notified <agent>` CLI command.
 - Web UI notification tray (bridge to realtime web publisher).
 - Human notification delivery sinks (email, Slack, web push).
 - Stale/stalled detection.
@@ -794,7 +794,7 @@ Future work may add `scion get-notified <agent>` to allow additional actors to s
 | `pkg/hubclient/agents.go` | Add `Notify` bool to `CreateAgentRequest` |
 | `cmd/start.go` | Add `--notify` boolean flag |
 | `cmd/common.go` | Pass notify flag to Hub request |
-| `cmd/hub_notifications.go` | **New** — `scion hub notifications` and `ack` commands |
+| `cmd/hub_notifications.go` | **New** — `fabric hub notifications` and `ack` commands |
 
 ---
 

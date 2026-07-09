@@ -5,7 +5,7 @@
       "AGY_TOKEN"
     ],
     "env_secret_files": {
-      "AGY_TOKEN": "$HOME/.scion/harness/secrets/AGY_TOKEN"
+      "AGY_TOKEN": "$HOME/.fabric/harness/secrets/AGY_TOKEN"
     },
     "files": []
   },

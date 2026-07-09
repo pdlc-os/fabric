@@ -1,6 +1,6 @@
-# Scion Plugin Architecture Improvements
+# Fabric Plugin Architecture Improvements
 
-Issues identified during the first real message broker plugin implementation (OpenClaw) that require changes in the Scion core project (`scion/pkg/plugin/`, `scion/pkg/hub/`, etc.).
+Issues identified during the first real message broker plugin implementation (OpenClaw) that require changes in the Fabric core project (`fabric/pkg/plugin/`, `fabric/pkg/hub/`, etc.).
 
 ---
 
@@ -15,7 +15,7 @@ Without this endpoint, all inbound message delivery from any broker plugin is no
 - Topic parsing to extract grove ID and agent slug from the topic string
 - Dispatch to `DispatchAgentMessage()` (bypassing the broker to avoid circular delivery)
 - Authentication via broker HMAC credentials
-- The `X-Scion-Plugin-Name` header should be logged for observability
+- The `X-Fabric-Plugin-Name` header should be logged for observability
 
 **Reference**: `message-broker-plugins.md` §Inbound Message Routing, §Plugin Authentication for Hub API Callbacks
 
@@ -23,7 +23,7 @@ Without this endpoint, all inbound message delivery from any broker plugin is no
 
 ## 2. Add Runtime Health to Plugin Interface (Medium)
 
-`PluginInfo` only has static metadata (`Name`, `Version`, `MinScionVersion`, `Capabilities`). There is no way for the host to query whether a plugin is healthy at runtime.
+`PluginInfo` only has static metadata (`Name`, `Version`, `MinFabricVersion`, `Capabilities`). There is no way for the host to query whether a plugin is healthy at runtime.
 
 The OpenClaw plugin cannot report:
 - Whether its WebSocket connection is active or degraded

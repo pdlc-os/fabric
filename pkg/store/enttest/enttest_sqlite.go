@@ -19,7 +19,7 @@ package enttest
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent"
 )
 
 // newClient returns an in-memory SQLite-backed client. This is the default
@@ -40,6 +40,6 @@ func Active() bool { return false }
 // regardless of build tag.
 func NewSchemaURL(t *testing.T) string {
 	t.Helper()
-	t.Skip("enttest: Postgres backend not built; rebuild with -tags integration and set SCION_TEST_POSTGRES_URL")
+	t.Skip("enttest: Postgres backend not built; rebuild with -tags integration and set FABRIC_TEST_POSTGRES_URL")
 	return ""
 }

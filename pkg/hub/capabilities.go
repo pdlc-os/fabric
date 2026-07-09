@@ -18,7 +18,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // Capabilities represents the set of actions a user can perform on a resource.

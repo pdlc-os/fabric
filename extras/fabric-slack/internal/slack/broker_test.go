@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 func TestNewBroker(t *testing.T) {
@@ -61,8 +61,8 @@ func TestParseTopicComponents(t *testing.T) {
 		projectID string
 		agentSlug string
 	}{
-		{"scion.project.proj123.agent.myagent", "proj123", "myagent"},
-		{"scion.grove.proj123.agent.myagent", "proj123", "myagent"},
+		{"fabric.project.proj123.agent.myagent", "proj123", "myagent"},
+		{"fabric.grove.proj123.agent.myagent", "proj123", "myagent"},
 		{"some-topic", "some-topic", ""},
 	}
 

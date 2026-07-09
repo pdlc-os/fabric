@@ -19,7 +19,7 @@
  *
  * Top-level component that manages a single-file editing session.
  * Provides a toolbar with save, revert, and close actions, and
- * wraps the scion-code-editor for the actual editing surface.
+ * wraps the fabric-code-editor for the actual editing surface.
  *
  * Supports two modes:
  *   - Editing an existing file (filePath is set)
@@ -185,8 +185,8 @@ export class HarnessConfigFileEditorDataSource implements FileEditorDataSource {
 // Component
 // ────────────────────────────────────────────────────────────
 
-@customElement('scion-file-editor')
-export class ScionFileEditor extends LitElement {
+@customElement('fabric-file-editor')
+export class FabricFileEditor extends LitElement {
   /** Path of the file being edited (empty for new file creation). */
   @property({ type: String })
   filePath = '';
@@ -242,7 +242,7 @@ export class ScionFileEditor extends LitElement {
       align-items: center;
       gap: 0.75rem;
       padding: 0.625rem 0;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       margin-bottom: 0.75rem;
       flex-wrap: wrap;
     }
@@ -262,10 +262,10 @@ export class ScionFileEditor extends LitElement {
     }
 
     .file-name {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -303,7 +303,7 @@ export class ScionFileEditor extends LitElement {
     .new-file-input sl-input {
       flex: 1;
       min-width: 12rem;
-      --sl-input-font-family: var(--scion-font-mono, monospace);
+      --sl-input-font-family: var(--fabric-font-mono, monospace);
       --sl-input-font-size-small: 0.875rem;
     }
 
@@ -318,7 +318,7 @@ export class ScionFileEditor extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 3rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -331,7 +331,7 @@ export class ScionFileEditor extends LitElement {
       font-size: 0.875rem;
       padding: 0.75rem 1rem;
       background: var(--sl-color-danger-50, #fef2f2);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       margin-bottom: 0.75rem;
     }
   `;
@@ -479,17 +479,17 @@ export class ScionFileEditor extends LitElement {
           `
         : this.showPreview && this.isMarkdown
           ? html`
-              <scion-markdown-preview
+              <fabric-markdown-preview
                 .content=${this.currentContent}
-              ></scion-markdown-preview>
+              ></fabric-markdown-preview>
             `
           : html`
-              <scion-code-editor
+              <fabric-code-editor
                 .content=${this.currentContent}
                 .language=${getLanguageFromPath(this.isNewFile ? this.newFileName : this.filePath)}
                 ?readonly=${this.readonly}
                 @content-changed=${this.handleContentChanged}
-              ></scion-code-editor>
+              ></fabric-code-editor>
             `}
     `;
   }
@@ -566,6 +566,6 @@ export class ScionFileEditor extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-file-editor': ScionFileEditor;
+    'fabric-file-editor': FabricFileEditor;
   }
 }

@@ -34,8 +34,8 @@ interface Project {
   slug?: string;
 }
 
-@customElement('scion-page-project-schedules')
-export class ScionPageProjectSchedules extends LitElement {
+@customElement('fabric-page-project-schedules')
+export class FabricPageProjectSchedules extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -59,7 +59,7 @@ export class ScionPageProjectSchedules extends LitElement {
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -68,7 +68,7 @@ export class ScionPageProjectSchedules extends LitElement {
       align-items: center;
       gap: 0.375rem;
       font-size: 0.875rem;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       text-decoration: none;
       margin-bottom: 1rem;
     }
@@ -79,7 +79,7 @@ export class ScionPageProjectSchedules extends LitElement {
 
     .subtitle {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.5rem 0;
     }
 
@@ -89,7 +89,7 @@ export class ScionPageProjectSchedules extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -100,9 +100,9 @@ export class ScionPageProjectSchedules extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -114,21 +114,21 @@ export class ScionPageProjectSchedules extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -206,13 +206,13 @@ export class ScionPageProjectSchedules extends LitElement {
       </div>
       <p class="subtitle">Automated recurring tasks for ${projectName}.</p>
 
-      <scion-schedule-list .projectId=${this.projectId}></scion-schedule-list>
+      <fabric-schedule-list .projectId=${this.projectId}></fabric-schedule-list>
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-project-schedules': ScionPageProjectSchedules;
+    'fabric-page-project-schedules': FabricPageProjectSchedules;
   }
 }

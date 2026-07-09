@@ -2,7 +2,7 @@
 
 ## Context
 Linked-grove sync currently relies on a single `state.yaml:last_synced_at` watermark.  
-In edge cases, `scion list` reports **"Hub Agent Sync Required"** even when recent Hub-side operations should have kept state consistent.
+In edge cases, `fabric list` reports **"Hub Agent Sync Required"** even when recent Hub-side operations should have kept state consistent.
 
 ## Goals
 1. Prevent false-positive sync requirements after legitimate Hub-side mutations (especially delete).
@@ -45,7 +45,7 @@ In edge cases, `scion list` reports **"Hub Agent Sync Required"** even when rece
 ### 2) Symmetric diff classification in `CompareAgents`
 1. Extend local agent metadata read (`getLocalAgentInfo`) to include a usable local timestamp source:
    - Prefer `agent-info.json` timestamp fields when present.
-   - Fallback: file mtime (`agent-info.json` then `scion-agent.json/yaml`).
+   - Fallback: file mtime (`agent-info.json` then `fabric-agent.json/yaml`).
 2. For `local-only` agents:
    - If locally modified/created **after** watermark -> `ToRegister`.
    - If local artifact appears older/equal to watermark -> `StaleLocal` (new bucket, no auto re-register).
@@ -56,7 +56,7 @@ In edge cases, `scion list` reports **"Hub Agent Sync Required"** even when rece
 1. After successful Hub delete in `cmd/delete.go`, advance watermark using Hub server time or local UTC fallback.
 2. On local cleanup failure after Hub delete:
    - Record a marker (or classify via timestamp path above) so stale local files do not force `ToRegister`.
-   - Emit a clear warning with remediation command (`scion clean` or targeted cleanup).
+   - Emit a clear warning with remediation command (`fabric clean` or targeted cleanup).
 3. Ensure stop+rm via Hub follows same post-delete consistency behavior.
 
 ### 4) Multi-target sync-gate behavior
@@ -84,9 +84,9 @@ In edge cases, `scion list` reports **"Hub Agent Sync Required"** even when rece
    - Create agent A via Hub.
    - Delete A on Hub.
    - Simulate local cleanup failure artifact.
-   - Run `scion list` and verify no forced re-register.
+   - Run `fabric list` and verify no forced re-register.
 
 ## Success Criteria
-1. `scion list` no longer emits false **"Hub Agent Sync Required"** for stale-local artifacts after Hub-side delete.
+1. `fabric list` no longer emits false **"Hub Agent Sync Required"** for stale-local artifacts after Hub-side delete.
 2. `last_synced_at` never regresses under concurrent/overlapping operations.
 3. Multi-agent destructive operations are not blocked by sync checks on their own targets.

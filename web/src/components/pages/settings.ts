@@ -30,8 +30,8 @@ import '../shared/secret-list.js';
 import '../shared/resource-list.js';
 import '../shared/resource-import.js';
 
-@customElement('scion-page-settings')
-export class ScionPageSettings extends LitElement {
+@customElement('fabric-page-settings')
+export class FabricPageSettings extends LitElement {
   @state()
   private activeTab = 'env-vars';
 
@@ -48,21 +48,21 @@ export class ScionPageSettings extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -70,24 +70,24 @@ export class ScionPageSettings extends LitElement {
     .section h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .section > p {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .tab-intro {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     sl-tab-group {
-      --indicator-color: var(--scion-primary, #3b82f6);
+      --indicator-color: var(--fabric-primary, #3b82f6);
     }
 
     sl-tab-group::part(base) {
@@ -114,7 +114,7 @@ export class ScionPageSettings extends LitElement {
   /** Refresh a resource list (by element id) after an import. */
   private refreshList(id: string): void {
     const list = this.shadowRoot?.querySelector(`#${id}`) as
-      | import('../shared/resource-list.js').ScionResourceList
+      | import('../shared/resource-list.js').FabricResourceList
       | null;
     void list?.load();
   }
@@ -147,22 +147,22 @@ export class ScionPageSettings extends LitElement {
           >
 
           <sl-tab-panel name="env-vars">
-            <scion-env-var-list scope="hub" apiBasePath="/api/v1" compact></scion-env-var-list>
+            <fabric-env-var-list scope="hub" apiBasePath="/api/v1" compact></fabric-env-var-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="secrets">
-            <scion-secret-list scope="hub" apiBasePath="/api/v1" compact></scion-secret-list>
+            <fabric-secret-list scope="hub" apiBasePath="/api/v1" compact></fabric-secret-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="templates">
             <p class="tab-intro">Global agent templates. Open one to browse and edit its files.</p>
-            <scion-resource-import
+            <fabric-resource-import
               kind="template"
               scope="global"
               canImport
               @resource-changed=${() => this.refreshList('templates-list')}
-            ></scion-resource-import>
-            <scion-resource-list
+            ></fabric-resource-import>
+            <fabric-resource-list
               id="templates-list"
               kind="template"
               scope="global"
@@ -170,20 +170,20 @@ export class ScionPageSettings extends LitElement {
               canClone
               canDelete
               @resource-changed=${() => this.refreshList('templates-list')}
-            ></scion-resource-list>
+            ></fabric-resource-list>
           </sl-tab-panel>
 
           <sl-tab-panel name="harness-configs">
             <p class="tab-intro">
               Global harness configurations. Open one to browse and edit its files.
             </p>
-            <scion-resource-import
+            <fabric-resource-import
               kind="harness-config"
               scope="global"
               canImport
               @resource-changed=${() => this.refreshList('harness-configs-list')}
-            ></scion-resource-import>
-            <scion-resource-list
+            ></fabric-resource-import>
+            <fabric-resource-list
               id="harness-configs-list"
               kind="harness-config"
               scope="global"
@@ -191,7 +191,7 @@ export class ScionPageSettings extends LitElement {
               canClone
               canDelete
               @resource-changed=${() => this.refreshList('harness-configs-list')}
-            ></scion-resource-list>
+            ></fabric-resource-list>
           </sl-tab-panel>
         </sl-tab-group>
       </div>
@@ -201,6 +201,6 @@ export class ScionPageSettings extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-settings': ScionPageSettings;
+    'fabric-page-settings': FabricPageSettings;
   }
 }

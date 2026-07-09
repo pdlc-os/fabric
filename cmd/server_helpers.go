@@ -23,16 +23,16 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // portStatus represents the result of checking a port.
 type portStatus struct {
 	inUse         bool
-	isScionServer bool
+	isFabricServer bool
 }
 
-// checkPort checks if a port is already bound and if it's a scion server.
+// checkPort checks if a port is already bound and if it's a fabric server.
 func checkPort(host string, port int) portStatus {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	ln, err := net.Listen("tcp", addr)
@@ -41,30 +41,30 @@ func checkPort(host string, port int) portStatus {
 		return portStatus{inUse: false}
 	}
 
-	// Port is in use - check if it's a scion server by hitting the health endpoint
+	// Port is in use - check if it's a fabric server by hitting the health endpoint
 	client := &http.Client{Timeout: 2 * time.Second}
 	resp, err := client.Get(fmt.Sprintf("http://%s/healthz", addr))
 	if err != nil {
-		return portStatus{inUse: true, isScionServer: false}
+		return portStatus{inUse: true, isFabricServer: false}
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	// Check if the response looks like a scion health response
+	// Check if the response looks like a fabric health response
 	var health struct {
 		Status  string `json:"status"`
 		Version string `json:"version"`
 		Uptime  string `json:"uptime"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&health); err != nil {
-		return portStatus{inUse: true, isScionServer: false}
+		return portStatus{inUse: true, isFabricServer: false}
 	}
 
-	// If we got valid health response fields, it's a scion server
+	// If we got valid health response fields, it's a fabric server
 	if health.Status != "" && health.Uptime != "" {
-		return portStatus{inUse: true, isScionServer: true}
+		return portStatus{inUse: true, isFabricServer: true}
 	}
 
-	return portStatus{inUse: true, isScionServer: false}
+	return portStatus{inUse: true, isFabricServer: false}
 }
 
 // isLocalhostURL returns true if the given URL refers to a loopback address.

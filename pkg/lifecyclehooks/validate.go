@@ -26,7 +26,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // MaxTimeoutSeconds is the validated maximum per-action timeout.

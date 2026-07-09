@@ -201,8 +201,8 @@ Policy{
         },
     },
     Labels: map[string]string{
-        "scion.dev/managed-by": "progeny-secret-access",
-        "scion.dev/secret-key": secret.Name,
+        "fabric.dev/managed-by": "progeny-secret-access",
+        "fabric.dev/secret-key": secret.Name,
     },
     Priority: 0,
 }
@@ -229,7 +229,7 @@ Two implementation strategies:
 | **Materialized policies** — Write actual policy records to the DB when `allowProgeny` is toggled | Standard policy evaluation path; visible in policy listings; auditable | Extra DB writes; must keep policies in sync with secret lifecycle (delete secret → delete policy) |
 | **Inline evaluation** — Evaluate progeny access as a virtual policy during secret resolution | No extra DB records; no sync concerns | Less visible; bypasses standard policy listing |
 
-**Recommendation**: Use **materialized policies** for Phase 1. The overhead is minimal (one policy per progeny-enabled secret), and the benefits of auditability and consistency with the existing policy model outweigh the sync cost. The policy should be labeled with `scion.dev/managed-by: progeny-secret-access` so it can be identified as system-managed.
+**Recommendation**: Use **materialized policies** for Phase 1. The overhead is minimal (one policy per progeny-enabled secret), and the benefits of auditability and consistency with the existing policy model outweigh the sync cost. The policy should be labeled with `fabric.dev/managed-by: progeny-secret-access` so it can be identified as system-managed.
 
 #### 3.3.4 Policy Lifecycle
 
@@ -293,13 +293,13 @@ Environment variables do not need `allowProgeny` support. Env vars are non-sensi
 
 **Setting a secret with progeny access:**
 ```bash
-scion secret set ANTHROPIC_API_KEY --scope user --allow-progeny
+fabric secret set ANTHROPIC_API_KEY --scope user --allow-progeny
 # Enter secret value: ****
 ```
 
 **Viewing progeny flag:**
 ```bash
-scion secret list --scope user
+fabric secret list --scope user
 NAME                 TYPE          SCOPE   PROGENY   UPDATED
 ANTHROPIC_API_KEY    environment   user    ✓         2026-04-05
 DATABASE_URL         environment   grove   -         2026-04-01
@@ -307,7 +307,7 @@ DATABASE_URL         environment   grove   -         2026-04-01
 
 **Toggling progeny access on existing secret:**
 ```bash
-scion secret update ANTHROPIC_API_KEY --scope user --allow-progeny=false
+fabric secret update ANTHROPIC_API_KEY --scope user --allow-progeny=false
 ```
 
 ### 4.2 Web UI
@@ -358,7 +358,7 @@ Progeny secret access policies are evaluated at agent dispatch time, when secret
 
 ### 5.9 System-Managed Policy Visibility
 
-Materialized progeny policies are labeled `scion.dev/managed-by: progeny-secret-access`. When policy listing is exposed in the CLI or web UI, these should be displayed alongside user-created policies but visually distinguished as system-managed (e.g., a `[system]` tag or muted styling) so users understand they are auto-generated and should not be manually edited.
+Materialized progeny policies are labeled `fabric.dev/managed-by: progeny-secret-access`. When policy listing is exposed in the CLI or web UI, these should be displayed alongside user-created policies but visually distinguished as system-managed (e.g., a `[system]` tag or muted styling) so users understand they are auto-generated and should not be manually edited.
 
 ---
 
@@ -384,7 +384,7 @@ Materialized progeny policies are labeled `scion.dev/managed-by: progeny-secret-
 ### Phase 3: Policy Integration ✅
 
 12. Implement implicit policy creation/deletion when `allowProgeny` is toggled on a secret.
-13. Label implicit policies with `scion.dev/managed-by: progeny-secret-access` for identification.
+13. Label implicit policies with `fabric.dev/managed-by: progeny-secret-access` for identification.
 14. Ensure policy cleanup on secret deletion.
 15. Add `DelegatedFrom` condition matching against agent ancestry in policy evaluation (verify existing support is sufficient).
 

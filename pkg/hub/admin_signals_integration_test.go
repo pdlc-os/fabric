@@ -24,9 +24,9 @@ import (
 )
 
 func TestAdminSignalIntegration_PublishReceiveRoundTrip(t *testing.T) {
-	dsn := os.Getenv("SCION_TEST_POSTGRES_DSN")
+	dsn := os.Getenv("FABRIC_TEST_POSTGRES_DSN")
 	if dsn == "" {
-		t.Skip("set SCION_TEST_POSTGRES_DSN to run admin signal integration tests")
+		t.Skip("set FABRIC_TEST_POSTGRES_DSN to run admin signal integration tests")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

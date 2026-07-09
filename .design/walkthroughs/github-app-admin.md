@@ -1,7 +1,7 @@
 # GitHub App QA Walkthrough: Hub Admin
 
 **Created:** 2026-03-19
-**Prerequisites:** A running Scion Hub (combo server is fine), admin access, a registered GitHub App on github.com
+**Prerequisites:** A running Fabric Hub (combo server is fine), admin access, a registered GitHub App on github.com
 
 ---
 
@@ -11,7 +11,7 @@ If you haven't already registered the app:
 
 1. Go to **GitHub Settings > Developer Settings > GitHub Apps > New GitHub App**.
 2. Fill in:
-   - **App name**: e.g., `Scion Hub Dev`
+   - **App name**: e.g., `Fabric Hub Dev`
    - **Homepage URL**: Your Hub's public URL (e.g., `https://your-hub.example.com`)
    - **Setup URL**: `https://<hub-url>/github-app/setup` (check "Redirect on update")
    - **Webhook URL**: `https://<hub-url>/api/v1/webhooks/github`
@@ -265,7 +265,7 @@ curl -s "$HUB_URL/api/v1/groves/$GROVE_ID/github-status" \
 Start an agent for this grove. The Hub will mint a GitHub App installation token and inject it as `GITHUB_TOKEN`:
 
 ```bash
-scion start --grove test-github-app my-agent
+fabric start --grove test-github-app my-agent
 ```
 
 After the agent starts, check the grove status again:
@@ -282,11 +282,11 @@ curl -s "$HUB_URL/api/v1/groves/$GROVE_ID/github-status" \
 Attach to the agent and verify the token works:
 
 ```bash
-scion attach my-agent
+fabric attach my-agent
 
 # Inside the agent:
 echo $GITHUB_TOKEN        # Should be set (ghs_xxx format)
-echo $SCION_GITHUB_APP_ENABLED  # Should be "true"
+echo $FABRIC_GITHUB_APP_ENABLED  # Should be "true"
 gh auth status            # Should show authenticated
 git ls-remote origin      # Should succeed
 ```
@@ -392,7 +392,7 @@ GitHub App health check completed
 
 ### 11.1 Revoke the Installation
 
-1. Go to GitHub > Your org's installed apps > Uninstall the Scion app.
+1. Go to GitHub > Your org's installed apps > Uninstall the Fabric app.
 2. If webhooks are enabled, the Hub should immediately receive `installation.deleted`.
 3. Check the installation status:
    ```bash

@@ -1,6 +1,6 @@
 # A2A Protocol Bridge Design
 
-This document describes the design of a bridge service that exposes Scion agents as A2A (Agent-to-Agent) protocol endpoints, and allows external A2A agents to interact with Scion agents using the standard A2A protocol. The bridge follows the same architectural pattern as `scion-chat-app` — a self-managed broker plugin with an HTTP frontend — but translates between A2A JSON-RPC/gRPC and Scion's Hub API.
+This document describes the design of a bridge service that exposes Fabric agents as A2A (Agent-to-Agent) protocol endpoints, and allows external A2A agents to interact with Fabric agents using the standard A2A protocol. The bridge follows the same architectural pattern as `fabric-chat-app` — a self-managed broker plugin with an HTTP frontend — but translates between A2A JSON-RPC/gRPC and Fabric's Hub API.
 
 ## Background
 
@@ -20,31 +20,31 @@ The protocol supports three transport bindings: JSON-RPC 2.0 over HTTP, gRPC, an
 
 ### Why a Bridge?
 
-Scion agents are powerful but speak Scion's internal protocol (broker messages, Hub API). The A2A bridge makes Scion agents discoverable and usable by any A2A-compatible client — other agent frameworks, orchestrators, or tooling — without modifying the agents themselves.
+Fabric agents are powerful but speak Fabric's internal protocol (broker messages, Hub API). The A2A bridge makes Fabric agents discoverable and usable by any A2A-compatible client — other agent frameworks, orchestrators, or tooling — without modifying the agents themselves.
 
-### Reference Architecture: scion-chat-app
+### Reference Architecture: fabric-chat-app
 
-The bridge follows the proven pattern from `extras/scion-chat-app/`:
+The bridge follows the proven pattern from `extras/fabric-chat-app/`:
 
 ```
-External A2A Client ←JSON-RPC/gRPC→  scion-a2a-bridge  ←Hub API→  Scion Hub
+External A2A Client ←JSON-RPC/gRPC→  fabric-a2a-bridge  ←Hub API→  Fabric Hub
                                            ↓                          ↓
                                      SQLite state           broker plugin (RPC)
                                      (task mapping)         (reverse channel)
 ```
 
-The chat-app runs two servers (webhook + broker plugin RPC) and maps external identities/spaces to Scion users/groves. The A2A bridge follows the same dual-server model but replaces the Google Chat adapter with an A2A protocol server.
+The chat-app runs two servers (webhook + broker plugin RPC) and maps external identities/spaces to Fabric users/groves. The A2A bridge follows the same dual-server model but replaces the Google Chat adapter with an A2A protocol server.
 
-## Concept Mapping: A2A ↔ Scion
+## Concept Mapping: A2A ↔ Fabric
 
-| A2A Concept | Scion Concept | Notes |
+| A2A Concept | Fabric Concept | Notes |
 |---|---|---|
 | Agent Card | Agent Template + running Agent | Card generated dynamically from template metadata + agent state |
 | Agent Card URL | Bridge endpoint + grove/agent slug | `https://bridge.example.com/groves/{grove}/agents/{agent}` |
 | Agent Skill | Template description / agent instructions | Skills derived from template metadata |
 | Task | Agent message exchange | A task maps to one or more messages sent to a running agent |
 | Task ID | Bridge-generated UUID | Bridge maintains task-to-agent mapping in its own state |
-| contextId (session) | Scion Agent instance | Each A2A context maps to a Scion agent; agent maintains conversation state internally |
+| contextId (session) | Fabric Agent instance | Each A2A context maps to a Fabric agent; agent maintains conversation state internally |
 | Message (role: user) | Outbound message to agent | `POST /api/v1/agents/{id}/outbound-message` |
 | Message (role: agent) | Broker message from agent | Received via broker plugin `Publish()` |
 | Artifact | Agent output (parsed from message) | Bridge extracts structured outputs from agent messages |
@@ -61,7 +61,7 @@ The chat-app runs two servers (webhook + broker plugin RPC) and maps external id
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     scion-a2a-bridge                         │
+│                     fabric-a2a-bridge                         │
 │                                                              │
 │  ┌──────────────────────┐    ┌─────────────────────────┐    │
 │  │   A2A Protocol Server │    │   Broker Plugin Server   │    │
@@ -92,7 +92,7 @@ The chat-app runs two servers (webhook + broker plugin RPC) and maps external id
 │  │   Hub API Client     │    │        State Store            │   │
 │  │   (hubclient)        │    │        (SQLite)               │   │
 │  │                      │    │                                │   │
-│  │  - Agent CRUD        │    │  - Tasks (A2A ↔ Scion)        │   │
+│  │  - Agent CRUD        │    │  - Tasks (A2A ↔ Fabric)        │   │
 │  │  - SendMessage       │    │  - Contexts (A2A ↔ Agent)     │   │
 │  │  - Grove/Template    │    │  - Push notification configs   │   │
 │  │    queries            │    │  - Auth credentials cache     │   │
@@ -111,15 +111,15 @@ Following the chat-app pattern:
 ### Dependencies
 
 - **`a2aproject/a2a-go/v2`** — Official A2A Go SDK. Provides types (`a2a.Task`, `a2a.Message`, `a2a.AgentCard`, etc.), server framework (`a2asrv`), and transport bindings. The SDK's `AgentExecutor` interface and iterator-based streaming map well to our bridge pattern.
-- **`pkg/plugin`** — Scion's broker plugin interface (`MessageBrokerPluginInterface`)
-- **`pkg/messages`** — Scion's `StructuredMessage` type
+- **`pkg/plugin`** — Fabric's broker plugin interface (`MessageBrokerPluginInterface`)
+- **`pkg/messages`** — Fabric's `StructuredMessage` type
 - **Hub API client** — `hubclient` package for agent operations
 
 ## Detailed Design
 
 ### 1. Agent Card Generation
 
-Agent Cards are generated dynamically by combining Scion template metadata with agent runtime state.
+Agent Cards are generated dynamically by combining Fabric template metadata with agent runtime state.
 
 **Discovery endpoint:** `GET /.well-known/agent-card.json` returns a card for the default agent, or the bridge serves per-agent cards at:
 
@@ -150,7 +150,7 @@ AgentCard:
       protocolVersion: "1.0"
 ```
 
-**Skill derivation:** Templates contain `description` and `system-prompt.md`. The bridge can expose a single skill per agent (the agent's primary capability) or parse structured skill metadata from a convention in the template (e.g., a `skills:` section in `scion-agent.yaml`). Initially, one skill per agent derived from the template description.
+**Skill derivation:** Templates contain `description` and `system-prompt.md`. The bridge can expose a single skill per agent (the agent's primary capability) or parse structured skill metadata from a convention in the template (e.g., a `skills:` section in `fabric-agent.yaml`). Initially, one skill per agent derived from the template description.
 
 **Card caching:** Cards are cached in memory with a TTL (e.g., 5 minutes) and invalidated on agent state changes received via the broker plugin. `Cache-Control` and `ETag` headers are set per A2A spec.
 
@@ -159,7 +159,7 @@ AgentCard:
 #### Creating a Task (SendMessage)
 
 ```
-A2A Client                    Bridge                         Scion Hub
+A2A Client                    Bridge                         Fabric Hub
     │                            │                                │
     │  SendMessage(message)      │                                │
     │ ──────────────────────────>│                                │
@@ -188,7 +188,7 @@ Default behavior (blocking): The bridge holds the HTTP connection, subscribes to
 
 #### Task State Mapping
 
-The bridge maps Scion agent activities to A2A task states:
+The bridge maps Fabric agent activities to A2A task states:
 
 ```go
 func mapActivityToTaskState(activity string) a2a.TaskState {
@@ -211,7 +211,7 @@ func mapActivityToTaskState(activity string) a2a.TaskState {
 }
 ```
 
-The mapping is not 1:1 because Scion's activity model is richer. The bridge tracks state transitions in its SQLite store to correctly generate A2A `TaskStatusUpdateEvent` sequences.
+The mapping is not 1:1 because Fabric's activity model is richer. The bridge tracks state transitions in its SQLite store to correctly generate A2A `TaskStatusUpdateEvent` sequences.
 
 #### Task State Store
 
@@ -219,8 +219,8 @@ The mapping is not 1:1 because Scion's activity model is richer. The bridge trac
 CREATE TABLE tasks (
     id TEXT PRIMARY KEY,           -- A2A task ID (UUID)
     context_id TEXT NOT NULL,      -- A2A contextId
-    grove_id TEXT NOT NULL,        -- Scion grove
-    agent_slug TEXT NOT NULL,      -- Scion agent
+    grove_id TEXT NOT NULL,        -- Fabric grove
+    agent_slug TEXT NOT NULL,      -- Fabric agent
     state TEXT NOT NULL,           -- Current A2A TaskState
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
@@ -233,15 +233,15 @@ CREATE INDEX idx_tasks_agent ON tasks(grove_id, agent_slug);
 
 #### Multi-Turn Conversations (contextId → Agent)
 
-A2A uses `contextId` to group related tasks into a session. In Scion, conversation state lives inside the agent — each agent maintains its own context across messages.
+A2A uses `contextId` to group related tasks into a session. In Fabric, conversation state lives inside the agent — each agent maintains its own context across messages.
 
 **Mapping:**
 
 ```sql
 CREATE TABLE contexts (
     context_id TEXT PRIMARY KEY,   -- A2A contextId
-    grove_id TEXT NOT NULL,        -- Scion grove
-    agent_slug TEXT NOT NULL,      -- Scion agent slug
+    grove_id TEXT NOT NULL,        -- Fabric grove
+    agent_slug TEXT NOT NULL,      -- Fabric agent slug
     created_at TIMESTAMP,
     last_active TIMESTAMP
 );
@@ -254,7 +254,7 @@ CREATE TABLE contexts (
 3. Client sends `SendMessage` with `taskId` referencing existing task → look up task → infer context and agent
 4. Unknown `contextId` → return error (contexts must be established through the bridge)
 
-**Agent-per-context model:** Each `contextId` maps to exactly one Scion agent. The agent may already be running (reuse) or may need to be created on demand (if the bridge is configured for auto-provisioning).
+**Agent-per-context model:** Each `contextId` maps to exactly one Fabric agent. The agent may already be running (reuse) or may need to be created on demand (if the bridge is configured for auto-provisioning).
 
 **Auto-provisioning (optional):** When the bridge receives a message for a grove but no specific agent, it can create a new agent from a configured default template:
 
@@ -270,10 +270,10 @@ This is configurable per-grove. Some deployments may require agents to be pre-cr
 
 ### 3. Message Translation
 
-#### A2A Message → Scion StructuredMessage
+#### A2A Message → Fabric StructuredMessage
 
 ```go
-func translateA2AToScion(msg a2a.Message) *messages.StructuredMessage {
+func translateA2AToFabric(msg a2a.Message) *messages.StructuredMessage {
     var textContent strings.Builder
     var attachments []string
 
@@ -304,12 +304,12 @@ func translateA2AToScion(msg a2a.Message) *messages.StructuredMessage {
 }
 ```
 
-**Limitations:** Scion's `StructuredMessage.Msg` is a single string (max 64KB). Multi-part A2A messages with mixed content types are flattened. File parts are handled via attachments. This is acceptable for text-heavy agent interactions but may need enhancement for binary-heavy workflows.
+**Limitations:** Fabric's `StructuredMessage.Msg` is a single string (max 64KB). Multi-part A2A messages with mixed content types are flattened. File parts are handled via attachments. This is acceptable for text-heavy agent interactions but may need enhancement for binary-heavy workflows.
 
-#### Scion StructuredMessage → A2A Response
+#### Fabric StructuredMessage → A2A Response
 
 ```go
-func translateScionToA2A(msg *messages.StructuredMessage) (a2a.Message, []a2a.Artifact) {
+func translateFabricToA2A(msg *messages.StructuredMessage) (a2a.Message, []a2a.Artifact) {
     parts := []a2a.Part{{Text: msg.Msg, MediaType: "text/plain"}}
 
     for _, att := range msg.Attachments {
@@ -345,7 +345,7 @@ When a client calls `SendStreamingMessage`, the bridge:
 
 1. Opens an SSE connection to the client
 2. Sends initial `Task` object with state `submitted`
-3. Forwards the message to the Scion agent via Hub API
+3. Forwards the message to the Fabric agent via Hub API
 4. Subscribes to the agent's broker topic for responses
 5. As agent responses arrive via `Publish()`, translates and sends as SSE events:
    - `TaskStatusUpdateEvent` for state changes
@@ -431,8 +431,8 @@ func (b *BrokerServer) Configure(config map[string]string) error {
 }
 
 func (b *BrokerServer) Publish(ctx context.Context, topic string, msg *messages.StructuredMessage) error {
-    // Parse topic: scion.grove.<groveId>.agent.<agentSlug>.messages
-    // OR: scion.grove.<groveId>.user.<userId>.messages
+    // Parse topic: fabric.grove.<groveId>.agent.<agentSlug>.messages
+    // OR: fabric.grove.<groveId>.user.<userId>.messages
     // Translate to A2A events, dispatch to streams and push webhooks
     return b.bridge.handleAgentMessage(ctx, topic, msg)
 }
@@ -444,13 +444,13 @@ On startup and when new contexts are created, the bridge requests subscriptions:
 
 ```go
 // Subscribe to all agent messages in a grove
-b.hostCallbacks.RequestSubscription(fmt.Sprintf("scion.grove.%s.agent.>.messages", groveID))
+b.hostCallbacks.RequestSubscription(fmt.Sprintf("fabric.grove.%s.agent.>.messages", groveID))
 
 // Or more targeted: specific agent
-b.hostCallbacks.RequestSubscription(fmt.Sprintf("scion.grove.%s.agent.%s.messages", groveID, agentSlug))
+b.hostCallbacks.RequestSubscription(fmt.Sprintf("fabric.grove.%s.agent.%s.messages", groveID, agentSlug))
 ```
 
-The bridge subscribes to user-targeted messages (`scion.grove.*.user.>.messages`) like the chat-app, filtering to only relay messages relevant to active A2A tasks.
+The bridge subscribes to user-targeted messages (`fabric.grove.*.user.>.messages`) like the chat-app, filtering to only relay messages relevant to active A2A tasks.
 
 **Message type handling:**
 
@@ -501,15 +501,15 @@ func (m *TokenMinter) MintToken(userID, email, role string, duration time.Durati
 ```
 
 - **Admin auth** — auto-refreshing admin token for system operations (list agents, manage groves)
-- **User impersonation** — if the A2A client identity maps to a Scion user, mint a scoped token for that user
+- **User impersonation** — if the A2A client identity maps to a Fabric user, mint a scoped token for that user
 
-#### Layer 3: Identity Mapping (A2A Client → Scion User)
+#### Layer 3: Identity Mapping (A2A Client → Fabric User)
 
 ```sql
 CREATE TABLE identity_mappings (
     external_id TEXT PRIMARY KEY,    -- A2A client identity (from JWT sub, API key, etc.)
-    hub_user_id TEXT NOT NULL,       -- Scion Hub user ID
-    hub_user_email TEXT NOT NULL,    -- Scion Hub user email
+    hub_user_id TEXT NOT NULL,       -- Fabric Hub user ID
+    hub_user_email TEXT NOT NULL,    -- Fabric Hub user email
     mapped_at TIMESTAMP
 );
 ```
@@ -519,7 +519,7 @@ If no mapping exists, the bridge falls back to the admin user for agent operatio
 ### 8. Configuration
 
 ```yaml
-# scion-a2a-bridge config
+# fabric-a2a-bridge config
 bridge:
   listen_address: ":8443"
   external_url: "https://a2a.example.com"
@@ -548,7 +548,7 @@ groves:
       - "coding-agent"
 
 state:
-  database: "/var/lib/scion-a2a-bridge/state.db"
+  database: "/var/lib/fabric-a2a-bridge/state.db"
 
 timeouts:
   send_message: 120s               # Max wait for blocking SendMessage
@@ -573,7 +573,7 @@ type AgentExecutor interface {
 }
 ```
 
-The bridge implements this interface. `Execute()` translates the A2A message to a Scion outbound message, sends it via Hub API, then yields events as they arrive from the broker plugin. The iterator pattern maps naturally to the bridge's async message flow:
+The bridge implements this interface. `Execute()` translates the A2A message to a Fabric outbound message, sends it via Hub API, then yields events as they arrive from the broker plugin. The iterator pattern maps naturally to the bridge's async message flow:
 
 ```go
 func (b *Bridge) Execute(ctx context.Context, execCtx a2asrv.ExecutionContext) iter.Seq2[a2a.Event, error] {
@@ -582,7 +582,7 @@ func (b *Bridge) Execute(ctx context.Context, execCtx a2asrv.ExecutionContext) i
         // 2. Create task record
         // 3. Send message to agent via Hub API
         // 4. Subscribe to broker events for this agent
-        // 5. Yield events as they arrive, translating Scion → A2A
+        // 5. Yield events as they arrive, translating Fabric → A2A
         // 6. Yield final status event on completion/error
     }
 }
@@ -598,7 +598,7 @@ func (b *Bridge) Execute(ctx context.Context, execCtx a2asrv.ExecutionContext) i
 
 ### Per-Agent Endpoints
 
-Each exposed Scion agent gets its own A2A endpoint:
+Each exposed Fabric agent gets its own A2A endpoint:
 
 ```
 Base:  https://bridge.example.com/groves/{groveSlug}/agents/{agentSlug}
@@ -625,7 +625,7 @@ Alternatively, a `GET /groves/{groveSlug}/agents` endpoint returns a JSON array 
 Like the chat-app, the bridge runs as a single binary with two listeners:
 
 ```
-scion-a2a-bridge --config /etc/scion-a2a-bridge/config.yaml
+fabric-a2a-bridge --config /etc/fabric-a2a-bridge/config.yaml
 ```
 
 - Port 8443: A2A protocol server (TLS recommended)
@@ -678,7 +678,7 @@ The bridge returns standard A2A error codes:
 
 1. **Agent auto-provisioning vs pre-created:** Should the bridge create agents on demand when a new `contextId` arrives, or require agents to be pre-provisioned? The design supports both via config, but the default behavior needs deciding.
 
-2. **Artifact extraction:** Scion agents return unstructured text. How should the bridge identify and extract structured artifacts from agent output? Options: (a) entire response is one artifact, (b) parse markdown code blocks as separate artifacts, (c) agent-specific parsers.
+2. **Artifact extraction:** Fabric agents return unstructured text. How should the bridge identify and extract structured artifacts from agent output? Options: (a) entire response is one artifact, (b) parse markdown code blocks as separate artifacts, (c) agent-specific parsers.
 
 3. **Multi-grove routing:** Should one bridge instance serve multiple groves, or one bridge per grove? The design supports multi-grove but the URL structure and auth implications differ.
 
@@ -686,7 +686,7 @@ The bridge returns standard A2A error codes:
 
 5. **Extended Agent Cards:** The A2A spec supports authenticated extended cards with additional skills. Should the bridge expose different skill sets based on the caller's auth context?
 
-6. **CancelTask implementation:** Scion agents don't have a direct "cancel current task" operation. `CancelTask` could (a) stop the agent, (b) send an interrupt message, or (c) just mark the task as canceled in the bridge without affecting the agent.
+6. **CancelTask implementation:** Fabric agents don't have a direct "cancel current task" operation. `CancelTask` could (a) stop the agent, (b) send an interrupt message, or (c) just mark the task as canceled in the bridge without affecting the agent.
 
 7. **gRPC support priority:** The official SDK supports gRPC bindings. Should the bridge support gRPC from day one or start with JSON-RPC only?
 
@@ -732,6 +732,6 @@ The bridge returns standard A2A error codes:
 
 - [A2A Protocol Specification v1.0](https://github.com/a2aproject/A2A/blob/main/docs/specification.md)
 - [Official Go SDK: a2aproject/a2a-go](https://github.com/a2aproject/a2a-go)
-- [Scion Message Broker Plugin Design](message-broker-plugins.md)
-- [Scion Chat App (reference bridge)](../extras/scion-chat-app/)
-- [Scion Plugin System](scion-plugins.md)
+- [Fabric Message Broker Plugin Design](message-broker-plugins.md)
+- [Fabric Chat App (reference bridge)](../extras/fabric-chat-app/)
+- [Fabric Plugin System](fabric-plugins.md)

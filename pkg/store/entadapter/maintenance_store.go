@@ -19,10 +19,10 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/maintenanceoperation"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/maintenanceoperationrun"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/maintenanceoperation"
+	"github.com/pdlc-os/fabric/pkg/ent/maintenanceoperationrun"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // MaintenanceStore implements store.MaintenanceStore using the Ent ORM.
@@ -71,7 +71,7 @@ var defaultSeedOperations = []store.MaintenanceOperation{
 	{
 		Key:         "rebuild-container-binaries",
 		Title:       "Rebuild Container Binaries",
-		Description: "Rebuilds scion and sciontool binaries for Linux containers (make container-binaries). Only available when SCION_DEV_BINARIES is set. Binaries are written to .build/container/ in the source checkout.",
+		Description: "Rebuilds fabric and fabrictool binaries for Linux containers (make container-binaries). Only available when FABRIC_DEV_BINARIES is set. Binaries are written to .build/container/ in the source checkout.",
 		Category:    store.MaintenanceCategoryOperation,
 	},
 	{

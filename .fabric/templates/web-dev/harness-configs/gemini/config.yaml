@@ -13,6 +13,6 @@
 # limitations under the License.
 
 harness: gemini
-image: scion-gemini:latest
-user: scion
+image: fabric-gemini:latest
+user: fabric
 auth_selected_type: api-key

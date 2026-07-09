@@ -5,7 +5,7 @@
     "env_secret_files": {},
     "files": [],
     "file_secret_files": {
-      "GEMINI_OAUTH_CREDS": "$HOME/.scion/harness/secrets/GEMINI_OAUTH_CREDS"
+      "GEMINI_OAUTH_CREDS": "$HOME/.fabric/harness/secrets/GEMINI_OAUTH_CREDS"
     }
   },
   "harness_config": {}

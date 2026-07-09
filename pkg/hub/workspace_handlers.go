@@ -21,12 +21,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/google/uuid"
 )
 
@@ -657,7 +657,7 @@ func (e *brokerError) Error() string {
 
 // syncHubManagedWorkspaceBack downloads workspace files from GCS to the Hub's local
 // filesystem for hub-managed projects on remote brokers. This keeps the Hub's copy
-// (~/.scion/projects/<slug>/) in sync after workspace changes on a remote broker.
+// (~/.fabric/projects/<slug>/) in sync after workspace changes on a remote broker.
 // This is a best-effort operation: errors are logged but do not fail the caller.
 func (s *Server) syncHubManagedWorkspaceBack(ctx context.Context, agent *store.Agent, storagePath string) {
 	if agent.ProjectID == "" {

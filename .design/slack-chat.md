@@ -1,4 +1,4 @@
-# Slack Chat Provider for Scion Chat App
+# Slack Chat Provider for Fabric Chat App
 
 **Created:** 2026-04-08
 **Status:** Draft
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This design describes the Slack adapter implementation for the `scion-chat-app`. It is the second platform provider, following the Google Chat adapter that shipped in Phases 1 and 2. Both adapters share the same core engine, command router, notification relay, identity system, broker plugin, and SQLite state layer. The Slack adapter only needs to implement the `Messenger` interface and provide event ingestion, translating between Slack's APIs and the platform-agnostic abstractions already in place.
+This design describes the Slack adapter implementation for the `fabric-chat-app`. It is the second platform provider, following the Google Chat adapter that shipped in Phases 1 and 2. Both adapters share the same core engine, command router, notification relay, identity system, broker plugin, and SQLite state layer. The Slack adapter only needs to implement the `Messenger` interface and provide event ingestion, translating between Slack's APIs and the platform-agnostic abstractions already in place.
 
 ### Goals
 
@@ -25,7 +25,7 @@ This design describes the Slack adapter implementation for the `scion-chat-app`.
 
 - Slack Enterprise Grid (multi-workspace) support
 - Slack Connect (cross-org channels)
-- Unfurling of Scion Hub URLs in Slack messages
+- Unfurling of Fabric Hub URLs in Slack messages
 - File/attachment relay to agents
 - Workflow Builder integration
 
@@ -68,7 +68,7 @@ Both adapters can run simultaneously in the same process. The existing `Platform
 All Slack-specific code lives in a single new package:
 
 ```
-extras/scion-chat-app/
+extras/fabric-chat-app/
 ├── internal/
 │   ├── slack/
 │   │   ├── adapter.go        # SlackAdapter: Messenger impl, event server
@@ -92,7 +92,7 @@ The adapter uses the official Slack SDK for Go:
 github.com/slack-go/slack
 ```
 
-This is added to the `extras/scion-chat-app/go.mod` only, keeping the Slack SDK out of the main Scion module's dependency tree (same pattern as the Google Chat SDK).
+This is added to the `extras/fabric-chat-app/go.mod` only, keeping the Slack SDK out of the main Fabric module's dependency tree (same pattern as the Google Chat SDK).
 
 ---
 
@@ -104,8 +104,8 @@ The Slack app is created and configured in the [Slack API dashboard](https://api
 
 ```yaml
 display_information:
-  name: Scion
-  description: Scion agent management for Slack
+  name: Fabric
+  description: Fabric agent management for Slack
   background_color: "#1a1a2e"
 
 features:
@@ -113,12 +113,12 @@ features:
     home_tab_enabled: true
     messages_tab_enabled: false
   bot_user:
-    display_name: Scion
+    display_name: Fabric
     always_online: true
   slash_commands:
-    - command: /scion
+    - command: /fabric
       url: https://chat.example.com/slack/commands
-      description: Scion agent management
+      description: Fabric agent management
       usage_hint: "[list|status|start|stop|create|delete|logs|message|link|unlink|register|unregister|subscribe|unsubscribe|info|help]"
 
 oauth_config:
@@ -190,7 +190,7 @@ import (
     slackapi "github.com/slack-go/slack"
     "github.com/slack-go/slack/socketmode"
 
-    "github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/chatapp"
+    "github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/chatapp"
 )
 
 const PlatformName = "slack"
@@ -352,7 +352,7 @@ The adapter receives events through three Slack API surfaces, all served from th
 | Endpoint | Slack API Surface | Event Types |
 |----------|-------------------|-------------|
 | `POST /slack/events` | Events API | `app_mention`, `message.im`, `member_joined_channel`, `member_left_channel`, `app_home_opened` |
-| `POST /slack/commands` | Slash Commands | `/scion` with all subcommands |
+| `POST /slack/commands` | Slash Commands | `/fabric` with all subcommands |
 | `POST /slack/interactions` | Interactivity | Button clicks, modal submissions, overflow menus |
 
 #### HTTP Server
@@ -429,7 +429,7 @@ func (a *Adapter) normalizeSlashCommand(cmd slackapi.SlashCommand) *chatapp.Chat
         Platform: PlatformName,
         SpaceID:  cmd.ChannelID,
         UserID:   cmd.UserID,
-        Command:  "scion",
+        Command:  "fabric",
         Args:     cmd.Text,
     }
 }
@@ -852,7 +852,7 @@ func (a *Adapter) SendMessage(ctx context.Context, req chatapp.SendMessageReques
 }
 ```
 
-This makes each agent appear as a distinct "user" in the channel — with its own name and avatar — rather than all messages coming from a single "Scion" bot.
+This makes each agent appear as a distinct "user" in the channel — with its own name and avatar — rather than all messages coming from a single "Fabric" bot.
 
 #### Agent Icon Generation
 
@@ -896,7 +896,7 @@ deploy-agent [BOT]  2:45 PM
 Rather than:
 
 ```
-Scion [BOT]  2:45 PM
+Fabric [BOT]  2:45 PM
 ┌─────────────────────────────────────┐
 │ 🤖 deploy-agent                     │
 │ Completed | Deployment finished     │
@@ -942,7 +942,7 @@ if req.ThreadID != "" {
 }
 ```
 
-The `/scion message --thread <thread-id>` command works the same way: the thread ID is a Slack message timestamp like `1712345678.123456`. This is included in notification cards so users can reference it when replying to agent conversations.
+The `/fabric message --thread <thread-id>` command works the same way: the thread ID is a Slack message timestamp like `1712345678.123456`. This is included in notification cards so users can reference it when replying to agent conversations.
 
 ### Broadcast to Channel
 
@@ -957,10 +957,10 @@ if req.ThreadID != "" && shouldBroadcast {
 This is a Slack-specific enhancement not available in Google Chat. The broadcast policy is **configurable per-channel** via a slash command:
 
 ```
-/scion broadcast ERROR WAITING_FOR_INPUT    # broadcast these activity types
-/scion broadcast all                         # broadcast all notifications
-/scion broadcast none                        # never broadcast (default)
-/scion broadcast                             # show current setting
+/fabric broadcast ERROR WAITING_FOR_INPUT    # broadcast these activity types
+/fabric broadcast all                         # broadcast all notifications
+/fabric broadcast none                        # never broadcast (default)
+/fabric broadcast                             # show current setting
 ```
 
 The setting is stored in a new `space_settings` table in SQLite (see State Management below). When a notification arrives for a threaded conversation, the adapter checks the channel's broadcast policy against the notification's activity type to decide whether to add `MsgOptionBroadcast()`.
@@ -1046,13 +1046,13 @@ This is a minor change to `notifications.go` — the only modification to shared
 
 ## App Home Tab
 
-Slack's App Home provides a dedicated tab within the Scion bot's profile. When a user opens it, Slack sends an `app_home_opened` event. The adapter responds by publishing a view with the user's registration status, linked groves, and agent overview.
+Slack's App Home provides a dedicated tab within the Fabric bot's profile. When a user opens it, Slack sends an `app_home_opened` event. The adapter responds by publishing a view with the user's registration status, linked groves, and agent overview.
 
 ### Home Tab Content
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Scion                                          [Refresh]│
+│  Fabric                                          [Refresh]│
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  *Your Profile*                                         │
@@ -1099,7 +1099,7 @@ func (a *Adapter) buildHomeView(ctx context.Context, userID string) slackapi.Hom
 
     // Header
     blocks = append(blocks,
-        slackapi.NewHeaderBlock(slackapi.NewTextBlockObject("plain_text", "Scion", false, false)),
+        slackapi.NewHeaderBlock(slackapi.NewTextBlockObject("plain_text", "Fabric", false, false)),
         slackapi.NewDividerBlock(),
     )
 
@@ -1130,11 +1130,11 @@ The App Home tab is published via `views.publish` and updates reactively when st
 
 ### Single Command, Subcommand Parsing
 
-Like Google Chat, Slack registers a single `/scion` slash command. All subcommands are parsed from the text argument. The existing `CommandRouter.handleCommand()` already handles this parsing — the Slack adapter just needs to normalize the slash command payload to a `ChatEvent`:
+Like Google Chat, Slack registers a single `/fabric` slash command. All subcommands are parsed from the text argument. The existing `CommandRouter.handleCommand()` already handles this parsing — the Slack adapter just needs to normalize the slash command payload to a `ChatEvent`:
 
 ```
-/scion list          → ChatEvent{Type: EventCommand, Command: "scion", Args: "list"}
-/scion status my-bot → ChatEvent{Type: EventCommand, Command: "scion", Args: "status my-bot"}
+/fabric list          → ChatEvent{Type: EventCommand, Command: "fabric", Args: "list"}
+/fabric status my-bot → ChatEvent{Type: EventCommand, Command: "fabric", Args: "status my-bot"}
 ```
 
 ### Response Timing
@@ -1179,7 +1179,7 @@ type SlackConfig struct {
 ### Full Configuration Example
 
 ```yaml
-# scion-chat-app.yaml
+# fabric-chat-app.yaml
 
 hub:
   endpoint: "https://hub.example.com"
@@ -1201,7 +1201,7 @@ platforms:
     socket_mode: false
 
 state:
-  database: "/var/lib/scion-chat-app/state.db"
+  database: "/var/lib/fabric-chat-app/state.db"
 
 notifications:
   trigger_activities:
@@ -1340,7 +1340,7 @@ CREATE TABLE space_settings (
 
 The `Store` gains `GetSpaceSettings()`, `SetSpaceSettings()`, and `DeleteSpaceSettings()` methods. The settings are deleted automatically when a space is unlinked.
 
-### 6. Command Router: `/scion broadcast` (commands.go)
+### 6. Command Router: `/fabric broadcast` (commands.go)
 
 A new `cmdBroadcast()` handler is added to the command router:
 
@@ -1400,7 +1400,7 @@ Slack provides a sandbox workspace for app development. Use Socket Mode for loca
 
 ### Phase 3a: Core Slack Adapter
 
-- [ ] Add `github.com/slack-go/slack` dependency to `extras/scion-chat-app/go.mod`
+- [ ] Add `github.com/slack-go/slack` dependency to `extras/fabric-chat-app/go.mod`
 - [ ] Implement `internal/slack/adapter.go` — `Adapter` struct, `Start()`, `Stop()`, HTTP endpoints
 - [ ] Implement `internal/slack/events.go` — event normalization for slash commands, app_mention, interactions
 - [ ] Implement `internal/slack/verify.go` — request signature verification
@@ -1418,7 +1418,7 @@ Slack provides a sandbox workspace for app development. Use Socket Mode for loca
 - [ ] Implement `IconProvider` abstraction with `robohashProvider` default
 - [ ] Implement Socket Mode support as an alternative to HTTP
 - [ ] Thread ID (`thread_ts`) round-trip through `SendMessageRequest` → `ChatEvent`
-- [ ] Add `space_settings` table and `/scion broadcast` command for per-channel broadcast policy
+- [ ] Add `space_settings` table and `/fabric broadcast` command for per-channel broadcast policy
 - [ ] Broadcast reply support based on per-channel activity type configuration
 
 ### Phase 3c: App Home & Polish
@@ -1453,7 +1453,7 @@ Slack provides a sandbox workspace for app development. Use Socket Mode for loca
 
 9. **Agent icon generation:** Use [RoboHash](https://robohash.org/) for deterministic robot-themed agent avatars, seeded by agent slug. The implementation is behind an `IconProvider` abstraction so the source can be swapped later without changing the adapter.
 
-10. **Broadcast reply policy:** Configurable per-channel via `/scion broadcast <activity-types>`. Channel owners/grove admins can set which notification activity types broadcast from threads to the main channel. Defaults to none (no broadcast). Stored in a `space_settings` table in SQLite.
+10. **Broadcast reply policy:** Configurable per-channel via `/fabric broadcast <activity-types>`. Channel owners/grove admins can set which notification activity types broadcast from threads to the main channel. Defaults to none (no broadcast). Stored in a `space_settings` table in SQLite.
 
 11. **Channel type restrictions:** Public channels and DMs only for MVP. Private channels (`groups:read`, `mpim:read` scopes) are deferred to a future phase. DMs to the bot work via `message.im` and are sufficient for user-specific interactions like registration.
 

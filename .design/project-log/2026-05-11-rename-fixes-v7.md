@@ -8,13 +8,13 @@ Implemented fixes for Code Review v7 issues related to the "grove" to "project" 
 ## Changes
 
 ### 1. Hub Project ID Remapping
-Added logic to `LoadVersionedSettings` in `pkg/config/settings_v1.go` to remap `hub.project_id` to `hub.grove_id` in the Koanf configuration before unmarshaling. This ensures that the `SCION_HUB_PROJECT_ID` environment variable (which maps to `hub.project_id`) correctly populates the `ProjectID` field in `V1HubClientConfig` (which uses the `grove_id` Koanf tag for backward compatibility).
+Added logic to `LoadVersionedSettings` in `pkg/config/settings_v1.go` to remap `hub.project_id` to `hub.grove_id` in the Koanf configuration before unmarshaling. This ensures that the `FABRIC_HUB_PROJECT_ID` environment variable (which maps to `hub.project_id`) correctly populates the `ProjectID` field in `V1HubClientConfig` (which uses the `grove_id` Koanf tag for backward compatibility).
 
 ### 2. Snake Case Support in CLI Settings
-Updated `UpdateVersionedSetting` and `GetVersionedSettingValue` in `pkg/config/settings_v1.go` to support `hub.project_id` and `hub.grove_id` keys. This allows users to use `scion config set hub.project_id <id>` or `scion config set hub.grove_id <id>` interchangeably with the existing camelCase keys.
+Updated `UpdateVersionedSetting` and `GetVersionedSettingValue` in `pkg/config/settings_v1.go` to support `hub.project_id` and `hub.grove_id` keys. This allows users to use `fabric config set hub.project_id <id>` or `fabric config set hub.grove_id <id>` interchangeably with the existing camelCase keys.
 
 ### 3. V1 Settings Schema Update
-Updated `pkg/config/schemas/settings-v1.schema.json` to promote `project_id` as the primary property name for identifying projects with the Hub. Added a note that `grove_id` is still accepted for backward compatibility. The primary environment variable for this field is now documented as `SCION_HUB_PROJECT_ID`.
+Updated `pkg/config/schemas/settings-v1.schema.json` to promote `project_id` as the primary property name for identifying projects with the Hub. Added a note that `grove_id` is still accepted for backward compatibility. The primary environment variable for this field is now documented as `FABRIC_HUB_PROJECT_ID`.
 
 ## Verification Results
 

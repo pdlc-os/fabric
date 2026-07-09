@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // httpHubClient implements HubClient using HTTP calls to the Hub API.
@@ -19,7 +19,7 @@ type httpHubClient struct {
 	httpClient *http.Client
 }
 
-// NewHTTPHubClient creates a new HubClient that calls the Scion Hub API.
+// NewHTTPHubClient creates a new HubClient that calls the Fabric Hub API.
 func NewHTTPHubClient(hubURL, hmacKey, brokerID string) HubClient {
 	return &httpHubClient{
 		hubURL:     hubURL,

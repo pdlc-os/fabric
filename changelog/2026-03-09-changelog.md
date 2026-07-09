@@ -1,12 +1,12 @@
 # Release Notes (Mar 9, 2026)
 
-This release marks a significant milestone with the official transition of the project to the Google Cloud Platform organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Scion CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
+This release marks a significant milestone with the official transition of the project to the Google Cloud Platform organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Fabric CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
 
 ## ⚠️ BREAKING CHANGES
-* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/scion-agent` to `github.com/GoogleCloudPlatform/scion`. All internal package imports and external references have been updated to reflect the transition to the Google Cloud Platform organization.
+* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/fabric-agent` to `github.com/pdlc-os/fabric`. All internal package imports and external references have been updated to reflect the transition to the Google Cloud Platform organization.
 
 ## 🚀 Features
-* **Autonomous In-Container CLI:** Enabled the Scion CLI within agent containers, providing agents with the ability to interact with the Hub API natively using their provisioned authenticated service context.
+* **Autonomous In-Container CLI:** Enabled the Fabric CLI within agent containers, providing agents with the ability to interact with the Hub API natively using their provisioned authenticated service context.
 * **Admin User Activity Tracking:** Introduced "Last Seen" timestamps and sortable columns to the Admin Users dashboard to improve system administration and audit capabilities.
 * **Enhanced Event Integrity:** Refined the Server-Sent Event (SSE) pipeline to ensure full agent snapshots are sent in `created` events, preventing incomplete UI states during high-concurrency creation.
 

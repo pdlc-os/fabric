@@ -26,11 +26,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -81,7 +81,7 @@ func TestAgentStatusUpdate_Authorization(t *testing.T) {
 		}
 		body, _ := json.Marshal(status)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent1.ID+"/status", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token1)
+		req.Header.Set("X-Fabric-Agent-Token", token1)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -102,7 +102,7 @@ func TestAgentStatusUpdate_Authorization(t *testing.T) {
 		}
 		body, _ := json.Marshal(status)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent2.ID+"/status", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token1)
+		req.Header.Set("X-Fabric-Agent-Token", token1)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -113,7 +113,7 @@ func TestAgentStatusUpdate_Authorization(t *testing.T) {
 
 	t.Run("Agent 1 cannot perform lifecycle actions", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent1.ID+"/stop", nil)
-		req.Header.Set("X-Scion-Agent-Token", token1)
+		req.Header.Set("X-Fabric-Agent-Token", token1)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -481,7 +481,7 @@ func TestAgentCreateAgent_WithScope(t *testing.T) {
 			Task:      "do something",
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -519,7 +519,7 @@ func TestAgentCreateAgent_WithScope(t *testing.T) {
 			ProjectID: otherProject.ID,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -540,7 +540,7 @@ func TestAgentCreateAgent_WithScope(t *testing.T) {
 			ProjectID: project.ID,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -593,7 +593,7 @@ func TestAgentLifecycle_WithScope(t *testing.T) {
 		require.NoError(t, err)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+targetAgent.ID+"/stop", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -627,7 +627,7 @@ func TestAgentLifecycle_WithScope(t *testing.T) {
 		require.NoError(t, err)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+otherAgent.ID+"/stop", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -643,7 +643,7 @@ func TestAgentLifecycle_WithScope(t *testing.T) {
 		require.NoError(t, err)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+targetAgent.ID+"/stop", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -707,7 +707,7 @@ func TestAgentGetAgent_ProjectIsolation(t *testing.T) {
 
 	t.Run("Agent can GET details of agents in same project", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/agents/"+agent2SameProject.ID, nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -717,7 +717,7 @@ func TestAgentGetAgent_ProjectIsolation(t *testing.T) {
 
 	t.Run("Agent cannot GET details of agents in different project", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/agents/"+agentOtherProject.ID, nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -727,7 +727,7 @@ func TestAgentGetAgent_ProjectIsolation(t *testing.T) {
 
 	t.Run("Agent cannot access workspace operations", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/agents/"+agent2SameProject.ID+"/workspace", nil)
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, req)
@@ -1027,7 +1027,7 @@ func TestCreateAgent_ProvisionOnlyRetriesVersionConflict(t *testing.T) {
 }
 
 func TestCreateAgent_StartsWithoutTask(t *testing.T) {
-	// When ProvisionOnly is false (scion start), the agent should be started
+	// When ProvisionOnly is false (fabric start), the agent should be started
 	// even if no task is provided — the template may have a built-in prompt.
 	disp := &createAgentDispatcher{createPhase: string(state.PhaseRunning)}
 	srv, _, project := setupCreateAgentServer(t, disp)
@@ -1050,7 +1050,7 @@ func TestCreateAgent_StartsWithoutTask(t *testing.T) {
 }
 
 func TestCreateAgent_ProvisionOnlyStaysCreated(t *testing.T) {
-	// When ProvisionOnly is true (scion create), the agent should not start.
+	// When ProvisionOnly is true (fabric create), the agent should not start.
 	disp := &createAgentDispatcher{createPhase: string(state.PhaseRunning)}
 	srv, _, project := setupCreateAgentServer(t, disp)
 
@@ -1442,7 +1442,7 @@ func TestAgentCreate_LocalTemplateWithLocalBroker(t *testing.T) {
 		ProjectID:  project.ID,
 		BrokerID:   broker.ID,
 		BrokerName: broker.Name,
-		LocalPath:  "/home/user/project/.scion",
+		LocalPath:  "/home/user/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	require.NoError(t, s.AddProjectProvider(ctx, provider))
@@ -1724,8 +1724,8 @@ func TestCreateAgent_GitAnchoredProjectPopulatesGitClone(t *testing.T) {
 		Slug:      "git-project",
 		GitRemote: "github.com/example/myrepo",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      "https://github.com/example/myrepo.git",
-			"scion.dev/default-branch": "develop",
+			"fabric.dev/clone-url":      "https://github.com/example/myrepo.git",
+			"fabric.dev/default-branch": "develop",
 		},
 		DefaultRuntimeBrokerID: tid("broker-create"),
 	}
@@ -1798,8 +1798,8 @@ func TestCreateProjectAgent_GitAnchoredProjectPopulatesGitClone(t *testing.T) {
 		Slug:      "git-project-scoped",
 		GitRemote: "github.com/example/myrepo",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      "https://github.com/example/myrepo.git",
-			"scion.dev/default-branch": "develop",
+			"fabric.dev/clone-url":      "https://github.com/example/myrepo.git",
+			"fabric.dev/default-branch": "develop",
 		},
 		DefaultRuntimeBrokerID: tid("broker-create"),
 	}
@@ -1867,7 +1867,7 @@ func TestCreateAgent_GitProjectCloneURLFallback(t *testing.T) {
 	srv, s, _ := setupCreateAgentServer(t, disp)
 	ctx := context.Background()
 
-	// Create a project with GitRemote but WITHOUT the scion.dev/clone-url label.
+	// Create a project with GitRemote but WITHOUT the fabric.dev/clone-url label.
 	// The URL should be constructed from gitRemote as "https://<gitRemote>.git".
 	gitProject := &store.Project{
 		ID:        tid("project-git-fallback-url"),
@@ -1875,7 +1875,7 @@ func TestCreateAgent_GitProjectCloneURLFallback(t *testing.T) {
 		Slug:      "git-project-fallback-url",
 		GitRemote: "github.com/example/fallback-repo",
 		Labels: map[string]string{
-			"scion.dev/default-branch": "develop",
+			"fabric.dev/default-branch": "develop",
 		},
 		DefaultRuntimeBrokerID: tid("broker-create"),
 	}
@@ -1908,7 +1908,7 @@ func TestCreateAgent_GitProjectCloneURLFallback(t *testing.T) {
 
 	// clone-url label is missing, so URL should be constructed from GitRemote
 	assert.Equal(t, "https://github.com/example/fallback-repo.git", persisted.AppliedConfig.GitClone.URL,
-		"clone URL should be constructed from gitRemote when scion.dev/clone-url label is absent")
+		"clone URL should be constructed from gitRemote when fabric.dev/clone-url label is absent")
 	assert.Equal(t, "develop", persisted.AppliedConfig.GitClone.Branch)
 	assert.Equal(t, 1, persisted.AppliedConfig.GitClone.Depth)
 }
@@ -1926,8 +1926,8 @@ func TestCreateAgent_GitProjectSchemelessCloneURL(t *testing.T) {
 		Slug:      "git-project-schemeless",
 		GitRemote: "github.com/example/schemeless-repo",
 		Labels: map[string]string{
-			"scion.dev/clone-url":      "github.com/example/schemeless-repo",
-			"scion.dev/default-branch": "main",
+			"fabric.dev/clone-url":      "github.com/example/schemeless-repo",
+			"fabric.dev/default-branch": "main",
 		},
 		DefaultRuntimeBrokerID: tid("broker-create"),
 	}
@@ -1977,7 +1977,7 @@ func TestCreateAgent_GitProjectDefaultBranchFallback(t *testing.T) {
 		Slug:      "git-project-fallback-branch",
 		GitRemote: "github.com/example/branch-repo",
 		Labels: map[string]string{
-			"scion.dev/clone-url": "https://github.com/example/branch-repo.git",
+			"fabric.dev/clone-url": "https://github.com/example/branch-repo.git",
 		},
 		DefaultRuntimeBrokerID: tid("broker-create"),
 	}
@@ -2011,7 +2011,7 @@ func TestCreateAgent_GitProjectDefaultBranchFallback(t *testing.T) {
 	assert.Equal(t, "https://github.com/example/branch-repo.git", persisted.AppliedConfig.GitClone.URL)
 	// default-branch label is missing, so branch should default to "main"
 	assert.Equal(t, "main", persisted.AppliedConfig.GitClone.Branch,
-		"branch should default to 'main' when scion.dev/default-branch label is absent")
+		"branch should default to 'main' when fabric.dev/default-branch label is absent")
 	assert.Equal(t, 1, persisted.AppliedConfig.GitClone.Depth)
 }
 
@@ -2053,7 +2053,7 @@ func TestCreateAgent_ProfileStoredWithConfigOverride(t *testing.T) {
 		ProjectID: project.ID,
 		Profile:   "other-profile",
 		Task:      "do something",
-		Config:    &api.ScionConfig{Image: "custom-image:latest"},
+		Config:    &api.FabricConfig{Image: "custom-image:latest"},
 	})
 
 	require.Equal(t, http.StatusCreated, rec.Code)
@@ -2072,17 +2072,17 @@ func TestCreateAgent_ProfileStoredWithConfigOverride(t *testing.T) {
 	assert.Equal(t, "other-profile", persisted.AppliedConfig.Profile)
 }
 
-func TestCreateAgent_ScionConfigInlineConfigPreserved(t *testing.T) {
+func TestCreateAgent_FabricConfigInlineConfigPreserved(t *testing.T) {
 	disp := &createAgentDispatcher{createPhase: string(state.PhaseRunning)}
 	srv, s, project := setupCreateAgentServer(t, disp)
 	ctx := context.Background()
 
-	// Create an agent with a full ScionConfig including fields beyond the old AgentConfigOverride
+	// Create an agent with a full FabricConfig including fields beyond the old AgentConfigOverride
 	rec := doRequest(t, srv, http.MethodPost, "/api/v1/agents", CreateAgentRequest{
 		Name:      "inline-config-agent",
 		ProjectID: project.ID,
 		Task:      "review code",
-		Config: &api.ScionConfig{
+		Config: &api.FabricConfig{
 			Image:            "custom:latest",
 			Model:            "claude-opus-4-6",
 			Env:              map[string]string{"FOO": "bar"},
@@ -2122,7 +2122,7 @@ func TestCreateAgent_ScionConfigInlineConfigPreserved(t *testing.T) {
 	assert.Equal(t, "You are a code reviewer.", persisted.AppliedConfig.InlineConfig.SystemPrompt)
 }
 
-func TestCreateAgent_ScionConfigTaskFieldMerge(t *testing.T) {
+func TestCreateAgent_FabricConfigTaskFieldMerge(t *testing.T) {
 	disp := &createAgentDispatcher{createPhase: string(state.PhaseRunning)}
 	srv, _, project := setupCreateAgentServer(t, disp)
 
@@ -2131,7 +2131,7 @@ func TestCreateAgent_ScionConfigTaskFieldMerge(t *testing.T) {
 		Name:      "task-merge-agent",
 		ProjectID: project.ID,
 		Task:      "request-level task",
-		Config: &api.ScionConfig{
+		Config: &api.FabricConfig{
 			Task: "config-level task",
 		},
 	})
@@ -2146,7 +2146,7 @@ func TestCreateAgent_ScionConfigTaskFieldMerge(t *testing.T) {
 		"Request-level task should take precedence over config-level task")
 }
 
-func TestCreateAgent_ScionConfigTaskFromConfigOnly(t *testing.T) {
+func TestCreateAgent_FabricConfigTaskFromConfigOnly(t *testing.T) {
 	disp := &createAgentDispatcher{createPhase: string(state.PhaseRunning)}
 	srv, _, project := setupCreateAgentServer(t, disp)
 
@@ -2154,7 +2154,7 @@ func TestCreateAgent_ScionConfigTaskFromConfigOnly(t *testing.T) {
 	rec := doRequest(t, srv, http.MethodPost, "/api/v1/agents", CreateAgentRequest{
 		Name:      "task-config-only-agent",
 		ProjectID: project.ID,
-		Config: &api.ScionConfig{
+		Config: &api.FabricConfig{
 			Task: "config-only task",
 		},
 	})
@@ -2871,7 +2871,7 @@ func TestCreateAgent_NotifyCreatesSubscription(t *testing.T) {
 			Notify:    true,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -2914,7 +2914,7 @@ func TestCreateAgent_NotifyCreatesSubscription(t *testing.T) {
 			Notify:    false,
 		})
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-		req.Header.Set("X-Scion-Agent-Token", token)
+		req.Header.Set("X-Fabric-Agent-Token", token)
 		req.Header.Set("Content-Type", "application/json")
 
 		rec := httptest.NewRecorder()
@@ -3006,7 +3006,7 @@ func TestCreateAgent_NotifySubscriptionCascadeOnDelete(t *testing.T) {
 		Notify:    true,
 	})
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()
@@ -3097,7 +3097,7 @@ func TestBrokerHeartbeat_PublishesActivitySSE(t *testing.T) {
 // TestBrokerHeartbeat_ContainerExitedDerivesCrash verifies that a broker
 // heartbeat reporting a non-zero container exit code is mapped to PhaseError
 // (with the exit code recorded), while a clean (zero) exit maps to PhaseStopped.
-// This works even if sciontool's own crash report never reached the hub.
+// This works even if fabrictool's own crash report never reached the hub.
 func TestBrokerHeartbeat_ContainerExitedDerivesCrash(t *testing.T) {
 	cases := []struct {
 		name            string
@@ -4527,8 +4527,8 @@ func TestCreateAgent_GCPIdentityBlockOverridesProjectDefault(t *testing.T) {
 
 	// Set project defaults to assign the service account
 	project.Annotations = map[string]string{
-		"scion.io/default-gcp-identity-mode":               "assign",
-		"scion.io/default-gcp-identity-service-account-id": sa.ID,
+		"fabric.io/default-gcp-identity-mode":               "assign",
+		"fabric.io/default-gcp-identity-service-account-id": sa.ID,
 	}
 	require.NoError(t, s.UpdateProject(ctx, project))
 
@@ -4573,8 +4573,8 @@ func TestCreateAgent_GCPIdentityProjectDefaultApplied(t *testing.T) {
 
 	// Set project defaults to assign the service account
 	project.Annotations = map[string]string{
-		"scion.io/default-gcp-identity-mode":               "assign",
-		"scion.io/default-gcp-identity-service-account-id": sa.ID,
+		"fabric.io/default-gcp-identity-mode":               "assign",
+		"fabric.io/default-gcp-identity-service-account-id": sa.ID,
 	}
 	require.NoError(t, s.UpdateProject(ctx, project))
 
@@ -4612,7 +4612,7 @@ func TestPreserveTerminalPhase(t *testing.T) {
 		}
 		require.NoError(t, s.CreateAgent(ctx, agent))
 
-		// Simulate sciontool reporting error via UpdateAgentStatus (concurrent update)
+		// Simulate fabrictool reporting error via UpdateAgentStatus (concurrent update)
 		require.NoError(t, s.UpdateAgentStatus(ctx, agent.ID, store.AgentStatusUpdate{
 			Phase:   string(state.PhaseError),
 			Message: "git clone failed: no GITHUB_TOKEN",
@@ -4850,7 +4850,7 @@ func TestAgentStatusUpdate_RejectsPhaseRegression(t *testing.T) {
 	status := store.AgentStatusUpdate{Phase: string(state.PhaseStarting)}
 	body, _ := json.Marshal(status)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent.ID+"/status", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()
@@ -4889,7 +4889,7 @@ func TestAgentStatusUpdate_ActivityAutoCorrectsPhase(t *testing.T) {
 	status := store.AgentStatusUpdate{Activity: string(state.ActivityWorking)}
 	body, _ := json.Marshal(status)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent.ID+"/status", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()
@@ -4951,7 +4951,7 @@ func TestBrokerHeartbeat_RejectsPhaseRegression(t *testing.T) {
 }
 
 // TestAgentStatusUpdate_SuspendedIsStickyAgainstStatusPost verifies that a
-// dying container's async sciontool /status POST (phase=stopped,
+// dying container's async fabrictool /status POST (phase=stopped,
 // activity=crashed) cannot clobber a suspended agent's phase. If it did, a
 // subsequent /start would not see suspended and would skip the harness
 // --continue (resume) flag.
@@ -4980,7 +4980,7 @@ func TestAgentStatusUpdate_SuspendedIsStickyAgainstStatusPost(t *testing.T) {
 	}
 	body, _ := json.Marshal(status)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/agents/"+agent.ID+"/status", bytes.NewReader(body))
-	req.Header.Set("X-Scion-Agent-Token", token)
+	req.Header.Set("X-Fabric-Agent-Token", token)
 	req.Header.Set("Content-Type", "application/json")
 
 	rec := httptest.NewRecorder()

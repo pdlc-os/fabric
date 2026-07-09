@@ -17,8 +17,8 @@ package secret
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // LocalBackend implements SecretBackend using the local store.SecretStore.

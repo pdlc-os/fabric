@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
@@ -51,7 +51,7 @@ func TestBuildPod_WorkspaceVolume_LocalBackend_EmptyDir(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-local",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		// WorkspaceBackendName defaults to "" (local)
 	}
 
@@ -95,9 +95,9 @@ func TestBuildPod_WorkspaceVolume_NFSBackend_PVCWithSubPath(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace",
 	}
 
@@ -114,8 +114,8 @@ func TestBuildPod_WorkspaceVolume_NFSBackend_PVCWithSubPath(t *testing.T) {
 			if v.PersistentVolumeClaim == nil {
 				t.Fatalf("NFS backend: workspace volume should be PVC, got %+v", v.VolumeSource)
 			}
-			if v.PersistentVolumeClaim.ClaimName != "scion-workspaces" {
-				t.Errorf("PVC claimName = %q, want %q", v.PersistentVolumeClaim.ClaimName, "scion-workspaces")
+			if v.PersistentVolumeClaim.ClaimName != "fabric-workspaces" {
+				t.Errorf("PVC claimName = %q, want %q", v.PersistentVolumeClaim.ClaimName, "fabric-workspaces")
 			}
 			if v.EmptyDir != nil {
 				t.Errorf("NFS backend: workspace volume should NOT be EmptyDir")
@@ -145,7 +145,7 @@ func TestBuildPod_WorkspaceVolume_NFSWithoutPVCName_FallsBackToEmptyDir(t *testi
 	config := RunConfig{
 		Name:                 "test-nfs-no-pvc",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
 		// NFSPVClaimName is empty
 	}
@@ -169,7 +169,7 @@ func TestBuildPod_NoInitContainers_LocalBackend(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-local",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := r.buildPod("default", config)
@@ -189,9 +189,9 @@ func TestBuildPod_NFSBackend_InitContainer_Present(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-init",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace",
 		GitCloneForInit: &api.GitCloneConfig{
 			URL:    "https://github.com/example/repo.git",
@@ -240,8 +240,8 @@ func TestBuildPod_NFSBackend_InitContainer_Present(t *testing.T) {
 		t.Errorf("init container workspace subPath = %q, want %q", wsMount.SubPath, "projects/proj-123/workspace")
 	}
 
-	// Command must invoke sciontool provision (not sh -c)
-	assert.Equal(t, "sciontool", ic.Command[0], "init container should invoke sciontool")
+	// Command must invoke fabrictool provision (not sh -c)
+	assert.Equal(t, "fabrictool", ic.Command[0], "init container should invoke fabrictool")
 	assert.Equal(t, "provision", ic.Command[1], "init container should invoke provision subcommand")
 	// URL must NOT appear in the command args (injection safety)
 	for _, arg := range ic.Command {
@@ -253,18 +253,18 @@ func TestBuildPod_NFSBackend_InitContainer_Present(t *testing.T) {
 	// Verify env vars are set on the container (URL/branch via env, not args)
 	var hasURL, hasBranch bool
 	for _, env := range ic.Env {
-		if env.Name == "SCION_CLONE_URL" && env.Value == "https://github.com/example/repo.git" {
+		if env.Name == "FABRIC_CLONE_URL" && env.Value == "https://github.com/example/repo.git" {
 			hasURL = true
 		}
-		if env.Name == "SCION_CLONE_BRANCH" && env.Value == "main" {
+		if env.Name == "FABRIC_CLONE_BRANCH" && env.Value == "main" {
 			hasBranch = true
 		}
 	}
 	if !hasURL {
-		t.Error("init container missing SCION_CLONE_URL env var")
+		t.Error("init container missing FABRIC_CLONE_URL env var")
 	}
 	if !hasBranch {
-		t.Error("init container missing SCION_CLONE_BRANCH env var")
+		t.Error("init container missing FABRIC_CLONE_BRANCH env var")
 	}
 }
 
@@ -273,9 +273,9 @@ func TestBuildPod_NFSBackend_NoInitContainer_WhenNoGitClone(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-no-git",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace",
 		// GitCloneForInit is nil — no init container expected
 	}
@@ -295,7 +295,7 @@ func TestBuildPod_LocalBackend_NoInitContainer_EvenWithGitClone(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-local-git",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		// Local backend (no NFS fields)
 		GitCloneForInit: &api.GitCloneConfig{
 			URL: "https://github.com/example/repo.git",
@@ -321,7 +321,7 @@ func TestNFSProvisionCommand_ShallowClone(t *testing.T) {
 
 	cmd := nfsProvisionCommand(gc)
 
-	assert.Equal(t, "sciontool", cmd[0])
+	assert.Equal(t, "fabrictool", cmd[0])
 	assert.Equal(t, "provision", cmd[1])
 	assert.Contains(t, cmd, "--depth")
 	assert.Contains(t, cmd, "1")
@@ -335,7 +335,7 @@ func TestNFSProvisionCommand_ShallowClone(t *testing.T) {
 
 func TestNFSProvisionCommand_NilConfig(t *testing.T) {
 	cmd := nfsProvisionCommand(nil)
-	assert.Equal(t, []string{"sciontool", "provision"}, cmd)
+	assert.Equal(t, []string{"fabrictool", "provision"}, cmd)
 }
 
 func TestNFSProvisionCommand_FullClone(t *testing.T) {
@@ -346,7 +346,7 @@ func TestNFSProvisionCommand_FullClone(t *testing.T) {
 
 	cmd := nfsProvisionCommand(gc)
 
-	assert.Equal(t, "sciontool", cmd[0])
+	assert.Equal(t, "fabrictool", cmd[0])
 	assert.Equal(t, "provision", cmd[1])
 	assert.Contains(t, cmd, "--depth")
 	assert.Contains(t, cmd, "-1")
@@ -360,9 +360,9 @@ func TestNFSProvisionEnv(t *testing.T) {
 		}
 		envs := nfsProvisionEnv(gc)
 		require.Len(t, envs, 2)
-		assert.Equal(t, "SCION_CLONE_URL", envs[0].Name)
+		assert.Equal(t, "FABRIC_CLONE_URL", envs[0].Name)
 		assert.Equal(t, gc.URL, envs[0].Value)
-		assert.Equal(t, "SCION_CLONE_BRANCH", envs[1].Name)
+		assert.Equal(t, "FABRIC_CLONE_BRANCH", envs[1].Name)
 		assert.Equal(t, gc.Branch, envs[1].Value)
 	})
 
@@ -372,7 +372,7 @@ func TestNFSProvisionEnv(t *testing.T) {
 		}
 		envs := nfsProvisionEnv(gc)
 		require.Len(t, envs, 1)
-		assert.Equal(t, "SCION_CLONE_URL", envs[0].Name)
+		assert.Equal(t, "FABRIC_CLONE_URL", envs[0].Name)
 	})
 
 	t.Run("nil config returns nil", func(t *testing.T) {
@@ -413,9 +413,9 @@ func nfsBaseConfig(name string) RunConfig {
 	return RunConfig{
 		Name:                 name,
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace",
 		ProjectID:            "proj-123",
 		GitCloneForInit: &api.GitCloneConfig{
@@ -445,8 +445,8 @@ func TestBuildPod_NFSLockWinner_InjectsCloneInitContainer(t *testing.T) {
 		t.Errorf("init container name = %q, want %q", ic.Name, "workspace-provision")
 	}
 
-	// Winner must invoke sciontool provision (clone mode, no --wait-for-sentinel)
-	assert.Equal(t, "sciontool", ic.Command[0])
+	// Winner must invoke fabrictool provision (clone mode, no --wait-for-sentinel)
+	assert.Equal(t, "fabrictool", ic.Command[0])
 	assert.Equal(t, "provision", ic.Command[1])
 	assert.False(t, hasFlag(ic.Command, "--wait-for-sentinel"),
 		"winner should NOT have --wait-for-sentinel flag")
@@ -460,18 +460,18 @@ func TestBuildPod_NFSLockWinner_InjectsCloneInitContainer(t *testing.T) {
 	// Verify env vars are set on the init container
 	var hasURL, hasBranch bool
 	for _, env := range ic.Env {
-		if env.Name == "SCION_CLONE_URL" && env.Value == "https://github.com/example/repo.git" {
+		if env.Name == "FABRIC_CLONE_URL" && env.Value == "https://github.com/example/repo.git" {
 			hasURL = true
 		}
-		if env.Name == "SCION_CLONE_BRANCH" && env.Value == "main" {
+		if env.Name == "FABRIC_CLONE_BRANCH" && env.Value == "main" {
 			hasBranch = true
 		}
 	}
 	if !hasURL {
-		t.Error("init container missing SCION_CLONE_URL env var")
+		t.Error("init container missing FABRIC_CLONE_URL env var")
 	}
 	if !hasBranch {
-		t.Error("init container missing SCION_CLONE_BRANCH env var")
+		t.Error("init container missing FABRIC_CLONE_BRANCH env var")
 	}
 }
 
@@ -494,8 +494,8 @@ func TestBuildPod_NFSLockLoser_InjectsWaitInitContainer(t *testing.T) {
 		t.Errorf("init container name = %q, want %q", ic.Name, "workspace-provision")
 	}
 
-	// Loser must invoke sciontool provision --wait-for-sentinel
-	assert.Equal(t, "sciontool", ic.Command[0])
+	// Loser must invoke fabrictool provision --wait-for-sentinel
+	assert.Equal(t, "fabrictool", ic.Command[0])
 	assert.Equal(t, "provision", ic.Command[1])
 	assert.True(t, hasFlag(ic.Command, "--wait-for-sentinel"),
 		"loser should have --wait-for-sentinel flag")
@@ -517,7 +517,7 @@ func TestBuildPod_NFSNoLocker_InjectsCloneInitContainer(t *testing.T) {
 
 	ic := pod.Spec.InitContainers[0]
 	// No-locker: should get clone init command (provision without --wait-for-sentinel)
-	assert.Equal(t, "sciontool", ic.Command[0])
+	assert.Equal(t, "fabrictool", ic.Command[0])
 	assert.Equal(t, "provision", ic.Command[1])
 	assert.False(t, hasFlag(ic.Command, "--wait-for-sentinel"),
 		"no-locker: should get clone init command (sentinel-only fallback)")
@@ -528,7 +528,7 @@ func TestBuildPod_LocalBackend_LockLostIgnored(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-local-lockflag",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		nfsProvisionLockLost: true, // should be ignored for local backend
 	}
 
@@ -572,13 +572,13 @@ func TestBuildPod_NFSConcurrentProjects_IndependentLocks(t *testing.T) {
 		t.Fatalf("project B: expected 1 init container, got %d", len(podB.Spec.InitContainers))
 	}
 
-	// Both should be clone (winner) init containers — sciontool provision without --wait
+	// Both should be clone (winner) init containers — fabrictool provision without --wait
 	icA := podA.Spec.InitContainers[0]
 	icB := podB.Spec.InitContainers[0]
-	assert.Equal(t, "sciontool", icA.Command[0])
+	assert.Equal(t, "fabrictool", icA.Command[0])
 	assert.Equal(t, "provision", icA.Command[1])
 	assert.False(t, hasFlag(icA.Command, "--wait-for-sentinel"))
-	assert.Equal(t, "sciontool", icB.Command[0])
+	assert.Equal(t, "fabrictool", icB.Command[0])
 	assert.Equal(t, "provision", icB.Command[1])
 	assert.False(t, hasFlag(icB.Command, "--wait-for-sentinel"))
 }
@@ -607,13 +607,13 @@ func TestBuildPod_NFSSameProject_WinnerAndLoser(t *testing.T) {
 	winnerCmd := podWinner.Spec.InitContainers[0].Command
 	loserCmd := podLoser.Spec.InitContainers[0].Command
 
-	// Winner: sciontool provision (clone mode)
-	assert.Equal(t, "sciontool", winnerCmd[0])
+	// Winner: fabrictool provision (clone mode)
+	assert.Equal(t, "fabrictool", winnerCmd[0])
 	assert.Equal(t, "provision", winnerCmd[1])
 	assert.False(t, hasFlag(winnerCmd, "--wait-for-sentinel"))
 
-	// Loser: sciontool provision --wait-for-sentinel
-	assert.Equal(t, "sciontool", loserCmd[0])
+	// Loser: fabrictool provision --wait-for-sentinel
+	assert.Equal(t, "fabrictool", loserCmd[0])
 	assert.Equal(t, "provision", loserCmd[1])
 	assert.True(t, hasFlag(loserCmd, "--wait-for-sentinel"))
 }
@@ -679,7 +679,7 @@ func TestRun_NFSLockLost_CreatesWaitPod(t *testing.T) {
 	// When the lock is held by another node, the pod should have a
 	// wait-for-sentinel init container, not a cloning one.
 	r := newNFSTestK8sRuntime()
-	config := nfsBaseConfig("scion-test-lock-lost")
+	config := nfsBaseConfig("fabric-test-lock-lost")
 	config.Locker = &alwaysLoseLocker{}
 
 	// Run() will create the pod but waitForPodReady will time out with the
@@ -705,7 +705,7 @@ func TestRun_NFSLockLost_CreatesWaitPod(t *testing.T) {
 	}
 
 	cmd := pod.Spec.InitContainers[0].Command
-	assert.Equal(t, "sciontool", cmd[0])
+	assert.Equal(t, "fabrictool", cmd[0])
 	assert.Equal(t, "provision", cmd[1])
 	assert.True(t, hasFlag(cmd, "--wait-for-sentinel"),
 		"lock-lost pod should have --wait-for-sentinel flag")
@@ -715,7 +715,7 @@ func TestRun_NFSLockWon_CreatesClonePod(t *testing.T) {
 	// When the lock is won, the pod should have the cloning init container.
 	r := newNFSTestK8sRuntime()
 	locker := newTestLocker()
-	config := nfsBaseConfig("scion-test-lock-won")
+	config := nfsBaseConfig("fabric-test-lock-won")
 	config.Locker = locker
 
 	// Short-lived context to avoid blocking on waitForPodReady.
@@ -739,7 +739,7 @@ func TestRun_NFSLockWon_CreatesClonePod(t *testing.T) {
 	}
 
 	cmd := pod.Spec.InitContainers[0].Command
-	assert.Equal(t, "sciontool", cmd[0])
+	assert.Equal(t, "fabrictool", cmd[0])
 	assert.Equal(t, "provision", cmd[1])
 	assert.False(t, hasFlag(cmd, "--wait-for-sentinel"),
 		"lock-won pod should NOT have --wait-for-sentinel flag")
@@ -751,9 +751,9 @@ func TestRun_LocalBackend_NoLockAttempt(t *testing.T) {
 	r := newNFSTestK8sRuntime()
 	locker := &errorLocker{err: errors.New("should not be called")}
 	config := RunConfig{
-		Name:         "scion-test-local-nolock",
+		Name:         "fabric-test-local-nolock",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		ProjectID:    "proj-local",
 		Locker:       locker,
 		// No NFS fields → local backend
@@ -777,7 +777,7 @@ func TestBuildPod_FSGroup_LocalBackend_UsesHostGID(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-local-gid",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 	}
 
 	pod, err := r.buildPod("default", config)
@@ -801,9 +801,9 @@ func TestBuildPod_FSGroup_NFSBackend_UsesStableGID(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-gid",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSGID:               1000,
 	}
 
@@ -826,9 +826,9 @@ func TestBuildPod_FSGroup_NFSBackend_DefaultGID(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-default-gid",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		// NFSGID is 0 (unset) — should default to 1000
 	}
 
@@ -851,9 +851,9 @@ func TestBuildPod_FSGroup_NFSBackend_CustomGID(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-custom-gid",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSGID:               2000,
 	}
 
@@ -928,9 +928,9 @@ func TestBuildPod_SharedDirs_LocalBackend_SeparatePVCs(t *testing.T) {
 	config := RunConfig{
 		Name:         "test-local-shared",
 		Image:        "test-image",
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 		Labels: map[string]string{
-			"scion.grove": "my-project",
+			"fabric.grove": "my-project",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -952,11 +952,11 @@ func TestBuildPod_SharedDirs_LocalBackend_SeparatePVCs(t *testing.T) {
 	}
 
 	// PVC names should follow the sharedDirPVCName convention
-	if sd0Vol.PersistentVolumeClaim.ClaimName != "scion-shared-my-project-build-cache" {
-		t.Errorf("shared-dir-0 claimName = %q, want %q", sd0Vol.PersistentVolumeClaim.ClaimName, "scion-shared-my-project-build-cache")
+	if sd0Vol.PersistentVolumeClaim.ClaimName != "fabric-shared-my-project-build-cache" {
+		t.Errorf("shared-dir-0 claimName = %q, want %q", sd0Vol.PersistentVolumeClaim.ClaimName, "fabric-shared-my-project-build-cache")
 	}
-	if sd1Vol.PersistentVolumeClaim.ClaimName != "scion-shared-my-project-logs" {
-		t.Errorf("shared-dir-1 claimName = %q, want %q", sd1Vol.PersistentVolumeClaim.ClaimName, "scion-shared-my-project-logs")
+	if sd1Vol.PersistentVolumeClaim.ClaimName != "fabric-shared-my-project-logs" {
+		t.Errorf("shared-dir-1 claimName = %q, want %q", sd1Vol.PersistentVolumeClaim.ClaimName, "fabric-shared-my-project-logs")
 	}
 
 	// Mounts should NOT have subPath for local backend
@@ -974,12 +974,12 @@ func TestBuildPod_SharedDirs_NFSBackend_UsesNFSSubPaths(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-shared",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace",
 		Labels: map[string]string{
-			"scion.grove": "my-project",
+			"fabric.grove": "my-project",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -1001,11 +1001,11 @@ func TestBuildPod_SharedDirs_NFSBackend_UsesNFSSubPaths(t *testing.T) {
 	}
 
 	// Both should reference the workspace NFS PVC
-	if sd0Vol.PersistentVolumeClaim.ClaimName != "scion-workspaces" {
-		t.Errorf("shared-dir-0 claimName = %q, want %q", sd0Vol.PersistentVolumeClaim.ClaimName, "scion-workspaces")
+	if sd0Vol.PersistentVolumeClaim.ClaimName != "fabric-workspaces" {
+		t.Errorf("shared-dir-0 claimName = %q, want %q", sd0Vol.PersistentVolumeClaim.ClaimName, "fabric-workspaces")
 	}
-	if sd1Vol.PersistentVolumeClaim.ClaimName != "scion-workspaces" {
-		t.Errorf("shared-dir-1 claimName = %q, want %q", sd1Vol.PersistentVolumeClaim.ClaimName, "scion-workspaces")
+	if sd1Vol.PersistentVolumeClaim.ClaimName != "fabric-workspaces" {
+		t.Errorf("shared-dir-1 claimName = %q, want %q", sd1Vol.PersistentVolumeClaim.ClaimName, "fabric-workspaces")
 	}
 
 	// Mounts should have NFS subPaths
@@ -1071,7 +1071,7 @@ func TestNFSSharedDirSubPath(t *testing.T) {
 func TestProjectRWXClaimName(t *testing.T) {
 	// Test the generalized naming helper
 	got := projectRWXClaimName("my-project", "shared", "build-cache")
-	want := "scion-shared-my-project-build-cache"
+	want := "fabric-shared-my-project-build-cache"
 	if got != want {
 		t.Errorf("projectRWXClaimName = %q, want %q", got, want)
 	}
@@ -1093,10 +1093,10 @@ func TestCreateSharedDirPVCs_NFSBackend_SkipsPVCCreation(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		Labels: map[string]string{
-			"scion.grove":    "my-project",
-			"scion.grove_id": "proj-123",
+			"fabric.grove":    "my-project",
+			"fabric.grove_id": "proj-123",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -1128,8 +1128,8 @@ func TestCreateSharedDirPVCs_LocalBackend_CreatesPVCs(t *testing.T) {
 	config := RunConfig{
 		Name: "test-local",
 		Labels: map[string]string{
-			"scion.grove":    "my-project",
-			"scion.grove_id": "proj-123",
+			"fabric.grove":    "my-project",
+			"fabric.grove_id": "proj-123",
 		},
 		SharedDirs: []api.SharedDir{
 			{Name: "build-cache"},
@@ -1156,11 +1156,11 @@ func TestCreateSharedDirPVCs_LocalBackend_CreatesPVCs(t *testing.T) {
 	for _, pvc := range pvcs.Items {
 		pvcNames[pvc.Name] = true
 	}
-	if !pvcNames["scion-shared-my-project-build-cache"] {
-		t.Error("missing PVC scion-shared-my-project-build-cache")
+	if !pvcNames["fabric-shared-my-project-build-cache"] {
+		t.Error("missing PVC fabric-shared-my-project-build-cache")
 	}
-	if !pvcNames["scion-shared-my-project-logs"] {
-		t.Error("missing PVC scion-shared-my-project-logs")
+	if !pvcNames["fabric-shared-my-project-logs"] {
+		t.Error("missing PVC fabric-shared-my-project-logs")
 	}
 }
 
@@ -1171,9 +1171,9 @@ func TestBuildPod_NFSBackend_WorktreeSubPath_StillRouted(t *testing.T) {
 	config := RunConfig{
 		Name:                 "test-nfs-worktree",
 		Image:                "test-image",
-		UnixUsername:         "scion",
+		UnixUsername:         "fabric",
 		WorkspaceBackendName: "nfs",
-		NFSPVClaimName:       "scion-workspaces",
+		NFSPVClaimName:       "fabric-workspaces",
 		NFSSubPath:           "projects/proj-123/workspace/worktrees/agent-1",
 		GitCloneForInit: &api.GitCloneConfig{
 			URL:    "https://github.com/org/repo.git",
@@ -1188,7 +1188,7 @@ func TestBuildPod_NFSBackend_WorktreeSubPath_StillRouted(t *testing.T) {
 	require.NotNil(t, wsVol, "workspace volume must exist")
 	require.NotNil(t, wsVol.PersistentVolumeClaim,
 		"NFS worktree backend must use PVC, not EmptyDir")
-	assert.Equal(t, "scion-workspaces", wsVol.PersistentVolumeClaim.ClaimName)
+	assert.Equal(t, "fabric-workspaces", wsVol.PersistentVolumeClaim.ClaimName)
 
 	wsMount := findVolumeMount(&pod.Spec.Containers[0], "workspace")
 	require.NotNil(t, wsMount, "workspace mount must exist")

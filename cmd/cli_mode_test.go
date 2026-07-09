@@ -46,10 +46,10 @@ func TestResolveMode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				t.Setenv("SCION_CLI_MODE", tt.envValue)
+				t.Setenv("FABRIC_CLI_MODE", tt.envValue)
 			} else {
-				t.Setenv("SCION_CLI_MODE", "")
-				_ = os.Unsetenv("SCION_CLI_MODE")
+				t.Setenv("FABRIC_CLI_MODE", "")
+				_ = os.Unsetenv("FABRIC_CLI_MODE")
 			}
 			mode := resolveMode()
 			assert.Equal(t, tt.expected, mode)
@@ -57,10 +57,10 @@ func TestResolveMode(t *testing.T) {
 	}
 }
 
-// buildTestTree creates a command tree mimicking a subset of the real scion CLI
+// buildTestTree creates a command tree mimicking a subset of the real fabric CLI
 // for testing mode filtering.
 func buildTestTree() *cobra.Command {
-	root := &cobra.Command{Use: "scion"}
+	root := &cobra.Command{Use: "fabric"}
 
 	// Top-level commands
 	for _, name := range []string{
@@ -223,7 +223,7 @@ func collectCommandNames(root *cobra.Command) []string {
 }
 
 func TestApplyModeRestrictions_Human(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "human")
+	t.Setenv("FABRIC_CLI_MODE", "human")
 	root := buildTestTree()
 	before := collectCommandNames(root)
 	applyModeRestrictions(root)
@@ -232,7 +232,7 @@ func TestApplyModeRestrictions_Human(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_Assistant(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "assistant")
+	t.Setenv("FABRIC_CLI_MODE", "assistant")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
@@ -268,7 +268,7 @@ func TestApplyModeRestrictions_Assistant(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_Agent(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
@@ -314,7 +314,7 @@ func TestApplyModeRestrictions_Agent(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_AgentConfigRemoved(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
@@ -326,7 +326,7 @@ func TestApplyModeRestrictions_AgentConfigRemoved(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_AgentScheduleSubcommands(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
@@ -347,7 +347,7 @@ func TestApplyModeRestrictions_AgentScheduleSubcommands(t *testing.T) {
 func TestApplyModeRestrictions_HelpAlwaysKept(t *testing.T) {
 	for _, mode := range []string{"human", "assistant", "agent"} {
 		t.Run(mode, func(t *testing.T) {
-			t.Setenv("SCION_CLI_MODE", mode)
+			t.Setenv("FABRIC_CLI_MODE", mode)
 			root := buildTestTree()
 			applyModeRestrictions(root)
 			remaining := collectCommandNames(root)
@@ -357,13 +357,13 @@ func TestApplyModeRestrictions_HelpAlwaysKept(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_CompletionRemovedInAgentMode(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
 	assert.NotContains(t, remaining, "completion")
 
-	t.Setenv("SCION_CLI_MODE", "assistant")
+	t.Setenv("FABRIC_CLI_MODE", "assistant")
 	root = buildTestTree()
 	applyModeRestrictions(root)
 	remaining = collectCommandNames(root)
@@ -371,7 +371,7 @@ func TestApplyModeRestrictions_CompletionRemovedInAgentMode(t *testing.T) {
 }
 
 func TestApplyModeRestrictions_TemplateAlias(t *testing.T) {
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	root := buildTestTree()
 	applyModeRestrictions(root)
 	remaining := collectCommandNames(root)
@@ -451,7 +451,7 @@ func TestAgentAllowedList(t *testing.T) {
 
 func TestResolveModeEnvOverridesSettings(t *testing.T) {
 	// Even if settings would return "assistant", env var wins
-	t.Setenv("SCION_CLI_MODE", "agent")
+	t.Setenv("FABRIC_CLI_MODE", "agent")
 	mode := resolveMode()
 	require.Equal(t, ModeAgent, mode)
 }

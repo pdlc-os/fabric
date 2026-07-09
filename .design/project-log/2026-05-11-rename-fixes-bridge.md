@@ -5,10 +5,10 @@ Implemented fixes for A2A bridge messaging and minor rename issues identified in
 ## Changes
 
 ### 1. A2A Bridge Messaging (Critical)
-- Updated `extras/scion-a2a-bridge/internal/bridge/bridge.go`:
-    - `SendMessage` now requests subscriptions for both `scion.project.*` and legacy `scion.grove.*` topics.
-    - `parseTopic` and `extractProjectIDFromTopic` updated to handle both `scion.project` and `scion.grove` prefixes in broker topics.
-- This ensures the bridge continues to receive messages even if the Hub still publishes to `scion.grove` topics during the transition.
+- Updated `extras/fabric-a2a-bridge/internal/bridge/bridge.go`:
+    - `SendMessage` now requests subscriptions for both `fabric.project.*` and legacy `fabric.grove.*` topics.
+    - `parseTopic` and `extractProjectIDFromTopic` updated to handle both `fabric.project` and `fabric.grove` prefixes in broker topics.
+- This ensures the bridge continues to receive messages even if the Hub still publishes to `fabric.grove` topics during the transition.
 
 ### 2. ResolvedSecret.MarshalJSON (Low)
 - Updated `pkg/api/types.go`:
@@ -21,6 +21,6 @@ Implemented fixes for A2A bridge messaging and minor rename issues identified in
 
 ## Verification Results
 - Main repository build: `go build ./...` passed.
-- A2A bridge build: `cd extras/scion-a2a-bridge && go build ./...` passed.
+- A2A bridge build: `cd extras/fabric-a2a-bridge && go build ./...` passed.
 - Topic mismatch confirmed via grep before implementation.
-- All changes committed to `scion/rename-strategy` branch.
+- All changes committed to `fabric/rename-strategy` branch.

@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/runtimebroker"
+	"github.com/pdlc-os/fabric/pkg/ent/runtimebroker"
 	"github.com/google/uuid"
 )
 

@@ -77,8 +77,8 @@ interface UpdateCheckResult {
   new_commits?: UpdateCommitInfo[];
 }
 
-@customElement('scion-page-admin-maintenance')
-export class ScionPageAdminMaintenance extends LitElement {
+@customElement('fabric-page-admin-maintenance')
+export class FabricPageAdminMaintenance extends LitElement {
   @state()
   private loading = true;
 
@@ -157,14 +157,14 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -180,7 +180,7 @@ export class ScionPageAdminMaintenance extends LitElement {
       position: relative;
       width: 36px;
       height: 20px;
-      background: var(--scion-border, #e2e8f0);
+      background: var(--fabric-border, #e2e8f0);
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.2s ease;
@@ -190,11 +190,11 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .maintenance-mode-toggle .toggle-track:hover {
-      background: var(--scion-text-muted, #94a3b8);
+      background: var(--fabric-text-muted, #94a3b8);
     }
 
     .maintenance-mode-toggle .toggle-track.active {
-      background: var(--scion-warning, #f59e0b);
+      background: var(--fabric-warning, #f59e0b);
     }
 
     .maintenance-mode-toggle .toggle-track.active:hover {
@@ -220,15 +220,15 @@ export class ScionPageAdminMaintenance extends LitElement {
     .maintenance-mode-toggle .toggle-label {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     /* -- Sections --------------------------------------------------------- */
 
     .section {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -236,13 +236,13 @@ export class ScionPageAdminMaintenance extends LitElement {
     .section-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .section-description {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
@@ -255,8 +255,8 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .card {
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 1.25rem;
     }
 
@@ -273,7 +273,7 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .card-header sl-icon.pending {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .card-header sl-icon.completed {
@@ -285,19 +285,19 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .card-header sl-icon.running {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .card-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       flex: 1;
     }
 
     .card-description {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       line-height: 1.5;
       margin-bottom: 0.75rem;
     }
@@ -307,7 +307,7 @@ export class ScionPageAdminMaintenance extends LitElement {
       gap: 1.5rem;
       flex-wrap: wrap;
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .card-meta span {
@@ -327,16 +327,16 @@ export class ScionPageAdminMaintenance extends LitElement {
 
     .result-log {
       margin-top: 0.75rem;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.8125rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       white-space: pre-wrap;
       word-break: break-word;
       max-height: 300px;
       overflow-y: auto;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .result-error {
@@ -413,7 +413,7 @@ export class ScionPageAdminMaintenance extends LitElement {
       overflow-y: auto;
       font-family: var(--sl-font-mono, monospace);
       line-height: 1.5;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .update-check-commits .commit-hash {
@@ -434,7 +434,7 @@ export class ScionPageAdminMaintenance extends LitElement {
       align-items: center;
       gap: 0.25rem;
       font-size: 0.8125rem;
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       cursor: pointer;
       border: none;
       background: none;
@@ -465,15 +465,15 @@ export class ScionPageAdminMaintenance extends LitElement {
     .run-history-table th {
       text-align: left;
       padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
-      color: var(--scion-text-muted, #64748b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
       font-weight: 500;
     }
 
     .run-history-table td {
       padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid var(--scion-border-subtle, #f1f5f9);
-      color: var(--scion-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border-subtle, #f1f5f9);
+      color: var(--fabric-text, #1e293b);
     }
 
     .run-history-table tr {
@@ -481,7 +481,7 @@ export class ScionPageAdminMaintenance extends LitElement {
     }
 
     .run-history-table tr:hover td {
-      background: var(--scion-bg-subtle, #f8fafc);
+      background: var(--fabric-bg-subtle, #f8fafc);
     }
 
     /* -- Dialog ----------------------------------------------------------- */
@@ -494,7 +494,7 @@ export class ScionPageAdminMaintenance extends LitElement {
 
     .dialog-body p {
       margin: 0;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       line-height: 1.5;
     }
@@ -504,7 +504,7 @@ export class ScionPageAdminMaintenance extends LitElement {
     .empty-inline {
       padding: 1.5rem;
       text-align: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
 
@@ -516,7 +516,7 @@ export class ScionPageAdminMaintenance extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -527,9 +527,9 @@ export class ScionPageAdminMaintenance extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -541,21 +541,21 @@ export class ScionPageAdminMaintenance extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -1464,6 +1464,6 @@ export class ScionPageAdminMaintenance extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-maintenance': ScionPageAdminMaintenance;
+    'fabric-page-admin-maintenance': FabricPageAdminMaintenance;
   }
 }

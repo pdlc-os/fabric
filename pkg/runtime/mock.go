@@ -17,7 +17,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 type MockRuntime struct {
@@ -44,7 +44,7 @@ func (m *MockRuntime) Name() string {
 }
 
 func (m *MockRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 func (m *MockRuntime) Run(ctx context.Context, config RunConfig) (string, error) {

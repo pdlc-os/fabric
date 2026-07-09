@@ -2,7 +2,7 @@
 
 > **2026-02-19 — NATS approach abandoned.** This walkthrough documents testing for the NATS-based SSE pipeline, which is being replaced by an in-process Go channel design (`ChannelEventPublisher`). The Koa BFF is being consolidated into the Go binary, eliminating NATS as a runtime dependency. See `.design/hosted/web-realtime.md` for the current design. This walkthrough remains as a historical reference for the Koa/NATS implementation while it is still in use during the migration.
 
-This guide provides step-by-step instructions for testing the NATS-to-SSE real-time event pipeline in the Scion Web Frontend (Milestones 7 and 8).
+This guide provides step-by-step instructions for testing the NATS-to-SSE real-time event pipeline in the Fabric Web Frontend (Milestones 7 and 8).
 
 ## Architecture Overview
 
@@ -34,7 +34,7 @@ The pipeline is unidirectional: NATS messages published by the Hub or Runtime Br
 
 ```bash
 # Run NATS locally via Docker
-docker run -d --name scion-nats -p 4222:4222 nats:latest
+docker run -d --name fabric-nats -p 4222:4222 nats:latest
 
 # Verify NATS is running
 nats server check connection --server nats://localhost:4222
@@ -52,7 +52,7 @@ curl -s telnet://localhost:4222 || echo "NATS listening on 4222"
 cd web
 
 # Minimal dev startup with NATS
-SCION_NATS_URL=nats://localhost:4222 DEV_AUTH=true npm run dev
+FABRIC_NATS_URL=nats://localhost:4222 DEV_AUTH=true npm run dev
 ```
 
 You should see output including:
@@ -72,8 +72,8 @@ And shortly after:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SCION_NATS_URL` | (none) | NATS server URL(s), comma-separated for clusters |
-| `NATS_URL` | (none) | Fallback if `SCION_NATS_URL` is not set |
+| `FABRIC_NATS_URL` | (none) | NATS server URL(s), comma-separated for clusters |
+| `NATS_URL` | (none) | Fallback if `FABRIC_NATS_URL` is not set |
 | `NATS_TOKEN` | (none) | Optional auth token for NATS connection |
 | `NATS_ENABLED` | `true` if URL set | Explicitly enable/disable NATS |
 | `NATS_MAX_RECONNECT` | `-1` (infinite) | Max reconnect attempts before giving up |
@@ -122,7 +122,7 @@ Expected when NATS is connected (HTTP 200):
 Stop the NATS container and retry:
 
 ```bash
-docker stop scion-nats
+docker stop fabric-nats
 curl -s -w "\nHTTP Status: %{http_code}\n" http://localhost:8080/readyz | jq
 ```
 
@@ -140,7 +140,7 @@ Expected (HTTP 503):
 Restart NATS and verify recovery:
 
 ```bash
-docker start scion-nats
+docker start fabric-nats
 # Wait a few seconds for reconnection
 sleep 3
 curl -s http://localhost:8080/readyz | jq
@@ -260,12 +260,12 @@ curl -s -H "Cookie: $SESSION_COOKIE" \
 **NATS unavailable (503):**
 
 ```bash
-docker stop scion-nats
+docker stop fabric-nats
 sleep 3
 curl -s -w "\nHTTP Status: %{http_code}\n" \
   -H "Cookie: $SESSION_COOKIE" \
   "http://localhost:8080/events?sub=grove.test.>" | jq
-docker start scion-nats
+docker start fabric-nats
 ```
 
 ```json
@@ -400,9 +400,9 @@ These are SSE comments (prefixed with `:`) — ignored by `EventSource` but keep
 ### 6.3 NATS Reconnection
 
 1. Open an SSE connection (T2)
-2. Stop NATS: `docker stop scion-nats`
+2. Stop NATS: `docker stop fabric-nats`
 3. Observe web server logs showing `[NATS] Disconnected` and `[NATS] Reconnecting...`
-4. Restart NATS: `docker start scion-nats`
+4. Restart NATS: `docker start fabric-nats`
 5. Observe `[NATS] Reconnected` in web server logs
 6. Publish a new message via T3 — it should arrive in T2's SSE stream
 
@@ -503,10 +503,10 @@ nats pub grove.test-grove.agent.deleted \
 ### 8.5 Reconnection Behavior
 
 1. Open a grove page in the browser
-2. Stop the NATS container: `docker stop scion-nats`
+2. Stop the NATS container: `docker stop fabric-nats`
 3. Open browser console — observe `[SSE] Reconnecting in Xms (attempt N)` messages
 4. Verify exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (capped)
-5. Restart NATS: `docker start scion-nats`
+5. Restart NATS: `docker start fabric-nats`
 6. Verify `[SSE] Connected` appears and events resume
 
 ### 8.6 Page Unload Cleanup
@@ -590,11 +590,11 @@ Server closed successfully
 
 ```bash
 # 1. Start NATS
-docker run -d --name scion-nats -p 4222:4222 nats:latest
+docker run -d --name fabric-nats -p 4222:4222 nats:latest
 
 # 2. Start web server
 cd web
-SCION_NATS_URL=nats://localhost:4222 DEV_AUTH=true npm run dev
+FABRIC_NATS_URL=nats://localhost:4222 DEV_AUTH=true npm run dev
 
 # 3. Get session cookie
 SESSION_COOKIE=$(curl -s -D - http://localhost:8080/ 2>&1 \
@@ -621,5 +621,5 @@ curl -s -H "Cookie: $SESSION_COOKIE" "http://localhost:8080/events?sub=>" | jq  
 
 # 8. Cleanup
 kill $SSE_PID
-docker stop scion-nats && docker rm scion-nats
+docker stop fabric-nats && docker rm fabric-nats
 ```

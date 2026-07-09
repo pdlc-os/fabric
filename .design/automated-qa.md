@@ -7,7 +7,7 @@
 
 ## Overview
 
-This document proposes methodologies and user journey test plans for systematic QA of the Scion platform. The goal is to complement existing unit tests (268+ Go test files) with structured integration and user-journey testing across both CLI and Web interfaces.
+This document proposes methodologies and user journey test plans for systematic QA of the Fabric platform. The goal is to complement existing unit tests (268+ Go test files) with structured integration and user-journey testing across both CLI and Web interfaces.
 
 The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) demonstrated the value of exercising real UI flows end-to-end. This proposal expands that approach into a repeatable framework covering the full platform surface.
 
@@ -17,7 +17,7 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 ### M1: Agent-Driven CLI Testing (Self-Hostable)
 
-**How it works:** A Scion agent (or scripted automation) runs CLI commands against a locally-built `scion` binary, validates output, and checks side effects (files created, config modified, containers started/stopped).
+**How it works:** A Fabric agent (or scripted automation) runs CLI commands against a locally-built `fabric` binary, validates output, and checks side effects (files created, config modified, containers started/stopped).
 
 **Environment:** Build and run everything locally. The agent has access to `make build` to produce a fresh binary before each test run.
 
@@ -35,7 +35,7 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 ### M2: Agent-Driven Hub Server Testing (Self-Hostable)
 
-**How it works:** Build the binary, start a hub server in workstation mode (`scion server start --foreground --enable-hub --dev-auth`), then exercise CLI commands and HTTP API calls against it. The agent runs the server as a background process and tests against `localhost`.
+**How it works:** Build the binary, start a hub server in workstation mode (`fabric server start --foreground --enable-hub --dev-auth`), then exercise CLI commands and HTTP API calls against it. The agent runs the server as a background process and tests against `localhost`.
 
 **Environment:** Requires the ability to bind ports and run the server process. Uses dev-auth to bypass OAuth.
 
@@ -87,7 +87,7 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 ### M5: Agent-as-User Dogfooding (Self-Hosted)
 
-**How it works:** Use Scion to test Scion. Start agents via the CLI, attach to them, send messages, sync workspaces, and observe the full lifecycle. This is the most realistic test methodology but also the most complex.
+**How it works:** Use Fabric to test Fabric. Start agents via the CLI, attach to them, send messages, sync workspaces, and observe the full lifecycle. This is the most realistic test methodology but also the most complex.
 
 **Environment:** Requires Docker runtime and the ability to run containers.
 
@@ -112,14 +112,14 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 1.1 | Fresh grove init | `scion init` in empty dir → verify `.scion/` structure, default templates, settings.yaml |
-| 1.2 | Re-init existing grove | `scion init` in dir with existing `.scion/` → verify no data loss, idempotent behavior |
-| 1.3 | Global grove operations | `scion --global init` → verify `~/.scion/` setup |
-| 1.4 | Grove discovery | Create nested dirs with `.scion/` → verify resolution order (flag > local > global) |
-| 1.5 | Config get/set | `scion config set key value` → `scion config get key` roundtrip |
-| 1.6 | Settings validation | `scion config validate` with valid/invalid settings.yaml |
-| 1.7 | Grove list & prune | Create groves → `scion grove list` → delete dir → `scion grove prune` |
-| 1.8 | Grove reconnect | Move project dir → `scion grove reconnect` → verify config updated |
+| 1.1 | Fresh grove init | `fabric init` in empty dir → verify `.fabric/` structure, default templates, settings.yaml |
+| 1.2 | Re-init existing grove | `fabric init` in dir with existing `.fabric/` → verify no data loss, idempotent behavior |
+| 1.3 | Global grove operations | `fabric --global init` → verify `~/.fabric/` setup |
+| 1.4 | Grove discovery | Create nested dirs with `.fabric/` → verify resolution order (flag > local > global) |
+| 1.5 | Config get/set | `fabric config set key value` → `fabric config get key` roundtrip |
+| 1.6 | Settings validation | `fabric config validate` with valid/invalid settings.yaml |
+| 1.7 | Grove list & prune | Create groves → `fabric grove list` → delete dir → `fabric grove prune` |
+| 1.8 | Grove reconnect | Move project dir → `fabric grove reconnect` → verify config updated |
 
 ---
 
@@ -131,14 +131,14 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 2.1 | List default templates | `scion templates list` → verify built-in templates present |
-| 2.2 | Create custom template | `scion templates create --name foo --harness claude` → verify files created |
-| 2.3 | Clone template | `scion templates clone base-template new-template` → verify independent copy |
-| 2.4 | Delete template | `scion templates delete foo` → verify removed, cannot start agent with it |
-| 2.5 | Template import | `scion templates import <path>` → verify template registered |
-| 2.6 | Hub template sync | `scion template sync` → verify template registered in hub |
+| 2.1 | List default templates | `fabric templates list` → verify built-in templates present |
+| 2.2 | Create custom template | `fabric templates create --name foo --harness claude` → verify files created |
+| 2.3 | Clone template | `fabric templates clone base-template new-template` → verify independent copy |
+| 2.4 | Delete template | `fabric templates delete foo` → verify removed, cannot start agent with it |
+| 2.5 | Template import | `fabric templates import <path>` → verify template registered |
+| 2.6 | Hub template sync | `fabric template sync` → verify template registered in hub |
 | 2.7 | Hub template push/pull | Push template files → pull on another grove → verify contents match |
-| 2.8 | Template status | `scion template status` → verify shows sync state |
+| 2.8 | Template status | `fabric template status` → verify shows sync state |
 
 ---
 
@@ -150,19 +150,19 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 3.1 | Create agent | `scion create agent-name` → verify agent directory, worktree, config |
-| 3.2 | Start agent | `scion start agent-name` → verify container running, status updates |
-| 3.3 | List agents | Start multiple agents → `scion list` → verify all shown with status |
-| 3.4 | View agent logs | `scion logs agent-name` → verify log output |
-| 3.5 | Look at terminal | `scion look agent-name` → verify terminal snapshot |
-| 3.6 | Send message | `scion message agent-name "hello"` → verify delivery |
-| 3.7 | Attach/detach | `scion attach agent-name` → interact → detach → verify agent continues |
-| 3.8 | Stop agent | `scion stop agent-name` → verify container stopped, status updated |
-| 3.9 | Resume agent | `scion resume agent-name` → verify container restarted |
-| 3.10 | Delete agent | `scion delete agent-name` → verify cleanup (container, worktree) |
-| 3.11 | Soft delete & restore | `scion delete --soft agent-name` → `scion restore agent-name` |
-| 3.12 | Sync workspace | `scion sync agent-name` → verify files pulled back |
-| 3.13 | Create with inline config | `scion start --set key=value agent-name` → verify config applied |
+| 3.1 | Create agent | `fabric create agent-name` → verify agent directory, worktree, config |
+| 3.2 | Start agent | `fabric start agent-name` → verify container running, status updates |
+| 3.3 | List agents | Start multiple agents → `fabric list` → verify all shown with status |
+| 3.4 | View agent logs | `fabric logs agent-name` → verify log output |
+| 3.5 | Look at terminal | `fabric look agent-name` → verify terminal snapshot |
+| 3.6 | Send message | `fabric message agent-name "hello"` → verify delivery |
+| 3.7 | Attach/detach | `fabric attach agent-name` → interact → detach → verify agent continues |
+| 3.8 | Stop agent | `fabric stop agent-name` → verify container stopped, status updated |
+| 3.9 | Resume agent | `fabric resume agent-name` → verify container restarted |
+| 3.10 | Delete agent | `fabric delete agent-name` → verify cleanup (container, worktree) |
+| 3.11 | Soft delete & restore | `fabric delete --soft agent-name` → `fabric restore agent-name` |
+| 3.12 | Sync workspace | `fabric sync agent-name` → verify files pulled back |
+| 3.13 | Create with inline config | `fabric start --set key=value agent-name` → verify config applied |
 | 3.14 | Multiple agents isolation | Start 2 agents → verify separate worktrees and branches |
 
 ---
@@ -175,13 +175,13 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 4.1 | Dev auth login | `scion hub auth login` with dev token → verify credentials stored |
-| 4.2 | Hub status | `scion hub status` → verify connection info displayed |
-| 4.3 | Hub enable/disable | `scion hub enable` → verify config → `scion hub disable` → verify removed |
-| 4.4 | Hub link/unlink | `scion hub link` → verify grove registered → `scion hub unlink` |
-| 4.5 | Token management | `scion hub token create` → `list` → `revoke` → `delete` |
-| 4.6 | Env var management | `scion hub env set KEY=val` → `get KEY` → `list` → `clear` |
-| 4.7 | Secret management | `scion hub secret set KEY=val` → `get KEY` → `list` → `clear` |
+| 4.1 | Dev auth login | `fabric hub auth login` with dev token → verify credentials stored |
+| 4.2 | Hub status | `fabric hub status` → verify connection info displayed |
+| 4.3 | Hub enable/disable | `fabric hub enable` → verify config → `fabric hub disable` → verify removed |
+| 4.4 | Hub link/unlink | `fabric hub link` → verify grove registered → `fabric hub unlink` |
+| 4.5 | Token management | `fabric hub token create` → `list` → `revoke` → `delete` |
+| 4.6 | Env var management | `fabric hub env set KEY=val` → `get KEY` → `list` → `clear` |
+| 4.7 | Secret management | `fabric hub secret set KEY=val` → `get KEY` → `list` → `clear` |
 | 4.8 | OAuth login (external) | Browser-based OAuth flow with real provider → verify session |
 
 ---
@@ -194,12 +194,12 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 5.1 | Create agent via hub | `scion create agent-name` (hub-enabled) → verify hub record + broker dispatch |
-| 5.2 | Start via hub | `scion start agent-name` → verify dispatch to broker, container started |
-| 5.3 | Stop via hub | `scion stop agent-name` → verify dispatch, container stopped |
-| 5.4 | Delete via hub | `scion delete agent-name` → verify hub record removed, broker cleanup |
-| 5.5 | Attach via hub | `scion attach agent-name` → verify WebSocket PTY relay works |
-| 5.6 | Logs via hub | `scion logs agent-name` → verify log retrieval through hub |
+| 5.1 | Create agent via hub | `fabric create agent-name` (hub-enabled) → verify hub record + broker dispatch |
+| 5.2 | Start via hub | `fabric start agent-name` → verify dispatch to broker, container started |
+| 5.3 | Stop via hub | `fabric stop agent-name` → verify dispatch, container stopped |
+| 5.4 | Delete via hub | `fabric delete agent-name` → verify hub record removed, broker cleanup |
+| 5.5 | Attach via hub | `fabric attach agent-name` → verify WebSocket PTY relay works |
+| 5.6 | Logs via hub | `fabric logs agent-name` → verify log retrieval through hub |
 | 5.7 | Broker heartbeat | Start broker → verify heartbeat appears in hub, status healthy |
 | 5.8 | Broker disconnect | Stop broker → verify hub marks broker offline |
 
@@ -214,10 +214,10 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 | ID | Journey | Key Steps |
 |----|---------|-----------|
 | 6.1 | Server start modes | Start with `--enable-hub`, `--enable-broker`, both → verify components active |
-| 6.2 | Server status | `scion server status` → verify reports running components |
-| 6.3 | Server stop | `scion server stop` → verify graceful shutdown |
-| 6.4 | Server restart | `scion server restart` → verify PID changes, state preserved |
-| 6.5 | Workstation mode | `scion server start --enable-hub --enable-broker` → verify combo server |
+| 6.2 | Server status | `fabric server status` → verify reports running components |
+| 6.3 | Server stop | `fabric server stop` → verify graceful shutdown |
+| 6.4 | Server restart | `fabric server restart` → verify PID changes, state preserved |
+| 6.5 | Workstation mode | `fabric server start --enable-hub --enable-broker` → verify combo server |
 | 6.6 | Health endpoint | `curl /healthz` → verify composite health response |
 | 6.7 | Metrics endpoint | `curl /metrics` → verify Prometheus metrics emitted |
 
@@ -352,10 +352,10 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 14.1 | Subscribe to notifications | `scion notifications subscribe` → verify subscription created |
+| 14.1 | Subscribe to notifications | `fabric notifications subscribe` → verify subscription created |
 | 14.2 | Receive notification | Trigger event → verify notification delivered |
-| 14.3 | Acknowledge notification | `scion notifications ack` → verify cleared |
-| 14.4 | Create schedule | `scion schedule create` → verify cron job registered |
+| 14.3 | Acknowledge notification | `fabric notifications ack` → verify cleared |
+| 14.4 | Create schedule | `fabric schedule create` → verify cron job registered |
 | 14.5 | Schedule triggers agent | Set up schedule → wait for trigger → verify agent started |
 
 ---
@@ -368,9 +368,9 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 15.1 | Add shared dir | `scion shared-dir add <path>` → verify mount config |
-| 15.2 | List shared dirs | `scion shared-dir list` → verify all listed |
-| 15.3 | Remove shared dir | `scion shared-dir remove <path>` → verify removed |
+| 15.1 | Add shared dir | `fabric shared-dir add <path>` → verify mount config |
+| 15.2 | List shared dirs | `fabric shared-dir list` → verify all listed |
+| 15.3 | Remove shared dir | `fabric shared-dir remove <path>` → verify removed |
 | 15.4 | GitHub app setup page | Navigate to `/github-app/installed` → verify setup instructions shown |
 
 ---
@@ -383,12 +383,12 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 16.1 | Unknown command | `scion nonexistent` → verify helpful error message |
-| 16.2 | Missing required args | `scion start` (no name) → verify usage displayed |
-| 16.3 | Agent not found | `scion logs nonexistent` → verify clean error |
-| 16.4 | Hub unreachable | `scion hub status` with bad URL → verify timeout/error message |
+| 16.1 | Unknown command | `fabric nonexistent` → verify helpful error message |
+| 16.2 | Missing required args | `fabric start` (no name) → verify usage displayed |
+| 16.3 | Agent not found | `fabric logs nonexistent` → verify clean error |
+| 16.4 | Hub unreachable | `fabric hub status` with bad URL → verify timeout/error message |
 | 16.5 | Double start | Start already-running agent → verify idempotent or clear error |
-| 16.6 | Delete running agent | `scion delete running-agent` → verify prompt or `--force` required |
+| 16.6 | Delete running agent | `fabric delete running-agent` → verify prompt or `--force` required |
 | 16.7 | Invalid config | Set malformed settings.yaml → verify graceful error on commands |
 | 16.8 | Concurrent operations | Start multiple agents simultaneously → verify no race conditions |
 
@@ -402,9 +402,9 @@ The recent manual QA of the admin settings UI (see `admin-settings-ui-qa.md`) de
 
 | ID | Journey | Key Steps |
 |----|---------|-----------|
-| 17.1 | Doctor check | `scion doctor` → verify checks runtime, dependencies, config |
-| 17.2 | Version output | `scion version` → verify version, commit hash, build info |
-| 17.3 | Help output | `scion --help`, `scion start --help` → verify complete, well-formatted |
+| 17.1 | Doctor check | `fabric doctor` → verify checks runtime, dependencies, config |
+| 17.2 | Version output | `fabric version` → verify version, commit hash, build info |
+| 17.3 | Help output | `fabric --help`, `fabric start --help` → verify complete, well-formatted |
 | 17.4 | Shell completions | Generate completions for bash/zsh → verify valid syntax |
 
 ---

@@ -39,7 +39,7 @@ Web sessions use HTTP-only cookies with the following properties:
 
 ```typescript
 const sessionConfig = {
-  name: 'scion:sess',
+  name: 'fabric:sess',
   maxAge: 24 * 60 * 60 * 1000,  // 24 hours
   httpOnly: true,
   secure: true,                  // HTTPS only in production

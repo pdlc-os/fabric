@@ -35,7 +35,7 @@
 <g id="node2" class="node">
 <title>CLI</title>
 <polygon fill="lightblue" stroke="black" points="330.58,-366 247.08,-366 247.08,-330 330.58,-330 330.58,-366"/>
-<text xml:space="preserve" text-anchor="middle" x="288.83" y="-339.95" font-family="Times,serif" font-size="14.00">Scion CLI</text>
+<text xml:space="preserve" text-anchor="middle" x="288.83" y="-339.95" font-family="Times,serif" font-size="14.00">Fabric CLI</text>
 </g>
 <!-- LocalFS&#45;&gt;CLI -->
 <g id="edge1" class="edge">

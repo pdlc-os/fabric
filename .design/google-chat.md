@@ -1,4 +1,4 @@
-# Chat App Integration for Scion
+# Chat App Integration for Fabric
 
 **Created:** 2026-04-05
 **Status:** Draft
@@ -8,13 +8,13 @@
 
 ## Overview
 
-This design describes a standalone chat application that bridges enterprise chat platforms (Google Chat, Slack) with the Scion Hub. It acts as both a **message broker plugin** for real-time agent communication and an **API proxy** for operational commands — enabling users to interact with agents and manage groves directly from their chat workspace.
+This design describes a standalone chat application that bridges enterprise chat platforms (Google Chat, Slack) with the Fabric Hub. It acts as both a **message broker plugin** for real-time agent communication and an **API proxy** for operational commands — enabling users to interact with agents and manage groves directly from their chat workspace.
 
 The first implementation targets **Google Chat** using the `cloud.google.com/go/chat/apiv1` SDK. A second implementation will target **Slack**. Both share a common abstraction layer.
 
 ### Goals
 
-- Enable bidirectional messaging between chat users and Scion agents
+- Enable bidirectional messaging between chat users and Fabric agents
 - Support operational commands (start, stop, delete agents) via slash commands and @mentions
 - Map chat users to Hub users for authorized impersonation
 - Link chat spaces to groves for scoped interaction
@@ -37,11 +37,11 @@ The first implementation targets **Google Chat** using the `cloud.google.com/go/
 The chat app ships as a **separate Go module** under the `extras/` directory:
 
 ```
-extras/scion-chat-app/
-├── go.mod                    # github.com/GoogleCloudPlatform/scion/extras/scion-chat-app
+extras/fabric-chat-app/
+├── go.mod                    # github.com/pdlc-os/fabric/extras/fabric-chat-app
 ├── go.sum
 ├── cmd/
-│   └── scion-chat-app/
+│   └── fabric-chat-app/
 │       └── main.go           # Binary entrypoint
 ├── internal/
 │   ├── chatapp/              # Core engine, event router, command router
@@ -58,17 +58,17 @@ This keeps the Google Chat SDK (`cloud.google.com/go/chat/apiv1`) and future Sla
 
 ```go
 import (
-    "github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-    "github.com/GoogleCloudPlatform/scion/pkg/plugin"
-    "github.com/GoogleCloudPlatform/scion/pkg/secret"
-    "github.com/GoogleCloudPlatform/scion/pkg/messages"
+    "github.com/pdlc-os/fabric/pkg/hubclient"
+    "github.com/pdlc-os/fabric/pkg/plugin"
+    "github.com/pdlc-os/fabric/pkg/secret"
+    "github.com/pdlc-os/fabric/pkg/messages"
 )
 ```
 
 For local development, a `replace` directive in `go.mod` points to the repo root:
 
 ```
-replace github.com/GoogleCloudPlatform/scion => ../../
+replace github.com/pdlc-os/fabric => ../../
 ```
 
 ### System Diagram
@@ -81,8 +81,8 @@ replace github.com/GoogleCloudPlatform/scion => ../../
            │  Events (webhooks/WS)        │  API calls
            ▼                              ▲
 ┌──────────────────────────────────────────────────────────┐
-│                  scion-chat-app                           │
-│            (extras/scion-chat-app module)                 │
+│                  fabric-chat-app                           │
+│            (extras/fabric-chat-app module)                 │
 │                                                           │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────────┐  │
 │  │  Platform     │  │  Command     │  │  Notification  │  │
@@ -106,7 +106,7 @@ replace github.com/GoogleCloudPlatform/scion => ../../
                   │  HTTPS                      │  RPC
                   ▼                             ▼
            ┌─────────────────────────────────────────┐
-           │              Scion Hub                   │
+           │              Fabric Hub                   │
            │  ┌─────────────────┐ ┌────────────────┐  │
            │  │  HTTP Handlers  │ │ Plugin Manager │  │
            │  │                 │ │ (self-managed) │  │
@@ -116,7 +116,7 @@ replace github.com/GoogleCloudPlatform/scion => ../../
 
 ### Process Model
 
-The chat app runs as a **standalone long-lived process** (`scion-chat-app`), typically deployed alongside the Hub. It operates under three distinct identity contexts:
+The chat app runs as a **standalone long-lived process** (`fabric-chat-app`), typically deployed alongside the Hub. It operates under three distinct identity contexts:
 
 1. **Hub admin user** — A configured Hub user (typically an admin) used for system-level Hub API operations such as notification subscription management, grove lookups, and other administrative calls that are not on behalf of a specific chat user.
 2. **Operational environment account** — The GCP service account the chat app process runs as. This identity is used for accessing infrastructure resources like GCP Secret Manager (to read signing key material for minting UATs) and for structured logging. This is not a Hub identity — it is the machine-level credential.
@@ -143,7 +143,7 @@ This follows the **single-binary model** (Option C from `.design/chat-plugin-tra
 
 2. **Notification routing through broker** (Evolution 2) — When the broker plugin is active, the `NotificationDispatcher` routes user-targeted notifications through the broker's `Publish()` path. This avoids double-delivery and enables the chat app to render notifications as rich interactive cards.
 
-3. **Plugin-initiated subscriptions** (Evolution 1) — The chat app uses the `HostCallbacks` interface to dynamically subscribe to grove topics as spaces are linked. When a user runs `/scion link production`, the app calls `RequestSubscription()` to start receiving messages for that grove immediately.
+3. **Plugin-initiated subscriptions** (Evolution 1) — The chat app uses the `HostCallbacks` interface to dynamically subscribe to grove topics as spaces are linked. When a user runs `/fabric link production`, the app calls `RequestSubscription()` to start receiving messages for that grove immediately.
 
 The plugin interface remains a narrow transport contract (`Configure`, `Publish`, `Subscribe`, `Unsubscribe`, `Close`, `GetInfo`, `HealthCheck`). Everything beyond transport — card rendering, identity mapping, command parsing, dialog state — is application logic in the chat app binary, not extensions to the plugin API.
 
@@ -325,7 +325,7 @@ The chat app maintains a mapping between chat platform user IDs and Hub user acc
 type UserMapping struct {
     PlatformUserID string    // e.g., "users/12345" (Google) or "U0123ABC" (Slack)
     Platform       string    // "google_chat" or "slack"
-    HubUserID      string    // Scion Hub user ID
+    HubUserID      string    // Fabric Hub user ID
     HubUserEmail   string    // For display/verification
     RegisteredAt   time.Time
     RegisteredBy   string    // "auto" (email match) or "manual" (explicit registration)
@@ -335,10 +335,10 @@ type UserMapping struct {
 **Registration flow:**
 
 1. **Auto-register by email**: When a chat user first interacts, the app retrieves their email from the chat platform and looks up the Hub user by email. If found, the mapping is created automatically.
-2. **Manual registration**: Users can run `/scion register` to initiate explicit registration:
+2. **Manual registration**: Users can run `/fabric register` to initiate explicit registration:
    - The command first checks if the user's chat platform email matches an existing Hub user. If a match is found, the mapping is created immediately (short-circuit) and the user is notified — no device auth flow needed.
    - If no email match is found, the command falls back to a device authorization flow, similar to CLI login. The Hub issues a one-time code; the user confirms via the Hub UI.
-3. **Unregister**: `/scion unregister` removes the mapping.
+3. **Unregister**: `/fabric unregister` removes the mapping.
 
 ### Impersonation
 
@@ -360,7 +360,7 @@ For each request:
 
 ## Space-Grove Linking
 
-Chat spaces (Google Chat spaces, Slack channels) are linked to Scion groves. This scopes all interactions within a space to a specific grove.
+Chat spaces (Google Chat spaces, Slack channels) are linked to Fabric groves. This scopes all interactions within a space to a specific grove.
 
 ```go
 type SpaceLink struct {
@@ -374,13 +374,13 @@ type SpaceLink struct {
 ```
 
 **Linking:**
-- `/scion link <grove-slug>` — links the current space to a grove
+- `/fabric link <grove-slug>` — links the current space to a grove
 - Requires the user to be a grove admin or owner
 - One space maps to one grove (1:1)
 - A grove can be linked to multiple spaces (across platforms)
 
 **Unlinking:**
-- `/scion unlink` — removes the link
+- `/fabric unlink` — removes the link
 - Only grove admins/owners can unlink
 
 ---
@@ -391,21 +391,21 @@ type SpaceLink struct {
 
 | Command | Description | Hub API Call |
 |---------|-------------|-------------|
-| `/scion list` | List agents in linked grove | `AgentService.List()` |
-| `/scion create <agent>` | Create an agent (basic) | `AgentService.Create()` |
-| `/scion start <agent>` | Start an agent | `AgentService.Start()` |
-| `/scion stop <agent>` | Stop an agent | `AgentService.Stop()` |
-| `/scion delete <agent>` | Delete an agent | `AgentService.Delete()` |
-| `/scion status <agent>` | Show agent status card | `AgentService.Get()` |
-| `/scion logs <agent>` | Show recent agent logs | `AgentService.Logs()` |
-| `/scion register` | Register chat user to Hub account | Device auth flow |
-| `/scion unregister` | Remove user mapping | Local state |
-| `/scion link <slug>` | Link space to grove | `GroveService.Get()` + local state |
-| `/scion unlink` | Unlink space from grove | Local state |
-| `/scion subscribe <agent>` | Subscribe to agent notifications | Local state |
-| `/scion unsubscribe <agent>` | Unsubscribe from agent notifications | Local state |
-| `/scion message <agent> <text>` | Send a message to an agent | `AgentService.Message()` |
-| `/scion help` | Show available commands | Local |
+| `/fabric list` | List agents in linked grove | `AgentService.List()` |
+| `/fabric create <agent>` | Create an agent (basic) | `AgentService.Create()` |
+| `/fabric start <agent>` | Start an agent | `AgentService.Start()` |
+| `/fabric stop <agent>` | Stop an agent | `AgentService.Stop()` |
+| `/fabric delete <agent>` | Delete an agent | `AgentService.Delete()` |
+| `/fabric status <agent>` | Show agent status card | `AgentService.Get()` |
+| `/fabric logs <agent>` | Show recent agent logs | `AgentService.Logs()` |
+| `/fabric register` | Register chat user to Hub account | Device auth flow |
+| `/fabric unregister` | Remove user mapping | Local state |
+| `/fabric link <slug>` | Link space to grove | `GroveService.Get()` + local state |
+| `/fabric unlink` | Unlink space from grove | Local state |
+| `/fabric subscribe <agent>` | Subscribe to agent notifications | Local state |
+| `/fabric unsubscribe <agent>` | Unsubscribe from agent notifications | Local state |
+| `/fabric message <agent> <text>` | Send a message to an agent | `AgentService.Message()` |
+| `/fabric help` | Show available commands | Local |
 
 The `message` command accepts a `--thread <thread-id>` flag for replying within a specific thread. This flag should only be used when replying to a message that contains a thread ID (e.g., from a notification card or a previous agent response). The thread ID is included in the `StructuredMessage` payload so the agent can maintain conversational context.
 
@@ -416,7 +416,7 @@ Commands mirror CLI sub-command syntax. The command router parses identically to
 When a user @mentions the bot followed by text, the chat app routes the message to an agent:
 
 ```
-@Scion tell deploy-agent to check the staging cluster
+@Fabric tell deploy-agent to check the staging cluster
 ```
 
 **Routing logic:**
@@ -461,17 +461,17 @@ On startup and whenever a space-grove link is created, the chat app:
 4. On receiving a notification (via broker `Publish()`) or event (via SSE), maps it to the linked space(s) and renders a platform-appropriate card
 5. Includes @mentions for all users subscribed to the originating agent (see below)
 
-When a space is unlinked (`/scion unlink`), the chat app calls `HostCallbacks.CancelSubscription()` to stop receiving messages for that grove.
+When a space is unlinked (`/fabric unlink`), the chat app calls `HostCallbacks.CancelSubscription()` to stop receiving messages for that grove.
 
 ### User Agent Subscriptions
 
-Users can subscribe to notifications for specific agents via `/scion subscribe <agent>`. By default, all grove notifications are delivered to the linked space. Subscriptions control **who gets @mentioned** in notification cards, not whether the card appears.
+Users can subscribe to notifications for specific agents via `/fabric subscribe <agent>`. By default, all grove notifications are delivered to the linked space. Subscriptions control **who gets @mentioned** in notification cards, not whether the card appears.
 
 ```go
 type AgentSubscription struct {
     PlatformUserID string    // Chat platform user ID
     Platform       string
-    AgentID        string    // Scion agent ID
+    AgentID        string    // Fabric agent ID
     GroveID        string
     Activities     []string  // Filtered activity types (e.g., ["ERROR", "WAITING_FOR_INPUT"]); empty = all
     SubscribedAt   time.Time
@@ -483,9 +483,9 @@ When a notification fires, the relay:
 2. Renders the notification card with @mentions for each subscriber
 3. Users with no subscriptions receive cards without being mentioned
 
-This can be enabled or disabled per-user via `/scion subscribe` and `/scion unsubscribe`.
+This can be enabled or disabled per-user via `/fabric subscribe` and `/fabric unsubscribe`.
 
-When subscribing, the chat app presents a dialog with checkboxes allowing the user to select which activity types they want to be @mentioned for (e.g., `ERROR`, `WAITING_FOR_INPUT`, `COMPLETED`, `STALLED`, `LIMITS_EXCEEDED`). If no activities are selected, all activity types are included by default. Users can re-run `/scion subscribe <agent>` to update their activity filter.
+When subscribing, the chat app presents a dialog with checkboxes allowing the user to select which activity types they want to be @mentioned for (e.g., `ERROR`, `WAITING_FOR_INPUT`, `COMPLETED`, `STALLED`, `LIMITS_EXCEEDED`). If no activities are selected, all activity types are included by default. Users can re-run `/fabric subscribe <agent>` to update their activity filter.
 
 ### Notification Cards
 
@@ -572,7 +572,7 @@ Both Google Chat and Slack generate an implicit thread ID for every message post
 - **Every notification card or agent message** is posted as a new thread root in the linked space
 - **User replies** to a notification card or agent message are posted in that message's thread (using Google Chat thread keys or Slack `thread_ts`)
 - **Follow-up messages from the same agent conversation** are threaded under the original root message using the platform's native thread ID
-- The thread ID is stored as part of the `StructuredMessage` type, enabling agents to reply within a specific thread via the `scion message --thread <thread-id>` flag
+- The thread ID is stored as part of the `StructuredMessage` type, enabling agents to reply within a specific thread via the `fabric message --thread <thread-id>` flag
 
 This approach uses platform-native threading rather than a custom embedding scheme. It relies on the chat platform to handle thread grouping and UI — no best-effort heuristics needed. If threading behavior needs refinement for specific workflows, it can be tuned without changing the underlying mechanism.
 
@@ -594,7 +594,7 @@ Google Chat slash commands are registered in the GCP Console (Chat API configura
 
 | Command ID | Command | Description |
 |------------|---------|-------------|
-| 1 | `/scion` | Scion agent management |
+| 1 | `/fabric` | Fabric agent management |
 
 All subcommands are parsed from the `argumentText` field of the slash command event. This avoids needing to register each subcommand separately.
 
@@ -708,7 +708,7 @@ CREATE TABLE agent_subscriptions (
 The chat app is configured via a YAML file:
 
 ```yaml
-# scion-chat-app.yaml
+# fabric-chat-app.yaml
 
 hub:
   endpoint: "https://hub.example.com"
@@ -743,7 +743,7 @@ platforms:
 
 state:
   # Local SQLite for user mappings and space links
-  database: "/var/lib/scion-chat-app/state.db"
+  database: "/var/lib/fabric-chat-app/state.db"
 
 notifications:
   # Which agent activities to relay to chat
@@ -849,7 +849,7 @@ All impersonated API calls are logged with:
 
 ### Phase 1: Core Framework & Google Chat MVP
 
-- [x] Project scaffolding (`extras/scion-chat-app/` module with `cmd/`, `internal/` layout)
+- [x] Project scaffolding (`extras/fabric-chat-app/` module with `cmd/`, `internal/` layout)
 - [x] Broker plugin RPC server implementing `MessageBrokerPluginInterface`
 - [x] Self-managed plugin handshake (accept Hub plugin manager connection, `Configure()`)
 - [x] `HostCallbacks` integration for plugin-initiated subscriptions
@@ -858,14 +858,14 @@ All impersonated API calls are logged with:
 - [x] Command router with basic parsing
 - [x] State management (SQLite for user mappings, space links, agent subscriptions)
 - [x] User identity auto-registration (email match)
-- [x] Space-grove linking (`/scion link`) with `RequestSubscription()` calls
+- [x] Space-grove linking (`/fabric link`) with `RequestSubscription()` calls
 - [x] Basic commands: `list`, `status`, `start`, `stop`, `create`
 - [x] Notification relay via broker `Publish()` path (primary) and SSE (supplementary)
-- [x] User agent subscription (`/scion subscribe`, `/scion unsubscribe`)
+- [x] User agent subscription (`/fabric subscribe`, `/fabric unsubscribe`)
 
 ### Phase 2: Interactive Features & Threading
 
-- [x] Native platform threading (thread ID tracking, `--thread` flag on `scion message`)
+- [x] Native platform threading (thread ID tracking, `--thread` flag on `fabric message`)
 - [x] `ask_user` inline response flow (notification card with embedded response field)
 - [x] Agent log viewing
 - [x] Interactive card buttons (start, stop, acknowledge)
@@ -902,15 +902,15 @@ All impersonated API calls are logged with:
 
 3. **Multi-instance / HA**: Deferred. The MVP runs as a single instance. HA design will be addressed in a future iteration.
 
-4. **Agent creation from chat**: **Yes** — basic agent creation is supported via `/scion create <agent>`, but with limited complexity (no template browsing wizards or multi-step configuration dialogs).
+4. **Agent creation from chat**: **Yes** — basic agent creation is supported via `/fabric create <agent>`, but with limited complexity (no template browsing wizards or multi-step configuration dialogs).
 
 5. **Broadcast semantics**: Platform-dependent. In **Google Chat**, if no agent slug is found in the mention text, a dialog is presented to choose a target agent, broadcast, or cancel. In **Slack**, agents can be directly @mentioned by slug.
 
-6. **Message relay direction**: **Yes** — agent-to-user messages (non-notification) are relayed to chat. This is **toggleable per user** via a command (e.g., `/scion subscribe`/`/scion unsubscribe`).
+6. **Message relay direction**: **Yes** — agent-to-user messages (non-notification) are relayed to chat. This is **toggleable per user** via a command (e.g., `/fabric subscribe`/`/fabric unsubscribe`).
 
 7. **Identity model**: The chat app operates under three distinct identity contexts: a Hub admin user for system-level operations, a GCP service account (operational environment account) for secret backend access and logging, and impersonated Hub users for user-initiated actions.
 
-8. **Threading**: Native platform threading is used directly. Both Google Chat and Slack generate implicit thread IDs for every top-level message. The chat app uses these native thread IDs rather than a custom embedding scheme. The `scion message` command supports a `--thread` flag for replying within a specific thread. Thread IDs are included in the `StructuredMessage` type.
+8. **Threading**: Native platform threading is used directly. Both Google Chat and Slack generate implicit thread IDs for every top-level message. The chat app uses these native thread IDs rather than a custom embedding scheme. The `fabric message` command supports a `--thread` flag for replying within a specific thread. Thread IDs are included in the `StructuredMessage` type.
 
 9. **Notification delivery**: Notifications are routed through the broker plugin's `Publish()` path when the plugin is active (Evolution 2). The `ChannelRegistry` fallback is only used in deployments without a broker plugin. SSE is maintained as a supplementary path for events not covered by the notification system.
 
@@ -918,9 +918,9 @@ All impersonated API calls are logged with:
 
 11. **Notification activity filtering**: Per-activity-type filtering is supported. When subscribing, users are presented a dialog with checkboxes to select which activity types trigger @mentions. Empty selection defaults to all activities.
 
-12. **`/scion register` short-circuit**: The register command checks for email match first and short-circuits to auto-registration if found, only falling back to device auth flow when no match exists.
+12. **`/fabric register` short-circuit**: The register command checks for email match first and short-circuits to auto-registration if found, only falling back to device auth flow when no match exists.
 
-13. **Module location**: The chat app ships as a **separate Go module** under `extras/scion-chat-app/`, following the existing extras pattern (`docs-agent`, `fs-watcher-tool`, `agent-viz`). This keeps platform-specific SDKs (Google Chat, Slack) out of the main module's dependency tree. The module imports shared packages (`hubclient`, `plugin`, `secret`, `messages`) from the main `github.com/GoogleCloudPlatform/scion` module, using a `replace` directive for local development.
+13. **Module location**: The chat app ships as a **separate Go module** under `extras/fabric-chat-app/`, following the existing extras pattern (`docs-agent`, `fs-watcher-tool`, `agent-viz`). This keeps platform-specific SDKs (Google Chat, Slack) out of the main module's dependency tree. The module imports shared packages (`hubclient`, `plugin`, `secret`, `messages`) from the main `github.com/pdlc-os/fabric` module, using a `replace` directive for local development.
 
 ## Open Questions
 

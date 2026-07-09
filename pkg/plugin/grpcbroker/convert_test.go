@@ -17,8 +17,8 @@ package grpcbroker
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -127,7 +127,7 @@ func TestPluginInfoRoundTrip(t *testing.T) {
 	original := &plugin.PluginInfo{
 		Name:            "discord",
 		Version:         "1.2.3",
-		MinScionVersion: "0.5.0",
+		MinFabricVersion: "0.5.0",
 		ChannelID:       "discord",
 		Capabilities:    []string{"send", "receive", "webhooks"},
 	}
@@ -137,7 +137,7 @@ func TestPluginInfoRoundTrip(t *testing.T) {
 
 	assert.Equal(t, original.Name, roundTripped.Name)
 	assert.Equal(t, original.Version, roundTripped.Version)
-	assert.Equal(t, original.MinScionVersion, roundTripped.MinScionVersion)
+	assert.Equal(t, original.MinFabricVersion, roundTripped.MinFabricVersion)
 	assert.Equal(t, original.ChannelID, roundTripped.ChannelID)
 	assert.Equal(t, original.Capabilities, roundTripped.Capabilities)
 }

@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/secret"
 )
 
 func TestSecretMigrationExecutor_NoGCPBackend(t *testing.T) {
@@ -73,7 +73,7 @@ func TestRebuildServerExecutor_BuildsToStagingThenInstalls(t *testing.T) {
 	binDir := t.TempDir()
 	stubDir := t.TempDir()
 	logFile := filepath.Join(t.TempDir(), "commands.log")
-	binaryDest := filepath.Join(binDir, "scion")
+	binaryDest := filepath.Join(binDir, "fabric")
 
 	// Create stub scripts that record their invocation to a shared log file.
 	for _, cmd := range []string{"git", "make", "go", "sudo"} {
@@ -89,7 +89,7 @@ func TestRebuildServerExecutor_BuildsToStagingThenInstalls(t *testing.T) {
 	executor := &RebuildServerExecutor{
 		repoPath:    repoDir,
 		binaryDest:  binaryDest,
-		serviceName: "test-scion",
+		serviceName: "test-fabric",
 	}
 
 	var buf bytes.Buffer
@@ -123,7 +123,7 @@ func TestRebuildServerExecutor_BuildsToStagingThenInstalls(t *testing.T) {
 
 	// Verify go build targets the staging path inside the repo dir, not the final binary.
 	goLine := lines[3]
-	stagingBinary := filepath.Join(repoDir, "scion.rebuild")
+	stagingBinary := filepath.Join(repoDir, "fabric.rebuild")
 	if !strings.Contains(goLine, "-o "+stagingBinary) {
 		t.Errorf("go build should target staging path %q, got: %s", stagingBinary, goLine)
 	}
@@ -142,8 +142,8 @@ func TestRebuildServerExecutor_BuildsToStagingThenInstalls(t *testing.T) {
 
 	// Verify restart uses sudo systemctl (not bare systemctl).
 	restartLine := lines[5]
-	if !strings.Contains(restartLine, "sudo systemctl restart test-scion") {
-		t.Errorf("expected 'sudo systemctl restart test-scion', got: %s", restartLine)
+	if !strings.Contains(restartLine, "sudo systemctl restart test-fabric") {
+		t.Errorf("expected 'sudo systemctl restart test-fabric', got: %s", restartLine)
 	}
 }
 
@@ -154,7 +154,7 @@ func TestRebuildServerExecutor_NonLinux(t *testing.T) {
 
 	executor := &RebuildServerExecutor{
 		repoPath:    "/tmp/fake",
-		binaryDest:  "/tmp/fake/scion",
+		binaryDest:  "/tmp/fake/fabric",
 		serviceName: "test",
 	}
 
@@ -174,7 +174,7 @@ func TestRebuildServerExecutor_MissingRepoPath(t *testing.T) {
 	}
 
 	executor := &RebuildServerExecutor{
-		binaryDest:  "/tmp/fake/scion",
+		binaryDest:  "/tmp/fake/fabric",
 		serviceName: "test",
 	}
 
@@ -214,7 +214,7 @@ func TestRebuildContainerBinariesExecutor_RunsMake(t *testing.T) {
 	}
 
 	t.Setenv("PATH", stubDir+":"+os.Getenv("PATH"))
-	t.Setenv("SCION_DEV_BINARIES", "/tmp/test-dev-binaries")
+	t.Setenv("FABRIC_DEV_BINARIES", "/tmp/test-dev-binaries")
 
 	executor := &RebuildContainerBinariesExecutor{
 		repoPath: repoDir,
@@ -236,7 +236,7 @@ func TestRebuildContainerBinariesExecutor_RunsMake(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !strings.Contains(output, "SCION_DEV_BINARIES=/tmp/test-dev-binaries") {
-		t.Errorf("expected output to contain SCION_DEV_BINARIES value, got: %s", output)
+	if !strings.Contains(output, "FABRIC_DEV_BINARIES=/tmp/test-dev-binaries") {
+		t.Errorf("expected output to contain FABRIC_DEV_BINARIES value, got: %s", output)
 	}
 }

@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies how the Scion Hub server validates and processes authentication from all client types. It provides the unified server-side perspective that complements the client-focused documents (web-auth.md, cli-auth.md, sciontool-auth.md).
+This document specifies how the Fabric Hub server validates and processes authentication from all client types. It provides the unified server-side perspective that complements the client-focused documents (web-auth.md, cli-auth.md, fabrictool-auth.md).
 
 ### 1.1 Authentication Sources
 
@@ -15,8 +15,8 @@ The Hub server must handle authentication from three distinct sources:
 |--------|--------|-----------|------------|------------------|
 | **Web Users** | Browser via Koa proxy | HTTP with cookies + forwarded token | OAuth access token | Full user identity |
 | **CLI Users** | Terminal/scripts | Direct HTTP | OAuth access token or API key | Full user identity |
-| **Agents** | sciontool in container | Direct HTTP | Hub-issued JWT | Agent identity (scoped) |
-| **Development** | Any | Direct or proxied HTTP | Dev token (`scion_dev_*`) | Pseudo-user (admin) |
+| **Agents** | fabrictool in container | Direct HTTP | Hub-issued JWT | Agent identity (scoped) |
+| **Development** | Any | Direct or proxied HTTP | Dev token (`fabric_dev_*`) | Pseudo-user (admin) |
 
 ### 1.2 Goals
 
@@ -53,7 +53,7 @@ The Hub server must handle authentication from three distinct sources:
 └──────────────┘                   │  │  │ 2. Token Detection & Routing       │  │   │
                                     │  │  │    - Detect token type             │  │   │
 ┌──────────────┐                   │  │  │    - Route to appropriate validator │  │   │
-│   sciontool  │─────────────────►│  │  └────────────────────────────────────┘  │   │
+│   fabrictool  │─────────────────►│  │  └────────────────────────────────────┘  │   │
 │    (agent)   │  JWT Bearer       │  │                   │                       │   │
 └──────────────┘                   │  │  ┌────────────────┬───────────┬────────┐ │   │
                                     │  │  │ 3a. Dev Auth   │ 3b. Agent │ 3c.    │ │   │
@@ -81,8 +81,8 @@ Tokens are identified by their format and prefix:
 
 | Token Pattern | Type | Validator |
 |---------------|------|-----------|
-| `scion_dev_*` | Development token | DevAuthMiddleware |
-| JWT (3 dot-separated base64 segments, `iss: scion-hub`) | Agent JWT | AgentAuthMiddleware |
+| `fabric_dev_*` | Development token | DevAuthMiddleware |
+| JWT (3 dot-separated base64 segments, `iss: fabric-hub`) | Agent JWT | AgentAuthMiddleware |
 | JWT (3 dot-separated base64 segments, other issuers) | User access token | UserTokenValidator |
 | `sk_live_*` | API key | APIKeyValidator |
 | `sk_test_*` | Test API key | APIKeyValidator |
@@ -92,7 +92,7 @@ Tokens are identified by their format and prefix:
 
 When multiple authentication headers are present, they are processed in priority order:
 
-1. **`X-Scion-Agent-Token`** - Agent-specific header (highest priority)
+1. **`X-Fabric-Agent-Token`** - Agent-specific header (highest priority)
 2. **`Authorization: Bearer <token>`** - Standard bearer token
 3. **`X-API-Key`** - API key header
 4. **Forwarded headers from Koa** - `X-Forwarded-User-*` headers (see Section 4)
@@ -114,7 +114,7 @@ server:
     dev:
       enabled: false
       token: ""  # If empty and enabled, auto-generate
-      tokenFile: ""  # Default: ~/.scion/dev-token
+      tokenFile: ""  # Default: ~/.fabric/dev-token
 
     # Agent JWT configuration
     agent:
@@ -166,20 +166,20 @@ server:
     # Security
     requireHttps: true  # Reject non-HTTPS in production
     allowedOrigins:
-      - "https://scion.example.com"
+      - "https://fabric.example.com"
 ```
 
 ### 3.2 Environment Variable Mapping
 
 | Variable | Config Path | Description |
 |----------|-------------|-------------|
-| `SCION_AUTH_MODE` | `server.auth.mode` | Authentication mode |
-| `SCION_DEV_AUTH_ENABLED` | `server.auth.dev.enabled` | Enable dev auth |
-| `SCION_DEV_TOKEN` | `server.auth.dev.token` | Development token |
-| `SCION_AGENT_SIGNING_KEY` | `server.auth.agent.signingKey` | Agent JWT signing key |
-| `SCION_USER_VALIDATION_MODE` | `server.auth.user.validationMode` | User token validation mode |
-| `SCION_USER_SIGNING_KEY` | `server.auth.user.signingKey` | User JWT signing key |
-| `SCION_TRUSTED_PROXIES` | `server.auth.user.trustedProxies` | Comma-separated proxy IPs |
+| `FABRIC_AUTH_MODE` | `server.auth.mode` | Authentication mode |
+| `FABRIC_DEV_AUTH_ENABLED` | `server.auth.dev.enabled` | Enable dev auth |
+| `FABRIC_DEV_TOKEN` | `server.auth.dev.token` | Development token |
+| `FABRIC_AGENT_SIGNING_KEY` | `server.auth.agent.signingKey` | Agent JWT signing key |
+| `FABRIC_USER_VALIDATION_MODE` | `server.auth.user.validationMode` | User token validation mode |
+| `FABRIC_USER_SIGNING_KEY` | `server.auth.user.signingKey` | User JWT signing key |
+| `FABRIC_TRUSTED_PROXIES` | `server.auth.user.trustedProxies` | Comma-separated proxy IPs |
 
 ---
 
@@ -391,7 +391,7 @@ CLI users authenticate directly with the Hub using OAuth (localhost callback) or
       │◄─────────────────────────────────────────│
       │ { accessToken, refreshToken, user }      │
       │                                          │
-      │ [Store in ~/.scion/credentials.json]     │
+      │ [Store in ~/.fabric/credentials.json]     │
       │                                          │
       │ GET /api/v1/agents                       │
       │ Authorization: Bearer <accessToken>      │
@@ -450,11 +450,11 @@ Response:
 
 ---
 
-## 6. Agent Authentication (sciontool)
+## 6. Agent Authentication (fabrictool)
 
 ### 6.1 Token Flow
 
-Agents receive a Hub-issued JWT during provisioning. See [sciontool-auth.md](sciontool-auth.md) for detailed token format.
+Agents receive a Hub-issued JWT during provisioning. See [fabrictool-auth.md](fabrictool-auth.md) for detailed token format.
 
 ```
 ┌───────────┐         ┌──────────────┐         ┌─────────┐
@@ -466,7 +466,7 @@ Agents receive a Hub-issued JWT during provisioning. See [sciontool-auth.md](sci
      │
      │ POST /api/v1/agents/{id}/status
      │ Authorization: Bearer <JWT>
-     │ X-Scion-Agent-Token: <JWT>
+     │ X-Fabric-Agent-Token: <JWT>
      │────────────────────────────────────────────►│
                                                     │ Hub
                                                     │ validates
@@ -595,7 +595,7 @@ func authMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
                 return
             }
 
-            // Step 1: Try agent token (X-Scion-Agent-Token or agent JWT in Bearer)
+            // Step 1: Try agent token (X-Fabric-Agent-Token or agent JWT in Bearer)
             if token := extractAgentToken(r); token != "" {
                 if claims, err := cfg.AgentTokenSvc.ValidateAgentToken(token); err == nil {
                     ctx = context.WithValue(ctx, agentContextKey{}, claims)
@@ -604,7 +604,7 @@ func authMiddleware(cfg AuthConfig) func(http.Handler) http.Handler {
                     }
                     next.ServeHTTP(w, r.WithContext(ctx))
                     return
-                } else if r.Header.Get("X-Scion-Agent-Token") != "" {
+                } else if r.Header.Get("X-Fabric-Agent-Token") != "" {
                     // Agent token header was present but invalid
                     writeError(w, http.StatusUnauthorized, ErrCodeUnauthorized,
                         "invalid agent token", nil)
@@ -705,13 +705,13 @@ const (
 
 func detectTokenType(token string) tokenType {
     switch {
-    case strings.HasPrefix(token, "scion_dev_"):
+    case strings.HasPrefix(token, "fabric_dev_"):
         return tokenTypeDev
     case strings.HasPrefix(token, "sk_live_"), strings.HasPrefix(token, "sk_test_"):
         return tokenTypeAPIKey
     case looksLikeJWT(token):
         // Could be user or agent JWT - need to inspect claims
-        // For now, assume user token (agent tokens use X-Scion-Agent-Token)
+        // For now, assume user token (agent tokens use X-Fabric-Agent-Token)
         return tokenTypeUser
     default:
         return tokenTypeUnknown
@@ -1075,7 +1075,7 @@ type TokenBlacklist interface {
 - [Auth Overview](auth-overview.md) - Identity model and token types
 - [Web Authentication](web-auth.md) - Browser OAuth flows
 - [CLI Authentication](cli-auth.md) - Terminal authentication
-- [Agent Authentication](sciontool-auth.md) - Agent-to-Hub JWT
+- [Agent Authentication](fabrictool-auth.md) - Agent-to-Hub JWT
 - [Server Auth Setup](server-auth-setup.md) - API keys, dev auth
 - [Permissions Design](permissions-design.md) - Authorization system
 - [OAuth Setup](oauth-setup.md) - OAuth provider configuration

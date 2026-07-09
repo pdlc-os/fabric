@@ -376,7 +376,7 @@ func TestCommandHandler_Status_InDM_NoLinks(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		ScionEmail:     "alice@example.com",
+		FabricEmail:     "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -397,7 +397,7 @@ func TestCommandHandler_Status_InDM_WithLinks(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		ScionEmail:     "alice@example.com",
+		FabricEmail:     "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, store.SaveGroupLink(ctx, &GroupLink{

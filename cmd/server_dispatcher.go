@@ -22,12 +22,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // agentDispatcherAdapter adapts the agent.Manager to the hub.AgentDispatcher interface.
@@ -57,8 +57,8 @@ func (d *agentDispatcherAdapter) DispatchAgentCreate(ctx context.Context, hubAge
 	if hubAgent.Labels == nil {
 		hubAgent.Labels = make(map[string]string)
 	}
-	hubAgent.Labels["scion.project"] = hubAgent.ProjectID
-	hubAgent.Labels["scion.grove"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.project"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.grove"] = hubAgent.ProjectID
 
 	// Start the agent on the runtime broker
 	agentInfo, err := d.manager.Start(ctx, opts)
@@ -91,8 +91,8 @@ func (d *agentDispatcherAdapter) DispatchAgentStart(ctx context.Context, hubAgen
 	if hubAgent.Labels == nil {
 		hubAgent.Labels = make(map[string]string)
 	}
-	hubAgent.Labels["scion.project"] = hubAgent.ProjectID
-	hubAgent.Labels["scion.grove"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.project"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.grove"] = hubAgent.ProjectID
 	if task != "" {
 		opts.Task = task
 	}
@@ -152,8 +152,8 @@ func (d *agentDispatcherAdapter) DispatchAgentRestart(ctx context.Context, hubAg
 	if hubAgent.Labels == nil {
 		hubAgent.Labels = make(map[string]string)
 	}
-	hubAgent.Labels["scion.project"] = hubAgent.ProjectID
-	hubAgent.Labels["scion.grove"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.project"] = hubAgent.ProjectID
+	hubAgent.Labels["fabric.grove"] = hubAgent.ProjectID
 
 	agentInfo, err := d.manager.Start(ctx, opts)
 	if err != nil {
@@ -228,7 +228,7 @@ func (d *agentDispatcherAdapter) DispatchAgentDelete(ctx context.Context, hubAge
 
 	// For hub-managed projects the provider LocalPath is typically empty.
 	// Resolve from the project slug so file cleanup can find the agent
-	// directory at ~/.scion/groves/<slug>/.scion/agents/<name>.
+	// directory at ~/.fabric/groves/<slug>/.fabric/agents/<name>.
 	if projectPath == "" && hubAgent.ProjectID != "" && deleteFiles {
 		grove, err := d.store.GetProject(ctx, hubAgent.ProjectID)
 		if err == nil && grove.GitRemote == "" && grove.Slug != "" {

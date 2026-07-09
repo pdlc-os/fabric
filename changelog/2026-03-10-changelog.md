@@ -12,5 +12,5 @@ This release focuses on streamlining system administration and enhancing visibil
 * **Hub Connectivity Precision:** Enhanced agent startup logic to prioritize Hub-dispatched endpoints over local broker configuration, ensuring correct Hub communication in distributed and multi-hub environments.
 * **Logging Observability & Traceability:**
     * **Agent Lifecycle Traceability:** Added `agent_id` to all broker-side agent lifecycle log events to improve cross-traceability and audit capabilities.
-    * **Connectivity Debugging:** Stopped redacting `SCION_HUB_ENDPOINT` and `SCION_HUB_URL` in agent environment logs to facilitate easier debugging of connectivity issues.
+    * **Connectivity Debugging:** Stopped redacting `FABRIC_HUB_ENDPOINT` and `FABRIC_HUB_URL` in agent environment logs to facilitate easier debugging of connectivity issues.
 * **Documentation & Licensing:** Restructured internal documentation for improved clarity, updated the installation guide, and completed the application of standard license headers across all source files.

@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -115,7 +115,7 @@ func (b *BrokerServer) Close() error {
 // GetInfo returns plugin metadata.
 func (b *BrokerServer) GetInfo() (*plugin.PluginInfo, error) {
 	return &plugin.PluginInfo{
-		Name:         "scion-a2a-bridge",
+		Name:         "fabric-a2a-bridge",
 		Version:      "1.0.0",
 		Capabilities: []string{"a2a-bridge"},
 	}, nil

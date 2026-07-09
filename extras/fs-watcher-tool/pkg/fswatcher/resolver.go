@@ -86,7 +86,7 @@ func (r *Resolver) Warmup(ctx context.Context) error {
 		}
 	}
 
-	log.Printf("[resolver] warmed up with %d scion containers", len(containers))
+	log.Printf("[resolver] warmed up with %d fabric containers", len(containers))
 	return nil
 }
 

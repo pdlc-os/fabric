@@ -1,6 +1,6 @@
 # Gemini CLI Harness Bundle
 
-Scion harness configuration for [Gemini CLI](https://github.com/google-gemini/gemini-cli),
+Fabric harness configuration for [Gemini CLI](https://github.com/google-gemini/gemini-cli),
 Google's coding agent CLI.
 
 ## Install
@@ -8,13 +8,13 @@ Google's coding agent CLI.
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/gemini-cli
+fabric harness-config install harnesses/gemini-cli
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/gemini-cli
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/gemini-cli
 ```
 
 ## Auth Modes
@@ -32,10 +32,10 @@ gemini-cli/
   config.yaml        # Harness configuration (provisioner, capabilities, auth)
   provision.py        # Container-side provisioner (pre-start hook)
   capture_auth.py     # Interactive auth capture script
-  Dockerfile          # Image build (FROM scion-base)
+  Dockerfile          # Image build (FROM fabric-base)
   cloudbuild.yaml     # Cloud Build configuration
   home/
-    .bashrc                     # Shell config with scion env sourcing
+    .bashrc                     # Shell config with fabric env sourcing
     .gemini/settings.json       # Gemini CLI settings (hooks, permissions)
     system_prompt.md            # System prompt placeholder
 ```
@@ -44,7 +44,7 @@ gemini-cli/
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-gemini:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-gemini:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

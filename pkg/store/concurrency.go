@@ -30,7 +30,7 @@ import (
 //     absent the caller falls back to the historical single-process behavior,
 //     which is correct for a single replica.
 //
-// See /scion-volumes/scratchpad/postgres-integration/CONCURRENCY-AUDIT.md for
+// See /fabric-volumes/scratchpad/postgres-integration/CONCURRENCY-AUDIT.md for
 // the per-site mapping of which primitive guards which read-modify-write path.
 
 // AdvisoryLockKey identifies a piece of cluster-wide-once work. Keys must be

@@ -1,9 +1,9 @@
-// scion-plugin-slack is the Slack message broker plugin for scion.
+// fabric-plugin-slack is the Slack message broker plugin for fabric.
 // It can run as:
-//   - A go-plugin subprocess (when launched by the scion plugin manager)
+//   - A go-plugin subprocess (when launched by the fabric plugin manager)
 //   - A standalone binary that prints usage information
 //
-// Plugin mode is auto-detected via the SCION_PLUGIN magic cookie environment variable.
+// Plugin mode is auto-detected via the FABRIC_PLUGIN magic cookie environment variable.
 package main
 
 import (
@@ -11,8 +11,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-slack/internal/slack"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/extras/fabric-slack/internal/slack"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -22,11 +22,11 @@ func main() {
 		return
 	}
 
-	fmt.Println("scion-plugin-slack: Slack message broker plugin for Scion")
+	fmt.Println("fabric-plugin-slack: Slack message broker plugin for Fabric")
 	fmt.Println()
-	fmt.Println("This binary is intended to be launched by the Scion plugin manager.")
+	fmt.Println("This binary is intended to be launched by the Fabric plugin manager.")
 	fmt.Println("It communicates with the Slack API to provide bidirectional")
-	fmt.Println("messaging between Slack channels and Scion agents.")
+	fmt.Println("messaging between Slack channels and Fabric agents.")
 	fmt.Println()
 	fmt.Println("Configuration keys:")
 	fmt.Println("  bot_token        (required) Slack bot token (xoxb-...)")

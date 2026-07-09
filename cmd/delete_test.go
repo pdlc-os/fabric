@@ -24,9 +24,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -69,7 +69,7 @@ func createAgentDir(t *testing.T, projectDir, name string) string {
 	require.NoError(t, os.MkdirAll(agentDir, 0755))
 	// Write a marker file so the directory isn't empty
 	require.NoError(t, os.WriteFile(
-		filepath.Join(agentDir, "scion-agent.json"),
+		filepath.Join(agentDir, "fabric-agent.json"),
 		[]byte(`{"harness":"claude"}`),
 		0644,
 	))
@@ -114,7 +114,7 @@ func TestDeleteAgentLocal_NonExistentAgentReturnsError(t *testing.T) {
 	noHub = true
 
 	// Set up project directory without any agent
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectDir, "agents"), 0755))
 	projectPath = projectDir
 
@@ -133,7 +133,7 @@ func TestDeleteAgentLocal_ExistingAgentSucceeds(t *testing.T) {
 	preserveBranch = true
 
 	// Set up project directory with an agent
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectDir, "agents"), 0755))
 	projectPath = projectDir
 
@@ -164,7 +164,7 @@ func TestDeleteAgentsViaHub_CleansUpLocalFiles(t *testing.T) {
 	defer server.Close()
 
 	// Set up project directory with an agent
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	projectPath = projectDir
 
@@ -209,7 +209,7 @@ func TestDeleteAgentsViaHub_MultipleAgents(t *testing.T) {
 	server, deletedAgents := newDeleteMockHubServer(t, projectID)
 	defer server.Close()
 
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	projectPath = projectDir
 
@@ -265,7 +265,7 @@ func TestDeleteAgentsViaHub_HubFailsSkipsLocalCleanup(t *testing.T) {
 	}))
 	defer server.Close()
 
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	projectPath = projectDir
 
@@ -300,7 +300,7 @@ func TestDeleteAgentsViaHub_NoLocalFiles(t *testing.T) {
 	server, deletedAgents := newDeleteMockHubServer(t, projectID)
 	defer server.Close()
 
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(filepath.Join(projectDir, "agents"), 0755))
 	projectPath = projectDir
 
@@ -352,7 +352,7 @@ func TestDeleteAgentsViaHub_LocalCleanupFailureCreatesStaleLocalNotToRegister(t 
 	}))
 	defer server.Close()
 
-	projectDir := filepath.Join(tmpHome, "project", ".scion")
+	projectDir := filepath.Join(tmpHome, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 	createAgentDir(t, projectDir, "stale-agent")
 
@@ -394,7 +394,7 @@ func TestDeleteAgentsViaHub_LocalCleanupFailureCreatesStaleLocalNotToRegister(t 
 
 func TestDeleteStopped_RequiresGroveContext(t *testing.T) {
 	// Unset Hub context to avoid synthetic project root detection
-	for _, e := range []string{"SCION_HUB_ENDPOINT", "SCION_HUB_URL", "SCION_GROVE_ID", "SCION_PROJECT_ID"} {
+	for _, e := range []string{"FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL", "FABRIC_GROVE_ID", "FABRIC_PROJECT_ID"} {
 		if val, ok := os.LookupEnv(e); ok {
 			_ = os.Unsetenv(e)
 			defer func() { _ = os.Setenv(e, val) }()
@@ -407,7 +407,7 @@ func TestDeleteStopped_RequiresGroveContext(t *testing.T) {
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
 
-	// Set CWD to a directory without .scion so project resolution fails
+	// Set CWD to a directory without .fabric so project resolution fails
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(oldWd) }()
@@ -420,7 +420,7 @@ func TestDeleteStopped_RequiresGroveContext(t *testing.T) {
 	// Running delete --stopped outside a project should error
 	err := deleteCmd.RunE(deleteCmd, []string{})
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "not in a scion project")
+	assert.Contains(t, err.Error(), "not in a fabric project")
 }
 
 func TestDeleteStopped_AcceptsGlobalFlag(t *testing.T) {
@@ -430,11 +430,11 @@ func TestDeleteStopped_AcceptsGlobalFlag(t *testing.T) {
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
 
-	// Create global .scion directory
-	globalDir := filepath.Join(tmpHome, ".scion")
+	// Create global .fabric directory
+	globalDir := filepath.Join(tmpHome, ".fabric")
 	require.NoError(t, os.MkdirAll(filepath.Join(globalDir, "agents"), 0755))
 
-	// Set CWD to a directory without .scion
+	// Set CWD to a directory without .fabric
 	tmpDir := t.TempDir()
 	oldWd, _ := os.Getwd()
 	defer func() { _ = os.Chdir(oldWd) }()

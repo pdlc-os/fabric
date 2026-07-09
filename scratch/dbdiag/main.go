@@ -21,11 +21,11 @@ func main() {
 
 	var maxc, used int
 	_ = conn.QueryRow(ctx, "SHOW max_connections").Scan(&maxc)
-	_ = conn.QueryRow(ctx, "SELECT count(*) FROM pg_stat_activity WHERE datname='scion_test'").Scan(&used)
-	fmt.Printf("max_connections=%d  total_on_scion_test=%d\n", maxc, used)
+	_ = conn.QueryRow(ctx, "SELECT count(*) FROM pg_stat_activity WHERE datname='fabric_test'").Scan(&used)
+	fmt.Printf("max_connections=%d  total_on_fabric_test=%d\n", maxc, used)
 
 	rows, _ := conn.Query(ctx, `SELECT COALESCE(application_name,'(none)'), state, count(*)
-		FROM pg_stat_activity WHERE datname='scion_test'
+		FROM pg_stat_activity WHERE datname='fabric_test'
 		GROUP BY 1,2 ORDER BY 3 DESC`)
 	defer rows.Close()
 	fmt.Printf("%-32s %-20s %s\n", "application_name", "state", "count")

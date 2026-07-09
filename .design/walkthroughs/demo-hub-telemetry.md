@@ -2,12 +2,12 @@
 
 **Created:** 2026-02-26
 **Status:** Ready for QA
-**Goal:** Enable and verify end-to-end OpenTelemetry on the `scion-demo` GCE
+**Goal:** Enable and verify end-to-end OpenTelemetry on the `fabric-demo` GCE
 instance, covering both Hub-side telemetry (Cloud Logging, Cloud Trace) and
 agent-side telemetry (settings-driven OTLP export).
 
 This walkthrough covers the operational steps for the demo instance
-(`scion-demo` in project `deploy-demo-test`). For general telemetry
+(`fabric-demo` in project `deploy-demo-test`). For general telemetry
 architecture, see [metrics-system.md](../hosted/metrics-system.md). For
 local development telemetry QA, see [telemetry-gcp.md](telemetry-gcp.md).
 
@@ -17,7 +17,7 @@ local development telemetry QA, see [telemetry-gcp.md](telemetry-gcp.md).
 
 - GCP project `deploy-demo-test` (or your target project)
 - `gcloud` CLI installed and authenticated with project access
-- SSH access to the `scion-demo` instance (`gcloud compute ssh scion-demo --zone us-central1-a`)
+- SSH access to the `fabric-demo` instance (`gcloud compute ssh fabric-demo --zone us-central1-a`)
 - The instance was provisioned with `scripts/starter-hub/gce-demo-provision.sh`
 
 ---
@@ -37,11 +37,11 @@ SDKs route to the correct endpoints automatically.
 
 **Affects:** Hub-side configuration management
 
-**Problem:** Hub-side OTEL environment variables (`SCION_CLOUD_LOGGING`,
-`SCION_OTEL_ENDPOINT`, etc.) are hardcoded as `Environment=` directives in
+**Problem:** Hub-side OTEL environment variables (`FABRIC_CLOUD_LOGGING`,
+`FABRIC_OTEL_ENDPOINT`, etc.) are hardcoded as `Environment=` directives in
 the systemd unit template within `gce-start-hub.sh`. The `hub.env` file
 pattern is already implemented (the systemd unit uses
-`EnvironmentFile=/home/scion/.scion/hub.env`), so these should be managed
+`EnvironmentFile=/home/fabric/.fabric/hub.env`), so these should be managed
 there instead for easier configuration changes without re-deploying the
 service file.
 
@@ -77,10 +77,10 @@ gcloud services enable \
 
 ### 1.2 Check service account IAM roles
 
-The service account `scion-demo-sa` needs these roles for telemetry:
+The service account `fabric-demo-sa` needs these roles for telemetry:
 
 ```bash
-SA_EMAIL="scion-demo-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+SA_EMAIL="fabric-demo-sa@${PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud projects get-iam-policy "$PROJECT_ID" \
   --flatten="bindings[].members" \
@@ -117,7 +117,7 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 ## 2. Configure Hub-Side Telemetry
 
 Hub-side telemetry activates Cloud Logging (via `cloud_handler.go`) and the
-OTel log bridge (via `otel_provider.go`) for the `scion server` process
+OTel log bridge (via `otel_provider.go`) for the `fabric server` process
 itself.
 
 ### 2.1 Environment variables
@@ -125,7 +125,7 @@ itself.
 The following environment variables control Hub-side telemetry. They should
 be managed in the `hub.env` file (see `scripts/starter-hub/hub.env.sample` for the
 template). The systemd unit loads this file via
-`EnvironmentFile=/home/scion/.scion/hub.env`.
+`EnvironmentFile=/home/fabric/.fabric/hub.env`.
 
 To set up, copy the sample and fill in values:
 
@@ -135,21 +135,21 @@ cp scripts/starter-hub/hub.env.sample .scratch/hub.env
 ```
 
 The `gce-start-hub.sh` script automatically uploads `.scratch/hub.env` to
-the instance at `/home/scion/.scion/hub.env`.
+the instance at `/home/fabric/.fabric/hub.env`.
 
 **Required telemetry variables in hub.env:**
 
 ```bash
 # Core Hub configuration (required)
-SCION_HUB_STORAGE_BUCKET=scion-demo-templates
+FABRIC_HUB_STORAGE_BUCKET=fabric-demo-templates
 SESSION_SECRET=<generate-with-openssl-rand-base64-32>
 
 # Telemetry (OTEL)
-SCION_CLOUD_LOGGING=true
-SCION_GCP_PROJECT_ID=deploy-demo-test
+FABRIC_CLOUD_LOGGING=true
+FABRIC_GCP_PROJECT_ID=deploy-demo-test
 GOOGLE_CLOUD_PROJECT=deploy-demo-test
-SCION_TELEMETRY_CLOUD_PROVIDER=gcp
-SCION_OTEL_LOG_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_PROVIDER=gcp
+FABRIC_OTEL_LOG_ENABLED=true
 ```
 
 
@@ -159,24 +159,24 @@ If the instance was deployed before the hub.env pattern was adopted, update
 the configuration manually:
 
 ```bash
-gcloud compute ssh scion-demo --zone us-central1-a --command '
-    sudo systemctl stop scion-hub
+gcloud compute ssh fabric-demo --zone us-central1-a --command '
+    sudo systemctl stop fabric-hub
 
     # Create or update hub.env with telemetry variables
-    sudo tee /home/scion/.scion/hub.env > /dev/null <<EOF
-SCION_HUB_STORAGE_BUCKET=scion-demo-templates
+    sudo tee /home/fabric/.fabric/hub.env > /dev/null <<EOF
+FABRIC_HUB_STORAGE_BUCKET=fabric-demo-templates
 SESSION_SECRET=<your-session-secret>
-SCION_CLOUD_LOGGING=true
-SCION_GCP_PROJECT_ID=deploy-demo-test
+FABRIC_CLOUD_LOGGING=true
+FABRIC_GCP_PROJECT_ID=deploy-demo-test
 GOOGLE_CLOUD_PROJECT=deploy-demo-test
-SCION_TELEMETRY_CLOUD_PROVIDER=gcp
-SCION_OTEL_LOG_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_PROVIDER=gcp
+FABRIC_OTEL_LOG_ENABLED=true
 EOF
 
-    sudo chown scion:scion /home/scion/.scion/hub.env
-    sudo chmod 600 /home/scion/.scion/hub.env
+    sudo chown fabric:fabric /home/fabric/.fabric/hub.env
+    sudo chmod 600 /home/fabric/.fabric/hub.env
     sudo systemctl daemon-reload
-    sudo systemctl start scion-hub
+    sudo systemctl start fabric-hub
 '
 ```
 
@@ -188,8 +188,8 @@ Alternatively, re-run `scripts/starter-hub/gce-start-hub.sh` which will upload y
 Check the journal for Cloud Logging and OTel initialization messages:
 
 ```bash
-gcloud compute ssh scion-demo --zone us-central1-a --command \
-    'sudo journalctl -u scion-hub --since "5 minutes ago" | grep -iE "cloud.logging|otel|telemetry|trace"'
+gcloud compute ssh fabric-demo --zone us-central1-a --command \
+    'sudo journalctl -u fabric-hub --since "5 minutes ago" | grep -iE "cloud.logging|otel|telemetry|trace"'
 ```
 
 **Expected:** Messages indicating Cloud Logging handler and OTel trace
@@ -200,7 +200,7 @@ or project ID.
 
 ## 3. Configure Agent-Side Telemetry
 
-Agent-side telemetry is driven by `~/.scion/settings.yaml` on the instance.
+Agent-side telemetry is driven by `~/.fabric/settings.yaml` on the instance.
 The settings-to-env bridge injects telemetry configuration as environment
 variables into each agent container.
 
@@ -210,11 +210,11 @@ The `gce-start-hub.sh` script deploys this automatically (only if the file
 doesn't already exist). For manual creation or updates:
 
 ```bash
-gcloud compute ssh scion-demo --zone us-central1-a --command '
-cat > /home/scion/.scion/settings.yaml <<EOF
+gcloud compute ssh fabric-demo --zone us-central1-a --command '
+cat > /home/fabric/.fabric/settings.yaml <<EOF
 schema_version: "1"
 hub:
-  endpoint: "https://hub.demo.scion-ai.dev"
+  endpoint: "https://hub.demo.fabric-ai.dev"
 telemetry:
   enabled: true
   cloud:
@@ -248,26 +248,26 @@ telemetry settings are being injected:
 
 ```bash
 # On the instance (via SSH)
-scion start "telemetry test" --name test-telem --no-auth
+fabric start "telemetry test" --name test-telem --no-auth
 
 docker inspect test-telem --format '{{range .Config.Env}}{{println .}}{{end}}' \
-  | grep -E "SCION_TELEMETRY|SCION_OTEL"
+  | grep -E "FABRIC_TELEMETRY|FABRIC_OTEL"
 ```
 
 **Expected output:**
 
 ```
-SCION_TELEMETRY_ENABLED=true
-SCION_TELEMETRY_CLOUD_ENABLED=true
-SCION_TELEMETRY_CLOUD_PROVIDER=gcp
-SCION_TELEMETRY_FILTER_EXCLUDE=agent.user.prompt
-SCION_TELEMETRY_REDACT=prompt,user.email,tool_output,tool_input
-SCION_TELEMETRY_HASH=session_id
-SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE=256
-SCION_TELEMETRY_CLOUD_BATCH_TIMEOUT=5s
+FABRIC_TELEMETRY_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_PROVIDER=gcp
+FABRIC_TELEMETRY_FILTER_EXCLUDE=agent.user.prompt
+FABRIC_TELEMETRY_REDACT=prompt,user.email,tool_output,tool_input
+FABRIC_TELEMETRY_HASH=session_id
+FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE=256
+FABRIC_TELEMETRY_CLOUD_BATCH_TIMEOUT=5s
 ```
 
-Clean up: `scion stop test-telem --rm`
+Clean up: `fabric stop test-telem --rm`
 
 ---
 
@@ -275,7 +275,7 @@ Clean up: `scion stop test-telem --rm`
 
 ### 4.1 Check Cloud Trace for Hub server spans
 
-The Hub server emits spans for API requests when `SCION_OTEL_ENDPOINT` is set.
+The Hub server emits spans for API requests when `FABRIC_OTEL_ENDPOINT` is set.
 
 ```bash
 # Open Cloud Trace in browser
@@ -298,10 +298,10 @@ spans, gRPC spans, etc.).
 echo "https://console.cloud.google.com/logs/query?project=deploy-demo-test"
 ```
 
-Filter by the scion-hub service:
+Filter by the fabric-hub service:
 
 ```bash
-gcloud logging read 'resource.type="gce_instance" AND jsonPayload.service="scion-hub"' \
+gcloud logging read 'resource.type="gce_instance" AND jsonPayload.service="fabric-hub"' \
     --project "deploy-demo-test" \
     --limit 10 \
     --format json
@@ -323,15 +323,15 @@ Search for metrics with the `custom.googleapis.com/` prefix or names like
 
 ```bash
 # On the instance
-scion start "trace test task" --name qa-trace --no-auth
-scion attach qa-trace
+fabric start "trace test task" --name qa-trace --no-auth
+fabric attach qa-trace
 # Interact with the agent to generate tool events, then detach (Ctrl+B, D)
 ```
 
 Wait 30-60 seconds for spans to flush, then check Cloud Trace for agent
 spans (`agent.tool.call`, `agent.turn.start`, `agent.session.start`).
 
-Clean up: `scion stop qa-trace --rm`
+Clean up: `fabric stop qa-trace --rm`
 
 ---
 
@@ -347,22 +347,22 @@ credentials automatically. Verify the instance has the correct service
 account attached:
 
 ```bash
-gcloud compute instances describe scion-demo --zone us-central1-a \
+gcloud compute instances describe fabric-demo --zone us-central1-a \
     --format "value(serviceAccounts[0].email)"
 ```
 
-Expected: `scion-demo-sa@deploy-demo-test.iam.gserviceaccount.com`
+Expected: `fabric-demo-sa@deploy-demo-test.iam.gserviceaccount.com`
 
 ### Wrong project ID
 
 **Symptom:** Traces/logs appear in the wrong project or not at all.
 
-**Fix:** Verify both `SCION_GCP_PROJECT_ID` and `GOOGLE_CLOUD_PROJECT` are
+**Fix:** Verify both `FABRIC_GCP_PROJECT_ID` and `GOOGLE_CLOUD_PROJECT` are
 set correctly in hub.env:
 
 ```bash
-gcloud compute ssh scion-demo --zone us-central1-a --command \
-    'grep -E "PROJECT" /home/scion/.scion/hub.env'
+gcloud compute ssh fabric-demo --zone us-central1-a --command \
+    'grep -E "PROJECT" /home/fabric/.fabric/hub.env'
 ```
 
 ### Cloud Logging API not enabled
@@ -380,21 +380,21 @@ gcloud services enable logging.googleapis.com --project deploy-demo-test
 **Symptom:** Hub spans appear but no agent-side spans in Cloud Trace.
 
 **Checks:**
-1. Verify `settings.yaml` exists: `ls -la /home/scion/.scion/settings.yaml`
+1. Verify `settings.yaml` exists: `ls -la /home/fabric/.fabric/settings.yaml`
 2. Verify env var injection (see section 3.2)
 3. Check agent container logs for OTEL initialization errors
 4. Ensure the agent ran long enough for spans to flush (batch timeout is 5s)
 
 ### Service won't start after adding OTEL vars
 
-**Symptom:** `scion-hub` service fails to start.
+**Symptom:** `fabric-hub` service fails to start.
 
 **Fix:** Check for syntax errors in the systemd unit:
 
 ```bash
-gcloud compute ssh scion-demo --zone us-central1-a --command '
-    sudo systemd-analyze verify /etc/systemd/system/scion-hub.service 2>&1
-    sudo journalctl -u scion-hub -n 30 --no-pager
+gcloud compute ssh fabric-demo --zone us-central1-a --command '
+    sudo systemd-analyze verify /etc/systemd/system/fabric-hub.service 2>&1
+    sudo journalctl -u fabric-hub -n 30 --no-pager
 '
 ```
 
@@ -406,11 +406,11 @@ gcloud compute ssh scion-demo --zone us-central1-a --command '
 
 | Variable | Value | Purpose |
 |----------|-------|---------|
-| `SCION_CLOUD_LOGGING` | `true` | Enable direct Cloud Logging via `cloud_handler.go` |
-| `SCION_GCP_PROJECT_ID` | `deploy-demo-test` | GCP project for Cloud Logging client |
+| `FABRIC_CLOUD_LOGGING` | `true` | Enable direct Cloud Logging via `cloud_handler.go` |
+| `FABRIC_GCP_PROJECT_ID` | `deploy-demo-test` | GCP project for Cloud Logging client |
 | `GOOGLE_CLOUD_PROJECT` | `deploy-demo-test` | Standard GCP project env var |
-| `SCION_TELEMETRY_CLOUD_PROVIDER` | `gcp` | Use GCP-native SDKs for telemetry export |
-| `SCION_OTEL_LOG_ENABLED` | `true` | Enable OTel log bridge |
+| `FABRIC_TELEMETRY_CLOUD_PROVIDER` | `gcp` | Use GCP-native SDKs for telemetry export |
+| `FABRIC_OTEL_LOG_ENABLED` | `true` | Enable OTel log bridge |
 
 ### Agent-side settings.yaml fields
 
@@ -442,4 +442,4 @@ gcloud compute ssh scion-demo --zone us-central1-a --command '
 |----------|-----------|
 | [metrics-system.md](../hosted/metrics-system.md) | Full metrics architecture and telemetry pipeline design |
 | [telemetry-gcp.md](telemetry-gcp.md) | Local development telemetry QA walkthrough |
-| [scion-local.md](scion-local.md) | Local CLI QA walkthrough |
+| [fabric-local.md](fabric-local.md) | Local CLI QA walkthrough |

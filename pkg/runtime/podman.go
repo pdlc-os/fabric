@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 type PodmanRuntime struct {
@@ -111,19 +111,19 @@ func (r *PodmanRuntime) Name() string {
 	return "podman"
 }
 
-// ExecUser implements Runtime. Always returns "scion" because sciontool
-// init drops privileges to the scion user (via SCION_HOST_UID) before
+// ExecUser implements Runtime. Always returns "fabric" because fabrictool
+// init drops privileges to the fabric user (via FABRIC_HOST_UID) before
 // launching the tmux session — even in rootless mode. The exec user must
-// match the tmux socket owner (UID 1000 = scion), not the container's
+// match the tmux socket owner (UID 1000 = fabric), not the container's
 // initial PID 1 user.
 //
 // The previous behaviour returned "root" for rootless podman, assuming
 // the host UID mapped to container UID 0 and no privilege drop occurred.
 // This was incorrect when the image starts as root (USER root) and
-// sciontool drops to scion, placing the tmux socket at /tmp/tmux-1000/
+// fabrictool drops to fabric, placing the tmux socket at /tmp/tmux-1000/
 // while the broker looked at /tmp/tmux-0/.
 func (r *PodmanRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 func (r *PodmanRuntime) Run(ctx context.Context, config RunConfig) (string, error) {
@@ -138,7 +138,7 @@ func (r *PodmanRuntime) Run(ctx context.Context, config RunConfig) (string, erro
 	}
 
 	// Serialize file and variable secrets into an env-var blob for
-	// container-side staging by sciontool init (stateless broker support).
+	// container-side staging by fabrictool init (stateless broker support).
 	if len(config.ResolvedSecrets) > 0 {
 		encoded, err := serializeSecrets(util.GetHomeDir(config.UnixUsername), config.ResolvedSecrets)
 		if err != nil {
@@ -159,29 +159,29 @@ func (r *PodmanRuntime) Run(ctx context.Context, config RunConfig) (string, erro
 		return "", err
 	}
 
-	// sciontool already handles PID 1 responsibilities (zombie reaping, signal forwarding),
+	// fabrictool already handles PID 1 responsibilities (zombie reaping, signal forwarding),
 	// so we don't use --init to avoid competing init processes.
 	newArgs := []string{"run", "-t"}
 
 	// In rootless mode, map the host user's UID into the container as UID
-	// 1000 (the scion user created in the Dockerfile). This ensures:
+	// 1000 (the fabric user created in the Dockerfile). This ensures:
 	//  1. Bind-mounted files have correct host-user ownership on both sides.
-	//  2. The process runs as the scion user (UID 1000) inside the container,
-	//     so harness config in /home/scion is accessible.
+	//  2. The process runs as the fabric user (UID 1000) inside the container,
+	//     so harness config in /home/fabric is accessible.
 	// Without the uid/gid mapping, --userns=keep-id would only work when the
 	// host user happens to be UID 1000. The explicit mapping handles any host
 	// UID (e.g., 501 on macOS).
 	//
-	// SCION_KEEPID_UID tells sciontool init that the host user is mapped to
+	// FABRIC_KEEPID_UID tells fabrictool init that the host user is mapped to
 	// this container UID via keep-id, so it should drop privileges to that
-	// UID early instead of trying to remap the scion user via usermod.
+	// UID early instead of trying to remap the fabric user via usermod.
 	// This env var is necessary because /proc/self/uid_map inside the
 	// container only shows the mapping to the immediate parent namespace
 	// (Podman's namespace), not the host — so init cannot derive this from
 	// the uid_map alone.
 	if r.Rootless {
 		newArgs = append(newArgs, "--userns=keep-id:uid=1000,gid=1000")
-		newArgs = append(newArgs, "-e", "SCION_KEEPID_UID=1000")
+		newArgs = append(newArgs, "-e", "FABRIC_KEEPID_UID=1000")
 	}
 
 	// Apply resource constraints from config.
@@ -298,10 +298,10 @@ func (r *PodmanRuntime) List(ctx context.Context, labelFilter map[string]string)
 		}
 
 		if match {
-			// Prefer the scion.name label (slugified) over Podman container name,
+			// Prefer the fabric.name label (slugified) over Podman container name,
 			// consistent with the Docker runtime. This ensures project-scoped
 			// container names don't leak into display/lookup paths.
-			name := labels["scion.name"]
+			name := labels["fabric.name"]
 			if name == "" && len(c.Names) > 0 {
 				name = c.Names[0]
 			}
@@ -314,9 +314,9 @@ func (r *PodmanRuntime) List(ctx context.Context, labelFilter map[string]string)
 				Image:           c.Image,
 				Labels:          labels,
 				Annotations:     labels,
-				Template:        labels["scion.template"],
-				HarnessConfig:   labels["scion.harness_config"],
-				HarnessAuth:     labels["scion.harness_auth"],
+				Template:        labels["fabric.template"],
+				HarnessConfig:   labels["fabric.harness_config"],
+				HarnessAuth:     labels["fabric.harness_auth"],
 				Project:         projectcompat.ProjectNameFromLabels(labels),
 				ProjectID:       projectcompat.ProjectIDFromLabels(labels),
 				ProjectPath:     projectcompat.ProjectPathFromLabels(labels),
@@ -356,7 +356,7 @@ func (r *PodmanRuntime) Attach(ctx context.Context, id string) error {
 	// Check if running
 	status := strings.ToLower(agent.ContainerStatus)
 	if !strings.HasPrefix(status, "up") && status != "running" {
-		return fmt.Errorf("agent '%s' is not running (status: %s), use 'scion start %s' to resume it", id, agent.ContainerStatus, id)
+		return fmt.Errorf("agent '%s' is not running (status: %s), use 'fabric start %s' to resume it", id, agent.ContainerStatus, id)
 	}
 
 	// Ensure tmux uses the latest client's terminal size so the session
@@ -365,7 +365,7 @@ func (r *PodmanRuntime) Attach(ctx context.Context, id string) error {
 	_, _ = runSimpleCommand(ctx, r.Command, "exec", "--user", r.ExecUser(),
 		agent.ContainerID, "tmux", "set-option", "-g", "window-size", "latest")
 
-	return runInteractiveCommand(r.Command, "exec", "-it", "--user", r.ExecUser(), agent.ContainerID, "tmux", "attach", "-t", "scion")
+	return runInteractiveCommand(r.Command, "exec", "-it", "--user", r.ExecUser(), agent.ContainerID, "tmux", "attach", "-t", "fabric")
 }
 
 func (r *PodmanRuntime) ImageExists(ctx context.Context, image string) (bool, error) {
@@ -411,7 +411,7 @@ func (r *PodmanRuntime) Sync(ctx context.Context, id string, direction SyncDirec
 	}
 
 	// Check for GCS volumes
-	if val, ok := agent.Labels["scion.gcs_volumes"]; ok && val != "" {
+	if val, ok := agent.Labels["fabric.gcs_volumes"]; ok && val != "" {
 		decoded, err := base64.StdEncoding.DecodeString(val)
 		if err != nil {
 			return fmt.Errorf("failed to decode gcs volume info: %w", err)

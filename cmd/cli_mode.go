@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 type CLIMode string
@@ -99,14 +99,14 @@ var agentAllowed = map[string]bool{
 }
 
 // resolveMode determines the active CLI mode from environment and settings.
-// Priority: SCION_CLI_MODE env var > cli.mode setting > default (human).
+// Priority: FABRIC_CLI_MODE env var > cli.mode setting > default (human).
 func resolveMode() CLIMode {
-	if envMode := os.Getenv("SCION_CLI_MODE"); envMode != "" {
+	if envMode := os.Getenv("FABRIC_CLI_MODE"); envMode != "" {
 		switch CLIMode(envMode) {
 		case ModeHuman, ModeAssistant, ModeAgent:
 			return CLIMode(envMode)
 		default:
-			fmt.Fprintf(os.Stderr, "Warning: unrecognized SCION_CLI_MODE=%q, defaulting to %q\n", envMode, ModeHuman)
+			fmt.Fprintf(os.Stderr, "Warning: unrecognized FABRIC_CLI_MODE=%q, defaulting to %q\n", envMode, ModeHuman)
 			return ModeHuman
 		}
 	}

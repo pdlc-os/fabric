@@ -15,7 +15,7 @@ This period focused on improving the performance and reliability of the Hub's da
 * **Robust Harness Provisioning:**
     * Fixed `HOME` environment variable mismatches in `container-script` provisioning and enabled the `container-script` provisioner for Opencode by default.
     * Resolved a race condition in broker plugin startup.
-    * Improved file permission management for `scion-token` and `agent-info.json` to ensure they remain readable by the `scion` user and broker after refreshes.
+    * Improved file permission management for `fabric-token` and `agent-info.json` to ensure they remain readable by the `fabric` user and broker after refreshes.
     * Ensured `container-script` bundles are reconciled on every agent start to maintain consistency.
 * **Network & Connectivity:**
     * Fixed GCE hairpin NAT issues for co-located Docker bridge containers.

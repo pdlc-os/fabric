@@ -25,8 +25,8 @@
 import { LitElement, html, css, nothing, type TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-@customElement('scion-json-browser')
-export class ScionJsonBrowser extends LitElement {
+@customElement('fabric-json-browser')
+export class FabricJsonBrowser extends LitElement {
   @property({ type: Object })
   data: unknown = null;
 
@@ -36,10 +36,10 @@ export class ScionJsonBrowser extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.8125rem;
       line-height: 1.5;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .node {
@@ -54,12 +54,12 @@ export class ScionJsonBrowser extends LitElement {
     }
 
     .key {
-      color: var(--scion-text-secondary, #475569);
+      color: var(--fabric-text-secondary, #475569);
       flex-shrink: 0;
     }
 
     .colon {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       flex-shrink: 0;
     }
 
@@ -76,7 +76,7 @@ export class ScionJsonBrowser extends LitElement {
       color: inherit;
     }
     .toggle:hover .key {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .arrow {
@@ -84,7 +84,7 @@ export class ScionJsonBrowser extends LitElement {
       width: 0.75em;
       font-size: 0.625rem;
       text-align: center;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       transition: transform 0.15s ease;
       flex-shrink: 0;
     }
@@ -93,23 +93,23 @@ export class ScionJsonBrowser extends LitElement {
     }
 
     .preview {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
     }
 
     /* Value type colors */
     .val-string {
-      color: var(--scion-success-700, #15803d);
+      color: var(--fabric-success-700, #15803d);
       word-break: break-all;
     }
     .val-number {
-      color: var(--scion-primary-700, #1d4ed8);
+      color: var(--fabric-primary-700, #1d4ed8);
     }
     .val-boolean {
       color: #7c3aed;
     }
     .val-null {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-style: italic;
     }
   `;
@@ -257,6 +257,6 @@ export class ScionJsonBrowser extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-json-browser': ScionJsonBrowser;
+    'fabric-json-browser': FabricJsonBrowser;
   }
 }

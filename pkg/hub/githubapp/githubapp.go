@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package githubapp implements GitHub App authentication for the Scion Hub.
+// Package githubapp implements GitHub App authentication for the Fabric Hub.
 // It handles JWT generation from private keys and installation access token minting.
 package githubapp
 

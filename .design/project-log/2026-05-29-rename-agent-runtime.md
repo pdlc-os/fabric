@@ -1,7 +1,7 @@
 # Tier 1 Grove→Project Rename: agent, runtime, broker, logging
 
 **Date:** 2026-05-29
-**Scope:** `pkg/agent/`, `pkg/runtime/`, `pkg/broker/`, `pkg/util/logging/`, `pkg/sciontool/telemetry/`, `pkg/sciontool/hooks/handlers/`
+**Scope:** `pkg/agent/`, `pkg/runtime/`, `pkg/broker/`, `pkg/util/logging/`, `pkg/fabrictool/telemetry/`, `pkg/fabrictool/hooks/handlers/`
 
 ## Summary
 
@@ -24,7 +24,7 @@ Completed Tier 1 (internal identifiers only) rename of "grove" → "project" acr
 ### pkg/runtime/ (12 files)
 - `k8s_runtime.go`: Params `groveName`→`projectName` in `sharedDirPVCName` and `cleanupSharedDirPVCs`; local var renamed
 - `factory.go`: Param `grovePath`→`projectPath`; debug string updated
-- `factory_test.go`: Variables `groveScionDir`→`projectScionDir`, `groveSettings`→`projectSettings`
+- `factory_test.go`: Variables `groveFabricDir`→`projectFabricDir`, `groveSettings`→`projectSettings`
 - `common.go`, `docker.go`, `podman.go`, `apple_container.go`: Comments updated
 - `common_test.go`: Variable `groveDir`→`projectDir`; test data updated
 - `k8s_shared_dirs_test.go`, `k8s_secrets_test.go`, `secrets_test.go`, `podman_test.go`: Test data values updated
@@ -38,20 +38,20 @@ Completed Tier 1 (internal identifiers only) rename of "grove" → "project" acr
 - `logging.go`, `gcp_handler.go`, `cloud_handler.go`: Comments updated; `"grove_id"` attribute keys left untouched
 - `*_test.go`: Test data values updated
 
-### pkg/sciontool/telemetry/ (2 files)
+### pkg/fabrictool/telemetry/ (2 files)
 - `providers.go`, `gcp_exporter.go`: Variable `groveID`→`legacyProjectID` (to avoid collision with existing `projectID` variable in scope)
 
-### pkg/sciontool/hooks/handlers/ (1 file)
+### pkg/fabrictool/hooks/handlers/ (1 file)
 - `status_test.go`: Test value "my-grove"→"my-project"
 
 ## What Was NOT Changed (Tier 2/3)
-- Container label keys: `"scion.grove"`, `"scion.grove_id"`, `"scion.grove_path"`
-- Environment variable strings: `"SCION_GROVE_ID"`, `"SCION_GROVE"`
-- NATS topic prefixes: `"scion.grove."`
-- Telemetry attribute strings: `"scion.grove.id"`, `"grove_id"` (GCP metric labels)
+- Container label keys: `"fabric.grove"`, `"fabric.grove_id"`, `"fabric.grove_path"`
+- Environment variable strings: `"FABRIC_GROVE_ID"`, `"FABRIC_GROVE"`
+- NATS topic prefixes: `"fabric.grove."`
+- Telemetry attribute strings: `"fabric.grove.id"`, `"grove_id"` (GCP metric labels)
 - Structured log attribute keys: `"grove_id"` in slog calls
 - URL API paths: `/api/v1/groves/`
-- Filesystem paths: `/scion-volumes/`, PVC naming conventions
+- Filesystem paths: `/fabric-volumes/`, PVC naming conventions
 
 ## Issues Encountered
 - **TestRequestLogMiddleware_ProducesCorrectJSON**: After renaming the expected value from "test-grove" to "test-project", the test failed because the URL path `/api/v1/groves/test-grove/agents` still contained "test-grove" as the path segment extracted as the project ID. Fixed by updating the URL path segment value (test data) while keeping the `/api/v1/groves/` prefix (API endpoint) unchanged.

@@ -40,9 +40,9 @@ func captureStdout(t *testing.T, fn func()) string {
 }
 
 func TestWhoamiAgentContext(t *testing.T) {
-	t.Setenv("SCION_AGENT_SLUG", "my-agent")
-	t.Setenv("SCION_AGENT_NAME", "My Agent")
-	t.Setenv("SCION_AGENT_ID", "uuid-123")
+	t.Setenv("FABRIC_AGENT_SLUG", "my-agent")
+	t.Setenv("FABRIC_AGENT_NAME", "My Agent")
+	t.Setenv("FABRIC_AGENT_ID", "uuid-123")
 
 	cmd := whoamiCmd
 	out := captureStdout(t, func() {
@@ -53,9 +53,9 @@ func TestWhoamiAgentContext(t *testing.T) {
 }
 
 func TestWhoamiAgentContextJSON(t *testing.T) {
-	t.Setenv("SCION_AGENT_SLUG", "my-agent")
-	t.Setenv("SCION_AGENT_NAME", "My Agent")
-	t.Setenv("SCION_AGENT_ID", "uuid-123")
+	t.Setenv("FABRIC_AGENT_SLUG", "my-agent")
+	t.Setenv("FABRIC_AGENT_NAME", "My Agent")
+	t.Setenv("FABRIC_AGENT_ID", "uuid-123")
 
 	oldFormat := outputFormat
 	outputFormat = "json"
@@ -75,9 +75,9 @@ func TestWhoamiAgentContextJSON(t *testing.T) {
 }
 
 func TestWhoamiNameOnly(t *testing.T) {
-	t.Setenv("SCION_AGENT_SLUG", "")
-	t.Setenv("SCION_AGENT_NAME", "fallback-agent")
-	t.Setenv("SCION_AGENT_ID", "")
+	t.Setenv("FABRIC_AGENT_SLUG", "")
+	t.Setenv("FABRIC_AGENT_NAME", "fallback-agent")
+	t.Setenv("FABRIC_AGENT_ID", "")
 
 	cmd := whoamiCmd
 	out := captureStdout(t, func() {
@@ -88,9 +88,9 @@ func TestWhoamiNameOnly(t *testing.T) {
 }
 
 func TestWhoamiNonAgent(t *testing.T) {
-	t.Setenv("SCION_AGENT_SLUG", "")
-	t.Setenv("SCION_AGENT_NAME", "")
-	t.Setenv("SCION_AGENT_ID", "")
+	t.Setenv("FABRIC_AGENT_SLUG", "")
+	t.Setenv("FABRIC_AGENT_NAME", "")
+	t.Setenv("FABRIC_AGENT_ID", "")
 
 	cmd := whoamiCmd
 	err := cmd.RunE(cmd, nil)

@@ -17,7 +17,7 @@ package bridge
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 func TestMapActivityToTaskState(t *testing.T) {
@@ -72,14 +72,14 @@ func TestIsTerminalState(t *testing.T) {
 	}
 }
 
-func TestTranslateA2AToScion(t *testing.T) {
+func TestTranslateA2AToFabric(t *testing.T) {
 	parts := []Part{
 		{Text: "Hello, agent!"},
 		{Text: "How are you?"},
 		{URL: "https://example.com/file.pdf"},
 	}
 
-	msg := TranslateA2AToScion(parts)
+	msg := TranslateA2AToFabric(parts)
 
 	if msg.Msg != "Hello, agent!\nHow are you?" {
 		t.Errorf("Msg = %q, want concatenated text", msg.Msg)
@@ -98,27 +98,27 @@ func TestTranslateA2AToScion(t *testing.T) {
 	}
 }
 
-func TestTranslateA2AToScionWithData(t *testing.T) {
+func TestTranslateA2AToFabricWithData(t *testing.T) {
 	parts := []Part{
 		{Data: map[string]string{"key": "value"}},
 	}
 
-	msg := TranslateA2AToScion(parts)
+	msg := TranslateA2AToFabric(parts)
 
 	if msg.Msg != `{"key":"value"}` {
 		t.Errorf("Msg = %q, want JSON data", msg.Msg)
 	}
 }
 
-func TestTranslateScionToA2A(t *testing.T) {
-	scionMsg := &messages.StructuredMessage{
+func TestTranslateFabricToA2A(t *testing.T) {
+	fabricMsg := &messages.StructuredMessage{
 		Version:     1,
 		Msg:         "Task completed successfully",
 		Type:        messages.TypeInstruction,
 		Attachments: []string{"https://example.com/output.txt"},
 	}
 
-	msg, artifacts := TranslateScionToA2A(scionMsg)
+	msg, artifacts := TranslateFabricToA2A(fabricMsg)
 
 	if msg.Role != RoleAgent {
 		t.Errorf("Role = %q, want %q", msg.Role, RoleAgent)
@@ -140,8 +140,8 @@ func TestTranslateScionToA2A(t *testing.T) {
 	}
 }
 
-func TestTranslateScionToA2APartsNilMessage(t *testing.T) {
-	msg, artifacts := TranslateScionToA2AParts(nil)
+func TestTranslateFabricToA2APartsNilMessage(t *testing.T) {
+	msg, artifacts := TranslateFabricToA2AParts(nil)
 	if msg == nil {
 		t.Fatal("expected non-nil message for nil input")
 	}
@@ -153,14 +153,14 @@ func TestTranslateScionToA2APartsNilMessage(t *testing.T) {
 	}
 }
 
-func TestTranslateScionToA2AStateChange(t *testing.T) {
-	scionMsg := &messages.StructuredMessage{
+func TestTranslateFabricToA2AStateChange(t *testing.T) {
+	fabricMsg := &messages.StructuredMessage{
 		Version: 1,
 		Msg:     "Agent state changed",
 		Type:    messages.TypeStateChange,
 	}
 
-	_, artifacts := TranslateScionToA2A(scionMsg)
+	_, artifacts := TranslateFabricToA2A(fabricMsg)
 
 	if len(artifacts) != 0 {
 		t.Errorf("Artifacts = %d, want 0 for state-change messages", len(artifacts))

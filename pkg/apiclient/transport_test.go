@@ -31,8 +31,8 @@ func TestNewTransport(t *testing.T) {
 	if tr.HTTPClient == nil {
 		t.Error("expected HTTP client to be initialized")
 	}
-	if tr.UserAgent != "scion-client/1.0" {
-		t.Errorf("expected user agent 'scion-client/1.0', got %q", tr.UserAgent)
+	if tr.UserAgent != "fabric-client/1.0" {
+		t.Errorf("expected user agent 'fabric-client/1.0', got %q", tr.UserAgent)
 	}
 }
 

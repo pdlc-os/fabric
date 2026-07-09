@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-**Problem statement.** Scion currently runs AI coding agents exclusively in containers (Docker, Podman, Kubernetes, Apple Container, Cloud Run). Each container bundles a Runtime (container lifecycle) and a Harness (LLM CLI like Claude Code or Gemini CLI). A growing class of cloud services offer fully-managed agent execution where the model, tools, sandbox, and orchestration loop are handled server-side. Scion needs to support these managed backends so that `scion start`, `scion message`, `scion stop`, and other commands work seamlessly whether the agent runs in a local container or a remote cloud service.
+**Problem statement.** Fabric currently runs AI coding agents exclusively in containers (Docker, Podman, Kubernetes, Apple Container, Cloud Run). Each container bundles a Runtime (container lifecycle) and a Harness (LLM CLI like Claude Code or Gemini CLI). A growing class of cloud services offer fully-managed agent execution where the model, tools, sandbox, and orchestration loop are handled server-side. Fabric needs to support these managed backends so that `fabric start`, `fabric message`, `fabric stop`, and other commands work seamlessly whether the agent runs in a local container or a remote cloud service.
 
 **Design decision.** Option B: introduce `ManagedAgent` as a peer concept to the existing Runtime+Harness stack, not as a replacement. The `Manager` interface (`pkg/agent/manager.go`) is the branching point. A new `ManagedAgentManager` implements the same `Manager` interface but delegates to a cloud API client instead of a Runtime+Harness pair. Container code is untouched.
 
@@ -21,7 +21,7 @@
 The current dispatch chain for container agents:
 
 ```
-Template (scion-agent.yaml)
+Template (fabric-agent.yaml)
   -> AgentManager (implements Manager)
      -> Runtime (docker/podman/k8s/apple/cloudrun)
      -> Harness (claude/gemini/generic)
@@ -30,7 +30,7 @@ Template (scion-agent.yaml)
 The new dispatch chain for managed agents:
 
 ```
-Template (scion-agent.yaml with service: field)
+Template (fabric-agent.yaml with service: field)
   -> ManagedAgentManager (implements Manager)
      -> ManagedAgentBackend (interface)
         -> GoogleManagedAgentBackend (first impl)
@@ -57,7 +57,7 @@ pkg/
       types.go              # NEW: Google API request/response types
       sse.go                # NEW: SSE event stream parser
   api/
-    types.go                # MODIFIED: add ServiceConfig to ScionConfig
+    types.go                # MODIFIED: add ServiceConfig to FabricConfig
   config/
     templates.go            # MODIFIED: add service: field to template validation
 ```
@@ -208,8 +208,8 @@ package agent
 import (
     "context"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/api"
-    "github.com/GoogleCloudPlatform/scion/pkg/managedagent"
+    "github.com/pdlc-os/fabric/pkg/api"
+    "github.com/pdlc-os/fabric/pkg/managedagent"
 )
 
 // ManagedAgentManager implements the Manager interface for cloud-managed agents.
@@ -228,7 +228,7 @@ func NewManagedAgentManager(backend managedagent.ManagedAgentBackend, stateDir s
 // All Manager interface methods implemented by delegating to Backend.
 // See Section 4 for detailed lifecycle flows.
 
-func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.ScionConfig, error) { ... }
+func (m *ManagedAgentManager) Provision(ctx context.Context, opts api.StartOptions) (*api.FabricConfig, error) { ... }
 func (m *ManagedAgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.AgentInfo, error) { ... }
 func (m *ManagedAgentManager) Stop(ctx context.Context, agentID string, projectPath string) error { ... }
 func (m *ManagedAgentManager) Delete(ctx context.Context, agentID string, deleteFiles bool, projectPath string, removeBranch bool) (bool, error) { ... }
@@ -249,15 +249,15 @@ The branching happens at construction time, not dispatch time. A factory functio
 package agent
 
 import (
-    "github.com/GoogleCloudPlatform/scion/pkg/api"
-    "github.com/GoogleCloudPlatform/scion/pkg/managedagent"
-    "github.com/GoogleCloudPlatform/scion/pkg/managedagent/google"
-    "github.com/GoogleCloudPlatform/scion/pkg/runtime"
+    "github.com/pdlc-os/fabric/pkg/api"
+    "github.com/pdlc-os/fabric/pkg/managedagent"
+    "github.com/pdlc-os/fabric/pkg/managedagent/google"
+    "github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // NewManagerForProfile returns the appropriate Manager implementation
 // based on the broker profile selected at agent creation time.
-// Managed agent config (API key, base agent) comes from Scion settings, not templates.
+// Managed agent config (API key, base agent) comes from Fabric settings, not templates.
 func NewManagerForProfile(rt runtime.Runtime, profile string, settings *api.Settings, stateDir string) Manager {
     switch profile {
     case "managed-agents":
@@ -281,14 +281,14 @@ func NewManagerForProfile(rt runtime.Runtime, profile string, settings *api.Sett
 
 **Key decision (Q7):** Templates define *what* an agent does, not *where/how* it runs. There is no `service:` field in the template YAML. The managed-vs-container decision is a **broker profile** selected at agent creation time (analogous to choosing Cloud Run vs GKE).
 
-Templates remain unchanged from the existing schema. The same template can run on a container runtime or a managed agent service depending on the broker profile selected at `scion start` time.
+Templates remain unchanged from the existing schema. The same template can run on a container runtime or a managed agent service depending on the broker profile selected at `fabric start` time.
 
-### 3.2 Managed agent configuration lives in Scion settings
+### 3.2 Managed agent configuration lives in Fabric settings
 
-Managed agent backend configuration (provider, base agent model, API key) lives in Scion settings, not templates:
+Managed agent backend configuration (provider, base agent model, API key) lives in Fabric settings, not templates:
 
 ```yaml
-# In Scion settings (not template YAML)
+# In Fabric settings (not template YAML)
 managed_agents:
   google:
     api_key: "<key>"           # Or resolved from Hub secrets
@@ -318,7 +318,7 @@ The template is the same regardless of profile.
 A template that works on any execution backend:
 
 ```yaml
-# scion-agent.yaml — execution-agnostic
+# fabric-agent.yaml — execution-agnostic
 agent_instructions: |
   You are a research assistant. Focus on analyzing code quality.
 system_prompt: instructions.md
@@ -338,7 +338,7 @@ When `ManagedAgentManager.Start()` is called:
 2. **Duplicate check** -- scan local state directory for existing managed agent with same slug.
 3. **Template/config resolution** -- load template chain, merge configs (same as container path up to merge).
 4. **Detect managed agent** -- broker profile is `managed-agents` (selected at creation time, not from template).
-5. **Resolve auth** -- resolve API key from Scion settings (`managed_agents.google.api_key`), Hub secrets, or environment variable.
+5. **Resolve auth** -- resolve API key from Fabric settings (`managed_agents.google.api_key`), Hub secrets, or environment variable.
 6. **Create cloud agent** -- call `Backend.CreateAgent()` with system instruction, tools, and environment config. Synchronous call. Receives `cloudAgentID`.
 7. **Create first interaction** -- if `opts.Task` is non-empty, call `Backend.CreateInteraction()` with the task as input and `Stream: true`.
 8. **Persist local state** -- write `managed-agent-state.json` to state directory. Write `agent-info.json` with phase=running, activity=working.
@@ -363,7 +363,7 @@ Container path steps 5-12 (image resolution, harness resolution, container auth,
 
 ### 4.3 Status monitoring and mapping
 
-| Google Interaction Status | Scion Phase | Scion Activity |
+| Google Interaction Status | Fabric Phase | Fabric Activity |
 |---|---|---|
 | (agent created, no interaction yet) | running | waiting_for_input |
 | `in_progress` | running | working |
@@ -375,7 +375,7 @@ Container path steps 5-12 (image resolution, harness resolution, container auth,
 
 SSE event-level mapping:
 
-| SSE Event | Scion Activity |
+| SSE Event | Fabric Activity |
 |---|---|
 | `step.start` type=thought | thinking |
 | `step.start` type=model_output | working |
@@ -392,7 +392,7 @@ SSE event-level mapping:
 
 ### 4.5 CLI command behavior for managed agents
 
-**`scion look`**: Fetch latest interaction via `Backend.GetInteraction()`, format steps as structured text output with timestamps (decision Q6). Primary consumer is agent-to-agent observation:
+**`fabric look`**: Fetch latest interaction via `Backend.GetInteraction()`, format steps as structured text output with timestamps (decision Q6). Primary consumer is agent-to-agent observation:
 ```
 [14:05:02] [thought] Analyzing the repository structure...
 [14:05:08] [code_execution] $ find . -name "*.go" | head -20
@@ -400,9 +400,9 @@ SSE event-level mapping:
 [14:05:12] [status] completed (3,200 input tokens, 1,800 output tokens)
 ```
 
-**`scion attach`**: Not supported for managed agents in v1 (decision Q2). Returns error directing user to `scion message` and `scion look`.
+**`fabric attach`**: Not supported for managed agents in v1 (decision Q2). Returns error directing user to `fabric message` and `fabric look`.
 
-**`scion logs`**: Reads from GCP Cloud Logging (decision Q4). No local log files.
+**`fabric logs`**: Reads from GCP Cloud Logging (decision Q4). No local log files.
 
 ---
 
@@ -445,12 +445,12 @@ Auth: `apiKey` set as `x-goog-api-key` header on every request.
 
 Environments are NOT a separate CRUD resource. Created implicitly when an interaction uses `environment: "remote"`, reused by passing the returned `environment_id`. The `ManagedAgentManager` tracks `latestEnvironmentID` in state.
 
-Google API lifecycle: auto-snapshot after ~15min idle, retained 7 days, then deleted. Scion does not manage this.
+Google API lifecycle: auto-snapshot after ~15min idle, retained 7 days, then deleted. Fabric does not manage this.
 
 ### 5.3 Auth handling
 
-- API key lives in Scion settings (`managed_agents.google.api_key`) — NOT in templates (decision Q1)
-- Resolution chain: Scion settings > Hub secret > environment variable
+- API key lives in Fabric settings (`managed_agents.google.api_key`) — NOT in templates (decision Q1)
+- Resolution chain: Fabric settings > Hub secret > environment variable
 - No template-level credential configuration; templates are execution-agnostic
 
 ### 5.4 Multi-turn state tracking
@@ -520,7 +520,7 @@ type ManagedAgentState struct {
 
 ```
 <projectDir>/agents/<agent-name>/
-  scion-agent.json          # Template config (same as container agents)
+  fabric-agent.json          # Template config (same as container agents)
   managed-agent-state.json  # NEW: cloud-side state tracking
   home/
     agent-info.json          # Status (same format as container agents)
@@ -535,8 +535,8 @@ Same schema, different field values:
 |---|---|---|
 | `ContainerID` | Docker/k8s ID | Empty |
 | `Runtime` | "docker" / "podman" / "kubernetes" | "managed:google" |
-| `Phase` | From container + sciontool hooks | From interaction status |
-| `Activity` | From `.scion-status.json` | From SSE event mapping |
+| `Phase` | From container + fabrictool hooks | From interaction status |
+| `Activity` | From `.fabric-status.json` | From SSE event mapping |
 | `Image` | Container image | Empty |
 
 ---
@@ -545,20 +545,20 @@ Same schema, different field values:
 
 | Command | Container Agent | Managed Agent |
 |---|---|---|
-| `scion start <name> [task]` | Provision + container launch | Create cloud agent + first interaction |
-| `scion create <name> [task]` | Provision only (no container) | Create cloud agent (no interaction) |
-| `scion stop <name>` | Stop container | Cancel active interaction |
-| `scion delete <name>` | Delete container + files | Delete cloud agent + local state |
-| `scion list` | Merge container + on-disk state | Merge managed state from agent dirs |
-| `scion message <name> <msg>` | tmux paste-buffer + send-keys | Create new interaction with message |
-| `scion message --raw <name>` | tmux send-keys (control chars) | Error: "not supported for managed agents" |
-| `scion message --broadcast` | Fan-out tmux delivery | Fan-out interaction creation |
-| `scion look <name>` | tmux capture-pane | Fetch latest interaction, format as text |
-| `scion attach <name>` | tmux attach-session | Error: "not supported for managed agents — use scion message and scion look" (deferred, Q2) |
-| `scion logs <name>` | Read agent.log from container | Read from GCP Cloud Logging (Q4) |
-| `scion resume <name>` | Restart container with --continue | New interaction with environment reuse |
-| `scion sync <name>` | Workspace file sync | Not applicable (v1) |
-| `scion suspend <name>` | Stop container, preserve state | Cancel interaction, preserve cloud agent |
+| `fabric start <name> [task]` | Provision + container launch | Create cloud agent + first interaction |
+| `fabric create <name> [task]` | Provision only (no container) | Create cloud agent (no interaction) |
+| `fabric stop <name>` | Stop container | Cancel active interaction |
+| `fabric delete <name>` | Delete container + files | Delete cloud agent + local state |
+| `fabric list` | Merge container + on-disk state | Merge managed state from agent dirs |
+| `fabric message <name> <msg>` | tmux paste-buffer + send-keys | Create new interaction with message |
+| `fabric message --raw <name>` | tmux send-keys (control chars) | Error: "not supported for managed agents" |
+| `fabric message --broadcast` | Fan-out tmux delivery | Fan-out interaction creation |
+| `fabric look <name>` | tmux capture-pane | Fetch latest interaction, format as text |
+| `fabric attach <name>` | tmux attach-session | Error: "not supported for managed agents — use fabric message and fabric look" (deferred, Q2) |
+| `fabric logs <name>` | Read agent.log from container | Read from GCP Cloud Logging (Q4) |
+| `fabric resume <name>` | Restart container with --continue | New interaction with environment reuse |
+| `fabric sync <name>` | Workspace file sync | Not applicable (v1) |
+| `fabric suspend <name>` | Stop container, preserve state | Cancel interaction, preserve cloud agent |
 
 ---
 
@@ -584,7 +584,7 @@ type ExecutionBackend interface {
 ### 9.2 What stays stable
 
 - **`Manager` interface** -- the public API for CLI and broker. Internal impl switches from "Manager holds Runtime" to "Manager holds ExecutionBackend", but callers unaffected.
-- **`ScionConfig.Service` field** -- template schema is stable.
+- **`FabricConfig.Service` field** -- template schema is stable.
 - **`ManagedAgentState` persistence** -- state file format and directory layout are stable.
 - **`agent-info.json`** -- status format is stable.
 
@@ -601,13 +601,13 @@ Key insight: Option B's `ManagedAgentBackend` is a preview of `ExecutionBackend`
 
 ## 10. Resolved Design Decisions
 
-### Q1: API key storage — DECIDED: Scion settings only
+### Q1: API key storage — DECIDED: Fabric settings only
 
-API key lives in Scion settings (`managed_agents.google.api_key`), NOT in the template YAML. This is an infrastructure/credential concern (analogous to harness-config), not a template-level concern. Templates remain portable and credential-free.
+API key lives in Fabric settings (`managed_agents.google.api_key`), NOT in the template YAML. This is an infrastructure/credential concern (analogous to harness-config), not a template-level concern. Templates remain portable and credential-free.
 
-### Q2: `scion attach` — DECIDED: Deferred for v1
+### Q2: `fabric attach` — DECIDED: Deferred for v1
 
-`scion attach` is not supported for managed agents in v1. There is no SSH or tmux session to attach to. The primary UX is `scion message` + `scion look`. Both `message` and `look` currently use tmux internally for container agents — for managed agents, these are reimplemented as direct API calls (Message → create interaction, Look → fetch latest interaction). A web-based REPL-like interface is a potential future addition.
+`fabric attach` is not supported for managed agents in v1. There is no SSH or tmux session to attach to. The primary UX is `fabric message` + `fabric look`. Both `message` and `look` currently use tmux internally for container agents — for managed agents, these are reimplemented as direct API calls (Message → create interaction, Look → fetch latest interaction). A web-based REPL-like interface is a potential future addition.
 
 ### Q3: Function calling — DECIDED: Not applicable
 
@@ -615,13 +615,13 @@ Managed agents are a pure server-side API. The cloud agent has its own sandbox a
 
 ### Q4: Logging — DECIDED: GCP Cloud Logging
 
-Logging goes through GCP Cloud Logging with its own configurable retention policies. No local log files on hub or broker — avoids introducing statefulness. `scion logs` reads from Cloud Logging on demand.
+Logging goes through GCP Cloud Logging with its own configurable retention policies. No local log files on hub or broker — avoids introducing statefulness. `fabric logs` reads from Cloud Logging on demand.
 
 ### Q5: Broker routing — DECIDED: Hub-direct
 
 Managed agent API calls go directly from the Hub to the cloud API, bypassing brokers entirely. Managed agents are a stateless API with no container lifecycle to manage — the broker layer would be a pass-through adding latency with no value. Managed agents are selected as a **broker profile** (like choosing Cloud Run or GKE) during agent creation. Reference: `cloudrun-ha` branch on origin has a similar hub-direct client interface pattern — look for reusable patterns to factor out.
 
-### Q6: `scion look` output format — DECIDED: Structured with timestamps
+### Q6: `fabric look` output format — DECIDED: Structured with timestamps
 
 Structured, readable format with timestamps on each step. Primary consumer is agent-to-agent observation (one agent understanding what another is doing). Timestamps are critical for this use case.
 
@@ -647,7 +647,7 @@ Custom `net/http` wrapper for v1. The API surface is small (~8 endpoints), auth 
 | File | Role | Change |
 |------|------|--------|
 | `pkg/agent/manager.go` | Manager interface | Add factory function |
-| `pkg/api/types.go` | Core types | Add ManagedAgentSettings (in settings, not ScionConfig) |
+| `pkg/api/types.go` | Core types | Add ManagedAgentSettings (in settings, not FabricConfig) |
 | `pkg/agent/run.go` | AgentManager.Start | UNCHANGED |
 | `pkg/agent/managed_manager.go` | ManagedAgentManager | NEW |
 | `pkg/agent/managed_state.go` | State persistence | NEW |

@@ -9,7 +9,7 @@ This document addresses three related gaps in the secrets provisioning flow:
 
 1. **Auto-upgrade of required env vars to secrets**: When a required environment variable (declared with an empty value in settings/harness config) has a matching key in the secrets store, the system should automatically provision it without user input — transparently "upgrading" the env var to its secret-backed value.
 
-2. **Template-level `secrets` section**: Templates and settings should support a `secrets` section that declares required secret keys. During the CLI gather step, when running interactively, the user can enter secret values directly at the prompt (e.g., typing an API key) rather than needing to pre-configure them via `scion hub secret set`.
+2. **Template-level `secrets` section**: Templates and settings should support a `secrets` section that declares required secret keys. During the CLI gather step, when running interactively, the user can enter secret values directly at the prompt (e.g., typing an API key) rather than needing to pre-configure them via `fabric hub secret set`.
 
 3. **Kubernetes native secret mounting**: The Kubernetes runtime should use Kubernetes Secret objects (or GCP Secret Manager via CSI driver) to mount secrets into pods, rather than passing plaintext values through the dispatch chain.
 
@@ -37,7 +37,7 @@ During the env-gather flow (hosted mode):
 ### 2.2 How secrets work today
 
 Secrets are a separate system from env vars:
-- Stored via `scion hub secret set` (encrypted in Hub DB or GCP Secret Manager)
+- Stored via `fabric hub secret set` (encrypted in Hub DB or GCP Secret Manager)
 - Three types: `environment`, `variable`, `file`
 - Resolved at dispatch time via `SecretBackend.Resolve()` with scope hierarchy (user < grove < runtime_broker)
 - Passed to Broker as `ResolvedSecrets` in `CreateAgentRequest`
@@ -60,7 +60,7 @@ These two systems don't talk to each other during the gather flow:
 
 When the env-gather flow evaluates whether a required key is satisfied, it should check not only the merged env map but also the `ResolvedSecrets` list. If a required env key (e.g., `ANTHROPIC_API_KEY`) has a matching secret with `type=environment` and `target=ANTHROPIC_API_KEY`, that key is **satisfied by the secret store** — no user input needed.
 
-This is an "auto-upgrade" because the user doesn't need to do anything different. They set a secret once via `scion hub secret set ANTHROPIC_API_KEY sk-...`, and from then on, every agent that requires `ANTHROPIC_API_KEY` gets it automatically. The value never appears in the env-gather prompt.
+This is an "auto-upgrade" because the user doesn't need to do anything different. They set a secret once via `fabric hub secret set ANTHROPIC_API_KEY sk-...`, and from then on, every agent that requires `ANTHROPIC_API_KEY` gets it automatically. The value never appears in the env-gather prompt.
 
 ### 3.2 Implementation: Broker-Side
 
@@ -113,7 +113,7 @@ type EnvRequirementsResponse struct {
 
 ### 3.4 Edge case: env var AND secret with same key
 
-If both `ResolvedEnv["ANTHROPIC_API_KEY"]` and a secret with `target=ANTHROPIC_API_KEY` exist, the secret takes precedence (it was set with `--secret` or `scion hub secret set`, implying the user wants the encrypted version). The existing runtime projection already handles this: `environment`-type secrets are injected as `-e` flags, which override `ResolvedEnv` values at container start.
+If both `ResolvedEnv["ANTHROPIC_API_KEY"]` and a secret with `target=ANTHROPIC_API_KEY` exist, the secret takes precedence (it was set with `--secret` or `fabric hub secret set`, implying the user wants the encrypted version). The existing runtime projection already handles this: `environment`-type secrets are injected as `-e` flags, which override `ResolvedEnv` values at container start.
 
 No special handling needed — just report it as satisfied.
 
@@ -130,7 +130,7 @@ Templates and settings profiles should support declaring required secrets. This 
 
 ### 4.2 Schema
 
-#### In `scion-agent.yaml` (template config):
+#### In `fabric-agent.yaml` (template config):
 
 ```yaml
 schema_version: "1"
@@ -147,7 +147,7 @@ secrets:
   - key: GCP_CREDENTIALS
     description: "GCP service account credentials"
     type: file
-    target: /home/scion/.config/gcloud/credentials.json
+    target: /home/fabric/.config/gcloud/credentials.json
 ```
 
 #### In `settings.yaml` (harness config or profile):
@@ -182,7 +182,7 @@ type RequiredSecret struct {
 ```
 
 This type would be added to:
-- Template config parsing (wherever `scion-agent.yaml` is loaded)
+- Template config parsing (wherever `fabric-agent.yaml` is loaded)
 - `HarnessConfigEntry` in `pkg/config/settings_v1.go`
 - `V1ProfileConfig` in `pkg/config/settings_v1.go`
 
@@ -222,7 +222,7 @@ Environment variables for agent 'researcher':
     ANTHROPIC_API_KEY - Anthropic API key (required by harness)
 
   You can enter missing secret values now, or set them permanently:
-    scion hub secret set ANTHROPIC_API_KEY <value>
+    fabric hub secret set ANTHROPIC_API_KEY <value>
 
   Enter value for ANTHROPIC_API_KEY (input hidden): ********
 
@@ -258,7 +258,7 @@ The CLI should suggest permanent storage after a successful gather:
 
 ```
 Tip: To avoid entering this value each time, store it permanently:
-  scion hub secret set ANTHROPIC_API_KEY <value>
+  fabric hub secret set ANTHROPIC_API_KEY <value>
 ```
 
 ### 5.5 Conveying secret metadata to CLI
@@ -323,20 +323,20 @@ When `gke: true` AND the Hub's secret backend is `gcpsm`, the runtime uses `Ref`
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
-  name: scion-agent-<name>
+  name: fabric-agent-<name>
   labels:
-    scion.agent: <name>
+    fabric.agent: <name>
 spec:
   provider: gcp
   parameters:
     secrets: |
-      - resourceName: "projects/my-project/secrets/scion-user-abc-ANTHROPIC_API_KEY/versions/latest"
+      - resourceName: "projects/my-project/secrets/fabric-user-abc-ANTHROPIC_API_KEY/versions/latest"
         path: "ANTHROPIC_API_KEY"
-      - resourceName: "projects/my-project/secrets/scion-grove-xyz-TLS_CERT/versions/latest"
+      - resourceName: "projects/my-project/secrets/fabric-grove-xyz-TLS_CERT/versions/latest"
         path: "tls-cert"
   # Sync environment-type secrets to a K8s Secret for env var injection
   secretObjects:
-    - secretName: scion-agent-<name>-env
+    - secretName: fabric-agent-<name>-env
       type: Opaque
       data:
         - objectName: "ANTHROPIC_API_KEY"
@@ -354,7 +354,7 @@ pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
             Driver:   "secrets-store.csi.x-k8s.io",
             ReadOnly: boolPtr(true),
             VolumeAttributes: map[string]string{
-                "secretProviderClass": fmt.Sprintf("scion-agent-%s", config.Name),
+                "secretProviderClass": fmt.Sprintf("fabric-agent-%s", config.Name),
             },
         },
     },
@@ -368,7 +368,7 @@ for _, s := range config.ResolvedSecrets {
             ValueFrom: &corev1.EnvVarSource{
                 SecretKeyRef: &corev1.SecretKeySelector{
                     LocalObjectReference: corev1.LocalObjectReference{
-                        Name: fmt.Sprintf("scion-agent-%s-env", config.Name),
+                        Name: fmt.Sprintf("fabric-agent-%s-env", config.Name),
                     },
                     Key: s.Target,
                 },
@@ -390,7 +390,7 @@ for _, s := range config.ResolvedSecrets {
 }
 ```
 
-This approach avoids storing secret values in etcd entirely. The Hub populates `ResolvedSecret.Ref` with the GCP SM resource name (e.g., `projects/my-project/secrets/scion-user-abc-API_KEY/versions/latest`), and the runtime uses these references directly — no plaintext values transit through the Broker.
+This approach avoids storing secret values in etcd entirely. The Hub populates `ResolvedSecret.Ref` with the GCP SM resource name (e.g., `projects/my-project/secrets/fabric-user-abc-API_KEY/versions/latest`), and the runtime uses these references directly — no plaintext values transit through the Broker.
 
 ### 6.2.2 Fallback: K8s Secret Objects (Non-GKE)
 
@@ -409,7 +409,7 @@ func (r *KubernetesRuntime) createAgentSecret(ctx context.Context, namespace str
 
     secret := &corev1.Secret{
         ObjectMeta: metav1.ObjectMeta{
-            Name:      fmt.Sprintf("scion-agent-%s", config.Name),
+            Name:      fmt.Sprintf("fabric-agent-%s", config.Name),
             Namespace: namespace,
             Labels:    config.Labels,
             // OwnerReference is set to the Pod after creation for auto-cleanup
@@ -433,7 +433,7 @@ for _, s := range config.ResolvedSecrets {
             ValueFrom: &corev1.EnvVarSource{
                 SecretKeyRef: &corev1.SecretKeySelector{
                     LocalObjectReference: corev1.LocalObjectReference{
-                        Name: fmt.Sprintf("scion-agent-%s", config.Name),
+                        Name: fmt.Sprintf("fabric-agent-%s", config.Name),
                     },
                     Key: s.Name,
                 },
@@ -451,7 +451,7 @@ pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
     Name: "agent-secrets",
     VolumeSource: corev1.VolumeSource{
         Secret: &corev1.SecretVolumeSource{
-            SecretName: fmt.Sprintf("scion-agent-%s", config.Name),
+            SecretName: fmt.Sprintf("fabric-agent-%s", config.Name),
             Items:      fileSecretItems, // []corev1.KeyToPath
         },
     },
@@ -470,11 +470,11 @@ for _, s := range config.ResolvedSecrets {
 }
 ```
 
-**Variable secrets** are written to a ConfigMap or included in the secret data and mounted at `~/.scion/secrets.json` via subPath.
+**Variable secrets** are written to a ConfigMap or included in the secret data and mounted at `~/.fabric/secrets.json` via subPath.
 
 ### 6.2.3 Cleanup
 
-All K8s resources created for secrets (Secret objects, SecretProviderClass CRDs) are labeled with `scion.agent=<name>`. On agent deletion, the runtime deletes all resources matching this label. This label-based approach is simple — it doesn't require OwnerReference post-creation updates and works for both the GKE (SecretProviderClass) and fallback (K8s Secret) paths.
+All K8s resources created for secrets (Secret objects, SecretProviderClass CRDs) are labeled with `fabric.agent=<name>`. On agent deletion, the runtime deletes all resources matching this label. This label-based approach is simple — it doesn't require OwnerReference post-creation updates and works for both the GKE (SecretProviderClass) and fallback (K8s Secret) paths.
 
 The `Run()` method must also clean up secrets in its error path if pod creation fails after the secret/SPC was created, to avoid orphaned resources.
 
@@ -488,7 +488,7 @@ The hardcoded auth injection (lines 234-242 in `k8s_runtime.go`) should be remov
 
 This is a **breaking change** for existing K8s deployments. A migration path:
 1. Deploy the new code
-2. Users run `scion hub secret set ANTHROPIC_API_KEY <value>` (one-time)
+2. Users run `fabric hub secret set ANTHROPIC_API_KEY <value>` (one-time)
 3. Old auth injection code can be removed after a deprecation period
 
 ### 6.3 Strategy Comparison
@@ -529,7 +529,7 @@ This configuration should be documented in the Kubernetes runtime setup guide (`
 Putting all three enhancements together, here is the complete provisioning flow:
 
 ```
-User: scion start researcher --broker prod-gke "analyze auth module"
+User: fabric start researcher --broker prod-gke "analyze auth module"
 
 1. CLI → Hub: POST /groves/{id}/agents (gather_env=true)
 
@@ -575,7 +575,7 @@ User: scion start researcher --broker prod-gke "analyze auth module"
 
 ### 8.1 Should interactively gathered secrets be auto-stored? — Decided
 
-**Decision:** Deferred to a future improvement. Interactively gathered secrets are ephemeral for the initial implementation. Users can store values permanently via `scion hub secret set`. A future iteration may offer a post-start prompt to store the value (with scope selection).
+**Decision:** Deferred to a future improvement. Interactively gathered secrets are ephemeral for the initial implementation. Users can store values permanently via `fabric hub secret set`. A future iteration may offer a post-start prompt to store the value (with scope selection).
 
 ### 8.2 Secret declaration in Hub-managed templates — Decided
 
@@ -587,7 +587,7 @@ User: scion start researcher --broker prod-gke "analyze auth module"
 
 ### 8.4 K8s secret cleanup on agent failure — Decided
 
-**Decision:** The `Run()` method cleans up secrets/SPCs in its error path if pod creation fails. Additionally, `scion list` or a periodic reconciliation loop can identify orphaned resources (secrets/SPCs with `scion.agent` label but no matching pod) and clean them up.
+**Decision:** The `Run()` method cleans up secrets/SPCs in its error path if pod creation fails. Additionally, `fabric list` or a periodic reconciliation loop can identify orphaned resources (secrets/SPCs with `fabric.agent` label but no matching pod) and clean them up.
 
 ### 8.5 GCP Secret Manager CSI driver: availability detection — Decided
 
@@ -595,7 +595,7 @@ User: scion start researcher --broker prod-gke "analyze auth module"
 
 ### 8.6 File-type secrets in interactive gather — Decided
 
-**Decision:** Deferred. File secrets are typically large (certificates, credential files) and are better handled via `scion hub secret set --type file ... @./file.pem`. The interactive gather flow only supports `environment` and `variable` type secrets. When a file-type secret is in the "needs" list, the CLI should display help text guiding the user to the `scion hub secret set` command with `--type file` and `@` syntax, rather than attempting inline file input.
+**Decision:** Deferred. File secrets are typically large (certificates, credential files) and are better handled via `fabric hub secret set --type file ... @./file.pem`. The interactive gather flow only supports `environment` and `variable` type secrets. When a file-type secret is in the "needs" list, the CLI should display help text guiding the user to the `fabric hub secret set` command with `--type file` and `@` syntax, rather than attempting inline file input.
 
 ---
 
@@ -622,7 +622,7 @@ User: scion start researcher --broker prod-gke "analyze auth module"
 1. ~~Add hidden input prompt (using `golang.org/x/term`) for secret-eligible keys in `gatherAndSubmitEnv()`~~
 2. ~~Distinguish secret-eligible vs env-only keys in gather logic~~
 3. ~~Add guidance message about permanent storage~~
-4. ~~Add help text for file-type secrets guiding users to `scion hub secret set --type file`~~
+4. ~~Add help text for file-type secrets guiding users to `fabric hub secret set --type file`~~
 5. ~~Tests for interactive flow (mock stdin)~~
 
 ### Phase 4: K8s Native Secret Mounting — **Completed**

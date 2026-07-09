@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // NotificationService handles notification operations.

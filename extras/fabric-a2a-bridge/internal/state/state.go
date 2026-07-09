@@ -23,7 +23,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Task represents an A2A task mapped to a Scion agent interaction.
+// Task represents an A2A task mapped to a Fabric agent interaction.
 type Task struct {
 	ID        string
 	ContextID string
@@ -36,7 +36,7 @@ type Task struct {
 	Metadata  string
 }
 
-// Context maps an A2A contextId to a Scion agent.
+// Context maps an A2A contextId to a Fabric agent.
 type Context struct {
 	ContextID  string
 	ProjectID  string

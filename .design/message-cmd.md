@@ -8,7 +8,7 @@
 
 ## Design
 
-`scion message` (msg for short)
+`fabric message` (msg for short)
 
 Sends a message to harnesses which enqueues new messages to an agent.
 

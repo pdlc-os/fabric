@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,8 +27,8 @@ import (
 func TestEnsureSharedDirs(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Simulate a non-git project external config path:
-	// ~/.scion/project-configs/test__abc12345/.scion/
-	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".scion")
+	// ~/.fabric/project-configs/test__abc12345/.fabric/
+	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	dirs := []api.SharedDir{
@@ -57,7 +57,7 @@ func TestEnsureSharedDirs_Empty(t *testing.T) {
 
 func TestSharedDirsToVolumeMounts(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".scion")
+	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	dirs := []api.SharedDir{
@@ -72,23 +72,23 @@ func TestSharedDirsToVolumeMounts(t *testing.T) {
 
 	// build-cache: default mount path, read-write
 	assert.Contains(t, mounts[0].Source, "build-cache")
-	assert.Equal(t, "/scion-volumes/build-cache", mounts[0].Target)
+	assert.Equal(t, "/fabric-volumes/build-cache", mounts[0].Target)
 	assert.False(t, mounts[0].ReadOnly)
 
 	// artifacts: default mount path, read-only
 	assert.Contains(t, mounts[1].Source, "artifacts")
-	assert.Equal(t, "/scion-volumes/artifacts", mounts[1].Target)
+	assert.Equal(t, "/fabric-volumes/artifacts", mounts[1].Target)
 	assert.True(t, mounts[1].ReadOnly)
 
 	// workspace-cache: in-workspace mount path (default /workspace)
 	assert.Contains(t, mounts[2].Source, "workspace-cache")
-	assert.Equal(t, "/workspace/.scion-volumes/workspace-cache", mounts[2].Target)
+	assert.Equal(t, "/workspace/.fabric-volumes/workspace-cache", mounts[2].Target)
 	assert.False(t, mounts[2].ReadOnly)
 }
 
 func TestSharedDirsToVolumeMounts_GitWorktreeWorkspace(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".scion")
+	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	dirs := []api.SharedDir{
@@ -96,16 +96,16 @@ func TestSharedDirsToVolumeMounts_GitWorktreeWorkspace(t *testing.T) {
 		{Name: "workspace-cache", InWorkspace: true},
 	}
 
-	containerWorkspace := "/repo-root/.scion/agents/my-agent/workspace"
+	containerWorkspace := "/repo-root/.fabric/agents/my-agent/workspace"
 	mounts, err := SharedDirsToVolumeMounts(projectDir, dirs, containerWorkspace)
 	require.NoError(t, err)
 	require.Len(t, mounts, 2)
 
 	// build-cache: default mount path (not affected by container workspace)
-	assert.Equal(t, "/scion-volumes/build-cache", mounts[0].Target)
+	assert.Equal(t, "/fabric-volumes/build-cache", mounts[0].Target)
 
 	// workspace-cache: uses the git worktree container workspace path
-	assert.Equal(t, "/repo-root/.scion/agents/my-agent/workspace/.scion-volumes/workspace-cache", mounts[1].Target)
+	assert.Equal(t, "/repo-root/.fabric/agents/my-agent/workspace/.fabric-volumes/workspace-cache", mounts[1].Target)
 }
 
 func TestSharedDirsToVolumeMounts_Empty(t *testing.T) {
@@ -116,7 +116,7 @@ func TestSharedDirsToVolumeMounts_Empty(t *testing.T) {
 
 func TestGetSharedDirInfos(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".scion")
+	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	dirs := []api.SharedDir{
@@ -141,7 +141,7 @@ func TestGetSharedDirInfos(t *testing.T) {
 
 func TestRemoveSharedDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".scion")
+	projectDir := filepath.Join(tmpDir, "project-configs", "test__abc12345", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	dirs := []api.SharedDir{{Name: "to-remove"}}
@@ -168,12 +168,12 @@ func TestGetSharedDirsBasePath_GitProject(t *testing.T) {
 	_ = os.Setenv("HOME", tmpDir)
 
 	// Create the external agents dir structure
-	projectConfigDir := filepath.Join(tmpDir, ".scion", "project-configs", "myproject__abc12345")
+	projectConfigDir := filepath.Join(tmpDir, ".fabric", "project-configs", "myproject__abc12345")
 	agentsDir := filepath.Join(projectConfigDir, "agents")
 	require.NoError(t, os.MkdirAll(agentsDir, 0755))
 
 	// Create a git project dir with grove-id file
-	projectDir := filepath.Join(tmpDir, "myproject", ".scion")
+	projectDir := filepath.Join(tmpDir, "myproject", ".fabric")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
 	// Write grove-id

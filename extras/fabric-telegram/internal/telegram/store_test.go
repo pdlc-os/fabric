@@ -372,8 +372,8 @@ func TestStore_UserMapping_SaveAndGet(t *testing.T) {
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   "456",
 		TelegramUsername: "alice",
-		ScionUserID:      "user-123",
-		ScionEmail:       "alice@example.com",
+		FabricUserID:      "user-123",
+		FabricEmail:       "alice@example.com",
 		LinkedAt:         time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
 	}
 	require.NoError(t, store.SaveUserMapping(ctx, mapping))
@@ -383,8 +383,8 @@ func TestStore_UserMapping_SaveAndGet(t *testing.T) {
 	require.NotNil(t, got)
 	assert.Equal(t, "456", got.TelegramUserID)
 	assert.Equal(t, "alice", got.TelegramUsername)
-	assert.Equal(t, "user-123", got.ScionUserID)
-	assert.Equal(t, "alice@example.com", got.ScionEmail)
+	assert.Equal(t, "user-123", got.FabricUserID)
+	assert.Equal(t, "alice@example.com", got.FabricEmail)
 }
 
 func TestStore_UserMapping_GetNotFound(t *testing.T) {
@@ -402,7 +402,7 @@ func TestStore_UserMapping_GetByEmail(t *testing.T) {
 
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		ScionEmail:     "alice@example.com",
+		FabricEmail:     "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -423,14 +423,14 @@ func TestStore_UserMapping_Upsert(t *testing.T) {
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID:   "456",
 		TelegramUsername: "alice",
-		ScionEmail:       "alice@old.com",
+		FabricEmail:       "alice@old.com",
 		LinkedAt:         time.Now().UTC(),
 	}))
 
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID:   "456",
 		TelegramUsername: "alice_new",
-		ScionEmail:       "alice@new.com",
+		FabricEmail:       "alice@new.com",
 		LinkedAt:         time.Now().UTC(),
 	}))
 
@@ -438,7 +438,7 @@ func TestStore_UserMapping_Upsert(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, "alice_new", got.TelegramUsername)
-	assert.Equal(t, "alice@new.com", got.ScionEmail)
+	assert.Equal(t, "alice@new.com", got.FabricEmail)
 }
 
 func TestStore_UserMapping_Delete(t *testing.T) {
@@ -447,7 +447,7 @@ func TestStore_UserMapping_Delete(t *testing.T) {
 
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		ScionEmail:     "alice@example.com",
+		FabricEmail:     "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -472,7 +472,7 @@ func TestStore_UserMapping_GetAll(t *testing.T) {
 	for _, id := range []string{"100", "200", "300"} {
 		require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 			TelegramUserID: id,
-			ScionEmail:     id + "@test.com",
+			FabricEmail:     id + "@test.com",
 			LinkedAt:       time.Now().UTC(),
 		}))
 	}

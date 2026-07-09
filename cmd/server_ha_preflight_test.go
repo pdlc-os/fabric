@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hub"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,20 +14,20 @@ func validHostedHAConfig() *config.GlobalConfig {
 	cfg := config.DefaultGlobalConfig()
 	cfg.Mode = "hosted"
 	cfg.Database.Driver = "postgres"
-	cfg.Database.URL = "postgres://scion:secret@localhost/scionhub"
+	cfg.Database.URL = "postgres://fabric:secret@localhost/fabrichub"
 	cfg.Storage.Provider = "gcs"
-	cfg.Storage.Bucket = "scion-prod-artifacts"
+	cfg.Storage.Bucket = "fabric-prod-artifacts"
 	cfg.Auth.Mode = "proxy"
 	cfg.Auth.Proxy = &config.ProxyAuthConfig{
 		Provider: "iap",
 		IAP: &config.IAPAuthConfig{
-			Audience: "/projects/123456789/locations/us-central1/services/scion-hub",
+			Audience: "/projects/123456789/locations/us-central1/services/fabric-hub",
 		},
 	}
 	cfg.Auth.Transport = &config.TransportAuthConfig{
 		Mode:           "iap",
-		OIDCAudience:   "/projects/123456789/locations/us-central1/services/scion-hub",
-		PlatformAuthSA: "scion-transport@example.iam.gserviceaccount.com",
+		OIDCAudience:   "/projects/123456789/locations/us-central1/services/fabric-hub",
+		PlatformAuthSA: "fabric-transport@example.iam.gserviceaccount.com",
 	}
 	return &cfg
 }
@@ -37,7 +37,7 @@ func withHostedHAGuards(t *testing.T) {
 	resetServerFlags()
 	hostedMode = true
 	enableHub = true
-	t.Setenv("SCION_SERVER_SESSION_SECRET", "durable-test-secret")
+	t.Setenv("FABRIC_SERVER_SESSION_SECRET", "durable-test-secret")
 	t.Cleanup(resetServerFlags)
 }
 
@@ -124,7 +124,7 @@ func TestValidateHostedHAPreflightRequiresSessionSecret(t *testing.T) {
 	hostedMode = true
 	enableHub = true
 	webSessionSecret = ""
-	t.Setenv("SCION_SERVER_SESSION_SECRET", "")
+	t.Setenv("FABRIC_SERVER_SESSION_SECRET", "")
 	t.Setenv("SESSION_SECRET", "")
 	t.Cleanup(resetServerFlags)
 
@@ -149,7 +149,7 @@ func TestValidateHostedHAPreflightSkippedForNonHA(t *testing.T) {
 	resetServerFlags()
 	hostedMode = true
 	enableHub = true
-	t.Setenv("SCION_SERVER_SESSION_SECRET", "test-secret")
+	t.Setenv("FABRIC_SERVER_SESSION_SECRET", "test-secret")
 	t.Setenv("K_SERVICE", "")
 	t.Cleanup(resetServerFlags)
 
@@ -193,7 +193,7 @@ func TestIsHADeployment(t *testing.T) {
 				cfg.Database.Driver = "sqlite"
 				cfg.Storage.Provider = "local"
 				cfg.Auth.Mode = "oauth"
-				t.Setenv("K_SERVICE", "scion-hub")
+				t.Setenv("K_SERVICE", "fabric-hub")
 			},
 			expected: true,
 		},
@@ -250,7 +250,7 @@ func TestNewEventPublisherFallsBackOutsideHostedHA(t *testing.T) {
 }
 
 func TestCloudRunIAPAudienceShape(t *testing.T) {
-	require.True(t, isCloudRunIAPAudience("/projects/123/locations/us-central1/services/scion"))
+	require.True(t, isCloudRunIAPAudience("/projects/123/locations/us-central1/services/fabric"))
 	require.False(t, isCloudRunIAPAudience("/projects/123/global/backendServices/456"))
 	require.False(t, isCloudRunIAPAudience(strings.TrimSpace("")))
 }

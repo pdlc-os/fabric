@@ -27,7 +27,7 @@ import (
 
 	monitoring "cloud.google.com/go/monitoring/apiv3/v2"
 	"cloud.google.com/go/monitoring/apiv3/v2/monitoringpb"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"google.golang.org/api/iterator"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,7 +42,7 @@ const (
 	alignmentHour = 3600
 )
 
-// MetricsDashboardService queries Google Cloud Monitoring for Scion telemetry metrics.
+// MetricsDashboardService queries Google Cloud Monitoring for Fabric telemetry metrics.
 type MetricsDashboardService struct {
 	client    *monitoring.MetricClient
 	projectID string

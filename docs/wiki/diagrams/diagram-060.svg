@@ -31,15 +31,15 @@
 <polygon fill="lightblue" stroke="black" points="299.25,-627 148.25,-627 148.25,-591 299.25,-591 299.25,-627"/>
 <text xml:space="preserve" text-anchor="middle" x="223.75" y="-600.95" font-family="Helvetica,sans-Serif" font-size="14.00">Template Directory</text>
 </g>
-<!-- ScionAgentYaml -->
+<!-- FabricAgentYaml -->
 <g id="node2" class="node">
-<title>ScionAgentYaml</title>
+<title>FabricAgentYaml</title>
 <polygon fill="lightblue" stroke="black" points="245.75,-453 109.75,-453 109.75,-417 245.75,-417 245.75,-453"/>
-<text xml:space="preserve" text-anchor="middle" x="177.75" y="-426.95" font-family="Helvetica,sans-Serif" font-size="14.00">scion&#45;agent.yaml</text>
+<text xml:space="preserve" text-anchor="middle" x="177.75" y="-426.95" font-family="Helvetica,sans-Serif" font-size="14.00">fabric&#45;agent.yaml</text>
 </g>
-<!-- TemplateDir&#45;&gt;ScionAgentYaml -->
+<!-- TemplateDir&#45;&gt;FabricAgentYaml -->
 <g id="edge1" class="edge">
-<title>TemplateDir&#45;&gt;ScionAgentYaml</title>
+<title>TemplateDir&#45;&gt;FabricAgentYaml</title>
 <path fill="none" stroke="#263238" d="M219.09,-590.56C211.13,-560.81 194.87,-500.01 185.28,-464.17"/>
 <polygon fill="#263238" stroke="#263238" points="188.78,-463.7 182.82,-454.95 182.02,-465.51 188.78,-463.7"/>
 </g>
@@ -85,9 +85,9 @@
 <polygon fill="lightblue" stroke="black" points="423.25,-257 272.25,-257 272.25,-221 423.25,-221 423.25,-257"/>
 <text xml:space="preserve" text-anchor="middle" x="347.75" y="-230.95" font-family="Helvetica,sans-Serif" font-size="14.00">Orchestrator Agent</text>
 </g>
-<!-- ScionAgentYaml&#45;&gt;OrchestratorAgent -->
+<!-- FabricAgentYaml&#45;&gt;OrchestratorAgent -->
 <g id="edge6" class="edge">
-<title>ScionAgentYaml&#45;&gt;OrchestratorAgent</title>
+<title>FabricAgentYaml&#45;&gt;OrchestratorAgent</title>
 <path fill="none" stroke="#263238" d="M184.25,-416.77C192.88,-395.33 209.67,-358.3 231.75,-331.75 254.22,-304.74 285.81,-280.39 310.35,-263.57"/>
 <polygon fill="#263238" stroke="#263238" points="312.1,-266.61 318.46,-258.13 308.2,-260.8 312.1,-266.61"/>
 <text xml:space="preserve" text-anchor="middle" x="284.25" y="-332.75" font-family="Helvetica,sans-Serif" font-size="10.00">defines config</text>
@@ -98,9 +98,9 @@
 <polygon fill="lightblue" stroke="black" points="366,-61 237.5,-61 237.5,-25 366,-25 366,-61"/>
 <text xml:space="preserve" text-anchor="middle" x="301.75" y="-34.95" font-family="Helvetica,sans-Serif" font-size="14.00">Worker Agent(s)</text>
 </g>
-<!-- ScionAgentYaml&#45;&gt;WorkerAgents -->
+<!-- FabricAgentYaml&#45;&gt;WorkerAgents -->
 <g id="edge7" class="edge">
-<title>ScionAgentYaml&#45;&gt;WorkerAgents</title>
+<title>FabricAgentYaml&#45;&gt;WorkerAgents</title>
 <path fill="none" stroke="#263238" d="M171.4,-416.55C158.89,-379.37 134.31,-290.13 158.75,-221 181.2,-157.48 237.21,-100.04 272.09,-68.77"/>
 <polygon fill="#263238" stroke="#263238" points="274.14,-71.62 279.34,-62.39 269.52,-66.37 274.14,-71.62"/>
 <text xml:space="preserve" text-anchor="middle" x="211.25" y="-234.75" font-family="Helvetica,sans-Serif" font-size="10.00">defines config</text>

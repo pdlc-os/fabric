@@ -38,8 +38,8 @@ import { HarnessConfigFileEditorDataSource } from '../shared/file-editor.js';
 import type { FileEditorDataSource } from '../shared/file-editor.js';
 import '../shared/hash-display.js';
 
-@customElement('scion-page-harness-config-detail')
-export class ScionPageHarnessConfigDetail extends LitElement {
+@customElement('fabric-page-harness-config-detail')
+export class FabricPageHarnessConfigDetail extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -489,8 +489,8 @@ export class ScionPageHarnessConfigDetail extends LitElement {
   }
 
   private refreshFileBrowser(): void {
-    const browser = this.shadowRoot?.querySelector('scion-file-browser') as
-      | import('../shared/file-browser.js').ScionFileBrowser
+    const browser = this.shadowRoot?.querySelector('fabric-file-browser') as
+      | import('../shared/file-browser.js').FabricFileBrowser
       | null;
     browser?.loadFiles();
   }
@@ -572,7 +572,7 @@ export class ScionPageHarnessConfigDetail extends LitElement {
           ${hc.contentHash
             ? html`<span class="hash-meta"
                 >Hash:
-                <scion-hash-display .hash=${hc.contentHash} max-width="14ch"></scion-hash-display
+                <fabric-hash-display .hash=${hc.contentHash} max-width="14ch"></fabric-hash-display
               ></span>`
             : ''}
           ${hc.sourceUrl
@@ -603,23 +603,23 @@ export class ScionPageHarnessConfigDetail extends LitElement {
                   Back to files
                 </sl-button>
               </div>
-              <scion-file-editor
+              <fabric-file-editor
                 .filePath=${this.editingFilePath || ''}
                 .dataSource=${this.fileEditorDataSource}
                 ?readonly=${!isEditable}
                 ?initialPreview=${this.editorInitialPreview}
                 @file-saved=${this.handleFileSaved}
                 @editor-closed=${this.handleEditorClosed}
-              ></scion-file-editor>
+              ></fabric-file-editor>
             `
           : html`
-              <scion-file-browser
+              <fabric-file-browser
                 .dataSource=${this.fileBrowserDataSource}
                 ?editable=${isEditable}
                 @file-edit-requested=${this.handleFileEditRequested}
                 @file-preview-requested=${this.handleFilePreviewRequested}
                 @file-create-requested=${this.handleFileCreateRequested}
-              ></scion-file-browser>
+              ></fabric-file-browser>
             `}
       </div>
     `;
@@ -1080,6 +1080,6 @@ export class ScionPageHarnessConfigDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-harness-config-detail': ScionPageHarnessConfigDetail;
+    'fabric-page-harness-config-detail': FabricPageHarnessConfigDetail;
   }
 }

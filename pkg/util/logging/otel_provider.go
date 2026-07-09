@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package logging
@@ -18,9 +18,9 @@ import (
 
 // Environment variable names for OTel logging configuration.
 const (
-	EnvOTelEndpoint  = "SCION_OTEL_ENDPOINT"
-	EnvOTelInsecure  = "SCION_OTEL_INSECURE"
-	EnvOTelLogEnable = "SCION_OTEL_LOG_ENABLED"
+	EnvOTelEndpoint  = "FABRIC_OTEL_ENDPOINT"
+	EnvOTelInsecure  = "FABRIC_OTEL_INSECURE"
+	EnvOTelLogEnable = "FABRIC_OTEL_LOG_ENABLED"
 )
 
 // NewLoggerProvider creates an OTel LoggerProvider for the log bridge.

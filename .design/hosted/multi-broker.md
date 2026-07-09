@@ -15,7 +15,7 @@ In the "Hosted" architecture, a Grove (project) can span multiple Runtime Broker
 
 ## 3. User Experience
 
-### 3.1. Agent Creation (`scion create` and `scion start`)
+### 3.1. Agent Creation (`fabric create` and `fabric start`)
 
 When creating a new agent in Hub mode, the CLI will resolve the target broker using the following priority:
 
@@ -26,11 +26,11 @@ When creating a new agent in Hub mode, the CLI will resolve the target broker us
 
 #### Example: Explicit Broker
 ```bash
-scion start fix-bug --broker my-laptop
+fabric start fix-bug --broker my-laptop
 ```
 
 #### Example: Interactive Selection
-If `scion start fix-bug` is run and the grove has multiple online brokers:
+If `fabric start fix-bug` is run and the grove has multiple online brokers:
 ```
 Multiple runtime brokers available for grove 'my-project':
 1) my-laptop (online) *default*
@@ -46,12 +46,12 @@ Operations on existing agents do **not** require a `--broker` flag. The Hub trac
 
 ```bash
 # Hub knows 'fix-bug' is on 'prod-k8s' and routes the request
-scion stop fix-bug
+fabric stop fix-bug
 ```
 
 ### 3.3. Hub Integration with Solo Mode
 
-For users running the co-located Hub/Broker (e.g., `scion server start --enable-hub --enable-runtime-broker`), the `Global` grove is initialized with the local server as the default broker. This ensures that `scion start` without any context continues to work as expected.
+For users running the co-located Hub/Broker (e.g., `fabric server start --enable-hub --enable-runtime-broker`), the `Global` grove is initialized with the local server as the default broker. This ensures that `fabric start` without any context continues to work as expected.
 
 ## 4. Implementation Details
 
@@ -77,9 +77,9 @@ The CLI should implement a `ResolveBroker` helper:
 
 #### Flag Implementation
 Add `--broker` flag to:
-- `scion create`
-- `scion start`
-- `scion resume`
+- `fabric create`
+- `fabric start`
+- `fabric resume`
 
 ### 4.3. Hub Dispatcher
 The `HttpDispatcher` in `pkg/hub/httpdispatcher.go` handles the actual routing of commands to Runtime Brokers based on the `RuntimeBrokerID` stored in the agent record.
@@ -88,7 +88,7 @@ The `HttpDispatcher` in `pkg/hub/httpdispatcher.go` handles the actual routing o
 
 ### 5.1. Container Name Collisions
 Since agents are identified by name within a grove, and a runtime broker may be running agents from multiple groves, there is a risk of container name collisions.
-*   **Resolution:** Runtime brokers should prefix container names with a unique identifier (e.g., `scion-<grove-slug>-<agent-name>`).
+*   **Resolution:** Runtime brokers should prefix container names with a unique identifier (e.g., `fabric-<grove-slug>-<agent-name>`).
 *   **Guard Rails:** The Hub enforces agent name uniqueness within a grove.
 
 ### 5.2. Broker Authorization

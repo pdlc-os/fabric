@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 // Package dialects provides harness-specific event format parsers.
@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 )
 
 // ClaudeDialect parses Claude Code hook events.
@@ -94,7 +94,7 @@ func (d *ClaudeDialect) Parse(data map[string]interface{}) (*hooks.Event, error)
 	// For main-agent end-of-turn events (Stop only — not SubagentStop),
 	// Claude Code passes the final assistant text so downstream handlers
 	// can surface it as an outbound agent→user message. Subagent turns
-	// are internal to the harness and should not drive scion agent state.
+	// are internal to the harness and should not drive fabric agent state.
 	//
 	// Content-type filtering: the extraction pipeline classifies content
 	// blocks by type (text, thinking, tool_use, etc.) and stores them in

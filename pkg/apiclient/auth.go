@@ -47,10 +47,10 @@ type BrokerTokenAuth struct {
 	Token string
 }
 
-// ApplyAuth adds the broker token to the X-Scion-Broker-Token header.
+// ApplyAuth adds the broker token to the X-Fabric-Broker-Token header.
 func (a *BrokerTokenAuth) ApplyAuth(req *http.Request) error {
 	if a.Token != "" {
-		req.Header.Set("X-Scion-Broker-Token", a.Token)
+		req.Header.Set("X-Fabric-Broker-Token", a.Token)
 	}
 	return nil
 }
@@ -63,10 +63,10 @@ type AgentTokenAuth struct {
 	Token string
 }
 
-// ApplyAuth adds the agent token to the X-Scion-Agent-Token header.
+// ApplyAuth adds the agent token to the X-Fabric-Agent-Token header.
 func (a *AgentTokenAuth) ApplyAuth(req *http.Request) error {
 	if a.Token != "" {
-		req.Header.Set("X-Scion-Agent-Token", a.Token)
+		req.Header.Set("X-Fabric-Agent-Token", a.Token)
 	}
 	return nil
 }

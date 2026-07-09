@@ -55,13 +55,13 @@ func (s templateTestState) restore() {
 	projectPath = s.projectPath
 }
 
-// createTestTemplate creates a template directory at $HOME/.scion/templates/<name>.
+// createTestTemplate creates a template directory at $HOME/.fabric/templates/<name>.
 func createTestTemplate(t *testing.T, home, name string) string {
 	t.Helper()
-	templateDir := filepath.Join(home, ".scion", "templates", name)
+	templateDir := filepath.Join(home, ".fabric", "templates", name)
 	require.NoError(t, os.MkdirAll(templateDir, 0755))
 	require.NoError(t, os.WriteFile(
-		filepath.Join(templateDir, "scion-agent.json"),
+		filepath.Join(templateDir, "fabric-agent.json"),
 		[]byte(`{"harness":"claude"}`),
 		0644,
 	))
@@ -79,7 +79,7 @@ func TestRunTemplateDelete_NotFound(t *testing.T) {
 	autoConfirm = true
 
 	// Create empty templates dir so the path resolves
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".scion", "templates"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".fabric", "templates"), 0755))
 
 	err := runTemplateDelete(nil, []string{"nonexistent"})
 	require.Error(t, err)
@@ -173,7 +173,7 @@ func newMockHubServer(t *testing.T, projectID string, templates []map[string]int
 // setupHubProject creates a grove directory with settings pointing to the given hub endpoint.
 func setupHubProject(t *testing.T, home, endpoint, projectID string) string {
 	t.Helper()
-	groveDir := filepath.Join(home, "project", ".scion")
+	groveDir := filepath.Join(home, "project", ".fabric")
 	require.NoError(t, os.MkdirAll(groveDir, 0755))
 
 	settings := map[string]interface{}{
@@ -196,17 +196,17 @@ func TestRunTemplateDelete_HubOnly_AutoConfirm(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	// Clear SCION_HUB_ENDPOINT to prevent it overriding the mock server URL
+	// Clear FABRIC_HUB_ENDPOINT to prevent it overriding the mock server URL
 	// in settings loaded via koanf env provider
-	origHubEndpoint := os.Getenv("SCION_HUB_ENDPOINT")
-	_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-	defer func() { _ = os.Setenv("SCION_HUB_ENDPOINT", origHubEndpoint) }()
+	origHubEndpoint := os.Getenv("FABRIC_HUB_ENDPOINT")
+	_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+	defer func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", origHubEndpoint) }()
 	globalMode = true
 	autoConfirm = true
 	noHub = false
 
 	// Create empty local templates so FindTemplate doesn't find anything
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".scion", "templates"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".fabric", "templates"), 0755))
 
 	projectID := "grove-test-123"
 	templateID := "hub-tpl-456"
@@ -235,10 +235,10 @@ func TestRunTemplateDelete_Both_AutoConfirm(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	// Clear SCION_HUB_ENDPOINT to prevent it overriding the mock server URL
-	origHubEndpoint2 := os.Getenv("SCION_HUB_ENDPOINT")
-	_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-	defer func() { _ = os.Setenv("SCION_HUB_ENDPOINT", origHubEndpoint2) }()
+	// Clear FABRIC_HUB_ENDPOINT to prevent it overriding the mock server URL
+	origHubEndpoint2 := os.Getenv("FABRIC_HUB_ENDPOINT")
+	_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+	defer func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", origHubEndpoint2) }()
 	globalMode = true
 	autoConfirm = true
 	noHub = false
@@ -356,7 +356,7 @@ func newMockHubServerForSync(t *testing.T, projectID string, existingTemplates [
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
 				"files": []map[string]interface{}{
 					{
-						"path": "scion-agent.json",
+						"path": "fabric-agent.json",
 						"hash": "sha256:old-hash-value",
 						"url":  "http://example.com/download",
 					},
@@ -388,9 +388,9 @@ func TestRunTemplateSync_UpdatesExistingTemplate(t *testing.T) {
 
 	tmpHome := t.TempDir()
 	_ = os.Setenv("HOME", tmpHome)
-	origHubEndpoint := os.Getenv("SCION_HUB_ENDPOINT")
-	_ = os.Unsetenv("SCION_HUB_ENDPOINT")
-	defer func() { _ = os.Setenv("SCION_HUB_ENDPOINT", origHubEndpoint) }()
+	origHubEndpoint := os.Getenv("FABRIC_HUB_ENDPOINT")
+	_ = os.Unsetenv("FABRIC_HUB_ENDPOINT")
+	defer func() { _ = os.Setenv("FABRIC_HUB_ENDPOINT", origHubEndpoint) }()
 	globalMode = true
 	autoConfirm = true
 	noHub = false
@@ -434,7 +434,7 @@ func TestRunTemplateStatus_NoHub(t *testing.T) {
 	noHub = true
 	autoConfirm = true
 
-	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".scion", "templates"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpHome, ".fabric", "templates"), 0755))
 
 	// Status requires Hub, so it should fail with no-hub
 	err := runTemplateStatus(nil, nil)

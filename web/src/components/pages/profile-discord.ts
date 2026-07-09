@@ -26,8 +26,8 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { apiFetch } from '../../client/api.js';
 
-@customElement('scion-page-profile-discord')
-export class ScionPageProfileDiscord extends LitElement {
+@customElement('fabric-page-profile-discord')
+export class FabricPageProfileDiscord extends LitElement {
   @state()
   private _code = '';
 
@@ -106,19 +106,19 @@ export class ScionPageProfileDiscord extends LitElement {
     .page-header-info h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
     }
 
     .page-header-info p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
       margin: 0;
     }
 
     .settings-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 0.75rem;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -127,7 +127,7 @@ export class ScionPageProfileDiscord extends LitElement {
     .section-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
       display: flex;
       align-items: center;
@@ -136,12 +136,12 @@ export class ScionPageProfileDiscord extends LitElement {
 
     .section-title sl-icon {
       font-size: 1.125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .instructions {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1.25rem 0;
       line-height: 1.6;
     }
@@ -157,12 +157,12 @@ export class ScionPageProfileDiscord extends LitElement {
 
     .discord-user {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
     }
 
     .discord-user strong {
-      color: var(--scion-primary, #6366f1);
+      color: var(--fabric-primary, #6366f1);
     }
 
     .code-form {
@@ -215,7 +215,7 @@ export class ScionPageProfileDiscord extends LitElement {
       align-items: center;
       gap: 0.75rem;
       font-size: 0.9375rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       padding: 0.5rem 0;
     }
   `;
@@ -308,8 +308,8 @@ export class ScionPageProfileDiscord extends LitElement {
 
         <div class="instructions">
           <ol>
-            <li>Open a channel with the Scion Discord bot</li>
-            <li>Use the <strong>/scion register</strong> command</li>
+            <li>Open a channel with the Fabric Discord bot</li>
+            <li>Use the <strong>/fabric register</strong> command</li>
             <li>Enter the 6-character code below</li>
           </ol>
         </div>
@@ -376,6 +376,6 @@ export class ScionPageProfileDiscord extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-profile-discord': ScionPageProfileDiscord;
+    'fabric-page-profile-discord': FabricPageProfileDiscord;
   }
 }

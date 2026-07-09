@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package telemetry
@@ -460,11 +460,11 @@ func TestLoadConfig_WellKnownPathFallback(t *testing.T) {
 
 	// Create a temp home dir with the well-known credentials path
 	tmpHome := t.TempDir()
-	scionDir := filepath.Join(tmpHome, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpHome, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	credPath := filepath.Join(scionDir, "telemetry-gcp-credentials.json")
+	credPath := filepath.Join(fabricDir, "telemetry-gcp-credentials.json")
 	credJSON := `{"type":"service_account","project_id":"wellknown-project"}`
 	if err := os.WriteFile(credPath, []byte(credJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -493,11 +493,11 @@ func TestLoadConfig_EnvTakesPriorityOverWellKnown(t *testing.T) {
 
 	// Create well-known path
 	tmpHome := t.TempDir()
-	scionDir := filepath.Join(tmpHome, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpHome, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	wellKnownPath := filepath.Join(scionDir, "telemetry-gcp-credentials.json")
+	wellKnownPath := filepath.Join(fabricDir, "telemetry-gcp-credentials.json")
 	if err := os.WriteFile(wellKnownPath, []byte(`{"type":"service_account","project_id":"wk-project"}`), 0600); err != nil {
 		t.Fatal(err)
 	}

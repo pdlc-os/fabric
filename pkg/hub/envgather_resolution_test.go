@@ -21,9 +21,9 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // TestResolution_PlainEnvVar verifies that a plain env var stored at user scope
@@ -226,7 +226,7 @@ func TestResolution_ProjectEnvVar(t *testing.T) {
 
 // TestResolution_SecretPromotedEnvVar verifies the full round-trip for a
 // "secret-promoted" env var: the key is stored via the secret backend (as
-// happens with `scion hub env set --secret`) and deleted from the env_vars
+// happens with `fabric hub env set --secret`) and deleted from the env_vars
 // table. The dispatch should still resolve it via the secret backend.
 func TestResolution_SecretPromotedEnvVar(t *testing.T) {
 	ctx := context.Background()

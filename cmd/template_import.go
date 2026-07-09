@@ -21,55 +21,55 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/config/templateimport"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config/templateimport"
 	"github.com/spf13/cobra"
 )
 
 var templatesImportCmd = &cobra.Command{
 	Use:   "import <source>",
-	Short: "Import agent definitions as scion templates",
+	Short: "Import agent definitions as fabric templates",
 	Long: `Import agent or sub-agent definitions from Claude Code (.claude/agents/*.md),
-Gemini CLI (.gemini/agents/*.md), or existing scion templates and add them to your
+Gemini CLI (.gemini/agents/*.md), or existing fabric templates and add them to your
 current grove or global templates.
 
 Source can be:
   - A single .md agent definition file
   - A directory containing agent definition files
-  - A project root (auto-discovers .claude/agents/, .gemini/agents/, .scion/templates/)
-  - A scion template directory (contains scion-agent.yaml)
-  - A directory of scion templates (subdirectories with scion-agent.yaml)
+  - A project root (auto-discovers .claude/agents/, .gemini/agents/, .fabric/templates/)
+  - A fabric template directory (contains fabric-agent.yaml)
+  - A directory of fabric templates (subdirectories with fabric-agent.yaml)
   - A GitHub URL pointing to a repository or subdirectory
 
-For non-scion formats, the harness type (claude/gemini) is auto-detected from file
+For non-fabric formats, the harness type (claude/gemini) is auto-detected from file
 path and content. Use --harness to override detection.
 
-Scion-format templates are copied directly without conversion.
+Fabric-format templates are copied directly without conversion.
 
 Examples:
   # Import a single Claude sub-agent definition
-  scion templates import .claude/agents/code-reviewer.md
+  fabric templates import .claude/agents/code-reviewer.md
 
   # Import all agents from a directory
-  scion templates import --all .gemini/agents/
+  fabric templates import --all .gemini/agents/
 
   # Auto-detect and import all agents from project root
-  scion templates import --all .
+  fabric templates import --all .
 
-  # Import scion templates from another project
-  scion templates import --all https://github.com/org/repo/tree/main/.scion/templates
+  # Import fabric templates from another project
+  fabric templates import --all https://github.com/org/repo/tree/main/.fabric/templates
 
-  # Import a single scion template directory
-  scion templates import path/to/.scion/templates/my-template
+  # Import a single fabric template directory
+  fabric templates import path/to/.fabric/templates/my-template
 
   # Import from a GitHub URL with explicit branch
-  scion templates import --all https://github.com/org/repo/tree/main/.claude/agents
+  fabric templates import --all https://github.com/org/repo/tree/main/.claude/agents
 
   # Import with explicit harness and custom name
-  scion templates import --harness gemini --name my-auditor agents/security.md
+  fabric templates import --harness gemini --name my-auditor agents/security.md
 
   # Preview import without writing
-  scion templates import --dry-run .claude/agents/code-reviewer.md`,
+  fabric templates import --dry-run .claude/agents/code-reviewer.md`,
 	Args: cobra.ExactArgs(1),
 	RunE: runTemplateImport,
 }
@@ -125,11 +125,11 @@ func runTemplateImport(cmd *cobra.Command, args []string) error {
 	var agents []*templateimport.ImportedAgent
 
 	if info.IsDir() {
-		// Check if source is itself a single scion template
-		if templateimport.IsScionTemplate(absSource) {
-			agent, err := templateimport.ParseScionTemplate(absSource)
+		// Check if source is itself a single fabric template
+		if templateimport.IsFabricTemplate(absSource) {
+			agent, err := templateimport.ParseFabricTemplate(absSource)
 			if err != nil {
-				return fmt.Errorf("failed to parse scion template: %w", err)
+				return fmt.Errorf("failed to parse fabric template: %w", err)
 			}
 			agents = append(agents, agent)
 		} else {
@@ -253,21 +253,21 @@ func discoverAgents(dir, harnessFlag string, all bool) ([]*templateimport.Import
 		agents = append(agents, found...)
 	}
 
-	// Check for scion-format templates (directories containing scion-agent.yaml).
-	// First check the directory itself (e.g., .scion/templates/), then check
-	// for a .scion/templates/ subdirectory if this is a project root.
-	if templateimport.IsScionTemplatesDir(dir) {
-		found, err := templateimport.DiscoverScionTemplates(dir)
+	// Check for fabric-format templates (directories containing fabric-agent.yaml).
+	// First check the directory itself (e.g., .fabric/templates/), then check
+	// for a .fabric/templates/ subdirectory if this is a project root.
+	if templateimport.IsFabricTemplatesDir(dir) {
+		found, err := templateimport.DiscoverFabricTemplates(dir)
 		if err != nil {
-			return nil, fmt.Errorf("failed to discover scion templates: %w", err)
+			return nil, fmt.Errorf("failed to discover fabric templates: %w", err)
 		}
 		agents = append(agents, found...)
 	} else {
-		scionTemplatesDir := filepath.Join(dir, ".scion", "templates")
-		if dirExists(scionTemplatesDir) && templateimport.IsScionTemplatesDir(scionTemplatesDir) {
-			found, err := templateimport.DiscoverScionTemplates(scionTemplatesDir)
+		fabricTemplatesDir := filepath.Join(dir, ".fabric", "templates")
+		if dirExists(fabricTemplatesDir) && templateimport.IsFabricTemplatesDir(fabricTemplatesDir) {
+			found, err := templateimport.DiscoverFabricTemplates(fabricTemplatesDir)
 			if err != nil {
-				return nil, fmt.Errorf("failed to discover scion templates: %w", err)
+				return nil, fmt.Errorf("failed to discover fabric templates: %w", err)
 			}
 			agents = append(agents, found...)
 		}

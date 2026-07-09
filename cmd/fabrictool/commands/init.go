@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -23,18 +23,18 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks/handlers"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/metadata"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/services"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/supervisor"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/telemetry"
-	"github.com/GoogleCloudPlatform/scion/pkg/stagedsecrets"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks/handlers"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/metadata"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/services"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/supervisor"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/telemetry"
+	"github.com/pdlc-os/fabric/pkg/stagedsecrets"
+	"github.com/pdlc-os/fabric/pkg/util"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
@@ -48,7 +48,7 @@ var (
 var initCmd = &cobra.Command{
 	Use:   "init [--] <command> [args...]",
 	Short: "Run as container init (PID 1) and supervise child processes",
-	Long: `The init command runs sciontool as the container's init process (PID 1).
+	Long: `The init command runs fabrictool as the container's init process (PID 1).
 
 It provides:
   - Zombie process reaping (critical for PID 1)
@@ -57,12 +57,12 @@ It provides:
   - Child process exit code propagation
 
 The command after -- is executed as the child process. If no command is
-specified, sciontool will exit with an error.
+specified, fabrictool will exit with an error.
 
 Examples:
-  sciontool init -- gemini
-  sciontool init -- tmux new-session -A -s main
-  sciontool init --grace-period=30s -- claude`,
+  fabrictool init -- gemini
+  fabrictool init -- tmux new-session -A -s main
+  fabrictool init --grace-period=30s -- claude`,
 	DisableFlagParsing: false,
 	Run: func(cmd *cobra.Command, args []string) {
 		exitCode := runInit(args)
@@ -76,8 +76,8 @@ func init() {
 	initCmd.Flags().DurationVar(&gracePeriod, "grace-period", 10*time.Second,
 		"Time to wait after SIGTERM before sending SIGKILL")
 
-	// Override the default SCION_GRACE_PERIOD env var if set
-	if envGrace := os.Getenv("SCION_GRACE_PERIOD"); envGrace != "" {
+	// Override the default FABRIC_GRACE_PERIOD env var if set
+	if envGrace := os.Getenv("FABRIC_GRACE_PERIOD"); envGrace != "" {
 		if d, err := time.ParseDuration(envGrace); err == nil {
 			gracePeriod = d
 		}
@@ -93,12 +93,12 @@ func runInit(args []string) int {
 	childArgs := extractChildCommand(args)
 	if len(childArgs) == 0 {
 		fmt.Fprintln(os.Stderr, "Error: no command specified after --")
-		fmt.Fprintln(os.Stderr, "Usage: sciontool init [--] <command> [args...]")
+		fmt.Fprintln(os.Stderr, "Usage: fabrictool init [--] <command> [args...]")
 		return 1
 	}
 
 	// Log startup
-	log.Info("sciontool init starting as PID %d (uid=%d, gid=%d, euid=%d, egid=%d)", os.Getpid(), os.Getuid(), os.Getgid(), os.Geteuid(), os.Getegid())
+	log.Info("fabrictool init starting as PID %d (uid=%d, gid=%d, euid=%d, egid=%d)", os.Getpid(), os.Getuid(), os.Getgid(), os.Geteuid(), os.Getegid())
 	log.Info("Child command: %v", childArgs)
 	log.Info("Grace period: %s", gracePeriod)
 
@@ -113,11 +113,11 @@ func runInit(args []string) int {
 		log.Info("Operating mode: hosted (endpoint: %s)", os.Getenv(hub.EnvHubEndpoint))
 	}
 
-	// Set up scion user UID/GID to match host user
+	// Set up fabric user UID/GID to match host user
 	targetUID, targetGID, rootless := setupHostUser()
 	log.Info("setupHostUser result: targetUID=%d, targetGID=%d, rootless=%v (now euid=%d, egid=%d)", targetUID, targetGID, rootless, os.Geteuid(), os.Getegid())
 
-	// Chown the log file so the scion user can write to it even if it was created by root
+	// Chown the log file so the fabric user can write to it even if it was created by root
 	if targetUID != 0 {
 		if err := log.Chown(targetUID, targetGID); err != nil {
 			log.Error("Failed to chown log file: %v", err)
@@ -148,28 +148,28 @@ func runInit(args []string) int {
 		}()
 	}
 
-	// Resolve the scion user's home directory early. Init runs as root
+	// Resolve the fabric user's home directory early. Init runs as root
 	// (HOME=/root), but agent-info.json and other agent state files live
-	// in the scion user's home directory. This must happen before the
+	// in the fabric user's home directory. This must happen before the
 	// StatusHandler is created so it writes to the correct path.
-	// In rootless mode, targetUID is 0 but we still need the scion user's
+	// In rootless mode, targetUID is 0 but we still need the fabric user's
 	// home directory since the child process environment will use it.
 	agentHome := os.Getenv("HOME")
 	if targetUID != 0 {
-		if scionUser, err := user.LookupId(strconv.Itoa(targetUID)); err == nil {
-			agentHome = scionUser.HomeDir
+		if fabricUser, err := user.LookupId(strconv.Itoa(targetUID)); err == nil {
+			agentHome = fabricUser.HomeDir
 		} else {
 			log.Debug("Could not look up user for UID %d: %v", targetUID, err)
 		}
 	} else if rootless {
-		if scionUser, err := user.Lookup("scion"); err == nil {
-			agentHome = scionUser.HomeDir
+		if fabricUser, err := user.Lookup("fabric"); err == nil {
+			agentHome = fabricUser.HomeDir
 		} else {
-			log.Debug("Could not look up scion user in rootless mode: %v", err)
+			log.Debug("Could not look up fabric user in rootless mode: %v", err)
 		}
 	}
 
-	// Stage secrets from the SCION_STAGED_SECRETS env var. The broker
+	// Stage secrets from the FABRIC_STAGED_SECRETS env var. The broker
 	// serializes file and variable secrets into this single base64 blob
 	// instead of bind-mounting them from the host filesystem. We decode and
 	// write them before anything else so they are available to hooks and
@@ -193,9 +193,9 @@ func runInit(args []string) int {
 	lifecycleManager := hooks.NewLifecycleManager()
 	lifecycleManager.AgentHome = agentHome
 	// Register the per-agent hooks directory so container-script harnesses
-	// (whose pre-start wrapper is staged at $HOME/.scion/hooks/pre-start.d/)
+	// (whose pre-start wrapper is staged at $HOME/.fabric/hooks/pre-start.d/)
 	// participate in the standard hook discovery alongside system hooks.
-	lifecycleManager.AddHooksDir(filepath.Join(agentHome, ".scion", "hooks"))
+	lifecycleManager.AddHooksDir(filepath.Join(agentHome, ".fabric", "hooks"))
 
 	// Register status and logging handlers for lifecycle events
 	// These handlers update agent-info.json and agent.log on container lifecycle events
@@ -327,13 +327,13 @@ func runInit(args []string) int {
 
 	// Configure git credentials for shared-workspace projects (git-workspace hybrid).
 	// The workspace is pre-cloned on the host; agents need credentials to push/pull.
-	if os.Getenv("SCION_SHARED_WORKSPACE") == "true" {
+	if os.Getenv("FABRIC_SHARED_WORKSPACE") == "true" {
 		configureSharedWorkspaceGit(agentHome)
 	}
 
 	// Write critical environment variables to a shell-sourceable file so that
 	// processes launched by harnesses (which may re-exec with a filtered env)
-	// can recover the full SCION environment. The file is sourced by .bashrc/.zshrc.
+	// can recover the full FABRIC environment. The file is sourced by .bashrc/.zshrc.
 	writeEnvFile(agentHome, targetUID, targetGID)
 
 	// Read and start sidecar services
@@ -354,17 +354,17 @@ func runInit(args []string) int {
 		}
 	}
 
-	servicesPath := filepath.Join(agentHome, ".scion", "scion-services.yaml")
+	servicesPath := filepath.Join(agentHome, ".fabric", "fabric-services.yaml")
 	log.Debug("Looking for services config at: %s", servicesPath)
 	if data, err := os.ReadFile(servicesPath); err == nil {
 		var specs []api.ServiceSpec
 		if err := yaml.Unmarshal(data, &specs); err != nil {
-			log.Error("Failed to parse scion-services.yaml: %v", err)
+			log.Error("Failed to parse fabric-services.yaml: %v", err)
 		} else if len(specs) > 0 {
 			log.Info("Starting %d sidecar service(s)...", len(specs))
 			svcManager = services.New(gracePeriod)
 			svcCtx := context.Background()
-			if err := svcManager.Start(svcCtx, specs, targetUID, targetGID, "scion"); err != nil {
+			if err := svcManager.Start(svcCtx, specs, targetUID, targetGID, "fabric"); err != nil {
 				log.Error("Failed to start services: %v", err)
 				// Continue — service failure shouldn't block harness
 			}
@@ -391,7 +391,7 @@ func runInit(args []string) int {
 			return hub.ReadTokenFile()
 		}
 		// Delegate GCP token fetching to the hub client so the metadata
-		// server uses the correct auth headers (X-Scion-Agent-Token) and
+		// server uses the correct auth headers (X-Fabric-Agent-Token) and
 		// OIDC transport layer. The hub client is created after the metadata
 		// server starts, so the closures capture the hubClient variable
 		// which is set later. Token requests only arrive after the child
@@ -432,7 +432,7 @@ func runInit(args []string) int {
 	if rootless {
 		if _, err := os.Stat(agentHome); err != nil {
 			log.Error("Pre-flight: agent home %s is not accessible: %v", agentHome, err)
-		} else if f, err := os.CreateTemp(agentHome, ".scion-preflight-*"); err != nil {
+		} else if f, err := os.CreateTemp(agentHome, ".fabric-preflight-*"); err != nil {
 			log.Error("Pre-flight: cannot write to agent home %s: %v (uid=%d)", agentHome, err, os.Geteuid())
 		} else {
 			_ = os.Remove(f.Name())
@@ -449,7 +449,7 @@ func runInit(args []string) int {
 		GracePeriod: gracePeriod,
 		UID:         targetUID,
 		GID:         targetGID,
-		Username:    "scion",
+		Username:    "fabric",
 		Rootless:    rootless,
 		EnvOverlay:  harnessEnvOverlay,
 	}
@@ -517,8 +517,8 @@ func runInit(args []string) int {
 
 		// Report running status to Hub if in hosted mode
 		log.Debug("Hub client check: client=%v, configured=%v", hubClient != nil, hubClient != nil && hubClient.IsConfigured())
-		log.Debug("Hub env: SCION_HUB_ENDPOINT=%q, SCION_HUB_URL=%q, token_file=%v, SCION_AGENT_ID=%q",
-			os.Getenv("SCION_HUB_ENDPOINT"), os.Getenv("SCION_HUB_URL"), hub.ReadTokenFile() != "", os.Getenv("SCION_AGENT_ID"))
+		log.Debug("Hub env: FABRIC_HUB_ENDPOINT=%q, FABRIC_HUB_URL=%q, token_file=%v, FABRIC_AGENT_ID=%q",
+			os.Getenv("FABRIC_HUB_ENDPOINT"), os.Getenv("FABRIC_HUB_URL"), hub.ReadTokenFile() != "", os.Getenv("FABRIC_AGENT_ID"))
 		if hubClient != nil && hubClient.IsConfigured() {
 			hubCtx, hubCancel := context.WithTimeout(context.Background(), 10*time.Second)
 			startedAtStr := time.Now().UTC().Format(time.RFC3339)
@@ -556,7 +556,7 @@ func runInit(args []string) int {
 
 			// Read the agent token from the canonical token file (written by
 			// the host-side agent manager before the container started).
-			// Init runs as root — chown the file so the scion user can read it.
+			// Init runs as root — chown the file so the fabric user can read it.
 			token := hub.ReadTokenFile()
 			if token != "" && targetUID > 0 {
 				if err := os.Chown(hub.TokenFilePath(), targetUID, targetGID); err != nil {
@@ -621,8 +621,8 @@ func runInit(args []string) int {
 			tokenPath := hub.GitHubTokenPath()
 
 			// Write the initial token to the token file so consumers can read it.
-			// Init runs as root, so chown the file to the scion user so the
-			// credential helper (which runs as the scion user) can read it.
+			// Init runs as root, so chown the file to the fabric user so the
+			// credential helper (which runs as the fabric user) can read it.
 			initialToken := os.Getenv("GITHUB_TOKEN")
 			if initialToken != "" {
 				if err := hub.WriteGitHubTokenFile(tokenPath, initialToken); err != nil {
@@ -703,7 +703,7 @@ func runInit(args []string) int {
 	defer signal.Stop(usr1Chan)
 
 	// Set up SIGUSR2 handler for auth reset. When the broker writes a fresh
-	// token to ~/.scion/scion-token and sends SIGUSR2, init re-reads the
+	// token to ~/.fabric/fabric-token and sends SIGUSR2, init re-reads the
 	// token, updates the hub client, and restarts the token refresh loop.
 	usr2Chan := make(chan os.Signal, 1)
 	signal.Notify(usr2Chan, syscall.SIGUSR2)
@@ -711,7 +711,7 @@ func runInit(args []string) int {
 
 	// Set up duration timer if max_duration is configured
 	var durationTimer <-chan time.Time
-	maxDurStr := os.Getenv("SCION_MAX_DURATION")
+	maxDurStr := os.Getenv("FABRIC_MAX_DURATION")
 	if maxDurStr != "" {
 		maxDur := api.ParseDuration(maxDurStr)
 		if maxDur > 0 {
@@ -723,8 +723,8 @@ func runInit(args []string) int {
 	}
 
 	// Initialize agent-limits.json for turn and model call tracking
-	maxTurns := handlers.ParseEnvInt("SCION_MAX_TURNS")
-	maxModelCalls := handlers.ParseEnvInt("SCION_MAX_MODEL_CALLS")
+	maxTurns := handlers.ParseEnvInt("FABRIC_MAX_TURNS")
+	maxModelCalls := handlers.ParseEnvInt("FABRIC_MAX_MODEL_CALLS")
 	if maxTurns > 0 || maxModelCalls > 0 {
 		limitsPath := filepath.Join(agentHome, "agent-limits.json")
 		if err := handlers.InitLimitsFile(limitsPath, maxTurns, maxModelCalls); err != nil {
@@ -732,8 +732,8 @@ func runInit(args []string) int {
 		} else {
 			log.Info("Limits initialized: max_turns=%d, max_model_calls=%d", maxTurns, maxModelCalls)
 		}
-		// Chown the limits file so the scion user (hook processes) can read/write it.
-		// Init runs as root but hooks run as the dropped-privilege scion user.
+		// Chown the limits file so the fabric user (hook processes) can read/write it.
+		// Init runs as root but hooks run as the dropped-privilege fabric user.
 		if targetUID != 0 {
 			if err := os.Chown(limitsPath, targetUID, targetGID); err != nil {
 				log.Error("Failed to chown agent-limits.json: %v", err)
@@ -1143,14 +1143,14 @@ func extractChildCommand(args []string) []string {
 	return args
 }
 
-// setupHostUser modifies the scion user's UID/GID to match the host user.
-// This is only done when running as root and SCION_HOST_UID/GID are set.
+// setupHostUser modifies the fabric user's UID/GID to match the host user.
+// This is only done when running as root and FABRIC_HOST_UID/GID are set.
 // Returns the target UID/GID for the child process (0 = no change) and a
 // rootless flag. When rootless is true, the container is running in a rootless
 // user namespace where UID 0 is the host user; the caller should set the
-// child's environment (HOME, USER) to the scion user but skip privilege drop.
+// child's environment (HOME, USER) to the fabric user but skip privilege drop.
 // watchLimitsTriggerFile polls for the limits-exceeded trigger file created by
-// hook handlers. This works across UID boundaries (hooks run as scion user,
+// hook handlers. This works across UID boundaries (hooks run as fabric user,
 // init runs as root) where SIGUSR1 would fail with EPERM.
 func watchLimitsTriggerFile(ctx context.Context, ch chan<- struct{}) {
 	ticker := time.NewTicker(2 * time.Second)
@@ -1170,17 +1170,17 @@ func watchLimitsTriggerFile(ctx context.Context, ch chan<- struct{}) {
 
 func setupHostUser() (int, int, bool) {
 	// Only run privilege operations if we're root. When running under
-	// --userns=keep-id (rootless Podman), PID 1 starts as the scion user
+	// --userns=keep-id (rootless Podman), PID 1 starts as the fabric user
 	// (UID 1000) rather than root. In that case, no usermod/groupmod/chown
-	// is needed — the UID already matches the scion user and bind-mounted
+	// is needed — the UID already matches the fabric user and bind-mounted
 	// files have correct host ownership via the keep-id mapping. We return
 	// rootless=true so the supervisor sets HOME/USER/LOGNAME without
 	// attempting a credential drop.
 	if os.Getuid() != 0 {
-		if scionUser, err := user.Lookup("scion"); err == nil {
-			scionUID, _ := strconv.Atoi(scionUser.Uid)
-			if os.Getuid() == scionUID {
-				log.Info("Already running as scion user (UID %d) in rootless mode, skipping privilege operations", scionUID)
+		if fabricUser, err := user.Lookup("fabric"); err == nil {
+			fabricUID, _ := strconv.Atoi(fabricUser.Uid)
+			if os.Getuid() == fabricUID {
+				log.Info("Already running as fabric user (UID %d) in rootless mode, skipping privilege operations", fabricUID)
 				return 0, 0, true
 			}
 		}
@@ -1188,65 +1188,65 @@ func setupHostUser() (int, int, bool) {
 		return 0, 0, false
 	}
 
-	hostUID := os.Getenv("SCION_HOST_UID")
-	hostGID := os.Getenv("SCION_HOST_GID")
+	hostUID := os.Getenv("FABRIC_HOST_UID")
+	hostGID := os.Getenv("FABRIC_HOST_GID")
 
 	if hostUID == "" || hostGID == "" {
-		log.Debug("SCION_HOST_UID/GID not set, skipping user setup")
+		log.Debug("FABRIC_HOST_UID/GID not set, skipping user setup")
 		return 0, 0, false // Continue as root
 	}
 
 	uid, err := strconv.Atoi(hostUID)
 	if err != nil {
-		log.Error("Invalid SCION_HOST_UID: %v", err)
+		log.Error("Invalid FABRIC_HOST_UID: %v", err)
 		return 0, 0, false
 	}
 	gid, err := strconv.Atoi(hostGID)
 	if err != nil {
-		log.Error("Invalid SCION_HOST_GID: %v", err)
+		log.Error("Invalid FABRIC_HOST_GID: %v", err)
 		return 0, 0, false
 	}
 
 	// Check if the runtime signaled a keep-id user namespace mapping via
-	// SCION_KEEPID_UID (e.g. --userns=keep-id:uid=1000,gid=1000). In this
-	// case, container UID 1000 (scion) already maps to the host user's UID,
+	// FABRIC_KEEPID_UID (e.g. --userns=keep-id:uid=1000,gid=1000). In this
+	// case, container UID 1000 (fabric) already maps to the host user's UID,
 	// so bind-mount ownership is correct without remapping.
 	// However, PID 1 is still UID 0 (from the Dockerfile), which maps to a
 	// subordinate UID in the nested namespace — NOT the host user. Container
-	// UID 0 therefore cannot write to the bind-mounted /home/scion (owned by
-	// the host user). We must drop privileges to the scion user early so
-	// that init's own writes (agent-info.json, scion-env, etc.) succeed.
+	// UID 0 therefore cannot write to the bind-mounted /home/fabric (owned by
+	// the host user). We must drop privileges to the fabric user early so
+	// that init's own writes (agent-info.json, fabric-env, etc.) succeed.
 	//
 	// Note: We cannot derive this from /proc/self/uid_map because rootless
 	// Podman uses nested namespaces — the uid_map shows the mapping to the
 	// immediate parent namespace, not the host.
-	if keepIDStr := os.Getenv("SCION_KEEPID_UID"); keepIDStr != "" {
-		log.Debug("Keep-id env detected: SCION_KEEPID_UID=%s, current euid=%d, egid=%d", keepIDStr, os.Geteuid(), os.Getegid())
+	if keepIDStr := os.Getenv("FABRIC_KEEPID_UID"); keepIDStr != "" {
+		log.Debug("Keep-id env detected: FABRIC_KEEPID_UID=%s, current euid=%d, egid=%d", keepIDStr, os.Geteuid(), os.Getegid())
 		keepIDUID, parseErr := strconv.Atoi(keepIDStr)
 		if parseErr == nil {
-			if scionUser, err := user.Lookup("scion"); err == nil {
-				scionUID, _ := strconv.Atoi(scionUser.Uid)
-				scionGID, _ := strconv.Atoi(scionUser.Gid)
-				log.Debug("Keep-id: scion user lookup: UID=%d, GID=%d, keepIDUID=%d", scionUID, scionGID, keepIDUID)
-				if keepIDUID == scionUID {
-					log.Info("Keep-id mode: host user mapped to scion (container UID %d); performing early privilege drop", scionUID)
-					if err := syscall.Setgroups([]int{scionGID}); err != nil {
-						log.Error("Failed to setgroups([%d]): %v", scionGID, err)
+			if fabricUser, err := user.Lookup("fabric"); err == nil {
+				fabricUID, _ := strconv.Atoi(fabricUser.Uid)
+				fabricGID, _ := strconv.Atoi(fabricUser.Gid)
+				log.Debug("Keep-id: fabric user lookup: UID=%d, GID=%d, keepIDUID=%d", fabricUID, fabricGID, keepIDUID)
+				if keepIDUID == fabricUID {
+					log.Info("Keep-id mode: host user mapped to fabric (container UID %d); performing early privilege drop", fabricUID)
+					if err := syscall.Setgroups([]int{fabricGID}); err != nil {
+						log.Error("Failed to setgroups([%d]): %v", fabricGID, err)
 					}
-					if err := syscall.Setgid(scionGID); err != nil {
-						log.Error("Failed to setgid(%d): %v — continuing as root, writes to /home/scion may fail", scionGID, err)
+					if err := syscall.Setgid(fabricGID); err != nil {
+						log.Error("Failed to setgid(%d): %v — continuing as root, writes to /home/fabric may fail", fabricGID, err)
 					}
-					if err := syscall.Setuid(scionUID); err != nil {
-						log.Error("Failed to setuid(%d): %v — continuing as root, writes to /home/scion may fail", scionUID, err)
+					if err := syscall.Setuid(fabricUID); err != nil {
+						log.Error("Failed to setuid(%d): %v — continuing as root, writes to /home/fabric may fail", fabricUID, err)
 					}
 					log.Info("Keep-id privilege drop complete: now euid=%d, egid=%d", os.Geteuid(), os.Getegid())
 					return 0, 0, true
 				}
 			} else {
-				log.Error("Keep-id: failed to look up scion user: %v", err)
+				log.Error("Keep-id: failed to look up fabric user: %v", err)
 			}
 		} else {
-			log.Error("Keep-id: failed to parse SCION_KEEPID_UID=%q: %v", keepIDStr, parseErr)
+			log.Error("Keep-id: failed to parse FABRIC_KEEPID_UID=%q: %v", keepIDStr, parseErr)
 		}
 	}
 
@@ -1262,41 +1262,41 @@ func setupHostUser() (int, int, bool) {
 	}
 
 	// Skip if UID/GID already match (1001 is the default)
-	currentInfo, _ := user.Lookup("scion")
+	currentInfo, _ := user.Lookup("fabric")
 	if currentInfo != nil {
 		currentUID, _ := strconv.Atoi(currentInfo.Uid)
 		currentGID, _ := strconv.Atoi(currentInfo.Gid)
-		log.Debug("Current scion user: UID=%d, GID=%d (Target: UID=%d, GID=%d)", currentUID, currentGID, uid, gid)
+		log.Debug("Current fabric user: UID=%d, GID=%d (Target: UID=%d, GID=%d)", currentUID, currentGID, uid, gid)
 		if currentUID == uid && currentGID == gid {
-			log.Debug("scion user already has correct UID/GID")
+			log.Debug("fabric user already has correct UID/GID")
 			return uid, gid, false
 		}
 	} else {
-		log.Error("scion user not found in system")
+		log.Error("fabric user not found in system")
 	}
 
-	log.Info("Adjusting scion user to UID=%d, GID=%d", uid, gid)
+	log.Info("Adjusting fabric user to UID=%d, GID=%d", uid, gid)
 
 	if useDirectPasswdEdit() {
 		log.Info("Using direct /etc/passwd edit (avoiding slow usermod on this runtime)")
-		if err := directSetUID("scion", hostUID, hostGID); err != nil {
+		if err := directSetUID("fabric", hostUID, hostGID); err != nil {
 			log.Error("Direct passwd/group edit failed: %v", err)
 			return 0, 0, false
 		}
 	} else {
 		// Modify group first (if different from current)
-		if err := exec.Command("groupmod", "-o", "-g", hostGID, "scion").Run(); err != nil {
-			log.Error("Failed to modify scion group to %s: %v", hostGID, err)
+		if err := exec.Command("groupmod", "-o", "-g", hostGID, "fabric").Run(); err != nil {
+			log.Error("Failed to modify fabric group to %s: %v", hostGID, err)
 		}
 
 		// Modify user UID and primary group
-		if err := exec.Command("usermod", "-o", "-u", hostUID, "-g", hostGID, "scion").Run(); err != nil {
+		if err := exec.Command("usermod", "-o", "-u", hostUID, "-g", hostGID, "fabric").Run(); err != nil {
 			// usermod can fail with exit code 12 on runtimes where the home
 			// directory is a mount point (e.g. Apple Virtualization / VirtioFS)
 			// because it tries a recursive chown that the filesystem rejects.
 			// Fall back to direct /etc/passwd editing which skips recursive chown.
 			log.Info("usermod failed (exit: %v), falling back to direct passwd edit", err)
-			if err := directSetUID("scion", hostUID, hostGID); err != nil {
+			if err := directSetUID("fabric", hostUID, hostGID); err != nil {
 				log.Error("Direct passwd/group fallback also failed: %v", err)
 				return 0, 0, false
 			}
@@ -1304,10 +1304,10 @@ func setupHostUser() (int, int, bool) {
 	}
 
 	// Verify the change
-	if updatedInfo, err := user.Lookup("scion"); err == nil {
-		log.Info("Successfully adjusted scion user: UID=%s, GID=%s", updatedInfo.Uid, updatedInfo.Gid)
+	if updatedInfo, err := user.Lookup("fabric"); err == nil {
+		log.Info("Successfully adjusted fabric user: UID=%s, GID=%s", updatedInfo.Uid, updatedInfo.Gid)
 	} else {
-		log.Error("Failed to verify scion user after adjustment: %v", err)
+		log.Error("Failed to verify fabric user after adjustment: %v", err)
 	}
 
 	return uid, gid, false
@@ -1322,9 +1322,9 @@ func useDirectPasswdEdit() bool {
 		log.Debug("Detected Podman runtime (container=podman), using direct passwd edit")
 		return true
 	}
-	// Allow explicit opt-in via SCION_ALT_USERMOD
-	if os.Getenv("SCION_ALT_USERMOD") != "" {
-		log.Debug("SCION_ALT_USERMOD set, using direct passwd edit")
+	// Allow explicit opt-in via FABRIC_ALT_USERMOD
+	if os.Getenv("FABRIC_ALT_USERMOD") != "" {
+		log.Debug("FABRIC_ALT_USERMOD set, using direct passwd edit")
 		return true
 	}
 	return false
@@ -1409,26 +1409,26 @@ func isUIDMapped(uid int) bool {
 	return false
 }
 
-// gitCloneWorkspace clones a git repository into /workspace when SCION_GIT_CLONE_URL
+// gitCloneWorkspace clones a git repository into /workspace when FABRIC_GIT_CLONE_URL
 // is set. This supports hub-first git projects where the repository must be cloned
 // before the harness starts. When uid > 0, all git commands run as the specified
-// user so that the resulting files are owned by the scion user rather than root.
-// agentHome is the scion user's home directory, used to write the credential
+// user so that the resulting files are owned by the fabric user rather than root.
+// agentHome is the fabric user's home directory, used to write the credential
 // helper to the correct .gitconfig (not root's HOME).
 // Returns nil if no clone URL is configured (non-git workspace).
 func gitCloneWorkspace(uid, gid int, agentHome string) error {
-	cloneURL := os.Getenv("SCION_GIT_CLONE_URL")
+	cloneURL := os.Getenv("FABRIC_GIT_CLONE_URL")
 	if cloneURL == "" {
 		return nil
 	}
 
-	workspacePath := os.Getenv("SCION_WORKSPACE_PATH")
+	workspacePath := os.Getenv("FABRIC_WORKSPACE_PATH")
 	if workspacePath == "" {
 		workspacePath = "/workspace"
 	}
 
 	// Check if workspace already has content (stop/start scenario).
-	// Ignore marker-only directories (e.g. .scion/) that may have been
+	// Ignore marker-only directories (e.g. .fabric/) that may have been
 	// written during provisioning — they don't indicate a real clone.
 	if !isWorkspaceEmpty(workspacePath) {
 		log.Info("Workspace already populated, skipping git clone")
@@ -1436,13 +1436,13 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	}
 
 	// When uid is 0 (broker running as root or no host UID configured), fall
-	// back to the scion user so that cloned files are owned by the container
+	// back to the fabric user so that cloned files are owned by the container
 	// user rather than root.
 	if uid == 0 {
-		if scionUser, err := user.Lookup("scion"); err == nil {
-			uid, _ = strconv.Atoi(scionUser.Uid)
-			gid, _ = strconv.Atoi(scionUser.Gid)
-			log.Info("Falling back to scion user UID=%d GID=%d for git clone", uid, gid)
+		if fabricUser, err := user.Lookup("fabric"); err == nil {
+			uid, _ = strconv.Atoi(fabricUser.Uid)
+			gid, _ = strconv.Atoi(fabricUser.Gid)
+			log.Info("Falling back to fabric user UID=%d GID=%d for git clone", uid, gid)
 		}
 	}
 
@@ -1450,17 +1450,17 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	ensureWorkspaceOwnership(workspacePath, uid, gid, currentEUID, os.Chown)
 
 	token := os.Getenv("GITHUB_TOKEN")
-	branch := os.Getenv("SCION_GIT_BRANCH")
+	branch := os.Getenv("FABRIC_GIT_BRANCH")
 	if branch == "" {
 		branch = "main"
 	}
-	depthStr := os.Getenv("SCION_GIT_DEPTH")
+	depthStr := os.Getenv("FABRIC_GIT_DEPTH")
 	if depthStr == "" {
 		depthStr = "1"
 	}
-	agentName := os.Getenv("SCION_AGENT_NAME")
+	agentName := os.Getenv("FABRIC_AGENT_NAME")
 
-	// Helper to configure a git command: run as the scion user and disable
+	// Helper to configure a git command: run as the fabric user and disable
 	// interactive credential prompts so git fails immediately instead of
 	// hanging when authentication is required but no token is available.
 	setupGitCmd := func(cmd *exec.Cmd) {
@@ -1487,11 +1487,11 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	authURL := buildAuthenticatedURL(cloneURL, token)
 
 	// Determine the agent feature branch name early so we can try cloning it.
-	agentBranch := os.Getenv("SCION_AGENT_BRANCH")
+	agentBranch := os.Getenv("FABRIC_AGENT_BRANCH")
 
 	// Initialize the workspace as a git repo. We use git-init + git-fetch
 	// instead of git-clone because the workspace directory may already
-	// contain bind-mounted directories (e.g. .scion-volumes/) from the
+	// contain bind-mounted directories (e.g. .fabric-volumes/) from the
 	// container runtime, and git-clone refuses to work in a non-empty dir.
 	initCmd := exec.Command("git", "init", workspacePath)
 	setupGitCmd(initCmd)
@@ -1574,8 +1574,8 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	gitConfigs := []struct {
 		key, value string
 	}{
-		{"user.name", fmt.Sprintf("Scion Agent (%s)", agentName)},
-		{"user.email", "agent@scion.dev"},
+		{"user.name", fmt.Sprintf("Fabric Agent (%s)", agentName)},
+		{"user.email", "agent@fabric.dev"},
 	}
 	for _, cfg := range gitConfigs {
 		cfgCmd := exec.Command("git", "-C", workspacePath, "config", cfg.key, cfg.value)
@@ -1599,12 +1599,12 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	// the workspace .git/config). This keeps credentials out of the workspace,
 	// matching the pattern used by shared-workspace projects. We use the
 	// resolved agentHome rather than os.Getenv("HOME") because init runs as
-	// root (HOME=/root) but the harness runs as the scion user.
+	// root (HOME=/root) but the harness runs as the fabric user.
 	gitconfigPath := filepath.Join(agentHome, ".gitconfig")
 
 	var credentialHelper string
-	if os.Getenv("SCION_GITHUB_APP_ENABLED") == "true" {
-		credentialHelper = "!sciontool credential-helper"
+	if os.Getenv("FABRIC_GITHUB_APP_ENABLED") == "true" {
+		credentialHelper = "!fabrictool credential-helper"
 	} else {
 		credentialHelper = `!f() { echo "password=${GITHUB_TOKEN}"; echo "username=oauth2"; }; f`
 	}
@@ -1615,10 +1615,10 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 	}
 
 	// Resolve the agent feature branch name.
-	// Priority: SCION_AGENT_BRANCH env var (read earlier) > default "scion/<agentName>"
+	// Priority: FABRIC_AGENT_BRANCH env var (read earlier) > default "fabric/<agentName>"
 	branchName := agentBranch
 	if branchName == "" {
-		branchName = "scion/" + agentName
+		branchName = "fabric/" + agentName
 	}
 
 	// If we already cloned the agent branch directly, we're on it — skip checkout.
@@ -1663,7 +1663,7 @@ func gitCloneWorkspace(uid, gid int, agentHome string) error {
 
 func ensureWorkspaceOwnership(workspacePath string, uid, gid, currentEUID int, chown func(string, int, int) error) {
 	// Only root can successfully chown a mounted workspace. In restricted
-	// Kubernetes pods the init process may already be running as the scion
+	// Kubernetes pods the init process may already be running as the fabric
 	// user, so attempting chown here just adds noise before git init.
 	if uid <= 0 {
 		return
@@ -1684,14 +1684,14 @@ func ensureWorkspaceOwnership(workspacePath string, uid, gid, currentEUID int, c
 func configureSharedWorkspaceGit(agentHome string) {
 	log.Info("Configuring git credentials for shared workspace")
 
-	// Configure credential helper using sciontool's credential-helper command,
+	// Configure credential helper using fabrictool's credential-helper command,
 	// which handles both GITHUB_TOKEN env var and GitHub App token refresh.
 	gitconfigPath := filepath.Join(agentHome, ".gitconfig")
 
 	var credentialHelper string
-	if os.Getenv("SCION_GITHUB_APP_ENABLED") == "true" {
-		// Use sciontool credential-helper for GitHub App token refresh
-		credentialHelper = "!sciontool credential-helper"
+	if os.Getenv("FABRIC_GITHUB_APP_ENABLED") == "true" {
+		// Use fabrictool credential-helper for GitHub App token refresh
+		credentialHelper = "!fabrictool credential-helper"
 	} else {
 		// Simple credential helper using GITHUB_TOKEN env var
 		credentialHelper = `!f() { echo "password=${GITHUB_TOKEN}"; echo "username=oauth2"; }; f`
@@ -1705,14 +1705,14 @@ func configureSharedWorkspaceGit(agentHome string) {
 	}
 
 	// Configure git identity for the agent
-	agentName := os.Getenv("SCION_AGENT_NAME")
+	agentName := os.Getenv("FABRIC_AGENT_NAME")
 	if agentName == "" {
 		agentName = "unknown"
 	}
 
 	configs := []struct{ key, value string }{
-		{"user.name", fmt.Sprintf("Scion Agent (%s)", agentName)},
-		{"user.email", "agent@scion.dev"},
+		{"user.name", fmt.Sprintf("Fabric Agent (%s)", agentName)},
+		{"user.email", "agent@fabric.dev"},
 	}
 	for _, cfg := range configs {
 		cmd := exec.Command("git", "config", "--file", gitconfigPath, cfg.key, cfg.value)
@@ -1821,7 +1821,7 @@ func buildAuthenticatedURL(cloneURL, token string) string {
 
 // isClaude returns true when the child command is for the Claude Code harness.
 // It scans all arguments because the harness binary may not be the first
-// argument (e.g. "tmux new-session -s scion claude --no-chrome ...").
+// argument (e.g. "tmux new-session -s fabric claude --no-chrome ...").
 // It also handles the case where the harness command is joined into a single
 // string passed to tmux (e.g. "claude --no-chrome --dangerously-skip-permissions").
 func isClaude(childArgs []string) bool {
@@ -1837,29 +1837,29 @@ func isClaude(childArgs []string) bool {
 	return false
 }
 
-// scionEnvVarPrefixes lists environment variable prefixes that are written
-// to the scion-env file for shell sessions to source.
-var scionEnvVarPrefixes = []string{
-	"SCION_",
+// fabricEnvVarPrefixes lists environment variable prefixes that are written
+// to the fabric-env file for shell sessions to source.
+var fabricEnvVarPrefixes = []string{
+	"FABRIC_",
 	"GITHUB_TOKEN",
 }
 
-// writeEnvFile writes critical SCION_* environment variables to a shell-sourceable
-// file at ~/.scion/scion-env. Some harnesses (e.g. Gemini CLI) re-exec with a
+// writeEnvFile writes critical FABRIC_* environment variables to a shell-sourceable
+// file at ~/.fabric/fabric-env. Some harnesses (e.g. Gemini CLI) re-exec with a
 // filtered environment, losing env vars that were passed via docker run -e. This
 // file is sourced by the agent's .bashrc so that tool-spawned shell processes
 // recover the full environment.
 func writeEnvFile(agentHome string, uid, gid int) {
-	scionDir := filepath.Join(agentHome, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		log.Error("Failed to create .scion dir for env file: %v", err)
+	fabricDir := filepath.Join(agentHome, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		log.Error("Failed to create .fabric dir for env file: %v", err)
 		return
 	}
 
 	var lines []string
-	lines = append(lines, "# Auto-generated by sciontool init — do not edit")
+	lines = append(lines, "# Auto-generated by fabrictool init — do not edit")
 	for _, e := range os.Environ() {
-		for _, prefix := range scionEnvVarPrefixes {
+		for _, prefix := range fabricEnvVarPrefixes {
 			if strings.HasPrefix(e, prefix) {
 				// Split into key=value and quote the value for shell safety
 				parts := strings.SplitN(e, "=", 2)
@@ -1871,21 +1871,21 @@ func writeEnvFile(agentHome string, uid, gid int) {
 		}
 	}
 
-	envPath := filepath.Join(scionDir, "scion-env")
+	envPath := filepath.Join(fabricDir, "fabric-env")
 	tmpPath := envPath + ".tmp"
 	if err := os.WriteFile(tmpPath, []byte(strings.Join(lines, "\n")+"\n"), 0644); err != nil {
-		log.Error("Failed to write temporary scion-env file: %v", err)
+		log.Error("Failed to write temporary fabric-env file: %v", err)
 		return
 	}
 	if err := os.Rename(tmpPath, envPath); err != nil {
-		log.Error("Failed to atomically rename scion-env file: %v", err)
+		log.Error("Failed to atomically rename fabric-env file: %v", err)
 		_ = os.Remove(tmpPath)
 		return
 	}
 
 	if uid > 0 {
-		// Chown the directory and file so the scion user can read them
-		_ = os.Chown(scionDir, uid, gid)
+		// Chown the directory and file so the fabric user can read them
+		_ = os.Chown(fabricDir, uid, gid)
 		_ = os.Chown(envPath, uid, gid)
 	}
 
@@ -1893,9 +1893,9 @@ func writeEnvFile(agentHome string, uid, gid int) {
 }
 
 // isWorkspaceEmpty returns true if the directory doesn't exist or contains
-// only provisioning marker entries (e.g. .scion/, .scion-volumes/). A workspace
+// only provisioning marker entries (e.g. .fabric/, .fabric-volumes/). A workspace
 // with only marker directories is considered empty for git-clone purposes so
-// that sciontool proceeds with cloning rather than skipping it.
+// that fabrictool proceeds with cloning rather than skipping it.
 func isWorkspaceEmpty(path string) bool {
 	entries, err := os.ReadDir(path)
 	if err != nil {
@@ -1904,7 +1904,7 @@ func isWorkspaceEmpty(path string) bool {
 	// Filter out known marker entries that don't indicate a real workspace
 	for _, e := range entries {
 		switch e.Name() {
-		case ".scion", ".scion-volumes":
+		case ".fabric", ".fabric-volumes":
 			// Provisioning marker / shared-dir mount directory — ignore
 			continue
 		default:

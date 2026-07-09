@@ -21,27 +21,27 @@ import (
 )
 
 func TestLoadSettings_HubEndpointFromEnvOnly(t *testing.T) {
-	// Simulates a hub-connected container where SCION_HUB_ENDPOINT is set
+	// Simulates a hub-connected container where FABRIC_HUB_ENDPOINT is set
 	// via env var but no settings file contains hub.enabled or hub.endpoint.
 	// LoadSettings should still populate Hub.Endpoint from the env var.
 
 	tmpDir := t.TempDir()
-	scionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
 	// Minimal settings file — no hub section at all
-	if err := os.WriteFile(filepath.Join(scionDir, "settings.yaml"), []byte("runtime: docker\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(fabricDir, "settings.yaml"), []byte("runtime: docker\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Set hub env vars like a container would have
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.test:8080")
-	t.Setenv("SCION_GROVE_ID", "test-grove-id")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.test:8080")
+	t.Setenv("FABRIC_GROVE_ID", "test-grove-id")
 	t.Setenv("HOME", tmpDir)
 
-	settings, err := LoadSettings(scionDir)
+	settings, err := LoadSettings(fabricDir)
 	if err != nil {
 		t.Fatalf("LoadSettings error: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestLoadSettings_HubEndpointFromEnvOnly(t *testing.T) {
 	t.Logf("GetHubEndpoint: %q", settings.GetHubEndpoint())
 
 	if settings.Hub == nil {
-		t.Fatal("settings.Hub is nil; expected koanf to populate it from SCION_HUB_ENDPOINT env var")
+		t.Fatal("settings.Hub is nil; expected koanf to populate it from FABRIC_HUB_ENDPOINT env var")
 	}
 	if settings.Hub.Endpoint != "http://hub.test:8080" {
 		t.Errorf("Hub.Endpoint = %q, want %q", settings.Hub.Endpoint, "http://hub.test:8080")
@@ -71,10 +71,10 @@ func TestLoadSettings_HubEndpointFromEnvNoSettingsFile(t *testing.T) {
 	// point to any real directory.
 
 	tmpDir := t.TempDir()
-	nonExistentPath := filepath.Join(tmpDir, "nonexistent", ".scion")
+	nonExistentPath := filepath.Join(tmpDir, "nonexistent", ".fabric")
 
-	t.Setenv("SCION_HUB_ENDPOINT", "http://hub.test:9090")
-	t.Setenv("SCION_GROVE_ID", "env-grove-id")
+	t.Setenv("FABRIC_HUB_ENDPOINT", "http://hub.test:9090")
+	t.Setenv("FABRIC_GROVE_ID", "env-grove-id")
 	t.Setenv("HOME", tmpDir)
 
 	settings, err := LoadSettings(nonExistentPath)
@@ -83,7 +83,7 @@ func TestLoadSettings_HubEndpointFromEnvNoSettingsFile(t *testing.T) {
 	}
 
 	if settings.Hub == nil {
-		t.Fatal("settings.Hub is nil; expected koanf to populate it from SCION_HUB_ENDPOINT env var")
+		t.Fatal("settings.Hub is nil; expected koanf to populate it from FABRIC_HUB_ENDPOINT env var")
 	}
 	if settings.Hub.Endpoint != "http://hub.test:9090" {
 		t.Errorf("Hub.Endpoint = %q, want %q", settings.Hub.Endpoint, "http://hub.test:9090")

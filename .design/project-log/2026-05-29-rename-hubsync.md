@@ -17,7 +17,7 @@ Renamed all internal Go identifiers, comments, and human-readable strings from "
 
 ## What Was NOT Renamed (Tier 2/3 — Intentionally Preserved)
 
-- Environment variable strings: `"SCION_GROVE_ID"`, `"SCION_HUB_GROVE_ID"`, `"SCION_PROJECT_ID"`
+- Environment variable strings: `"FABRIC_GROVE_ID"`, `"FABRIC_HUB_GROVE_ID"`, `"FABRIC_PROJECT_ID"`
 - Settings/config keys: `"grove_id"`, `"hub.groveId"`, `"hub.grove_id"`
 - API paths in test fixtures: `"/api/v1/groves/..."`
 - JSON response keys in test fixtures: `"groves": [...]`

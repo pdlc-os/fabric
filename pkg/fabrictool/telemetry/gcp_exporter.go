@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package telemetry
@@ -13,7 +13,7 @@ import (
 	"cloud.google.com/go/logging"
 	mexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric"
 	texporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -40,7 +40,7 @@ func NewGCPExporter(config *Config) (*GCPExporter, error) {
 	ctx := context.Background()
 
 	if config.ProjectID == "" {
-		return nil, fmt.Errorf("GCP project ID is required (set SCION_GCP_PROJECT_ID or provide credentials file with project_id)")
+		return nil, fmt.Errorf("GCP project ID is required (set FABRIC_GCP_PROJECT_ID or provide credentials file with project_id)")
 	}
 
 	opts := []option.ClientOption{}
@@ -86,11 +86,11 @@ func NewGCPExporter(config *Config) (*GCPExporter, error) {
 
 	// Build common labels for agent identification
 	commonLabels := map[string]string{}
-	if agentID := os.Getenv("SCION_AGENT_ID"); agentID != "" {
+	if agentID := os.Getenv("FABRIC_AGENT_ID"); agentID != "" {
 		commonLabels["agent_id"] = agentID
 	}
-	legacyProjectID := os.Getenv("SCION_GROVE_ID")
-	projectID := os.Getenv("SCION_PROJECT_ID")
+	legacyProjectID := os.Getenv("FABRIC_GROVE_ID")
+	projectID := os.Getenv("FABRIC_PROJECT_ID")
 	if legacyProjectID != "" {
 		commonLabels["grove_id"] = legacyProjectID
 	}
@@ -113,7 +113,7 @@ func NewGCPExporter(config *Config) (*GCPExporter, error) {
 		traceExporter:  traceExp,
 		metricExporter: metricExporter,
 		logClient:      logClient,
-		logger:         logClient.Logger("scion-agents", loggerOpts...),
+		logger:         logClient.Logger("fabric-agents", loggerOpts...),
 		projectID:      config.ProjectID,
 		metricsDebug:   config.MetricsDebug,
 	}, nil
@@ -138,7 +138,7 @@ func (e *GCPExporter) ExportProtoSpans(ctx context.Context, resourceSpans []*tra
 // them via the Cloud Monitoring exporter.
 //
 // This is primarily used for harnesses that emit native OTLP metrics to the
-// local sciontool receiver. Sciontool's own normalized SDK metrics may still be
+// local fabrictool receiver. Fabrictool's own normalized SDK metrics may still be
 // exported directly by a MeterProvider configured in providers.go.
 func (e *GCPExporter) ExportProtoMetrics(ctx context.Context, resourceMetrics []*metricpb.ResourceMetrics) error {
 	if e == nil || e.metricExporter == nil {

@@ -13,18 +13,18 @@
 # limitations under the License.
 
 harness: claude
-image: scion-claude:latest
-user: scion
+image: fabric-claude:latest
+user: fabric
 # provisioner.type is container-script so the container-side provision.py
 # handles auth resolution, API key pre-approval, project path setup, MCP
 # server translation, and other harness-native config writes. Existing
 # installations that still have type: builtin can run
-# `scion harness-config upgrade claude --activate-script` to migrate.
+# `fabric harness-config upgrade claude --activate-script` to migrate.
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -81,7 +81,7 @@ no_auth:
   message: |
     This agent started without credentials.
     Run: claude setup-token
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 auth:
   default_type: api-key
   types:

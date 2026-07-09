@@ -1,4 +1,4 @@
-# Grove Mount Protection: Agent Isolation from `.scion` Directory
+# Grove Mount Protection: Agent Isolation from `.fabric` Directory
 
 **Status**: Accepted
 **Date**: 2026-03-08
@@ -6,10 +6,10 @@
 
 ## Problem Statement
 
-Agents running in containers can access the `.scion` directory of the grove they belong to. This directory contains other agents' home folders, which hold sensitive material:
+Agents running in containers can access the `.fabric` directory of the grove they belong to. This directory contains other agents' home folders, which hold sensitive material:
 
 - `.codex/auth.json` — raw API keys (written with `0600` perms)
-- `.scion/secrets.json` — hub-projected variable secrets
+- `.fabric/secrets.json` — hub-projected variable secrets
 - `.config/gcloud/application_default_credentials.json` — cloud credentials
 - `.gemini/oauth_creds.json` — OAuth tokens
 - Various harness-specific config files with auth fingerprints
@@ -20,25 +20,25 @@ Since all agents run with the same host UID (container user UID is synchronized 
 
 | Scenario | Mechanism | Severity |
 |---|---|---|
-| **Non-git workspace** | Project directory mounted at `/workspace`; `.scion/` is physically present | High — full access to all agent homes |
-| **Full-repo fallback mount** (`common.go:169`) | When workspace is outside repo root, entire repo root mounted at `/repo-root` | High — `.scion/` accessible at `/repo-root/.scion/` |
-| **Git worktree workspace** | Worktree excludes gitignored dirs; `.scion/` not materialized | Protected (incidentally, not by design) |
+| **Non-git workspace** | Project directory mounted at `/workspace`; `.fabric/` is physically present | High — full access to all agent homes |
+| **Full-repo fallback mount** (`common.go:169`) | When workspace is outside repo root, entire repo root mounted at `/repo-root` | High — `.fabric/` accessible at `/repo-root/.fabric/` |
+| **Git worktree workspace** | Worktree excludes gitignored dirs; `.fabric/` not materialized | Protected (incidentally, not by design) |
 
-The git-worktree case is only protected because `.scion` is in `.gitignore` — this is an incidental side effect, not a security control.
+The git-worktree case is only protected because `.fabric` is in `.gitignore` — this is an incidental side effect, not a security control.
 
 ### Current Mount Architecture
 
 From `pkg/runtime/common.go`, `buildCommonRunArgs()`:
 
 ```
-Agent home:  .scion/agents/<name>/home  →  /home/<user>     (bind mount, rw)
+Agent home:  .fabric/agents/<name>/home  →  /home/<user>     (bind mount, rw)
 Workspace:   <worktree-path>            →  /repo-root/...   (bind mount, rw)
 .git:        <repo>/.git                →  /repo-root/.git  (bind mount, rw)
 ```
 
 When the workspace is outside the repo root (external worktrees, explicit `--workspace`):
 ```
-Repo root:   <repo>/                    →  /repo-root       (bind mount, rw)  ← EXPOSES .scion/
+Repo root:   <repo>/                    →  /repo-root       (bind mount, rw)  ← EXPOSES .fabric/
 Workspace:   <path>                     →  /workspace       (bind mount, rw)
 ```
 
@@ -50,26 +50,26 @@ Workspace:   <path>                     →  /workspace       (bind mount, rw)
 
 **Non-git groves**: Externalize grove data entirely (Approach 1).
 
-**Git groves**: Split storage — worktrees stay in-repo, agent homes move external (Approach 2). This has the advantage that `.scion/templates/` with custom project templates can be committed to git.
+**Git groves**: Split storage — worktrees stay in-repo, agent homes move external (Approach 2). This has the advantage that `.fabric/templates/` with custom project templates can be committed to git.
 
 ### Directory Layout
 
-All `.scion` configuration folders (other than the special global `~/.scion/`) are stored externally:
+All `.fabric` configuration folders (other than the special global `~/.fabric/`) are stored externally:
 
 ```
-~/.scion/grove-configs/<grove-slug>__<short-uuid>/.scion/    # All grove configs
-~/.scion/groves/<grove-name>/                                 # Hub-managed workspaces only (pure workspace holder)
+~/.fabric/grove-configs/<grove-slug>__<short-uuid>/.fabric/    # All grove configs
+~/.fabric/groves/<grove-name>/                                 # Hub-managed workspaces only (pure workspace holder)
 ```
 
-This separation means `~/.scion/groves/` is a "pure" workspaces directory, and all configs are isolated from workspace content — whether those workspaces are hub-managed (created via hub→broker) or linked by a user from the broker filesystem to a hub.
+This separation means `~/.fabric/groves/` is a "pure" workspaces directory, and all configs are isolated from workspace content — whether those workspaces are hub-managed (created via hub→broker) or linked by a user from the broker filesystem to a hub.
 
 ### Grove Path Naming
 
-Use `<grove-slug>__<short-uuid>` format for grove-config paths. The short-uuid must be sufficient to route from a marker file to the correct location in `~/.scion/grove-configs/` space.
+Use `<grove-slug>__<short-uuid>` format for grove-config paths. The short-uuid must be sufficient to route from a marker file to the correct location in `~/.fabric/grove-configs/` space.
 
 ### Marker File Format
 
-For non-git groves, `.scion` becomes a YAML file (without extension) containing:
+For non-git groves, `.fabric` becomes a YAML file (without extension) containing:
 
 ```yaml
 grove-id: <uuid>
@@ -83,7 +83,7 @@ grove-slug: my-project
 
 ### Settings File
 
-The `settings.yaml` file in `~/.scion/grove-configs/<grove-slug>__<short-uuid>/.scion/` must include a `workspace-path` field. This is the path stored in the broker provider record so that a broker server knows what workspace to mount for a linked grove.
+The `settings.yaml` file in `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/.fabric/` must include a `workspace-path` field. This is the path stored in the broker provider record so that a broker server knows what workspace to mount for a linked grove.
 
 ### UUID Source
 
@@ -95,13 +95,13 @@ This is a hard breaking change. If an older-style folder grove is detected, bail
 
 ### Orphan Cleanup
 
-Use the existing `scion grove` command group:
-- `scion grove prune` — clean up orphaned grove configs
-- `scion grove reconnect` — re-establish the workspace path in settings.yaml if a linked grove was moved
+Use the existing `fabric grove` command group:
+- `fabric grove prune` — clean up orphaned grove configs
+- `fabric grove reconnect` — re-establish the workspace path in settings.yaml if a linked grove was moved
 
 ### Hub API Consolidation
 
-Audit and ensure that all in-container CLI operations use the Hub API (via `SCION_HUB_ENDPOINT`), eliminating filesystem access to grove data. This makes mount-level protections defense-in-depth rather than the primary control. **This is a separate phase of work.**
+Audit and ensure that all in-container CLI operations use the Hub API (via `FABRIC_HUB_ENDPOINT`), eliminating filesystem access to grove data. This makes mount-level protections defense-in-depth rather than the primary control. **This is a separate phase of work.**
 
 ### Local Mode
 
@@ -117,13 +117,13 @@ Move grove state out of the project directory entirely.
 
 **Mechanism:**
 
-When `scion init` runs in a non-git project:
+When `fabric init` runs in a non-git project:
 
 1. Generate a UUID for the grove (hub-sourced when hub is available)
-2. Create grove config directory at `~/.scion/grove-configs/<grove-slug>__<short-uuid>/.scion/` (agents, templates, settings)
+2. Create grove config directory at `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/.fabric/` (agents, templates, settings)
 3. Write `workspace-path` to `settings.yaml` in the grove config
-4. Write a **marker file** at `<project>/.scion` (not a directory) containing the YAML fields above
-5. The container mounts only the project directory; the `.scion` marker file is inert
+4. Write a **marker file** at `<project>/.fabric` (not a directory) containing the YAML fields above
+5. The container mounts only the project directory; the `.fabric` marker file is inert
 
 **Code impact:**
 
@@ -133,7 +133,7 @@ The following functions in `pkg/config/paths.go` check `info.IsDir()` and would 
 - `RequireGrovePath()` (line 231)
 - `GetEnclosingGrovePath()` (line 261)
 
-These would need to: detect `.scion` as a file, parse the grove-id/slug, and resolve to `~/.scion/grove-configs/<grove-slug>__<short-uuid>/.scion/`.
+These would need to: detect `.fabric` as a file, parse the grove-id/slug, and resolve to `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/.fabric/`.
 
 Additionally affected:
 - `GetProjectAgentsDir()` / `GetProjectTemplatesDir()` — must follow the indirection
@@ -142,12 +142,12 @@ Additionally affected:
 
 ### Git Groves: Split Storage
 
-For git-based groves, worktrees must remain inside the repo (they rely on `--relative-paths` for container mounting). The `.scion` directory stays as a directory but agent homes move external.
+For git-based groves, worktrees must remain inside the repo (they rely on `--relative-paths` for container mounting). The `.fabric` directory stays as a directory but agent homes move external.
 
 **Mechanism:**
 
 ```
-<repo>/.scion/                      (gitignored, remains a directory)
+<repo>/.fabric/                      (gitignored, remains a directory)
 ├── config.yaml                     settings, grove config
 ├── settings.yaml
 ├── templates/                      custom templates (committable to git)
@@ -156,22 +156,22 @@ For git-based groves, worktrees must remain inside the repo (they rely on `--rel
     └── <name>/
         └── workspace/              git worktree (relative paths work)
 
-~/.scion/grove-configs/<grove-slug>__<short-uuid>/   (external, never mounted into containers)
+~/.fabric/grove-configs/<grove-slug>__<short-uuid>/   (external, never mounted into containers)
 └── agents/
     └── <name>/
         └── home/                   agent home with secrets
 ```
 
-- **Worktree mechanics** stay in `<repo>/.scion/agents/<name>/workspace/` (because git relative paths require this)
-- **Agent homes with secrets** move to `~/.scion/grove-configs/<grove-slug>__<short-uuid>/agents/<name>/home/`
-- The `config.HomeDir` in `RunConfig` already points to a specific path independent of workspace — changing it from `.scion/agents/<name>/home` to the external path is straightforward
+- **Worktree mechanics** stay in `<repo>/.fabric/agents/<name>/workspace/` (because git relative paths require this)
+- **Agent homes with secrets** move to `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/agents/<name>/home/`
+- The `config.HomeDir` in `RunConfig` already points to a specific path independent of workspace — changing it from `.fabric/agents/<name>/home` to the external path is straightforward
 
 **Code impact:**
 
 - `pkg/agent/provision.go`: Change `agentHome` derivation to use external path
 - `pkg/agent/run.go`: `HomeDir` in `RunConfig` already decoupled from workspace
 - Agent deletion (`pkg/agent/delete.go`): Must clean up both locations
-- `scion list`: Must reconcile state from two directories
+- `fabric list`: Must reconcile state from two directories
 
 ---
 
@@ -182,12 +182,12 @@ For git-based groves, worktrees must remain inside the repo (they rely on `--rel
 Close the active vulnerability with minimal code changes while the structural work is planned and implemented.
 
 **Scope:**
-- Modify `buildCommonRunArgs()` in `pkg/runtime/common.go` to add a tmpfs shadow mount over `.scion/` when the full repo root is mounted:
+- Modify `buildCommonRunArgs()` in `pkg/runtime/common.go` to add a tmpfs shadow mount over `.fabric/` when the full repo root is mounted:
   ```
-  --mount type=tmpfs,destination=/repo-root/.scion
+  --mount type=tmpfs,destination=/repo-root/.fabric
   ```
-- Enforce `.scion` in `.gitignore` during `scion init` for git repos
-- Add a startup warning if `.scion` is not gitignored when starting agents
+- Enforce `.fabric` in `.gitignore` during `fabric init` for git repos
+- Add a startup warning if `.fabric` is not gitignored when starting agents
 
 **Deliverables:**
 - Updated `pkg/runtime/common.go` with tmpfs shadow mount
@@ -201,7 +201,7 @@ Implement the marker-file approach for non-git groves, creating the `grove-confi
 **Scope:**
 - Implement marker file creation in `InitProject()` for non-git groves
 - Update path resolution functions in `pkg/config/paths.go` to handle file-marker indirection
-- Create `~/.scion/grove-configs/<grove-slug>__<short-uuid>/.scion/` directory structure
+- Create `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/.fabric/` directory structure
 - Add `workspace-path` to `settings.yaml` schema
 - Add old-style grove detection with hard error and TODO for removal
 - Update agent provisioning to use external home paths for non-git groves
@@ -216,15 +216,15 @@ Implement the marker-file approach for non-git groves, creating the `grove-confi
 
 ### Phase 3: Split Storage for Git Groves ✅ COMPLETE
 
-Move agent homes out of the repo `.scion/` directory for git-based groves while keeping worktrees in-repo.
+Move agent homes out of the repo `.fabric/` directory for git-based groves while keeping worktrees in-repo.
 
 **Scope:**
-- Generate and store `grove-id` in `<repo>/.scion/grove-id` during init
-- Create `~/.scion/grove-configs/<grove-slug>__<short-uuid>/` for git groves
+- Generate and store `grove-id` in `<repo>/.fabric/grove-id` during init
+- Create `~/.fabric/grove-configs/<grove-slug>__<short-uuid>/` for git groves
 - Move agent home provisioning to external path
 - Update agent deletion to clean up both locations
-- Update `scion list` to reconcile split state
-- Ensure templates remain in `<repo>/.scion/templates/` (committable)
+- Update `fabric list` to reconcile split state
+- Ensure templates remain in `<repo>/.fabric/templates/` (committable)
 
 **Deliverables:**
 - Updated `pkg/config/init.go` with grove-id generation for git groves
@@ -238,9 +238,9 @@ Move agent homes out of the repo `.scion/` directory for git-based groves while 
 Add CLI commands for grove lifecycle management.
 
 **Scope:**
-- `scion grove prune` — detect and clean up orphaned grove configs in `~/.scion/grove-configs/`
-- `scion grove reconnect` — update `workspace-path` in settings.yaml when a linked grove has moved
-- `scion grove list` — show all known groves with their status and paths
+- `fabric grove prune` — detect and clean up orphaned grove configs in `~/.fabric/grove-configs/`
+- `fabric grove reconnect` — update `workspace-path` in settings.yaml when a linked grove has moved
+- `fabric grove list` — show all known groves with their status and paths
 
 **Deliverables:**
 - New commands in `cmd/`
@@ -251,12 +251,12 @@ Add CLI commands for grove lifecycle management.
 
 Audited all in-container CLI operations to verify they route through the Hub API when configured, and do not access filesystem-based grove data.
 
-**Audit Finding:** sciontool already does NOT access grove-level data from the filesystem. All filesystem access is agent-local (`$HOME/agent-info.json`, `$HOME/agent-limits.json`, `$HOME/.scion/scion-services.yaml`). Hub API communication already works for status updates, heartbeats, and token refresh. The remaining work was formalizing this with explicit mode awareness and codifying the guarantees in tests.
+**Audit Finding:** fabrictool already does NOT access grove-level data from the filesystem. All filesystem access is agent-local (`$HOME/agent-info.json`, `$HOME/agent-limits.json`, `$HOME/.fabric/fabric-services.yaml`). Hub API communication already works for status updates, heartbeats, and token refresh. The remaining work was formalizing this with explicit mode awareness and codifying the guarantees in tests.
 
 **Deliverables:**
-- `OperatingMode()` helper in `pkg/sciontool/hub/client.go` — consolidates mode detection (local/hub-connected/hosted)
-- Mode-aware startup logging in `cmd/sciontool/commands/init.go`
-- Import isolation canary test — verifies sciontool does NOT import `pkg/config` (grove path resolution)
+- `OperatingMode()` helper in `pkg/fabrictool/hub/client.go` — consolidates mode detection (local/hub-connected/hosted)
+- Mode-aware startup logging in `cmd/fabrictool/commands/init.go`
+- Import isolation canary test — verifies fabrictool does NOT import `pkg/config` (grove path resolution)
 - Operating mode tests — table-driven tests for all three modes
 - Hub-enabled vs hub-disabled behavioral tests — verifies HubHandler is nil in local mode and active in hub mode, and StatusHandler always writes agent-info.json (defense-in-depth)
 
@@ -269,7 +269,7 @@ Audited all in-container CLI operations to verify they route through the Hub API
 | Protection model | Strong — data not in project dir | Strong — homes not in repo mount |
 | Worktree compatibility | N/A | Preserved (worktrees stay in-repo) |
 | Code complexity | Medium (~10 resolution sites) | Medium (provisioning + cleanup) |
-| Template committability | Templates in external config | Templates in `.scion/templates/` (in git) |
+| Template committability | Templates in external config | Templates in `.fabric/templates/` (in git) |
 | Hub model convergence | Good (unifies with hub-managed) | Partial |
 | Defense model | Structural (data not present) | Structural (data not present) |
 
@@ -277,7 +277,7 @@ Audited all in-container CLI operations to verify they route through the Hub API
 
 ## Follow-up: Shared-Workspace Groves
 
-Phase 3 of this design moved agent **homes** out of the in-grove `.scion/agents/<name>/home/` path, but in groves where every agent shares a single workspace mount (`sharedWorkspace = true`, used by hub-hosted git groves), the rest of the per-agent state — `prompt.md` and `scion-agent.json` — was still visible to sibling agents through the shared `/workspace/.scion/agents/<name>/` view. That residual gap is closed in [`hub-shared-workspace-isolation.md`](./hub-shared-workspace-isolation.md), which extends the same external-path model to those files when the grove is in shared-workspace mode.
+Phase 3 of this design moved agent **homes** out of the in-grove `.fabric/agents/<name>/home/` path, but in groves where every agent shares a single workspace mount (`sharedWorkspace = true`, used by hub-hosted git groves), the rest of the per-agent state — `prompt.md` and `fabric-agent.json` — was still visible to sibling agents through the shared `/workspace/.fabric/agents/<name>/` view. That residual gap is closed in [`hub-shared-workspace-isolation.md`](./hub-shared-workspace-isolation.md), which extends the same external-path model to those files when the grove is in shared-workspace mode.
 
 ## Open Questions (Resolved)
 
@@ -286,7 +286,7 @@ Phase 3 of this design moved agent **homes** out of the in-grove `.scion/agents/
 | UUID vs slug for grove paths | Use `<grove-slug>__<short-uuid>` hybrid |
 | Marker file format | YAML without extension; includes `grove-name`, `grove-slug`, `grove-id` |
 | Migration path | Hard breaking change; bail with error on old-style groves; TODO for removal |
-| Orphan cleanup | `scion grove prune` and `scion grove reconnect` |
+| Orphan cleanup | `fabric grove prune` and `fabric grove reconnect` |
 | Multi-broker UUID divergence | Not an issue — UUID is hub/global, shared across brokers |
 | Git history exposure | Not a concern — not using mount-only approach for git groves |
 | Hub API consolidation | Yes, but in Phase 5 as a separate work session |

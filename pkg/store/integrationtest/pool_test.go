@@ -32,9 +32,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // openPoolStore opens a CompositeStore against a fresh schema with an explicit
@@ -185,7 +185,7 @@ func TestPool_LongTxnDoesNotStarveShortQueries(t *testing.T) {
 // connection reset / failover). The pool must transparently discard the dead
 // connections and open fresh ones so subsequent queries succeed.
 func TestPool_RecoveryAfterConnectionDrop(t *testing.T) {
-	appName := "scion_pooltest_" + shortID()
+	appName := "fabric_pooltest_" + shortID()
 	cs := openPoolStore(t, 4, appName)
 	ctx := context.Background()
 	db := cs.DB()

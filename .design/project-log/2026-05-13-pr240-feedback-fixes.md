@@ -1,7 +1,7 @@
 # PR #240 Feedback Fixes
 
 **Date:** 2026-05-13
-**Branch:** scion/fix-invite-ux
+**Branch:** fabric/fix-invite-ux
 **Task:** Address medium-severity feedback items from upstream PR #240
 
 ## Changes Made

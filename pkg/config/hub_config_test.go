@@ -94,7 +94,7 @@ hub:
 
 database:
   driver: postgres
-  url: "postgres://localhost:5432/scion"
+  url: "postgres://localhost:5432/fabric"
 
 logLevel: debug
 logFormat: json
@@ -124,8 +124,8 @@ logFormat: json
 		t.Errorf("expected database driver 'postgres', got %q", cfg.Database.Driver)
 	}
 
-	if cfg.Database.URL != "postgres://localhost:5432/scion" {
-		t.Errorf("expected database URL 'postgres://localhost:5432/scion', got %q", cfg.Database.URL)
+	if cfg.Database.URL != "postgres://localhost:5432/fabric" {
+		t.Errorf("expected database URL 'postgres://localhost:5432/fabric', got %q", cfg.Database.URL)
 	}
 
 	if cfg.LogLevel != "debug" {
@@ -189,11 +189,11 @@ runtimeBroker:
 func TestLoadGlobalConfigEnvOverride(t *testing.T) {
 	// Set environment variables
 	// Note: Env vars use underscores which map to dots for nesting
-	_ = os.Setenv("SCION_SERVER_HUB_PORT", "7777")
-	_ = os.Setenv("SCION_SERVER_DATABASE_DRIVER", "postgres")
+	_ = os.Setenv("FABRIC_SERVER_HUB_PORT", "7777")
+	_ = os.Setenv("FABRIC_SERVER_DATABASE_DRIVER", "postgres")
 	defer func() {
-		_ = os.Unsetenv("SCION_SERVER_HUB_PORT")
-		_ = os.Unsetenv("SCION_SERVER_DATABASE_DRIVER")
+		_ = os.Unsetenv("FABRIC_SERVER_HUB_PORT")
+		_ = os.Unsetenv("FABRIC_SERVER_DATABASE_DRIVER")
 	}()
 
 	cfg, err := LoadGlobalConfig("")
@@ -211,9 +211,9 @@ func TestLoadGlobalConfigEnvOverride(t *testing.T) {
 }
 
 func TestLoadGlobalConfigAdminEmailsEnvOverride(t *testing.T) {
-	// Test standard SCION_SERVER_HUB_ADMINEMAILS
-	_ = os.Setenv("SCION_SERVER_HUB_ADMINEMAILS", "admin1@example.com,admin2@example.com")
-	defer func() { _ = os.Unsetenv("SCION_SERVER_HUB_ADMINEMAILS") }()
+	// Test standard FABRIC_SERVER_HUB_ADMINEMAILS
+	_ = os.Setenv("FABRIC_SERVER_HUB_ADMINEMAILS", "admin1@example.com,admin2@example.com")
+	defer func() { _ = os.Unsetenv("FABRIC_SERVER_HUB_ADMINEMAILS") }()
 
 	cfg, err := LoadGlobalConfig("")
 	if err != nil {
@@ -232,11 +232,11 @@ func TestLoadGlobalConfigAdminEmailsEnvOverride(t *testing.T) {
 	}
 
 	// Unset to test shorthand removal
-	_ = os.Unsetenv("SCION_SERVER_HUB_ADMINEMAILS")
+	_ = os.Unsetenv("FABRIC_SERVER_HUB_ADMINEMAILS")
 
-	// Verify that the old SCION_ADMIN_EMAILS no longer works
-	_ = os.Setenv("SCION_ADMIN_EMAILS", "old@example.com")
-	defer func() { _ = os.Unsetenv("SCION_ADMIN_EMAILS") }()
+	// Verify that the old FABRIC_ADMIN_EMAILS no longer works
+	_ = os.Setenv("FABRIC_ADMIN_EMAILS", "old@example.com")
+	defer func() { _ = os.Unsetenv("FABRIC_ADMIN_EMAILS") }()
 
 	cfg, err = LoadGlobalConfig("")
 	if err != nil {
@@ -245,15 +245,15 @@ func TestLoadGlobalConfigAdminEmailsEnvOverride(t *testing.T) {
 
 	for _, email := range cfg.Hub.AdminEmails {
 		if email == "old@example.com" {
-			t.Errorf("SCION_ADMIN_EMAILS should no longer be supported")
+			t.Errorf("FABRIC_ADMIN_EMAILS should no longer be supported")
 		}
 	}
 }
 
 func TestLoadGlobalConfigAuthorizedDomainsEnvOverride(t *testing.T) {
-	// Test standard SCION_SERVER_AUTH_AUTHORIZEDDOMAINS
-	_ = os.Setenv("SCION_SERVER_AUTH_AUTHORIZEDDOMAINS", "example.com,test.org")
-	defer func() { _ = os.Unsetenv("SCION_SERVER_AUTH_AUTHORIZEDDOMAINS") }()
+	// Test standard FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS
+	_ = os.Setenv("FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS", "example.com,test.org")
+	defer func() { _ = os.Unsetenv("FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS") }()
 
 	cfg, err := LoadGlobalConfig("")
 	if err != nil {
@@ -272,11 +272,11 @@ func TestLoadGlobalConfigAuthorizedDomainsEnvOverride(t *testing.T) {
 	}
 
 	// Unset to test shorthand removal
-	_ = os.Unsetenv("SCION_SERVER_AUTH_AUTHORIZEDDOMAINS")
+	_ = os.Unsetenv("FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS")
 
-	// Verify that the old SCION_AUTHORIZED_DOMAINS no longer works
-	_ = os.Setenv("SCION_AUTHORIZED_DOMAINS", "old.com")
-	defer func() { _ = os.Unsetenv("SCION_AUTHORIZED_DOMAINS") }()
+	// Verify that the old FABRIC_AUTHORIZED_DOMAINS no longer works
+	_ = os.Setenv("FABRIC_AUTHORIZED_DOMAINS", "old.com")
+	defer func() { _ = os.Unsetenv("FABRIC_AUTHORIZED_DOMAINS") }()
 
 	cfg, err = LoadGlobalConfig("")
 	if err != nil {
@@ -285,7 +285,7 @@ func TestLoadGlobalConfigAuthorizedDomainsEnvOverride(t *testing.T) {
 
 	for _, domain := range cfg.Auth.AuthorizedDomains {
 		if domain == "old.com" {
-			t.Errorf("SCION_AUTHORIZED_DOMAINS should no longer be supported")
+			t.Errorf("FABRIC_AUTHORIZED_DOMAINS should no longer be supported")
 		}
 	}
 }
@@ -330,23 +330,23 @@ func TestEnvKeyToConfigKey(t *testing.T) {
 
 func TestLoadGlobalConfigOAuthEnvOverride(t *testing.T) {
 	// Set OAuth environment variables
-	_ = os.Setenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID", "test-cli-client-id")
-	_ = os.Setenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET", "test-cli-secret")
-	_ = os.Setenv("SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID", "test-web-gh-id")
-	_ = os.Setenv("SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET", "test-web-gh-secret")
-	_ = os.Setenv("SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID", "test-device-google-id")
-	_ = os.Setenv("SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET", "test-device-google-secret")
-	_ = os.Setenv("SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID", "test-device-gh-id")
-	_ = os.Setenv("SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET", "test-device-gh-secret")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID", "test-cli-client-id")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET", "test-cli-secret")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID", "test-web-gh-id")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET", "test-web-gh-secret")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID", "test-device-google-id")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET", "test-device-google-secret")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID", "test-device-gh-id")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET", "test-device-gh-secret")
 	defer func() {
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTSECRET")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_DEVICE_GOOGLE_CLIENTSECRET")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_DEVICE_GITHUB_CLIENTSECRET")
 	}()
 
 	cfg, err := LoadGlobalConfig("")
@@ -422,8 +422,8 @@ hub:
 	})
 
 	t.Run("from environment variable", func(t *testing.T) {
-		_ = os.Setenv("SCION_SERVER_HUB_ENDPOINT", "https://env-hub.example.com")
-		defer func() { _ = os.Unsetenv("SCION_SERVER_HUB_ENDPOINT") }()
+		_ = os.Setenv("FABRIC_SERVER_HUB_ENDPOINT", "https://env-hub.example.com")
+		defer func() { _ = os.Unsetenv("FABRIC_SERVER_HUB_ENDPOINT") }()
 
 		cfg, err := LoadGlobalConfig("")
 		if err != nil {
@@ -448,8 +448,8 @@ hub:
 			t.Fatalf("failed to write config file: %v", err)
 		}
 
-		_ = os.Setenv("SCION_SERVER_HUB_ENDPOINT", "https://env-hub.example.com")
-		defer func() { _ = os.Unsetenv("SCION_SERVER_HUB_ENDPOINT") }()
+		_ = os.Setenv("FABRIC_SERVER_HUB_ENDPOINT", "https://env-hub.example.com")
+		defer func() { _ = os.Unsetenv("FABRIC_SERVER_HUB_ENDPOINT") }()
 
 		cfg, err := LoadGlobalConfig(configPath)
 		if err != nil {
@@ -497,7 +497,7 @@ runtimeBroker:
 	})
 
 	// Note: Env var override for runtimeBroker.hubEndpoint doesn't work due to case sensitivity
-	// in koanf. The env var SCION_SERVER_RUNTIMEBROKER_HUBENDPOINT maps to "runtimebroker.hubEndpoint"
+	// in koanf. The env var FABRIC_SERVER_RUNTIMEBROKER_HUBENDPOINT maps to "runtimebroker.hubEndpoint"
 	// but the config expects "runtimeBroker.hubEndpoint" (camelCase). This is a known limitation.
 	// For RuntimeBroker hubEndpoint, use config file or the settings.yaml fallback (Fix 6).
 }
@@ -538,7 +538,7 @@ runtimeBroker:
 
 func TestSettingsYamlEnvVarOverride(t *testing.T) {
 	// This test verifies that when config is loaded from settings.yaml (the
-	// non-legacy path), SCION_SERVER_ env vars still override values.
+	// non-legacy path), FABRIC_SERVER_ env vars still override values.
 	// Previously, the settings.yaml path returned early without loading env vars.
 
 	// Create a temp dir with settings.yaml containing a server key
@@ -557,15 +557,15 @@ server:
 	}
 
 	// Set OAuth env vars (these should override settings.yaml values)
-	_ = os.Setenv("SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID", "env-web-google-id")
-	_ = os.Setenv("SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET", "env-web-google-secret")
-	_ = os.Setenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID", "env-cli-google-id")
-	_ = os.Setenv("SCION_SERVER_HUB_PORT", "7777")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID", "env-web-google-id")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET", "env-web-google-secret")
+	_ = os.Setenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID", "env-cli-google-id")
+	_ = os.Setenv("FABRIC_SERVER_HUB_PORT", "7777")
 	defer func() {
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET")
-		_ = os.Unsetenv("SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID")
-		_ = os.Unsetenv("SCION_SERVER_HUB_PORT")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET")
+		_ = os.Unsetenv("FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID")
+		_ = os.Unsetenv("FABRIC_SERVER_HUB_PORT")
 	}()
 
 	// loadGlobalConfigFromSettings checks GetGlobalDir() first, then
@@ -596,11 +596,11 @@ server:
 }
 
 func TestApplyEnvOverridesCommaSeparatedLists(t *testing.T) {
-	_ = os.Setenv("SCION_SERVER_HUB_ADMINEMAILS", "a@x.com,b@x.com")
-	_ = os.Setenv("SCION_SERVER_AUTH_AUTHORIZEDDOMAINS", "x.com,y.com")
+	_ = os.Setenv("FABRIC_SERVER_HUB_ADMINEMAILS", "a@x.com,b@x.com")
+	_ = os.Setenv("FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS", "x.com,y.com")
 	defer func() {
-		_ = os.Unsetenv("SCION_SERVER_HUB_ADMINEMAILS")
-		_ = os.Unsetenv("SCION_SERVER_AUTH_AUTHORIZEDDOMAINS")
+		_ = os.Unsetenv("FABRIC_SERVER_HUB_ADMINEMAILS")
+		_ = os.Unsetenv("FABRIC_SERVER_AUTH_AUTHORIZEDDOMAINS")
 	}()
 
 	gc := DefaultGlobalConfig()
@@ -673,13 +673,13 @@ func TestLoadServerMode_Normalization(t *testing.T) {
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
 	_ = os.Setenv("HOME", tmpDir)
 
-	globalScionDir := filepath.Join(tmpDir, ".scion")
-	if err := os.MkdirAll(globalScionDir, 0755); err != nil {
-		t.Fatalf("failed to create global scion dir: %v", err)
+	globalFabricDir := filepath.Join(tmpDir, ".fabric")
+	if err := os.MkdirAll(globalFabricDir, 0755); err != nil {
+		t.Fatalf("failed to create global fabric dir: %v", err)
 	}
 
 	settingsContent := "schema_version: \"1\"\nserver:\n  mode: production\n"
-	if err := os.WriteFile(filepath.Join(globalScionDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(globalFabricDir, "settings.yaml"), []byte(settingsContent), 0644); err != nil {
 		t.Fatalf("failed to write settings.yaml: %v", err)
 	}
 
@@ -740,7 +740,7 @@ func TestApplyDatabasePoolDefaults_PostgresOverridesLeakedSqliteDefault(t *testi
 	// MaxOpenConns=1 for the SQLite default) and switch the driver to postgres.
 	db := DefaultGlobalConfig().Database
 	db.Driver = "postgres"
-	db.URL = "host=db port=5432 dbname=scion sslmode=require"
+	db.URL = "host=db port=5432 dbname=fabric sslmode=require"
 
 	applyDatabasePoolDefaults(&db)
 

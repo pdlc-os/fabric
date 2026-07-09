@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies the design for secrets management in Scion. Secrets are sensitive values—API keys, credentials, certificates, configuration files—that agents need at runtime. They are stored centrally in the Hub (or an external secrets backend) and projected into agent containers at provisioning time.
+This document specifies the design for secrets management in Fabric. Secrets are sensitive values—API keys, credentials, certificates, configuration files—that agents need at runtime. They are stored centrally in the Hub (or an external secrets backend) and projected into agent containers at provisioning time.
 
 The current system provides basic environment-variable-style secrets (key-value pairs injected as `ResolvedEnv` in the `CreateAgent` dispatch). This design extends secrets into a first-class concept with a typed interface, pluggable storage backends, and runtime-specific projection strategies.
 
@@ -36,7 +36,7 @@ A secret has a **type** that determines how it is projected into the agent conta
 |------|-------------|------------------|
 | `environment` | Injected as a container environment variable | Target is the environment variable name (e.g., `ANTHROPIC_API_KEY`) |
 | `variable` | An opaque key-value pair stored but not automatically injected as an env var | Target is a logical name; consumed by templates or tooling |
-| `file` | Projected as a file on the container filesystem | Target is the absolute file path (e.g., `/home/scion/.config/credentials.json`) |
+| `file` | Projected as a file on the container filesystem | Target is the absolute file path (e.g., `/home/fabric/.config/credentials.json`) |
 
 ### 2.2 Go Interface Definition
 
@@ -261,10 +261,10 @@ The primary production implementation uses [Google Cloud Secret Manager](https:/
 
 ### 4.2 Secret Naming Convention
 
-GCP Secret Manager has a flat namespace per project. Scion secrets are mapped using a hashed naming convention to avoid collisions and stay within the 255-character GCP SM secret ID limit:
+GCP Secret Manager has a flat namespace per project. Fabric secrets are mapped using a hashed naming convention to avoid collisions and stay within the 255-character GCP SM secret ID limit:
 
 ```
-scion-{scope}-{sha256(scopeID)[:12]}-{name}
+fabric-{scope}-{sha256(scopeID)[:12]}-{name}
 ```
 
 The `scopeID` is hashed using SHA-256, truncated to the first 12 hex characters (48 bits, birthday collision threshold ~16 million). This prevents collisions when:
@@ -275,9 +275,9 @@ The `scopeID` is hashed using SHA-256, truncated to the first 12 hex characters 
 The full scope ID is preserved in GCP labels (see Section 4.4) for discoverability and cross-referencing.
 
 Examples:
-- `scion-user-a1b2c3d4e5f6-ANTHROPIC_API_KEY`
-- `scion-grove-f9e8d7c6b5a4-DB_PASSWORD`
-- `scion-runtime_broker-1a2b3c4d5e6f-TLS_CERT`
+- `fabric-user-a1b2c3d4e5f6-ANTHROPIC_API_KEY`
+- `fabric-grove-f9e8d7c6b5a4-DB_PASSWORD`
+- `fabric-runtime_broker-1a2b3c4d5e6f-TLS_CERT`
 
 ### 4.3 Implementation Sketch
 
@@ -291,7 +291,7 @@ import (
     secretmanager "cloud.google.com/go/secretmanager/apiv1"
     smpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 
-    "github.com/GoogleCloudPlatform/scion/pkg/secret"
+    "github.com/pdlc-os/fabric/pkg/secret"
 )
 
 // GCPStore implements secret.SecretBackend using GCP Secret Manager.
@@ -309,7 +309,7 @@ func NewGCPStore(ctx context.Context, projectID string) (*GCPStore, error) {
 }
 
 func (s *GCPStore) secretPath(name string, scope secret.Scope, scopeID string) string {
-    secretName := fmt.Sprintf("scion-%s-%s-%s", scope, scopeID, name)
+    secretName := fmt.Sprintf("fabric-%s-%s-%s", scope, scopeID, name)
     return fmt.Sprintf("projects/%s/secrets/%s", s.projectID, secretName)
 }
 
@@ -331,17 +331,17 @@ func (s *GCPStore) Get(ctx context.Context, name string, scope secret.Scope, sco
 
 ### 4.4 Metadata Storage
 
-The **Hub database is the primary metadata store** for all secret metadata (name, type, target, scope, version, audit fields). GCP Secret Manager stores the encrypted secret values and may additionally carry supplementary labels for cross-referencing. These labels should match the native Scion types stored in the Hub database.
+The **Hub database is the primary metadata store** for all secret metadata (name, type, target, scope, version, audit fields). GCP Secret Manager stores the encrypted secret values and may additionally carry supplementary labels for cross-referencing. These labels should match the native Fabric types stored in the Hub database.
 
-GCP Secret Manager supports labels on secret resources. Scion stores the following supplementary metadata as labels:
+GCP Secret Manager supports labels on secret resources. Fabric stores the following supplementary metadata as labels:
 
 | Label Key | Value | Purpose |
 |-----------|-------|---------|
-| `scion-scope` | `user`, `grove`, `runtime_broker` | Scope identification |
-| `scion-scope-id` | Full scope ID (sanitized) | Scoped entity ID (full value, since the secret name uses a hash) |
-| `scion-type` | `environment`, `variable`, `file` | Secret type |
-| `scion-name` | Secret key name (sanitized) | Original secret name for discoverability |
-| `scion-target` | Projection target (sanitized) | Projection target (env var name, file path, etc.) |
+| `fabric-scope` | `user`, `grove`, `runtime_broker` | Scope identification |
+| `fabric-scope-id` | Full scope ID (sanitized) | Scoped entity ID (full value, since the secret name uses a hash) |
+| `fabric-type` | `environment`, `variable`, `file` | Secret type |
+| `fabric-name` | Secret key name (sanitized) | Original secret name for discoverability |
+| `fabric-target` | Projection target (sanitized) | Projection target (env var name, file path, etc.) |
 
 These labels are maintained for operational convenience (e.g., GCP Console visibility, cross-referencing with hashed secret names) but the Hub database remains the authoritative source for secret metadata.
 
@@ -397,7 +397,7 @@ type ResolvedSecret struct {
     Target string `json:"target"`          // env var name or file path
     Value  string `json:"value,omitempty"` // plaintext value (base64-encoded for file type)
     Source string `json:"source"`          // scope that provided this secret (for diagnostics)
-    Ref    string `json:"ref,omitempty"`   // GCP SM reference for K8s/Cloud Run (e.g., "projects/my-proj/secrets/scion-user-abc-API_KEY/versions/latest")
+    Ref    string `json:"ref,omitempty"`   // GCP SM reference for K8s/Cloud Run (e.g., "projects/my-proj/secrets/fabric-user-abc-API_KEY/versions/latest")
 }
 ```
 
@@ -424,12 +424,12 @@ File secrets are stored in a dedicated `secrets/` directory within the agent's p
 
 **Host directory layout:**
 ```
-.scion/agents/
+.fabric/agents/
   <agentName>/
     secrets/       ← secret files stored here (host-only)
       secretA
       secretB
-    home/          ← bind-mounted as /home/scion
+    home/          ← bind-mounted as /home/fabric
     workspace/     ← bind-mounted as /workspace
 ```
 
@@ -455,10 +455,10 @@ for _, s := range resolvedSecrets {
 This respects the secret's declared target path (which may be anywhere in the container filesystem) without exposing secret files inside the home directory mount.
 
 #### Variable Secrets
-Variable-type secrets are not automatically injected. They are stored in a metadata file within the home directory that tooling (e.g., `sciontool`) can read:
+Variable-type secrets are not automatically injected. They are stored in a metadata file within the home directory that tooling (e.g., `fabrictool`) can read:
 
 ```
-/home/scion/.scion/secrets.json
+/home/fabric/.fabric/secrets.json
 ```
 
 ### 5.3 Apple Container Runtime
@@ -468,9 +468,9 @@ The Apple Virtualization Framework (`container` CLI) supports bind mounts of dir
 #### Environment Secrets
 Same as Docker—passed via `-e` flags. The Apple runtime reuses `buildCommonRunArgs()`.
 
-#### File Secrets — Init Script Injection via sciontool
+#### File Secrets — Init Script Injection via fabrictool
 
-Since the Apple container runtime cannot bind-mount individual files to arbitrary target paths, file secrets use a copy-on-init approach managed by `sciontool`:
+Since the Apple container runtime cannot bind-mount individual files to arbitrary target paths, file secrets use a copy-on-init approach managed by `fabrictool`:
 
 1. **Provisioning**: The broker writes secret files into the agent's `secrets/` directory on the host (same layout as Docker). Since this directory is separate from the home directory, secrets are available to the provisioner but not directly exposed inside the container.
 
@@ -482,7 +482,7 @@ Since the Apple container runtime cannot bind-mount individual files to arbitrar
         {
             "name": "gcp-credentials",
             "source": "secrets/gcp-credentials",
-            "target": "/home/scion/.config/gcloud/credentials.json",
+            "target": "/home/fabric/.config/gcloud/credentials.json",
             "mode": "0600"
         },
         {
@@ -495,14 +495,14 @@ Since the Apple container runtime cannot bind-mount individual files to arbitrar
 }
 ```
 
-3. **Container start**: The `secrets/` directory is bind-mounted into the container at a well-known staging path (e.g., `/run/scion-secrets/`). On startup, `sciontool` reads `secret-map.json` and copies each secret file from the staging path to its declared target path, creating parent directories as needed. The entrypoint does not need variable arguments—the logic is fixed and data-driven by the map file.
+3. **Container start**: The `secrets/` directory is bind-mounted into the container at a well-known staging path (e.g., `/run/fabric-secrets/`). On startup, `fabrictool` reads `secret-map.json` and copies each secret file from the staging path to its declared target path, creating parent directories as needed. The entrypoint does not need variable arguments—the logic is fixed and data-driven by the map file.
 
-4. **Cleanup**: After copying, `sciontool` removes the staging mount contents from the container filesystem.
+4. **Cleanup**: After copying, `fabrictool` removes the staging mount contents from the container filesystem.
 
 This approach supports arbitrary target paths without modifying the container entrypoint arguments, and keeps the init logic fixed and deterministic.
 
 #### Variable Secrets
-Same as Docker—written to `~/.scion/secrets.json`.
+Same as Docker—written to `~/.fabric/secrets.json`.
 
 ### 5.4 Kubernetes Runtime
 
@@ -523,9 +523,9 @@ spec:
   provider: gcp
   parameters:
     secrets: |
-      - resourceName: "projects/<project>/secrets/scion-user-<userId>-API_KEY/versions/latest"
+      - resourceName: "projects/<project>/secrets/fabric-user-<userId>-API_KEY/versions/latest"
         path: "api-key"
-      - resourceName: "projects/<project>/secrets/scion-grove-<groveId>-TLS_CERT/versions/latest"
+      - resourceName: "projects/<project>/secrets/fabric-grove-<groveId>-TLS_CERT/versions/latest"
         path: "tls-cert"
 ```
 
@@ -560,7 +560,7 @@ spec:
   data:
     - secretKey: ANTHROPIC_API_KEY
       remoteRef:
-        key: scion-user-<userId>-ANTHROPIC_API_KEY
+        key: fabric-user-<userId>-ANTHROPIC_API_KEY
 ```
 
 #### Environment Secrets
@@ -581,7 +581,7 @@ Mounted as volumes from the Kubernetes Secret or CSI driver:
 ```yaml
 volumeMounts:
   - name: secrets
-    mountPath: /home/scion/.config/credentials.json
+    mountPath: /home/fabric/.config/credentials.json
     subPath: credentials.json
     readOnly: true
 ```
@@ -595,12 +595,12 @@ env:
   - name: API_KEY
     valueFrom:
       secretKeyRef:
-        secret: scion-user-abc-API_KEY
+        secret: fabric-user-abc-API_KEY
         version: latest
 volumes:
   - name: secrets
     secret:
-      secret: scion-grove-xyz-TLS_CERT
+      secret: fabric-grove-xyz-TLS_CERT
       items:
         - path: tls-cert.pem
           version: latest
@@ -613,7 +613,7 @@ This is the cleanest integration since Cloud Run natively resolves GCP Secret Ma
 | Capability | Docker | Apple | Kubernetes | Cloud Run |
 |------------|--------|-------|------------|-----------|
 | **Env secrets** | `-e` flag | `-e` flag | `envFrom` / `env.valueFrom` | `env.valueFrom` |
-| **File secrets** | Bind mount to target path | Copy-on-init via sciontool | Volume mount / CSI | Volume mount |
+| **File secrets** | Bind mount to target path | Copy-on-init via fabrictool | Volume mount / CSI | Volume mount |
 | **Variable secrets** | `secrets.json` | `secrets.json` | ConfigMap or `secrets.json` | `secrets.json` |
 | **GCP SM native** | No (values passed) | No (values passed) | Yes (CSI / ESO) | Yes (native) |
 | **Secret in etcd/disk** | Host `secrets/` dir | Host `secrets/` dir | Optional (CSI avoids) | Never |
@@ -691,7 +691,7 @@ GET /api/v1/agents/{agentId}/resolved-secrets
     {
       "name": "gcp-credentials",
       "type": "file",
-      "target": "/home/scion/.config/gcloud/credentials.json",
+      "target": "/home/fabric/.config/gcloud/credentials.json",
       "value": "base64-encoded-content",
       "source": "grove"
     }
@@ -701,30 +701,30 @@ GET /api/v1/agents/{agentId}/resolved-secrets
 
 ### 6.3 CLI Changes
 
-The `scion hub secret set` command is extended:
+The `fabric hub secret set` command is extended:
 
 ```bash
 # Environment secret (default)
-scion hub secret set API_KEY sk-ant-...
+fabric hub secret set API_KEY sk-ant-...
 
 # Explicit type
-scion hub secret set --type=environment --target=ANTHROPIC_API_KEY api-key sk-ant-...
+fabric hub secret set --type=environment --target=ANTHROPIC_API_KEY api-key sk-ant-...
 
 # File secret
-scion hub secret set --type=file --target=/home/scion/.config/creds.json gcp-creds @./service-account.json
+fabric hub secret set --type=file --target=/home/fabric/.config/creds.json gcp-creds @./service-account.json
 
 # Variable secret
-scion hub secret set --type=variable config-value '{"setting": true}'
+fabric hub secret set --type=variable config-value '{"setting": true}'
 ```
 
 The `@` prefix for values reads from a local file (similar to `curl -d @file`).
 
-The `scion hub env --secret` flag is a CLI convenience that translates the operation into a secret resource creation (environment-type secret). This keeps the env var system cleanly separated—`--secret` does not set an `EnvVar` record with `Secret: true`, but instead creates a proper `Secret` resource with `type=environment`.
+The `fabric hub env --secret` flag is a CLI convenience that translates the operation into a secret resource creation (environment-type secret). This keeps the env var system cleanly separated—`--secret` does not set an `EnvVar` record with `Secret: true`, but instead creates a proper `Secret` resource with `type=environment`.
 
 ```bash
 # These two commands are equivalent:
-scion hub env --secret ANTHROPIC_API_KEY sk-ant-...
-scion hub secret set --type=environment --target=ANTHROPIC_API_KEY ANTHROPIC_API_KEY sk-ant-...
+fabric hub env --secret ANTHROPIC_API_KEY sk-ant-...
+fabric hub secret set --type=environment --target=ANTHROPIC_API_KEY ANTHROPIC_API_KEY sk-ant-...
 ```
 
 ---
@@ -774,20 +774,20 @@ File-type secrets are limited to **64 KiB** to match GCP Secret Manager's per-ve
 3. ~~Update `store.SecretStore` interface and SQLite implementation.~~ Done (`SecretFilter.Type`, CRUD updates).
 4. ~~Update Hub API handlers to accept and return the new fields.~~ Done (type validation, file path validation, 64 KiB limit).
 5. ~~Update CLI `hub secret set/get` commands.~~ Done (`--type`, `--target`, `@file` syntax, TYPE column in list).
-6. ~~Implement `scion hub env --secret` as a convenience that creates a secret resource.~~ Done (redirects to Secret API).
+6. ~~Implement `fabric hub env --secret` as a convenience that creates a secret resource.~~ Done (redirects to Secret API).
 
 ### 8.2 Phase 2: Runtime Projection — **Implemented**
 
 1. ~~Add `ResolvedSecrets` to `CreateAgentRequest`.~~ Done (`api.ResolvedSecret`, wired through dispatch chain).
 2. ~~Implement projection logic in the Runtime Broker's `CreateAgent` handler.~~ Done (passthrough to `RunConfig`).
 3. ~~Docker: env injection and bind-mount file secrets to target paths.~~ Done.
-4. ~~Apple: env injection and copy-on-init via `sciontool` with `secret-map.json`.~~ Done (secrets staging volume + secret-map.json).
+4. ~~Apple: env injection and copy-on-init via `fabrictool` with `secret-map.json`.~~ Done (secrets staging volume + secret-map.json).
 
 ### 8.3 Phase 3: GCP Secret Manager Backend
 
 1. ~~Implement `secret.SecretBackend` using hybrid storage (Hub DB metadata + GCP SM values).~~ Done (`pkg/secret/` package with `SecretBackend` interface, `LocalBackend`, and `GCPBackend`).
-2. ~~Configuration to select backend (SQLite-encrypted vs hybrid GCP SM).~~ Done (`SecretsConfig` in `pkg/config/hub_config.go`, env vars `SCION_SERVER_SECRETS_*`).
-3. ~~Migration tooling to move existing secrets from SQLite to GCP SM.~~ Done (`scion hub secret migrate` command with `--project`, `--credentials`, `--dry-run` flags).
+2. ~~Configuration to select backend (SQLite-encrypted vs hybrid GCP SM).~~ Done (`SecretsConfig` in `pkg/config/hub_config.go`, env vars `FABRIC_SERVER_SECRETS_*`).
+3. ~~Migration tooling to move existing secrets from SQLite to GCP SM.~~ Done (`fabric hub secret migrate` command with `--project`, `--credentials`, `--dry-run` flags).
 
 ### 8.4 Phase 4: Native K8s/Cloud Run Integration
 
@@ -811,7 +811,7 @@ This section records decisions made during design review and topics deferred to 
 
 ### 9.3 Apple Container File Mounts — Decided
 
-**Decision:** Use the copy-on-init approach via `sciontool` (Section 5.3). Secret files are placed in the provisioning directory and a `secret-map.json` file drives the init-time copy to target paths. This supports arbitrary target paths without requiring variable entrypoint arguments.
+**Decision:** Use the copy-on-init approach via `fabrictool` (Section 5.3). Secret files are placed in the provisioning directory and a `secret-map.json` file drives the init-time copy to target paths. This supports arbitrary target paths without requiring variable entrypoint arguments.
 
 ### 9.4 Required Secrets in Templates — Decided
 
@@ -824,7 +824,7 @@ This section records decisions made during design review and topics deferred to 
 - **Env vars** (`EnvVar` model): Stored in the Hub database in plain text. No secret-manager integration. Used for non-sensitive configuration.
 - **Secrets** (`Secret` model): Stored with encrypted values (Hub DB or GCP SM). Used for sensitive values.
 
-The `EnvVar.Secret` bool flag is **not** used as the implementation for secret environment variables. Instead, `scion hub env --secret` is a CLI-only convenience that translates the command into an operation on a `Secret` resource with `type=environment`. This keeps the two systems cleanly separated.
+The `EnvVar.Secret` bool flag is **not** used as the implementation for secret environment variables. Instead, `fabric hub env --secret` is a CLI-only convenience that translates the command into an operation on a `Secret` resource with `type=environment`. This keeps the two systems cleanly separated.
 
 ### 9.6 Secret Versioning and Rollback — Deferred
 

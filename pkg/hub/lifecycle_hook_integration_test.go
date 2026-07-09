@@ -28,8 +28,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -473,11 +473,11 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 	ctx := context.Background()
 	s := integrationTestStore(t)
 
-	projectSlug := "my-scion-project"
+	projectSlug := "my-fabric-project"
 	projectID := uuid.New().String()
 	require.NoError(t, s.CreateProject(ctx, &store.Project{
 		ID:         projectID,
-		Name:       "My Scion Project",
+		Name:       "My Fabric Project",
 		Slug:       projectSlug,
 		Visibility: "private",
 		Created:    time.Now(),
@@ -523,19 +523,19 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 	// URL from the A2A Bridge (using PROJECT_SLUG and AGENT_SLUG).
 	a2aBridgeBase := "https://a2a.example.com"
 	registerBody := `{` +
-		`"displayName":"Scion Agent: ${PROJECT_SLUG}/${AGENT_SLUG}",` +
+		`"displayName":"Fabric Agent: ${PROJECT_SLUG}/${AGENT_SLUG}",` +
 		`"agentSpec":{` +
 		`"type":"A2A_AGENT_CARD",` +
 		`"content":{` +
 		`"name":"${AGENT_SLUG}",` +
-		`"description":"Scion agent ${AGENT_SLUG} in project ${PROJECT_SLUG}",` +
+		`"description":"Fabric agent ${AGENT_SLUG} in project ${PROJECT_SLUG}",` +
 		`"version":"1.0.0",` +
 		`"supportedInterfaces":[{"url":"` + a2aBridgeBase + `/projects/${PROJECT_SLUG}/agents/${AGENT_SLUG}","protocolBinding":"JSONRPC","protocolVersion":"0.3"}],` +
 		`"capabilities":{"streaming":true,"pushNotifications":true},` +
 		`"defaultInputModes":["text/plain","application/json"],` +
 		`"defaultOutputModes":["text/plain","application/json"],` +
-		`"skills":[{"id":"${AGENT_SLUG}","name":"${AGENT_SLUG}","description":"Interact with agent ${AGENT_SLUG}","tags":["scion","a2a"]}],` +
-		`"provider":{"organization":"Scion","url":"https://github.com/ptone/scion"}` +
+		`"skills":[{"id":"${AGENT_SLUG}","name":"${AGENT_SLUG}","description":"Interact with agent ${AGENT_SLUG}","tags":["fabric","a2a"]}],` +
+		`"provider":{"organization":"Fabric","url":"https://github.com/ptone/fabric"}` +
 		`}` +
 		`}` +
 		`}`
@@ -548,7 +548,7 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 		Action: &store.LifecycleHookAction{
 			Type:           store.LifecycleHookActionHTTP,
 			Method:         "POST",
-			URL:            registry.server.URL + "/v1alpha/projects/ptone-emblem/locations/us-central1/services?serviceId=scion-${PROJECT_SLUG}-${AGENT_SLUG}",
+			URL:            registry.server.URL + "/v1alpha/projects/ptone-emblem/locations/us-central1/services?serviceId=fabric-${PROJECT_SLUG}-${AGENT_SLUG}",
 			Headers:        map[string]string{"Content-Type": "application/json"},
 			Body:           registerBody,
 			OnError:        store.LifecycleHookOnErrorRetry,
@@ -569,7 +569,7 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 		Action: &store.LifecycleHookAction{
 			Type:           store.LifecycleHookActionHTTP,
 			Method:         "DELETE",
-			URL:            registry.server.URL + "/v1alpha/projects/ptone-emblem/locations/us-central1/services/scion-${PROJECT_SLUG}-${AGENT_SLUG}",
+			URL:            registry.server.URL + "/v1alpha/projects/ptone-emblem/locations/us-central1/services/fabric-${PROJECT_SLUG}-${AGENT_SLUG}",
 			Headers:        map[string]string{"Content-Type": "application/json"},
 			OnError:        store.LifecycleHookOnErrorRetry,
 			TimeoutSeconds: 15,
@@ -610,7 +610,7 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 	// Verify the POST was sent to the correct Agent Registry path with
 	// PROJECT_SLUG and AGENT_SLUG substituted in the query parameter.
 	assert.Equal(t, "POST", reqs[0].Method)
-	expectedServiceID := fmt.Sprintf("scion-%s-%s", projectSlug, agentSlug)
+	expectedServiceID := fmt.Sprintf("fabric-%s-%s", projectSlug, agentSlug)
 	assert.Equal(t, "/v1alpha/projects/ptone-emblem/locations/us-central1/services", reqs[0].Path)
 	assert.Equal(t, "serviceId="+expectedServiceID, reqs[0].RawQuery)
 
@@ -618,7 +618,7 @@ func TestLifecycleHookIntegration_AgentRegistryA2AFlow(t *testing.T) {
 	// per-agent A2A Bridge endpoint URL.
 	var body map[string]interface{}
 	require.NoError(t, json.Unmarshal([]byte(reqs[0].Body), &body))
-	expectedDisplayName := fmt.Sprintf("Scion Agent: %s/%s", projectSlug, agentSlug)
+	expectedDisplayName := fmt.Sprintf("Fabric Agent: %s/%s", projectSlug, agentSlug)
 	assert.Equal(t, expectedDisplayName, body["displayName"])
 
 	agentSpec, ok := body["agentSpec"].(map[string]interface{})

@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/go-plugin/runner"
 )
@@ -672,7 +672,7 @@ func (m *Manager) UpdatePlugin(name string, repoPath string) error {
 		return fmt.Errorf("plugin %q is self-managed and cannot be updated this way", name)
 	}
 
-	sourceDir := filepath.Join(repoPath, "extras", "scion-"+name)
+	sourceDir := filepath.Join(repoPath, "extras", "fabric-"+name)
 	if _, err := os.Stat(sourceDir); err != nil {
 		return fmt.Errorf("plugin source directory not found: %s", sourceDir)
 	}
@@ -689,7 +689,7 @@ func (m *Manager) UpdatePlugin(name string, repoPath string) error {
 		return fmt.Errorf("go mod tidy failed for plugin %q: %w\n%s", name, err, string(output))
 	}
 
-	buildCmd := exec.Command("go", "build", "-o", tmpBinaryPath, "./cmd/scion-plugin-"+name)
+	buildCmd := exec.Command("go", "build", "-o", tmpBinaryPath, "./cmd/fabric-plugin-"+name)
 	buildCmd.Dir = sourceDir
 	if output, err := buildCmd.CombinedOutput(); err != nil {
 		_ = os.Remove(tmpBinaryPath)
@@ -724,7 +724,7 @@ func (m *Manager) InstallPlugin(name, repoPath, pluginsDir string) error {
 		return fmt.Errorf("plugin %q is already installed", name)
 	}
 
-	sourceDir := filepath.Join(repoPath, "extras", "scion-"+name)
+	sourceDir := filepath.Join(repoPath, "extras", "fabric-"+name)
 	if _, err := os.Stat(sourceDir); err != nil {
 		return fmt.Errorf("plugin source directory not found: %s", sourceDir)
 	}
@@ -745,7 +745,7 @@ func (m *Manager) InstallPlugin(name, repoPath, pluginsDir string) error {
 		return fmt.Errorf("go mod tidy failed for plugin %q: %w\n%s", name, err, string(output))
 	}
 
-	buildCmd := exec.Command("go", "build", "-o", targetPath, "./cmd/scion-plugin-"+name)
+	buildCmd := exec.Command("go", "build", "-o", targetPath, "./cmd/fabric-plugin-"+name)
 	buildCmd.Dir = sourceDir
 	if output, err := buildCmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("go build failed for plugin %q: %w\n%s", name, err, string(output))

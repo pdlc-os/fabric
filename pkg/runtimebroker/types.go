@@ -19,9 +19,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // ============================================================================
@@ -284,7 +284,7 @@ type CreateAgentRequest struct {
 	ResolvedSecrets []api.ResolvedSecret `json:"resolvedSecrets,omitempty"`
 
 	// CreatorName is the human-readable identity of who created this agent.
-	// Injected as the SCION_CREATOR environment variable in the agent container.
+	// Injected as the FABRIC_CREATOR environment variable in the agent container.
 	CreatorName string `json:"creatorName,omitempty"`
 	// NoAuth indicates the agent should start without any injected credentials.
 	NoAuth bool `json:"noAuth,omitempty"`
@@ -301,7 +301,7 @@ type CreateAgentRequest struct {
 	WorkspaceStoragePath string `json:"workspaceStoragePath,omitempty"`
 
 	// ProjectSlug is the project slug for hub-managed projects.
-	// When set, the broker creates the workspace at ~/.scion.projects/<slug>/
+	// When set, the broker creates the workspace at ~/.fabric.projects/<slug>/
 	// instead of the default worktree-based path.
 	ProjectSlug string `json:"projectSlug,omitempty"`
 
@@ -314,10 +314,10 @@ type CreateAgentRequest struct {
 	// Passed by the Hub so the broker can include them in env-gather requirements.
 	RequiredSecrets []api.RequiredSecret `json:"requiredSecrets,omitempty"`
 
-	// InlineConfig carries the full ScionConfig provided via the Hub API.
+	// InlineConfig carries the full FabricConfig provided via the Hub API.
 	// When set, the broker applies this during agent provisioning, enabling
 	// inline configuration without pre-existing templates on the broker.
-	InlineConfig *api.ScionConfig `json:"inlineConfig,omitempty"`
+	InlineConfig *api.FabricConfig `json:"inlineConfig,omitempty"`
 
 	// SharedDirs contains project-level shared directory declarations.
 	// Resolved by the Hub from the project record and passed to the broker
@@ -411,7 +411,7 @@ type CreateAgentConfig struct {
 
 	// GitClone specifies git clone parameters for git-anchored projects.
 	// When set, the broker skips workspace mounting and injects env vars
-	// so sciontool can clone the repo inside the container.
+	// so fabrictool can clone the repo inside the container.
 	GitClone *api.GitCloneConfig `json:"gitClone,omitempty"`
 
 	// SharedWorkspace indicates this agent should use a shared git clone

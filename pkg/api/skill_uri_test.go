@@ -22,7 +22,7 @@ import (
 func TestValidateSkillName(t *testing.T) {
 	valid := []string{
 		"a",
-		"scion",
+		"fabric",
 		"security-audit",
 		"my-skill-123",
 		"a1",
@@ -66,43 +66,43 @@ func TestParseSkillURI_ValidForms(t *testing.T) {
 		version  string
 	}{
 		// Full canonical
-		{"skill://scion/core/scion@^1.0", "scion", "core", "", "scion", "^1.0"},
-		// No registry (empty → default scion)
-		{"skill:///core/scion@^1.0", "scion", "core", "", "scion", "^1.0"},
+		{"skill://fabric/core/fabric@^1.0", "fabric", "core", "", "fabric", "^1.0"},
+		// No registry (empty → default fabric)
+		{"skill:///core/fabric@^1.0", "fabric", "core", "", "fabric", "^1.0"},
 		// No version → latest
-		{"skill://scion/core/scion", "scion", "core", "", "scion", "latest"},
+		{"skill://fabric/core/fabric", "fabric", "core", "", "fabric", "latest"},
 		// With scope ID
-		{"skill://scion/project/my-proj/my-skill@1.0.0", "scion", "project", "my-proj", "my-skill", "1.0.0"},
+		{"skill://fabric/project/my-proj/my-skill@1.0.0", "fabric", "project", "my-proj", "my-skill", "1.0.0"},
 		// User scope
-		{"skill://scion/user/alice/my-skill@latest", "scion", "user", "alice", "my-skill", "latest"},
+		{"skill://fabric/user/alice/my-skill@latest", "fabric", "user", "alice", "my-skill", "latest"},
 		// Global scope
-		{"skill://scion/global/shared-tool@~1.2", "scion", "global", "", "shared-tool", "~1.2"},
+		{"skill://fabric/global/shared-tool@~1.2", "fabric", "global", "", "shared-tool", "~1.2"},
 		// No scope (search order)
-		{"skill://scion/my-skill@latest", "scion", "", "", "my-skill", "latest"},
+		{"skill://fabric/my-skill@latest", "fabric", "", "", "my-skill", "latest"},
 		// Registry alias: project
-		{"skill://project/my-skill@latest", "scion", "project", "", "my-skill", "latest"},
+		{"skill://project/my-skill@latest", "fabric", "project", "", "my-skill", "latest"},
 		// Registry alias: user
-		{"skill://user/my-skill@1.0", "scion", "user", "", "my-skill", "1.0"},
+		{"skill://user/my-skill@1.0", "fabric", "user", "", "my-skill", "1.0"},
 		// Registry alias: project with scope ID
-		{"skill://project/my-proj-id/my-skill@1.0", "scion", "project", "my-proj-id", "my-skill", "1.0"},
+		{"skill://project/my-proj-id/my-skill@1.0", "fabric", "project", "my-proj-id", "my-skill", "1.0"},
 		// Bare name
-		{"scion", "scion", "", "", "scion", "latest"},
-		{"security-audit", "scion", "", "", "security-audit", "latest"},
-		{"my-skill-123", "scion", "", "", "my-skill-123", "latest"},
+		{"fabric", "fabric", "", "", "fabric", "latest"},
+		{"security-audit", "fabric", "", "", "security-audit", "latest"},
+		{"my-skill-123", "fabric", "", "", "my-skill-123", "latest"},
 		// Version: exact semver
-		{"skill://scion/core/scion@1.2.3", "scion", "core", "", "scion", "1.2.3"},
+		{"skill://fabric/core/fabric@1.2.3", "fabric", "core", "", "fabric", "1.2.3"},
 		// Version: caret
-		{"skill://scion/core/scion@^1.0", "scion", "core", "", "scion", "^1.0"},
+		{"skill://fabric/core/fabric@^1.0", "fabric", "core", "", "fabric", "^1.0"},
 		// Version: tilde
-		{"skill://scion/core/scion@~1.2", "scion", "core", "", "scion", "~1.2"},
+		{"skill://fabric/core/fabric@~1.2", "fabric", "core", "", "fabric", "~1.2"},
 		// Version: sha256
-		{"skill://scion/core/scion@sha256:abc123", "scion", "core", "", "scion", "sha256:abc123"},
+		{"skill://fabric/core/fabric@sha256:abc123", "fabric", "core", "", "fabric", "sha256:abc123"},
 		// Version: v prefix stripped
-		{"skill://scion/core/scion@v1.2.3", "scion", "core", "", "scion", "1.2.3"},
+		{"skill://fabric/core/fabric@v1.2.3", "fabric", "core", "", "fabric", "1.2.3"},
 		// Custom registry hostname
 		{"skill://registry.example.com/core/my-skill@1.0", "registry.example.com", "core", "", "my-skill", "1.0"},
 		// No scope, no version
-		{"skill://scion/my-skill", "scion", "", "", "my-skill", "latest"},
+		{"skill://fabric/my-skill", "fabric", "", "", "my-skill", "latest"},
 	}
 
 	for _, tc := range tests {
@@ -139,18 +139,18 @@ func TestParseSkillURI_InvalidForms(t *testing.T) {
 		desc  string
 	}{
 		{"", "empty URI"},
-		{"skill://scion/core/@^1.0", "empty name"},
-		{"skill://scion/core/My_Skill@1.0", "name not kebab-case"},
-		{"skill://scion/invalid-scope/team/name@1.0", "invalid-scope is not a valid scope"},
-		{"skill://scion/core/name@", "empty version after @"},
-		{"skill://scion/unknown-scope/name@1.0", "unrecognized scope keyword"},
+		{"skill://fabric/core/@^1.0", "empty name"},
+		{"skill://fabric/core/My_Skill@1.0", "name not kebab-case"},
+		{"skill://fabric/invalid-scope/team/name@1.0", "invalid-scope is not a valid scope"},
+		{"skill://fabric/core/name@", "empty version after @"},
+		{"skill://fabric/unknown-scope/name@1.0", "unrecognized scope keyword"},
 		{"../traversal", "path traversal in bare name"},
 		{"path/name", "slash in bare name"},
 		{"http://example.com/skill", "wrong scheme"},
-		{"skill://scion/a/b/c/d@1.0", "too many segments"},
+		{"skill://fabric/a/b/c/d@1.0", "too many segments"},
 		{"UPPER", "uppercase bare name"},
 		{"-leading-hyphen", "leading hyphen in bare name"},
-		{"skill://scion/core/" + strings.Repeat("a", 65) + "@1.0", "name too long"},
+		{"skill://fabric/core/" + strings.Repeat("a", 65) + "@1.0", "name too long"},
 	}
 
 	for _, tc := range tests {
@@ -168,7 +168,7 @@ func TestSkillURIScheme(t *testing.T) {
 		uri    string
 		scheme string
 	}{
-		{"skill://scion/core/my-skill", "skill"},
+		{"skill://fabric/core/my-skill", "skill"},
 		{"gh://owner/repo/name", "gh"},
 		{"gcp-skill://alias/ID", "gcp-skill"},
 		{"https://github.com/owner/repo/tree/main/skills/s", "https"},

@@ -20,7 +20,7 @@ A day of polish and depth: harness-config images gained build status tracking wi
 * **[Base]:** Added Playwright CLI to base image.
 
 ## 🔄 Refactor
-* **[Skills/Templates]:** Factored skills and templates across scion, teamv1, and contrib repos — created `scion-cli-operations` and `git-sandbox` workspace skills, promoted `scion-messaging` and `agent-status-signals` from teamv1, moved fork templates to correct destinations, retired status boilerplate from default `agents.md` (#575).
+* **[Skills/Templates]:** Factored skills and templates across fabric, teamv1, and contrib repos — created `fabric-cli-operations` and `git-sandbox` workspace skills, promoted `fabric-messaging` and `agent-status-signals` from teamv1, moved fork templates to correct destinations, retired status boilerplate from default `agents.md` (#575).
 
 ## 📖 Docs
 * **[Glossary]:** Reworked Modes section with availability tiers (single-node hosted vs HA hosted) and tenancy as an orthogonal dimension (#571, #572).

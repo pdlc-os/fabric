@@ -1,6 +1,6 @@
 # Phase 3 Plan: Worktree-Per-Agent on Kubernetes (NFS-only)
 
-**Branch:** `scion/worktree-phase3-k8s` (off upstream `main` b40cd057 — has Phase 1+2+#168).
+**Branch:** `fabric/worktree-phase3-k8s` (off upstream `main` b40cd057 — has Phase 1+2+#168).
 **Tracking:** #158. Final planned phase.
 **Q4 RESOLVED (ptone, 2026-06-08): NFS-only on K8s in v1.**
 

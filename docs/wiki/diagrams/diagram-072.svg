@@ -31,15 +31,15 @@
 <polygon fill="lightblue" stroke="black" points="598.5,-1018 432.5,-1018 432.5,-982 598.5,-982 598.5,-1018"/>
 <text xml:space="preserve" text-anchor="middle" x="515.5" y="-991.95" font-family="Times,serif" font-size="14.00">Apitest Tool (on VM)</text>
 </g>
-<!-- scion_hubs -->
+<!-- fabric_hubs -->
 <g id="node2" class="node">
-<title>scion_hubs</title>
+<title>fabric_hubs</title>
 <polygon fill="lightblue" stroke="black" points="151,-567 0,-567 0,-531 151,-531 151,-567"/>
-<text xml:space="preserve" text-anchor="middle" x="75.5" y="-540.95" font-family="Times,serif" font-size="14.00">Scion Hubs (A &amp; B)</text>
+<text xml:space="preserve" text-anchor="middle" x="75.5" y="-540.95" font-family="Times,serif" font-size="14.00">Fabric Hubs (A &amp; B)</text>
 </g>
-<!-- apitest_tool&#45;&gt;scion_hubs -->
+<!-- apitest_tool&#45;&gt;fabric_hubs -->
 <g id="edge1" class="edge">
-<title>apitest_tool&#45;&gt;scion_hubs</title>
+<title>apitest_tool&#45;&gt;fabric_hubs</title>
 <path fill="none" stroke="black" d="M498.19,-981.69C461.2,-944.68 371.79,-855.05 297.5,-779.25 225.3,-705.59 140.7,-617.82 99.92,-575.42"/>
 <polygon fill="black" stroke="black" points="102.64,-573.2 93.19,-568.42 97.6,-578.05 102.64,-573.2"/>
 <text xml:space="preserve" text-anchor="middle" x="342.5" y="-765.95" font-family="Times,serif" font-size="14.00">API Requests</text>
@@ -98,9 +98,9 @@
 <polygon fill="lightblue" stroke="black" points="147.25,-116 3.75,-116 3.75,-80 147.25,-80 147.25,-116"/>
 <text xml:space="preserve" text-anchor="middle" x="75.5" y="-89.95" font-family="Times,serif" font-size="14.00">CloudSQL Postgres</text>
 </g>
-<!-- scion_hubs&#45;&gt;cloudsql_postgres -->
+<!-- fabric_hubs&#45;&gt;cloudsql_postgres -->
 <g id="edge2" class="edge">
-<title>scion_hubs&#45;&gt;cloudsql_postgres</title>
+<title>fabric_hubs&#45;&gt;cloudsql_postgres</title>
 <path fill="none" stroke="black" d="M75.5,-530.67C75.5,-462.47 75.5,-212.11 75.5,-127.3"/>
 <polygon fill="black" stroke="black" points="79,-127.55 75.5,-117.55 72,-127.55 79,-127.55"/>
 <text xml:space="preserve" text-anchor="middle" x="116.75" y="-315.95" font-family="Times,serif" font-size="14.00">Data Access</text>

@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/GoogleCloudPlatform/scion/extras/agent-viz/internal/playback"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/playback"
 	"github.com/gorilla/websocket"
 )
 

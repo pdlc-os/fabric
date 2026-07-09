@@ -9,7 +9,7 @@ The current notification system only allows subscriptions to be created at agent
 
 1. **No post-creation subscription**: A user or agent cannot subscribe to notifications for an agent they did not create, or after the agent is already running.
 2. **No grove-wide subscription**: There is no way to say "notify me about all agents in this grove" — subscriptions are strictly per-agent.
-3. **No independent subscription management**: Subscriptions are a side-effect of `scion start --notify`, not a first-class resource with its own CRUD lifecycle.
+3. **No independent subscription management**: Subscriptions are a side-effect of `fabric start --notify`, not a first-class resource with its own CRUD lifecycle.
 4. **No deduplication across overlapping scopes**: If grove-wide subscriptions are added, a subscriber watching both a specific agent and its parent grove would receive duplicate notifications.
 
 ### Motivating Scenarios
@@ -45,7 +45,7 @@ type NotificationSubscription struct {
 
 ### Current Subscription Creation Flow
 
-1. `scion start --notify` sets `CreateAgentRequest.Notify = true`
+1. `fabric start --notify` sets `CreateAgentRequest.Notify = true`
 2. Hub handler resolves subscriber identity from JWT
 3. Creates a `NotificationSubscription` with `AgentID` = newly created agent
 4. `NotificationDispatcher.handleEvent()` queries `GetNotificationSubscriptions(agentID)` to find matching subscriptions
@@ -230,32 +230,32 @@ Only the subscription owner (or hub admin) can delete. Returns `204 No Content`.
 
 ## CLI Design
 
-All subscription management lives under a new `scion notifications` command group. Usage requires hub mode — non-hub invocations return an error.
+All subscription management lives under a new `fabric notifications` command group. Usage requires hub mode — non-hub invocations return an error.
 
 ### Command Structure
 
 ```
-scion notifications                           — List your notifications (alias for current `scion hub notifications`)
-scion notifications ack [id]                  — Acknowledge notification(s) (--all flag for bulk)
-scion notifications subscribe                 — Create a subscription
-scion notifications unsubscribe [id]          — Remove a subscription
-scion notifications subscriptions             — List your subscriptions
+fabric notifications                           — List your notifications (alias for current `fabric hub notifications`)
+fabric notifications ack [id]                  — Acknowledge notification(s) (--all flag for bulk)
+fabric notifications subscribe                 — Create a subscription
+fabric notifications unsubscribe [id]          — Remove a subscription
+fabric notifications subscriptions             — List your subscriptions
 ```
 
 ### Subscribe Command
 
 ```bash
 # Subscribe to a specific agent
-scion notifications subscribe --agent <agent-name-or-id> --grove <grove>
+fabric notifications subscribe --agent <agent-name-or-id> --grove <grove>
 
 # Subscribe to all agents in a grove
-scion notifications subscribe --grove <grove>
+fabric notifications subscribe --grove <grove>
 
 # Subscribe with specific triggers (default: COMPLETED, WAITING_FOR_INPUT, LIMITS_EXCEEDED)
-scion notifications subscribe --agent <agent> --grove <grove> --triggers COMPLETED,WAITING_FOR_INPUT
+fabric notifications subscribe --agent <agent> --grove <grove> --triggers COMPLETED,WAITING_FOR_INPUT
 
 # Subscribe from within an agent context (uses JWT identity)
-scion notifications subscribe --agent <peer-agent-slug>
+fabric notifications subscribe --agent <peer-agent-slug>
 ```
 
 **Behavior:**
@@ -269,23 +269,23 @@ scion notifications subscribe --agent <peer-agent-slug>
 
 ```bash
 # Unsubscribe by subscription ID
-scion notifications unsubscribe <subscription-id>
+fabric notifications unsubscribe <subscription-id>
 
 # Unsubscribe from everything in a grove
-scion notifications unsubscribe --grove <grove> --all
+fabric notifications unsubscribe --grove <grove> --all
 ```
 
 ### List Subscriptions
 
 ```bash
 # List all your subscriptions
-scion notifications subscriptions
+fabric notifications subscriptions
 
 # Filter by grove
-scion notifications subscriptions --grove <grove>
+fabric notifications subscriptions --grove <grove>
 
 # JSON output
-scion notifications subscriptions --json
+fabric notifications subscriptions --json
 ```
 
 **Output format:**
@@ -304,15 +304,15 @@ func runNotificationsSubscribe(cmd *cobra.Command, args []string) error {
         return fmt.Errorf("failed to load settings: %w", err)
     }
     if !settings.IsHubEnabled() {
-        return fmt.Errorf("notifications require Hub mode. Enable with 'scion hub enable <endpoint>'")
+        return fmt.Errorf("notifications require Hub mode. Enable with 'fabric hub enable <endpoint>'")
     }
     // ...
 }
 ```
 
-### Migration from `scion hub notifications`
+### Migration from `fabric hub notifications`
 
-The existing `scion hub notifications` and `scion hub notifications ack` commands move to the new `scion notifications` group. No aliases or deprecation notices — the old `hub notifications` path is simply removed.
+The existing `fabric hub notifications` and `fabric hub notifications ack` commands move to the new `fabric notifications` group. No aliases or deprecation notices — the old `hub notifications` path is simply removed.
 ---
 
 ## Web UX
@@ -361,8 +361,8 @@ The existing notification tray in the header already works well. Minimal changes
 A reusable Lit component following the `env-var-list.ts` CRUD pattern:
 
 ```typescript
-@customElement('scion-subscription-manager')
-export class ScionSubscriptionManager extends LitElement {
+@customElement('fabric-subscription-manager')
+export class FabricSubscriptionManager extends LitElement {
     @property() groveId: string;
     @property() agentId?: string;  // If provided, shows only agent-scoped
     @state() private subscriptions: Subscription[] = [];
@@ -387,7 +387,7 @@ DELETE /api/v1/notifications/subscriptions/{id}
 Instead of a separate subscription API, extend `--notify` to accept a target:
 
 ```bash
-scion start --notify=agent:coordinator fooagent "Do the thing"
+fabric start --notify=agent:coordinator fooagent "Do the thing"
 ```
 
 **Rejected because:**
@@ -402,7 +402,7 @@ Model subscriptions as topic subscriptions on the event bus:
 
 ```
 # Subscribe to: grove.{id}.agent.status
-scion subscribe grove.mygrove.agent.status
+fabric subscribe grove.mygrove.agent.status
 ```
 
 **Rejected because:**
@@ -416,7 +416,7 @@ scion subscribe grove.mygrove.agent.status
 Add a grove setting `auto_notify: true` that automatically subscribes the grove owner to all agent events:
 
 ```bash
-scion grove settings set auto-notify true
+fabric grove settings set auto-notify true
 ```
 
 **Rejected because:**
@@ -462,13 +462,13 @@ Who can subscribe to what?
 **Decision**: Follow existing authorization patterns — use grove membership or read access as the gate.
 
 ### 5. `--notify` Flag Behavior
-Should `--notify` continue to create subscriptions as a side-effect, or should it be refactored to call the subscription API internally? **Decision**: Refactor `--notify` to use the new subscription API internally. This unifies the code path, reduces tech debt, and ensures `--notify` subscriptions appear in `scion notifications subscriptions` listings.
+Should `--notify` continue to create subscriptions as a side-effect, or should it be refactored to call the subscription API internally? **Decision**: Refactor `--notify` to use the new subscription API internally. This unifies the code path, reduces tech debt, and ensures `--notify` subscriptions appear in `fabric notifications subscriptions` listings.
 
 ### 6. Notification Channels for Subscriptions
 Should grove-scoped subscriptions also dispatch to external channels (Slack, webhooks)? **Decision**: Yes — channel dispatch is subscriber-type-dependent (user subscribers get channels), not scope-dependent. Both agent-scoped and grove-scoped subscriptions for user subscribers should dispatch to channels. Notification channels should support brokered channel providers via the broker plugin system.
 
 ### 7. CLI Command Placement
-The design places commands under `scion notifications` (top-level). An alternative is `scion hub notifications subscribe`. **Decision**: Top-level `scion notifications` — it's shorter, notifications are a platform feature (not a "hub admin" action), and the common case is subscribing within the same grove.
+The design places commands under `fabric notifications` (top-level). An alternative is `fabric hub notifications subscribe`. **Decision**: Top-level `fabric notifications` — it's shorter, notifications are a platform feature (not a "hub admin" action), and the common case is subscribing within the same grove.
 
 ---
 
@@ -493,11 +493,11 @@ The design places commands under `scion notifications` (top-level). An alternati
 **Goal**: Users and agents can manage subscriptions from the command line.
 
 **Tasks:**
-1. ✅ Create `scion notifications` command group with hub-required check
-2. ✅ Implement `scion notifications subscribe` with `--agent`, `--grove`, `--triggers` flags
-3. ✅ Implement `scion notifications unsubscribe` command
-4. ✅ Implement `scion notifications subscriptions` listing command
-5. ✅ Move `scion hub notifications` / `scion hub notifications ack` to the new `scion notifications` group (old commands deprecated with redirects)
+1. ✅ Create `fabric notifications` command group with hub-required check
+2. ✅ Implement `fabric notifications subscribe` with `--agent`, `--grove`, `--triggers` flags
+3. ✅ Implement `fabric notifications unsubscribe` command
+4. ✅ Implement `fabric notifications subscriptions` listing command
+5. ✅ Move `fabric hub notifications` / `fabric hub notifications ack` to the new `fabric notifications` group (old commands deprecated with redirects)
 6. ✅ Write CLI integration tests
 
 ### Phase 3: Web UX ✅ COMPLETE

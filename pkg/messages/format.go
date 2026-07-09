@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	beginDelimiter = "---BEGIN SCION MESSAGE---"
-	endDelimiter   = "---END SCION MESSAGE---"
+	beginDelimiter = "---BEGIN FABRIC MESSAGE---"
+	endDelimiter   = "---END FABRIC MESSAGE---"
 	deliveryIntro  = "You are receiving a message from the orchestration system:"
 )
 

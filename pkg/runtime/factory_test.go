@@ -25,7 +25,7 @@ func TestGetRuntime(t *testing.T) {
 	// which might override the settings-based resolution on different machines.
 	t.Setenv("PATH", "")
 
-	// Move to a temporary directory to avoid picking up the project's own .scion settings
+	// Move to a temporary directory to avoid picking up the project's own .fabric settings
 	oldWd, _ := os.Getwd()
 	tmpWd := t.TempDir()
 	if err := os.Chdir(tmpWd); err != nil {
@@ -38,7 +38,7 @@ func TestGetRuntime(t *testing.T) {
 		// Ensure we are not picking up some random settings file
 		tmpHome := t.TempDir()
 		t.Setenv("HOME", tmpHome)
-		t.Setenv("SCION_GROVE", "") // Ensure no project path influence
+		t.Setenv("FABRIC_GROVE", "") // Ensure no project path influence
 
 		r := GetRuntime("", "")
 		// On Linux, default "local" profile maps to DockerRuntime
@@ -61,7 +61,7 @@ func TestGetRuntime(t *testing.T) {
 		tmpHome := t.TempDir()
 		t.Setenv("HOME", tmpHome)
 
-		globalDir := filepath.Join(tmpHome, ".scion")
+		globalDir := filepath.Join(tmpHome, ".fabric")
 		if err := os.MkdirAll(globalDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -82,7 +82,7 @@ func TestGetRuntime(t *testing.T) {
 		tmpHome := t.TempDir()
 		t.Setenv("HOME", tmpHome)
 
-		globalDir := filepath.Join(tmpHome, ".scion")
+		globalDir := filepath.Join(tmpHome, ".fabric")
 		if err := os.MkdirAll(globalDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -120,13 +120,13 @@ func TestGetRuntime(t *testing.T) {
 
 		// Create a fake project
 		projectPath := filepath.Join(tmpHome, "myproject")
-		projectScionDir := filepath.Join(projectPath, ".scion")
-		if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+		projectFabricDir := filepath.Join(projectPath, ".fabric")
+		if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 			t.Fatal(err)
 		}
 
 		// Global says container
-		globalDir := filepath.Join(tmpHome, ".scion")
+		globalDir := filepath.Join(tmpHome, ".fabric")
 		if err := os.MkdirAll(globalDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -136,12 +136,12 @@ func TestGetRuntime(t *testing.T) {
 		}
 
 		// Project says docker
-		if err := os.WriteFile(filepath.Join(projectScionDir, "settings.json"),
+		if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.json"),
 			[]byte(`{"active_profile": "local", "runtimes": {"docker": {}}, "profiles": {"local": {"runtime": "docker"}}}`), 0644); err != nil {
 			t.Fatal(err)
 		}
 
-		r := GetRuntime(projectScionDir, "")
+		r := GetRuntime(projectFabricDir, "")
 		if _, ok := r.(*DockerRuntime); !ok {
 			t.Errorf("expected *DockerRuntime from project override, got %T", r)
 		}
@@ -155,13 +155,13 @@ func TestGetRuntime(t *testing.T) {
 		t.Setenv("HOME", tmpHome)
 
 		projectPath := filepath.Join(tmpHome, "myproject")
-		projectScionDir := filepath.Join(projectPath, ".scion")
-		if err := os.MkdirAll(projectScionDir, 0755); err != nil {
+		projectFabricDir := filepath.Join(projectPath, ".fabric")
+		if err := os.MkdirAll(projectFabricDir, 0755); err != nil {
 			t.Fatal(err)
 		}
 
 		// Global: active_profile=local (podman), also defines apple profile (container)
-		globalDir := filepath.Join(tmpHome, ".scion")
+		globalDir := filepath.Join(tmpHome, ".fabric")
 		if err := os.MkdirAll(globalDir, 0755); err != nil {
 			t.Fatal(err)
 		}
@@ -188,12 +188,12 @@ profiles:
 schema_version: "1"
 active_profile: apple
 `
-		if err := os.WriteFile(filepath.Join(projectScionDir, "settings.yaml"), []byte(projectSettings), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(projectFabricDir, "settings.yaml"), []byte(projectSettings), 0644); err != nil {
 			t.Fatal(err)
 		}
 
 		// Call GetRuntime with empty profileName — should use project's active_profile (apple → container)
-		r := GetRuntime(projectScionDir, "")
+		r := GetRuntime(projectFabricDir, "")
 		if _, ok := r.(*AppleContainerRuntime); !ok {
 			t.Errorf("expected *AppleContainerRuntime from project active_profile override, got %T", r)
 		}
@@ -204,7 +204,7 @@ active_profile: apple
 		t.Setenv("HOME", tmpHome)
 
 		// Settings say docker
-		globalDir := filepath.Join(tmpHome, ".scion")
+		globalDir := filepath.Join(tmpHome, ".fabric")
 		if err := os.MkdirAll(globalDir, 0755); err != nil {
 			t.Fatal(err)
 		}

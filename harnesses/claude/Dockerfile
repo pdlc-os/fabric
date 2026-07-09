@@ -18,7 +18,7 @@ FROM ${BASE_IMAGE}
 ARG TZ
 ENV TZ="$TZ"
 
-ARG USERNAME=scion
+ARG USERNAME=fabric
 
 # Persist bash history.
 USER root
@@ -31,8 +31,8 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 ENV DEVCONTAINER=true
 
 # Create workspace and config directories and set permissions
-RUN mkdir -p /workspace /home/scion/.claude && \
-  chown -R scion:scion /workspace /home/scion/.claude
+RUN mkdir -p /workspace /home/fabric/.claude && \
+  chown -R fabric:fabric /workspace /home/fabric/.claude
 
 WORKDIR /workspace
 
@@ -65,12 +65,12 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 USER root
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
-  echo "scion ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/scion-firewall && \
-  chmod 0440 /etc/sudoers.d/scion-firewall
+  echo "fabric ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/fabric-firewall && \
+  chmod 0440 /etc/sudoers.d/fabric-firewall
 
 # Install Claude - currently native installer is not working in container
 # RUN curl -fsSL https://claude.ai/install.sh | bash
-# ENV PATH=/home/scion/.local/bin:$PATH
+# ENV PATH=/home/fabric/.local/bin:$PATH
 
 RUN npm install -g @anthropic-ai/claude-code \
   && npm cache clean --force

@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/storage"
 )
 
 func TestBuiltinTemplates(t *testing.T) {
@@ -42,7 +42,7 @@ func TestBuiltinTemplates(t *testing.T) {
 				t.Errorf("default template scopeID = %q, want empty", tmpl.ScopeID)
 			}
 			assertSourceURL(t, tmpl)
-			assertFileReadable(t, tmpl, "scion-agent.yaml")
+			assertFileReadable(t, tmpl, "fabric-agent.yaml")
 		}
 	}
 	if !found {
@@ -107,8 +107,8 @@ func TestBuiltinResources(t *testing.T) {
 }
 
 func TestSourceURLFormat(t *testing.T) {
-	const harnessPrefix = "git+https://github.com/GoogleCloudPlatform/scion/harnesses/"
-	const builtinPrefix = "builtin://scion/"
+	const harnessPrefix = "git+https://github.com/pdlc-os/fabric/harnesses/"
+	const builtinPrefix = "builtin://fabric/"
 
 	for _, r := range BuiltinResources() {
 		if r.Kind == storage.ResourceKindHarnessConfig {
@@ -146,11 +146,11 @@ func TestSourceURLFormat(t *testing.T) {
 func assertSourceURL(t *testing.T, r BundledResource) {
 	t.Helper()
 	if r.Kind == storage.ResourceKindHarnessConfig {
-		if !strings.HasPrefix(r.SourceURL, "git+https://github.com/GoogleCloudPlatform/scion/harnesses/") {
+		if !strings.HasPrefix(r.SourceURL, "git+https://github.com/pdlc-os/fabric/harnesses/") {
 			t.Errorf("%s %q SourceURL = %q, want git+https://... prefix", r.Kind, r.Name, r.SourceURL)
 		}
-	} else if !strings.HasPrefix(r.SourceURL, "builtin://scion/") {
-		t.Errorf("%s %q SourceURL = %q, want builtin://scion/... prefix", r.Kind, r.Name, r.SourceURL)
+	} else if !strings.HasPrefix(r.SourceURL, "builtin://fabric/") {
+		t.Errorf("%s %q SourceURL = %q, want builtin://fabric/... prefix", r.Kind, r.Name, r.SourceURL)
 	}
 }
 

@@ -13,13 +13,13 @@
 # limitations under the License.
 
 harness: gemini-cli
-image: scion-gemini:latest
-user: scion
+image: fabric-gemini:latest
+user: fabric
 provisioner:
   type: container-script
   interface_version: 1
   lib: vendored
-  command: ["python3", "/home/scion/.scion/harness/provision.py"]
+  command: ["python3", "/home/fabric/.fabric/harness/provision.py"]
   timeout: 30s
   lifecycle_events:
     - pre-start
@@ -65,7 +65,7 @@ no_auth:
   message: |
     This agent started without credentials.
     Run your Gemini authentication setup.
-    Then run: python3 /home/scion/.scion/harness/capture_auth.py
+    Then run: python3 /home/fabric/.fabric/harness/capture_auth.py
 auth:
   default_type: api-key
   types:

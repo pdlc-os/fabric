@@ -49,8 +49,8 @@ const MAX_BUFFER = 2000;
 /** Google Cloud Logging severity levels in ascending order. */
 const SEVERITY_LEVELS = ['DEFAULT', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] as const;
 
-@customElement('scion-agent-log-viewer')
-export class ScionAgentLogViewer extends LitElement {
+@customElement('fabric-agent-log-viewer')
+export class FabricAgentLogViewer extends LitElement {
   @property()
   agentId = '';
 
@@ -92,25 +92,25 @@ export class ScionAgentLogViewer extends LitElement {
     }
     .toolbar-label {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-right: 0.25rem;
     }
 
     /* Log table */
     .log-table {
       width: 100%;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.8125rem;
       border-collapse: collapse;
     }
 
     .log-row {
       cursor: pointer;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       transition: background 0.1s ease;
     }
     .log-row:hover {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .log-row td {
@@ -128,8 +128,8 @@ export class ScionAgentLogViewer extends LitElement {
     /* Expanded detail row */
     .detail-row td {
       padding: 0.75rem 0.5rem 0.75rem 2.5rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     /* Severity badges */
@@ -143,21 +143,21 @@ export class ScionAgentLogViewer extends LitElement {
       letter-spacing: 0.03em;
       line-height: 1.4;
     }
-    .sev-DEBUG { background: var(--scion-neutral-100, #f1f5f9); color: var(--scion-neutral-500, #64748b); }
-    .sev-INFO { background: var(--scion-primary-50, #eff6ff); color: var(--scion-primary-700, #1d4ed8); }
-    .sev-WARNING { background: var(--scion-warning-50, #fffbeb); color: var(--scion-warning-700, #b45309); }
-    .sev-ERROR { background: var(--scion-danger-50, #fef2f2); color: var(--scion-danger-700, #b91c1c); }
-    .sev-CRITICAL { background: var(--scion-danger-100, #fee2e2); color: var(--scion-danger-800, #991b1b); font-weight: 700; }
+    .sev-DEBUG { background: var(--fabric-neutral-100, #f1f5f9); color: var(--fabric-neutral-500, #64748b); }
+    .sev-INFO { background: var(--fabric-primary-50, #eff6ff); color: var(--fabric-primary-700, #1d4ed8); }
+    .sev-WARNING { background: var(--fabric-warning-50, #fffbeb); color: var(--fabric-warning-700, #b45309); }
+    .sev-ERROR { background: var(--fabric-danger-50, #fef2f2); color: var(--fabric-danger-700, #b91c1c); }
+    .sev-CRITICAL { background: var(--fabric-danger-100, #fee2e2); color: var(--fabric-danger-800, #991b1b); font-weight: 700; }
 
     /* Timestamp */
     .ts {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
     }
 
     /* Subsystem */
     .sub {
-      color: var(--scion-text-secondary, #475569);
+      color: var(--fabric-text-secondary, #475569);
       font-size: 0.75rem;
     }
 
@@ -168,7 +168,7 @@ export class ScionAgentLogViewer extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 3rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       gap: 0.75rem;
     }
     .state-msg sl-spinner {
@@ -184,19 +184,19 @@ export class ScionAgentLogViewer extends LitElement {
       padding: 0.5rem 0.5rem 0.25rem;
       font-size: 0.6875rem;
       font-weight: 600;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
-      background: var(--scion-surface, #ffffff);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
+      background: var(--fabric-surface, #ffffff);
     }
 
     .broker-logs {
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: var(--sl-border-radius-medium, 0.5rem);
       padding: 1rem;
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.8125rem;
       line-height: 1.6;
       white-space: pre-wrap;
@@ -210,13 +210,13 @@ export class ScionAgentLogViewer extends LitElement {
       align-items: center;
       gap: 0.375rem;
       font-size: 0.75rem;
-      color: var(--scion-success-600, #16a34a);
+      color: var(--fabric-success-600, #16a34a);
     }
     .stream-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--scion-success-500, #22c55e);
+      background: var(--fabric-success-500, #22c55e);
       animation: pulse 1.5s ease-in-out infinite;
     }
     @keyframes pulse {
@@ -620,7 +620,7 @@ export class ScionAgentLogViewer extends LitElement {
         rows.push(html`
           <tr class="detail-row">
             <td colspan="4">
-              <scion-json-browser .data=${this.buildDetailObject(entry)} expand-first></scion-json-browser>
+              <fabric-json-browser .data=${this.buildDetailObject(entry)} expand-first></fabric-json-browser>
             </td>
           </tr>
         `);
@@ -655,6 +655,6 @@ export class ScionAgentLogViewer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-agent-log-viewer': ScionAgentLogViewer;
+    'fabric-agent-log-viewer': FabricAgentLogViewer;
   }
 }

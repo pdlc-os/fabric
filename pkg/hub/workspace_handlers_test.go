@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // testWorkspaceDevToken is the development token used for workspace testing.
-const testWorkspaceDevToken = "scion_dev_workspace_test_token_1234567890"
+const testWorkspaceDevToken = "fabric_dev_workspace_test_token_1234567890"
 
 // testWorkspaceServer creates a test server for workspace handler tests.
 func testWorkspaceServer(t *testing.T) (*Server, store.Store) {
@@ -935,7 +935,7 @@ func TestSyncHubManagedWorkspaceBack_SkipsColocatedBroker(t *testing.T) {
 		ProjectID:  tid("project-colo-sync"),
 		BrokerID:   tid("broker-colo"),
 		BrokerName: "colo-broker",
-		LocalPath:  "/home/user/.scion",
+		LocalPath:  "/home/user/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := st.AddProjectProvider(ctx, provider); err != nil {

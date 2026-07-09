@@ -26,8 +26,8 @@ import { customElement, state } from 'lit/decorators.js';
 import type { AdminGroup } from '../../shared/types.js';
 import { extractApiError } from '../../client/api.js';
 
-@customElement('scion-page-admin-groups')
-export class ScionPageAdminGroups extends LitElement {
+@customElement('fabric-page-admin-groups')
+export class FabricPageAdminGroups extends LitElement {
   @state()
   private loading = true;
 
@@ -52,19 +52,19 @@ export class ScionPageAdminGroups extends LitElement {
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .group-count {
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .table-container {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       overflow: hidden;
     }
 
@@ -80,16 +80,16 @@ export class ScionPageAdminGroups extends LitElement {
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     td {
       padding: 0.75rem 1rem;
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      color: var(--fabric-text, #1e293b);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
       vertical-align: middle;
     }
 
@@ -102,7 +102,7 @@ export class ScionPageAdminGroups extends LitElement {
     }
 
     tr.clickable:hover td {
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
     }
 
     .group-identity {
@@ -150,8 +150,8 @@ export class ScionPageAdminGroups extends LitElement {
 
     .group-slug {
       font-size: 0.75rem;
-      font-family: var(--scion-font-mono, monospace);
-      color: var(--scion-text-muted, #64748b);
+      font-family: var(--fabric-font-mono, monospace);
+      color: var(--fabric-text-muted, #64748b);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -178,7 +178,7 @@ export class ScionPageAdminGroups extends LitElement {
 
     .description-text {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       max-width: 300px;
       white-space: nowrap;
       overflow: hidden;
@@ -187,7 +187,7 @@ export class ScionPageAdminGroups extends LitElement {
 
     .meta-text {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .labels-container {
@@ -200,24 +200,24 @@ export class ScionPageAdminGroups extends LitElement {
       display: inline-flex;
       align-items: center;
       padding: 0.0625rem 0.375rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.6875rem;
-      font-family: var(--scion-font-mono, monospace);
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      font-family: var(--fabric-font-mono, monospace);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .empty-state > sl-icon {
       font-size: 4rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 1rem;
     }
@@ -225,12 +225,12 @@ export class ScionPageAdminGroups extends LitElement {
     .empty-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
     }
 
@@ -240,7 +240,7 @@ export class ScionPageAdminGroups extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -251,9 +251,9 @@ export class ScionPageAdminGroups extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -265,21 +265,21 @@ export class ScionPageAdminGroups extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -466,6 +466,6 @@ export class ScionPageAdminGroups extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-admin-groups': ScionPageAdminGroups;
+    'fabric-page-admin-groups': FabricPageAdminGroups;
   }
 }

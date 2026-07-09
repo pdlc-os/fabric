@@ -1,7 +1,7 @@
 # Implementation Plan - Harness Skills Support
 
 ## 1. Executive Summary
-This plan outlines the implementation of a standardized "Skills" support for Scion agents. A new standard for LLM agents involves an "Agent Skills" directory (containing `SKILL.md` and related scripts) that enables agents to perform specialized tasks. We will enable Scion templates to provide these skills by automatically discovering a `skills/` directory in a template and mounting it into the correct harness-specific location within the agent container.
+This plan outlines the implementation of a standardized "Skills" support for Fabric agents. A new standard for LLM agents involves an "Agent Skills" directory (containing `SKILL.md` and related scripts) that enables agents to perform specialized tasks. We will enable Fabric templates to provide these skills by automatically discovering a `skills/` directory in a template and mounting it into the correct harness-specific location within the agent container.
 
 ## 2. Analysis & Findings
 *   **Context:** Modern LLM agents (Claude Code, Gemini CLI, etc.) support a "skills" directory. These skills are discovered at runtime and provide additional capabilities to the agent.
@@ -10,8 +10,8 @@ This plan outlines the implementation of a standardized "Skills" support for Sci
     *   **Gemini CLI:** Discovers skills in `~/.gemini/skills/`.
     *   **OpenCode:** Follows a pattern consistent with `~/.config/opencode/skills/`.
     *   **Codex:** Follows a pattern consistent with `~/.codex/skills/`.
-*   **Architecture:** Scion uses an isolation model where agent-specific configuration and state are stored in a dedicated `home` directory on the host (`agentHome`), which is then mounted as the user's home directory in the container (e.g., `/home/scion`).
-*   **Constraints:** Currently, Scion templates only copy the `home/` subdirectory during provisioning. Top-level `skills/` directories in templates are ignored.
+*   **Architecture:** Fabric uses an isolation model where agent-specific configuration and state are stored in a dedicated `home` directory on the host (`agentHome`), which is then mounted as the user's home directory in the container (e.g., `/home/fabric`).
+*   **Constraints:** Currently, Fabric templates only copy the `home/` subdirectory during provisioning. Top-level `skills/` directories in templates are ignored.
 
 ## 3. Implementation Plan
 
@@ -25,7 +25,7 @@ This plan outlines the implementation of a standardized "Skills" support for Sci
         *   `pkg/harness/claude_code.go`: Return `.claude/skills`
         *   `pkg/harness/opencode.go`: Return `.config/opencode/skills`
         *   `pkg/harness/codex.go`: Return `.codex/skills` (and update `DefaultConfigDir()` to return `.codex` instead of empty string for consistency)
-        *   `pkg/harness/generic.go`: Return `.scion/skills` (consistent with its `DefaultConfigDir()`)
+        *   `pkg/harness/generic.go`: Return `.fabric/skills` (consistent with its `DefaultConfigDir()`)
 
 ### Phase 2: Provisioning Logic
 *   [x] **Action:** Update `ProvisionAgent` to handle the `skills/` directory.
@@ -39,9 +39,9 @@ This plan outlines the implementation of a standardized "Skills" support for Sci
 ### Phase 3: Templates & Examples
 *   [x] **Action:** Add a placeholder `skills/` directory to the default template.
     *   **Files:** `pkg/config/embeds/templates/default/skills/.gitkeep`
-    *   **Details:** Ensure that `scion init` or agent creation creates a visible structure for users to follow.
-*   [ ] **Action:** (Optional) Add a built-in "scion" skill.
-    *   **Files:** `pkg/config/embeds/skills/scion/SKILL.md`, `pkg/config/embeds/skills/scion/scripts/...`
+    *   **Details:** Ensure that `fabric init` or agent creation creates a visible structure for users to follow.
+*   [ ] **Action:** (Optional) Add a built-in "fabric" skill.
+    *   **Files:** `pkg/config/embeds/skills/fabric/SKILL.md`, `pkg/config/embeds/skills/fabric/scripts/...`
     *   **Details:** Integrate the existing skills in the root `skills/` directory into the default template so agents can manage themselves out-of-the-box.
 
 ## 4. Verification Strategy
@@ -52,9 +52,9 @@ This plan outlines the implementation of a standardized "Skills" support for Sci
         3.  Verifies that the files are correctly placed in `agentHome/.<harness>/skills/`.
 *   **Manual Verification:**
     1.  Create a custom template with a `skills/my-skill/SKILL.md`.
-    2.  Provision an agent with `scion start --template my-template`.
+    2.  Provision an agent with `fabric start --template my-template`.
     3.  Attach to the agent and verify the skill is available (e.g., using slash commands or checking the file system).
 
 ## 5. Risks & Unknowns
 *   **Overlay Conflicts:** If multiple templates in a chain provide the same skill directory name, files will be merged. This is generally desired but may cause confusion if not documented.
-*   **Harness Support:** While Claude and Gemini are known to support this standard, other harnesses may ignore the directory until their images are updated. However, Scion's responsibility is to ensure the files are correctly placed.
+*   **Harness Support:** While Claude and Gemini are known to support this standard, other harnesses may ignore the directory until their images are updated. However, Fabric's responsibility is to ensure the files are correctly placed.

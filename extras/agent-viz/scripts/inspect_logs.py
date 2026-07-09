@@ -42,20 +42,20 @@ def main():
     for lt, count in log_types.most_common():
         print(f"  {lt}: {count}")
 
-    # Find all agents from scion-agents
+    # Find all agents from fabric-agents
     agents_from_logs = {}
     for e in entries:
-        if e.get("logName", "").endswith("scion-agents"):
+        if e.get("logName", "").endswith("fabric-agents"):
             aid = e.get("labels", {}).get("agent_id", "")
             if aid and aid not in agents_from_logs:
                 agents_from_logs[aid] = {
-                    "harness": e.get("labels", {}).get("scion.harness", ""),
+                    "harness": e.get("labels", {}).get("fabric.harness", ""),
                 }
 
     # Map agent UUIDs to names from messages
     name_map = {}
     for e in entries:
-        if e.get("logName", "").endswith("scion-messages"):
+        if e.get("logName", "").endswith("fabric-messages"):
             jp = e.get("jsonPayload", {})
             labels = e.get("labels", {})
             for prefix in ["sender", "recipient"]:
@@ -69,10 +69,10 @@ def main():
         name = name_map.get(aid, aid[:8])
         print(f"  {name} (id={aid}, harness={info['harness']})")
 
-    # Agents only in messages (not in scion-agents)
+    # Agents only in messages (not in fabric-agents)
     msg_only = set(name_map.keys()) - set(agents_from_logs.keys())
     if msg_only:
-        print(f"\nAgents only in messages (no scion-agents entries):")
+        print(f"\nAgents only in messages (no fabric-agents entries):")
         for aid in msg_only:
             print(f"  {name_map[aid]} (id={aid})")
 
@@ -80,7 +80,7 @@ def main():
     print("\nLifecycle timeline:")
     lifecycle_events = []
     for e in sorted(entries, key=lambda x: x.get("timestamp", "")):
-        if e.get("logName", "").endswith("scion-agents"):
+        if e.get("logName", "").endswith("fabric-agents"):
             msg = e.get("jsonPayload", {}).get("message", "")
             if "lifecycle" in msg or "session" in msg:
                 aid = e.get("labels", {}).get("agent_id", "")
@@ -93,7 +93,7 @@ def main():
     print("\nFile-modifying tool calls:")
     file_count = 0
     for e in sorted(entries, key=lambda x: x.get("timestamp", "")):
-        if e.get("logName", "").endswith("scion-agents"):
+        if e.get("logName", "").endswith("fabric-agents"):
             jp = e.get("jsonPayload", {})
             tool = jp.get("tool_name", "")
             msg = jp.get("message", "")
@@ -107,9 +107,9 @@ def main():
         print("  (none found)")
 
     # Message summary
-    print(f"\nMessages ({log_types.get('scion-messages', 0)} total):")
+    print(f"\nMessages ({log_types.get('fabric-messages', 0)} total):")
     for e in sorted(entries, key=lambda x: x.get("timestamp", "")):
-        if e.get("logName", "").endswith("scion-messages"):
+        if e.get("logName", "").endswith("fabric-messages"):
             jp = e.get("jsonPayload", {})
             labels = e.get("labels", {})
             sender = (jp.get("sender", "") or labels.get("sender", "")).removeprefix("agent:")

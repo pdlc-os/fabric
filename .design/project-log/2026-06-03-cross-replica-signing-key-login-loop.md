@@ -19,13 +19,13 @@ The cookie is portable, but the **Hub JWT inside it is signed with a per-replica
 key**. Signing keys are resolved by `ensureSigningKey()` scoped to
 `(scope=hub, scope_id=hubID)`, and `hubID = sha256(hostname)[:12]`
 (`DefaultHubID`). The integration deployment runs **two replicas of one logical
-hub** behind a single LB (`multi.demo.scion-ai.dev`), sharing one Postgres DB
+hub** behind a single LB (`multi.demo.fabric-ai.dev`), sharing one Postgres DB
 and one `SESSION_SECRET`, but with different hostnames:
 
 | Replica | hub_id | user_signing_key fp |
 |---|---|---|
-| scion-integration  | `ca39430276ee` | `9a35ae24cfeedba0` |
-| scion-integration2 | `9662ebe99da4` | `97d3f30a36554d7a` |
+| fabric-integration  | `ca39430276ee` | `9a35ae24cfeedba0` |
+| fabric-integration2 | `9662ebe99da4` | `97d3f30a36554d7a` |
 
 So each replica minted/validated user JWTs with a *different* HS256 key. When a
 post-login request landed on the replica that did **not** mint the token,
@@ -69,5 +69,5 @@ Rolling out the new binary changes the signing keys (they now derive from
 and CLI tokens are invalidated **once** — users log in again, CLI/agents
 re-auth. Both replicas already share `SESSION_SECRET`, so no config change is
 required. (Faster stopgap without a rebuild: pin the same
-`SCION_SERVER_HUB_HUBID` on both VMs to an existing hub ID so they share the
+`FABRIC_SERVER_HUB_HUBID` on both VMs to an existing hub ID so they share the
 already-stored keys.)

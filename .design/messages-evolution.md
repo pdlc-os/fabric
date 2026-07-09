@@ -5,15 +5,15 @@
 
 ## Problem
 
-Today the system has a complete **human → agent** message path (`scion message`, Hub API, broker dispatch) and a robust **notification system** for status-change alerts (COMPLETED, WAITING_FOR_INPUT, etc.). However, there is no **agent → human** message path beyond status alerts. When an agent calls `sciontool status ask_user "What should I do?"`, it:
+Today the system has a complete **human → agent** message path (`fabric message`, Hub API, broker dispatch) and a robust **notification system** for status-change alerts (COMPLETED, WAITING_FOR_INPUT, etc.). However, there is no **agent → human** message path beyond status alerts. When an agent calls `fabrictool status ask_user "What should I do?"`, it:
 
 1. Sets `activity = waiting_for_input` (sticky) in `agent-info.json`
 2. Reports the status to the Hub
 3. Triggers a notification if someone is subscribed to WAITING_FOR_INPUT
 
-The notification contains the question text, but it is a status alert, not a conversational message. It cannot be replied to, it is not stored in an inbox, and the human must use `scion attach` or `scion message` to respond — with no connection between the question asked and the answer given.
+The notification contains the question text, but it is a status alert, not a conversational message. It cannot be replied to, it is not stored in an inbox, and the human must use `fabric attach` or `fabric message` to respond — with no connection between the question asked and the answer given.
 
-Additionally, message history is only available via Cloud Logging (`scion-messages` log). There is no built-in message store, which means:
+Additionally, message history is only available via Cloud Logging (`fabric-messages` log). There is no built-in message store, which means:
 - Self-hosted / local deployments have no message history at all
 - The web `agent-message-viewer` only works with GCP Cloud Logging configured
 - There is no CLI for a human to check "what messages have my agents sent me?"
@@ -22,7 +22,7 @@ Additionally, message history is only available via Cloud Logging (`scion-messag
 
 | Path | Mechanism | Status |
 |---|---|---|
-| Human → Agent | `scion message`, Hub API, broker dispatch, tmux injection | Complete |
+| Human → Agent | `fabric message`, Hub API, broker dispatch, tmux injection | Complete |
 | Agent → Agent | Structured message via Hub dispatcher, broker topics | Complete |
 | Status alerts → Human | Notification subscriptions, SSE, external channels | Complete |
 | Agent → Human (message) | **None** | Missing |
@@ -31,8 +31,8 @@ Additionally, message history is only available via Cloud Logging (`scion-messag
 ## Goals
 
 1. **Built-in message store** — persist all structured messages (both directions) in the Hub database, independent of Cloud Logging.
-2. **Agent → human messaging** — let agents send explicit messages to humans, beyond status alerts. `sciontool status ask_user` should both set state and send a message.
-3. **Human inbox CLI** — `scion messages` command for humans to list, read, and acknowledge messages, mirroring `scion notifications`.
+2. **Agent → human messaging** — let agents send explicit messages to humans, beyond status alerts. `fabrictool status ask_user` should both set state and send a message.
+3. **Human inbox CLI** — `fabric messages` command for humans to list, read, and acknowledge messages, mirroring `fabric notifications`.
 4. **Broker integration** — route human-targeted messages through the existing `MessageBrokerProxy` and `ChannelRegistry` infrastructure.
 5. **No threading** — messages are flat, not threaded. No conversation or correlation model.
 
@@ -188,7 +188,7 @@ This is added to:
 - `NotificationDispatcher.dispatchToAgent` — notification messages dispatched as structured messages
 - The new `handleAgentOutboundMessage` endpoint (see section 3)
 
-The dedicated Cloud Logging message log (`scion-messages`) remains as a parallel audit trail.
+The dedicated Cloud Logging message log (`fabric-messages`) remains as a parallel audit trail.
 
 #### Read Path: New API Endpoints
 
@@ -256,18 +256,18 @@ Outbound messages from agents to humans are routed through the existing infrastr
 2. **ChannelRegistry**: The existing `dispatchToChannels` logic (Slack, webhook, email) is reused. The `ChannelRegistry.Dispatch()` method already accepts `StructuredMessage` — it just needs to be called for outbound agent messages, not only notifications.
 3. **SSE**: The `ChannelEventPublisher` publishes a new event type `user.message` that the SSE endpoint can deliver to connected browser clients.
 
-#### Agent Messaging via `scion message`
+#### Agent Messaging via `fabric message`
 
-For explicit outbound messaging from inside a container, agents use the primary `scion message` CLI — not `sciontool`. Agents are already instructed to use `scion message` for any deliberate communication with humans or other agents. `sciontool` is reserved for hooks and implicit state changes (e.g., `ask_user` is a special case because it combines state mutation with messaging).
+For explicit outbound messaging from inside a container, agents use the primary `fabric message` CLI — not `fabrictool`. Agents are already instructed to use `fabric message` for any deliberate communication with humans or other agents. `fabrictool` is reserved for hooks and implicit state changes (e.g., `ask_user` is a special case because it combines state mutation with messaging).
 
-The `POST /api/v1/agents/{id}/outbound-message` endpoint is therefore called by the `scion message` command (running inside the container via the existing harness toolchain), not by a new sciontool subcommand.
+The `POST /api/v1/agents/{id}/outbound-message` endpoint is therefore called by the `fabric message` command (running inside the container via the existing harness toolchain), not by a new fabrictool subcommand.
 
 ### 4. `ask_user` Dual Behavior
 
-Currently, `sciontool status ask_user "question"` only sets the activity to `waiting_for_input` and reports the status. With this change, it **also sends a message**:
+Currently, `fabrictool status ask_user "question"` only sets the activity to `waiting_for_input` and reports the status. With this change, it **also sends a message**:
 
 ```go
-// cmd/sciontool/commands/status.go — runStatusAskUser()
+// cmd/fabrictool/commands/status.go — runStatusAskUser()
 
 func runStatusAskUser(message string) {
     statusHandler := handlers.NewStatusHandler()
@@ -313,7 +313,7 @@ func runStatusAskUser(message string) {
 
 The `SendOutboundMessage` call hits `POST /api/v1/agents/{id}/outbound-message`. The Hub handler persists the message to the inbox, publishes SSE events, and dispatches to external channels.
 
-This means a single `sciontool status ask_user "question"` call:
+This means a single `fabrictool status ask_user "question"` call:
 - Sets sticky `waiting_for_input` activity (for status display and notification triggers)
 - Sends a persisted `input-needed` message to the human inbox (for retrieval and display)
 - Triggers notification subscriptions (existing behavior, unchanged)
@@ -321,17 +321,17 @@ This means a single `sciontool status ask_user "question"` call:
 
 The notification system continues to work independently — subscribers to WAITING_FOR_INPUT still get notifications. The message is an additional delivery that provides the question text in an inbox that can be queried later.
 
-### 5. CLI: `scion messages`
+### 5. CLI: `fabric messages`
 
-A new top-level command group mirrors the structure of `scion notifications`:
+A new top-level command group mirrors the structure of `fabric notifications`:
 
 ```
-scion messages                              List your messages (unread by default)
-scion messages --all                        List all messages (including read)
-scion messages --agent <name>               Filter by agent
-scion messages --json                       Output in JSON format
-scion messages read [id]                    Mark message(s) as read
-scion messages read --all                   Mark all messages as read
+fabric messages                              List your messages (unread by default)
+fabric messages --all                        List all messages (including read)
+fabric messages --agent <name>               Filter by agent
+fabric messages --json                       Output in JSON format
+fabric messages read [id]                    Mark message(s) as read
+fabric messages read --all                   Mark all messages as read
 ```
 
 #### Command Definition
@@ -345,14 +345,14 @@ var messagesCmd = &cobra.Command{
     Short:   "View messages from agents",
     Long: `View and manage messages sent to you by agents.
 
-Messages require Hub mode. Enable with 'scion hub enable <endpoint>'.
+Messages require Hub mode. Enable with 'fabric hub enable <endpoint>'.
 
 Commands:
-  scion messages                            List your unread messages
-  scion messages --all                      List all messages (including read)
-  scion messages --agent <name>             Filter by agent
-  scion messages read [id]                  Mark message(s) as read
-  scion messages read --all                 Mark all messages as read`,
+  fabric messages                            List your unread messages
+  fabric messages --all                      List all messages (including read)
+  fabric messages --agent <name>             Filter by agent
+  fabric messages read [id]                  Mark message(s) as read
+  fabric messages read --all                 Mark all messages as read`,
     RunE: runMessagesList,
 }
 
@@ -365,8 +365,8 @@ With an ID argument, marks that specific message as read.
 With --all flag, marks all unread messages as read.
 
 Examples:
-  scion messages read a1b2c3d4
-  scion messages read --all`,
+  fabric messages read a1b2c3d4
+  fabric messages read --all`,
     RunE: runMessagesRead,
 }
 ```
@@ -374,13 +374,13 @@ Examples:
 #### Output Format
 
 ```
-$ scion messages
+$ fabric messages
 ID            AGENT           TYPE            TIME                  MESSAGE
 ------------  --------------  --------------  --------------------  -------
 a1b2c3d4e5f6  code-reviewer   input-needed    2026-03-26 14:30      I need clarification on the auth module...
 b2c3d4e5f6a1  deploy-agent    state-change    2026-03-26 14:25      deploy-agent has reached COMPLETED: De...
 
-$ scion messages read --all
+$ fabric messages read --all
 All messages marked as read.
 ```
 
@@ -416,10 +416,10 @@ type ListMessagesOptions struct {
 }
 ```
 
-The `sciontool/hub` client also needs `SendOutboundMessage`:
+The `fabrictool/hub` client also needs `SendOutboundMessage`:
 
 ```go
-// pkg/sciontool/hub/client.go
+// pkg/fabrictool/hub/client.go
 
 type OutboundMessage struct {
     Msg       string `json:"msg"`
@@ -496,8 +496,8 @@ The existing `agent-message-viewer` reads from Cloud Logging. With the new messa
 ### Phase 2: Agent Outbound and `ask_user` ✅ COMPLETE
 
 1. ~~Add `POST /api/v1/agents/{id}/outbound-message` Hub handler~~
-2. ~~Add `SendOutboundMessage` to `sciontool/hub` client~~
-3. ~~Update `sciontool status ask_user` to dual-send (state + message)~~
+2. ~~Add `SendOutboundMessage` to `fabrictool/hub` client~~
+3. ~~Update `fabrictool status ask_user` to dual-send (state + message)~~
 4. ~~Add recipient resolution logic (implicit → agent creator / subscribers)~~
 5. ~~Integrate outbound messages with `ChannelRegistry` (Slack, webhook, email)~~
 
@@ -505,8 +505,8 @@ The existing `agent-message-viewer` reads from Cloud Logging. With the new messa
 
 1. ~~Add `GET /api/v1/messages` and related endpoints to Hub server~~
 2. ~~Add `MessageService` to `pkg/hubclient/messages.go`~~
-3. ~~Add `scion messages` command group to `cmd/messages.go`~~
-4. ~~Add `scion messages read` subcommand~~
+3. ~~Add `fabric messages` command group to `cmd/messages.go`~~
+4. ~~Add `fabric messages read` subcommand~~
 
 ### Phase 4: Broker Integration ✅ COMPLETE
 

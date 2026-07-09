@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-31
 **Issue:** #28
-**Branch:** scion/dev-issue-28
+**Branch:** fabric/dev-issue-28
 
 ## Summary
 
@@ -14,14 +14,14 @@ The `last_assistant_message` field from Claude Code's Stop hook was treated as a
 
 ## Changes
 
-### Content Classification Types (`pkg/sciontool/hooks/types.go`)
+### Content Classification Types (`pkg/fabrictool/hooks/types.go`)
 - Added `ContentBlock` struct with `Type` field (text, thinking, tool_use, tool_result, error)
 - Added `AssistantContent` struct with `Blocks []ContentBlock` to hold classified content
 - Added `TextOnly()` method that returns only user-visible text blocks
 - Added `HasThinking()` method for downstream classification checks
 - Added `AssistantContent` field to `EventData` alongside existing `AssistantText`
 
-### Content-Type Filtering in ClaudeDialect (`pkg/sciontool/hooks/dialects/claude.go`)
+### Content-Type Filtering in ClaudeDialect (`pkg/fabrictool/hooks/dialects/claude.go`)
 - New `extractAssistantContentFromPayload()` handles three input formats:
   - Plain string: treated as a single text block
   - JSON-encoded array: parsed and classified by block type
@@ -33,15 +33,15 @@ The `last_assistant_message` field from Claude Code's Stop hook was treated as a
 
 ### Visibility Tagging (`pkg/messages/types.go`)
 - Added `Visibility` field to `StructuredMessage` (normal, verbose, full)
-- `normal`: explicit agent→user messages (scion message, ask_user)
+- `normal`: explicit agent→user messages (fabric message, ask_user)
 - `verbose`: automatic assistant replies from hooks (thinking filtered)
 - `full`: everything including thinking traces (for ACP/debugging)
 
-### Hub Handler Updates (`pkg/sciontool/hooks/handlers/hub.go`)
+### Hub Handler Updates (`pkg/fabrictool/hooks/handlers/hub.go`)
 - Outbound assistant-reply messages tagged with `visibility: "verbose"`
 - Content classification metadata added: `source=hook`, `has_thinking` flag
 
-### Message Pipeline (`pkg/hub/handlers.go`, `pkg/sciontool/hub/client.go`)
+### Message Pipeline (`pkg/hub/handlers.go`, `pkg/fabrictool/hub/client.go`)
 - Added `Visibility` and `Metadata` fields to both `OutboundMessage` (client) and `OutboundMessageRequest` (server)
 - Visibility and metadata propagated through to `StructuredMessage` for downstream consumers
 

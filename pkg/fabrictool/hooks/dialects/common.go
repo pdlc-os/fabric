@@ -1,10 +1,10 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package dialects
 
-import "github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+import "github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 
 // getString safely extracts a string value from a map.
 func getString(data map[string]interface{}, key string) string {

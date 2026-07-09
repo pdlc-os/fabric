@@ -1,10 +1,10 @@
 # GitHub App Setup Guide
 
-This guide walks through configuring GitHub App authentication for your Scion Hub.
+This guide walks through configuring GitHub App authentication for your Fabric Hub.
 
 ## Prerequisites
 
-- A running Scion Hub instance
+- A running Fabric Hub instance
 - Admin access to the Hub
 - Admin access to a GitHub organization or user account
 
@@ -12,7 +12,7 @@ This guide walks through configuring GitHub App authentication for your Scion Hu
 
 1. Go to **GitHub Settings > Developer Settings > GitHub Apps > New GitHub App**.
 2. Fill in:
-   - **App name**: e.g., `Scion Hub - <your org>`
+   - **App name**: e.g., `Fabric Hub - <your org>`
    - **Homepage URL**: Your Hub's public URL
    - **Setup URL**: `https://<hub-public-url>/github-app/setup`
      - Check "Redirect on update"
@@ -36,8 +36,8 @@ This guide walks through configuring GitHub App authentication for your Scion Hu
 
 1. On the app's settings page, scroll to **Private keys**.
 2. Click **Generate a private key**. A `.pem` file will be downloaded.
-3. Store this file securely on the Hub server (e.g., `/etc/scion/github-app-key.pem`).
-4. Set file permissions: `chmod 600 /etc/scion/github-app-key.pem`.
+3. Store this file securely on the Hub server (e.g., `/etc/fabric/github-app-key.pem`).
+4. Set file permissions: `chmod 600 /etc/fabric/github-app-key.pem`.
 
 ## Step 3: Configure the Hub
 
@@ -46,7 +46,7 @@ Add the GitHub App configuration to your Hub's `settings.yaml`:
 ```yaml
 github_app:
   app_id: 123456          # From the GitHub App's General page
-  private_key_path: /etc/scion/github-app-key.pem
+  private_key_path: /etc/fabric/github-app-key.pem
   webhook_secret: "your-webhook-secret"
   webhooks_enabled: true   # Set to false if Hub is not publicly reachable
   # api_base_url: https://github.mycompany.com/api/v3  # For GitHub Enterprise Server

@@ -40,8 +40,8 @@ interface BrokerProjectInfo {
   localPath?: string;
 }
 
-@customElement('scion-page-broker-detail')
-export class ScionPageBrokerDetail extends LitElement {
+@customElement('fabric-page-broker-detail')
+export class FabricPageBrokerDetail extends LitElement {
   @property({ type: Object })
   pageData: PageData | null = null;
 
@@ -75,14 +75,14 @@ export class ScionPageBrokerDetail extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
 
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .header {
@@ -105,21 +105,21 @@ export class ScionPageBrokerDetail extends LitElement {
     }
 
     .header-title sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
 
     .header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
     .header-subtitle {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
       word-break: break-all;
     }
@@ -129,9 +129,9 @@ export class ScionPageBrokerDetail extends LitElement {
       gap: 2rem;
       margin-bottom: 2rem;
       padding: 1.25rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       flex-wrap: wrap;
     }
 
@@ -142,7 +142,7 @@ export class ScionPageBrokerDetail extends LitElement {
 
     .stat-label {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 0.25rem;
@@ -151,13 +151,13 @@ export class ScionPageBrokerDetail extends LitElement {
     .stat-value {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .stat-value-sm {
       font-size: 1rem;
       font-weight: 500;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     .section {
@@ -174,7 +174,7 @@ export class ScionPageBrokerDetail extends LitElement {
     .section-header h2 {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -190,11 +190,11 @@ export class ScionPageBrokerDetail extends LitElement {
       align-items: center;
       gap: 0.25rem;
       padding: 0.25rem 0.5rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.75rem;
       font-weight: 500;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .capability-tag.enabled {
@@ -214,17 +214,17 @@ export class ScionPageBrokerDetail extends LitElement {
       align-items: center;
       gap: 0.375rem;
       padding: 0.375rem 0.75rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.8125rem;
       font-weight: 500;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      color: var(--scion-text-muted, #64748b);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      border: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .profile-tag.available {
-      background: var(--scion-surface, #ffffff);
-      color: var(--scion-text, #1e293b);
+      background: var(--fabric-surface, #ffffff);
+      color: var(--fabric-text, #1e293b);
     }
 
     .profile-type {
@@ -244,13 +244,13 @@ export class ScionPageBrokerDetail extends LitElement {
       gap: 0.75rem;
       margin-bottom: 1rem;
       padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--scion-border, #e2e8f0);
+      border-bottom: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .project-section-header h3 {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
     }
 
@@ -260,17 +260,17 @@ export class ScionPageBrokerDetail extends LitElement {
     }
 
     .project-section-header a:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .project-section-header sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .project-agent-count {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      color: var(--fabric-text-muted, #64748b);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.125rem 0.5rem;
       border-radius: 9999px;
     }
@@ -282,19 +282,19 @@ export class ScionPageBrokerDetail extends LitElement {
     }
 
     .agent-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
-      transition: all var(--scion-transition-fast, 150ms ease);
+      transition: all var(--fabric-transition-fast, 150ms ease);
       text-decoration: none;
       color: inherit;
       display: block;
     }
 
     .agent-card:hover {
-      border-color: var(--scion-primary, #3b82f6);
-      box-shadow: var(--scion-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+      border-color: var(--fabric-primary, #3b82f6);
+      box-shadow: var(--fabric-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
     }
 
     .agent-header {
@@ -307,7 +307,7 @@ export class ScionPageBrokerDetail extends LitElement {
     .agent-name {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0;
       display: flex;
       align-items: center;
@@ -315,12 +315,12 @@ export class ScionPageBrokerDetail extends LitElement {
     }
 
     .agent-name sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .agent-meta {
       font-size: 0.813rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
@@ -332,11 +332,11 @@ export class ScionPageBrokerDetail extends LitElement {
 
     .agent-task {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-top: 0.75rem;
       padding: 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -345,14 +345,14 @@ export class ScionPageBrokerDetail extends LitElement {
     .empty-state {
       text-align: center;
       padding: 4rem 2rem;
-      background: var(--scion-surface, #ffffff);
-      border: 1px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .empty-state > sl-icon {
       font-size: 4rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       opacity: 0.5;
       margin-bottom: 1rem;
     }
@@ -360,12 +360,12 @@ export class ScionPageBrokerDetail extends LitElement {
     .empty-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .empty-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
     }
 
@@ -375,7 +375,7 @@ export class ScionPageBrokerDetail extends LitElement {
       align-items: center;
       justify-content: center;
       padding: 4rem 2rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
 
     .loading-state sl-spinner {
@@ -386,9 +386,9 @@ export class ScionPageBrokerDetail extends LitElement {
     .error-state {
       text-align: center;
       padding: 3rem 2rem;
-      background: var(--scion-surface, #ffffff);
+      background: var(--fabric-surface, #ffffff);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
     }
 
     .error-state sl-icon {
@@ -400,21 +400,21 @@ export class ScionPageBrokerDetail extends LitElement {
     .error-state h2 {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.5rem 0;
     }
 
     .error-state p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 1rem 0;
     }
 
     .error-details {
-      font-family: var(--scion-font-mono, monospace);
+      font-family: var(--fabric-font-mono, monospace);
       font-size: 0.875rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.75rem 1rem;
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       color: var(--sl-color-danger-700, #b91c1c);
       margin-bottom: 1rem;
     }
@@ -592,11 +592,11 @@ export class ScionPageBrokerDetail extends LitElement {
           <div class="header-title">
             <sl-icon name="hdd-rack"></sl-icon>
             <h1>${this.broker.name}</h1>
-            <scion-status-badge
+            <fabric-status-badge
               status=${this.getBrokerStatusVariant(this.broker.status)}
               label=${this.broker.status}
               size="small"
-            ></scion-status-badge>
+            ></fabric-status-badge>
           </div>
           ${subtitleParts.length > 0
             ? html`<div class="header-subtitle">${subtitleParts.join(' · ')}</div>`
@@ -738,11 +738,11 @@ export class ScionPageBrokerDetail extends LitElement {
               <sl-icon name="code-square"></sl-icon> ${agent.template}
             </div>
           </div>
-          <scion-status-badge
+          <fabric-status-badge
             status=${getAgentDisplayStatus(agent) as StatusType}
             label=${getAgentDisplayStatus(agent)}
             size="small"
-          ></scion-status-badge>
+          ></fabric-status-badge>
         </div>
         ${agent.taskSummary ? html`<div class="agent-task">${agent.taskSummary}</div>` : ''}
       </a>
@@ -781,6 +781,6 @@ export class ScionPageBrokerDetail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-broker-detail': ScionPageBrokerDetail;
+    'fabric-page-broker-detail': FabricPageBrokerDetail;
   }
 }

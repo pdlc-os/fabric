@@ -3,18 +3,18 @@
 This period is marked by the comprehensive "Grove to Project" rebranding—a massive, system-wide overhaul of core terminology, database schemas, and API protocols. Alongside this migration, the release introduces significant improvements to multi-target messaging, administrative UX unification, and storage management.
 
 ## ⚠️ BREAKING CHANGES
-* **[Core]: System-wide Rebranding (Grove → Project).** "Groves" have been renamed to "Projects" across the entire Scion ecosystem.
+* **[Core]: System-wide Rebranding (Grove → Project).** "Groves" have been renamed to "Projects" across the entire Fabric ecosystem.
     * **Database Migration:** Database tables and schemas have been updated to reflect Project naming.
     * **API Paths:** Standard API endpoints now use `/api/v1/projects/...`. While legacy `/api/v1/groves/...` paths are supported with deprecation warnings, users should migrate immediately.
-    * **Environment Variables:** `SCION_GROVE_ID` is deprecated in favor of `SCION_PROJECT_ID`. Dual-export support is currently active.
-    * **CLI Flags:** Most commands now use `--project` or `--project-id`. The `scion grove` command has been renamed to `scion project` (with a hidden alias for backward compatibility).
+    * **Environment Variables:** `FABRIC_GROVE_ID` is deprecated in favor of `FABRIC_PROJECT_ID`. Dual-export support is currently active.
+    * **CLI Flags:** Most commands now use `--project` or `--project-id`. The `fabric grove` command has been renamed to `fabric project` (with a hidden alias for backward compatibility).
 * **[Agent]: Scoped Stop() Command.** The `Stop()` operation is now strictly scoped to the active project to prevent accidental cross-project agent termination.
 
 ## 🚀 Features
 * **[Management]: Unified Administrative UX.** Consolidated "Allow List" and "Invite Management" into a single, cohesive management interface, streamlining user onboarding and access control.
 * **[Messaging]: Multi-Target & Wake Support.**
     * Added `set[]` composite recipient support, allowing messages to be broadcast to multiple targets simultaneously.
-    * Introduced the `--wake` flag to the `scion message` command to ensure dormant agents are active before message delivery.
+    * Introduced the `--wake` flag to the `fabric message` command to ensure dormant agents are active before message delivery.
 * **[Storage]: ZIP Archive Downloads.** Shared directories can now be downloaded directly from the web interface as consolidated ZIP archives.
 * **[Web UI]: Activity & State Visibility.**
     * Added relative timestamps to agent activity badges for better temporal context.
@@ -27,6 +27,6 @@ This period is marked by the comprehensive "Grove to Project" rebranding—a mas
 * **[Security]: Path Traversal Protection.** Restored and hardened path traversal protections during workspace resolution following the project rename.
 * **[CLI]: Installation & Pre-flight Refinements.**
     * Default installation path moved to `/usr/local/bin` with automatic PATH validation warnings.
-    * Relocated `.scion/agents/` gitignore checks to pre-flight validation to catch configuration issues earlier.
+    * Relocated `.fabric/agents/` gitignore checks to pre-flight validation to catch configuration issues earlier.
     * Fixed `help` command matching logic to avoid accidental triggers when used as a sub-argument.
 * **[Templates]: Scope Normalization.** Normalized scope resolution in the CLI to ensure templates are correctly mapped to projects regardless of how they are invoked.

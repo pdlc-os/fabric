@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/discordpendinglink"
+	"github.com/pdlc-os/fabric/pkg/ent/discordpendinglink"
 )
 
 // DiscordPendingLink is the model entity for the DiscordPendingLink schema.

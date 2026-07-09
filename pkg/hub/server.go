@@ -34,20 +34,20 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/eventbus"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/githubapp"
-	"github.com/GoogleCloudPlatform/scion/pkg/hub/imagecheck"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dispatchmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hub/githubapp"
+	"github.com/pdlc-os/fabric/pkg/hub/imagecheck"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	"golang.org/x/sync/singleflight"
@@ -203,14 +203,14 @@ type MaintenanceConfig struct {
 	Harnesses []string
 	// RuntimeBin overrides auto-detection of the container runtime binary (docker, podman).
 	RuntimeBin string
-	// RepoPath is the path to the scion source checkout for rebuild operations.
+	// RepoPath is the path to the fabric source checkout for rebuild operations.
 	RepoPath string
 	// RepoBranch is the git branch to checkout before building. When empty,
 	// the repo stays on whatever branch is currently checked out.
 	RepoBranch string
-	// BinaryDest is the install path for the rebuilt binary (default: /usr/local/bin/scion).
+	// BinaryDest is the install path for the rebuilt binary (default: /usr/local/bin/fabric).
 	BinaryDest string
-	// ServiceName is the systemd service name to restart (default: "scion-hub").
+	// ServiceName is the systemd service name to restart (default: "fabric-hub").
 	ServiceName string
 }
 
@@ -237,10 +237,10 @@ func DefaultServerConfig() ServerConfig {
 		CORSAllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		CORSAllowedHeaders: []string{
 			"Authorization", "Content-Type",
-			"X-Scion-Broker-Token", "X-Scion-Agent-Token", "X-API-Key",
+			"X-Fabric-Broker-Token", "X-Fabric-Agent-Token", "X-API-Key",
 			// Broker HMAC authentication headers
-			"X-Scion-Broker-ID", "X-Scion-Timestamp", "X-Scion-Nonce",
-			"X-Scion-Signature", "X-Scion-Signed-Headers",
+			"X-Fabric-Broker-ID", "X-Fabric-Timestamp", "X-Fabric-Nonce",
+			"X-Fabric-Signature", "X-Fabric-Signed-Headers",
 		},
 		CORSMaxAge:       3600,
 		StalledThreshold: 5 * time.Minute,
@@ -324,7 +324,7 @@ type RuntimeBrokerClient interface {
 	// sharedWorkspace indicates the project uses a shared workspace mount
 	// (hub-project / git-workspace hybrid) so the broker must not create a
 	// per-agent worktree on (re-)start.
-	StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.ScionConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error)
+	StartAgent(ctx context.Context, brokerID, brokerEndpoint, agentID, projectID, task, projectPath, projectSlug, harnessConfig string, resolvedEnv map[string]string, resolvedSecrets []ResolvedSecret, inlineConfig *api.FabricConfig, sharedDirs []api.SharedDir, sharedWorkspace, resume bool) (*RemoteAgentResponse, error)
 
 	// StopAgent stops an agent on a remote runtime broker.
 	// brokerID is used for HMAC authentication lookup.
@@ -401,7 +401,7 @@ type RemoteCreateAgentRequest struct {
 	HubEndpoint     string           `json:"hubEndpoint,omitempty"`
 	AgentToken      string           `json:"agentToken,omitempty"`
 	// CreatorName is the human-readable identity of who created this agent.
-	// Injected as the SCION_CREATOR environment variable in the agent container.
+	// Injected as the FABRIC_CREATOR environment variable in the agent container.
 	CreatorName string `json:"creatorName,omitempty"`
 	// NoAuth indicates the agent should start without any injected credentials.
 	NoAuth bool `json:"noAuth,omitempty"`
@@ -430,14 +430,14 @@ type RemoteCreateAgentRequest struct {
 	EnvSources map[string]string `json:"envSources,omitempty"`
 
 	// ProjectSlug is the project slug for hub-native projects.
-	// When set, the broker creates the workspace at ~/.scion/projects/<slug>/
+	// When set, the broker creates the workspace at ~/.fabric/projects/<slug>/
 	// instead of the default worktree-based path.
 	ProjectSlug string `json:"projectSlug,omitempty"`
 
-	// InlineConfig carries the full ScionConfig provided via the Hub API's
+	// InlineConfig carries the full FabricConfig provided via the Hub API's
 	// config field. The broker applies this during agent provisioning,
 	// enabling inline configuration without pre-existing templates.
-	InlineConfig *api.ScionConfig `json:"inlineConfig,omitempty"`
+	InlineConfig *api.FabricConfig `json:"inlineConfig,omitempty"`
 
 	// SharedDirs contains project-level shared directory declarations.
 	// Resolved by the Hub from the project record and passed to the broker
@@ -494,7 +494,7 @@ type RemoteAgentConfig struct {
 
 	// GitClone specifies git clone parameters for git-anchored projects.
 	// When set, the runtime broker skips workspace mounting and injects env vars
-	// so sciontool can clone the repo inside the container.
+	// so fabrictool can clone the repo inside the container.
 	GitClone *api.GitCloneConfig `json:"gitClone,omitempty"`
 
 	// SharedWorkspace indicates this agent should use a shared git clone
@@ -835,7 +835,7 @@ func New(cfg ServerConfig, s store.Store) (*Server, error) {
 		logOAuthProviders("Device", cfg.OAuthConfig.Device)
 	} else {
 		slog.Info("OAuth service NOT configured - no providers available")
-		slog.Info("To enable OAuth, set environment variables SCION_SERVER_OAUTH_CLI_GOOGLE_CLIENTID, etc.")
+		slog.Info("To enable OAuth, set environment variables FABRIC_SERVER_OAUTH_CLI_GOOGLE_CLIENTID, etc.")
 	}
 
 	// Log authorized domains if configured
@@ -1019,7 +1019,7 @@ func New(cfg ServerConfig, s store.Store) (*Server, error) {
 // derives identical keys, which is what lets a JWT minted by one replica be
 // validated by another.
 func deriveSharedSigningKey(secret, keyName string) []byte {
-	sum := sha256.Sum256([]byte("scion-hub-signing-key:" + keyName + ":" + secret))
+	sum := sha256.Sum256([]byte("fabric-hub-signing-key:" + keyName + ":" + secret))
 	return sum[:]
 }
 
@@ -1061,7 +1061,7 @@ func (s *Server) ensureSigningKey(ctx context.Context, keyName string, existingK
 			"sha256_prefix", hex.EncodeToString(fp[:8]),
 		)
 		// Sync the derived key to the secret backend so that external consumers
-		// (e.g. scion-chat-app) that discover signing keys via label-based
+		// (e.g. fabric-chat-app) that discover signing keys via label-based
 		// auto-discovery in GCP Secret Manager can still find them.
 		encodedKey := base64.StdEncoding.EncodeToString(key)
 		_, isGCPBackend := s.secretBackend.(*secret.GCPBackend)
@@ -1181,7 +1181,7 @@ func (s *Server) ensureSigningKey(ctx context.Context, keyName string, existingK
 			)
 			// Delete the old secret from the secret backend (e.g. GCP SM) first
 			// so stale secrets don't confuse label-based auto-discovery by
-			// external consumers like scion-chat-app.
+			// external consumers like fabric-chat-app.
 			if hasSecretBackend {
 				if delErr := s.secretBackend.Delete(ctx, keyName, store.ScopeHub, legacyScopeID); delErr != nil {
 					slog.Warn("Failed to delete legacy signing key from secret backend", "key", keyName, "legacyScopeID", legacyScopeID, "error", delErr)
@@ -1433,7 +1433,7 @@ func (s *Server) SetRequestLogger(l *slog.Logger) {
 
 // SetMessageLogger sets the dedicated message audit logger.
 // When set, message dispatch events are logged to this logger in addition
-// to the standard subsystem logger, enabling a separate "scion-messages"
+// to the standard subsystem logger, enabling a separate "fabric-messages"
 // log stream in Cloud Logging.
 func (s *Server) SetMessageLogger(l *slog.Logger) {
 	s.mu.Lock()
@@ -1843,7 +1843,7 @@ func (s *Server) CreateAuthenticatedDispatcher() *HTTPAgentDispatcher {
 		}
 	} else if s.config.Debug {
 		slog.Warn("No hub.endpoint configured - agents won't know how to reach Hub")
-		slog.Info("Configure via: hub.endpoint in server.yaml or SCION_SERVER_HUB_ENDPOINT env var")
+		slog.Info("Configure via: hub.endpoint in server.yaml or FABRIC_SERVER_HUB_ENDPOINT env var")
 	}
 
 	// Pass hub ID and secret backend to dispatcher if configured
@@ -2812,7 +2812,7 @@ func (s *Server) applyMiddleware(h http.Handler) http.Handler {
 		h = s.loggingMiddleware(h)
 	}
 
-	// Apply broker auth middleware (checks X-Scion-Broker-ID header for HMAC auth)
+	// Apply broker auth middleware (checks X-Fabric-Broker-ID header for HMAC auth)
 	// This runs after unified auth but before the handler, allowing hosts to authenticate
 	if s.brokerAuthService != nil {
 		if s.auditLogger != nil {
@@ -3073,7 +3073,7 @@ func (s *Server) handleRuntimeBrokerConnect(w http.ResponseWriter, r *http.Reque
 	broker := GetBrokerIdentityFromContext(r.Context())
 	if broker == nil {
 		// Try to get broker ID from header if not authenticated yet
-		brokerID := r.Header.Get("X-Scion-Broker-ID")
+		brokerID := r.Header.Get("X-Fabric-Broker-ID")
 		if brokerID == "" {
 			writeError(w, 401, ErrCodeUnauthorized, "Broker authentication required", nil)
 			return

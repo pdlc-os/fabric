@@ -88,8 +88,8 @@ function parseSkillFrontmatter(content: string): SkillFrontmatter | null {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-@customElement('scion-page-skill-create')
-export class ScionPageSkillCreate extends LitElement {
+@customElement('fabric-page-skill-create')
+export class FabricPageSkillCreate extends LitElement {
   /* --- capabilities --- */
   @state() private loading = true;
   @state() private canCreate = false;
@@ -138,13 +138,13 @@ export class ScionPageSkillCreate extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       text-decoration: none;
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
     .back-link:hover {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
 
     .page-header {
@@ -153,46 +153,46 @@ export class ScionPageSkillCreate extends LitElement {
     .page-header h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.25rem 0;
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
     .page-header h1 sl-icon {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-size: 1.5rem;
     }
     .page-header p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0;
       font-size: 0.875rem;
     }
 
     .form-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       max-width: 640px;
     }
 
     .section-divider {
       border: none;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
       margin: 1.5rem 0;
     }
 
     .section-header {
       font-size: 0.9375rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1rem 0;
     }
 
     .section-desc {
       font-size: 0.8125rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: -0.5rem 0 1rem 0;
     }
 
@@ -206,13 +206,13 @@ export class ScionPageSkillCreate extends LitElement {
       gap: 0.5rem;
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
 
     .form-field .hint {
       font-size: 0.75rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin-top: 0.25rem;
     }
 
@@ -244,13 +244,13 @@ export class ScionPageSkillCreate extends LitElement {
       gap: 0.75rem;
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .error-banner {
       background: var(--sl-color-danger-50, #fef2f2);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.25rem;
       display: flex;
@@ -267,7 +267,7 @@ export class ScionPageSkillCreate extends LitElement {
     .warning-banner {
       background: var(--sl-color-warning-50, #fffbeb);
       border: 1px solid var(--sl-color-warning-200, #fde68a);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       margin-bottom: 1.25rem;
       display: flex;
@@ -293,28 +293,28 @@ export class ScionPageSkillCreate extends LitElement {
       gap: 0.25rem;
       font-size: 0.75rem;
       padding: 0.125rem 0.5rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border: 1px solid var(--scion-border, #e2e8f0);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border: 1px solid var(--fabric-border, #e2e8f0);
       border-radius: 9999px;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
     }
 
     /* --- drop zone --- */
     .drop-zone {
-      border: 2px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 2px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 2rem;
       text-align: center;
       cursor: pointer;
       transition: all 150ms ease;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
     .drop-zone:hover,
     .drop-zone.dragover {
-      border-color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
       background: var(--sl-color-primary-50, #eff6ff);
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
     .drop-zone sl-icon {
       font-size: 2rem;
@@ -336,8 +336,8 @@ export class ScionPageSkillCreate extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.875rem;
     }
     .file-info {
@@ -352,7 +352,7 @@ export class ScionPageSkillCreate extends LitElement {
       text-overflow: ellipsis;
     }
     .file-meta {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
       flex-shrink: 0;
     }
@@ -362,7 +362,7 @@ export class ScionPageSkillCreate extends LitElement {
       background: none;
       border: none;
       padding: 0.25rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       line-height: 1;
     }
     .remove-btn:hover {
@@ -371,16 +371,16 @@ export class ScionPageSkillCreate extends LitElement {
 
     /* --- progress view --- */
     .progress-card {
-      background: var(--scion-surface, #ffffff);
-      border: 1px solid var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius-lg, 0.75rem);
+      background: var(--fabric-surface, #ffffff);
+      border: 1px solid var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius-lg, 0.75rem);
       padding: 1.5rem;
       max-width: 640px;
     }
     .progress-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 1.25rem 0;
     }
     .progress-steps {
@@ -394,10 +394,10 @@ export class ScionPageSkillCreate extends LitElement {
       align-items: center;
       gap: 0.75rem;
       font-size: 0.875rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
     }
     .progress-step.active {
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
       font-weight: 500;
     }
     .progress-step.done {
@@ -418,13 +418,13 @@ export class ScionPageSkillCreate extends LitElement {
       gap: 0.75rem;
       margin-top: 1.25rem;
       padding-top: 1.25rem;
-      border-top: 1px solid var(--scion-border, #e2e8f0);
+      border-top: 1px solid var(--fabric-border, #e2e8f0);
     }
 
     .success-banner {
       background: var(--sl-color-success-50, #f0fdf4);
       border: 1px solid var(--sl-color-success-200, #bbf7d0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 1rem;
       text-align: center;
       color: var(--sl-color-success-700, #15803d);
@@ -868,7 +868,7 @@ export class ScionPageSkillCreate extends LitElement {
     if (this.loading) {
       return html`
         <div
-          style="display: flex; flex-direction: column; align-items: center; padding: 4rem 2rem; color: var(--scion-text-muted, #64748b);"
+          style="display: flex; flex-direction: column; align-items: center; padding: 4rem 2rem; color: var(--fabric-text-muted, #64748b);"
         >
           <sl-spinner style="font-size: 2rem; margin-bottom: 1rem;"></sl-spinner>
           <p>Loading...</p>
@@ -883,18 +883,18 @@ export class ScionPageSkillCreate extends LitElement {
           Back to Skills
         </a>
         <div
-          style="text-align: center; padding: 3rem 2rem; background: var(--scion-surface, #ffffff); border: 1px solid var(--scion-border, #e2e8f0); border-radius: var(--scion-radius-lg, 0.75rem);"
+          style="text-align: center; padding: 3rem 2rem; background: var(--fabric-surface, #ffffff); border: 1px solid var(--fabric-border, #e2e8f0); border-radius: var(--fabric-radius-lg, 0.75rem);"
         >
           <sl-icon
             name="shield-lock"
-            style="font-size: 3rem; color: var(--scion-text-muted, #64748b); margin-bottom: 1rem;"
+            style="font-size: 3rem; color: var(--fabric-text-muted, #64748b); margin-bottom: 1rem;"
           ></sl-icon>
           <h2
-            style="font-size: 1.25rem; font-weight: 600; color: var(--scion-text, #1e293b); margin: 0 0 0.5rem 0;"
+            style="font-size: 1.25rem; font-weight: 600; color: var(--fabric-text, #1e293b); margin: 0 0 0.5rem 0;"
           >
             Access Denied
           </h2>
-          <p style="color: var(--scion-text-muted, #64748b); margin: 0 0 1rem 0;">
+          <p style="color: var(--fabric-text-muted, #64748b); margin: 0 0 1rem 0;">
             You do not have permission to create skills.
           </p>
           <a href="/skills" style="text-decoration: none;">
@@ -1358,6 +1358,6 @@ export class ScionPageSkillCreate extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-skill-create': ScionPageSkillCreate;
+    'fabric-page-skill-create': FabricPageSkillCreate;
   }
 }

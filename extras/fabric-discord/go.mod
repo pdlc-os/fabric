@@ -1,9 +1,9 @@
-module github.com/GoogleCloudPlatform/scion/extras/scion-discord
+module github.com/pdlc-os/fabric/extras/fabric-discord
 
 go 1.26.1
 
 require (
-	github.com/GoogleCloudPlatform/scion v0.0.0-00010101000000-000000000000
+	github.com/pdlc-os/fabric v0.0.0-00010101000000-000000000000
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/hashicorp/go-plugin v1.7.0
 	github.com/jackc/pgx/v5 v5.10.0
@@ -190,4 +190,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/GoogleCloudPlatform/scion => ../../
+replace github.com/pdlc-os/fabric => ../../

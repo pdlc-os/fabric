@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 // Package dispatchmetrics provides Cloud Monitoring scaffolding for the
@@ -21,18 +21,18 @@ import (
 	"go.opentelemetry.io/otel/metric/noop"
 )
 
-const instrumentationName = "github.com/GoogleCloudPlatform/scion/pkg/observability/dispatchmetrics"
+const instrumentationName = "github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
 
 const (
-	MetricDispatchPublished = "scion.dispatch.published"
-	MetricDispatchClaimed   = "scion.dispatch.claimed"
-	MetricDispatchDone      = "scion.dispatch.done"
-	MetricDispatchFailed    = "scion.dispatch.failed"
-	MetricDispatchLatency   = "scion.dispatch.intent_to_done.duration"
-	MetricMessageDispatched = "scion.dispatch.message.dispatched"
-	MetricMessageStuck      = "scion.dispatch.message.stuck"
-	MetricCmdBusReconnects  = "scion.dispatch.cmdbus.reconnects"
-	MetricReconcileDrainDur = "scion.dispatch.reconcile.drain.duration"
+	MetricDispatchPublished = "fabric.dispatch.published"
+	MetricDispatchClaimed   = "fabric.dispatch.claimed"
+	MetricDispatchDone      = "fabric.dispatch.done"
+	MetricDispatchFailed    = "fabric.dispatch.failed"
+	MetricDispatchLatency   = "fabric.dispatch.intent_to_done.duration"
+	MetricMessageDispatched = "fabric.dispatch.message.dispatched"
+	MetricMessageStuck      = "fabric.dispatch.message.stuck"
+	MetricCmdBusReconnects  = "fabric.dispatch.cmdbus.reconnects"
+	MetricReconcileDrainDur = "fabric.dispatch.reconcile.drain.duration"
 )
 
 // Recorder is the interface callers use to record broker-dispatch metrics.

@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies how the Scion web frontend integrates with the Hub permissions system (see `hosted/auth/permissions-design.md`) to render access-aware UI. The goal is to hide, disable, or annotate UI elements based on the current user's effective permissions — rather than relying solely on API-layer enforcement that results in unexpected 403 errors.
+This document specifies how the Fabric web frontend integrates with the Hub permissions system (see `hosted/auth/permissions-design.md`) to render access-aware UI. The goal is to hide, disable, or annotate UI elements based on the current user's effective permissions — rather than relying solely on API-layer enforcement that results in unexpected 403 errors.
 
 ### Problem
 
@@ -330,7 +330,7 @@ Components use the `can()` helper directly in their templates. This is the simpl
 ```typescript
 import { can } from '../../shared/types';
 
-@customElement('scion-agent-card')
+@customElement('fabric-agent-card')
 export class AgentCard extends LitElement {
   @property({ type: Object }) agent!: Agent;
 
@@ -404,7 +404,7 @@ export class AgentCard extends LitElement {
 #### Example: List Page with Scope Capabilities
 
 ```typescript
-@customElement('scion-agent-list')
+@customElement('fabric-agent-list')
 export class AgentList extends LitElement {
   @state() private agents: Agent[] = [];
   @state() private scopeCapabilities?: Capabilities;
@@ -434,7 +434,7 @@ export class AgentList extends LitElement {
 
       <div class="agent-grid">
         ${this.agents.map(agent => html`
-          <scion-agent-card .agent=${agent}></scion-agent-card>
+          <fabric-agent-card .agent=${agent}></fabric-agent-card>
         `)}
       </div>
     `;
@@ -540,10 +540,10 @@ Because the Go server is the BFF (backend-for-frontend), it fetches data with th
 
 ### 5.2 Initial State Hydration
 
-The server includes the full resource data (with capabilities) in the `__SCION_DATA__` script tag. The client hydrates from this data, preserving the same capability information.
+The server includes the full resource data (with capabilities) in the `__FABRIC_DATA__` script tag. The client hydrates from this data, preserving the same capability information.
 
 ```html
-<script id="__SCION_DATA__" type="application/json">
+<script id="__FABRIC_DATA__" type="application/json">
   {
     "agents": [
       {
@@ -617,7 +617,7 @@ The current user's role is available in the session and passed through the app s
 render() {
   return html`
     <aside class="sidebar">
-      <scion-nav .user=${this.user}></scion-nav>
+      <fabric-nav .user=${this.user}></fabric-nav>
     </aside>
     <!-- ... -->
   `;
@@ -792,7 +792,7 @@ export async function apiFetch(path: string, options?: RequestInit): Promise<Res
     const error = await response.json();
 
     // Dispatch a global event that components can listen for
-    window.dispatchEvent(new CustomEvent('scion:access-denied', {
+    window.dispatchEvent(new CustomEvent('fabric:access-denied', {
       detail: {
         resource: error.error?.details?.resource,
         action: error.error?.details?.action,
@@ -813,7 +813,7 @@ The app shell listens for access-denied events and shows a toast:
 // In app-shell.ts
 connectedCallback() {
   super.connectedCallback();
-  window.addEventListener('scion:access-denied', this.handleAccessDenied);
+  window.addEventListener('fabric:access-denied', this.handleAccessDenied);
 }
 
 private handleAccessDenied = (e: CustomEvent) => {
@@ -850,17 +850,17 @@ private handleAccessDenied = (e: CustomEvent) => {
 - [ ] Add global access-denied toast handler in app shell
 
 ### Phase 3: Component Integration
-- [ ] Update `scion-agent-card` with capability-gated actions
-- [ ] Update `scion-agent-list` with scope capability for "New Agent"
-- [ ] Update `scion-grove-detail` with capability-gated edit/manage controls
-- [ ] Update `scion-template-card` with capability-gated actions
-- [ ] Update `scion-nav` with role-based admin section
+- [ ] Update `fabric-agent-card` with capability-gated actions
+- [ ] Update `fabric-agent-list` with scope capability for "New Agent"
+- [ ] Update `fabric-grove-detail` with capability-gated edit/manage controls
+- [ ] Update `fabric-template-card` with capability-gated actions
+- [ ] Update `fabric-nav` with role-based admin section
 - [ ] Update empty states to be capability-aware
 - [ ] Add read-only mode for detail pages without `update` capability
 
 ### Phase 4: SSR Integration
 - [ ] Ensure Go SSR renderer passes `_capabilities` through to component properties
-- [ ] Verify hydration preserves capability data from `__SCION_DATA__`
+- [ ] Verify hydration preserves capability data from `__FABRIC_DATA__`
 - [ ] Test SSR output matches hydrated output for access-gated elements
 
 ---

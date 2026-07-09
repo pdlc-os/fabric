@@ -32,11 +32,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/apiclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util/logging"
-	"github.com/GoogleCloudPlatform/scion/pkg/version"
-	"github.com/GoogleCloudPlatform/scion/web"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util/logging"
+	"github.com/pdlc-os/fabric/pkg/version"
+	"github.com/pdlc-os/fabric/web"
 	"github.com/gorilla/sessions"
 	"golang.org/x/net/http2"
 	//nolint:staticcheck // h2c is kept for local cleartext HTTP/2 support.
@@ -58,11 +58,11 @@ type WebHealthInfo struct {
 
 // CompositeHealthResponse is the top-level health response returned by the
 // web server's /healthz endpoint. It includes backward-compatible top-level
-// fields (status, version, scionVersion, uptime) plus per-component sub-objects.
+// fields (status, version, fabricVersion, uptime) plus per-component sub-objects.
 type CompositeHealthResponse struct {
 	Status       string      `json:"status"`
 	Version      string      `json:"version"`
-	ScionVersion string      `json:"scionVersion"`
+	FabricVersion string      `json:"fabricVersion"`
 	Uptime       string      `json:"uptime,omitempty"`
 	Web          interface{} `json:"web"`
 	Hub          interface{} `json:"hub,omitempty"`
@@ -73,7 +73,7 @@ type CompositeHealthResponse struct {
 const shoelaceVersion = "2.19.0"
 
 // webSessionName is the cookie name for web sessions.
-const webSessionName = "scion_sess"
+const webSessionName = "fabric_sess"
 
 // Session key constants for storing values in the gorilla session map.
 const (
@@ -122,7 +122,7 @@ type WebServerConfig struct {
 	Debug bool
 	// SessionSecret is the HMAC key for signing session cookies.
 	SessionSecret string
-	// BaseURL is the public URL for OAuth redirects (e.g., "https://scion.example.com").
+	// BaseURL is the public URL for OAuth redirects (e.g., "https://fabric.example.com").
 	BaseURL string
 	// DevAuthToken is the dev token for auto-login (empty = disabled).
 	DevAuthToken string
@@ -196,7 +196,7 @@ var spaShellTemplate = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scion</title>
+    <title>Fabric</title>
 
     <!-- Preconnect to CDNs for faster loading -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -213,7 +213,7 @@ var spaShellTemplate = `<!DOCTYPE html>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@{{.ShoelaceVersion}}/cdn/shoelace-autoloader.js"></script>
 
     <!-- Initial state for hydration -->
-    <script id="__SCION_DATA__" type="application/json">{{.InitialData}}</script>
+    <script id="__FABRIC_DATA__" type="application/json">{{.InitialData}}</script>
 
     <style>
         /* Critical CSS - Core layout to prevent FOUC */
@@ -221,63 +221,63 @@ var spaShellTemplate = `<!DOCTYPE html>
         /* Color Palette - Light Mode (inlined for fast first paint) */
         :root {
             /* Primary */
-            --scion-primary-50: #eff6ff;
-            --scion-primary-500: #3b82f6;
-            --scion-primary-600: #2563eb;
-            --scion-primary-700: #1d4ed8;
+            --fabric-primary-50: #eff6ff;
+            --fabric-primary-500: #3b82f6;
+            --fabric-primary-600: #2563eb;
+            --fabric-primary-700: #1d4ed8;
 
             /* Neutral */
-            --scion-neutral-50: #f8fafc;
-            --scion-neutral-100: #f1f5f9;
-            --scion-neutral-200: #e2e8f0;
-            --scion-neutral-500: #64748b;
-            --scion-neutral-600: #475569;
-            --scion-neutral-700: #334155;
-            --scion-neutral-800: #1e293b;
-            --scion-neutral-900: #0f172a;
+            --fabric-neutral-50: #f8fafc;
+            --fabric-neutral-100: #f1f5f9;
+            --fabric-neutral-200: #e2e8f0;
+            --fabric-neutral-500: #64748b;
+            --fabric-neutral-600: #475569;
+            --fabric-neutral-700: #334155;
+            --fabric-neutral-800: #1e293b;
+            --fabric-neutral-900: #0f172a;
 
             /* Semantic */
-            --scion-primary: var(--scion-primary-500);
-            --scion-primary-hover: var(--scion-primary-600);
-            --scion-bg: var(--scion-neutral-50);
-            --scion-bg-subtle: var(--scion-neutral-100);
-            --scion-surface: #ffffff;
-            --scion-text: var(--scion-neutral-800);
-            --scion-text-muted: var(--scion-neutral-500);
-            --scion-border: var(--scion-neutral-200);
+            --fabric-primary: var(--fabric-primary-500);
+            --fabric-primary-hover: var(--fabric-primary-600);
+            --fabric-bg: var(--fabric-neutral-50);
+            --fabric-bg-subtle: var(--fabric-neutral-100);
+            --fabric-surface: #ffffff;
+            --fabric-text: var(--fabric-neutral-800);
+            --fabric-text-muted: var(--fabric-neutral-500);
+            --fabric-border: var(--fabric-neutral-200);
 
             /* Layout */
-            --scion-sidebar-width: 260px;
-            --scion-header-height: 60px;
+            --fabric-sidebar-width: 260px;
+            --fabric-header-height: 60px;
 
             /* Typography */
-            --scion-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-            --scion-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --fabric-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+            --fabric-font-mono: 'JetBrains Mono', ui-monospace, monospace;
         }
 
         /* Dark mode support */
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
-                --scion-primary: #60a5fa;
-                --scion-primary-hover: #93c5fd;
-                --scion-bg: var(--scion-neutral-900);
-                --scion-bg-subtle: var(--scion-neutral-800);
-                --scion-surface: var(--scion-neutral-800);
-                --scion-text: #f1f5f9;
-                --scion-text-muted: #94a3b8;
-                --scion-border: var(--scion-neutral-700);
+                --fabric-primary: #60a5fa;
+                --fabric-primary-hover: #93c5fd;
+                --fabric-bg: var(--fabric-neutral-900);
+                --fabric-bg-subtle: var(--fabric-neutral-800);
+                --fabric-surface: var(--fabric-neutral-800);
+                --fabric-text: #f1f5f9;
+                --fabric-text-muted: #94a3b8;
+                --fabric-border: var(--fabric-neutral-700);
             }
         }
 
         [data-theme="dark"] {
-            --scion-primary: #60a5fa;
-            --scion-primary-hover: #93c5fd;
-            --scion-bg: var(--scion-neutral-900);
-            --scion-bg-subtle: var(--scion-neutral-800);
-            --scion-surface: var(--scion-neutral-800);
-            --scion-text: #f1f5f9;
-            --scion-text-muted: #94a3b8;
-            --scion-border: var(--scion-neutral-700);
+            --fabric-primary: #60a5fa;
+            --fabric-primary-hover: #93c5fd;
+            --fabric-bg: var(--fabric-neutral-900);
+            --fabric-bg-subtle: var(--fabric-neutral-800);
+            --fabric-surface: var(--fabric-neutral-800);
+            --fabric-text: #f1f5f9;
+            --fabric-text-muted: #94a3b8;
+            --fabric-border: var(--fabric-neutral-700);
         }
 
         * {
@@ -288,9 +288,9 @@ var spaShellTemplate = `<!DOCTYPE html>
 
         html, body {
             height: 100%;
-            font-family: var(--scion-font-sans);
-            background: var(--scion-bg);
-            color: var(--scion-text);
+            font-family: var(--fabric-font-sans);
+            background: var(--fabric-bg);
+            color: var(--fabric-text);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -300,16 +300,16 @@ var spaShellTemplate = `<!DOCTYPE html>
         }
 
         /* Prevent FOUC for custom elements */
-        scion-app:not(:defined),
-        scion-login-page:not(:defined),
-        scion-nav:not(:defined),
-        scion-header:not(:defined),
-        scion-breadcrumb:not(:defined),
-        scion-status-badge:not(:defined),
-        scion-page-home:not(:defined),
-        scion-page-projects:not(:defined),
-        scion-page-agents:not(:defined),
-        scion-page-404:not(:defined) {
+        fabric-app:not(:defined),
+        fabric-login-page:not(:defined),
+        fabric-nav:not(:defined),
+        fabric-header:not(:defined),
+        fabric-breadcrumb:not(:defined),
+        fabric-status-badge:not(:defined),
+        fabric-page-home:not(:defined),
+        fabric-page-projects:not(:defined),
+        fabric-page-agents:not(:defined),
+        fabric-page-404:not(:defined) {
             display: block;
             opacity: 0.5;
         }
@@ -333,7 +333,7 @@ var spaShellTemplate = `<!DOCTYPE html>
     <!-- Theme detection script (runs before paint) -->
     <script>
         (function() {
-            var saved = localStorage.getItem('scion-theme');
+            var saved = localStorage.getItem('fabric-theme');
             if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 document.documentElement.classList.add('sl-theme-dark');
@@ -344,7 +344,7 @@ var spaShellTemplate = `<!DOCTYPE html>
     </script>
 </head>
 <body>
-    <div id="app">{{if .IsLoginPage}}<scion-login-page></scion-login-page>{{else if .IsInvitePage}}<scion-page-invite></scion-page-invite>{{else}}<scion-app></scion-app>{{end}}</div>
+    <div id="app">{{if .IsLoginPage}}<fabric-login-page></fabric-login-page>{{else if .IsInvitePage}}<fabric-page-invite></fabric-page-invite>{{else}}<fabric-app></fabric-app>{{end}}</div>
 
     <!-- Client entry point -->
     <script type="module" src="/assets/main.js"></script>
@@ -360,7 +360,7 @@ var noAssetsPage = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scion – Web UI Not Available</title>
+    <title>Fabric – Web UI Not Available</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -405,7 +405,7 @@ type spaShellData struct {
 	ShoelaceVersion string
 	IsLoginPage     bool
 	IsInvitePage    bool
-	// InitialData is safe-for-HTML JSON embedded in the __SCION_DATA__ script tag.
+	// InitialData is safe-for-HTML JSON embedded in the __FABRIC_DATA__ script tag.
 	// It is typed as template.JS so html/template does not escape it further.
 	InitialData template.JS
 }
@@ -458,8 +458,8 @@ func NewWebServer(cfg WebServerConfig) *WebServer {
 	// replicas agree: a 32-byte HMAC authentication key and a 32-byte AES-256
 	// encryption key, with domain separation so the two keys differ.
 	cookieStore := sessions.NewCookieStore(
-		deriveSessionKey(sessionKey, "scion-session-hash"),
-		deriveSessionKey(sessionKey, "scion-session-block"),
+		deriveSessionKey(sessionKey, "fabric-session-hash"),
+		deriveSessionKey(sessionKey, "fabric-session-block"),
 	)
 	cookieStore.Options = &sessions.Options{
 		Path:     "/",
@@ -724,7 +724,7 @@ func (ws *WebServer) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	resp := CompositeHealthResponse{
 		Status:       "healthy",
 		Version:      "0.1.0",
-		ScionVersion: version.Short(),
+		FabricVersion: version.Short(),
 		Web:          webHealth,
 	}
 
@@ -743,7 +743,7 @@ func (ws *WebServer) handleHealthz(w http.ResponseWriter, r *http.Request) {
 		if h, ok := hubHealth.(*HealthResponse); ok {
 			resp.Uptime = h.Uptime
 			resp.Version = h.Version
-			resp.ScionVersion = h.ScionVersion
+			resp.FabricVersion = h.FabricVersion
 		}
 	} else {
 		// No hub provider — use the web server's own uptime.
@@ -854,7 +854,7 @@ func resolveAPIPath(urlPath string) string {
 	}
 }
 
-// prefetchPageData builds the initial page data JSON for the __SCION_DATA__
+// prefetchPageData builds the initial page data JSON for the __FABRIC_DATA__
 // script tag. It always includes user info from the session, and optionally
 // prefetches page data from the Hub API via an in-process call.
 func (ws *WebServer) prefetchPageData(r *http.Request) template.JS {
@@ -876,7 +876,7 @@ func (ws *WebServer) prefetchPageData(r *http.Request) template.JS {
 
 	envelope := pageDataEnvelope{
 		Path:  r.URL.Path,
-		Title: "Scion",
+		Title: "Fabric",
 	}
 
 	// Populate user from session context.
@@ -1165,7 +1165,7 @@ func isPublicRoute(path string) bool {
 		return true
 	case path == "/invite":
 		return true
-	case isRootLevelStaticFile(path): // e.g. /favicon.ico, /scion-notification-icon.png
+	case isRootLevelStaticFile(path): // e.g. /favicon.ico, /fabric-notification-icon.png
 		return true
 	default:
 		return false
@@ -1173,7 +1173,7 @@ func isPublicRoute(path string) bool {
 }
 
 // isRootLevelStaticFile returns true for root-level paths that look like
-// static file requests (e.g. /favicon.ico, /scion-notification-icon.png,
+// static file requests (e.g. /favicon.ico, /fabric-notification-icon.png,
 // /robots.txt). These are files placed in web/public/ and served at the
 // root by Vite. They have a file extension and no sub-path segments.
 func isRootLevelStaticFile(path string) bool {

@@ -1,10 +1,10 @@
-# Scion Web Frontend
+# Fabric Web Frontend
 
-Browser-based dashboard for managing Scion agents and projects.
+Browser-based dashboard for managing Fabric agents and projects.
 
 ## Architecture
 
-The web frontend is a client-side single-page application (SPA) built with Lit web components. Node.js is used only at build time (Vite compiles and bundles client assets). At runtime, the Go `scion` binary serves the compiled assets and handles all server-side concerns (OAuth, sessions, SSE, API routing) via the `--enable-web` flag.
+The web frontend is a client-side single-page application (SPA) built with Lit web components. Node.js is used only at build time (Vite compiles and bundles client assets). At runtime, the Go `fabric` binary serves the compiled assets and handles all server-side concerns (OAuth, sessions, SSE, API routing) via the `--enable-web` flag.
 
 Key architectural points:
 
@@ -38,14 +38,14 @@ Build output goes to `web/dist/client/`.
 
 ## Running the Server
 
-All `scion server start` commands should be run from the **repository root** (the directory containing `cmd/`, `pkg/`, `web/`, etc.). The `--enable-web` flag activates the web frontend alongside the Hub API.
+All `fabric server start` commands should be run from the **repository root** (the directory containing `cmd/`, `pkg/`, `web/`, etc.). The `--enable-web` flag activates the web frontend alongside the Hub API.
 
 ### Development Mode (Dev Auth)
 
 The simplest way to run the web server locally. Dev auth bypasses OAuth entirely — the server auto-creates a development user session with admin privileges.
 
 ```bash
-scion server start --enable-hub --enable-web --dev-auth \
+fabric server start --enable-hub --enable-web --dev-auth \
   --web-assets-dir ./web/dist/client
 ```
 
@@ -59,7 +59,7 @@ The `--web-assets-dir` flag tells the server to load assets from disk instead of
 
 The `--dev-auth` flag:
 - Generates a dev token and prints it to the console
-- Sets `SCION_DEV_TOKEN` and `SCION_AUTH_TOKEN` environment variables for the process
+- Sets `FABRIC_DEV_TOKEN` and `FABRIC_AUTH_TOKEN` environment variables for the process
 - Auto-populates a session for browser requests so no login flow is needed
 
 ### Development with Vite HMR
@@ -68,7 +68,7 @@ For active frontend development, run the Vite dev server alongside the Go server
 
 ```bash
 # Terminal 1: Go server (API + SSE + auth)
-scion server start --enable-hub --enable-web --dev-auth \
+fabric server start --enable-hub --enable-web --dev-auth \
   --web-assets-dir ./web/dist/client
 
 # Terminal 2: Vite dev server (HMR)
@@ -83,18 +83,18 @@ To test the full OAuth login flow, you need OAuth client credentials for Google 
 
 ```bash
 # Google OAuth (web flow)
-export SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID="your-google-client-id"
-export SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET="your-google-client-secret"
+export FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID="your-google-client-id"
+export FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET="your-google-client-secret"
 
 # GitHub OAuth (web flow)
-export SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID="your-github-client-id"
-export SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET="your-github-client-secret"
+export FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID="your-github-client-id"
+export FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET="your-github-client-secret"
 ```
 
 Then start the server with a session secret and base URL:
 
 ```bash
-scion server start --enable-hub --enable-web \
+fabric server start --enable-hub --enable-web \
   --session-secret "$(openssl rand -hex 32)" \
   --base-url http://localhost:8080 \
   --web-assets-dir ./web/dist/client
@@ -109,7 +109,7 @@ Set authorized domains in your `settings.yaml` under `auth.authorized_domains` t
 **Bootstrapping admin users:**
 
 ```bash
-scion server start --enable-hub --enable-web \
+fabric server start --enable-hub --enable-web \
   --admin-emails "admin@example.com,other@example.com" \
   ...
 ```
@@ -119,9 +119,9 @@ scion server start --enable-hub --enable-web \
 For production deployments, the Go binary embeds the client assets at build time. No `--web-assets-dir` flag is needed:
 
 ```bash
-scion server start --enable-hub --enable-web \
+fabric server start --enable-hub --enable-web \
   --session-secret "$SESSION_SECRET" \
-  --base-url https://scion.example.com
+  --base-url https://fabric.example.com
 ```
 
 The `--session-secret` should be a stable, random 32+ byte hex string. If omitted, a random secret is generated at startup (sessions won't survive restarts).
@@ -146,12 +146,12 @@ The `--session-secret` should be a stable, random 32+ byte hex string. If omitte
 
 | Variable | Description |
 |----------|-------------|
-| `SCION_SERVER_SESSION_SECRET` | Session cookie signing secret (fallback if `--session-secret` not set) |
-| `SCION_SERVER_BASE_URL` | Public URL for OAuth redirects (fallback if `--base-url` not set) |
-| `SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTID` | Google OAuth client ID (web flow) |
-| `SCION_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET` | Google OAuth client secret (web flow) |
-| `SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTID` | GitHub OAuth client ID (web flow) |
-| `SCION_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET` | GitHub OAuth client secret (web flow) |
+| `FABRIC_SERVER_SESSION_SECRET` | Session cookie signing secret (fallback if `--session-secret` not set) |
+| `FABRIC_SERVER_BASE_URL` | Public URL for OAuth redirects (fallback if `--base-url` not set) |
+| `FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTID` | Google OAuth client ID (web flow) |
+| `FABRIC_SERVER_OAUTH_WEB_GOOGLE_CLIENTSECRET` | Google OAuth client secret (web flow) |
+| `FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTID` | GitHub OAuth client ID (web flow) |
+| `FABRIC_SERVER_OAUTH_WEB_GITHUB_CLIENTSECRET` | GitHub OAuth client secret (web flow) |
 
 ### Web Server Routes
 

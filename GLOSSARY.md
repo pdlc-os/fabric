@@ -1,13 +1,13 @@
-# Scion Glossary
+# Fabric Glossary
 
-Scion is a container-based orchestration platform for running multiple LLM "deep agents" concurrently, each isolated in its own container, workspace, and credentials. This document fixes the preferred term for each domain concept so that code, docs, UI, and prompts share one vocabulary.
+Fabric is a container-based orchestration platform for running multiple LLM "deep agents" concurrently, each isolated in its own container, workspace, and credentials. This document fixes the preferred term for each domain concept so that code, docs, UI, and prompts share one vocabulary.
 
 > Two naming rules run throughout: the concept formerly called *grove* is now **project**, and bare **"broker"** is never used on its own — it is ambiguous across three distinct concepts (**Runtime Broker**, **Message Broker**, and the **Event Bus**), so it must always be qualified (see the disambiguation rule under [Hub & Hosted](#hub--hosted)). The codebase does not yet fully match either rule; the known gaps are tracked as GitHub issues.
 
 ## Orchestration
 
 **Agent**:
-An isolated worker: one LLM-plus-harness loop in its own container with its own identity, credentials, and workspace. The fundamental unit of execution in Scion.
+An isolated worker: one LLM-plus-harness loop in its own container with its own identity, credentials, and workspace. The fundamental unit of execution in Fabric.
 _Avoid_: worker, bot, instance, process
 
 **Sub-agent**:
@@ -15,7 +15,7 @@ An agent spawned by another agent; "sub" only from the orchestrating user's view
 _Avoid_: helper, thread, worker thread
 
 **Project**:
-A namespace and collection of agents and configuration, represented by a `.scion` directory and usually one-to-one with a git repository.
+A namespace and collection of agents and configuration, represented by a `.fabric` directory and usually one-to-one with a git repository.
 _Avoid_: grove, group, repo, workspace
 
 **Template**:
@@ -24,7 +24,7 @@ _Avoid_: role, blueprint, profile, config
 _See also_: Harness-config (its harness-specific counterpart), Skill
 
 **Harness**:
-The external, vendor-supplied agent software that Scion drives, such as Claude Code, Gemini CLI, Codex, or OpenCode. Provided outside Scion; Scion only configures and runs it.
+The external, vendor-supplied agent software that Fabric drives, such as Claude Code, Gemini CLI, Codex, or OpenCode. Provided outside Fabric; Fabric only configures and runs it.
 _Avoid_: model, backend, driver, tool
 _See also_: Harness-config
 
@@ -43,13 +43,13 @@ _Avoid_: prompt snippet, macro, plugin
 _See also_: Template, Plugin
 
 **Plugin**:
-An out-of-process extension built on `hashicorp/go-plugin` (gRPC) that supplies a Message Broker implementation without modifying Scion core. Harness implementations are *not* offered as plugins; additional plugin types may be added in future.
+An out-of-process extension built on `hashicorp/go-plugin` (gRPC) that supplies a Message Broker implementation without modifying Fabric core. Harness implementations are *not* offered as plugins; additional plugin types may be added in future.
 _Avoid_: extension, addon, module, skill
 _See also_: Broker plugin, Message Broker
 
-**sciontool**:
+**fabrictool**:
 The helper utility injected into every agent container for status reporting, metadata access, and task management.
-_Avoid_: agent tool, scion-tool
+_Avoid_: agent tool, fabric-tool
 
 ## Runtime & Workspace
 
@@ -89,7 +89,7 @@ _Avoid_: home mount, config dir
 ## Hub & Hosted
 
 **Hub**:
-The control plane of Scion — it owns identity, auth, project registration, and state, exposes the APIs and notifications that agents and users interact with, and dispatches commands to runtime brokers. Present in both workstation and hosted mode, not only hosted.
+The control plane of Fabric — it owns identity, auth, project registration, and state, exposes the APIs and notifications that agents and users interact with, and dispatches commands to runtime brokers. Present in both workstation and hosted mode, not only hosted.
 _Avoid_: server, master, coordinator
 
 **Runtime Broker**:
@@ -128,7 +128,7 @@ _Avoid_: environment, runtime config, preset, runtime profile
 _See also_: Runtime Broker, Runtime
 
 **Message Broker**:
-The pluggable system that brokers messages between Scion actors (agents and users) and messaging surfaces — built-in brokers such as the web UI Messages view, and broker plugins to external systems like Telegram and Google Chat (Discord and Slack planned). Backs the `scion message` command. Always write in full; "broker" alone is forbidden because it collides with Runtime Broker.
+The pluggable system that brokers messages between Fabric actors (agents and users) and messaging surfaces — built-in brokers such as the web UI Messages view, and broker plugins to external systems like Telegram and Google Chat (Discord and Slack planned). Backs the `fabric message` command. Always write in full; "broker" alone is forbidden because it collides with Runtime Broker.
 _Avoid_: broker, message bus, queue, pub/sub
 _See also_: Broker plugin, Built-in broker, Plugin, Event Bus (distinct), Runtime Broker (distinct, same word)
 
@@ -138,7 +138,7 @@ _Avoid_: connector, bridge, adapter
 _See also_: Message Broker, Built-in broker, Plugin
 
 **Built-in broker**:
-A Message Broker implementation shipped with Scion rather than loaded as a plugin — for example the broker that surfaces messages in the web UI's Messages view.
+A Message Broker implementation shipped with Fabric rather than loaded as a plugin — for example the broker that surfaces messages in the web UI's Messages view.
 _Avoid_: native broker, internal broker, default broker
 _See also_: Message Broker, Broker plugin
 
@@ -150,7 +150,7 @@ _Avoid_: message broker, broker, change feed, live sync, event stream
 _See also_: Message Broker (distinct concept)
 
 **Hub-managed project**:
-A project whose workspace is created and managed by Scion in the hub-controlled part of the broker filesystem (`~/.scion/projects/<slug>/`), shared across the project's agents — as opposed to a Linked project that points at a pre-existing path. May be plain (no git) or git-backed; git-backed hub-managed projects may share a remote with other projects. The workspace itself is the **Hub-managed workspace**.
+A project whose workspace is created and managed by Fabric in the hub-controlled part of the broker filesystem (`~/.fabric/projects/<slug>/`), shared across the project's agents — as opposed to a Linked project that points at a pre-existing path. May be plain (no git) or git-backed; git-backed hub-managed projects may share a remote with other projects. The workspace itself is the **Hub-managed workspace**.
 _Avoid_: hub-native, hub-native project, hub workspace, hub-project, hosted project, cloud project
 
 **Linked project**:
@@ -158,7 +158,7 @@ A project whose workspace is a pre-existing path on a broker machine, linked to 
 _Avoid_: local project, imported project, registered project
 
 **Server**:
-The `scion server` command group, and the single combined process it manages — one or more server components run together as a background daemon (or with `--foreground`) via `start`/`stop`/`restart`/`status`.
+The `fabric server` command group, and the single combined process it manages — one or more server components run together as a background daemon (or with `--foreground`) via `start`/`stop`/`restart`/`status`.
 _Avoid_: daemon, service, backend
 
 **Server component**:
@@ -170,14 +170,14 @@ A server process running both the Hub and Runtime Broker components together (th
 _Avoid_: hub-broker, all-in-one, standalone, monolith
 
 **Secret**:
-A credential made available to an agent at runtime (e.g. API keys, tokens). A harness-config's `secrets` field *declares* which secrets an agent needs; the **Secret Backend** — a pluggable store (local SQLite for development, GCP Secret Manager in production, selected via `SCION_SERVER_SECRETS_BACKEND`) — *stores and resolves* them, scoped by user, project, runtime broker, or hub, and injects them into the container. Also holds the Hub's signing keys.
+A credential made available to an agent at runtime (e.g. API keys, tokens). A harness-config's `secrets` field *declares* which secrets an agent needs; the **Secret Backend** — a pluggable store (local SQLite for development, GCP Secret Manager in production, selected via `FABRIC_SERVER_SECRETS_BACKEND`) — *stores and resolves* them, scoped by user, project, runtime broker, or hub, and injects them into the container. Also holds the Hub's signing keys.
 _Avoid_: credential, vault, secret store, env secret
 _See also_: Harness-config, Profile
 
 ## Users & Access
 
 **Group**:
-A named collection of Hub users (and nested groups) used by the Hub permissions system to assign access. This is the primary meaning of "group" in Scion.
+A named collection of Hub users (and nested groups) used by the Hub permissions system to assign access. This is the primary meaning of "group" in Fabric.
 _Avoid_: team, org, role
 _See also_: Message Group (different concept — message recipients, not users)
 
@@ -189,7 +189,7 @@ _Avoid_: group, set, group chat, room, thread
 _See also_: Group (different concept — hub users, not recipients)
 
 **Notification**:
-An event delivered when an agent reaches a tracked trigger activity (e.g. `completed`, `waiting_for_input`, `limits_exceeded`). Recipients register a **Subscription** — scoped to a single agent or to a whole project, naming which trigger activities fire it and whether an agent or a user receives it. Backs `scion notifications` and the `--notify` flag on `scion message`.
+An event delivered when an agent reaches a tracked trigger activity (e.g. `completed`, `waiting_for_input`, `limits_exceeded`). Recipients register a **Subscription** — scoped to a single agent or to a whole project, naming which trigger activities fire it and whether an agent or a user receives it. Backs `fabric notifications` and the `--notify` flag on `fabric message`.
 _Avoid_: alert, event (for the notification), watch (for the subscription)
 _See also_: Activity (notifications fire on activity values)
 
@@ -220,21 +220,21 @@ _See also_: Activity (Blocked is one of its values)
 
 ## Modes
 
-The run modes form a spine of increasing infrastructure — **Local → Workstation → Single-node hosted → HA hosted**. Two independent dimensions separate them: the **availability tier** of the control plane (whether the Hub runs as a single instance on an embedded database, or is replicated across an external one), and **Tenancy** (whether it serves one user or many). Tenancy is orthogonal and only opens up once hosted; the availability tier is fixed by the Hub's database driver (`SCION_SERVER_DATABASE_DRIVER`: `sqlite` vs. `postgres`).
+The run modes form a spine of increasing infrastructure — **Local → Workstation → Single-node hosted → HA hosted**. Two independent dimensions separate them: the **availability tier** of the control plane (whether the Hub runs as a single instance on an embedded database, or is replicated across an external one), and **Tenancy** (whether it serves one user or many). Tenancy is orthogonal and only opens up once hosted; the availability tier is fixed by the Hub's database driver (`FABRIC_SERVER_DATABASE_DRIVER`: `sqlite` vs. `postgres`).
 
 | Mode | Control plane | State & durability | Tenancy | Canonical use |
 |------|---------------|--------------------|---------|----------------|
-| **Local mode** | None (CLI only) | Local machine; git-worktree isolation | Single-user | Agents launched directly via the `scion` CLI, no server |
+| **Local mode** | None (CLI only) | Local machine; git-worktree isolation | Single-user | Agents launched directly via the `fabric` CLI, no server |
 | **Workstation mode** | Combo server (Hub + Runtime Broker + Web) on loopback | Embedded SQLite on that machine | Single-user | The hosted experience locally, on your own machine |
 | **Single-node hosted** | One networked Hub instance on a single node | Embedded SQLite, local/single-volume; non-HA | Single- or multi-user | A cheap, simple networked Hub — a single VM, or a single Cloud Run instance + SQLite |
 | **HA hosted** | Hub replicated behind a load balancer | External managed DB (Postgres) + object storage; highly available | Single- or multi-user | A durable, always-on shared deployment — Cloud Run + Cloud SQL |
 
 **Local mode**:
-Running Scion with no server at all — agents launched directly via the `scion` CLI, with state on the local machine and isolation via git worktrees.
+Running Fabric with no server at all — agents launched directly via the `fabric` CLI, with state on the local machine and isolation via git worktrees.
 _Avoid_: solo mode, standalone mode, single-user mode, workstation mode
 
 **Workstation mode**:
-Running a single-tenant Scion server (Hub + Runtime Broker + Web combined) on your own machine, giving the hosted experience locally over loopback. A local server, not the no-server CLI workflow.
+Running a single-tenant Fabric server (Hub + Runtime Broker + Web combined) on your own machine, giving the hosted experience locally over loopback. A local server, not the no-server CLI workflow.
 _Avoid_: local mode, local server, dev mode, single-user mode
 
 **Hosted mode**:
@@ -268,26 +268,26 @@ The Hub handing an agent lifecycle command to the appropriate runtime broker for
 _Avoid_: schedule, route, assign, delegate
 
 **Schedule**:
-A time-based trigger that fires an action — sending a message or dispatching (starting) an agent from a template — either once (a one-shot *scheduled event*, via `--at <time>` or `--in <duration>`) or repeatedly (a recurring *schedule* on a 5-field cron expression). Backs `scion schedule` and the `--at`/`--in` flags on `scion message`.
+A time-based trigger that fires an action — sending a message or dispatching (starting) an agent from a template — either once (a one-shot *scheduled event*, via `--at <time>` or `--in <duration>`) or repeatedly (a recurring *schedule* on a 5-field cron expression). Backs `fabric schedule` and the `--at`/`--in` flags on `fabric message`.
 _Avoid_: cron job (recurring only), scheduled message (too narrow), reminder, timer
 _See also_: Dispatch
 
 ## Observability
 
-Scion produces two distinct families of metrics. They serve different audiences, use different prefixes, and flow through different pipelines — but both export to the same Cloud Monitoring backend.
+Fabric produces two distinct families of metrics. They serve different audiences, use different prefixes, and flow through different pipelines — but both export to the same Cloud Monitoring backend.
 
 **Infrastructure metrics**:
-Operational health metrics for Scion as a system — the Hub process, its database connections, dispatch pipeline, broker authentication, and GCP token minting. These answer "is Scion itself healthy?" and are consumed by platform operators. Prefixes: `scion.hub.*`, `scion.db.*`, `scion.dispatch.*`. Produced by the Hub process; exported directly to Cloud Monitoring via an OTel MeterProvider with a GCP exporter.
+Operational health metrics for Fabric as a system — the Hub process, its database connections, dispatch pipeline, broker authentication, and GCP token minting. These answer "is Fabric itself healthy?" and are consumed by platform operators. Prefixes: `fabric.hub.*`, `fabric.db.*`, `fabric.dispatch.*`. Produced by the Hub process; exported directly to Cloud Monitoring via an OTel MeterProvider with a GCP exporter.
 _Avoid_: system metrics, platform metrics, server metrics
 _See also_: Agent metrics (the other family)
 
 **Agent metrics**:
-Telemetry about what agents and their harnesses are doing — token usage, tool calls, model API latency, session counts, and cost signals. These answer "what are the agents doing and what do they cost?" and are consumed by users and project owners. Prefixes: `gen_ai.*`, `agent.*` (following OpenTelemetry Generative AI semantic conventions). Produced inside agent containers by the harness and sciontool; exported to Cloud Monitoring via the telemetry pipeline (`pkg/sciontool/telemetry`).
+Telemetry about what agents and their harnesses are doing — token usage, tool calls, model API latency, session counts, and cost signals. These answer "what are the agents doing and what do they cost?" and are consumed by users and project owners. Prefixes: `gen_ai.*`, `agent.*` (following OpenTelemetry Generative AI semantic conventions). Produced inside agent containers by the harness and fabrictool; exported to Cloud Monitoring via the telemetry pipeline (`pkg/fabrictool/telemetry`).
 _Avoid_: harness metrics, user metrics, LLM metrics
 _See also_: Infrastructure metrics (the other family), Telemetry pipeline
 
 **Telemetry pipeline**:
-The in-container OTLP receiver and forwarding pipeline (`pkg/sciontool/telemetry`) that collects traces, metrics, and logs from the harness and exports them to a cloud backend (GCP Cloud Monitoring, Cloud Trace, Cloud Logging). Requires the `scion-telemetry-gcp-credentials` secret for cloud export; runs in local-only mode without it.
+The in-container OTLP receiver and forwarding pipeline (`pkg/fabrictool/telemetry`) that collects traces, metrics, and logs from the harness and exports them to a cloud backend (GCP Cloud Monitoring, Cloud Trace, Cloud Logging). Requires the `fabric-telemetry-gcp-credentials` secret for cloud export; runs in local-only mode without it.
 _Avoid_: metrics pipeline, collector, OTel collector
 _See also_: Agent metrics
 
@@ -295,10 +295,10 @@ _See also_: Agent metrics
 
 Terms that recur in the codebase and may warrant canonical entries, but are **not yet defined** here. Listed so they aren't lost; promote to full entries (verified against the code) as the glossary matures.
 
-- **Task** — the unit tracked by sciontool's task management; referenced operationally but not yet given a canonical definition.
+- **Task** — the unit tracked by fabrictool's task management; referenced operationally but not yet given a canonical definition.
 - **Capability** — a declarative harness feature flag (e.g. `max_turns`, `session_resume`, `api_key`, `stdio`) describing what a harness supports.
 - **Resource Spec** — per-agent CPU/memory/disk request and limit (Kubernetes-style), applied per agent or via a Profile.
-- **Label** — `scion.*` key/value metadata attached to agents and containers for identification and filtering.
+- **Label** — `fabric.*` key/value metadata attached to agents and containers for identification and filtering.
 - **Access Policy / scope** — the Hub authorization model: allow/deny rules at `hub`, `project`, or `resource` scope (the mechanism that grants a Group its access).
 - **Image registry** — the container image registry agents pull from (a Profile field).
 - **Session / tmux session** — the per-agent tmux session an Attach connects to.

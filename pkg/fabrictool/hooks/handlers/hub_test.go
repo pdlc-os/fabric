@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package handlers
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 )
 
 // scrubHubEnv clears all Hub-related environment variables for the
@@ -22,11 +22,11 @@ import (
 func scrubHubEnv(t *testing.T) {
 	t.Helper()
 	for _, key := range []string{
-		"SCION_HUB_ENDPOINT",
-		"SCION_HUB_URL",
-		"SCION_AUTH_TOKEN",
-		"SCION_AGENT_ID",
-		"SCION_AGENT_MODE",
+		"FABRIC_HUB_ENDPOINT",
+		"FABRIC_HUB_URL",
+		"FABRIC_AUTH_TOKEN",
+		"FABRIC_AGENT_ID",
+		"FABRIC_AGENT_MODE",
 	} {
 		t.Setenv(key, "")
 	}
@@ -137,9 +137,9 @@ func TestHubHandler_EventMapping(t *testing.T) {
 
 			// Clear real Hub env, then point at the test server (issue #123).
 			scrubHubEnv(t)
-			t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-			t.Setenv("SCION_AUTH_TOKEN", "test-token")
-			t.Setenv("SCION_AGENT_ID", "test-agent-id")
+			t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+			t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+			t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 			// Create handler
 			handler := NewHubHandler()
@@ -214,9 +214,9 @@ func TestHubHandler_ReportMethods(t *testing.T) {
 
 	// Clear real Hub env, then point at the test server (issue #123).
 	scrubHubEnv(t)
-	t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-	t.Setenv("SCION_AUTH_TOKEN", "test-token")
-	t.Setenv("SCION_AGENT_ID", "test-agent-id")
+	t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+	t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+	t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 	handler := NewHubHandler()
 	if handler == nil {
@@ -402,9 +402,9 @@ func TestHubHandler_StickyStatus(t *testing.T) {
 
 			// Clear real Hub env, then point at the test server (issue #123).
 			scrubHubEnv(t)
-			t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-			t.Setenv("SCION_AUTH_TOKEN", "test-token")
-			t.Setenv("SCION_AGENT_ID", "test-agent-id")
+			t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+			t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+			t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 			handler := NewHubHandler()
 			if handler == nil {
@@ -501,9 +501,9 @@ func TestHubHandler_ModeBehavior(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent")
 
 		handler := NewHubHandler()
 		if handler == nil {
@@ -539,9 +539,9 @@ func TestHubHandler_ModeBehavior(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent")
 
 		statusHandler := NewStatusHandler()
 		event := &hooks.Event{
@@ -602,9 +602,9 @@ func TestHubHandler_AssistantTextForwarding(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent-id")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 		handler := NewHubHandler()
 		if handler == nil {
@@ -657,9 +657,9 @@ func TestHubHandler_AssistantTextForwarding(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent-id")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 		handler := NewHubHandler()
 		if handler == nil {
@@ -723,9 +723,9 @@ func TestHubHandler_AssistantTextVisibilityTagging(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent-id")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 		handler := NewHubHandler()
 		if handler == nil {
@@ -783,9 +783,9 @@ func TestHubHandler_AssistantTextVisibilityTagging(t *testing.T) {
 
 		// Clear real Hub env, then point at the test server (issue #123).
 		scrubHubEnv(t)
-		t.Setenv("SCION_HUB_ENDPOINT", server.URL)
-		t.Setenv("SCION_AUTH_TOKEN", "test-token")
-		t.Setenv("SCION_AGENT_ID", "test-agent-id")
+		t.Setenv("FABRIC_HUB_ENDPOINT", server.URL)
+		t.Setenv("FABRIC_AUTH_TOKEN", "test-token")
+		t.Setenv("FABRIC_AGENT_ID", "test-agent-id")
 
 		handler := NewHubHandler()
 		if handler == nil {

@@ -23,12 +23,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 func newTestServerForStartContext(t *testing.T, cfg ServerConfig) *Server {
@@ -47,8 +47,8 @@ func newTestServerForStartContext(t *testing.T, cfg ServerConfig) *Server {
 		_ = os.Chdir(origWd)
 	})
 
-	dotScion := filepath.Join(tmpDir, ".scion")
-	if err := os.Mkdir(dotScion, 0755); err != nil {
+	dotFabric := filepath.Join(tmpDir, ".fabric")
+	if err := os.Mkdir(dotFabric, 0755); err != nil {
 		t.Fatal(err)
 	}
 	settingsYAML := `schema_version: "1"
@@ -60,12 +60,12 @@ runtimes:
     mock:
         type: mock
 `
-	if err := os.WriteFile(filepath.Join(dotScion, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dotFabric, "settings.yaml"), []byte(settingsYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	// Create dummy templates to satisfy FindTemplate
-	templatesDir := filepath.Join(dotScion, "templates")
+	templatesDir := filepath.Join(dotFabric, "templates")
 	if err := os.MkdirAll(templatesDir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -115,23 +115,23 @@ func TestBuildStartContext_BasicFields(t *testing.T) {
 	}
 
 	// Verify broker identity env
-	if sc.Opts.Env["SCION_BROKER_NAME"] != "test-broker" {
-		t.Errorf("expected SCION_BROKER_NAME='test-broker', got %q", sc.Opts.Env["SCION_BROKER_NAME"])
+	if sc.Opts.Env["FABRIC_BROKER_NAME"] != "test-broker" {
+		t.Errorf("expected FABRIC_BROKER_NAME='test-broker', got %q", sc.Opts.Env["FABRIC_BROKER_NAME"])
 	}
-	if sc.Opts.Env["SCION_BROKER_ID"] != "broker-1" {
-		t.Errorf("expected SCION_BROKER_ID='broker-1', got %q", sc.Opts.Env["SCION_BROKER_ID"])
+	if sc.Opts.Env["FABRIC_BROKER_ID"] != "broker-1" {
+		t.Errorf("expected FABRIC_BROKER_ID='broker-1', got %q", sc.Opts.Env["FABRIC_BROKER_ID"])
 	}
-	if sc.Opts.Env["SCION_AGENT_ID"] != "uuid-1" {
-		t.Errorf("expected SCION_AGENT_ID='uuid-1', got %q", sc.Opts.Env["SCION_AGENT_ID"])
+	if sc.Opts.Env["FABRIC_AGENT_ID"] != "uuid-1" {
+		t.Errorf("expected FABRIC_AGENT_ID='uuid-1', got %q", sc.Opts.Env["FABRIC_AGENT_ID"])
 	}
-	if sc.Opts.Env["SCION_AGENT_SLUG"] != "my-agent-slug" {
-		t.Errorf("expected SCION_AGENT_SLUG='my-agent-slug', got %q", sc.Opts.Env["SCION_AGENT_SLUG"])
+	if sc.Opts.Env["FABRIC_AGENT_SLUG"] != "my-agent-slug" {
+		t.Errorf("expected FABRIC_AGENT_SLUG='my-agent-slug', got %q", sc.Opts.Env["FABRIC_AGENT_SLUG"])
 	}
-	if sc.Opts.Env["SCION_GROVE_ID"] != "grove-1" {
-		t.Errorf("expected SCION_GROVE_ID='grove-1', got %q", sc.Opts.Env["SCION_GROVE_ID"])
+	if sc.Opts.Env["FABRIC_GROVE_ID"] != "grove-1" {
+		t.Errorf("expected FABRIC_GROVE_ID='grove-1', got %q", sc.Opts.Env["FABRIC_GROVE_ID"])
 	}
-	if sc.Opts.Env["SCION_DEBUG"] != "1" {
-		t.Errorf("expected SCION_DEBUG='1', got %q", sc.Opts.Env["SCION_DEBUG"])
+	if sc.Opts.Env["FABRIC_DEBUG"] != "1" {
+		t.Errorf("expected FABRIC_DEBUG='1', got %q", sc.Opts.Env["FABRIC_DEBUG"])
 	}
 }
 
@@ -168,11 +168,11 @@ func TestBuildStartContext_EnvMerging(t *testing.T) {
 	}
 }
 
-// TestBuildStartContext_AuthTokenPrecedence verifies the SCION_AUTH_TOKEN
+// TestBuildStartContext_AuthTokenPrecedence verifies the FABRIC_AUTH_TOKEN
 // resolution precedence in buildStartContext step 3:
 //  1. in.AgentToken (explicit hub-provided field) wins.
 //  2. an existing token from ResolvedEnv (start/resume path) is kept and must
-//     NOT be clobbered by the broker's own dev SCION_AUTH_TOKEN. This is the
+//     NOT be clobbered by the broker's own dev FABRIC_AUTH_TOKEN. This is the
 //     regression case for the resume 401 ("compact JWS format must have three
 //     parts").
 //  3. the broker dev token is used only when neither of the above is present.
@@ -184,7 +184,7 @@ func TestBuildStartContext_AuthTokenPrecedence(t *testing.T) {
 
 	t.Run("resolvedEnv token kept over broker dev token", func(t *testing.T) {
 		// Broker has its own (invalid-as-JWT) dev token in the environment.
-		t.Setenv("SCION_AUTH_TOKEN", devToken)
+		t.Setenv("FABRIC_AUTH_TOKEN", devToken)
 
 		cfg := DefaultServerConfig()
 		cfg.StateDir = t.TempDir()
@@ -195,7 +195,7 @@ func TestBuildStartContext_AuthTokenPrecedence(t *testing.T) {
 			Name: "agent-resume",
 			// Hub minted the agent JWT into resolvedEnv on the start/resume path.
 			ResolvedEnv: map[string]string{
-				"SCION_AUTH_TOKEN": hubToken,
+				"FABRIC_AUTH_TOKEN": hubToken,
 			},
 			// AgentToken intentionally empty (start/resume path).
 			HTTPRequest: r,
@@ -203,13 +203,13 @@ func TestBuildStartContext_AuthTokenPrecedence(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := sc.Opts.Env["SCION_AUTH_TOKEN"]; got != hubToken {
-			t.Errorf("expected SCION_AUTH_TOKEN to keep hub-minted token %q, got %q (broker dev token must not clobber)", hubToken, got)
+		if got := sc.Opts.Env["FABRIC_AUTH_TOKEN"]; got != hubToken {
+			t.Errorf("expected FABRIC_AUTH_TOKEN to keep hub-minted token %q, got %q (broker dev token must not clobber)", hubToken, got)
 		}
 	})
 
 	t.Run("explicit AgentToken wins", func(t *testing.T) {
-		t.Setenv("SCION_AUTH_TOKEN", devToken)
+		t.Setenv("FABRIC_AUTH_TOKEN", devToken)
 
 		cfg := DefaultServerConfig()
 		cfg.StateDir = t.TempDir()
@@ -220,20 +220,20 @@ func TestBuildStartContext_AuthTokenPrecedence(t *testing.T) {
 			Name:       "agent-create",
 			AgentToken: explicitToken,
 			ResolvedEnv: map[string]string{
-				"SCION_AUTH_TOKEN": hubToken,
+				"FABRIC_AUTH_TOKEN": hubToken,
 			},
 			HTTPRequest: r,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := sc.Opts.Env["SCION_AUTH_TOKEN"]; got != explicitToken {
-			t.Errorf("expected SCION_AUTH_TOKEN=%q (explicit AgentToken wins), got %q", explicitToken, got)
+		if got := sc.Opts.Env["FABRIC_AUTH_TOKEN"]; got != explicitToken {
+			t.Errorf("expected FABRIC_AUTH_TOKEN=%q (explicit AgentToken wins), got %q", explicitToken, got)
 		}
 	})
 
 	t.Run("broker dev token used as last resort", func(t *testing.T) {
-		t.Setenv("SCION_AUTH_TOKEN", devToken)
+		t.Setenv("FABRIC_AUTH_TOKEN", devToken)
 
 		cfg := DefaultServerConfig()
 		cfg.StateDir = t.TempDir()
@@ -242,14 +242,14 @@ func TestBuildStartContext_AuthTokenPrecedence(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/v1/agents", nil)
 		sc, err := srv.buildStartContext(context.Background(), startContextInputs{
 			Name: "agent-plain-broker",
-			// No AgentToken and no SCION_AUTH_TOKEN in resolvedEnv.
+			// No AgentToken and no FABRIC_AUTH_TOKEN in resolvedEnv.
 			HTTPRequest: r,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got := sc.Opts.Env["SCION_AUTH_TOKEN"]; got != devToken {
-			t.Errorf("expected SCION_AUTH_TOKEN=%q (broker dev fallback), got %q", devToken, got)
+		if got := sc.Opts.Env["FABRIC_AUTH_TOKEN"]; got != devToken {
+			t.Errorf("expected FABRIC_AUTH_TOKEN=%q (broker dev fallback), got %q", devToken, got)
 		}
 	})
 }
@@ -263,7 +263,7 @@ func TestBuildStartContext_TelemetryOverride(t *testing.T) {
 	sc, err := srv.buildStartContext(context.Background(), startContextInputs{
 		Name: "agent-1",
 		ResolvedEnv: map[string]string{
-			"SCION_TELEMETRY_ENABLED": "true",
+			"FABRIC_TELEMETRY_ENABLED": "true",
 		},
 		HTTPRequest: r,
 	})
@@ -272,7 +272,7 @@ func TestBuildStartContext_TelemetryOverride(t *testing.T) {
 	}
 
 	if sc.Opts.TelemetryOverride == nil || !*sc.Opts.TelemetryOverride {
-		t.Error("expected TelemetryOverride to be true when SCION_TELEMETRY_ENABLED=true")
+		t.Error("expected TelemetryOverride to be true when FABRIC_TELEMETRY_ENABLED=true")
 	}
 }
 
@@ -363,17 +363,17 @@ func TestBuildStartContext_GitClone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if sc.Opts.Env["SCION_GIT_CLONE_URL"] != "https://github.com/org/repo.git" {
-		t.Errorf("expected SCION_GIT_CLONE_URL set, got %q", sc.Opts.Env["SCION_GIT_CLONE_URL"])
+	if sc.Opts.Env["FABRIC_GIT_CLONE_URL"] != "https://github.com/org/repo.git" {
+		t.Errorf("expected FABRIC_GIT_CLONE_URL set, got %q", sc.Opts.Env["FABRIC_GIT_CLONE_URL"])
 	}
-	if sc.Opts.Env["SCION_GIT_BRANCH"] != "main" {
-		t.Errorf("expected SCION_GIT_BRANCH='main', got %q", sc.Opts.Env["SCION_GIT_BRANCH"])
+	if sc.Opts.Env["FABRIC_GIT_BRANCH"] != "main" {
+		t.Errorf("expected FABRIC_GIT_BRANCH='main', got %q", sc.Opts.Env["FABRIC_GIT_BRANCH"])
 	}
-	if sc.Opts.Env["SCION_GIT_DEPTH"] != "1" {
-		t.Errorf("expected SCION_GIT_DEPTH='1', got %q", sc.Opts.Env["SCION_GIT_DEPTH"])
+	if sc.Opts.Env["FABRIC_GIT_DEPTH"] != "1" {
+		t.Errorf("expected FABRIC_GIT_DEPTH='1', got %q", sc.Opts.Env["FABRIC_GIT_DEPTH"])
 	}
-	if sc.Opts.Env["SCION_AGENT_BRANCH"] != "feature-1" {
-		t.Errorf("expected SCION_AGENT_BRANCH='feature-1', got %q", sc.Opts.Env["SCION_AGENT_BRANCH"])
+	if sc.Opts.Env["FABRIC_AGENT_BRANCH"] != "feature-1" {
+		t.Errorf("expected FABRIC_AGENT_BRANCH='feature-1', got %q", sc.Opts.Env["FABRIC_AGENT_BRANCH"])
 	}
 	// Git clone mode should clear workspace but preserve project path
 	// so ProvisionAgent can resolve the correct agent directory.
@@ -439,16 +439,16 @@ func TestBuildStartContext_HubManagedProjectWritesMarker(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Verify .scion marker file was created (not a directory)
-	scionPath := filepath.Join(projectPath, ".scion")
-	if !config.IsProjectMarkerFile(scionPath) {
-		t.Fatal(".scion marker file was not created")
+	// Verify .fabric marker file was created (not a directory)
+	fabricPath := filepath.Join(projectPath, ".fabric")
+	if !config.IsProjectMarkerFile(fabricPath) {
+		t.Fatal(".fabric marker file was not created")
 	}
 
 	// Verify project-id was written via marker
-	marker, err := config.ReadProjectMarker(scionPath)
+	marker, err := config.ReadProjectMarker(fabricPath)
 	if err != nil {
-		t.Fatalf("failed to read .scion marker: %v", err)
+		t.Fatalf("failed to read .fabric marker: %v", err)
 	}
 	if marker.ProjectID != "6d868c0f-b862-49e0-a44b-3555a3887ee3" {
 		t.Errorf("expected project-id '6d868c0f-b862-49e0-a44b-3555a3887ee3', got %q", marker.ProjectID)
@@ -495,10 +495,10 @@ func TestBuildStartContext_HubManagedProjectSlugResolution(t *testing.T) {
 	}
 
 	// Verify project-id was written via marker file
-	scionPath := filepath.Join(sc.Opts.ProjectPath, ".scion")
-	marker, err := config.ReadProjectMarker(scionPath)
+	fabricPath := filepath.Join(sc.Opts.ProjectPath, ".fabric")
+	marker, err := config.ReadProjectMarker(fabricPath)
 	if err != nil {
-		t.Fatalf("failed to read .scion marker: %v", err)
+		t.Fatalf("failed to read .fabric marker: %v", err)
 	}
 	if marker.ProjectID != "aabbccdd-1234-5678-9012-abcdef123456" {
 		t.Errorf("expected project-id from hub, got %q", marker.ProjectID)
@@ -510,14 +510,14 @@ func TestBuildStartContext_HubManagedProjectPreservesExistingProjectID(t *testin
 	cfg.StateDir = t.TempDir()
 	srv := newTestServerForStartContext(t, cfg)
 
-	// Pre-create .scion as a directory with an existing project-id (git project)
+	// Pre-create .fabric as a directory with an existing project-id (git project)
 	projectPath := filepath.Join(t.TempDir(), "existing-grove")
-	scionDir := filepath.Join(projectPath, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
+	fabricDir := filepath.Join(projectPath, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 	existingID := "existing-id-1234-5678"
-	if err := config.WriteProjectID(scionDir, existingID); err != nil {
+	if err := config.WriteProjectID(fabricDir, existingID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -532,7 +532,7 @@ func TestBuildStartContext_HubManagedProjectPreservesExistingProjectID(t *testin
 	}
 
 	// Verify existing project-id was NOT overwritten (directory-based path)
-	projectID, err := config.ReadProjectID(scionDir)
+	projectID, err := config.ReadProjectID(fabricDir)
 	if err != nil {
 		t.Fatalf("failed to read project-id: %v", err)
 	}
@@ -546,14 +546,14 @@ func TestBuildStartContext_HubManagedProjectPreservesExistingMarker(t *testing.T
 	cfg.StateDir = t.TempDir()
 	srv := newTestServerForStartContext(t, cfg)
 
-	// Pre-create .scion as a marker file (hub-managed project)
+	// Pre-create .fabric as a marker file (hub-managed project)
 	projectPath := filepath.Join(t.TempDir(), "existing-grove")
 	if err := os.MkdirAll(projectPath, 0755); err != nil {
 		t.Fatal(err)
 	}
 	existingID := "existing-id-1234-5678"
-	scionPath := filepath.Join(projectPath, ".scion")
-	if err := config.WriteProjectMarker(scionPath, &config.ProjectMarker{
+	fabricPath := filepath.Join(projectPath, ".fabric")
+	if err := config.WriteProjectMarker(fabricPath, &config.ProjectMarker{
 		ProjectID:   existingID,
 		ProjectName: "existing-grove",
 		ProjectSlug: "existing-grove",
@@ -572,7 +572,7 @@ func TestBuildStartContext_HubManagedProjectPreservesExistingMarker(t *testing.T
 	}
 
 	// Verify existing marker was NOT overwritten (marker file path)
-	marker, err := config.ReadProjectMarker(scionPath)
+	marker, err := config.ReadProjectMarker(fabricPath)
 	if err != nil {
 		t.Fatalf("failed to read marker: %v", err)
 	}
@@ -594,11 +594,11 @@ func TestBuildStartContext_HubEndpoint(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if sc.Opts.Env["SCION_HUB_ENDPOINT"] != "https://hub.example.com" {
-		t.Errorf("expected SCION_HUB_ENDPOINT='https://hub.example.com', got %q", sc.Opts.Env["SCION_HUB_ENDPOINT"])
+	if sc.Opts.Env["FABRIC_HUB_ENDPOINT"] != "https://hub.example.com" {
+		t.Errorf("expected FABRIC_HUB_ENDPOINT='https://hub.example.com', got %q", sc.Opts.Env["FABRIC_HUB_ENDPOINT"])
 	}
-	if sc.Opts.Env["SCION_HUB_URL"] != "https://hub.example.com" {
-		t.Errorf("expected SCION_HUB_URL='https://hub.example.com', got %q", sc.Opts.Env["SCION_HUB_URL"])
+	if sc.Opts.Env["FABRIC_HUB_URL"] != "https://hub.example.com" {
+		t.Errorf("expected FABRIC_HUB_URL='https://hub.example.com', got %q", sc.Opts.Env["FABRIC_HUB_URL"])
 	}
 }
 
@@ -618,11 +618,11 @@ func TestBuildStartContext_GCPMetadataDefaultBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if sc.Opts.Env["SCION_METADATA_MODE"] != "block" {
-		t.Errorf("expected SCION_METADATA_MODE='block' by default, got %q", sc.Opts.Env["SCION_METADATA_MODE"])
+	if sc.Opts.Env["FABRIC_METADATA_MODE"] != "block" {
+		t.Errorf("expected FABRIC_METADATA_MODE='block' by default, got %q", sc.Opts.Env["FABRIC_METADATA_MODE"])
 	}
-	if sc.Opts.Env["SCION_METADATA_PORT"] != "18380" {
-		t.Errorf("expected SCION_METADATA_PORT='18380', got %q", sc.Opts.Env["SCION_METADATA_PORT"])
+	if sc.Opts.Env["FABRIC_METADATA_PORT"] != "18380" {
+		t.Errorf("expected FABRIC_METADATA_PORT='18380', got %q", sc.Opts.Env["FABRIC_METADATA_PORT"])
 	}
 	if sc.Opts.Env["GCE_METADATA_HOST"] != "localhost:18380" {
 		t.Errorf("expected GCE_METADATA_HOST='localhost:18380', got %q", sc.Opts.Env["GCE_METADATA_HOST"])
@@ -631,8 +631,8 @@ func TestBuildStartContext_GCPMetadataDefaultBlock(t *testing.T) {
 		t.Errorf("expected GCE_METADATA_ROOT='localhost:18380', got %q", sc.Opts.Env["GCE_METADATA_ROOT"])
 	}
 	// No SA env vars should be set in block mode
-	if sc.Opts.Env["SCION_METADATA_SA_EMAIL"] != "" {
-		t.Errorf("expected empty SCION_METADATA_SA_EMAIL in block mode, got %q", sc.Opts.Env["SCION_METADATA_SA_EMAIL"])
+	if sc.Opts.Env["FABRIC_METADATA_SA_EMAIL"] != "" {
+		t.Errorf("expected empty FABRIC_METADATA_SA_EMAIL in block mode, got %q", sc.Opts.Env["FABRIC_METADATA_SA_EMAIL"])
 	}
 }
 
@@ -657,8 +657,8 @@ func TestBuildStartContext_GCPMetadataPassthrough(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if sc.Opts.Env["SCION_METADATA_MODE"] != "" {
-		t.Errorf("expected no SCION_METADATA_MODE for passthrough, got %q", sc.Opts.Env["SCION_METADATA_MODE"])
+	if sc.Opts.Env["FABRIC_METADATA_MODE"] != "" {
+		t.Errorf("expected no FABRIC_METADATA_MODE for passthrough, got %q", sc.Opts.Env["FABRIC_METADATA_MODE"])
 	}
 	if sc.Opts.Env["GCE_METADATA_HOST"] != "" {
 		t.Errorf("expected no GCE_METADATA_HOST for passthrough, got %q", sc.Opts.Env["GCE_METADATA_HOST"])
@@ -688,8 +688,8 @@ func TestBuildStartContext_GCPMetadataExplicitBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if sc.Opts.Env["SCION_METADATA_MODE"] != "block" {
-		t.Errorf("expected SCION_METADATA_MODE='block', got %q", sc.Opts.Env["SCION_METADATA_MODE"])
+	if sc.Opts.Env["FABRIC_METADATA_MODE"] != "block" {
+		t.Errorf("expected FABRIC_METADATA_MODE='block', got %q", sc.Opts.Env["FABRIC_METADATA_MODE"])
 	}
 	if sc.Opts.Env["GCE_METADATA_HOST"] != "localhost:18380" {
 		t.Errorf("expected GCE_METADATA_HOST='localhost:18380', got %q", sc.Opts.Env["GCE_METADATA_HOST"])
@@ -714,9 +714,9 @@ func TestBuildStartContext_GCPMetadataFromResolvedEnv(t *testing.T) {
 	sc, err := srv.buildStartContext(context.Background(), startContextInputs{
 		Name: "agent-resolved-assign",
 		ResolvedEnv: map[string]string{
-			"SCION_METADATA_MODE":       "assign",
-			"SCION_METADATA_SA_EMAIL":   "sa@proj.iam.gserviceaccount.com",
-			"SCION_METADATA_PROJECT_ID": "my-project",
+			"FABRIC_METADATA_MODE":       "assign",
+			"FABRIC_METADATA_SA_EMAIL":   "sa@proj.iam.gserviceaccount.com",
+			"FABRIC_METADATA_PROJECT_ID": "my-project",
 		},
 		HTTPRequest: r,
 	})
@@ -724,14 +724,14 @@ func TestBuildStartContext_GCPMetadataFromResolvedEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if sc.Opts.Env["SCION_METADATA_MODE"] != "assign" {
-		t.Errorf("expected SCION_METADATA_MODE='assign', got %q", sc.Opts.Env["SCION_METADATA_MODE"])
+	if sc.Opts.Env["FABRIC_METADATA_MODE"] != "assign" {
+		t.Errorf("expected FABRIC_METADATA_MODE='assign', got %q", sc.Opts.Env["FABRIC_METADATA_MODE"])
 	}
-	if sc.Opts.Env["SCION_METADATA_SA_EMAIL"] != "sa@proj.iam.gserviceaccount.com" {
-		t.Errorf("expected SA email from resolvedEnv, got %q", sc.Opts.Env["SCION_METADATA_SA_EMAIL"])
+	if sc.Opts.Env["FABRIC_METADATA_SA_EMAIL"] != "sa@proj.iam.gserviceaccount.com" {
+		t.Errorf("expected SA email from resolvedEnv, got %q", sc.Opts.Env["FABRIC_METADATA_SA_EMAIL"])
 	}
-	if sc.Opts.Env["SCION_METADATA_PROJECT_ID"] != "my-project" {
-		t.Errorf("expected project ID from resolvedEnv, got %q", sc.Opts.Env["SCION_METADATA_PROJECT_ID"])
+	if sc.Opts.Env["FABRIC_METADATA_PROJECT_ID"] != "my-project" {
+		t.Errorf("expected project ID from resolvedEnv, got %q", sc.Opts.Env["FABRIC_METADATA_PROJECT_ID"])
 	}
 	if sc.Opts.Env["GCE_METADATA_HOST"] != "localhost:18380" {
 		t.Errorf("expected GCE_METADATA_HOST='localhost:18380', got %q", sc.Opts.Env["GCE_METADATA_HOST"])
@@ -749,7 +749,7 @@ func TestBuildStartContext_GCPMetadataPassthroughFromResolvedEnv(t *testing.T) {
 	sc, err := srv.buildStartContext(context.Background(), startContextInputs{
 		Name: "agent-resolved-passthrough",
 		ResolvedEnv: map[string]string{
-			"SCION_METADATA_MODE": "passthrough",
+			"FABRIC_METADATA_MODE": "passthrough",
 		},
 		HTTPRequest: r,
 	})
@@ -758,8 +758,8 @@ func TestBuildStartContext_GCPMetadataPassthroughFromResolvedEnv(t *testing.T) {
 	}
 
 	// Passthrough should NOT set metadata server env vars
-	if sc.Opts.Env["SCION_METADATA_PORT"] != "" {
-		t.Errorf("expected no SCION_METADATA_PORT for passthrough, got %q", sc.Opts.Env["SCION_METADATA_PORT"])
+	if sc.Opts.Env["FABRIC_METADATA_PORT"] != "" {
+		t.Errorf("expected no FABRIC_METADATA_PORT for passthrough, got %q", sc.Opts.Env["FABRIC_METADATA_PORT"])
 	}
 	if sc.Opts.Env["GCE_METADATA_HOST"] != "" {
 		t.Errorf("expected no GCE_METADATA_HOST for passthrough, got %q", sc.Opts.Env["GCE_METADATA_HOST"])
@@ -1068,7 +1068,7 @@ func initBareRepoWithCommit(t *testing.T) string {
 // (agent-a's), provisioning succeeds as a JOIN and opts.Workspace is set to
 // agent-a's worktree path (not WorktreePath(base, agent-b)).
 func TestTryProvisionWorktree_JoinResolvesSharedPath(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	cfg := DefaultServerConfig()
 	cfg.StateDir = t.TempDir()
@@ -1158,7 +1158,7 @@ func TestTryProvisionWorktree_JoinResolvesSharedPath(t *testing.T) {
 // common.go's .git + worktree dual-mount. (Regression guard for the #350 review
 // claim that opts.RepoRoot must be set explicitly.)
 func TestWorktreeWorkspace_RepoRootDerivesToBase(t *testing.T) {
-	t.Setenv("SCION_HOST_UID", "")
+	t.Setenv("FABRIC_HOST_UID", "")
 
 	bare := initBareRepoWithCommit(t)
 	gc := &api.GitCloneConfig{URL: bare, Branch: "main", Depth: 0}

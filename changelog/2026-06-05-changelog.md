@@ -18,4 +18,4 @@ This release introduces significant architectural improvements focused on scalab
 * **UI/UX Refinements:** Fixed task overflow in the agent list and unified action buttons for a consistent experience.
 * **Broker Reliability:** Prevented stale disconnect events from incorrectly marking reconnected brokers as offline.
 * **Lifecycle Reliability:** Guarded hub agent phase transitions against spurious session lifecycle events.
-* **Token Protection:** Prevented `sciontool` tests from accidentally clobbering live agent tokens.
+* **Token Protection:** Prevented `fabrictool` tests from accidentally clobbering live agent tokens.

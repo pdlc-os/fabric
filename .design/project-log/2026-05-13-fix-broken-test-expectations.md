@@ -12,7 +12,7 @@ Fixed three test failures caused by the grove-to-project rename where test expec
 
 2. **`pkg/hubsync/sync_test.go:80`** - `TestEnsureHubReady_GlobalFallbackWithHubEnabled`: Changed the settings YAML key from `grove_id` to `project_id`. The `Settings.ProjectID` field now has yaml tag `project_id` (in `pkg/config/settings.go:133`), so the old `grove_id` key was silently ignored, resulting in an empty `ProjectID`.
 
-3. **`pkg/runtime/k8s_shared_dirs_test.go:304`** - `TestCreateSharedDirPVCs_MissingGroveLabel`: Updated expected error substring from `"missing scion.grove label"` to `"missing scion.project or scion.grove label"` to match `pkg/runtime/k8s_runtime.go:685`.
+3. **`pkg/runtime/k8s_shared_dirs_test.go:304`** - `TestCreateSharedDirPVCs_MissingGroveLabel`: Updated expected error substring from `"missing fabric.grove label"` to `"missing fabric.project or fabric.grove label"` to match `pkg/runtime/k8s_runtime.go:685`.
 
 ## Verification
 

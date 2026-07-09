@@ -19,16 +19,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/harnesses"
+	"github.com/pdlc-os/fabric/harnesses"
 )
 
-// SharedHarnessHelperSource returns the embedded scion_harness.py contents.
+// SharedHarnessHelperSource returns the embedded fabric_harness.py contents.
 // Tests use this to assert the staged file matches the embedded source.
 func SharedHarnessHelperSource() []byte {
 	return harnesses.CanonicalHarnessLib
 }
 
-// writeSharedHarnessHelper writes the embedded scion_harness.py to dst, creating
+// writeSharedHarnessHelper writes the embedded fabric_harness.py to dst, creating
 // parent directories as needed. The file is mode 0644 — it is not executable
 // because provision.py imports it as a Python module.
 func writeSharedHarnessHelper(dst string) error {

@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // inboundMessageRequest is the JSON body sent by broker plugins to deliver
@@ -38,11 +38,11 @@ type inboundMessageRequest struct {
 // This is the callback endpoint that broker plugins use to deliver inbound
 // messages from external systems to the hub for dispatch to agents.
 //
-// Authentication: Requires broker HMAC authentication (X-Scion-Broker-ID header
+// Authentication: Requires broker HMAC authentication (X-Fabric-Broker-ID header
 // validated by BrokerAuthMiddleware).
 //
 // The topic string is parsed to extract the project ID and agent slug. Canonical
-// broker topics use scion.project; legacy scion.grove topics are accepted here
+// broker topics use fabric.project; legacy fabric.grove topics are accepted here
 // as an external compatibility adapter.
 func (s *Server) handleBrokerInbound(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -59,7 +59,7 @@ func (s *Server) handleBrokerInbound(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log plugin name for observability
-	pluginName := r.Header.Get("X-Scion-Plugin-Name")
+	pluginName := r.Header.Get("X-Fabric-Plugin-Name")
 	log := s.messageLog.With(
 		"broker_id", broker.ID(),
 		"plugin_name", pluginName,
@@ -208,15 +208,15 @@ func (s *Server) handleBrokerInbound(w http.ResponseWriter, r *http.Request) {
 }
 
 // parseAgentMessageTopic extracts the project ID and agent slug from a topic string.
-// Expected canonical format: scion.project.<projectID>.agent.<agentSlug>.messages.
-// Legacy scion.grove topics are accepted at this adapter boundary.
+// Expected canonical format: fabric.project.<projectID>.agent.<agentSlug>.messages.
+// Legacy fabric.grove topics are accepted at this adapter boundary.
 func parseAgentMessageTopic(topic string) (projectID, agentSlug string, err error) {
 	parsed, err := projectcompat.ParseTopic(topic)
 	if err != nil {
 		return "", "", err
 	}
 	if parsed.Kind != projectcompat.TopicKindAgent {
-		return "", "", fmt.Errorf("expected format scion.project.<projectId>.agent.<agentSlug>.messages")
+		return "", "", fmt.Errorf("expected format fabric.project.<projectId>.agent.<agentSlug>.messages")
 	}
 	return parsed.ProjectID, parsed.Actor, nil
 }

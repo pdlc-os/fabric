@@ -1,6 +1,6 @@
 # Authentication Implementation Milestones
 
-This document tracks the phased implementation of Scion authentication.
+This document tracks the phased implementation of Fabric authentication.
 
 *Last updated: 2026-02-18*
 
@@ -10,13 +10,13 @@ This document tracks the phased implementation of Scion authentication.
 
 - [x] Add `auth.devMode`, `auth.devToken`, `auth.devTokenFile` to config schema
 - [x] Implement `InitDevAuth()` function
-- [x] Add `--dev-auth` flag to `scion server start`
+- [x] Add `--dev-auth` flag to `fabric server start`
 - [x] Implement `DevAuthMiddleware`
 - [x] Add startup logging for dev token
 - [ ] Add validation to block non-localhost + no-TLS + devMode
 - [x] Add `WithDevToken()` option to `hubclient`
 - [x] Add `WithAutoDevAuth()` option to `hubclient`
-- [x] Add `SCION_DEV_TOKEN` environment variable support in CLI
+- [x] Add `FABRIC_DEV_TOKEN` environment variable support in CLI
 
 ---
 
@@ -31,24 +31,24 @@ This document tracks the phased implementation of Scion authentication.
 
 ## Phase 2: CLI Authentication
 
-- [x] `scion hub auth login` command
+- [x] `fabric hub auth login` command
 - [x] Localhost callback server (`pkg/hub/auth/localhost_server.go`)
 - [ ] PKCE implementation
 - [x] Credential storage (`pkg/credentials/store.go`)
-- [x] `scion hub auth status` command
-- [x] `scion hub auth logout` command
+- [x] `fabric hub auth status` command
+- [x] `fabric hub auth logout` command
 
 ---
 
-## Phase 2.5: Agent Authentication (sciontool)
+## Phase 2.5: Agent Authentication (fabrictool)
 
 *Added: 2026-01-31*
 
 - [x] Hub-issued JWT tokens for agents (`pkg/hub/agenttoken.go`)
 - [x] Agent token validation middleware
 - [x] Token generation during agent provisioning
-- [x] `SCION_HUB_TOKEN` environment variable in containers
-- [x] sciontool hub client (`pkg/sciontool/hub/client.go`)
+- [x] `FABRIC_HUB_TOKEN` environment variable in containers
+- [x] fabrictool hub client (`pkg/fabrictool/hub/client.go`)
 - [x] Agent status reporting to Hub
 - [ ] Token refresh mechanism
 - [ ] Scope-based authorization enforcement on endpoints
@@ -62,7 +62,7 @@ This document tracks the phased implementation of Scion authentication.
 - [x] API key store interface + SQLite implementation (`pkg/store/`)
 - [x] Key prefix system, SHA256 hashing, expiration, revocation, last-used tracking, scope support
 - [ ] Key management UI in dashboard (web frontend M14)
-- [ ] `scion hub auth set-key` command
+- [ ] `fabric hub auth set-key` command
 
 ---
 
@@ -99,4 +99,4 @@ This document tracks the phased implementation of Scion authentication.
 - [Server Authentication](server-auth-design.md) - Hub server-side auth handling
 - [Server Auth Setup](server-auth-setup.md) - API keys and dev authentication
 - [Runtime Broker Auth](runtime-broker-auth.md) - Broker registration (future)
-- [sciontool Auth](sciontool-auth.md) - Agent-to-Hub JWT authentication
+- [fabrictool Auth](fabrictool-auth.md) - Agent-to-Hub JWT authentication

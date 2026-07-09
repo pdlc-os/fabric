@@ -20,8 +20,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/plugin"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -95,8 +95,8 @@ func TestBrokerServer_Serve_SelfManaged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetInfo failed: %v", err)
 	}
-	if info.Name != "scion-chat-app" {
-		t.Errorf("expected name %q, got %q", "scion-chat-app", info.Name)
+	if info.Name != "fabric-chat-app" {
+		t.Errorf("expected name %q, got %q", "fabric-chat-app", info.Name)
 	}
 
 	// HealthCheck should return degraded (not yet configured by hub after our Configure

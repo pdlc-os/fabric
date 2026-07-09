@@ -30,7 +30,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/wsprotocol"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/gorilla/websocket"
 	"golang.org/x/term"
 )

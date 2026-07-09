@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies how an agent running inside a container can use the `scion` CLI (or Hub API directly) to create, start, and manage peer agents within its own grove. This enables a "lead agent" pattern where a coordinating agent can spawn specialized sub-agents to divide work, without requiring user-level credentials inside the container.
+This document specifies how an agent running inside a container can use the `fabric` CLI (or Hub API directly) to create, start, and manage peer agents within its own grove. This enables a "lead agent" pattern where a coordinating agent can spawn specialized sub-agents to divide work, without requiring user-level credentials inside the container.
 
 ### Motivation
 
@@ -15,7 +15,7 @@ A common orchestration pattern is for a "lead" or "planner" agent to decompose a
 
 1. **Scoped Delegation** - Agents can create and manage other agents, but only within their own grove.
 2. **Minimal Surface** - Reuse existing auth infrastructure (agent JWT tokens and scopes) with minimal new code.
-3. **No New Binaries** - The `scion` CLI is already present in agent containers; it just needs the Hub to accept its token for these operations.
+3. **No New Binaries** - The `fabric` CLI is already present in agent containers; it just needs the Hub to accept its token for these operations.
 4. **Security Boundaries** - Agents cannot escalate beyond their grove, cannot affect agents in other groves, and cannot grant sub-agents more scopes than they possess.
 
 ### Non-Goals
@@ -33,13 +33,13 @@ A common orchestration pattern is for a "lead" or "planner" agent to decompose a
 
 | Capability | Status | Notes |
 |---|---|---|
-| `scion` binary in container | Available | Built into base image at `/usr/local/bin/scion` |
-| `SCION_HUB_URL` env var | Available | Injected by Runtime Broker at container start |
-| `SCION_HUB_TOKEN` env var | Available | Agent JWT injected by Runtime Broker |
-| `SCION_AGENT_ID` env var | Available | Agent's own ID |
-| `.scion` grove directory | Available | Mounted at `/repo-root/.scion` via repo root mount |
+| `fabric` binary in container | Available | Built into base image at `/usr/local/bin/fabric` |
+| `FABRIC_HUB_URL` env var | Available | Injected by Runtime Broker at container start |
+| `FABRIC_HUB_TOKEN` env var | Available | Agent JWT injected by Runtime Broker |
+| `FABRIC_AGENT_ID` env var | Available | Agent's own ID |
+| `.fabric` grove directory | Available | Mounted at `/repo-root/.fabric` via repo root mount |
 | Git remote URL | Available | `.git` is mounted; `git remote get-url origin` works |
-| Grove resolution | Works | `config.FindProjectRoot()` walks up from cwd to find `.scion` |
+| Grove resolution | Works | `config.FindProjectRoot()` walks up from cwd to find `.fabric` |
 
 ### 2.2 What Blocks It
 
@@ -78,7 +78,7 @@ const (
 )
 ```
 
-> **Note:** The `grove:` prefix on the new scopes signals that these are grove-scoped operations, consistent with the naming foreshadowed in `sciontool-auth.md` §4.2 which listed `grove:agent:create` as a future scope.
+> **Note:** The `grove:` prefix on the new scopes signals that these are grove-scoped operations, consistent with the naming foreshadowed in `fabrictool-auth.md` §4.2 which listed `grove:agent:create` as a future scope.
 
 ### 3.2 Scope Grant Configuration
 
@@ -89,7 +89,7 @@ Not all agents should be able to spawn sub-agents. The scopes should be opt-in, 
 Add an `allowHubAccess` (or `hubScopes`) field to agent templates:
 
 ```yaml
-# In agent template or .scion/agents/<name>/config.yaml
+# In agent template or .fabric/agents/<name>/config.yaml
 hub_access:
   scopes:
     - grove:agent:create
@@ -103,7 +103,7 @@ When the Hub provisions an agent whose template includes these scopes, they are 
 A grove-level setting that grants all agents in the grove the ability to create sub-agents:
 
 ```yaml
-# In .scion/settings.yaml or grove config on Hub
+# In .fabric/settings.yaml or grove config on Hub
 grove:
   agent_hub_scopes:
     - grove:agent:create
@@ -220,19 +220,19 @@ Same pattern — allow agents with appropriate scopes to read sibling agent deta
 
 ### 3.5 CLI Behavior Inside Containers
 
-The `scion` CLI already supports Hub mode and reads from environment variables. From inside a container, the following would work without CLI changes:
+The `fabric` CLI already supports Hub mode and reads from environment variables. From inside a container, the following would work without CLI changes:
 
 ```bash
 # Agent's environment already has:
-# SCION_HUB_URL=https://hub.example.com
-# SCION_HUB_TOKEN=<agent-jwt>
+# FABRIC_HUB_URL=https://hub.example.com
+# FABRIC_HUB_TOKEN=<agent-jwt>
 
 # Create and start a sub-agent
-scion start code-reviewer "Review the changes in src/auth/ for security issues"
+fabric start code-reviewer "Review the changes in src/auth/ for security issues"
 
 # The CLI will:
-# 1. Find .scion at /repo-root/.scion (grove resolution works)
-# 2. Read SCION_HUB_URL and SCION_HUB_TOKEN from env
+# 1. Find .fabric at /repo-root/.fabric (grove resolution works)
+# 2. Read FABRIC_HUB_URL and FABRIC_HUB_TOKEN from env
 # 3. Resolve grove ID via git remote + Hub API lookup
 # 4. POST to Hub API to create/start the agent
 # 5. Hub dispatches to an available Runtime Broker
@@ -240,14 +240,14 @@ scion start code-reviewer "Review the changes in src/auth/ for security issues"
 
 #### CLI Authentication Path
 
-The `scion` CLI resolves auth in this order (`cmd/hub.go`):
+The `fabric` CLI resolves auth in this order (`cmd/hub.go`):
 
 1. Settings-based token (`settings.Hub.Token`)
-2. OAuth credentials (`~/.scion/credentials.json`)
-3. Dev token (`SCION_DEV_TOKEN`)
+2. OAuth credentials (`~/.fabric/credentials.json`)
+3. Dev token (`FABRIC_DEV_TOKEN`)
 4. Auto-dev-auth fallback
 
-In a container, none of these are present. The `SCION_HUB_TOKEN` env var is consumed by `sciontool`, but the `scion` CLI needs to also pick it up. This requires a small addition to the CLI's auth resolution to check `SCION_HUB_TOKEN` as a bearer token source.
+In a container, none of these are present. The `FABRIC_HUB_TOKEN` env var is consumed by `fabrictool`, but the `fabric` CLI needs to also pick it up. This requires a small addition to the CLI's auth resolution to check `FABRIC_HUB_TOKEN` as a bearer token source.
 
 **File:** `cmd/hub.go` — hub client initialization
 
@@ -255,7 +255,7 @@ Add a step in the auth resolution chain:
 
 ```go
 // Check for agent-mode token (when running inside a container)
-if token := os.Getenv("SCION_HUB_TOKEN"); token != "" {
+if token := os.Getenv("FABRIC_HUB_TOKEN"); token != "" {
     opts = append(opts, hubclient.WithBearerToken(token))
 }
 ```
@@ -294,15 +294,15 @@ For reference, the following context is available inside an agent container that
 
 | Resource | Container Path | Source |
 |---|---|---|
-| `scion` binary | `/usr/local/bin/scion` | Built into container image |
-| `sciontool` binary | `/usr/local/bin/sciontool` | Built into container image |
-| Grove directory | `/repo-root/.scion` | Mounted from host repo root |
+| `fabric` binary | `/usr/local/bin/fabric` | Built into container image |
+| `fabrictool` binary | `/usr/local/bin/fabrictool` | Built into container image |
+| Grove directory | `/repo-root/.fabric` | Mounted from host repo root |
 | Git directory | `/repo-root/.git` | Mounted from host repo root |
-| Hub URL | `$SCION_HUB_URL` | Env var injected by broker |
-| Hub token | `$SCION_HUB_TOKEN` | Env var injected by broker |
-| Agent ID | `$SCION_AGENT_ID` | Env var injected by broker |
-| Agent slug | `$SCION_AGENT_SLUG` | Env var injected by broker |
-| Broker name | `$SCION_BROKER_NAME` | Env var injected by broker |
+| Hub URL | `$FABRIC_HUB_URL` | Env var injected by broker |
+| Hub token | `$FABRIC_HUB_TOKEN` | Env var injected by broker |
+| Agent ID | `$FABRIC_AGENT_ID` | Env var injected by broker |
+| Agent slug | `$FABRIC_AGENT_SLUG` | Env var injected by broker |
+| Broker name | `$FABRIC_BROKER_NAME` | Env var injected by broker |
 
 ---
 
@@ -321,8 +321,8 @@ For reference, the following context is available inside an agent container that
 8. Add handler tests covering agent-as-caller scenarios.
 
 ### Phase 3: CLI Integration
-9. Update `cmd/hub.go` auth resolution to check `SCION_HUB_TOKEN` env var.
-10. End-to-end test: agent inside container calls `scion start` to create a sub-agent.
+9. Update `cmd/hub.go` auth resolution to check `FABRIC_HUB_TOKEN` env var.
+10. End-to-end test: agent inside container calls `fabric start` to create a sub-agent.
 
 ---
 
@@ -335,14 +335,14 @@ For reference, the following context is available inside an agent container that
 | `pkg/hub/server.go` | Conditional scope inclusion in `GenerateAgentToken` call |
 | `pkg/hub/handlers.go` | Auth checks in `createAgent`, `handleAgentAction`, `handleAgentByID` |
 | `pkg/hub/handlers_test.go` | Handler tests for agent-as-caller |
-| `cmd/hub.go` | Auth resolution: add `SCION_HUB_TOKEN` env var check |
+| `cmd/hub.go` | Auth resolution: add `FABRIC_HUB_TOKEN` env var check |
 | Agent template/config schema | `hub_access.scopes` field |
 
 ---
 
 ## Related Documents
 
-- [Agent Authentication (sciontool-auth.md)](auth/sciontool-auth.md) — Current agent token design; §4.2 foreshadows `grove:agent:create`.
+- [Agent Authentication (fabrictool-auth.md)](auth/fabrictool-auth.md) — Current agent token design; §4.2 foreshadows `grove:agent:create`.
 - [Authentication Overview (auth-overview.md)](auth/auth-overview.md) — Identity model and token types.
 - [Server Auth Design (server-auth-design.md)](auth/server-auth-design.md) — Unified auth middleware.
 - [Permissions Design (permissions-design.md)](auth/permissions-design.md) — Hub permission model.

@@ -1,10 +1,10 @@
-module github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge
+module github.com/pdlc-os/fabric/extras/fabric-a2a-bridge
 
 go 1.26.1
 
 require (
 	cloud.google.com/go/secretmanager v1.16.0
-	github.com/GoogleCloudPlatform/scion v0.0.0-00010101000000-000000000000
+	github.com/pdlc-os/fabric v0.0.0-00010101000000-000000000000
 	github.com/a2aproject/a2a-go/v2 v2.3.1
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/google/uuid v1.6.0
@@ -61,4 +61,4 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-replace github.com/GoogleCloudPlatform/scion => ../../
+replace github.com/pdlc-os/fabric => ../../

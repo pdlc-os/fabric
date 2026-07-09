@@ -21,9 +21,9 @@ import (
 	"os/exec"
 	goruntime "runtime"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	scionruntime "github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/config"
+	fabricruntime "github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: "Check system prerequisites and runtime configuration",
 	Long: `Run diagnostic checks to verify that your system is properly configured
-for running scion agents. Checks include runtime availability, connectivity,
+for running fabric agents. Checks include runtime availability, connectivity,
 permissions, and required dependencies.
 
 For Kubernetes runtimes, this includes cluster connectivity, namespace access,
@@ -46,7 +46,7 @@ func init() {
 }
 
 func runDoctor() error {
-	fmt.Printf("%sScion Doctor%s\n\n", util.Bold, util.Reset)
+	fmt.Printf("%sFabric Doctor%s\n\n", util.Bold, util.Reset)
 
 	// General checks
 	fmt.Printf("%sGeneral%s\n", util.Bold, util.Reset)
@@ -58,19 +58,19 @@ func runDoctor() error {
 
 	resolved, err := resolveActiveProjectPath()
 	if err != nil {
-		printCheck("project", "warn", "No project found — skipping runtime checks", "Run 'scion init' to create a project.")
+		printCheck("project", "warn", "No project found — skipping runtime checks", "Run 'fabric init' to create a project.")
 		if outputFormat == "json" {
 			return outputDoctorJSON(nil)
 		}
 		return nil
 	}
 
-	rt := scionruntime.GetRuntime(resolved, profile)
+	rt := fabricruntime.GetRuntime(resolved, profile)
 	rtName := rt.Name()
 	printCheck("runtime", "pass", fmt.Sprintf("Active runtime: %s", rtName), "")
 
 	// Runtime-specific diagnostics
-	if diag, ok := rt.(scionruntime.Diagnosable); ok {
+	if diag, ok := rt.(fabricruntime.Diagnosable); ok {
 		// Load settings for runtime config
 		var namespace string
 		var gkeMode bool
@@ -83,7 +83,7 @@ func runDoctor() error {
 			}
 		}
 
-		opts := scionruntime.DiagnosticOpts{
+		opts := fabricruntime.DiagnosticOpts{
 			Namespace: namespace,
 			GKEMode:   gkeMode,
 		}
@@ -238,7 +238,7 @@ func printCheck(name, status, message, remediation string) {
 	}
 }
 
-func outputDoctorJSON(report *scionruntime.DiagnosticReport) error {
+func outputDoctorJSON(report *fabricruntime.DiagnosticReport) error {
 	out := map[string]interface{}{}
 	if report != nil {
 		out["runtime"] = report.Runtime

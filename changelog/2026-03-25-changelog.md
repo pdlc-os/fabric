@@ -6,7 +6,7 @@ This period focused on completing the multi-phase rollout of the Git-Workspace H
 
 * **Git-Workspace Hybrid Groves:** Completed the full 5-phase implementation of hybrid groves. This major architectural update includes:
     * **Automated Provisioning:** Host-side cloning and agent environment setup are now unified.
-    * **Credential Standardization:** Unified `sciontool credential-helper` for GitHub App token management across all agent types.
+    * **Credential Standardization:** Unified `fabrictool credential-helper` for GitHub App token management across all agent types.
     * **Web UI Integration:** Full support for managing hybrid workspaces and viewing structured git error guidance (Auth, Network, NotFound) in the dashboard.
 * **Agent Visualizer (agent-viz) Enhancements:**
     * Added `--fs-log` flag to use the filesystem watcher as a real-time event source.

@@ -12,13 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Capture-auth shim — delegates to scion_harness.capture_auth_main()."""
+"""Capture-auth shim — delegates to fabric_harness.capture_auth_main()."""
 
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import scion_harness
+import fabric_harness
 
 if __name__ == "__main__":
-    sys.exit(scion_harness.capture_auth_main())
+    sys.exit(fabric_harness.capture_auth_main())

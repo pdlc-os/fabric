@@ -30,7 +30,7 @@
 <title>CLI_Mode_Resolution</title>
 <polygon fill="lightblue" stroke="black" points="287.25,-365 76.25,-365 76.25,-329 287.25,-329 287.25,-365"/>
 <text xml:space="preserve" text-anchor="middle" x="181.75" y="-344.2" font-family="Times,serif" font-size="14.00">CLI Mode Resolution</text>
-<text xml:space="preserve" text-anchor="middle" x="181.75" y="-333.7" font-family="Times,serif" font-size="14.00">(SCION_CLI_MODE, Settings)</text>
+<text xml:space="preserve" text-anchor="middle" x="181.75" y="-333.7" font-family="Times,serif" font-size="14.00">(FABRIC_CLI_MODE, Settings)</text>
 </g>
 <!-- Command_Filtering -->
 <g id="node2" class="node">
@@ -78,7 +78,7 @@
 <g id="node5" class="node">
 <title>Hub_Agent_Fetch</title>
 <polygon fill="lightblue" stroke="black" points="365.5,-111 192,-111 192,-75 365.5,-75 365.5,-111"/>
-<text xml:space="preserve" text-anchor="middle" x="278.75" y="-90.2" font-family="Times,serif" font-size="14.00">Scion Hub Agent Fetch</text>
+<text xml:space="preserve" text-anchor="middle" x="278.75" y="-90.2" font-family="Times,serif" font-size="14.00">Fabric Hub Agent Fetch</text>
 <text xml:space="preserve" text-anchor="middle" x="278.75" y="-79.7" font-family="Times,serif" font-size="14.00">(with Caching)</text>
 </g>
 <!-- Shell_Completion_Trigger&#45;&gt;Hub_Agent_Fetch -->

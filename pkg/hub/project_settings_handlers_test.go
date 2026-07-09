@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -175,7 +175,7 @@ func TestApplyProjectDefaults_HarnessConfig(t *testing.T) {
 	t.Run("applies default harness config when empty", func(t *testing.T) {
 		project := &store.Project{
 			Annotations: map[string]string{
-				"scion.io/default-harness-config": "claude-default",
+				"fabric.io/default-harness-config": "claude-default",
 			},
 		}
 		ac := &store.AgentAppliedConfig{}
@@ -186,7 +186,7 @@ func TestApplyProjectDefaults_HarnessConfig(t *testing.T) {
 	t.Run("does not override explicit harness config", func(t *testing.T) {
 		project := &store.Project{
 			Annotations: map[string]string{
-				"scion.io/default-harness-config": "claude-default",
+				"fabric.io/default-harness-config": "claude-default",
 			},
 		}
 		ac := &store.AgentAppliedConfig{HarnessConfig: "custom-config"}
@@ -245,7 +245,7 @@ func TestApplyProjectDefaults_Model(t *testing.T) {
 	t.Run("applies default model when empty", func(t *testing.T) {
 		project := &store.Project{
 			Annotations: map[string]string{
-				"scion.io/default-model": "claude-sonnet-5",
+				"fabric.io/default-model": "claude-sonnet-5",
 			},
 		}
 		ac := &store.AgentAppliedConfig{}
@@ -256,7 +256,7 @@ func TestApplyProjectDefaults_Model(t *testing.T) {
 	t.Run("does not override explicit model", func(t *testing.T) {
 		project := &store.Project{
 			Annotations: map[string]string{
-				"scion.io/default-model": "claude-sonnet-5",
+				"fabric.io/default-model": "claude-sonnet-5",
 			},
 		}
 		ac := &store.AgentAppliedConfig{Model: "claude-opus-4"}
@@ -320,8 +320,8 @@ func TestApplyProjectDefaults_GCPIdentityNotApplied(t *testing.T) {
 	// directly in createAgentInProject. This test verifies it doesn't interfere.
 	project := &store.Project{
 		Annotations: map[string]string{
-			"scion.io/default-gcp-identity-mode":               "passthrough",
-			"scion.io/default-gcp-identity-service-account-id": "sa-123",
+			"fabric.io/default-gcp-identity-mode":               "passthrough",
+			"fabric.io/default-gcp-identity-service-account-id": "sa-123",
 		},
 	}
 	ac := &store.AgentAppliedConfig{}

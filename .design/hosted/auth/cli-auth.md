@@ -1,18 +1,18 @@
 # CLI Authentication
 
-CLI authentication enables `scion hub` commands to authenticate with a Hub server using a browser-based OAuth flow with localhost callback.
+CLI authentication enables `fabric hub` commands to authenticate with a Hub server using a browser-based OAuth flow with localhost callback.
 
 ## Commands
 
 ```bash
 # Check authentication status
-scion hub auth status
+fabric hub auth status
 
 # Authenticate with Hub (opens browser)
-scion hub auth login [--hub-url <url>]
+fabric hub auth login [--hub-url <url>]
 
 # Clear stored credentials
-scion hub auth logout
+fabric hub auth logout
 ```
 
 ## Device Authorization Flow
@@ -25,7 +25,7 @@ The CLI uses OAuth 2.0 with a localhost redirect for systems with a browser:
 │ Terminal │     │   :18271    │     │              │     │ :9810   │
 └──────────┘     └─────────────┘     └──────────────┘     └─────────┘
      │                 │                    │                  │
-     │  1. scion hub auth login            │                  │
+     │  1. fabric hub auth login            │                  │
      │─────────────────┼───────────────────┼─────────────────►│
      │                 │                   │   2. Get auth URL │
      │◄────────────────┼───────────────────┼──────────────────│
@@ -200,7 +200,7 @@ var hubAuthStatusCmd = &cobra.Command{
 
         user, err := client.GetCurrentUser(cmd.Context())
         if err != nil {
-            fmt.Println("Authentication expired. Run 'scion hub auth login' to re-authenticate.")
+            fmt.Println("Authentication expired. Run 'fabric hub auth login' to re-authenticate.")
             return nil
         }
 
@@ -228,7 +228,7 @@ var hubAuthLogoutCmd = &cobra.Command{
 
 ## Credential Storage
 
-CLI credentials are stored in `~/.scion/credentials.json`:
+CLI credentials are stored in `~/.fabric/credentials.json`:
 
 ```json
 {
@@ -274,7 +274,7 @@ type HubCredentials struct {
 }
 
 func Store(hubURL string, token *TokenResponse) error {
-    path := filepath.Join(config.ScionDir(), CredentialsFile)
+    path := filepath.Join(config.FabricDir(), CredentialsFile)
 
     creds, _ := load(path)
     if creds == nil {
@@ -297,7 +297,7 @@ func Store(hubURL string, token *TokenResponse) error {
 }
 
 func Load(hubURL string) (*HubCredentials, error) {
-    path := filepath.Join(config.ScionDir(), CredentialsFile)
+    path := filepath.Join(config.FabricDir(), CredentialsFile)
     creds, err := load(path)
     if err != nil {
         return nil, err
@@ -325,10 +325,10 @@ For systems without a browser (CI/CD, remote servers), support API key authentic
 
 ```bash
 # Set API key via environment variable
-export SCION_API_KEY="sk_live_..."
+export FABRIC_API_KEY="sk_live_..."
 
 # Or via config file
-scion hub auth set-key <api-key>
+fabric hub auth set-key <api-key>
 ```
 
 API keys are created via the web dashboard and stored in the same credentials file.

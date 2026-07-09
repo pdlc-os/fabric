@@ -22,12 +22,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // TestHandleBrokerMessage_UserMessageRouting verifies that user-targeted
-// messages with the full scion broker topic prefix are correctly routed
+// messages with the full fabric broker topic prefix are correctly routed
 // to handleUserMessage.
 func TestHandleBrokerMessage_UserMessageRouting(t *testing.T) {
 	log := slog.Default()
@@ -40,9 +40,9 @@ func TestHandleBrokerMessage_UserMessageRouting(t *testing.T) {
 		Msg:    "hello from agent",
 	}
 
-	// Full scion-prefixed topic should route to handleUserMessage.
+	// Full fabric-prefixed topic should route to handleUserMessage.
 	err := relay.HandleBrokerMessage(context.Background(),
-		"scion.grove.grove-123.user.user-456.messages", msg)
+		"fabric.grove.grove-123.user.user-456.messages", msg)
 	if err != nil {
 		t.Errorf("expected nil error for user message topic, got: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestHandleBrokerMessage_IgnoredTopics(t *testing.T) {
 
 	topics := []string{
 		"x",
-		"scion.global.broadcast",
+		"fabric.global.broadcast",
 		"user.user-456.message", // old unprefixed format
 	}
 
@@ -141,7 +141,7 @@ func TestHandleUserMessage_NoSubscriptionRequired(t *testing.T) {
 	}
 
 	err := relay.HandleBrokerMessage(context.Background(),
-		"scion.grove.grove-abc.user.hub-user-1.messages", msg)
+		"fabric.grove.grove-abc.user.hub-user-1.messages", msg)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -222,7 +222,7 @@ func TestHandleUserMessage_RoutesNonInstructionToNotification(t *testing.T) {
 			}
 
 			err := relay.HandleBrokerMessage(context.Background(),
-				"scion.grove.grove-abc.user.hub-user-1.messages", msg)
+				"fabric.grove.grove-abc.user.hub-user-1.messages", msg)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -321,7 +321,7 @@ func TestHandleUserMessage_AssistantReplyTruncated(t *testing.T) {
 	}
 
 	err := relay.HandleBrokerMessage(context.Background(),
-		"scion.grove.grove-abc.user.hub-user-1.messages", msg)
+		"fabric.grove.grove-abc.user.hub-user-1.messages", msg)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -391,7 +391,7 @@ func TestHandleUserMessage_ShortAssistantReplyNotTruncated(t *testing.T) {
 	}
 
 	err := relay.HandleBrokerMessage(context.Background(),
-		"scion.grove.grove-abc.user.hub-user-1.messages", msg)
+		"fabric.grove.grove-abc.user.hub-user-1.messages", msg)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

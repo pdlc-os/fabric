@@ -1,7 +1,7 @@
 # Design: Documentation Migration to Starlight
 
 ## 1. Overview
-This document outlines the plan to migrate the existing Scion documentation (currently raw Markdown files in `docs/`) to a modern, structured documentation site using [Starlight](https://starlight.astro.build/) (an Astro-based documentation theme).
+This document outlines the plan to migrate the existing Fabric documentation (currently raw Markdown files in `docs/`) to a modern, structured documentation site using [Starlight](https://starlight.astro.build/) (an Astro-based documentation theme).
 
 ## 2. Goals
 - **Better User Experience**: Improved navigation, search, and readability.
@@ -24,7 +24,7 @@ docs/
 │   └── ...
 └── reference/
     ├── cli.md
-    └── scion-config-reference.md
+    └── fabric-config-reference.md
 ```
 
 Files use standard Markdown with a single H1 (`# Title`) at the top. They do not have YAML frontmatter.
@@ -59,13 +59,13 @@ docs-site/
 2.  **Frontmatter Addition**: Starlight requires frontmatter for the page title. We must parse the first H1 (`# Title`) of each file and convert it to YAML frontmatter.
     *   **Old**:
         ```markdown
-        # Scion Concepts
+        # Fabric Concepts
         Content...
         ```
     *   **New**:
         ```markdown
         ---
-        title: Scion Concepts
+        title: Fabric Concepts
         description: (Optional) Extracted from first paragraph or left empty.
         ---
         Content... (H1 removed)
@@ -85,7 +85,7 @@ The sidebar in `astro.config.mjs` will be configured to group pages logically:
     ```bash
     npm create astro@latest -- --template starlight
     ```
-2.  Configure `astro.config.mjs` with the project title ("Scion").
+2.  Configure `astro.config.mjs` with the project title ("Fabric").
 
 ### Phase 2: Content Porting
 1.  Scripted or manual transfer of files from `docs/` to `docs-site/src/content/docs/`.
@@ -94,7 +94,7 @@ The sidebar in `astro.config.mjs` will be configured to group pages logically:
 
 ### Phase 3: Refinement
 1.  **Sidebar**: Define the explicit order of sidebar items in `astro.config.mjs`.
-2.  **Theming**: Adjust colors to match Scion's branding (if any).
+2.  **Theming**: Adjust colors to match Fabric's branding (if any).
 3.  **Search**: Verify Pagefind works.
 
 ### Phase 4: Integration

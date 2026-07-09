@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // GCPBackend implements SecretBackend using a hybrid approach:
@@ -426,15 +426,15 @@ func (b *GCPBackend) AccessSecretValueByRef(ctx context.Context, smPath string) 
 	return string(resp.Payload.Data), nil
 }
 
-// gcpSecretName builds a sanitized GCP SM secret ID from the scion secret identity.
-// Format: scion-{scope}-{sha256(hubID:scopeID)[:12]}-{name}
+// gcpSecretName builds a sanitized GCP SM secret ID from the fabric secret identity.
+// Format: fabric-{scope}-{sha256(hubID:scopeID)[:12]}-{name}
 // The hubID is combined with the scopeID before hashing to ensure uniqueness
 // across hub instances sharing the same GCP project.
 func (b *GCPBackend) gcpSecretName(name, scope, scopeID string) string {
 	combined := b.hubID + ":" + scopeID
 	hash := sha256.Sum256([]byte(combined))
 	shortHash := hex.EncodeToString(hash[:6]) // 6 bytes = 12 hex chars
-	return sanitizeSecretID(fmt.Sprintf("scion-%s-%s-%s", scope, shortHash, name))
+	return sanitizeSecretID(fmt.Sprintf("fabric-%s-%s-%s", scope, shortHash, name))
 }
 
 // sanitizeSecretID ensures the string is a valid GCP SM secret ID.
@@ -461,19 +461,19 @@ func sanitizeLabel(s string) string {
 }
 
 // buildLabels constructs the GCP SM labels map for a secret.
-// For user-scoped secrets with a known email, a scion-userid label is added.
+// For user-scoped secrets with a known email, a fabric-userid label is added.
 // The hubHostname label allows filtering secrets by hub in the GCP console.
 func buildLabels(input *SetSecretInput, target, hubHostname string) map[string]string {
 	labels := map[string]string{
-		"scion-scope":        sanitizeLabel(input.Scope),
-		"scion-scope-id":     sanitizeLabel(input.ScopeID),
-		"scion-type":         sanitizeLabel(input.SecretType),
-		"scion-name":         sanitizeLabel(input.Name),
-		"scion-target":       sanitizeLabel(target),
-		"scion-hub-hostname": sanitizeLabel(hubHostname),
+		"fabric-scope":        sanitizeLabel(input.Scope),
+		"fabric-scope-id":     sanitizeLabel(input.ScopeID),
+		"fabric-type":         sanitizeLabel(input.SecretType),
+		"fabric-name":         sanitizeLabel(input.Name),
+		"fabric-target":       sanitizeLabel(target),
+		"fabric-hub-hostname": sanitizeLabel(hubHostname),
 	}
 	if input.Scope == ScopeUser && input.UserEmail != "" {
-		labels["scion-userid"] = sanitizeLabel(input.UserEmail)
+		labels["fabric-userid"] = sanitizeLabel(input.UserEmail)
 	}
 	return labels
 }

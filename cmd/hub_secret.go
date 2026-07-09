@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -59,22 +59,22 @@ Secrets are resolved hierarchically when an agent starts:
 
 Examples:
   # Set a user-scoped secret
-  scion hub secret set ANTHROPIC_API_KEY sk-...
+  fabric hub secret set ANTHROPIC_API_KEY sk-...
 
   # Set a hub-scoped secret
-  scion hub secret set --scope hub ANTHROPIC_API_KEY sk-...
+  fabric hub secret set --scope hub ANTHROPIC_API_KEY sk-...
 
   # Set a project-scoped secret (infer project from current directory)
-  scion hub secret set --project DATABASE_PASSWORD mypassword
+  fabric hub secret set --project DATABASE_PASSWORD mypassword
 
   # List all user secrets (metadata only, no values)
-  scion hub secret get
+  fabric hub secret get
 
   # Get secret metadata
-  scion hub secret get ANTHROPIC_API_KEY
+  fabric hub secret get ANTHROPIC_API_KEY
 
   # Delete a secret
-  scion hub secret clear ANTHROPIC_API_KEY`,
+  fabric hub secret clear ANTHROPIC_API_KEY`,
 }
 
 // hubSecretSetCmd sets a secret
@@ -91,18 +91,18 @@ to set secrets at different scopes.
 
 Secret types control how the value is projected into agent containers:
   - environment (default): Injected as an environment variable
-  - variable: Written to ~/.scion/secrets.json for programmatic access
+  - variable: Written to ~/.fabric/secrets.json for programmatic access
   - file: Written to the filesystem at the specified target path
 
 For file secrets, prefix the value with @ to read from a file:
-  scion hub secret set --type file --target /etc/ssl/cert.pem TLS_CERT @cert.pem
+  fabric hub secret set --type file --target /etc/ssl/cert.pem TLS_CERT @cert.pem
 
 Examples:
-  scion hub secret set API_KEY sk-abc123
-  scion hub secret set --scope hub API_KEY sk-abc123
-  scion hub secret set --project DATABASE_PASSWORD mypassword
-  scion hub secret set --type variable CONFIG_JSON '{"key":"val"}'
-  scion hub secret set --type file --target /home/scion/.ssh/id_rsa SSH_KEY @~/.ssh/id_rsa`,
+  fabric hub secret set API_KEY sk-abc123
+  fabric hub secret set --scope hub API_KEY sk-abc123
+  fabric hub secret set --project DATABASE_PASSWORD mypassword
+  fabric hub secret set --type variable CONFIG_JSON '{"key":"val"}'
+  fabric hub secret set --type file --target /home/fabric/.ssh/id_rsa SSH_KEY @~/.ssh/id_rsa`,
 	Args: cobra.ExactArgs(2),
 	RunE: runSecretSet,
 }
@@ -120,10 +120,10 @@ Without a key, lists all secrets for the scope.
 With a key, returns metadata for the specific secret.
 
 Examples:
-  scion hub secret get                    # List all user secrets
-  scion hub secret get API_KEY            # Get specific secret metadata
-  scion hub secret get --project          # List project secrets
-  scion hub secret get --project API_KEY  # Get project secret metadata`,
+  fabric hub secret get                    # List all user secrets
+  fabric hub secret get API_KEY            # Get specific secret metadata
+  fabric hub secret get --project          # List project secrets
+  fabric hub secret get --project API_KEY  # Get project secret metadata`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runSecretGet,
 }
@@ -141,9 +141,9 @@ By default, lists user-scoped secrets. Use --project or --broker
 to list secrets at different scopes.
 
 Examples:
-  scion hub secret list                    # List all user secrets
-  scion hub secret list --project          # List project secrets
-  scion hub secret list --json             # Output as JSON`,
+  fabric hub secret list                    # List all user secrets
+  fabric hub secret list --project          # List project secrets
+  fabric hub secret list --json             # Output as JSON`,
 	Args: cobra.NoArgs,
 	RunE: runSecretList,
 }
@@ -155,9 +155,9 @@ var hubSecretClearCmd = &cobra.Command{
 	Long: `Remove a secret from the Hub.
 
 Examples:
-  scion hub secret clear API_KEY
-  scion hub secret clear --project API_KEY
-  scion hub secret clear --broker API_KEY`,
+  fabric hub secret clear API_KEY
+  fabric hub secret clear --project API_KEY
+  fabric hub secret clear --broker API_KEY`,
 	Args: cobra.ExactArgs(1),
 	RunE: runSecretClear,
 }
@@ -248,7 +248,7 @@ func resolveSecretScope(cmd *cobra.Command, settings *config.Settings) (scope, s
 			} else if settings.ProjectID != "" {
 				scopeID = settings.ProjectID
 			} else {
-				return "", "", fmt.Errorf("cannot infer project ID: not linked with Hub. Use 'scion hub link' first or provide explicit project ID")
+				return "", "", fmt.Errorf("cannot infer project ID: not linked with Hub. Use 'fabric hub link' first or provide explicit project ID")
 			}
 		}
 		return scope, scopeID, nil
@@ -268,7 +268,7 @@ func resolveSecretScope(cmd *cobra.Command, settings *config.Settings) (scope, s
 			if settings.Hub != nil && settings.Hub.BrokerID != "" {
 				scopeID = settings.Hub.BrokerID
 			} else {
-				return "", "", fmt.Errorf("cannot infer broker ID: not linked with Hub. Use 'scion hub link' first or provide explicit broker ID")
+				return "", "", fmt.Errorf("cannot infer broker ID: not linked with Hub. Use 'fabric hub link' first or provide explicit broker ID")
 			}
 		}
 		return scope, scopeID, nil

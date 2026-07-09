@@ -17,7 +17,7 @@ package hub
 import (
 	"errors"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 var errNoRuntimeBrokerAssigned = errors.New("agent has no runtime broker assigned")

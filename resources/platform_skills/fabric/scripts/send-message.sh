@@ -26,4 +26,4 @@ shift
 MESSAGE="$1"
 shift
 
-scion message "$AGENT" "$MESSAGE" "$@"
+fabric message "$AGENT" "$MESSAGE" "$@"

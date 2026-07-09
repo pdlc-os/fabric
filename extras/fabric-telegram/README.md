@@ -1,13 +1,13 @@
-# scion-plugin-telegram
+# fabric-plugin-telegram
 
-Telegram message broker plugin for the Scion hub. Runs as a [go-plugin](https://github.com/hashicorp/go-plugin) broker spoke in the hub's FanOutBroker, providing bidirectional messaging between Telegram group chats and Scion agents.
+Telegram message broker plugin for the Fabric hub. Runs as a [go-plugin](https://github.com/hashicorp/go-plugin) broker spoke in the hub's FanOutBroker, providing bidirectional messaging between Telegram group chats and Fabric agents.
 
 **Outbound:** Hub publishes `StructuredMessage`s → plugin formats and sends them to linked Telegram groups via the Bot API.
 **Inbound:** Telegram messages (via webhook or long-polling) → plugin converts to `StructuredMessage`s → delivered to agents via the hub's inbound endpoint.
 
 ## Prerequisites
 
-- Scion hub running with FanOutBroker support (`server.message_broker.types`)
+- Fabric hub running with FanOutBroker support (`server.message_broker.types`)
 - A Telegram account to create a bot via [@BotFather](https://t.me/BotFather)
 - Public HTTPS URL for the hub (required for webhook mode)
 - Go 1.25+ (for building from source)
@@ -29,15 +29,15 @@ Telegram message broker plugin for the Scion hub. Runs as a [go-plugin](https://
 
 ### 2. Build and Install
 
-The plugin binary must be built separately from the hub. The hub discovers it by name (`scion-plugin-telegram`) on `$PATH` or via an explicit `path` in `settings.yaml`.
+The plugin binary must be built separately from the hub. The hub discovers it by name (`fabric-plugin-telegram`) on `$PATH` or via an explicit `path` in `settings.yaml`.
 
 ```bash
-cd extras/scion-telegram
-go build -o scion-plugin-telegram ./cmd/scion-plugin-telegram
-sudo install scion-plugin-telegram /usr/local/bin/
+cd extras/fabric-telegram
+go build -o fabric-plugin-telegram ./cmd/fabric-plugin-telegram
+sudo install fabric-plugin-telegram /usr/local/bin/
 ```
 
-> **Note:** If you are also rebuilding the hub binary, run `make web` before `go build ./cmd/scion` — the web UI is embedded in the hub binary.
+> **Note:** If you are also rebuilding the hub binary, run `make web` before `go build ./cmd/fabric` — the web UI is embedded in the hub binary.
 
 ### 3. Configure settings.yaml
 
@@ -56,8 +56,8 @@ plugins:
   broker:
     telegram:
       # Managed plugin: hub discovers and launches the binary.
-      # Set 'path' only if scion-plugin-telegram is not on $PATH.
-      # path: /usr/local/bin/scion-plugin-telegram
+      # Set 'path' only if fabric-plugin-telegram is not on $PATH.
+      # path: /usr/local/bin/fabric-plugin-telegram
       config:
         bot_token: "123456:ABC-DEF..."
 
@@ -71,7 +71,7 @@ plugins:
 
         # SQLite database for group links, user mappings, and state.
         # Default: telegram_v2.db (relative to hub working directory).
-        db_path: /var/lib/scion/telegram_v2.db
+        db_path: /var/lib/fabric/telegram_v2.db
 
         # Optional tuning.
         # send_queue_size: 100     # max queued messages per chat
@@ -82,7 +82,7 @@ plugins:
 Add the V2 environment variable to your hub's env file (e.g., `hub.env`):
 
 ```bash
-SCION_TELEGRAM_V2=1
+FABRIC_TELEGRAM_V2=1
 ```
 
 ### 4. Configure Caddy (Webhook Mode)
@@ -129,13 +129,13 @@ curl -s -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
 
 ```bash
 # If using systemd
-sudo systemctl restart scion-hub
+sudo systemctl restart fabric-hub
 
 # Or manually
-SCION_TELEGRAM_V2=1 ./scion server
+FABRIC_TELEGRAM_V2=1 ./fabric server
 ```
 
-The hub will discover and launch `scion-plugin-telegram` as a managed subprocess. Look for `Telegram v2 broker configured` in the logs to confirm startup.
+The hub will discover and launch `fabric-plugin-telegram` as a managed subprocess. Look for `Telegram v2 broker configured` in the logs to confirm startup.
 
 ### 7. Link a Telegram Group
 
@@ -149,7 +149,7 @@ The hub will discover and launch `scion-plugin-telegram` as a managed subprocess
 
 | Command | Description |
 |---------|-------------|
-| `/setup` | Link this group to a Scion project |
+| `/setup` | Link this group to a Fabric project |
 | `/agents` | List agents in the linked project with real-time state |
 | `/default` | Set or clear the default agent for unaddressed messages |
 | `/settings` | Configure group settings (see below) |
@@ -160,7 +160,7 @@ The hub will discover and launch `scion-plugin-telegram` as a managed subprocess
 
 | Command | Description |
 |---------|-------------|
-| `/register` | Link your Telegram account to your Scion hub identity |
+| `/register` | Link your Telegram account to your Fabric hub identity |
 | `/unregister` | Remove your Telegram account link |
 | `/status` | Show linked groups and registration status |
 | `/notifications` | Manage per-agent notification subscriptions |
@@ -192,10 +192,10 @@ The bot strips @-mentions from the message text before forwarding to the agent. 
 
 ### File Attachments
 
-Agents can send files to users via the Scion CLI:
+Agents can send files to users via the Fabric CLI:
 
 ```bash
-scion message user:email 'message' --attach /workspace/file.pdf
+fabric message user:email 'message' --attach /workspace/file.pdf
 ```
 
 The file must be accessible from the hub's filesystem (`/workspace` maps to hub project storage).
@@ -265,7 +265,7 @@ Two polling sessions are conflicting. This happens when multiple hub instances (
 The hub binary was built without the web UI. Rebuild with:
 
 ```bash
-make web && go build ./cmd/scion
+make web && go build ./cmd/fabric
 ```
 
 ### Registration code expired or not found
@@ -295,8 +295,8 @@ These keys go in `plugins.broker.telegram.config` in `settings.yaml`:
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `SCION_TELEGRAM_V2` | `1` | **Required.** Enables the v2 broker with dynamic group linking |
-| `SCION_MAINTENANCE_REPO_BRANCH` | e.g., `scion/chat-tee` | Optional. Use a development branch for hub provisioning |
+| `FABRIC_TELEGRAM_V2` | `1` | **Required.** Enables the v2 broker with dynamic group linking |
+| `FABRIC_MAINTENANCE_REPO_BRANCH` | e.g., `fabric/chat-tee` | Optional. Use a development branch for hub provisioning |
 
 ### Example settings.yaml (Complete)
 
@@ -320,7 +320,7 @@ plugins:
         webhook_url: "https://hub.example.com/telegram/webhook"
         webhook_listen: ":9094"
         webhook_secret: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
-        db_path: /var/lib/scion/telegram_v2.db
+        db_path: /var/lib/fabric/telegram_v2.db
 ```
 
 ## Standalone / HA Mode (Mode 3)
@@ -329,7 +329,7 @@ Standalone mode runs the Telegram broker as an independent service with Postgres
 
 ### Requirements
 
-- Postgres database (shared with the Scion hub or dedicated)
+- Postgres database (shared with the Fabric hub or dedicated)
 - Public HTTPS endpoint for Telegram webhook delivery (Cloud Run, k8s ingress, etc.)
 - **Webhook mode only** — long-poll is not supported in standalone mode
 
@@ -351,18 +351,18 @@ Standalone mode runs the Telegram broker as an independent service with Postgres
 
 ```bash
 DATABASE_URL="postgres://..." TELEGRAM_BOT_TOKEN="..." TELEGRAM_WEBHOOK_URL="https://..." \
-  ./scion-plugin-telegram --standalone
+  ./fabric-plugin-telegram --standalone
 ```
 
 ### Docker
 
 ```bash
-docker build -t scion-telegram -f extras/scion-telegram/Dockerfile .
+docker build -t fabric-telegram -f extras/fabric-telegram/Dockerfile .
 
 docker run -e DATABASE_URL="postgres://..." \
            -e TELEGRAM_BOT_TOKEN="..." \
            -e TELEGRAM_WEBHOOK_URL="https://..." \
-           -p 9094:9094 -p 50051:50051 scion-telegram
+           -p 9094:9094 -p 50051:50051 fabric-telegram
 ```
 
 ### Webhook Registration Lock
@@ -372,7 +372,7 @@ In multi-replica deployments, a Postgres advisory lock serializes webhook regist
 ### SQLite to Postgres Migration
 
 ```bash
-./scion-plugin-telegram migrate --from /var/lib/scion/telegram_v2.db --to "postgres://..."
+./fabric-plugin-telegram migrate --from /var/lib/fabric/telegram_v2.db --to "postgres://..."
 ```
 
 The migration is **read-only** on the source and **idempotent** on the target.
@@ -384,7 +384,7 @@ Telegram Bot API
      │
      ▼
  ┌──────────────────┐   webhook / poll    ┌──────────────────────┐
- │  Telegram Groups  │ ◄───────────────── │  scion-plugin-       │
+ │  Telegram Groups  │ ◄───────────────── │  fabric-plugin-       │
  │  & DMs            │ ──────────────────►│  telegram             │
  └──────────────────┘   Bot API sends     │                      │
                                           │  ┌─ CommandHandler   │
@@ -397,7 +397,7 @@ Telegram Bot API
                                                      │ go-plugin RPC
                                                      ▼
                                           ┌──────────────────────┐
-                                          │     Scion Hub        │
+                                          │     Fabric Hub        │
                                           │   (FanOutBroker)     │
                                           │                      │
                                           │  ┌─ broker-log       │

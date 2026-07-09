@@ -34,11 +34,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config/opsettings"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/entadapter"
-	"github.com/GoogleCloudPlatform/scion/pkg/store/enttest"
+	"github.com/pdlc-os/fabric/pkg/config/opsettings"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store/entadapter"
+	"github.com/pdlc-os/fabric/pkg/store/enttest"
 )
 
 // haTestEnv holds two hub Server instances sharing one Postgres database,
@@ -58,7 +58,7 @@ type haTestEnv struct {
 func requirePG(t *testing.T) {
 	t.Helper()
 	if !enttest.Active() {
-		t.Skip("integration: set SCION_TEST_POSTGRES_URL to a live Postgres to run the HA e2e suite")
+		t.Skip("integration: set FABRIC_TEST_POSTGRES_URL to a live Postgres to run the HA e2e suite")
 	}
 }
 
@@ -328,8 +328,8 @@ func TestHA_AC3_MaintenanceSurvivesRestart(t *testing.T) {
 	requirePG(t)
 
 	dsn := enttest.NewSchemaURL(t)
-	t.Setenv("SCION_SERVER_ADMIN_MODE", "")
-	t.Setenv("SCION_SERVER_MAINTENANCE_MESSAGE", "")
+	t.Setenv("FABRIC_SERVER_ADMIN_MODE", "")
+	t.Setenv("FABRIC_SERVER_MAINTENANCE_MESSAGE", "")
 
 	// Phase 1: two hubs, PUT maintenance on A, verify B sees it.
 	clientA1, err := entc.OpenPostgres(dsn, entc.PoolConfig{MaxOpenConns: 5, MaxIdleConns: 2})

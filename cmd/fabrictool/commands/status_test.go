@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
 package commands
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 func TestStatusCommand(t *testing.T) {
@@ -21,7 +21,7 @@ func TestStatusCommand(t *testing.T) {
 	originalHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tempDir)
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 
 	tests := []struct {
 		name            string
@@ -128,7 +128,7 @@ func TestStatusCommandUnknownType(t *testing.T) {
 	originalHome := os.Getenv("HOME")
 	_ = os.Setenv("HOME", tempDir)
 	defer func() { _ = os.Setenv("HOME", originalHome) }()
-	scrubScionEnv(t)
+	scrubFabricEnv(t)
 
 	buf := new(bytes.Buffer)
 	rootCmd.SetOut(buf)

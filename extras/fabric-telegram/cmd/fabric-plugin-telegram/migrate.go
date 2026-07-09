@@ -21,7 +21,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-telegram/internal/telegram"
+	"github.com/pdlc-os/fabric/extras/fabric-telegram/internal/telegram"
 )
 
 func runMigrate() {
@@ -33,7 +33,7 @@ func runMigrate() {
 	fs.Parse(os.Args[2:])
 
 	if *fromPath == "" || *toURL == "" {
-		fmt.Fprintln(os.Stderr, "Usage: scion-plugin-telegram migrate --from <sqlite-path> --to <postgres-url>")
+		fmt.Fprintln(os.Stderr, "Usage: fabric-plugin-telegram migrate --from <sqlite-path> --to <postgres-url>")
 		os.Exit(1)
 	}
 

@@ -18,7 +18,7 @@
 // is still held, detects lock loss, and applies a takeover delay before
 // promoting a standby to primary.
 //
-// Extracted from scion-discord's GatewayLockLoop (Phase 5C) for reuse
+// Extracted from fabric-discord's GatewayLockLoop (Phase 5C) for reuse
 // across Discord, Telegram, and future integrations (Phase 5D+).
 package lockloop
 

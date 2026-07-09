@@ -15,7 +15,7 @@
 """Copilot container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook.
-Uses scion_harness library for auth selection, instruction projection,
+Uses fabric_harness library for auth selection, instruction projection,
 MCP translation, and output writing.
 
 Copilot-native concerns handled here:
@@ -40,17 +40,17 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness
+import fabric_harness
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    "copilot provision.py requires scion_harness INTERFACE_VERSION >= 2; "
-    f"got {scion_harness.INTERFACE_VERSION}"
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    "copilot provision.py requires fabric_harness INTERFACE_VERSION >= 2; "
+    f"got {fabric_harness.INTERFACE_VERSION}"
 )
 
-AUTH = scion_harness.AuthSpec(
+AUTH = fabric_harness.AuthSpec(
     "copilot",
     [
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "api-key",
             any_of=["COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"],
             hint=(
@@ -64,7 +64,7 @@ AUTH = scion_harness.AuthSpec(
 )
 
 
-def _read_token(ctx: scion_harness.ProvisionContext, env_key: str) -> str:
+def _read_token(ctx: fabric_harness.ProvisionContext, env_key: str) -> str:
     """Read the token for an env-based auth method.
 
     Expands $HOME-style variables in secret file paths, then falls back to
@@ -72,7 +72,7 @@ def _read_token(ctx: scion_harness.ProvisionContext, env_key: str) -> str:
     """
     path = ctx.env_secret_files.get(env_key)
     if path:
-        expanded = scion_harness.expand_path(path)
+        expanded = fabric_harness.expand_path(path)
         try:
             with open(expanded, "r", encoding="utf-8") as f:
                 return f.read().rstrip("\r\n")
@@ -81,15 +81,15 @@ def _read_token(ctx: scion_harness.ProvisionContext, env_key: str) -> str:
     return os.environ.get(env_key, "")
 
 
-def _write_mcp_config(ctx: scion_harness.ProvisionContext, servers: dict[str, Any]) -> None:
+def _write_mcp_config(ctx: fabric_harness.ProvisionContext, servers: dict[str, Any]) -> None:
     """Write MCP servers to ~/.copilot/mcp-config.json."""
     config_dir = os.path.join(ctx.home, ".copilot")
     os.makedirs(config_dir, exist_ok=True)
     config_path = os.path.join(config_dir, "mcp-config.json")
-    scion_harness.atomic_write_json(config_path, {"mcpServers": servers})
+    fabric_harness.atomic_write_json(config_path, {"mcpServers": servers})
 
 
-def _ensure_settings(ctx: scion_harness.ProvisionContext) -> None:
+def _ensure_settings(ctx: fabric_harness.ProvisionContext) -> None:
     """Ensure ~/.copilot/settings.json and config.json have sane defaults."""
     config_dir = os.path.join(ctx.home, ".copilot")
     os.makedirs(config_dir, exist_ok=True)
@@ -98,7 +98,7 @@ def _ensure_settings(ctx: scion_harness.ProvisionContext) -> None:
     settings: dict[str, Any] = {}
     if os.path.isfile(settings_path):
         try:
-            loaded = scion_harness.load_json(settings_path)
+            loaded = fabric_harness.load_json(settings_path)
             if isinstance(loaded, dict):
                 settings = loaded
         except (OSError, json.JSONDecodeError):
@@ -111,13 +111,13 @@ def _ensure_settings(ctx: scion_harness.ProvisionContext) -> None:
             settings[key] = value
             changed = True
     if changed:
-        scion_harness.atomic_write_json(settings_path, settings)
+        fabric_harness.atomic_write_json(settings_path, settings)
 
     config_path = os.path.join(config_dir, "config.json")
     config: dict[str, Any] = {}
     if os.path.isfile(config_path):
         try:
-            loaded = scion_harness.read_json_skipping_comment_lines(config_path)
+            loaded = fabric_harness.read_json_skipping_comment_lines(config_path)
             if isinstance(loaded, dict):
                 config = loaded
         except (OSError, json.JSONDecodeError):
@@ -125,27 +125,27 @@ def _ensure_settings(ctx: scion_harness.ProvisionContext) -> None:
 
     if "trustedFolders" not in config:
         config["trustedFolders"] = [ctx.workspace]
-        scion_harness.atomic_write_json(config_path, config)
+        fabric_harness.atomic_write_json(config_path, config)
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     """Main provisioning logic for the Copilot harness."""
 
     # Auth selection. Copilot falls back to no-auth when selection fails
     # and no explicit type was requested (preserves pre-library behavior).
     try:
         resolved = ctx.select_auth(AUTH)
-    except scion_harness.ProvisionError:
+    except fabric_harness.ProvisionError:
         if ctx.explicit_type:
             raise
         ctx.info("auth selection failed; falling back to no-auth mode")
-        resolved = scion_harness.ResolvedAuth(method="none")
+        resolved = fabric_harness.ResolvedAuth(method="none")
 
     env: dict[str, str] = {}
     if resolved.method == "api-key" and resolved.env_key:
         secret = _read_token(ctx, resolved.env_key)
         if not secret:
-            raise scion_harness.ProvisionError(
+            raise fabric_harness.ProvisionError(
                 f"chose api-key ({resolved.env_key}) but no secret "
                 "value was staged at the recorded path; check ApplyAuthSettings"
             )
@@ -155,7 +155,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
     target = os.path.join(ctx.workspace, ".github", "copilot-instructions.md")
     try:
-        scion_harness.project_instructions(ctx, target)
+        fabric_harness.project_instructions(ctx, target)
     except OSError as exc:
         ctx.warn(f"failed to project instructions: {exc}")
 
@@ -192,7 +192,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
         ctx.info(f"mcp server {name!r}: unsupported transport {transport!r}")
         return None
 
-    scion_harness.apply_mcp_translated(
+    fabric_harness.apply_mcp_translated(
         ctx, translate_mcp, lambda servers: _write_mcp_config(ctx, servers)
     )
 
@@ -205,4 +205,4 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
 
 if __name__ == "__main__":
-    scion_harness.run("copilot", provision)
+    fabric_harness.run("copilot", provision)

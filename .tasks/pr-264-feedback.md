@@ -1,7 +1,7 @@
 # PR #264 Feedback — Address All Review Comments
 
 **Branch:** workstation-improvements  
-**PR:** https://github.com/GoogleCloudPlatform/scion/pull/264  
+**PR:** https://github.com/pdlc-os/fabric/pull/264  
 **Commit all fixes to the current branch.**
 
 Address all feedback from the Gemini code review on PR #264. Fix each issue exactly as suggested.

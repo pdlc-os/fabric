@@ -29,13 +29,13 @@
 <g id="node1" class="node">
 <title>CLI</title>
 <polygon fill="lightblue" stroke="black" points="677.25,-713 518.75,-713 518.75,-677 677.25,-677 677.25,-713"/>
-<text xml:space="preserve" text-anchor="middle" x="598" y="-686.95" font-family="Times,serif" font-size="14.00">Scion CLI (Manager)</text>
+<text xml:space="preserve" text-anchor="middle" x="598" y="-686.95" font-family="Times,serif" font-size="14.00">Fabric CLI (Manager)</text>
 </g>
 <!-- Hub -->
 <g id="node2" class="node">
 <title>Hub</title>
 <polygon fill="lightblue" stroke="black" points="612,-497 416,-497 416,-461 612,-461 612,-497"/>
-<text xml:space="preserve" text-anchor="middle" x="514" y="-470.95" font-family="Times,serif" font-size="14.00">Scion Hub (State Server)</text>
+<text xml:space="preserve" text-anchor="middle" x="514" y="-470.95" font-family="Times,serif" font-size="14.00">Fabric Hub (State Server)</text>
 </g>
 <!-- CLI&#45;&gt;Hub -->
 <g id="edge1" class="edge">

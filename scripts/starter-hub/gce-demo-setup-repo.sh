@@ -29,20 +29,20 @@ fi
 
 wait_for_cloud_init
 
-echo "=== Ensuring scion user exists on VM ==="
+echo "=== Ensuring fabric user exists on VM ==="
 gcloud compute ssh "${INSTANCE_NAME}" \
     --project="${PROJECT_ID}" \
     --zone="${ZONE}" \
     --command "
-        if ! id scion &>/dev/null; then
-            sudo useradd -m -s /bin/bash scion
-            echo '  -> Created scion user'
+        if ! id fabric &>/dev/null; then
+            sudo useradd -m -s /bin/bash fabric
+            echo '  -> Created fabric user'
         else
-            echo '  -> scion user already exists'
+            echo '  -> fabric user already exists'
         fi
         if getent group docker &>/dev/null; then
-            sudo usermod -aG docker scion
-            echo '  -> Added scion to docker group'
+            sudo usermod -aG docker fabric
+            echo '  -> Added fabric to docker group'
         else
             echo '  -> docker group does not exist yet (cloud-init may still be running), skipping'
         fi
@@ -57,16 +57,16 @@ gcloud compute ssh "${INSTANCE_NAME}" \
 
         CLONE_URL=\"https://github.com/${REPO}.git\"
 
-        if sudo -u scion git -C /home/scion/scion rev-parse --git-dir >/dev/null 2>&1; then
-            echo \"Repository /home/scion/scion already exists, fetching latest...\"
-            sudo -u scion sh -c 'cd /home/scion/scion && git fetch origin && git reset --hard origin/HEAD'
+        if sudo -u fabric git -C /home/fabric/fabric rev-parse --git-dir >/dev/null 2>&1; then
+            echo \"Repository /home/fabric/fabric already exists, fetching latest...\"
+            sudo -u fabric sh -c 'cd /home/fabric/fabric && git fetch origin && git reset --hard origin/HEAD'
         else
-            if sudo test -e \"/home/scion/scion\"; then
-                echo \"Removing existing non-git path /home/scion/scion...\"
-                sudo rm -rf /home/scion/scion
+            if sudo test -e \"/home/fabric/fabric\"; then
+                echo \"Removing existing non-git path /home/fabric/fabric...\"
+                sudo rm -rf /home/fabric/fabric
             fi
             echo \"Cloning \${CLONE_URL}...\"
-            sudo -u scion git clone \"\${CLONE_URL}\" /home/scion/scion
+            sudo -u fabric git clone \"\${CLONE_URL}\" /home/fabric/fabric
         fi
 
         echo \"=== Repository Setup Complete ===\"

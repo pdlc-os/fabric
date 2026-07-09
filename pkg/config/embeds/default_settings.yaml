@@ -12,30 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Scion Agent Configuration (v1)
+# Fabric Agent Configuration (v1)
 #
-# Settings merge order: defaults -> global (~/.scion/) -> grove (.scion/)
+# Settings merge order: defaults -> global (~/.fabric/) -> grove (.fabric/)
 # Top-level settings can be overridden via environment variables.
 
 schema_version: "1"
 
 # Active profile determines which runtime to use
-# Env: SCION_ACTIVE_PROFILE
+# Env: FABRIC_ACTIVE_PROFILE
 active_profile: local
 
 # Default harness template for new agents
-# Env: SCION_DEFAULT_TEMPLATE
+# Env: FABRIC_DEFAULT_TEMPLATE
 default_template: default
 
 # Default harness-config for new agents
-# Env: SCION_DEFAULT_HARNESS_CONFIG
+# Env: FABRIC_DEFAULT_HARNESS_CONFIG
 default_harness_config: claude
 
 # Container image registry path (REQUIRED)
-# Set this to the registry where your scion images are hosted.
+# Set this to the registry where your fabric images are hosted.
 # Build images first — see image-build/README.md for instructions.
-# Example: ghcr.io/myorg, us-central1-docker.pkg.dev/myproject/scion
-# Env: SCION_IMAGE_REGISTRY
+# Example: ghcr.io/myorg, us-central1-docker.pkg.dev/myproject/fabric
+# Env: FABRIC_IMAGE_REGISTRY
 image_registry: ""
 
 # CLI behavior settings

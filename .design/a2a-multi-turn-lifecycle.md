@@ -8,7 +8,7 @@
 
 ## 1. Problem
 
-The A2A bridge treats the first content message from a Scion agent as the final
+The A2A bridge treats the first content message from a Fabric agent as the final
 response and immediately marks the task as `completed`, closing all streaming and
 push notification subscriptions. This breaks multi-turn agent interactions where:
 
@@ -42,7 +42,7 @@ needs to stop prematurely closing on content.
 
 ### State mapping (unchanged, already correct)
 
-| Scion Activity | A2A Task State | Terminal? |
+| Fabric Activity | A2A Task State | Terminal? |
 |---|---|---|
 | WORKING / THINKING / EXECUTING | working | No |
 | WAITING_FOR_INPUT | input-required | No |

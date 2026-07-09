@@ -18,9 +18,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // filteringMockManager implements agent.Manager with label-based filtering.
@@ -54,7 +54,7 @@ func TestLookupContainerID_DefaultManager(t *testing.T) {
 		{
 			ContainerID: "abc123",
 			Name:        "myagent",
-			Labels:      map[string]string{"scion.name": "myagent"},
+			Labels:      map[string]string{"fabric.name": "myagent"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -75,7 +75,7 @@ func TestLookupContainerID_CaseInsensitive(t *testing.T) {
 		{
 			ContainerID: "abc123",
 			Name:        "myagent",
-			Labels:      map[string]string{"scion.name": "myagent"},
+			Labels:      map[string]string{"fabric.name": "myagent"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -116,7 +116,7 @@ func TestLookupContainerID_FallbackToAuxiliary(t *testing.T) {
 		{
 			ContainerID: "k8s-pod-xyz",
 			Name:        "k8sagent",
-			Labels:      map[string]string{"scion.name": "k8sagent"},
+			Labels:      map[string]string{"fabric.name": "k8sagent"},
 		},
 	}
 
@@ -152,7 +152,7 @@ func TestLookupAgent_DefaultRuntime(t *testing.T) {
 		{
 			ContainerID: "container-1",
 			Name:        "agent1",
-			Labels:      map[string]string{"scion.name": "agent1"},
+			Labels:      map[string]string{"fabric.name": "agent1"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -185,8 +185,8 @@ func TestLookupAgent_K8sAuxiliaryRuntime(t *testing.T) {
 		{
 			ContainerID: "k8s-pod-1",
 			Name:        "k8sagent",
-			Labels:      map[string]string{"scion.name": "k8sagent"},
-			Kubernetes:  &api.AgentK8sMetadata{Namespace: "scion-ns", PodName: "k8s-pod-1"},
+			Labels:      map[string]string{"fabric.name": "k8sagent"},
+			Kubernetes:  &api.AgentK8sMetadata{Namespace: "fabric-ns", PodName: "k8s-pod-1"},
 		},
 	}
 
@@ -211,8 +211,8 @@ func TestLookupAgent_K8sAuxiliaryRuntime(t *testing.T) {
 	if result.RuntimeName != "kubernetes" {
 		t.Errorf("expected kubernetes runtime, got %s", result.RuntimeName)
 	}
-	if result.Namespace != "scion-ns" {
-		t.Errorf("expected scion-ns namespace, got %s", result.Namespace)
+	if result.Namespace != "fabric-ns" {
+		t.Errorf("expected fabric-ns namespace, got %s", result.Namespace)
 	}
 }
 
@@ -236,8 +236,8 @@ func TestLookupAgent_PrefersContainerIDLabel(t *testing.T) {
 			ID:          "agent-uuid",
 			Name:        "agent1",
 			Labels: map[string]string{
-				"scion.name":         "agent1",
-				"scion.container.id": "label-container-id",
+				"fabric.name":         "agent1",
+				"fabric.container.id": "label-container-id",
 			},
 		},
 	}
@@ -259,7 +259,7 @@ func TestLookupAgent_FallsBackToContainerID(t *testing.T) {
 		{
 			ContainerID: "runtime-id",
 			Name:        "agent1",
-			Labels:      map[string]string{"scion.name": "agent1"},
+			Labels:      map[string]string{"fabric.name": "agent1"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -279,7 +279,7 @@ func TestResolveManagerForAgent_DefaultManager(t *testing.T) {
 	mgr.agents = []api.AgentInfo{
 		{
 			Name:   "myagent",
-			Labels: map[string]string{"scion.name": "myagent"},
+			Labels: map[string]string{"fabric.name": "myagent"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -301,7 +301,7 @@ func TestResolveManagerForAgent_FallbackToAuxiliary(t *testing.T) {
 	auxMgr.agents = []api.AgentInfo{
 		{
 			Name:   "k8sagent",
-			Labels: map[string]string{"scion.name": "k8sagent"},
+			Labels: map[string]string{"fabric.name": "k8sagent"},
 		},
 	}
 
@@ -340,7 +340,7 @@ func TestResolveManagerForAgent_CaseInsensitive(t *testing.T) {
 	auxMgr.agents = []api.AgentInfo{
 		{
 			Name:   "myagent",
-			Labels: map[string]string{"scion.name": "myagent"},
+			Labels: map[string]string{"fabric.name": "myagent"},
 		},
 	}
 
@@ -369,7 +369,7 @@ func TestResolveRuntimeForAgent_DefaultRuntime(t *testing.T) {
 	mgr.agents = []api.AgentInfo{
 		{
 			Name:   "myagent",
-			Labels: map[string]string{"scion.name": "myagent"},
+			Labels: map[string]string{"fabric.name": "myagent"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -389,7 +389,7 @@ func TestResolveRuntimeForAgent_FallbackToAuxiliary(t *testing.T) {
 	auxMgr.agents = []api.AgentInfo{
 		{
 			Name:   "k8sagent",
-			Labels: map[string]string{"scion.name": "k8sagent"},
+			Labels: map[string]string{"fabric.name": "k8sagent"},
 		},
 	}
 
@@ -446,12 +446,12 @@ func TestLookupContainerID_ProjectScopedDisambiguation(t *testing.T) {
 		{
 			ContainerID: "container-ggcloud",
 			Name:        "foobar",
-			Labels:      map[string]string{"scion.name": "foobar", "scion.grove_id": "grove-aaa"},
+			Labels:      map[string]string{"fabric.name": "foobar", "fabric.grove_id": "grove-aaa"},
 		},
 		{
 			ContainerID: "container-muskateers",
 			Name:        "foobar",
-			Labels:      map[string]string{"scion.name": "foobar", "scion.grove_id": "grove-bbb"},
+			Labels:      map[string]string{"fabric.name": "foobar", "fabric.grove_id": "grove-bbb"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -481,12 +481,12 @@ func TestLookupAgent_ProjectScopedDisambiguation(t *testing.T) {
 		{
 			ContainerID: "container-ggcloud",
 			Name:        "foobar",
-			Labels:      map[string]string{"scion.name": "foobar", "scion.grove_id": "grove-aaa"},
+			Labels:      map[string]string{"fabric.name": "foobar", "fabric.grove_id": "grove-aaa"},
 		},
 		{
 			ContainerID: "container-storytree",
 			Name:        "foobar",
-			Labels:      map[string]string{"scion.name": "foobar", "scion.grove_id": "grove-ccc"},
+			Labels:      map[string]string{"fabric.name": "foobar", "fabric.grove_id": "grove-ccc"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -510,7 +510,7 @@ func TestLookupContainerID_DifferentProjectNotMatchedViaFallback(t *testing.T) {
 		{
 			ContainerID: "container-aaa",
 			Name:        "coordinator",
-			Labels:      map[string]string{"scion.name": "coordinator", "scion.grove_id": "grove-aaa"},
+			Labels:      map[string]string{"fabric.name": "coordinator", "fabric.grove_id": "grove-aaa"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
@@ -531,13 +531,13 @@ func TestLookupAgent_ProjectFallbackForLegacyContainers(t *testing.T) {
 		{
 			ContainerID: "legacy-container",
 			Name:        "oldagent",
-			Labels:      map[string]string{"scion.name": "oldagent"},
+			Labels:      map[string]string{"fabric.name": "oldagent"},
 		},
 	}
 	rt := &runtime.MockRuntime{NameFunc: func() string { return "docker" }}
 	srv := New(DefaultServerConfig(), mgr, rt)
 
-	// Should still find agents without scion.grove_id via fallback
+	// Should still find agents without fabric.grove_id via fallback
 	result, err := srv.LookupAgent(context.Background(), "oldagent", "some-grove-id")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

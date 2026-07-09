@@ -1,6 +1,6 @@
 # Codex Harness Bundle
 
-Scion harness configuration for [Codex](https://github.com/openai/codex),
+Fabric harness configuration for [Codex](https://github.com/openai/codex),
 OpenAI's coding agent CLI.
 
 ## Install
@@ -8,13 +8,13 @@ OpenAI's coding agent CLI.
 From a repository checkout:
 
 ```sh
-scion harness-config install harnesses/codex
+fabric harness-config install harnesses/codex
 ```
 
 Or directly from GitHub:
 
 ```sh
-scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harnesses/codex
+fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/codex
 ```
 
 ## Auth Modes
@@ -30,19 +30,19 @@ scion harness-config install github.com/GoogleCloudPlatform/scion/tree/main/harn
 codex/
   config.yaml       # Harness configuration (provisioner, capabilities, auth)
   provision.py       # Container-side provisioner (pre-start hook)
-  Dockerfile         # Image build (FROM scion-base)
+  Dockerfile         # Image build (FROM fabric-base)
   cloudbuild.yaml    # Cloud Build configuration
   home/
-    .bashrc                    # Shell config with scion env sourcing
+    .bashrc                    # Shell config with fabric env sourcing
     .codex/config.toml         # Codex client settings (model, otel, etc.)
-    .codex/scion_notify.sh     # Notification hook script
+    .codex/fabric_notify.sh     # Notification hook script
 ```
 
 ## Build the Image
 
 ```sh
 # Local Docker build
-docker build --build-arg BASE_IMAGE=scion-base:latest -t scion-codex:latest -f Dockerfile .
+docker build --build-arg BASE_IMAGE=fabric-base:latest -t fabric-codex:latest -f Dockerfile .
 
 # Cloud Build
 gcloud builds submit --config cloudbuild.yaml .

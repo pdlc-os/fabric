@@ -15,12 +15,12 @@
 """Hermes container-side provisioner.
 
 Runs inside the agent container during the pre-start lifecycle hook, invoked
-by `sciontool harness provision --manifest ...`. The host-side
+by `fabrictool harness provision --manifest ...`. The host-side
 ContainerScriptHarness has already:
 
-  * Staged this script and config.yaml under $HOME/.scion/harness/.
+  * Staged this script and config.yaml under $HOME/.fabric/harness/.
   * Written inputs/auth-candidates.json with the env-var names + paths to
-    secret-value files under $HOME/.scion/harness/secrets/<NAME>.
+    secret-value files under $HOME/.fabric/harness/secrets/<NAME>.
 
 This script's job:
 
@@ -28,7 +28,7 @@ This script's job:
          ANTHROPIC_API_KEY > OPENAI_API_KEY > GOOGLE_API_KEY.
   2. Read the secret value from the staged secrets/<NAME> file and write it
      to ~/.hermes/.env (Hermes reads secrets from this dotenv file).
-  3. Compose staged Scion prompt inputs into AGENTS.md (instruction
+  3. Compose staged Fabric prompt inputs into AGENTS.md (instruction
      projection — Hermes auto-reads AGENTS.md as context).
   4. Apply MCP server configuration to ~/.hermes/mcp.json.
   5. Write outputs/resolved-auth.json and outputs/env.json (env overlay
@@ -46,20 +46,20 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import scion_harness  # type: ignore[import-not-found]
+import fabric_harness  # type: ignore[import-not-found]
 
-assert scion_harness.INTERFACE_VERSION >= 2, (
-    f"scion_harness INTERFACE_VERSION {scion_harness.INTERFACE_VERSION} < 2"
+assert fabric_harness.INTERFACE_VERSION >= 2, (
+    f"fabric_harness INTERFACE_VERSION {fabric_harness.INTERFACE_VERSION} < 2"
 )
 
 # ---------------------------------------------------------------------------
 # Auth specification (declarative)
 # ---------------------------------------------------------------------------
 
-AUTH = scion_harness.AuthSpec(
+AUTH = fabric_harness.AuthSpec(
     "hermes",
     [
-        scion_harness.env_method(
+        fabric_harness.env_method(
             "api-key",
             any_of=["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"],
             hint="set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY",
@@ -75,10 +75,10 @@ AUTH = scion_harness.AuthSpec(
 
 def _write_hermes_env(env_vars: dict[str, str]) -> None:
     """Write key=value pairs to ~/.hermes/.env."""
-    hermes_dir = scion_harness.expand_path("~/.hermes")
+    hermes_dir = fabric_harness.expand_path("~/.hermes")
     os.makedirs(hermes_dir, exist_ok=True)
     target = os.path.join(hermes_dir, ".env")
-    scion_harness.atomic_write_text(
+    fabric_harness.atomic_write_text(
         target,
         "".join(f"{k}={v}\n" for k, v in sorted(env_vars.items())),
         mode=0o600,
@@ -122,17 +122,17 @@ def _build_mcp_entry(name: str, spec: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
 
-def _apply_mcp_servers(ctx: scion_harness.ProvisionContext) -> int:
+def _apply_mcp_servers(ctx: fabric_harness.ProvisionContext) -> int:
     """Write MCP server config to ~/.hermes/mcp.json.
 
     Returns the number of servers written.  Removes a stale mcp.json when
     no servers are configured (prevents Hermes from loading old config).
     """
-    hermes_dir = scion_harness.expand_path("~/.hermes")
+    hermes_dir = fabric_harness.expand_path("~/.hermes")
     config_path = os.path.join(hermes_dir, "mcp.json")
 
     try:
-        servers = scion_harness.read_mcp_servers(ctx.bundle_dir)
+        servers = fabric_harness.read_mcp_servers(ctx.bundle_dir)
     except ValueError as exc:
         ctx.info(str(exc))
         return 0
@@ -148,10 +148,10 @@ def _apply_mcp_servers(ctx: scion_harness.ProvisionContext) -> int:
 
     def write_fn(servers_dict: dict[str, Any]) -> None:
         os.makedirs(hermes_dir, exist_ok=True)
-        scion_harness.atomic_write_json(config_path, {"mcpServers": servers_dict})
+        fabric_harness.atomic_write_json(config_path, {"mcpServers": servers_dict})
         os.chmod(config_path, 0o600)
 
-    return scion_harness.apply_mcp_translated(ctx, _build_mcp_entry, write_fn)
+    return fabric_harness.apply_mcp_translated(ctx, _build_mcp_entry, write_fn)
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ def _apply_mcp_servers(ctx: scion_harness.ProvisionContext) -> int:
 # ---------------------------------------------------------------------------
 
 
-def provision(ctx: scion_harness.ProvisionContext) -> None:
+def provision(ctx: fabric_harness.ProvisionContext) -> None:
     """Hermes provisioning logic."""
     resolved = ctx.select_auth(AUTH)
 
@@ -167,7 +167,7 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
     if resolved.method == "api-key":
         api_key = ctx.read_secret(resolved.env_key)
         if not api_key:
-            raise scion_harness.ProvisionError(
+            raise fabric_harness.ProvisionError(
                 f"chose api-key ({resolved.env_key}) but no secret value "
                 "was staged at the recorded path; check ApplyAuthSettings"
             )
@@ -176,15 +176,15 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
     # Instruction projection via the lib.
     harness_cfg = ctx.harness_config
     instructions_file = str(harness_cfg.get("instructions_file") or "AGENTS.md")
-    scion_harness.project_instructions(
+    fabric_harness.project_instructions(
         ctx,
         instructions_file,
         skills_dir=str(harness_cfg.get("skills_dir") or ".hermes/skills"),
     )
 
-    # Build env overlay — injected into the container environment by sciontool.
+    # Build env overlay — injected into the container environment by fabrictool.
     env_payload: dict[str, str] = {
-        "HERMES_HOME": "/home/scion/.hermes",
+        "HERMES_HOME": "/home/fabric/.hermes",
         "HERMES_YOLO_MODE": "1",
         "HERMES_QUIET": "1",
         "HERMES_ACCEPT_HOOKS": "auto",
@@ -205,4 +205,4 @@ def provision(ctx: scion_harness.ProvisionContext) -> None:
 
 
 if __name__ == "__main__":
-    scion_harness.run("hermes", provision)
+    fabric_harness.run("hermes", provision)

@@ -1,7 +1,7 @@
 # Hub CLI Completions Design
 
 ## Overview
-This document outlines the design for extending the `scion` CLI completion mechanism to support hosted agents managed by the Scion Hub. Currently, completions only scan the local filesystem, which is insufficient for the hosted architecture where agents may run remotely.
+This document outlines the design for extending the `fabric` CLI completion mechanism to support hosted agents managed by the Fabric Hub. Currently, completions only scan the local filesystem, which is insufficient for the hosted architecture where agents may run remotely.
 
 ## Current State
 The current completion logic (`cmd/completion_helper.go`) scans:
@@ -28,13 +28,13 @@ We will modify `getAgentNames` to merge results from two sources:
 ### The "Fast-Path" Hub Client
 To ensure responsiveness:
 1.  **Short Timeout**: The Hub client used for completion will have a strict timeout (e.g., 500ms - 1s). If the API doesn't respond in time, we silently skip Hub results.
-2.  **Simplified Auth**: Reuse existing credentials (token/API key) from `config` or `~/.scion`. If login is required (interactive), skip Hub completion.
+2.  **Simplified Auth**: Reuse existing credentials (token/API key) from `config` or `~/.fabric`. If login is required (interactive), skip Hub completion.
 
 ### Caching Strategy
 To mitigate latency and ensure responsiveness, we will implement a "write-through" cache.
 
-*   **Cache Location**: `~/.scion/cache/agents_<grove_hash>.json` (Using a hash of the grove path ensures uniqueness).
-*   **Write**: Every successful `scion list` or `scion agent list`, and every successful completion API call, writes the list of agent names to the cache file.
+*   **Cache Location**: `~/.fabric/cache/agents_<grove_hash>.json` (Using a hash of the grove path ensures uniqueness).
+*   **Write**: Every successful `fabric list` or `fabric agent list`, and every successful completion API call, writes the list of agent names to the cache file.
 *   **Read Strategy (Option A - Cache-Fallback)**:
     1.  Initiate Hub API call with a short timeout (e.g., 500ms).
     2.  If API succeeds, use API results and update cache.
@@ -51,24 +51,24 @@ We will use the existing `hubclient.Agents().List()` method.
 ## User Experience
 
 ### Scenario 1: Hub Enabled, Online
-User types `scion attach <TAB>`.
-1.  CLI scans local `./.scion/agents/`.
+User types `fabric attach <TAB>`.
+1.  CLI scans local `./.fabric/agents/`.
 2.  CLI calls Hub API `GET /agents`.
 3.  Results are merged, deduplicated, and sorted.
 4.  User sees all agents.
 5.  List of agents is written to cache.
 
 ### Scenario 2: Hub Enabled, Slow Network
-User types `scion attach <TAB>`.
+User types `fabric attach <TAB>`.
 1.  CLI scans local.
 2.  CLI calls Hub API.
 3.  Timeout reached (500ms).
-4.  CLI reads from `~/.scion/cache/agents_...json`.
+4.  CLI reads from `~/.fabric/cache/agents_...json`.
 5.  CLI merges local and cached remote agents.
 6.  User sees a mix of local and (potentially stale) remote agents. (User experience: Shell remains responsive).
 
 ### Scenario 3: Hub Disabled (`--no-hub`)
-User types `scion attach --no-hub <TAB>`.
+User types `fabric attach --no-hub <TAB>`.
 1.  CLI checks flag/config.
 2.  Skips Hub call.
 3.  Returns local agents only.

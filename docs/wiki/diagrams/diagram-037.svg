@@ -25,11 +25,11 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 780.5)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-780.5 944.75,-780.5 944.75,4 -4,4"/>
-<!-- scion_harness.py (Canonical Library) -->
+<!-- fabric_harness.py (Canonical Library) -->
 <g id="node1" class="node">
-<title>scion_harness.py (Canonical Library)</title>
+<title>fabric_harness.py (Canonical Library)</title>
 <polygon fill="lightblue" stroke="black" points="590.75,-769 454.75,-769 454.75,-733 590.75,-733 590.75,-769"/>
-<text xml:space="preserve" text-anchor="middle" x="522.75" y="-748.2" font-family="Times,serif" font-size="14.00">scion_harness.py</text>
+<text xml:space="preserve" text-anchor="middle" x="522.75" y="-748.2" font-family="Times,serif" font-size="14.00">fabric_harness.py</text>
 <text xml:space="preserve" text-anchor="middle" x="522.75" y="-737.7" font-family="Times,serif" font-size="14.00">(Shared Library)</text>
 </g>
 <!-- gen/main.go (Vendor Tool) -->
@@ -39,9 +39,9 @@
 <text xml:space="preserve" text-anchor="middle" x="418.75" y="-628.2" font-family="Times,serif" font-size="14.00">gen/main.go</text>
 <text xml:space="preserve" text-anchor="middle" x="418.75" y="-617.7" font-family="Times,serif" font-size="14.00">(Vendoring Tool)</text>
 </g>
-<!-- scion_harness.py (Canonical Library)&#45;&gt;gen/main.go (Vendor Tool) -->
+<!-- fabric_harness.py (Canonical Library)&#45;&gt;gen/main.go (Vendor Tool) -->
 <g id="edge1" class="edge">
-<title>scion_harness.py (Canonical Library)&#45;&gt;gen/main.go (Vendor Tool)</title>
+<title>fabric_harness.py (Canonical Library)&#45;&gt;gen/main.go (Vendor Tool)</title>
 <path fill="none" stroke="black" d="M471.55,-732.58C454.48,-724.23 437.07,-712.43 426.25,-696.25 419.32,-685.89 416.99,-672.43 416.57,-660.51"/>
 <polygon fill="black" stroke="black" points="420.07,-660.83 416.68,-650.79 413.07,-660.75 420.07,-660.83"/>
 <text xml:space="preserve" text-anchor="middle" x="467.5" y="-682.95" font-family="Times,serif" font-size="14.00">Vendored By</text>
@@ -76,9 +76,9 @@
 <polygon fill="black" stroke="black" points="205.29,-175.77 213.24,-168.77 202.65,-169.29 205.29,-175.77"/>
 <text xml:space="preserve" text-anchor="middle" x="150.5" y="-379.95" font-family="Times,serif" font-size="14.00">Generates</text>
 </g>
-<!-- Agent Harness (provision.py)&#45;&gt;scion_harness.py (Canonical Library) -->
+<!-- Agent Harness (provision.py)&#45;&gt;fabric_harness.py (Canonical Library) -->
 <g id="edge4" class="edge">
-<title>Agent Harness (provision.py)&#45;&gt;scion_harness.py (Canonical Library)</title>
+<title>Agent Harness (provision.py)&#45;&gt;fabric_harness.py (Canonical Library)</title>
 <path fill="none" stroke="black" d="M490.02,-530.08C496.94,-540.39 504.62,-553.66 508.75,-566.75 525.34,-619.38 525.9,-684.54 524.52,-721.27"/>
 <polygon fill="black" stroke="black" points="521.04,-720.92 524.07,-731.07 528.03,-721.24 521.04,-720.92"/>
 <text xml:space="preserve" text-anchor="middle" x="568.29" y="-622.95" font-family="Times,serif" font-size="14.00">Imports/Uses</text>
@@ -111,9 +111,9 @@
 <polygon fill="black" stroke="black" points="479.25,-417.88 475.75,-407.88 472.25,-417.88 479.25,-417.88"/>
 <text xml:space="preserve" text-anchor="middle" x="502" y="-439.95" font-family="Times,serif" font-size="14.00">Manages</text>
 </g>
-<!-- Agent Harness (capture_auth.py)&#45;&gt;scion_harness.py (Canonical Library) -->
+<!-- Agent Harness (capture_auth.py)&#45;&gt;fabric_harness.py (Canonical Library) -->
 <g id="edge5" class="edge">
-<title>Agent Harness (capture_auth.py)&#45;&gt;scion_harness.py (Canonical Library)</title>
+<title>Agent Harness (capture_auth.py)&#45;&gt;fabric_harness.py (Canonical Library)</title>
 <path fill="none" stroke="black" d="M450.93,-168.22C618.65,-189.65 850.75,-226.75 850.75,-268 850.75,-632 850.75,-632 850.75,-632 850.75,-684.61 699.46,-720.19 602.37,-737.6"/>
 <polygon fill="black" stroke="black" points="601.84,-734.14 592.6,-739.32 603.06,-741.03 601.84,-734.14"/>
 <text xml:space="preserve" text-anchor="middle" x="895.75" y="-439.95" font-family="Times,serif" font-size="14.00">Imports/Uses</text>
@@ -125,44 +125,44 @@
 <polygon fill="black" stroke="black" points="544.05,-51.76 552.17,-44.96 541.57,-45.21 544.05,-51.76"/>
 <text xml:space="preserve" text-anchor="middle" x="480.28" y="-77.95" font-family="Times,serif" font-size="14.00">Captures</text>
 </g>
-<!-- Scion Tool -->
+<!-- Fabric Tool -->
 <g id="node7" class="node">
-<title>Scion Tool</title>
+<title>Fabric Tool</title>
 <polygon fill="lightblue" stroke="black" points="519,-287 270.5,-287 270.5,-251 519,-251 519,-287"/>
-<text xml:space="preserve" text-anchor="middle" x="394.75" y="-266.2" font-family="Times,serif" font-size="14.00">Scion Tool</text>
+<text xml:space="preserve" text-anchor="middle" x="394.75" y="-266.2" font-family="Times,serif" font-size="14.00">Fabric Tool</text>
 <text xml:space="preserve" text-anchor="middle" x="394.75" y="-255.7" font-family="Times,serif" font-size="14.00">(harness provision, secret set)</text>
 </g>
-<!-- Agent Harness (capture_auth.py)&#45;&gt;Scion Tool -->
+<!-- Agent Harness (capture_auth.py)&#45;&gt;Fabric Tool -->
 <g id="edge9" class="edge">
-<title>Agent Harness (capture_auth.py)&#45;&gt;Scion Tool</title>
+<title>Agent Harness (capture_auth.py)&#45;&gt;Fabric Tool</title>
 <path fill="none" stroke="black" d="M276.95,-168.25C274.57,-182.37 273.83,-201.43 282.75,-215.25 291.14,-228.26 303.67,-238.12 317.36,-245.58"/>
 <polygon fill="black" stroke="black" points="315.61,-248.62 326.12,-249.93 318.72,-242.35 315.61,-248.62"/>
 <text xml:space="preserve" text-anchor="middle" x="327.75" y="-201.95" font-family="Times,serif" font-size="14.00">Delegates To</text>
 </g>
-<!-- Auth Mechanisms&#45;&gt;Scion Tool -->
+<!-- Auth Mechanisms&#45;&gt;Fabric Tool -->
 <g id="edge10" class="edge">
-<title>Auth Mechanisms&#45;&gt;Scion Tool</title>
+<title>Auth Mechanisms&#45;&gt;Fabric Tool</title>
 <path fill="none" stroke="black" d="M600.86,-44.39C601.78,-72.91 599.78,-130.18 572.75,-167.75 545.77,-205.25 500.16,-230.54 461.87,-246.34"/>
 <polygon fill="black" stroke="black" points="460.69,-243.04 452.69,-249.99 463.28,-249.55 460.69,-243.04"/>
 <text xml:space="preserve" text-anchor="middle" x="621.16" y="-139.95" font-family="Times,serif" font-size="14.00">Utilizes</text>
 </g>
-<!-- Configuration &amp; Outputs&#45;&gt;Scion Tool -->
+<!-- Configuration &amp; Outputs&#45;&gt;Fabric Tool -->
 <g id="edge11" class="edge">
-<title>Configuration &amp; Outputs&#45;&gt;Scion Tool</title>
+<title>Configuration &amp; Outputs&#45;&gt;Fabric Tool</title>
 <path fill="none" stroke="black" d="M463.8,-369.74C450.46,-350.47 428.71,-319.05 413.19,-296.63"/>
 <polygon fill="black" stroke="black" points="416.18,-294.81 407.61,-288.58 410.43,-298.79 416.18,-294.81"/>
 <text xml:space="preserve" text-anchor="middle" x="501.43" y="-320.95" font-family="Times,serif" font-size="14.00">Consumes/Produces</text>
 </g>
-<!-- Scion Tool&#45;&gt;Agent Harness (provision.py) -->
+<!-- Fabric Tool&#45;&gt;Agent Harness (provision.py) -->
 <g id="edge12" class="edge">
-<title>Scion Tool&#45;&gt;Agent Harness (provision.py)</title>
+<title>Fabric Tool&#45;&gt;Agent Harness (provision.py)</title>
 <path fill="none" stroke="black" d="M341.05,-287.47C280.6,-310.15 195.12,-353.16 230.25,-406 257.38,-446.8 304.13,-471.47 349.61,-486.38"/>
 <polygon fill="black" stroke="black" points="348.48,-489.69 359.06,-489.32 350.56,-483.01 348.48,-489.69"/>
 <text xml:space="preserve" text-anchor="middle" x="256.5" y="-379.95" font-family="Times,serif" font-size="14.00">Invokes</text>
 </g>
-<!-- Scion Tool&#45;&gt;Agent Harness (capture_auth.py) -->
+<!-- Fabric Tool&#45;&gt;Agent Harness (capture_auth.py) -->
 <g id="edge13" class="edge">
-<title>Scion Tool&#45;&gt;Agent Harness (capture_auth.py)</title>
+<title>Fabric Tool&#45;&gt;Agent Harness (capture_auth.py)</title>
 <path fill="none" stroke="black" d="M392.01,-250.6C389.13,-236.94 383.47,-218.06 372.75,-204.75 362.84,-192.44 349.43,-182.15 335.95,-173.89"/>
 <polygon fill="black" stroke="black" points="337.9,-170.97 327.49,-168.99 334.39,-177.03 337.9,-170.97"/>
 <text xml:space="preserve" text-anchor="middle" x="405.08" y="-201.95" font-family="Times,serif" font-size="14.00">Invokes</text>

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Fixed all compilation errors and `go vet` warnings introduced when rebasing `scion/rename-strategy` onto `main`.
+Fixed all compilation errors and `go vet` warnings introduced when rebasing `fabric/rename-strategy` onto `main`.
 
 ## Root Causes
 

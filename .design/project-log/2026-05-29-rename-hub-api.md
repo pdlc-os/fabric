@@ -29,7 +29,7 @@ These packages are overwhelmingly Tier 3 (backward-compat shims). After scanning
 - **Query parameter fallbacks** — `r.URL.Query().Get("groveId")` in multiple handlers.
 - **Event subject strings** — `"grove."+projectID+".agent.status"` dual-publish subjects.
 - **Filesystem paths** — `filepath.Join(globalDir, "groves", slug)` fallback for workspace migration.
-- **Environment variables** — `SCION_GROVE_ID` is an external contract.
+- **Environment variables** — `FABRIC_GROVE_ID` is an external contract.
 
 ## Verification
 

@@ -25,8 +25,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 const maxConsecutiveFailures = 3
@@ -154,14 +154,14 @@ func New(gracePeriod time.Duration) *Manager {
 // Start launches all services in order, honoring ready checks between them.
 func (m *Manager) Start(ctx context.Context, specs []api.ServiceSpec, uid, gid int, username string) error {
 	home := os.Getenv("HOME")
-	logDir := filepath.Join(home, ".scion", "services", "logs")
+	logDir := filepath.Join(home, ".fabric", "services", "logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		return fmt.Errorf("failed to create service log directory: %w", err)
 	}
 
 	// Chown the log directory to target user if running as root
 	if uid > 0 && gid > 0 {
-		_ = os.Chown(filepath.Join(home, ".scion", "services"), uid, gid)
+		_ = os.Chown(filepath.Join(home, ".fabric", "services"), uid, gid)
 		_ = os.Chown(logDir, uid, gid)
 	}
 

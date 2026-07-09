@@ -64,21 +64,21 @@ The input is JSON log files exported from Google Cloud Logging (as in `.scratch/
 
 | Log Name | Event Types | Visualizer Use |
 |---|---|---|
-| `scion-agents` | `agent.session.start/end`, `agent.turn.start/end`, `agent.tool.call/result`, `agent.lifecycle.*` | Agent state changes, file edit detection |
-| `scion-messages` | `message dispatched`, `message accepted (buffered)`, `notification message dispatched` | Message flow between agents |
-| `scion-server` | Server-side events | Context (grove setup, broker registration) |
+| `fabric-agents` | `agent.session.start/end`, `agent.turn.start/end`, `agent.tool.call/result`, `agent.lifecycle.*` | Agent state changes, file edit detection |
+| `fabric-messages` | `message dispatched`, `message accepted (buffered)`, `notification message dispatched` | Message flow between agents |
+| `fabric-server` | Server-side events | Context (grove setup, broker registration) |
 
 ### Key Log Fields
 
-**Agent events** (from `scion-agents`):
+**Agent events** (from `fabric-agents`):
 - `labels.agent_id` — agent UUID
-- `labels.scion.harness` — harness type (gemini, claude)
+- `labels.fabric.harness` — harness type (gemini, claude)
 - `labels.grove_id` — grove context
 - `jsonPayload.event.name` — event type (session-start, tool-start, agent-end, etc.)
 - `jsonPayload.tool_name` — tool being called (for file edit detection)
 - `timestamp` — event time for playback ordering
 
-**Message events** (from `scion-messages`):
+**Message events** (from `fabric-messages`):
 - `jsonPayload.sender` — e.g., `agent:green-agent`
 - `jsonPayload.recipient` — e.g., `agent:orchestrator`
 - `jsonPayload.msg_type` — `instruction`, `state-change`, `input-needed`
@@ -315,7 +315,7 @@ Captured from design review:
 | 8 | Embedding? | **Standalone binary** in `extras/agent-viz/`. |
 | 9 | Replay priority? | **Primary mode** — replay is the MVP, not a stretch goal. |
 | 10 | Audio? | **Not addressed** — defer. |
-| 11 | Deployment? | **Standalone Go binary** (`agent-viz`) in `extras/agent-viz/`. Not part of scion CLI. |
+| 11 | Deployment? | **Standalone Go binary** (`agent-viz`) in `extras/agent-viz/`. Not part of fabric CLI. |
 | 12 | Configuration? | **Playback controls:** play/pause, speed multiplier, time scrubber, time range, agent filter, event type filter. |
 
 ## MVP Scope

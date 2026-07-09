@@ -5,7 +5,7 @@
 
 ## 1. Overview
 
-This document specifies how Runtime Brokers authenticate with the Scion Hub using HMAC-based request signing. Runtime Brokers are compute nodes that execute agents on behalf of the Hub, and require a secure bidirectional authentication mechanism distinct from user/agent authentication.
+This document specifies how Runtime Brokers authenticate with the Fabric Hub using HMAC-based request signing. Runtime Brokers are compute nodes that execute agents on behalf of the Hub, and require a secure bidirectional authentication mechanism distinct from user/agent authentication.
 
 ### 1.1 Relationship to Server Auth
 
@@ -19,7 +19,7 @@ The Hub's unified authentication middleware (see [server-auth-design.md](server-
 | Authentication Type | Token/Mechanism | Direction | Purpose |
 |---------------------|-----------------|-----------|---------|
 | User (Web/CLI) | JWT Bearer | Client → Hub | User API access |
-| Agent (sciontool) | JWT Bearer | Agent → Hub | Agent status updates |
+| Agent (fabrictool) | JWT Bearer | Agent → Hub | Agent status updates |
 | **Runtime Broker** | **HMAC Signature** | **Bidirectional** | **Broker ↔ Hub trust** |
 
 ### 1.2 Goals
@@ -44,7 +44,7 @@ The Hub's unified authentication middleware (see [server-auth-design.md](server-
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│   Scion Hub     │◄──── HTTPS ────────│  Runtime Broker   │
+│   Fabric Hub     │◄──── HTTPS ────────│  Runtime Broker   │
 │                 │      (HMAC)        │                 │
 │  ┌───────────┐  │                    │  ┌───────────┐  │
 │  │ Secret    │  │                    │  │ Secret    │  │
@@ -65,10 +65,10 @@ All HMAC-authenticated requests include these headers:
 
 | Header | Format | Description |
 |--------|--------|-------------|
-| `X-Scion-Broker-ID` | UUID or slug | Unique identifier for the Runtime Broker |
-| `X-Scion-Timestamp` | RFC 3339 | Request timestamp (e.g., `2025-01-30T12:00:00Z`) |
-| `X-Scion-Nonce` | Base64 (16 bytes) | Random nonce for replay prevention |
-| `X-Scion-Signature` | Base64 (32 bytes) | HMAC-SHA256 signature |
+| `X-Fabric-Broker-ID` | UUID or slug | Unique identifier for the Runtime Broker |
+| `X-Fabric-Timestamp` | RFC 3339 | Request timestamp (e.g., `2025-01-30T12:00:00Z`) |
+| `X-Fabric-Nonce` | Base64 (16 bytes) | Random nonce for replay prevention |
+| `X-Fabric-Signature` | Base64 (32 bytes) | HMAC-SHA256 signature |
 
 ---
 
@@ -129,10 +129,10 @@ In the common case where a user is logged into the Runtime Broker machine and al
 
 ```bash
 # User runs this on the Runtime Broker machine
-scion hub brokers join --name "production-broker-1" --profiles local,shared-k8s
+fabric hub brokers join --name "production-broker-1" --profiles local,shared-k8s
 ```
 
-For defaults it should use the broker info in `~/.scion/`
+For defaults it should use the broker info in `~/.fabric/`
 
 This command orchestrates the full registration flow:
 
@@ -165,7 +165,7 @@ Request:
 Response:
 {
   "brokerId": "broker-uuid-123",
-  "joinToken": "scion_join_AbCdEf123456...",
+  "joinToken": "fabric_join_AbCdEf123456...",
   "expiresAt": "2025-01-30T13:00:00Z"
 }
 ```
@@ -175,7 +175,7 @@ POST /api/v1/brokers/join
 Request:
 {
   "brokerId": "broker-uuid-123",
-  "joinToken": "scion_join_AbCdEf123456...",
+  "joinToken": "fabric_join_AbCdEf123456...",
   "hostname": "prod-broker-1.example.com",
   "version": "1.0.0",
   "capabilities": ["docker"]
@@ -184,7 +184,7 @@ Request:
 Response:
 {
   "secretKey": "base64-encoded-256-bit-key",
-  "hubEndpoint": "https://hub.scion.example.com",
+  "hubEndpoint": "https://hub.fabric.example.com",
   "brokerId": "broker-uuid-123"
 }
 ```
@@ -192,20 +192,20 @@ Response:
 ### 3.5 Secret Storage
 
 **Hub Side:**
-- Initial storage in filesystem at ~/.scion/hub-secrets.json
+- Initial storage in filesystem at ~/.fabric/hub-secrets.json
 - Future implementation: Store secret hash in database: `broker_secrets(broker_id, secret_hash, created_at, rotated_at)`
 - Keep plaintext secret only in memory during validation
 - Support secret rotation with grace period
 
 **Runtime Broker Side:**
-- Initial: JSON file at `~/.scion/broker-credentials.json` (mode 0600)
+- Initial: JSON file at `~/.fabric/broker-credentials.json` (mode 0600)
 - Production: Google Secret Manager or HashiCorp Vault
 - Structure:
   ```json
   {
     "brokerId": "broker-uuid-123",
     "secretKey": "base64-encoded-key",
-    "hubEndpoint": "https://hub.scion.example.com",
+    "hubEndpoint": "https://hub.fabric.example.com",
     "registeredAt": "2025-01-30T12:00:00Z"
   }
   ```
@@ -241,16 +241,16 @@ Once registered, all requests between Runtime Broker and Hub are HMAC-signed.
 
 4. **Attach Headers**
    ```
-   X-Scion-Broker-ID: broker-uuid-123
-   X-Scion-Timestamp: 2025-01-30T12:00:00Z
-   X-Scion-Nonce: random-base64-nonce
-   X-Scion-Signature: computed-signature-base64
+   X-Fabric-Broker-ID: broker-uuid-123
+   X-Fabric-Timestamp: 2025-01-30T12:00:00Z
+   X-Fabric-Nonce: random-base64-nonce
+   X-Fabric-Signature: computed-signature-base64
    ```
 
 ### 4.2 Verification Process (Receiver)
 
 1. **Extract Headers**
-   - Parse all `X-Scion-*` headers
+   - Parse all `X-Fabric-*` headers
    - Reject if any required header is missing
 
 2. **Clock Skew Check**
@@ -263,7 +263,7 @@ Once registered, all requests between Runtime Broker and Hub are HMAC-signed.
    - Store nonce with expiry
 
 4. **Secret Retrieval**
-   - Look up secret by `X-Scion-Broker-ID`
+   - Look up secret by `X-Fabric-Broker-ID`
    - Reject if broker not found or deactivated
 
 5. **Signature Verification**
@@ -290,10 +290,10 @@ type BrokerAuthMiddleware struct {
 
 func (m *BrokerAuthMiddleware) Middleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        brokerID := r.Header.Get("X-Scion-Broker-ID")
-        timestamp := r.Header.Get("X-Scion-Timestamp")
-        nonce := r.Header.Get("X-Scion-Nonce")
-        signature := r.Header.Get("X-Scion-Signature")
+        brokerID := r.Header.Get("X-Fabric-Broker-ID")
+        timestamp := r.Header.Get("X-Fabric-Timestamp")
+        nonce := r.Header.Get("X-Fabric-Nonce")
+        signature := r.Header.Get("X-Fabric-Signature")
 
         // Validate presence
         if brokerID == "" || timestamp == "" || signature == "" {
@@ -383,7 +383,7 @@ The Runtime Broker communicates with the Hub for broker-level operations:
 - Agent lifecycle events (started, stopped, crashed)
 - Grove registration updates
 
-> **Note:** Agent-level status updates (thinking, executing, waiting for input) are sent directly by sciontool running *inside* the agent container using agent JWT authentication, not by the Runtime Broker. See [sciontool-auth.md](sciontool-auth.md) for agent authentication.
+> **Note:** Agent-level status updates (thinking, executing, waiting for input) are sent directly by fabrictool running *inside* the agent container using agent JWT authentication, not by the Runtime Broker. See [fabrictool-auth.md](fabrictool-auth.md) for agent authentication.
 
 ### 5.2 Hub → Runtime Broker
 
@@ -483,11 +483,11 @@ server:
 ```yaml
 broker:
   hub:
-    endpoint: "https://hub.scion.example.com"
+    endpoint: "https://hub.fabric.example.com"
   credentials:
-    file: "~/.scion/broker-credentials.json"
+    file: "~/.fabric/broker-credentials.json"
     # OR for production:
-    # secretManager: "projects/my-project/secrets/scion-broker-secret"
+    # secretManager: "projects/my-project/secrets/fabric-broker-secret"
   api:
     listenAddr: "127.0.0.1:9815"  # For Hub callbacks
 ```
@@ -570,7 +570,7 @@ Considerations:
 **Question:** What backend should store nonces for replay prevention?
 
 - **Option A:** In-memory (simple, lost on restart)
-- **Option B:** Filesystem (`~/.scion/`) for persistence
+- **Option B:** Filesystem (`~/.fabric/`) for persistence
 - **Option C:** Redis/Memcached (distributed, for HA)
 
 **Decision:** In-memory storage is sufficient for nonce tracking. Nonces only need to be tracked within the clock skew window (5 minutes), so persistence across restarts is not required. If a restart occurs, the timestamp validation alone provides adequate replay protection for the brief window where old nonces might be reused.
@@ -632,7 +632,7 @@ Arguments for per-message signing:
 Future multi-Hub design considerations:
 - Broker ID remains consistent across Hubs (same broker identity)
 - Each Hub relationship has a unique shared secret
-- Credential storage must be keyed by Hub endpoint: `~/.scion/broker-credentials/{hub-id}.json`
+- Credential storage must be keyed by Hub endpoint: `~/.fabric/broker-credentials/{hub-id}.json`
 - Hub impersonation prevented by unique secrets and endpoint verification
 
 Storage systems should be designed to accommodate per-Hub credentials from the start.
@@ -687,7 +687,7 @@ Rationale:
 **Implementation Notes (Phase 1):**
 - Timestamp format uses Unix epoch (seconds) rather than RFC 3339 for simpler parsing
 - `BrokerAuthService` provides both middleware and `SignRequest()` helper for clients
-- Join tokens use `scion_join_` prefix with base64-encoded random bytes
+- Join tokens use `fabric_join_` prefix with base64-encoded random bytes
 - Nonce cache is optional and disabled by default (`EnableNonceCache: false`)
 - Secret keys are 256-bit (32 bytes) generated via `crypto/rand`
 - Database migration V8 adds `broker_secrets` and `broker_join_tokens` tables with FK cascade delete
@@ -701,7 +701,7 @@ Rationale:
 **Implementation Notes (Phase 2):**
 - `HMACAuth` implements `apiclient.Authenticator` for signing outgoing requests
 - `BuildCanonicalString` and `ComputeHMAC` are exported for use by both client and server
-- `BrokerCredentials` stored in `~/.scion/broker-credentials.json` with 0600 permissions
+- `BrokerCredentials` stored in `~/.fabric/broker-credentials.json` with 0600 permissions
 - `HeartbeatService` runs background goroutine sending heartbeats at configurable interval (default 30s)
 - `BrokerAuthMiddleware` verifies incoming Hub requests using shared secret
 - Server integration loads credentials on startup and configures HMAC auth automatically
@@ -746,6 +746,6 @@ Rationale:
 
 - [Server Auth Design](server-auth-design.md) - Hub authentication for users and agents
 - [Auth Overview](auth-overview.md) - Identity model and token types
-- [Agent Authentication](sciontool-auth.md) - Agent-to-Hub JWT
+- [Agent Authentication](fabrictool-auth.md) - Agent-to-Hub JWT
 - [Hosted Architecture](../hosted-architecture.md) - System context
 - [RuntimeBroker Websockets](../runtimebroker-websocket.md) - RuntimeBroker websocket architecture details

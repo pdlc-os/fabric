@@ -30,12 +30,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"golang.org/x/term"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -51,10 +51,10 @@ type KubernetesRuntime struct {
 	DefaultNamespace  string
 	GKEMode           bool // Enables GKE-specific features (SecretProviderClass CSI, GCS FUSE)
 	GKEAutoDetected   bool // True when GKE was auto-detected (enables Autopilot tolerance only)
-	ListAllNamespaces bool // When true, List() queries all namespaces for scion pods
+	ListAllNamespaces bool // When true, List() queries all namespaces for fabric pods
 }
 
-// agentContainerName is the name of the primary scion agent container in
+// agentContainerName is the name of the primary fabric agent container in
 // every pod we create. It must be specified on every PodExec call so that
 // admission-controller-injected sidecars (Istio, Linkerd, Dynatrace, etc.)
 // do not cause the API server to reject the exec request with an
@@ -71,7 +71,7 @@ func NewKubernetesRuntime(client *k8s.Client) *KubernetesRuntime {
 }
 
 func defaultKubernetesNamespace() string {
-	for _, envKey := range []string{"SCION_K8S_NAMESPACE", "POD_NAMESPACE"} {
+	for _, envKey := range []string{"FABRIC_K8S_NAMESPACE", "POD_NAMESPACE"} {
 		if ns := strings.TrimSpace(os.Getenv(envKey)); ns != "" {
 			return ns
 		}
@@ -97,17 +97,17 @@ func (r *KubernetesRuntime) Name() string {
 }
 
 func (r *KubernetesRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 // resolveNamespace determines the namespace for a pod by looking up the
-// scion.namespace annotation on the pod itself. Falls back to DefaultNamespace
+// fabric.namespace annotation on the pod itself. Falls back to DefaultNamespace
 // if the pod is not found or has no annotation.
 func (r *KubernetesRuntime) resolveNamespace(ctx context.Context, podName string) string {
 	// Try to find the pod in the default namespace first
 	pod, err := r.Client.Clientset.CoreV1().Pods(r.DefaultNamespace).Get(ctx, podName, metav1.GetOptions{})
 	if err == nil {
-		if ns, ok := pod.Annotations["scion.namespace"]; ok && ns != "" {
+		if ns, ok := pod.Annotations["fabric.namespace"]; ok && ns != "" {
 			return ns
 		}
 		return r.DefaultNamespace
@@ -116,7 +116,7 @@ func (r *KubernetesRuntime) resolveNamespace(ctx context.Context, podName string
 	// If ListAllNamespaces is enabled, search across all namespaces
 	if r.ListAllNamespaces {
 		pods, err := r.Client.Clientset.CoreV1().Pods("").List(ctx, metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("scion.name=%s", podName),
+			LabelSelector: fmt.Sprintf("fabric.name=%s", podName),
 		})
 		if err == nil {
 			for _, p := range pods.Items {
@@ -207,14 +207,14 @@ func ensureAnnotations(annotations map[string]string) map[string]string {
 func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, error) {
 	fmt.Printf("Starting agent '%s' on Kubernetes...\n", config.Name)
 	namespace := r.DefaultNamespace
-	if ns, ok := config.Labels["scion.namespace"]; ok {
+	if ns, ok := config.Labels["fabric.namespace"]; ok {
 		namespace = ns
 	} else if ns, ok := config.Labels["namespace"]; ok {
 		namespace = ns
 	}
 
 	if config.Name == "" {
-		config.Name = fmt.Sprintf("scion-%d", time.Now().UnixNano())
+		config.Name = fmt.Sprintf("fabric-%d", time.Now().UnixNano())
 	}
 
 	// For non-git environments, Workspace might be empty but we might have it as a volume mount
@@ -230,24 +230,24 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 	// Persist workspace path in annotations for later sync
 	if config.Workspace != "" {
 		config.Annotations = ensureAnnotations(config.Annotations)
-		config.Annotations["scion.workspace"] = config.Workspace
+		config.Annotations["fabric.workspace"] = config.Workspace
 	}
 
 	if config.GitClone != nil {
 		config.Annotations = ensureAnnotations(config.Annotations)
-		config.Annotations["scion.git_clone"] = "true"
-		config.Annotations["scion.git_clone_url"] = config.GitClone.URL
+		config.Annotations["fabric.git_clone"] = "true"
+		config.Annotations["fabric.git_clone_url"] = config.GitClone.URL
 	}
 
 	if config.HomeDir != "" {
 		config.Annotations = ensureAnnotations(config.Annotations)
-		config.Annotations["scion.homedir"] = config.HomeDir
-		config.Annotations["scion.username"] = config.UnixUsername
+		config.Annotations["fabric.homedir"] = config.HomeDir
+		config.Annotations["fabric.username"] = config.UnixUsername
 	}
 
 	// Persist the resolved namespace as an annotation for lifecycle operations
 	config.Annotations = ensureAnnotations(config.Annotations)
-	config.Annotations["scion.namespace"] = namespace
+	config.Annotations["fabric.namespace"] = namespace
 
 	// Pre-clean stale resources from a previous agent with the same name.
 	// This handles cases where the agent was force-deleted from the hub
@@ -301,7 +301,7 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 	// This prevents concurrent first-clone corruption (risk RN1, design §7):
 	//   - Lock winner: injects the cloning init container (existing N2-2 script)
 	//   - Lock loser:  injects a wait-for-sentinel init container (polls for
-	//                  .scion-provisioned without cloning)
+	//                  .fabric-provisioned without cloning)
 	//
 	// The lock is held until waitForPodReady returns (all init containers
 	// complete), mirroring N1-4's "hold during clone" lifetime. On error
@@ -377,7 +377,7 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 			return createdPod.Name, fmt.Errorf("failed to sync home: %w", err)
 		}
 		// Fix ownership: tar extraction runs as root via K8s exec, so synced
-		// files are owned by root. chown them to the scion user so the
+		// files are owned by root. chown them to the fabric user so the
 		// privilege-dropped harness process can access its home directory.
 		chownCmd := fmt.Sprintf("chown -R %s:%s %s", config.UnixUsername, config.UnixUsername, destHome)
 		if _, err := r.execInPod(ctx, namespace, createdPod.Name, []string{"sh", "-c", chownCmd}); err != nil {
@@ -390,7 +390,7 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 	// redundantly copying workspace contents that already exist on the shared
 	// NFS volume. Local-backend pods RETAIN the existing workspace sync.
 	//
-	// Home-dir sync and the startup gate (/tmp/.scion-home-ready) are RETAINED
+	// Home-dir sync and the startup gate (/tmp/.fabric-home-ready) are RETAINED
 	// for both backends — they carry agent dotfiles and secrets, not workspace code.
 	if config.Workspace != "" && config.WorkspaceBackendName != "nfs" {
 		runtimeLog.Info("Syncing workspace", "agent", config.Name, "source", config.Workspace, "phase", "workspace-sync")
@@ -401,7 +401,7 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 		if err != nil {
 			return createdPod.Name, fmt.Errorf("failed to sync workspace: %w", err)
 		}
-		// Fix workspace ownership for the scion user
+		// Fix workspace ownership for the fabric user
 		chownCmd := fmt.Sprintf("chown -R %s:%s /workspace", config.UnixUsername, config.UnixUsername)
 		if _, err := r.execInPod(ctx, namespace, createdPod.Name, []string{"sh", "-c", chownCmd}); err != nil {
 			runtimeLog.Debug("Failed to chown workspace (non-fatal)", "error", err)
@@ -412,10 +412,10 @@ func (r *KubernetesRuntime) Run(ctx context.Context, config RunConfig) (string, 
 	}
 
 	// Signal the startup gate: all files are synced and ownership is fixed,
-	// so it's safe to launch sciontool init → tmux → harness. The gate loop
+	// so it's safe to launch fabrictool init → tmux → harness. The gate loop
 	// in the pod command polls for this marker file (see buildPod for details).
 	runtimeLog.Info("Signaling startup gate", "agent", config.Name, "phase", "startup-gate")
-	if _, err := r.execInPod(ctx, namespace, createdPod.Name, []string{"touch", "/tmp/.scion-home-ready"}); err != nil {
+	if _, err := r.execInPod(ctx, namespace, createdPod.Name, []string{"touch", "/tmp/.fabric-home-ready"}); err != nil {
 		return createdPod.Name, fmt.Errorf("failed to signal startup gate: %w", err)
 	}
 
@@ -456,7 +456,7 @@ func (r *KubernetesRuntime) createAgentSecret(ctx context.Context, namespace, ag
 		return "", nil
 	}
 
-	secretName := fmt.Sprintf("scion-agent-%s", agentName)
+	secretName := fmt.Sprintf("fabric-agent-%s", agentName)
 	data := make(map[string][]byte)
 
 	// Collect variable-type secrets for JSON aggregation
@@ -491,10 +491,10 @@ func (r *KubernetesRuntime) createAgentSecret(ctx context.Context, namespace, ag
 
 	// Build labels for cleanup
 	secretLabels := map[string]string{
-		"scion.agent": agentName,
+		"fabric.agent": agentName,
 	}
 	for k, v := range labels {
-		if strings.HasPrefix(k, "scion.") {
+		if strings.HasPrefix(k, "fabric.") {
 			secretLabels[k] = v
 		}
 	}
@@ -525,8 +525,8 @@ func (r *KubernetesRuntime) createAgentSecret(ctx context.Context, namespace, ag
 // Secrets Store CSI driver integration. It maps GCP Secret Manager
 // references to K8s-synced secrets for environment variable injection.
 func (r *KubernetesRuntime) createSecretProviderClass(ctx context.Context, namespace, agentName string, secrets []api.ResolvedSecret, labels map[string]string) (string, error) {
-	spcName := fmt.Sprintf("scion-agent-%s", agentName)
-	envSecretName := fmt.Sprintf("scion-agent-%s-env", agentName)
+	spcName := fmt.Sprintf("fabric-agent-%s", agentName)
+	envSecretName := fmt.Sprintf("fabric-agent-%s-env", agentName)
 
 	// Build the GCP SM secrets parameter as YAML
 	type gcpSecretEntry struct {
@@ -586,10 +586,10 @@ func (r *KubernetesRuntime) createSecretProviderClass(ctx context.Context, names
 
 	// Build labels
 	spcLabels := map[string]string{
-		"scion.agent": agentName,
+		"fabric.agent": agentName,
 	}
 	for k, v := range labels {
-		if strings.HasPrefix(k, "scion.") {
+		if strings.HasPrefix(k, "fabric.") {
 			spcLabels[k] = v
 		}
 	}
@@ -645,9 +645,9 @@ func toStringInterfaceMap(m map[string]string) map[string]interface{} {
 }
 
 // cleanupAgentSecrets removes K8s Secrets and (if GKE mode) SecretProviderClasses
-// associated with an agent, identified by the scion.agent label.
+// associated with an agent, identified by the fabric.agent label.
 func (r *KubernetesRuntime) cleanupAgentSecrets(ctx context.Context, namespace, agentName string) {
-	selector := fmt.Sprintf("scion.agent=%s", agentName)
+	selector := fmt.Sprintf("fabric.agent=%s", agentName)
 
 	// Delete K8s Secrets by listing then deleting individually
 	secretList, err := r.Client.Clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{
@@ -675,7 +675,7 @@ func (r *KubernetesRuntime) cleanupAgentSecrets(ctx context.Context, namespace, 
 // createAuthFileSecret creates a K8s Secret containing ResolvedAuth file contents
 // so that auth files can be projected into pods via volume mounts instead of hostPath.
 func (r *KubernetesRuntime) createAuthFileSecret(ctx context.Context, namespace, agentName string, files []api.FileMapping, labels map[string]string) error {
-	secretName := fmt.Sprintf("scion-auth-%s", agentName)
+	secretName := fmt.Sprintf("fabric-auth-%s", agentName)
 	data := make(map[string][]byte)
 
 	for i, f := range files {
@@ -688,10 +688,10 @@ func (r *KubernetesRuntime) createAuthFileSecret(ctx context.Context, namespace,
 	}
 
 	secretLabels := map[string]string{
-		"scion.agent": agentName,
+		"fabric.agent": agentName,
 	}
 	for k, v := range labels {
-		if strings.HasPrefix(k, "scion.") {
+		if strings.HasPrefix(k, "fabric.") {
 			secretLabels[k] = v
 		}
 	}
@@ -731,7 +731,7 @@ func (r *KubernetesRuntime) createAuthFileSecret(ctx context.Context, namespace,
 // RWX claim. Usable for shared dirs ("shared") and workspace claims ("workspace").
 // PVCs are project-scoped (not agent-scoped), so multiple agents share the same PVC.
 func projectRWXClaimName(projectName, claimType, dirName string) string {
-	return fmt.Sprintf("scion-%s-%s-%s", claimType, projectName, dirName)
+	return fmt.Sprintf("fabric-%s-%s-%s", claimType, projectName, dirName)
 }
 
 // sharedDirPVCName returns the deterministic PVC name for a project shared directory.
@@ -766,7 +766,7 @@ func (r *KubernetesRuntime) createSharedDirPVCs(ctx context.Context, namespace s
 
 	projectName := projectcompat.ProjectNameFromLabels(config.Labels)
 	if projectName == "" {
-		return fmt.Errorf("cannot create shared dir PVCs: missing scion.project or scion.grove label")
+		return fmt.Errorf("cannot create shared dir PVCs: missing fabric.project or fabric.grove label")
 	}
 
 	storageClass := ""
@@ -816,7 +816,7 @@ func (r *KubernetesRuntime) ensureProjectRWXClaim(
 			Name:      pvcName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"scion.shared-dir": dirName,
+				"fabric.shared-dir": dirName,
 			},
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
@@ -855,13 +855,13 @@ func (r *KubernetesRuntime) ensureProjectRWXClaim(
 // When backend=nfs, shared dirs live on the NFS volume (no separate PVCs) but the
 // cleanup still runs — it harmlessly finds nothing because no PVCs were created.
 func (r *KubernetesRuntime) cleanupSharedDirPVCs(ctx context.Context, namespace, projectName string) {
-	r.cleanupProjectRWXClaims(ctx, namespace, projectName, "scion.shared-dir")
+	r.cleanupProjectRWXClaims(ctx, namespace, projectName, "fabric.shared-dir")
 }
 
 // cleanupProjectRWXClaims is the generic cleanup helper for project-scoped RWX PVCs.
 // It lists PVCs matching the project and label key, then deletes them.
 func (r *KubernetesRuntime) cleanupProjectRWXClaims(ctx context.Context, namespace, projectName, labelKey string) {
-	selector := fmt.Sprintf("scion.grove=%s,%s", projectName, labelKey)
+	selector := fmt.Sprintf("fabric.grove=%s,%s", projectName, labelKey)
 	pvcList, err := r.Client.Clientset.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: selector,
 	})
@@ -897,12 +897,12 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 		cmdLine = "sleep infinity"
 	}
 	// Wrap the harness so it records its real exit code to a fixed file (see
-	// state.HarnessExitCodeFile / buildCommonRunArgs for rationale). `sciontool init`
+	// state.HarnessExitCodeFile / buildCommonRunArgs for rationale). `fabrictool init`
 	// reads this to report crashes accurately.
 	agentWindowCmd := "sh -c " + shellQuote(cmdLine+"; echo $? > "+state.HarnessExitCodeFile)
 	// Create session with "agent" window running the harness, plus a "shell" window.
 	tmuxCmd := fmt.Sprintf(
-		"tmux new-session -d -s scion -n agent %s \\; set-option -g window-size latest \\; new-window -t scion -n shell \\; select-window -t scion:agent \\; attach-session -t scion",
+		"tmux new-session -d -s fabric -n agent %s \\; set-option -g window-size latest \\; new-window -t fabric -n shell \\; select-window -t fabric:agent \\; attach-session -t fabric",
 		agentWindowCmd,
 	)
 	// --- K8s Startup Gate ---
@@ -910,33 +910,33 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 	// Unlike Docker/Podman where volumes are bind-mounted before the container
 	// starts, K8s requires the pod to be running before we can exec into it to
 	// sync files (home directory, workspace). This creates a chicken-and-egg
-	// problem: the container process (sciontool init → tmux → harness) needs
+	// problem: the container process (fabrictool init → tmux → harness) needs
 	// dotfiles like .zshrc, .tmux.conf, and .gemini/settings.json to be
 	// present at launch, but we can only copy them into a running container.
 	//
 	// Solution: the pod command starts with a lightweight gate loop that polls
-	// for a marker file (/tmp/.scion-home-ready). The broker syncs home +
+	// for a marker file (/tmp/.fabric-home-ready). The broker syncs home +
 	// workspace, fixes ownership, then creates the marker. The gate detects
-	// it and exec's the real entrypoint (sciontool init → tmux → harness)
+	// it and exec's the real entrypoint (fabrictool init → tmux → harness)
 	// with all files already in place.
 	//
-	// The real startup command is passed via the SCION_START_CMD env var to
+	// The real startup command is passed via the FABRIC_START_CMD env var to
 	// avoid shell quoting issues with the tmux command string.
 	//
 	// Flow:
-	//   1. Pod starts → gate loop (polling /tmp/.scion-home-ready)
+	//   1. Pod starts → gate loop (polling /tmp/.fabric-home-ready)
 	//   2. Broker syncs home dir → syncs workspace → chowns files
-	//   3. Broker creates /tmp/.scion-home-ready via execInPod
-	//   4. Gate detects marker → exec sciontool init -- sh -c "$SCION_START_CMD"
-	//   5. sciontool init sets up user, drops privileges, launches tmux
+	//   3. Broker creates /tmp/.fabric-home-ready via execInPod
+	//   4. Gate detects marker → exec fabrictool init -- sh -c "$FABRIC_START_CMD"
+	//   5. fabrictool init sets up user, drops privileges, launches tmux
 	//
-	gateCmd := `while [ ! -f /tmp/.scion-home-ready ]; do sleep 0.2; done; exec sciontool init -- sh -c "$SCION_START_CMD"`
+	gateCmd := `while [ ! -f /tmp/.fabric-home-ready ]; do sleep 0.2; done; exec fabrictool init -- sh -c "$FABRIC_START_CMD"`
 	cmd = []string{"sh", "-c", gateCmd}
 
 	// Env Resolution — match local runtimes by including harness env + telemetry env.
 	envVars := []corev1.EnvVar{
 		// The real startup command, consumed by the gate script above.
-		{Name: "SCION_START_CMD", Value: tmuxCmd},
+		{Name: "FABRIC_START_CMD", Value: tmuxCmd},
 	}
 
 	// Harness env (system prompt, agent name, etc.) — parity with buildCommonRunArgs.
@@ -979,12 +979,12 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 			useGKEPath = hasRef
 		}
 
-		agentSecretName := fmt.Sprintf("scion-agent-%s", config.Name)
+		agentSecretName := fmt.Sprintf("fabric-agent-%s", config.Name)
 
 		if useGKEPath {
 			// GKE path: CSI volume for file-type secrets, secretKeyRef to -env secret for env vars
-			spcName := fmt.Sprintf("scion-agent-%s", config.Name)
-			envSecretName := fmt.Sprintf("scion-agent-%s-env", config.Name)
+			spcName := fmt.Sprintf("fabric-agent-%s", config.Name)
+			envSecretName := fmt.Sprintf("fabric-agent-%s-env", config.Name)
 
 			// Add CSI volume (required for secretObjects sync)
 			extraVolumes = append(extraVolumes, corev1.Volume{
@@ -1074,10 +1074,10 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 			}
 
 			if hasVariableSecrets {
-				scionDir := fmt.Sprintf("/home/%s/.scion", config.UnixUsername)
+				fabricDir := fmt.Sprintf("/home/%s/.fabric", config.UnixUsername)
 				extraVolumeMounts = append(extraVolumeMounts, corev1.VolumeMount{
 					Name:      "agent-secrets",
-					MountPath: scionDir + "/secrets.json",
+					MountPath: fabricDir + "/secrets.json",
 					SubPath:   "secrets.json",
 					ReadOnly:  true,
 				})
@@ -1098,7 +1098,7 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 				Name: volName,
 				VolumeSource: corev1.VolumeSource{
 					Secret: &corev1.SecretVolumeSource{
-						SecretName: fmt.Sprintf("scion-auth-%s", config.Name),
+						SecretName: fmt.Sprintf("fabric-auth-%s", config.Name),
 					},
 				},
 			})
@@ -1123,15 +1123,15 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 	containerHome := fmt.Sprintf("/home/%s", config.UnixUsername)
 
 	// Pass host user UID/GID for container user synchronization
-	envVars = append(envVars, corev1.EnvVar{Name: "SCION_HOST_UID", Value: fmt.Sprintf("%d", os.Getuid())})
-	envVars = append(envVars, corev1.EnvVar{Name: "SCION_HOST_GID", Value: fmt.Sprintf("%d", os.Getgid())})
+	envVars = append(envVars, corev1.EnvVar{Name: "FABRIC_HOST_UID", Value: fmt.Sprintf("%d", os.Getuid())})
+	envVars = append(envVars, corev1.EnvVar{Name: "FABRIC_HOST_GID", Value: fmt.Sprintf("%d", os.Getgid())})
 	envVars = append(envVars,
 		corev1.EnvVar{Name: "HOME", Value: containerHome},
 		corev1.EnvVar{Name: "USER", Value: config.UnixUsername},
 		corev1.EnvVar{Name: "LOGNAME", Value: config.UnixUsername},
 	)
 
-	// Security context: run agent pods as the image's non-root scion user.
+	// Security context: run agent pods as the image's non-root fabric user.
 	// FSGroup is branched by workspace backend (N2-4):
 	//   - NFS backend: stable GID (default 1000) so files are writable across
 	//     pods and nodes without per-start chown (design §9.1).
@@ -1250,7 +1250,7 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 	//   - Lock winner (nfsProvisionLockLost=false): injects the CLONING init
 	//     container that checks the sentinel and clones if absent (N2-2 script).
 	//   - Lock loser  (nfsProvisionLockLost=true): injects a WAIT-for-sentinel
-	//     init container that polls for .scion-provisioned without cloning.
+	//     init container that polls for .fabric-provisioned without cloning.
 	//
 	// When no advisory locker is available (Locker nil / single-node deploy),
 	// nfsProvisionLockLost stays false and the cloning init container is
@@ -1261,7 +1261,7 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 		if config.nfsProvisionLockLost {
 			// Lock loser: wait for the sentinel written by the winning node's
 			// cloning init container. Does NOT clone.
-			initCommand = []string{"sciontool", "provision", "--wait-for-sentinel"}
+			initCommand = []string{"fabrictool", "provision", "--wait-for-sentinel"}
 		} else {
 			// Lock winner (or no locker available): clone if sentinel is absent,
 			// skip if already provisioned. The command is idempotent.
@@ -1390,9 +1390,9 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 	sharedDirTargets := make(map[string]bool, len(config.SharedDirs))
 	nfsSharedDirs := config.WorkspaceBackendName == "nfs" && config.NFSPVClaimName != ""
 	for i, sd := range config.SharedDirs {
-		target := fmt.Sprintf("/scion-volumes/%s", sd.Name)
+		target := fmt.Sprintf("/fabric-volumes/%s", sd.Name)
 		if sd.InWorkspace {
-			target = fmt.Sprintf("%s/.scion-volumes/%s", k8sContainerWorkspace, sd.Name)
+			target = fmt.Sprintf("%s/.fabric-volumes/%s", k8sContainerWorkspace, sd.Name)
 		}
 		sharedDirTargets[target] = true
 
@@ -1510,7 +1510,7 @@ func (r *KubernetesRuntime) buildPod(namespace string, config RunConfig) (*corev
 		if data, err := json.Marshal(gcsVolumes); err == nil {
 			encoded := base64.StdEncoding.EncodeToString(data)
 			pod.Annotations = ensureAnnotations(pod.Annotations)
-			pod.Annotations["scion.gcs_volumes"] = encoded
+			pod.Annotations["fabric.gcs_volumes"] = encoded
 		}
 	}
 
@@ -1595,7 +1595,7 @@ func (r *KubernetesRuntime) waitForPodReady(ctx context.Context, namespace, podN
 					return fmt.Errorf("container configuration error for pod %q: %s — check secret references and volume mounts", podName, message)
 				case "CrashLoopBackOff":
 					runtimeLog.Error("Container crash loop", "pod", podName, "message", message, "phase", "crash-loop")
-					return fmt.Errorf("container is crash-looping in pod %q: %s — check container logs with 'scion logs'", podName, message)
+					return fmt.Errorf("container is crash-looping in pod %q: %s — check container logs with 'fabric logs'", podName, message)
 				case "Unschedulable":
 					if r.isGKEScheduling() {
 						runtimeLog.Info("Pod unschedulable (GKE Autopilot will auto-provision nodes)", "pod", podName, "message", message, "phase", "scheduling")
@@ -1803,7 +1803,7 @@ func (r *KubernetesRuntime) Delete(ctx context.Context, id string) error {
 
 	// 'id' is the pod name
 	// Use GracePeriodSeconds=0 for immediate termination since Delete is used
-	// for force-removal (e.g. scion rm), not graceful shutdown.
+	// for force-removal (e.g. fabric rm), not graceful shutdown.
 	gracePeriod := int64(0)
 	err := r.Client.Clientset.CoreV1().Pods(namespace).Delete(ctx, id, metav1.DeleteOptions{
 		GracePeriodSeconds: &gracePeriod,
@@ -1853,8 +1853,8 @@ func (r *KubernetesRuntime) List(ctx context.Context, labelFilter map[string]str
 		}
 		selector = strings.Join(selectors, ",")
 	} else {
-		// Default to filtering for scion agents if no specific filter is provided
-		selector = "scion.name"
+		// Default to filtering for fabric agents if no specific filter is provided
+		selector = "fabric.name"
 	}
 
 	pods, err := r.Client.Clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
@@ -1866,9 +1866,9 @@ func (r *KubernetesRuntime) List(ctx context.Context, labelFilter map[string]str
 
 	var agents []api.AgentInfo
 	for _, p := range pods.Items {
-		// We already filtered by selector, but we still double check if scion.name is present
+		// We already filtered by selector, but we still double check if fabric.name is present
 		// just in case the selector logic changes or is broader.
-		if _, ok := p.Labels["scion.name"]; !ok {
+		if _, ok := p.Labels["fabric.name"]; !ok {
 			continue
 		}
 
@@ -1918,8 +1918,8 @@ func (r *KubernetesRuntime) List(ctx context.Context, labelFilter map[string]str
 
 		agents = append(agents, api.AgentInfo{
 			ContainerID:     p.Name, // Pod name serves as the container identifier
-			Name:            p.Labels["scion.name"],
-			Template:        p.Labels["scion.template"],
+			Name:            p.Labels["fabric.name"],
+			Template:        p.Labels["fabric.template"],
 			Project:         projectcompat.ProjectNameFromLabels(p.Labels),
 			ProjectID:       projectcompat.ProjectIDFromLabels(p.Labels),
 			ProjectPath:     projectPath,
@@ -1977,7 +1977,7 @@ func (r *KubernetesRuntime) Attach(ctx context.Context, id string) error {
 	}
 
 	// Find pod first to check status
-	agents, err := r.List(ctx, map[string]string{"scion.name": id})
+	agents, err := r.List(ctx, map[string]string{"fabric.name": id})
 	if err != nil {
 		return fmt.Errorf("failed to list pods: %w", err)
 	}
@@ -1995,12 +1995,12 @@ func (r *KubernetesRuntime) Attach(ctx context.Context, id string) error {
 	}
 
 	// Use the actual pod name (ContainerID) which may include a project prefix
-	// (e.g., "sciontest--hello" instead of just "hello")
+	// (e.g., "fabrictest--hello" instead of just "hello")
 	podName = agent.ContainerID
 
 	// For Kubernetes, we want to ensure it is in Running phase
 	if !strings.EqualFold(agent.ContainerStatus, string(corev1.PodRunning)) {
-		return fmt.Errorf("agent '%s' is not running (status: %s), use 'scion start %s' to resume it", id, agent.ContainerStatus, id)
+		return fmt.Errorf("agent '%s' is not running (status: %s), use 'fabric start %s' to resume it", id, agent.ContainerStatus, id)
 	}
 
 	fmt.Printf("Attaching to pod '%s' (use Ctrl-b d to detach)...\n", podName)
@@ -2013,8 +2013,8 @@ func (r *KubernetesRuntime) Attach(ctx context.Context, id string) error {
 
 	// Determine the container username so we attach as the correct user
 	// (K8s exec has no --user flag; we use su to switch from root).
-	username := "scion"
-	if u, ok := agent.Annotations["scion.username"]; ok && u != "" {
+	username := "fabric"
+	if u, ok := agent.Annotations["fabric.username"]; ok && u != "" {
 		username = u
 	}
 
@@ -2027,7 +2027,7 @@ func (r *KubernetesRuntime) Attach(ctx context.Context, id string) error {
 	// on both root-entrypoint images (where su is needed) and non-root
 	// entrypoint images (where su would prompt for a password). See
 	// ExecAsUserCmd godoc for the underlying PAM rationale.
-	execCmd := ExecAsUserCmd(username, "tmux attach -t scion")
+	execCmd := ExecAsUserCmd(username, "tmux attach -t fabric")
 
 	option := &corev1.PodExecOptions{
 		Container: agentContainerName,
@@ -2165,7 +2165,7 @@ func (r *KubernetesRuntime) PullImage(ctx context.Context, image string) error {
 
 func (r *KubernetesRuntime) Sync(ctx context.Context, id string, direction SyncDirection) error {
 	// Find pod first
-	agents, err := r.List(ctx, map[string]string{"scion.name": id})
+	agents, err := r.List(ctx, map[string]string{"fabric.name": id})
 	if err != nil {
 		return fmt.Errorf("failed to list pods: %w", err)
 	}
@@ -2183,7 +2183,7 @@ func (r *KubernetesRuntime) Sync(ctx context.Context, id string, direction SyncD
 	}
 
 	// Check for GCS volumes
-	if val, ok := agent.Annotations["scion.gcs_volumes"]; ok && val != "" {
+	if val, ok := agent.Annotations["fabric.gcs_volumes"]; ok && val != "" {
 		decoded, err := base64.StdEncoding.DecodeString(val)
 		if err != nil {
 			return fmt.Errorf("failed to decode gcs volume info: %w", err)
@@ -2220,17 +2220,17 @@ func (r *KubernetesRuntime) Sync(ctx context.Context, id string, direction SyncD
 		return nil
 	}
 
-	workspacePath := agent.Annotations["scion.workspace"]
+	workspacePath := agent.Annotations["fabric.workspace"]
 	if workspacePath == "" {
 		return fmt.Errorf("agent '%s' does not have a workspace path recorded", id)
 	}
 
-	homeDir := agent.Annotations["scion.homedir"]
-	username := agent.Annotations["scion.username"]
+	homeDir := agent.Annotations["fabric.homedir"]
+	username := agent.Annotations["fabric.username"]
 
 	// Resolve namespace
 	namespace := r.DefaultNamespace
-	if ns, ok := agent.Labels["scion.namespace"]; ok {
+	if ns, ok := agent.Labels["fabric.namespace"]; ok {
 		namespace = ns
 	} else if ns, ok := agent.Labels["namespace"]; ok {
 		namespace = ns
@@ -2238,7 +2238,7 @@ func (r *KubernetesRuntime) Sync(ctx context.Context, id string, direction SyncD
 
 	// Tar sync (Snapshot)
 	if direction == SyncUnspecified {
-		return fmt.Errorf("direction (to or from) must be specified for tar sync. Example: scion sync to %s", agent.ContainerID)
+		return fmt.Errorf("direction (to or from) must be specified for tar sync. Example: fabric sync to %s", agent.ContainerID)
 	}
 
 	if direction == SyncFrom {
@@ -2296,10 +2296,10 @@ func (r *KubernetesRuntime) Exec(ctx context.Context, id string, cmd []string) (
 		Namespace(namespace).
 		SubResource("exec")
 
-	// Wrap command to run as the scion user (K8s exec has no --user flag).
+	// Wrap command to run as the fabric user (K8s exec has no --user flag).
 	// Shell-quote each argument to handle spaces and special characters,
 	// then wrap with the whoami-skip-su helper so it works on images that
-	// run as root (su needed) and images that run as scion (su would
+	// run as root (su needed) and images that run as fabric (su would
 	// prompt for a password — see ExecAsUserCmd godoc).
 	quoted := make([]string, len(cmd))
 	for i, arg := range cmd {
@@ -2398,7 +2398,7 @@ func (r *KubernetesRuntime) GetWorkspacePath(ctx context.Context, id string) (st
 	}
 
 	// Check annotations for workspace path
-	if workspace, ok := pod.Annotations["scion.workspace"]; ok && workspace != "" {
+	if workspace, ok := pod.Annotations["fabric.workspace"]; ok && workspace != "" {
 		return workspace, nil
 	}
 
@@ -2418,12 +2418,12 @@ func nfsSharedDirSubPath(workspaceSubPath, sharedDirName string) string {
 }
 
 // nfsProvisionCommand builds the Command slice for the lock-winner init
-// container. It invokes `sciontool provision` with numeric/enum flags for
+// container. It invokes `fabrictool provision` with numeric/enum flags for
 // depth and mode. URL and branch are passed via env vars (nfsProvisionEnv)
 // to prevent shell injection.
 func nfsProvisionCommand(gc *api.GitCloneConfig) []string {
 	if gc == nil || gc.URL == "" {
-		return []string{"sciontool", "provision"}
+		return []string{"fabrictool", "provision"}
 	}
 
 	depth := gc.Depth
@@ -2432,7 +2432,7 @@ func nfsProvisionCommand(gc *api.GitCloneConfig) []string {
 	}
 
 	return []string{
-		"sciontool", "provision",
+		"fabrictool", "provision",
 		"--depth", fmt.Sprintf("%d", depth),
 	}
 }
@@ -2444,10 +2444,10 @@ func nfsProvisionEnv(gc *api.GitCloneConfig) []corev1.EnvVar {
 		return nil
 	}
 	envs := []corev1.EnvVar{
-		{Name: "SCION_CLONE_URL", Value: gc.URL},
+		{Name: "FABRIC_CLONE_URL", Value: gc.URL},
 	}
 	if gc.Branch != "" {
-		envs = append(envs, corev1.EnvVar{Name: "SCION_CLONE_BRANCH", Value: gc.Branch})
+		envs = append(envs, corev1.EnvVar{Name: "FABRIC_CLONE_BRANCH", Value: gc.Branch})
 	}
 	return envs
 }

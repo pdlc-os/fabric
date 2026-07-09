@@ -47,35 +47,35 @@
 <path fill="none" stroke="black" d="M205.54,-339.9C187.23,-311.82 152.91,-259.2 131.6,-226.53"/>
 <polygon fill="black" stroke="black" points="134.66,-224.81 126.27,-218.34 128.8,-228.63 134.66,-224.81"/>
 </g>
-<!-- scion_harness.capture_auth_main() -->
+<!-- fabric_harness.capture_auth_main() -->
 <g id="node3" class="node">
-<title>scion_harness.capture_auth_main()</title>
+<title>fabric_harness.capture_auth_main()</title>
 <polygon fill="lightblue" stroke="black" points="402.25,-215 243.75,-215 243.75,-179 402.25,-179 402.25,-215"/>
-<text xml:space="preserve" text-anchor="middle" x="323" y="-194.2" font-family="Times,serif" font-size="14.00">scion_harness.</text>
+<text xml:space="preserve" text-anchor="middle" x="323" y="-194.2" font-family="Times,serif" font-size="14.00">fabric_harness.</text>
 <text xml:space="preserve" text-anchor="middle" x="323" y="-183.7" font-family="Times,serif" font-size="14.00">capture_auth_main()</text>
 </g>
-<!-- Harness capture_auth.py&#45;&gt;scion_harness.capture_auth_main() -->
+<!-- Harness capture_auth.py&#45;&gt;fabric_harness.capture_auth_main() -->
 <g id="edge2" class="edge">
-<title>Harness capture_auth.py&#45;&gt;scion_harness.capture_auth_main()</title>
+<title>Harness capture_auth.py&#45;&gt;fabric_harness.capture_auth_main()</title>
 <path fill="none" stroke="black" d="M230.46,-339.9C249.16,-311.21 284.57,-256.92 305.75,-224.45"/>
 <polygon fill="black" stroke="black" points="308.48,-226.68 311.01,-216.39 302.61,-222.85 308.48,-226.68"/>
 </g>
-<!-- sciontool secret set -->
+<!-- fabrictool secret set -->
 <g id="node4" class="node">
-<title>sciontool secret set</title>
+<title>fabrictool secret set</title>
 <polygon fill="lightblue" stroke="black" points="263.5,-57 172.5,-57 172.5,-21 263.5,-21 263.5,-57"/>
-<text xml:space="preserve" text-anchor="middle" x="218" y="-36.2" font-family="Times,serif" font-size="14.00">sciontool</text>
+<text xml:space="preserve" text-anchor="middle" x="218" y="-36.2" font-family="Times,serif" font-size="14.00">fabrictool</text>
 <text xml:space="preserve" text-anchor="middle" x="218" y="-25.7" font-family="Times,serif" font-size="14.00">secret set</text>
 </g>
-<!-- External Credential Sources&#45;&gt;sciontool secret set -->
+<!-- External Credential Sources&#45;&gt;fabrictool secret set -->
 <g id="edge4" class="edge">
-<title>External Credential Sources&#45;&gt;sciontool secret set</title>
+<title>External Credential Sources&#45;&gt;fabrictool secret set</title>
 <path fill="none" stroke="black" d="M125.88,-176.87C144.45,-149.27 178.86,-98.14 199.97,-66.79"/>
 <polygon fill="black" stroke="black" points="202.79,-68.87 205.47,-58.62 196.98,-64.96 202.79,-68.87"/>
 </g>
-<!-- scion_harness.capture_auth_main()&#45;&gt;sciontool secret set -->
+<!-- fabric_harness.capture_auth_main()&#45;&gt;fabrictool secret set -->
 <g id="edge3" class="edge">
-<title>scion_harness.capture_auth_main()&#45;&gt;sciontool secret set</title>
+<title>fabric_harness.capture_auth_main()&#45;&gt;fabrictool secret set</title>
 <path fill="none" stroke="black" d="M311.36,-178.71C293.07,-151.53 257.46,-98.63 235.9,-66.59"/>
 <polygon fill="black" stroke="black" points="239.02,-64.97 230.54,-58.62 233.22,-68.87 239.02,-64.97"/>
 </g>

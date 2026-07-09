@@ -217,7 +217,7 @@ func TestRequestLogMiddleware_ProducesCorrectJSON(t *testing.T) {
 	)
 
 	req := httptest.NewRequest("GET", "/api/v1/groves/test-project/agents", nil)
-	req.Header.Set("User-Agent", "scion-cli/0.1.0")
+	req.Header.Set("User-Agent", "fabric-cli/0.1.0")
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -243,8 +243,8 @@ func TestRequestLogMiddleware_ProducesCorrectJSON(t *testing.T) {
 	if httpReq["responseSize"] != float64(15) {
 		t.Errorf("expected responseSize=15, got %v", httpReq["responseSize"])
 	}
-	if httpReq["userAgent"] != "scion-cli/0.1.0" {
-		t.Errorf("expected userAgent=scion-cli/0.1.0, got %v", httpReq["userAgent"])
+	if httpReq["userAgent"] != "fabric-cli/0.1.0" {
+		t.Errorf("expected userAgent=fabric-cli/0.1.0, got %v", httpReq["userAgent"])
 	}
 
 	// Check labels

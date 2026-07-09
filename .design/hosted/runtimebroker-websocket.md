@@ -58,7 +58,7 @@ The Runtime Broker initiates a persistent WebSocket connection to the Hub. This 
 
 ```
 ┌─────────────────┐                    ┌─────────────────┐
-│   Scion Hub     │                    │  Runtime Broker   │
+│   Fabric Hub     │                    │  Runtime Broker   │
 │                 │◄───────────────────│  (behind NAT)   │
 │                 │   WebSocket        │                 │
 │  Control Plane  │   Control Channel  │  Broker Agent   │
@@ -79,7 +79,7 @@ The Runtime Broker initiates a persistent WebSocket connection to the Hub. This 
 
 ```
                     ┌──────────────────────────┐
-                    │       Scion Hub          │
+                    │       Fabric Hub          │
                     │                          │
                     │  ┌────────────────────┐  │
                     │  │ Control Channel    │  │
@@ -124,10 +124,10 @@ WS /api/v1/runtime-brokers/connect
 
 **HMAC Authentication Headers:**
 ```
-X-Scion-Broker-ID: broker-abc123
-X-Scion-Timestamp: 2025-01-24T10:00:00Z
-X-Scion-Nonce: random-nonce-xyz
-X-Scion-Signature: HMAC-SHA256(secret, "{brokerId}:{timestamp}:{nonce}:GET:/api/v1/runtime-brokers/connect")
+X-Fabric-Broker-ID: broker-abc123
+X-Fabric-Timestamp: 2025-01-24T10:00:00Z
+X-Fabric-Nonce: random-nonce-xyz
+X-Fabric-Signature: HMAC-SHA256(secret, "{brokerId}:{timestamp}:{nonce}:GET:/api/v1/runtime-brokers/connect")
 ```
 
 ### 3.2 Initial Handshake
@@ -315,7 +315,7 @@ PTY sessions are initiated via a special "Upgrade" request over the HTTP tunnel,
 
 The CLI acts similarly to a browser but uses standard user authentication.
 
-1.  **Auth**: CLI obtains a user Bearer token (via `scion login`).
+1.  **Auth**: CLI obtains a user Bearer token (via `fabric login`).
 2.  **Connect**: CLI connects to `wss://hub.example.com/api/v1/agents/{id}/attach`.
     *   Header: `Authorization: Bearer <token>`
 3.  **Proxying**:
@@ -340,10 +340,10 @@ HMAC-SHA256(shared_secret, "{brokerId}:{timestamp}:{nonce}:GET:{path}")
 **Headers:**
 | Header | Description |
 |--------|-------------|
-| `X-Scion-Broker-ID` | Runtime Broker identifier |
-| `X-Scion-Timestamp` | RFC 3339 timestamp |
-| `X-Scion-Nonce` | Random nonce for replay prevention |
-| `X-Scion-Signature` | HMAC signature |
+| `X-Fabric-Broker-ID` | Runtime Broker identifier |
+| `X-Fabric-Timestamp` | RFC 3339 timestamp |
+| `X-Fabric-Nonce` | Random nonce for replay prevention |
+| `X-Fabric-Signature` | HMAC signature |
 
 ### 5.2 Session-Based Trust
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package commands
@@ -14,8 +14,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hub"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hub"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 )
 
 var (
@@ -43,16 +43,16 @@ contents are read and base64-encoded, and --type defaults to "file".
 
 Examples:
   # Store a simple environment variable secret
-  sciontool secret set MY_API_KEY "sk-abc123"
+  fabrictool secret set MY_API_KEY "sk-abc123"
 
   # Store a credential file
-  sciontool secret set CLAUDE_AUTH @~/.claude/.credentials.json
+  fabrictool secret set CLAUDE_AUTH @~/.claude/.credentials.json
 
   # Store a file secret with explicit target path
-  sciontool secret set MY_CERT @/tmp/cert.pem --type file --target ~/certs/cert.pem
+  fabrictool secret set MY_CERT @/tmp/cert.pem --type file --target ~/certs/cert.pem
 
   # Overwrite an existing secret
-  sciontool secret set MY_KEY "new-value" --force`,
+  fabrictool secret set MY_KEY "new-value" --force`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		key := args[0]
@@ -118,7 +118,7 @@ Examples:
 
 		hubClient := hub.NewClient()
 		if hubClient == nil || !hubClient.IsConfigured() {
-			log.Error("Hub client not configured. Is SCION_HUB_ENDPOINT set?")
+			log.Error("Hub client not configured. Is FABRIC_HUB_ENDPOINT set?")
 			os.Exit(1)
 		}
 

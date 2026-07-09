@@ -74,7 +74,7 @@
 <g id="node5" class="node">
 <title>Go Backend</title>
 <polygon fill="lightblue" stroke="black" points="331.74,-36 128.24,-36 128.24,0 331.74,0 331.74,-36"/>
-<text xml:space="preserve" text-anchor="middle" x="229.99" y="-9.95" font-family="Times,serif" font-size="14.00">Go Backend (scion binary)</text>
+<text xml:space="preserve" text-anchor="middle" x="229.99" y="-9.95" font-family="Times,serif" font-size="14.00">Go Backend (fabric binary)</text>
 </g>
 <!-- SSEClient&#45;&gt;Go Backend -->
 <g id="edge4" class="edge">

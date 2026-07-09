@@ -269,7 +269,7 @@ All store interfaces defined in `pkg/store/store.go`:
 **Current State:** `dev-auth.md` acknowledges this, but no environment-based disable.
 
 **Recommendation:**
-- Add explicit `SCION_DISABLE_DEV_AUTH=true` for production
+- Add explicit `FABRIC_DISABLE_DEV_AUTH=true` for production
 - Log warnings when dev auth is active
 - Document production auth requirements
 
@@ -433,7 +433,7 @@ All store interfaces defined in `pkg/store/store.go`:
 
 1. **Client real-time state management (M8)** — SSE client and StateManager so the web UI reflects agent state changes without manual refresh. Server-side SSE/NATS infrastructure (M7) is complete.
 
-2. **Taskless refactor** — Remove the task requirement from `scion start` to enable interactive-first agent workflows.
+2. **Taskless refactor** — Remove the task requirement from `fabric start` to enable interactive-first agent workflows.
 
 3. **Agent creation wizard (M10)** — Web UI for creating agents, completing the full lifecycle in the browser.
 

@@ -20,10 +20,10 @@ import (
 )
 
 var harnessImageMap = map[string]string{
-	"claude":   "scion-claude:latest",
-	"gemini":   "scion-gemini:latest",
-	"codex":    "scion-codex:latest",
-	"opencode": "scion-opencode:latest",
+	"claude":   "fabric-claude:latest",
+	"gemini":   "fabric-gemini:latest",
+	"codex":    "fabric-codex:latest",
+	"opencode": "fabric-opencode:latest",
 }
 
 // HarnessImages returns the fully qualified image names needed for the given harness keys.

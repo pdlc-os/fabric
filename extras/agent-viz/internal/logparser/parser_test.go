@@ -28,10 +28,10 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-agents",
+			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
 				"agent_id":      "agent-1",
-				"scion.harness": "gemini",
+				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_start",
@@ -41,10 +41,10 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:30:01.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-agents",
+			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
 				"agent_id":      "agent-1",
-				"scion.harness": "gemini",
+				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
 				"message": "agent.session.start",
@@ -54,10 +54,10 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "3",
 			Timestamp: "2026-03-22T16:30:05.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-agents",
+			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
 				"agent_id":      "agent-1",
-				"scion.harness": "gemini",
+				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
 				"message":   "agent.tool.call",
@@ -69,7 +69,7 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "4",
 			Timestamp: "2026-03-22T16:30:10.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-messages",
+			LogName:   "projects/test/logs/fabric-messages",
 			Labels: map[string]string{
 				"sender":       "agent:alpha",
 				"sender_id":    "agent-1",
@@ -90,10 +90,10 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "5",
 			Timestamp: "2026-03-22T16:30:15.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-agents",
+			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
 				"agent_id":      "agent-2",
-				"scion.harness": "claude",
+				"fabric.harness": "claude",
 			},
 			JSONPayload: map[string]any{
 				"message": "agent.session.start",
@@ -103,10 +103,10 @@ func TestParseLogFile(t *testing.T) {
 			InsertID:  "6",
 			Timestamp: "2026-03-22T16:31:00.000Z",
 			Severity:  "INFO",
-			LogName:   "projects/test/logs/scion-agents",
+			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
 				"agent_id":      "agent-1",
-				"scion.harness": "gemini",
+				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
 				"message": "agent.session.end",
@@ -258,7 +258,7 @@ func TestExtractFilesEmpty(t *testing.T) {
 	// When no file tool calls, files list should be empty (no placeholders)
 	entries := []GCPLogEntry{
 		{
-			LogName: "projects/test/logs/scion-agents",
+			LogName: "projects/test/logs/fabric-agents",
 			Labels:  map[string]string{"agent_id": "a1"},
 			JSONPayload: map[string]any{
 				"message": "agent.session.start",
@@ -274,7 +274,7 @@ func TestExtractFilesEmpty(t *testing.T) {
 func TestExtractFilesFromReads(t *testing.T) {
 	entries := []GCPLogEntry{
 		{
-			LogName: "projects/test/logs/scion-agents",
+			LogName: "projects/test/logs/fabric-agents",
 			Labels:  map[string]string{"agent_id": "a1"},
 			JSONPayload: map[string]any{
 				"message":   "agent.tool.call",
@@ -302,8 +302,8 @@ func TestFileReadEvents(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "a1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "a1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message":   "agent.tool.call",
 				"tool_name": "Read",
@@ -330,12 +330,12 @@ func TestFileReadEvents(t *testing.T) {
 }
 
 func TestExtractAgentsFromMessages(t *testing.T) {
-	// Agents referenced only in messages (no scion-agents entries) should be discovered
+	// Agents referenced only in messages (no fabric-agents entries) should be discovered
 	entries := []GCPLogEntry{
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-messages",
+			LogName:   "projects/test/logs/fabric-messages",
 			Labels: map[string]string{
 				"sender":       "agent:green-agent",
 				"sender_id":    "sender-uuid-1",
@@ -375,8 +375,8 @@ func TestBackfillAgentCreateEvents(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "gemini"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "gemini"},
 			JSONPayload: map[string]any{
 				"message": "agent.session.start",
 			},
@@ -405,8 +405,8 @@ func TestAgentDestroyFromPreStop(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_start",
 			},
@@ -414,8 +414,8 @@ func TestAgentDestroyFromPreStop(t *testing.T) {
 		{
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:31:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_stop",
 			},
@@ -446,7 +446,7 @@ func TestAgentCreatedFromServerLog(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-server",
+			LogName:   "projects/test/logs/fabric-server",
 			Labels: map[string]string{
 				"agent_id": "agent-uuid-1",
 			},
@@ -460,8 +460,8 @@ func TestAgentCreatedFromServerLog(t *testing.T) {
 		{
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:30:01.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-uuid-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-uuid-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_start",
 			},
@@ -544,8 +544,8 @@ func TestParseLogFileWithFSLog(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message":   "agent.tool.call",
 				"tool_name": "Write",
@@ -555,8 +555,8 @@ func TestParseLogFileWithFSLog(t *testing.T) {
 		{
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:30:01.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message":   "agent.tool.call",
 				"tool_name": "Read",
@@ -566,8 +566,8 @@ func TestParseLogFileWithFSLog(t *testing.T) {
 		{
 			InsertID:  "3",
 			Timestamp: "2026-03-22T16:30:02.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.turn.end",
 			},
@@ -652,7 +652,7 @@ func TestNoDuplicateAgentsFromSlugMessages(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-server",
+			LogName:   "projects/test/logs/fabric-server",
 			JSONPayload: map[string]any{
 				"message":  "Agent created",
 				"agent_id": "aaaa-bbbb-cccc",
@@ -663,8 +663,8 @@ func TestNoDuplicateAgentsFromSlugMessages(t *testing.T) {
 		{
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:30:01.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "aaaa-bbbb-cccc", "scion.harness": "gemini"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "aaaa-bbbb-cccc", "fabric.harness": "gemini"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_start",
 			},
@@ -673,7 +673,7 @@ func TestNoDuplicateAgentsFromSlugMessages(t *testing.T) {
 		{
 			InsertID:  "3",
 			Timestamp: "2026-03-22T16:31:00.000Z",
-			LogName:   "projects/test/logs/scion-messages",
+			LogName:   "projects/test/logs/fabric-messages",
 			Labels: map[string]string{
 				"recipient":    "agent:runner",
 				"recipient_id": "aaaa-bbbb-cccc",
@@ -728,8 +728,8 @@ func TestPostStartSetsRunningPhase(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.pre_start",
 			},
@@ -737,8 +737,8 @@ func TestPostStartSetsRunningPhase(t *testing.T) {
 		{
 			InsertID:  "2",
 			Timestamp: "2026-03-22T16:30:01.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.lifecycle.post_start",
 			},
@@ -765,8 +765,8 @@ func TestMaxDepthInManifest(t *testing.T) {
 		{
 			InsertID:  "1",
 			Timestamp: "2026-03-22T16:30:00.000Z",
-			LogName:   "projects/test/logs/scion-agents",
-			Labels:    map[string]string{"agent_id": "agent-1", "scion.harness": "claude"},
+			LogName:   "projects/test/logs/fabric-agents",
+			Labels:    map[string]string{"agent_id": "agent-1", "fabric.harness": "claude"},
 			JSONPayload: map[string]any{
 				"message": "agent.session.start",
 			},

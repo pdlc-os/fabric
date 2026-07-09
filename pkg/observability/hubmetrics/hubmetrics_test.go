@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package hubmetrics
@@ -12,8 +12,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dbmetrics"
-	"github.com/GoogleCloudPlatform/scion/pkg/observability/dispatchmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/dbmetrics"
+	"github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
 )
 
 func TestNewMeterProviderEmptyProjectID(t *testing.T) {
@@ -36,7 +36,7 @@ func TestGroupDropViewsAllEnabled(t *testing.T) {
 }
 
 func TestGroupDropViewsDisabled(t *testing.T) {
-	t.Setenv("SCION_METRICS_DB_NOTIFY", "false")
+	t.Setenv("FABRIC_METRICS_DB_NOTIFY", "false")
 
 	views := groupDropViews()
 	if len(views) != 1 {
@@ -45,7 +45,7 @@ func TestGroupDropViewsDisabled(t *testing.T) {
 }
 
 func TestGroupDropViewsDisabledZero(t *testing.T) {
-	t.Setenv("SCION_METRICS_DISPATCH", "0")
+	t.Setenv("FABRIC_METRICS_DISPATCH", "0")
 
 	views := groupDropViews()
 	if len(views) != 1 {
@@ -67,7 +67,7 @@ func TestIsGroupDisabled(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.value, func(t *testing.T) {
-			envVar := "SCION_METRICS_TEST_GROUP"
+			envVar := "FABRIC_METRICS_TEST_GROUP"
 			if tc.value != "" {
 				t.Setenv(envVar, tc.value)
 			} else {
@@ -105,7 +105,7 @@ func TestRecordersEnabledWithRealProvider(t *testing.T) {
 }
 
 func TestDropViewPreventsExport(t *testing.T) {
-	t.Setenv("SCION_METRICS_DB_NOTIFY", "false")
+	t.Setenv("FABRIC_METRICS_DB_NOTIFY", "false")
 
 	reader := metric.NewManualReader()
 	mpOpts := []metric.Option{metric.WithReader(reader)}
@@ -138,7 +138,7 @@ func TestDropViewPreventsExport(t *testing.T) {
 }
 
 func TestPoolMetricsNotDroppedWhenNotifyDisabled(t *testing.T) {
-	t.Setenv("SCION_METRICS_DB_NOTIFY", "false")
+	t.Setenv("FABRIC_METRICS_DB_NOTIFY", "false")
 
 	reader := metric.NewManualReader()
 	mpOpts := []metric.Option{metric.WithReader(reader)}

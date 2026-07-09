@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 // Template resolution flags for agent creation
@@ -259,7 +259,7 @@ func handleLocalOnlyTemplate(ctx context.Context, hubCtx *HubContext, localTempl
 	if noUpload {
 		return nil, fmt.Errorf("template '%s' exists locally but not on Hub, and --no-upload is set\n\n"+
 			"To upload this template, run:\n"+
-			"  scion template sync %s\n\n"+
+			"  fabric template sync %s\n\n"+
 			"Or use --upload-template to auto-upload during agent creation",
 			localTemplate.Name, localTemplate.Name)
 	}
@@ -268,7 +268,7 @@ func handleLocalOnlyTemplate(ctx context.Context, hubCtx *HubContext, localTempl
 	harnessType, err := detectHarnessType(localTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to detect harness type for template '%s': %w\n\n"+
-			"Please ensure the template has a valid scion-agent.json with a 'harness' field",
+			"Please ensure the template has a valid fabric-agent.json with a 'harness' field",
 			localTemplate.Name, err)
 	}
 
@@ -593,6 +593,6 @@ func formatTemplateNotFoundError(name, projectPath string) error {
 	return fmt.Errorf("template '%s' not found\n\n"+
 		"Searched locations:\n%s\n\n"+
 		"To sync a local template to the Hub:\n"+
-		"  scion template sync %s",
+		"  fabric template sync %s",
 		name, strings.Join(locations, "\n"), name)
 }

@@ -1,7 +1,7 @@
 # Agent State & Container Lifecycle Fixes
 
 ## Status
-**Preliminary draft / survey** | branch `scion/state-fixes` | June 2026
+**Preliminary draft / survey** | branch `fabric/state-fixes` | June 2026
 
 This is an initial survey + scoped-work draft covering three related problems in how
 agent state is represented and kept current across lifecycle transitions, and how that
@@ -29,16 +29,16 @@ questions are flagged inline and consolidated at the end.
 
 ## Test environment
 
-- VM `scion-integration` (project `deploy-demo-test`, zone `us-central1-a`); hub at
-  `https://integration.projects.scion-ai.dev` (Caddy → localhost:8080). Built from
+- VM `fabric-integration` (project `deploy-demo-test`, zone `us-central1-a`); hub at
+  `https://integration.projects.fabric-ai.dev` (Caddy → localhost:8080). Built from
   `scripts/starter-hub`. Currently running branch `postgres/wave-b-integration` on a
   Postgres DB.
 - Access is proxied by the `state-fix-instance-manager` agent (this workstream lacks
   compute perms on the project). Deploy loop: push branch → instance-manager pulls on
-  VM, `go build -o scion ./cmd/scion`, swap binary, restart hub.
+  VM, `go build -o fabric ./cmd/fabric`, swap binary, restart hub.
 - **Branch base — DECIDED:** state-fixes is based on `main` (currently zero code delta).
   `postgres/wave-b-integration` was an unrelated project and is being replaced on the VM.
-  Workflow: push `scion/state-fixes` → redeploy on the integration VM → retest. The VM's
+  Workflow: push `fabric/state-fixes` → redeploy on the integration VM → retest. The VM's
   Postgres DB from the wave-b work is reset as needed for a clean main-based deploy.
 
 ## Background: how state works today
@@ -54,8 +54,8 @@ questions are flagged inline and consolidated at the end.
   `cmd/resume.go`, `cmd/common.go`): suspend = `docker stop` + phase=`suspended`.
   Resume = `RunAgent(resume=true)` → `mgr.Start` which **deletes the stopped container
   and creates a new one** (`pkg/agent/run.go:101`), passing the harness resume flag.
-- **Crash/exit handling** (`cmd/sciontool/commands/init.go:802-869`,
-  `pkg/sciontool/supervisor/supervisor.go`): `sciontool init` supervises a child,
+- **Crash/exit handling** (`cmd/fabrictool/commands/init.go:802-869`,
+  `pkg/fabrictool/supervisor/supervisor.go`): `fabrictool init` supervises a child,
   captures its exit code, and on non-zero maps to phase=`stopped` + activity=`crashed`.
 - **Stall detection** (`pkg/hub/server.go`, `MarkStalledAgents`): a scheduler marks an
   agent `stalled` when `last_activity_event` is older than `StalledThreshold` (default
@@ -135,7 +135,7 @@ Optional follow-up: add a first-class `AgentActionResume` + `/resume` route for 
 ### Fix plan (Part 1b) — phase-overwrite race (found during verification of 80c1579)
 
 The threading fix is correct but its precondition fails: the hub sets `phase=suspended`
-*after* dispatching the stop, then the dying container's async sciontool `/status` report
+*after* dispatching the stop, then the dying container's async fabrictool `/status` report
 (and/or a broker heartbeat) reports `stopped`/`crashed` and overwrites `suspended` back to
 `stopped` before the start handler reads it — so `resume := phase==suspended` is false.
 The existing regression guards are ordinal-based and only cover *active* phases; both
@@ -159,10 +159,10 @@ Part 2 / task #4; not fixed here.
 
 ### What we found (corrected after deeper survey)
 
-**Correction:** `sciontool init` IS the supervisor on ALL runtimes, including local Docker
-— the agent image sets `ENTRYPOINT ["sciontool","init","--"]`
-(`image-build/scion-base/Dockerfile:101`), so `docker run … sh -c "tmux …"` actually runs
-`sciontool init -- sh -c "tmux …"`. The earlier "local Docker has no supervisor" claim was
+**Correction:** `fabrictool init` IS the supervisor on ALL runtimes, including local Docker
+— the agent image sets `ENTRYPOINT ["fabrictool","init","--"]`
+(`image-build/fabric-base/Dockerfile:101`), so `docker run … sh -c "tmux …"` actually runs
+`fabrictool init -- sh -c "tmux …"`. The earlier "local Docker has no supervisor" claim was
 wrong. This makes the fix unified across runtimes.
 
 The real, universal gap:
@@ -171,7 +171,7 @@ The real, universal gap:
    the supervised `sh` exits with tmux/attach's status — never the harness pane's. So
    `result.code == 0` even when the harness exits non-zero → `isCrash` is false
    (`init.go:814`) → the crash path is essentially never taken. This is why crashes are
-   never surfaced. (`pkg/runtime/common.go:444`, `pkg/sciontool/supervisor/supervisor.go`
+   never surfaced. (`pkg/runtime/common.go:444`, `pkg/fabrictool/supervisor/supervisor.go`
    captures the child=sh exit code faithfully — it's just the wrong process.)
 2. **"crash" ≠ "error" today.** Even when `isCrash` fires, it sets phase=`stopped` +
    activity=`crashed` (`init.go:831`), not `PhaseError`. `PhaseError` is currently set
@@ -194,11 +194,11 @@ already protected by `preserveTerminalPhase`, so it won't be reverted by async u
 ### Fix plan (Part 2)
 - **Recover the harness's real exit code from tmux** (the core fix, all runtimes). Cleanest
   option: wrap the harness inside the tmux window so it writes its exit code to a known
-  file — e.g. `tmux new-session -d -s scion -n agent 'sh -c "<harness>; echo $? >
-  ~/.scion/agent-exit-code"'`. After the supervised `sh` returns, `sciontool init` reads
+  file — e.g. `tmux new-session -d -s fabric -n agent 'sh -c "<harness>; echo $? >
+  ~/.fabric/agent-exit-code"'`. After the supervised `sh` returns, `fabrictool init` reads
   that file and uses it as `finalCode` for the `isCrash` decision (fall back to the
   supervised code if the file is missing). Localized to `pkg/runtime/common.go` (tmux
-  command) + `cmd/sciontool/commands/init.go` (read the file). Apply the same wrapping in
+  command) + `cmd/fabrictool/commands/init.go` (read the file). Apply the same wrapping in
   the k8s tmux command (`pkg/runtime/k8s_runtime.go:901`).
 - **Target state (pending Q4):** wire the chosen crash representation consistently through
   init.go → Hub status → DB → DisplayStatus.
@@ -209,51 +209,51 @@ already protected by `preserveTerminalPhase`, so it won't be reverted by async u
   path.)
 
 ### VM crash-evidence findings (instance-manager, commit a3c8ece)
-- Process tree confirmed: `sciontool(PID1) → sh → tmux-client → tmux-server → claude`.
+- Process tree confirmed: `fabrictool(PID1) → sh → tmux-client → tmux-server → claude`.
   The harness is a tmux **grandchild**, so its exit code is structurally invisible to the
   supervisor — confirms the exit-code-file fix is the right bridge.
 - **`-1` source identified:** when killed by signal, **tmux-server is reaped as a zombie
-  with exit code -1** by sciontool's zombie reaper. That's the spurious `-1` seen earlier.
+  with exit code -1** by fabrictool's zombie reaper. That's the spurious `-1` seen earlier.
   The fix (read a real exit-code file + use Docker `State.ExitCode`) avoids surfacing the
   reaper's -1.
 - **Hard crash (SIGKILL claude → container exit 137):** the container DOES exit (session
   collapses → sh exits). But the hub ended up `phase=stopped`, **`activity=stalled`**
   (stale — a stopped agent should never be `stalled`), `message="Agent crashed with exit
   code 137"`. The message came from the **broker heartbeat inspecting Docker `Exited(137)`**
-  — because sciontool's own status/shutdown report **401'd** (see below). So even today's
-  partial crash signal comes from the broker, not sciontool.
+  — because fabrictool's own status/shutdown report **401'd** (see below). So even today's
+  partial crash signal comes from the broker, not fabrictool.
 - Implications for the fix:
   - The **broker-heartbeat path** that derives state from Docker `Exited(code)` must set
     the crash target (Q4) + `crashed` activity when `ExitCode != 0`, since it's the path
-    that works even when sciontool can't report. Find where Docker exited-status is mapped
+    that works even when fabrictool can't report. Find where Docker exited-status is mapped
     to phase and enhance it.
   - On transition to stopped/error on crash, **clear a stale `stalled` activity** (replace
     with `crashed`). The `stalled` overwrite is a sticky-activity bug.
 
 ### Resume 401 — ROOT CAUSE CONFIRMED
 `DispatchAgentStart` mints a valid agent JWT and places it in
-`resolvedEnv["SCION_AUTH_TOKEN"]` (`pkg/hub/httpdispatcher.go:1086`). The broker's
+`resolvedEnv["FABRIC_AUTH_TOKEN"]` (`pkg/hub/httpdispatcher.go:1086`). The broker's
 `startAgent` passes `ResolvedEnv` into `buildStartContext` but does **not** set
 `AgentToken` (`pkg/runtimebroker/handlers.go:1169`). In `buildStartContext`
 (`pkg/runtimebroker/start_context.go:192-221`): step 1 copies the valid token from
 `resolvedEnv` into `env`, then step 3 — because `in.AgentToken == ""` — takes the `else`
-branch and **overwrites** `env["SCION_AUTH_TOKEN"]` with the broker's OWN
-`os.Getenv("SCION_AUTH_TOKEN")` (a dev token that is not a valid 3-part JWT) → 401. The
+branch and **overwrites** `env["FABRIC_AUTH_TOKEN"]` with the broker's OWN
+`os.Getenv("FABRIC_AUTH_TOKEN")` (a dev token that is not a valid 3-part JWT) → 401. The
 CreateAgent path sets `req.AgentToken` (`handlers.go:592`), so initial start works; the
 resume/start path doesn't, so it's clobbered. In production (broker has no
-`SCION_AUTH_TOKEN`) the resolvedEnv token survives — so it manifests only under dev-auth,
+`FABRIC_AUTH_TOKEN`) the resolvedEnv token survives — so it manifests only under dev-auth,
 but the start-vs-create asymmetry is a real latent bug.
 
 **Recommended fix (minimal, provisioning-time):** in `buildStartContext`, only apply the
-broker's dev `SCION_AUTH_TOKEN` when `env` does NOT already have one — i.e. never clobber a
+broker's dev `FABRIC_AUTH_TOKEN` when `env` does NOT already have one — i.e. never clobber a
 hub-resolved token with the dev fallback. (Optionally also set `AgentToken` from
-`resolvedEnv["SCION_AUTH_TOKEN"]` in the broker start path for parity with create.) This is
+`resolvedEnv["FABRIC_AUTH_TOKEN"]` in the broker start path for parity with create.) This is
 cleaner than a post-resume re-inject; the existing reset-auth/SIGUSR2 path
 (`handlers.go:1617`) stays for genuine hub-disruption recovery.
 
 ### Separate bug found: resumed containers get a malformed hub token (401)
 Resumed containers logged persistent `401 invalid agent token: ... compact JWS format must
-have three parts` on every sciontool status/heartbeat call. The harness ran fine (Part 1
+have three parts` on every fabrictool status/heartbeat call. The harness ran fine (Part 1
 works), but the resumed agent cannot report status/heartbeat → broken observability, and it
 exacerbates crash invisibility. May be a dev-auth-mode artifact on the VM or a real resume
 token-provisioning gap. Tracked as its own task; needs isolation (does it occur with real
@@ -271,9 +271,9 @@ auth, or only dev-auth?).
   are gated on NFS anyway. So Part 3 on Docker needs no home-persistence work.
 - **Q7 policy: hardwired** — auto-suspend after an ADDITIONAL 5 min of being stalled (≈10
   min total inactivity = StalledThreshold + 5m). Not configurable yet.
-- **Deploy tip (user):** `make container-binaries` + `export SCION_DEV_BINARIES=<.build/
-  container>` makes the hub bind-mount dev `scion`+`sciontool` into agent containers
-  (`pkg/runtime/common.go:358`), so sciontool changes can be side-loaded WITHOUT an image
+- **Deploy tip (user):** `make container-binaries` + `export FABRIC_DEV_BINARIES=<.build/
+  container>` makes the hub bind-mount dev `fabric`+`fabrictool` into agent containers
+  (`pkg/runtime/common.go:358`), so fabrictool changes can be side-loaded WITHOUT an image
   rebuild. There's also an admin maintenance action that runs the rebuild.
 
 ### Implementation plan (Part 3, minimal)

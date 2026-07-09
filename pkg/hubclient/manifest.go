@@ -15,7 +15,7 @@
 package hubclient
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // ManifestBuilder builds a template manifest from local files.

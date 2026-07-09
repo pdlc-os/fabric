@@ -1,6 +1,6 @@
-# Scion Settings — Annotated Example
+# Fabric Settings — Annotated Example
 #
-# Copy to ~/.scion/settings.yaml and adjust for your deployment.
+# Copy to ~/.fabric/settings.yaml and adjust for your deployment.
 # See docs-site/src/content/docs/reference/server-config.md for full details.
 #
 # Keys are organized by tier:
@@ -116,7 +116,7 @@ server:
   #   broker_name: ""
   #   hub_endpoint: ""
   #   container_hub_endpoint: ""
-  #   broker_token: ""                 # Use env var SCION_SERVER_BROKER_BROKERTOKEN
+  #   broker_token: ""                 # Use env var FABRIC_SERVER_BROKER_BROKERTOKEN
   #   auto_provide: false
 
   # -------------------------------------------------------------------------
@@ -132,7 +132,7 @@ server:
   auth:
     # mode: ""                         # Auth mode override
     dev_mode: false                    # NEVER true in production
-    # dev_token: ""                    # Use env var SCION_SERVER_AUTH_DEVTOKEN
+    # dev_token: ""                    # Use env var FABRIC_SERVER_AUTH_DEVTOKEN
     # dev_token_file: ""
 
     # Layer 1 — Access Control (section: access)
@@ -199,7 +199,7 @@ server:
   #       to: oncall@example.com
   #   - type: webhook
   #     params:
-  #       webhook_url: https://example.com/scion-notifications
+  #       webhook_url: https://example.com/fabric-notifications
 
   # -------------------------------------------------------------------------
   # Layer 0 — Message Broker (restart required)

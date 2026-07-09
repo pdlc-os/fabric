@@ -3,7 +3,7 @@
 This release introduces significant architectural improvements to template portability and a major terminology shift from "grove" to "project" across the entire system.
 
 ## ⚠️ BREAKING CHANGES
-- **Template Portability:** Harness-specific fields (`image`, `model` when using concrete provider names, and `auth_selectedType`) are now deprecated in `scion-agent.yaml`. While these remain functional for backward compatibility, they will trigger deprecation warnings. Users should migrate these settings to harness configurations and use the new model size aliases.
+- **Template Portability:** Harness-specific fields (`image`, `model` when using concrete provider names, and `auth_selectedType`) are now deprecated in `fabric-agent.yaml`. While these remain functional for backward compatibility, they will trigger deprecation warnings. Users should migrate these settings to harness configurations and use the new model size aliases.
 
 ## 🚀 Features
 - **Harness-Agnostic Templates:** Templates are now decoupled from specific LLM backends for improved portability.
@@ -20,7 +20,7 @@ This release introduces significant architectural improvements to template porta
 
 ## 🐛 Fixes
 - **Agent Identity & Collision:**
-    - Resolved cross-project slug collisions in broker exec/stop operations (impacting `scion look`).
+    - Resolved cross-project slug collisions in broker exec/stop operations (impacting `fabric look`).
     - Fixed agent slug collisions across projects during broker heartbeats.
 - **Messaging Improvements:**
     - Fixed Telegram mention parsing for agents with hyphenated names.

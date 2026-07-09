@@ -25,12 +25,12 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1622.75)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-1622.75 1622.75,-1622.75 1622.75,4 -4,4"/>
-<!-- scion -->
+<!-- fabric -->
 <g id="node1" class="node">
-<title>scion</title>
-<g id="a_node1"><a xlink:href="cmd/root.go" xlink:title="scion CLI Tool">
+<title>fabric</title>
+<g id="a_node1"><a xlink:href="cmd/root.go" xlink:title="fabric CLI Tool">
 <polygon fill="lightblue" stroke="black" points="961,-1391 840,-1391 840,-1355 961,-1355 961,-1391"/>
-<text xml:space="preserve" text-anchor="middle" x="900.5" y="-1364.95" font-family="Arial" font-size="14.00">scion CLI Tool</text>
+<text xml:space="preserve" text-anchor="middle" x="900.5" y="-1364.95" font-family="Arial" font-size="14.00">fabric CLI Tool</text>
 </a>
 </g>
 </g>
@@ -44,9 +44,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Agent Lifecycle -->
+<!-- fabric&#45;&gt;Agent Lifecycle -->
 <g id="edge1" class="edge">
-<title>scion&#45;&gt;Agent Lifecycle</title>
+<title>fabric&#45;&gt;Agent Lifecycle</title>
 <path fill="none" stroke="#696969" d="M889.94,-1354.78C811.71,-1227.24 322.76,-430.03 226.82,-273.61"/>
 <polygon fill="#696969" stroke="#696969" points="230.08,-272.24 221.87,-265.54 224.12,-275.9 230.08,-272.24"/>
 <text xml:space="preserve" text-anchor="middle" x="581.75" y="-804.75" font-family="Arial" font-size="10.00">manages</text>
@@ -61,9 +61,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Agent Interaction -->
+<!-- fabric&#45;&gt;Agent Interaction -->
 <g id="edge2" class="edge">
-<title>scion&#45;&gt;Agent Interaction</title>
+<title>fabric&#45;&gt;Agent Interaction</title>
 <path fill="none" stroke="#696969" d="M895.05,-1354.78C854.81,-1227.62 603.93,-434.8 553.37,-275.04"/>
 <polygon fill="#696969" stroke="#696969" points="556.77,-274.17 550.42,-265.69 550.1,-276.28 556.77,-274.17"/>
 <text xml:space="preserve" text-anchor="middle" x="775" y="-804.75" font-family="Arial" font-size="10.00">interacts with</text>
@@ -78,9 +78,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Configuration -->
+<!-- fabric&#45;&gt;Configuration -->
 <g id="edge3" class="edge">
-<title>scion&#45;&gt;Configuration</title>
+<title>fabric&#45;&gt;Configuration</title>
 <path fill="none" stroke="#696969" d="M898.72,-1354.78C885.63,-1227.75 804.03,-436.39 787.44,-275.52"/>
 <polygon fill="#696969" stroke="#696969" points="790.94,-275.34 786.43,-265.76 783.98,-276.06 790.94,-275.34"/>
 <text xml:space="preserve" text-anchor="middle" x="880" y="-804.75" font-family="Arial" font-size="10.00">configures</text>
@@ -95,9 +95,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Hub &amp; Broker Management -->
+<!-- fabric&#45;&gt;Hub &amp; Broker Management -->
 <g id="edge4" class="edge">
-<title>scion&#45;&gt;Hub &amp; Broker Management</title>
+<title>fabric&#45;&gt;Hub &amp; Broker Management</title>
 <path fill="none" stroke="#696969" d="M902.29,-1354.78C915.5,-1227.75 997.8,-436.39 1014.53,-275.52"/>
 <polygon fill="#696969" stroke="#696969" points="1018,-276.06 1015.55,-265.76 1011.03,-275.34 1018,-276.06"/>
 <text xml:space="preserve" text-anchor="middle" x="1041.5" y="-804.75" font-family="Arial" font-size="10.00">manages infrastructure</text>
@@ -112,9 +112,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Templates &amp; Skills -->
+<!-- fabric&#45;&gt;Templates &amp; Skills -->
 <g id="edge5" class="edge">
-<title>scion&#45;&gt;Templates &amp; Skills</title>
+<title>fabric&#45;&gt;Templates &amp; Skills</title>
 <path fill="none" stroke="#696969" d="M909.38,-1354.72C943.57,-1287.44 1067.8,-1035.7 1128.5,-814.25 1183.75,-612.67 1204.88,-360.2 1210.69,-275.89"/>
 <polygon fill="#696969" stroke="#696969" points="1214.17,-276.21 1211.35,-266 1207.19,-275.74 1214.17,-276.21"/>
 <text xml:space="preserve" text-anchor="middle" x="1158.5" y="-804.75" font-family="Arial" font-size="10.00">utilizes</text>
@@ -129,9 +129,9 @@
 </a>
 </g>
 </g>
-<!-- scion&#45;&gt;Utilities -->
+<!-- fabric&#45;&gt;Utilities -->
 <g id="edge6" class="edge">
-<title>scion&#45;&gt;Utilities</title>
+<title>fabric&#45;&gt;Utilities</title>
 <path fill="none" stroke="#696969" d="M909.81,-1354.77C946.54,-1286.62 1084.74,-1029.21 1192.5,-814.25 1295.69,-608.43 1413.38,-356.92 1451.71,-274.55"/>
 <polygon fill="#696969" stroke="#696969" points="1454.8,-276.2 1455.85,-265.65 1448.46,-273.24 1454.8,-276.2"/>
 <text xml:space="preserve" text-anchor="middle" x="1222.5" y="-804.75" font-family="Arial" font-size="10.00">provides</text>

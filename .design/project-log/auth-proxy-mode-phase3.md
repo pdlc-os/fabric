@@ -1,8 +1,8 @@
 # Auth Proxy Mode — Phase 3 Implementation (Deployment Docs)
 
 **Date:** 2026-06-05
-**Branch:** scion/auth-proxy-mode
-**Author:** Scion Agent (auth-proxy-phase3)
+**Branch:** fabric/auth-proxy-mode
+**Author:** Fabric Agent (auth-proxy-phase3)
 
 ## Summary
 
@@ -28,9 +28,9 @@ The guide covers all five deliverable sections:
    overrides; `require_trusted_proxy_ip`; middleware precedence; provisioning behavior
    (lazy, allow-list-gated, auto-create); suspended user rejection; logout semantics.
 3. **Outbound (agent transport auth)** — Dual-layer model (outer OIDC + inner
-   X-Scion-Agent-Token); `auth.transport` config (`mode`, `oidc_audience`,
-   `platform_auth_sa`); dispatch env vars (`SCION_TRANSPORT_TOKEN`,
-   `SCION_TRANSPORT_AUDIENCE`, `SCION_TRANSPORT_TOKEN_EXPIRY`); refresh `tokens[]`
+   X-Fabric-Agent-Token); `auth.transport` config (`mode`, `oidc_audience`,
+   `platform_auth_sa`); dispatch env vars (`FABRIC_TRANSPORT_TOKEN`,
+   `FABRIC_TRANSPORT_AUDIENCE`, `FABRIC_TRANSPORT_TOKEN_EXPIRY`); refresh `tokens[]`
    array; agent-side token source selection (injected vs metadata vs disabled);
    audience selection for IAP vs Cloud Run invoker.
 4. **Security notes** — Signed-only trust model; audience binding; IAP-only reachability;
@@ -58,14 +58,14 @@ All config keys and env vars were verified against the shipped code:
 - `hub.admin_emails` — V1ServerHubConfig.AdminEmails
 
 ### Env vars (dispatch payload)
-- `SCION_TRANSPORT_TOKEN` — httpdispatcher.go
-- `SCION_TRANSPORT_AUDIENCE` — httpdispatcher.go
-- `SCION_TRANSPORT_TOKEN_EXPIRY` — httpdispatcher.go
+- `FABRIC_TRANSPORT_TOKEN` — httpdispatcher.go
+- `FABRIC_TRANSPORT_AUDIENCE` — httpdispatcher.go
+- `FABRIC_TRANSPORT_TOKEN_EXPIRY` — httpdispatcher.go
 
 ### Agent-side env vars
-- `SCION_HUB_OIDC_AUDIENCE` — oidc.go:EnvHubOIDCAudience
-- `SCION_TRANSPORT_TOKEN` — oidc.go:EnvTransportToken
-- `SCION_TRANSPORT_AUDIENCE` — oidc.go:EnvTransportAudience
+- `FABRIC_HUB_OIDC_AUDIENCE` — oidc.go:EnvHubOIDCAudience
+- `FABRIC_TRANSPORT_TOKEN` — oidc.go:EnvTransportToken
+- `FABRIC_TRANSPORT_AUDIENCE` — oidc.go:EnvTransportAudience
 
 ## Discrepancies Between Design Doc and Shipped Code
 
@@ -75,8 +75,8 @@ shipped implementation. Minor differences noted:
 
 - **Dispatch schema**: The design doc proposed using the same `tokens[]` JSON
   shape for both dispatch and refresh. The shipped implementation uses individual
-  env vars for dispatch (`SCION_TRANSPORT_TOKEN`, `SCION_TRANSPORT_AUDIENCE`,
-  `SCION_TRANSPORT_TOKEN_EXPIRY`) and `tokens[]` JSON array for refresh. This was
+  env vars for dispatch (`FABRIC_TRANSPORT_TOKEN`, `FABRIC_TRANSPORT_AUDIENCE`,
+  `FABRIC_TRANSPORT_TOKEN_EXPIRY`) and `tokens[]` JSON array for refresh. This was
   already documented in the Phase 2 project log as a pragmatic deviation matching
   existing dispatch conventions.
 

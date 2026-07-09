@@ -1,8 +1,8 @@
 # Telegram Plugin Security & Safety Fixes
 
 **Date**: 2026-05-14
-**Branch**: scion/chat-tee
-**Scope**: extras/scion-telegram/internal/telegram/
+**Branch**: fabric/chat-tee
+**Scope**: extras/fabric-telegram/internal/telegram/
 
 ## Changes
 
@@ -40,4 +40,4 @@ Two filter loops used `chatIDs[:0]` to re-use the backing array for filtered out
 
 ## Verification
 
-- All existing tests pass: `cd extras/scion-telegram && go test ./...` — OK.
+- All existing tests pass: `cd extras/fabric-telegram && go test ./...` — OK.

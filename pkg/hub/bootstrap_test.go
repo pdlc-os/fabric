@@ -29,15 +29,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
 )
 
 // testBootstrapDevToken is the development token used for bootstrap testing.
-const testBootstrapDevToken = "scion_dev_bootstrap_test_token_1234567890"
+const testBootstrapDevToken = "fabric_dev_bootstrap_test_token_1234567890"
 
 // mockStorage implements storage.Storage for testing.
 type mockStorage struct {
@@ -541,7 +541,7 @@ func TestCreateAgentWithWorkspaceBootstrap_LocalProvider(t *testing.T) {
 		ProjectID:  project.ID,
 		BrokerID:   broker.ID,
 		BrokerName: broker.Name,
-		LocalPath:  "/home/user/project/.scion",
+		LocalPath:  "/home/user/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := s.AddProjectProvider(ctx, provider); err != nil {

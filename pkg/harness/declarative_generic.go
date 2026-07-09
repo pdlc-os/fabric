@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 )
 
 // DeclarativeGenericHarness implements api.Harness for harness-config
@@ -49,14 +49,14 @@ func (d *DeclarativeGenericHarness) DefaultConfigDir() string {
 	if d.entry.ConfigDir != "" {
 		return d.entry.ConfigDir
 	}
-	return ".scion"
+	return ".fabric"
 }
 
 func (d *DeclarativeGenericHarness) SkillsDir() string {
 	if d.entry.SkillsDir != "" {
 		return d.entry.SkillsDir
 	}
-	return ".scion/skills"
+	return ".fabric/skills"
 }
 
 func (d *DeclarativeGenericHarness) GetInterruptKey() string {
@@ -116,7 +116,7 @@ func (d *DeclarativeGenericHarness) GetCommand(task string, resume bool, baseArg
 
 func (d *DeclarativeGenericHarness) GetEnv(agentName, agentHome, unixUsername string) map[string]string {
 	out := map[string]string{
-		"SCION_AGENT_NAME": agentName,
+		"FABRIC_AGENT_NAME": agentName,
 	}
 	for k, v := range d.entry.EnvTemplate {
 		out[k] = expandEnvTemplate(v, agentName, agentHome, unixUsername)
@@ -184,7 +184,7 @@ func (d *DeclarativeGenericHarness) InjectSystemPrompt(agentHome string, content
 		// "native" or empty → write to declared file or fall back.
 		target := d.entry.SystemPromptFile
 		if target == "" {
-			target = filepath.Join(".scion", "system_prompt.md")
+			target = filepath.Join(".fabric", "system_prompt.md")
 		}
 		full := filepath.Join(agentHome, target)
 		if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {

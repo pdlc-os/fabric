@@ -5,12 +5,12 @@
     "folderTrust": {
       "enabled": false
     },
-    "allowedEnvironmentVariables": ["SCION_AGENT_ID", "SCION_AGENT_NAME", "SCION_AGENT_SLUG", "SCION_AUTH_TOKEN", "SCION_BROKER_ID", "SCION_BROKER_NAME", "SCION_CREATOR", "SCION_DEBUG", "SCION_GROVE", "SCION_GROVE_ID", "SCION_GROVE_PATH", "SCION_PROJECT", "SCION_PROJECT_ID", "SCION_PROJECT_PATH", "SCION_HARNESS", "SCION_HOST_GID", "SCION_HOST_UID", "SCION_HUB_ENDPOINT", "SCION_HUB_URL", "SCION_MODEL", "SCION_OTEL_ENDPOINT", "SCION_OTEL_GCP_CREDENTIALS", "SCION_OTEL_PROTOCOL", "SCION_SHARED_WORKSPACE", "SCION_TELEMETRY_CLOUD_ENABLED", "SCION_TELEMETRY_CLOUD_PROVIDER", "SCION_TELEMETRY_DEBUG", "SCION_TELEMETRY_ENABLED", "SCION_TELEMETRY_HUB_ENABLED", "SCION_TELEMETRY_LOCAL_CONSOLE", "SCION_TELEMETRY_LOCAL_ENABLED", "SCION_TEMPLATE", "SCION_TEMPLATE_NAME", "GITHUB_TOKEN"]
+    "allowedEnvironmentVariables": ["FABRIC_AGENT_ID", "FABRIC_AGENT_NAME", "FABRIC_AGENT_SLUG", "FABRIC_AUTH_TOKEN", "FABRIC_BROKER_ID", "FABRIC_BROKER_NAME", "FABRIC_CREATOR", "FABRIC_DEBUG", "FABRIC_GROVE", "FABRIC_GROVE_ID", "FABRIC_GROVE_PATH", "FABRIC_PROJECT", "FABRIC_PROJECT_ID", "FABRIC_PROJECT_PATH", "FABRIC_HARNESS", "FABRIC_HOST_GID", "FABRIC_HOST_UID", "FABRIC_HUB_ENDPOINT", "FABRIC_HUB_URL", "FABRIC_MODEL", "FABRIC_OTEL_ENDPOINT", "FABRIC_OTEL_GCP_CREDENTIALS", "FABRIC_OTEL_PROTOCOL", "FABRIC_SHARED_WORKSPACE", "FABRIC_TELEMETRY_CLOUD_ENABLED", "FABRIC_TELEMETRY_CLOUD_PROVIDER", "FABRIC_TELEMETRY_DEBUG", "FABRIC_TELEMETRY_ENABLED", "FABRIC_TELEMETRY_HUB_ENABLED", "FABRIC_TELEMETRY_LOCAL_CONSOLE", "FABRIC_TELEMETRY_LOCAL_ENABLED", "FABRIC_TEMPLATE", "FABRIC_TEMPLATE_NAME", "GITHUB_TOKEN"]
   },
   "context": {
     "fileName": ["CLAUDE.md","AGENTS.md", "GEMINI.md"],
     "fileFiltering": {
-      "customIgnoreFilePaths": ["/home/scion/.gemini/.geminiignore"]
+      "customIgnoreFilePaths": ["/home/fabric/.gemini/.geminiignore"]
     }
   },
   "model": {
@@ -41,9 +41,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -53,9 +53,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -65,9 +65,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -77,9 +77,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -89,9 +89,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -101,9 +101,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -113,9 +113,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -125,9 +125,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -137,9 +137,9 @@
         "matcher": "ToolPermission",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }

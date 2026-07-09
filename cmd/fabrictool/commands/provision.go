@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 package commands
 
@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/spf13/cobra"
 )
 
@@ -33,9 +33,9 @@ var provisionCmd = &cobra.Command{
 	Short: "Provision an NFS workspace (clone or wait for sentinel)",
 	Long: `Provision a shared workspace in an NFS-backed init container.
 
-In default (clone) mode, reads SCION_CLONE_URL and SCION_CLONE_BRANCH from
+In default (clone) mode, reads FABRIC_CLONE_URL and FABRIC_CLONE_BRANCH from
 the environment and invokes the shared provisioning function. The sentinel
-file (.scion-provisioned) is placed inside the workspace directory itself
+file (.fabric-provisioned) is placed inside the workspace directory itself
 because the init container's PVC subPath mount only exposes the workspace
 dir, not its parent.
 
@@ -76,9 +76,9 @@ func init() {
 }
 
 func runProvision(ctx context.Context) error {
-	cloneURL := os.Getenv("SCION_CLONE_URL")
-	cloneBranch := os.Getenv("SCION_CLONE_BRANCH")
-	projectID := os.Getenv("SCION_PROJECT_ID")
+	cloneURL := os.Getenv("FABRIC_CLONE_URL")
+	cloneBranch := os.Getenv("FABRIC_CLONE_BRANCH")
+	projectID := os.Getenv("FABRIC_PROJECT_ID")
 	if projectID == "" {
 		projectID = "unknown"
 	}

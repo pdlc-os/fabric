@@ -34,7 +34,7 @@ Key test cases:
 
 In the repo README (`README.md`) and any relevant docs:
 - Remove or update the "Sadly - not yet able to provide pre-built binaries" note (Homebrew tap exists now)
-- Add a "Workstation Quick Start" section: install via brew, run `scion server start`, browser opens to `/onboarding`
+- Add a "Workstation Quick Start" section: install via brew, run `fabric server start`, browser opens to `/onboarding`
 - Update the Quick Start to reference the onboarding wizard
 - In CLI help / `cmd/server_daemon.go` quickstart output: ensure "developer token" label is consistent
 
@@ -43,7 +43,7 @@ In the repo README (`README.md`) and any relevant docs:
 - Verify the first-run redirect works end-to-end (un-initialized machine → `/onboarding`; initialized machine → `/`)
 - Verify "Skip for now" on images and workspace steps correctly reaches Done
 - Verify the two-step linked-grove create fails gracefully and shows retry UI
-- Verify `scion server start` on a machine with no `~/.scion` auto-opens the browser to `/onboarding`
+- Verify `fabric server start` on a machine with no `~/.fabric` auto-opens the browser to `/onboarding`
 - Verify all fenced endpoints return 404 when `Workstation = false` (simulate prod mode)
 
 ---

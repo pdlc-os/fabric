@@ -1,22 +1,22 @@
-# Scion
+# Fabric
 
 Run multiple agents in parallel — each in its own container, with its own workspace, collaborating on your code or project files simultaneously.
 
 _sci·on /ˈsīən/ — a young shoot or twig, cut for grafting or rooting._
 
-Scion is an experimental multi-agent orchestration testbed designed to manage "deep agents" running in containers.
+Fabric is an experimental multi-agent orchestration testbed designed to manage "deep agents" running in containers.
 
 
-Scion orchestrates "deep agents" (Claude Code, Gemini CLI, and others) as isolated, concurrent processes. Each agent gets its own container, git worktree, and credentials — so they can work on different parts of your project without stepping on each other. Agents run locally, on remote VMs, or across Kubernetes clusters.
+Fabric orchestrates "deep agents" (Claude Code, Gemini CLI, and others) as isolated, concurrent processes. Each agent gets its own container, git worktree, and credentials — so they can work on different parts of your project without stepping on each other. Agents run locally, on remote VMs, or across Kubernetes clusters.
 
-Rather than prescribing rigid orchestration patterns, Scion takes a "less is more" approach: agents dynamically learn a CLI tool, letting the models themselves decide how to coordinate among agents. This makes it a rapid prototype testbed for experimenting with multi-agent patterns through natural language prompting. Read more in [Philosophy](https://googlecloudplatform.github.io/scion/philosophy/).
+Rather than prescribing rigid orchestration patterns, Fabric takes a "less is more" approach: agents dynamically learn a CLI tool, letting the models themselves decide how to coordinate among agents. This makes it a rapid prototype testbed for experimenting with multi-agent patterns through natural language prompting. Read more in [Philosophy](https://pdlc-os.github.io/fabric/philosophy/).
 
 
 ## See It in Action
 
-[Relics of Athenaeum](https://github.com/ptone/scion-athenaeum) is an "agent game" that demonstrates multi-agent orchestration defined entirely in markdown. A group of agents collaborate to solve computational puzzles, coordinating through group and direct messaging — all running in containers on off-the-shelf harnesses.
+[Relics of Athenaeum](https://github.com/ptone/fabric-athenaeum) is an "agent game" that demonstrates multi-agent orchestration defined entirely in markdown. A group of agents collaborate to solve computational puzzles, coordinating through group and direct messaging — all running in containers on off-the-shelf harnesses.
 
-<a href="https://github.com/ptone/scion-athenaeum"><img width="425" height="238" alt="Relics of Athenaeum" src="https://github.com/user-attachments/assets/cbee74a3-f3aa-4739-b423-0a83d5dd4c13" /></a>&nbsp;<a href="https://www.youtube.com/watch?v=w16bsh6lFL8"><img width="300" height="200" alt="Visualization of agent coordination" src="https://github.com/user-attachments/assets/a615da24-33d8-4882-abe1-95adea4ed79a" /></a>
+<a href="https://github.com/ptone/fabric-athenaeum"><img width="425" height="238" alt="Relics of Athenaeum" src="https://github.com/user-attachments/assets/cbee74a3-f3aa-4739-b423-0a83d5dd4c13" /></a>&nbsp;<a href="https://www.youtube.com/watch?v=w16bsh6lFL8"><img width="300" height="200" alt="Visualization of agent coordination" src="https://github.com/user-attachments/assets/a615da24-33d8-4882-abe1-95adea4ed79a" /></a>
 
 The visualization above replays the actual telemetry collected from messages and file access in the shared workspace while the agents solved the challenges of the game. While this is a "game", the same process of team definition works for software engineering, data research, and platform engineering workflows.
 
@@ -25,37 +25,37 @@ The visualization above replays the actual telemetry collected from messages and
 ### Workstation Quick Start (Homebrew)
 
 ```bash
-brew install scion
-scion server start
+brew install fabric
+fabric server start
 ```
 
 Your browser will open to the onboarding wizard at `http://127.0.0.1:8080/onboarding`, which walks you through machine setup, runtime detection, harness selection, and creating your first project.
 
 ### Install from Source
 
-See the full [Installation Guide](https://googlecloudplatform.github.io/scion/getting-started/install/), or install from source (requires Go 1.22+):
+See the full [Installation Guide](https://pdlc-os.github.io/fabric/getting-started/install/), or install from source (requires Go 1.22+):
 
 ```bash
-go install github.com/GoogleCloudPlatform/scion/cmd/scion@latest
+go install github.com/pdlc-os/fabric/cmd/fabric@latest
 ```
 
-> **Warning:** `go install` builds only the Go binary. It does not build or embed the web frontend, so `scion server start` will serve a blank web UI with missing frontend assets. Use Homebrew for a ready-to-run install, or build from a clone with `make all` before installing the binary.
+> **Warning:** `go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Use Homebrew for a ready-to-run install, or build from a clone with `make all` before installing the binary.
 
 ### Initialize your machine and a Project (project)
 
-> **Tip:** If you used `scion server start` above, the onboarding wizard handles machine initialization automatically — you can skip this section.
+> **Tip:** If you used `fabric server start` above, the onboarding wizard handles machine initialization automatically — you can skip this section.
 
-Navigate to your project and create a Scion project (the `.scion` directory that holds agent config):
+Navigate to your project and create a Fabric project (the `.fabric` directory that holds agent config):
 
 ```bash
-scion init --machine
+fabric init --machine
 cd my-project
-scion init
+fabric init
 ```
 
-> **Tip:** Add `.scion/agents` to your `.gitignore` to avoid issues with nested git worktrees.
+> **Tip:** Add `.fabric/agents` to your `.gitignore` to avoid issues with nested git worktrees.
 
-Scion auto-detects your OS and configures the default runtime (Docker on Linux/Windows, Container on macOS). Override this in `.scion/settings.yaml`.
+Fabric auto-detects your OS and configures the default runtime (Docker on Linux/Windows, Container on macOS). Override this in `.fabric/settings.yaml`.
 
 **NOTE** Currently this project is early and experimental. Most of the concepts are settled in, but many features may not be fully implemented, anything might break or change and the future is not set. Local use is relatively stable, Hub based workflows now highly usable, Kubernetes runtime support still has rough edges.
 
@@ -63,20 +63,20 @@ Scion auto-detects your OS and configures the default runtime (Docker on Linux/W
 
 ```bash
 # Start and immediately attach to the session
-scion start debug "Help me debug this error" --attach
+fabric start debug "Help me debug this error" --attach
 ```
 
 ### Manage Agents
 
 | Command | Description |
 |---------|-------------|
-| `scion list` (`ps`) | List active agents |
-| `scion attach <name>` | Attach to a running agent's tmux session |
-| `scion message <name> "..."` (`msg`) | Send a message to a running agent |
-| `scion logs <name>` | View agent logs |
-| `scion stop <name>` | Stop an agent |
-| `scion resume <name>` | Resume a stopped agent |
-| `scion delete <name>` | Remove agent, container, and worktree |
+| `fabric list` (`ps`) | List active agents |
+| `fabric attach <name>` | Attach to a running agent's tmux session |
+| `fabric message <name> "..."` (`msg`) | Send a message to a running agent |
+| `fabric logs <name>` | View agent logs |
+| `fabric stop <name>` | Stop an agent |
+| `fabric resume <name>` | Resume a stopped agent |
+| `fabric delete <name>` | Remove agent, container, and worktree |
 
 ## Key Features
 
@@ -84,7 +84,7 @@ scion start debug "Help me debug this error" --attach
 - **True Isolation** — Each agent runs in its own container with separated credentials, config, and a dedicated `git worktree`, preventing merge conflicts.
 - **Parallel Execution** — Run multiple agents concurrently as fully independent processes, locally or remotely.
 - **Attach / Detach** — Agents run in `tmux` sessions for background operation. Attach for human-in-the-loop interaction, enqueue messages while detached, and tunnel into remote agents securely.
-- **Specialization via Templates** — Define agent roles ("Security Auditor", "QA Tester") with custom system prompts and skill sets. See [Templates](https://googlecloudplatform.github.io/scion/local/templates/).
+- **Specialization via Templates** — Define agent roles ("Security Auditor", "QA Tester") with custom system prompts and skill sets. See [Templates](https://pdlc-os.github.io/fabric/local/templates/).
 - **Multi-Runtime** — Manage execution across Docker, Podman, Apple containers, and Kubernetes via named profiles.
 - **Observability** — Normalized OTEL telemetry across harnesses for logging and metrics across agent swarms.
 
@@ -99,20 +99,20 @@ scion start debug "Help me debug this error" --attach
 | **Hub** | Optional central control plane for multi-machine orchestration |
 | **Runtime Broker** | A machine (laptop or VM) offering its runtimes to a Hub |
 
-Not all concepts apply in every scenario — local mode is simpler. See [Concepts](https://googlecloudplatform.github.io/scion/concepts/) for the full picture.
+Not all concepts apply in every scenario — local mode is simpler. See [Concepts](https://pdlc-os.github.io/fabric/concepts/) for the full picture.
 
 ## Documentation
 
-Visit our **[Documentation Site](https://googlecloudplatform.github.io/scion/)** for comprehensive guides and reference.
+Visit our **[Documentation Site](https://pdlc-os.github.io/fabric/)** for comprehensive guides and reference.
 
-- **[Overview](https://googlecloudplatform.github.io/scion/overview/)**: Introduction to Scion.
-- **[Installation](https://googlecloudplatform.github.io/scion/getting-started/install/)**: How to get Scion up and running.
-- **[Concepts](https://googlecloudplatform.github.io/scion/concepts/)**: Understanding Agents, Projects, Harnesses, and Runtimes.
-- **[CLI Reference](https://googlecloudplatform.github.io/scion/reference/cli/)**: Comprehensive guide to all Scion commands.
+- **[Overview](https://pdlc-os.github.io/fabric/overview/)**: Introduction to Fabric.
+- **[Installation](https://pdlc-os.github.io/fabric/getting-started/install/)**: How to get Fabric up and running.
+- **[Concepts](https://pdlc-os.github.io/fabric/concepts/)**: Understanding Agents, Projects, Harnesses, and Runtimes.
+- **[CLI Reference](https://pdlc-os.github.io/fabric/reference/cli/)**: Comprehensive guide to all Fabric commands.
 - **Guides**:
-    - [Using Templates](https://googlecloudplatform.github.io/scion/local/templates/)
-    - [Using Tmux](https://googlecloudplatform.github.io/scion/local/tmux/)
-    - [Kubernetes Runtime](https://googlecloudplatform.github.io/scion/hosted/ha/kubernetes/)
+    - [Using Templates](https://pdlc-os.github.io/fabric/local/templates/)
+    - [Using Tmux](https://pdlc-os.github.io/fabric/local/tmux/)
+    - [Kubernetes Runtime](https://pdlc-os.github.io/fabric/hosted/ha/kubernetes/)
 
 ## Project Status
 

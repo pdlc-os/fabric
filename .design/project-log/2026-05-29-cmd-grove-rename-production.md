@@ -22,10 +22,10 @@ The following "grove" references were intentionally left unchanged as they fall 
 - Command aliases (`Aliases: []string{"grove", ...}`)
 - Flag reads (`cmd.Flags().Changed("grove")`, `GetString("grove")`)
 - Subcommand Use strings (`Use: "groves"`)
-- Container label strings (`Labels["scion.grove"]`)
+- Container label strings (`Labels["fabric.grove"]`)
 - Filesystem path components (`"groves"` directory)
 - Config key references in comments (`hub.groveId`, `grove_id`)
-- Broker topic patterns (`scion.grove.X`)
+- Broker topic patterns (`fabric.grove.X`)
 - Migration function calls (`MigrateGroveToProjectData`)
 - CLI mode command paths (`"grove.reconnect"`, `"config.cd-grove"`)
 

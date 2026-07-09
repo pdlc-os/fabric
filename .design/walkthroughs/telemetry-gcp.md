@@ -3,7 +3,7 @@
 **Created:** 2026-02-19
 **Status:** Ready for QA
 **Goal:** Validate end-to-end telemetry flow from agent container through
-sciontool to Google Cloud Observability (Cloud Trace + Cloud Monitoring).
+fabrictool to Google Cloud Observability (Cloud Trace + Cloud Monitoring).
 
 This walkthrough covers the "Ready" scenarios in
 [metrics-system.md](../hosted/metrics-system.md) section 13.4, specifically
@@ -36,7 +36,7 @@ gcloud services enable cloudtrace.googleapis.com \
 
 ### 1.2 Authenticate with Application Default Credentials
 
-The sciontool exporter uses standard Google Cloud ADC. For local QA the
+The fabrictool exporter uses standard Google Cloud ADC. For local QA the
 simplest path is user credentials:
 
 ```bash
@@ -44,31 +44,31 @@ gcloud auth application-default login --project "$GCP_PROJECT"
 ```
 
 For CI or remote brokers, use a service account with the `roles/cloudtrace.agent`
-and `roles/monitoring.metricWriter` roles (this matches the `scion-demo-sa`
+and `roles/monitoring.metricWriter` roles (this matches the `fabric-demo-sa`
 created by `scripts/starter-hub/gce-demo-provision.sh`):
 
 ```bash
-gcloud iam service-accounts create scion-demo-sa \
-  --display-name "Scion Demo Service Account"
+gcloud iam service-accounts create fabric-demo-sa \
+  --display-name "Fabric Demo Service Account"
 
 gcloud projects add-iam-policy-binding "$GCP_PROJECT" \
-  --member "serviceAccount:scion-demo-sa@${GCP_PROJECT}.iam.gserviceaccount.com" \
+  --member "serviceAccount:fabric-demo-sa@${GCP_PROJECT}.iam.gserviceaccount.com" \
   --role "roles/cloudtrace.agent"
 
 gcloud projects add-iam-policy-binding "$GCP_PROJECT" \
-  --member "serviceAccount:scion-demo-sa@${GCP_PROJECT}.iam.gserviceaccount.com" \
+  --member "serviceAccount:fabric-demo-sa@${GCP_PROJECT}.iam.gserviceaccount.com" \
   --role "roles/monitoring.metricWriter"
 ```
 
 ---
 
-## 2. Build Scion
+## 2. Build Fabric
 
 ```bash
-# From the scion source root
-mkdir -p ../scion-qa-telemetry
-go build -buildvcs=false -o ../scion-qa-telemetry/scion ./cmd/scion/
-cd ../scion-qa-telemetry
+# From the fabric source root
+mkdir -p ../fabric-qa-telemetry
+go build -buildvcs=false -o ../fabric-qa-telemetry/fabric ./cmd/fabric/
+cd ../fabric-qa-telemetry
 ```
 
 ---
@@ -78,15 +78,15 @@ cd ../scion-qa-telemetry
 ### 3.1 Initialize a test grove
 
 ```bash
-./scion grove init
+./fabric grove init
 ```
 
-**Verification:** Confirm `.scion/` exists in the current directory and
-`~/.scion/settings.yaml` exists in your home directory.
+**Verification:** Confirm `.fabric/` exists in the current directory and
+`~/.fabric/settings.yaml` exists in your home directory.
 
 ### 3.2 Set global telemetry settings
 
-Edit `~/.scion/settings.yaml` to add a telemetry block. This is the
+Edit `~/.fabric/settings.yaml` to add a telemetry block. This is the
 "global scope" layer — it will flow through to every agent container via
 the settings-to-env bridge (`ConvertV1TelemetryToAPI` + `TelemetryConfigToEnv`).
 
@@ -119,7 +119,7 @@ telemetry:
 
 ### 3.3 (Optional) Override at grove scope
 
-Create `.scion/settings.yaml` in the test grove to override specific fields.
+Create `.fabric/settings.yaml` in the test grove to override specific fields.
 Grove-scope settings merge on top of global settings.
 
 ```yaml
@@ -142,32 +142,32 @@ confirm the settings bridge is working. Use Docker to inspect env vars
 before the agent does any real work.
 
 ```bash
-./scion start "hello" --name qa-telem --no-auth
+./fabric start "hello" --name qa-telem --no-auth
 ```
 
 ```bash
 docker inspect qa-telem --format '{{range .Config.Env}}{{println .}}{{end}}' \
-  | grep -E "SCION_TELEMETRY|SCION_OTEL"
+  | grep -E "FABRIC_TELEMETRY|FABRIC_OTEL"
 ```
 
 **Expected output** (values depend on your settings):
 
 ```
-SCION_TELEMETRY_ENABLED=true
-SCION_TELEMETRY_CLOUD_ENABLED=true
-SCION_TELEMETRY_CLOUD_PROVIDER=gcp
-SCION_TELEMETRY_FILTER_EXCLUDE=agent.user.prompt
-SCION_TELEMETRY_REDACT=prompt,user.email,tool_output,tool_input
-SCION_TELEMETRY_HASH=session_id
+FABRIC_TELEMETRY_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_ENABLED=true
+FABRIC_TELEMETRY_CLOUD_PROVIDER=gcp
+FABRIC_TELEMETRY_FILTER_EXCLUDE=agent.user.prompt
+FABRIC_TELEMETRY_REDACT=prompt,user.email,tool_output,tool_input
+FABRIC_TELEMETRY_HASH=session_id
 ```
 
 If you added grove-level local debug settings, also check:
 
 ```
-SCION_TELEMETRY_LOCAL_ENABLED=true
-SCION_TELEMETRY_DEBUG=true
-SCION_TELEMETRY_CLOUD_BATCH_MAX_SIZE=256
-SCION_TELEMETRY_CLOUD_BATCH_TIMEOUT=5s
+FABRIC_TELEMETRY_LOCAL_ENABLED=true
+FABRIC_TELEMETRY_DEBUG=true
+FABRIC_TELEMETRY_CLOUD_BATCH_MAX_SIZE=256
+FABRIC_TELEMETRY_CLOUD_BATCH_TIMEOUT=5s
 ```
 
 Also verify harness-specific telemetry env vars are present. These direct
@@ -196,14 +196,14 @@ For Claude harness agents, check for `CLAUDE_CODE_ENABLE_TELEMETRY=1` and
 
 - Settings-level telemetry fields appear as container env vars.
 - Harness-specific telemetry env vars are injected when telemetry is enabled.
-- The `SCION_GCP_PROJECT_ID` env var is auto-resolved from the GCP
+- The `FABRIC_GCP_PROJECT_ID` env var is auto-resolved from the GCP
   credentials file when present. If using ADC without an explicit
-  credentials file, set `SCION_GCP_PROJECT_ID` explicitly.
+  credentials file, set `FABRIC_GCP_PROJECT_ID` explicitly.
 
 Clean up the test agent:
 
 ```bash
-./scion stop qa-telem --rm
+./fabric stop qa-telem --rm
 ```
 
 ---
@@ -215,7 +215,7 @@ suppresses telemetry collection in the agent container.
 
 ### 5.1 Set grove-level override
 
-Write `.scion/settings.yaml` in the test grove:
+Write `.fabric/settings.yaml` in the test grove:
 
 ```yaml
 schema_version: "1"
@@ -226,23 +226,23 @@ telemetry:
 ### 5.2 Start agent and inspect
 
 ```bash
-./scion start "disabled test" --name qa-telem-off --no-auth
+./fabric start "disabled test" --name qa-telem-off --no-auth
 ```
 
 ```bash
 docker inspect qa-telem-off --format '{{range .Config.Env}}{{println .}}{{end}}' \
-  | grep SCION_TELEMETRY_ENABLED
+  | grep FABRIC_TELEMETRY_ENABLED
 ```
 
-**Expected:** `SCION_TELEMETRY_ENABLED=false`
+**Expected:** `FABRIC_TELEMETRY_ENABLED=false`
 
-Inside the container, sciontool's `telemetry.LoadConfig()` will read this
+Inside the container, fabrictool's `telemetry.LoadConfig()` will read this
 value and `Pipeline.New()` will return nil, skipping all collection.
 
 Clean up:
 
 ```bash
-./scion stop qa-telem-off --rm
+./fabric stop qa-telem-off --rm
 ```
 
 Restore the grove settings to `enabled: true` (or remove the override)
@@ -253,13 +253,13 @@ before proceeding to the next sections.
 ## 6. End-to-End Cloud Trace Verification
 
 This section verifies the full pipeline: agent hook events are converted to
-OTLP spans by sciontool's `TelemetryHandler`, forwarded through the pipeline's
+OTLP spans by fabrictool's `TelemetryHandler`, forwarded through the pipeline's
 filter and cloud exporter, and appear in Google Cloud Trace.
 
 ### 6.1 Start an agent with telemetry enabled
 
 ```bash
-./scion start "trace test task" --name qa-trace --no-auth
+./fabric start "trace test task" --name qa-trace --no-auth
 ```
 
 ### 6.2 Trigger tool executions
@@ -268,7 +268,7 @@ Attach to the agent and interact with it to generate hook events. Each tool
 invocation produces `agent.tool.call` and `agent.tool.result` spans:
 
 ```bash
-./scion attach qa-trace
+./fabric attach qa-trace
 # Ask the agent to run a simple command, e.g. "list files in /tmp"
 # Detach with Ctrl+B then D
 ```
@@ -319,7 +319,7 @@ Search for metrics with the `custom.googleapis.com/` prefix or the
 Clean up:
 
 ```bash
-./scion stop qa-trace --rm
+./fabric stop qa-trace --rm
 ```
 
 ---
@@ -336,7 +336,7 @@ confirm these spans do not appear in Cloud Trace.
 Override the filter to only include specific event types:
 
 ```yaml
-# ~/.scion/settings.yaml or .scion/settings.yaml
+# ~/.fabric/settings.yaml or .fabric/settings.yaml
 telemetry:
   enabled: true
   cloud:
@@ -364,11 +364,11 @@ configuration should appear as hex-encoded SHA-256 digests.
 ## 8. Settings Hierarchy Merge Verification
 
 This confirms the merge priority chain: global settings < grove settings
-< template `scion-agent.yaml` < explicit env vars.
+< template `fabric-agent.yaml` < explicit env vars.
 
 ### 8.1 Set conflicting values at different scopes
 
-**Global** (`~/.scion/settings.yaml`):
+**Global** (`~/.fabric/settings.yaml`):
 
 ```yaml
 telemetry:
@@ -377,7 +377,7 @@ telemetry:
     endpoint: "global-endpoint.example.com:4317"
 ```
 
-**Grove** (`.scion/settings.yaml`):
+**Grove** (`.fabric/settings.yaml`):
 
 ```yaml
 schema_version: "1"
@@ -389,20 +389,20 @@ telemetry:
 ### 8.2 Start and inspect
 
 ```bash
-./scion start "merge test" --name qa-merge --no-auth
+./fabric start "merge test" --name qa-merge --no-auth
 docker inspect qa-merge --format '{{range .Config.Env}}{{println .}}{{end}}' \
-  | grep SCION_OTEL_ENDPOINT
+  | grep FABRIC_OTEL_ENDPOINT
 ```
 
-**Expected:** `SCION_OTEL_ENDPOINT=grove-endpoint.example.com:4317`
+**Expected:** `FABRIC_OTEL_ENDPOINT=grove-endpoint.example.com:4317`
 
-The grove scope overrides the global scope, and `MergeScionConfig` ensures
+The grove scope overrides the global scope, and `MergeFabricConfig` ensures
 template/agent-level values would override both.
 
 Clean up:
 
 ```bash
-./scion stop qa-merge --rm
+./fabric stop qa-merge --rm
 ```
 
 ### 8.3 Explicit env override
@@ -410,21 +410,21 @@ Clean up:
 Pre-set an env var that the bridge should not overwrite:
 
 ```bash
-SCION_OTEL_ENDPOINT="explicit-override.example.com:4317" \
-  ./scion start "override test" --name qa-override --no-auth
+FABRIC_OTEL_ENDPOINT="explicit-override.example.com:4317" \
+  ./fabric start "override test" --name qa-override --no-auth
 
 docker inspect qa-override --format '{{range .Config.Env}}{{println .}}{{end}}' \
-  | grep SCION_OTEL_ENDPOINT
+  | grep FABRIC_OTEL_ENDPOINT
 ```
 
-**Expected:** `SCION_OTEL_ENDPOINT=explicit-override.example.com:4317`
+**Expected:** `FABRIC_OTEL_ENDPOINT=explicit-override.example.com:4317`
 
 The injection logic in `run.go` skips keys already present in `opts.Env`.
 
 Clean up:
 
 ```bash
-./scion stop qa-override --rm
+./fabric stop qa-override --rm
 ```
 
 ---
@@ -432,12 +432,12 @@ Clean up:
 ## 9. Cleanup
 
 ```bash
-# Remove all scion test containers
-docker rm -f $(docker ps -a -q --filter "label=scion.agent=true") 2>/dev/null
+# Remove all fabric test containers
+docker rm -f $(docker ps -a -q --filter "label=fabric.agent=true") 2>/dev/null
 
 # Remove the test grove
 cd ..
-rm -rf scion-qa-telemetry
+rm -rf fabric-qa-telemetry
 ```
 
 ---
@@ -447,5 +447,5 @@ rm -rf scion-qa-telemetry
 | Document | Relevance |
 |----------|-----------|
 | [metrics-system.md](../hosted/metrics-system.md) | Full metrics architecture and QA gap tracker |
-| [sciontool-overview.md](../sciontool-overview.md) | Sciontool architecture and lifecycle |
-| [scion-local.md](scion-local.md) | Local CLI QA walkthrough |
+| [fabrictool-overview.md](../fabrictool-overview.md) | Fabrictool architecture and lifecycle |
+| [fabric-local.md](fabric-local.md) | Local CLI QA walkthrough |

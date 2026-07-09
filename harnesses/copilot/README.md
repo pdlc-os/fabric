@@ -1,6 +1,6 @@
 # Copilot Harness Bundle
 
-Scion harness bundle for the [GitHub Copilot CLI](https://github.com/github/copilot-cli)
+Fabric harness bundle for the [GitHub Copilot CLI](https://github.com/github/copilot-cli)
 (`copilot` from `github/copilot-cli`).
 
 ## Bundle Layout
@@ -10,7 +10,7 @@ harnesses/copilot/
   config.yaml           # Harness configuration
   provision.py          # Container-side provisioner (pre-start hook)
   capture_auth.py       # Post-login credential capture
-  Dockerfile            # Image build (FROM scion-base)
+  Dockerfile            # Image build (FROM fabric-base)
   cloudbuild.yaml       # Cloud Build configuration
   README.md             # This file
   home/
@@ -22,7 +22,7 @@ harnesses/copilot/
 ## Installation
 
 ```bash
-scion harness-config install harnesses/copilot
+fabric harness-config install harnesses/copilot
 ```
 
 ## Authentication
@@ -36,7 +36,7 @@ with the **"Copilot Requests"** permission enabled. The token must be user-owned
 (not organization-owned).
 
 ```bash
-scion start --harness copilot --env COPILOT_GITHUB_TOKEN=github_pat_...
+fabric start --harness copilot --env COPILOT_GITHUB_TOKEN=github_pat_...
 ```
 
 Token precedence: `COPILOT_GITHUB_TOKEN` > `GH_TOKEN` > `GITHUB_TOKEN`.
@@ -49,13 +49,13 @@ If no token is provided, the agent drops to a shell. Run `copilot login` to
 authenticate via browser-based OAuth device flow, then capture credentials:
 
 ```bash
-python3 /home/scion/.scion/harness/capture_auth.py
+python3 /home/fabric/.fabric/harness/capture_auth.py
 ```
 
 ## Known Limitations
 
 - **No turn/model-call limits** — Copilot CLI has no hook dialect for individual
-  turn or model call events. Only `max_duration` (via Scion's external timeout)
+  turn or model call events. Only `max_duration` (via Fabric's external timeout)
   is supported.
 - **No telemetry integration** — Copilot's OpenTelemetry configuration surface
   is undocumented.

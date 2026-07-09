@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 package commands
 
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// Version is the current version of sciontool.
+	// Version is the current version of fabrictool.
 	// It should be set via ldflags -X.
 	Version string
 
@@ -27,8 +27,8 @@ var (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print sciontool version information",
-	Long:  `Print version, commit, and build time information for sciontool.`,
+	Short: "Print fabrictool version information",
+	Long:  `Print version, commit, and build time information for fabrictool.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		_, _ = fmt.Fprintln(cmd.OutOrStdout(), getVersionString())
 	},
@@ -80,5 +80,5 @@ func getVersionString() string {
 		bt = "unknown"
 	}
 
-	return fmt.Sprintf("sciontool version %s\nCommit: %s\nBuild Time: %s", v, c, bt)
+	return fmt.Sprintf("fabrictool version %s\nCommit: %s\nBuild Time: %s", v, c, bt)
 }

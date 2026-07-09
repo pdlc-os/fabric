@@ -15,12 +15,12 @@
 package runtime
 
 import (
-	"github.com/GoogleCloudPlatform/scion/pkg/provision"
+	"github.com/pdlc-os/fabric/pkg/provision"
 )
 
 // Backward-compatible re-exports from pkg/provision.
 // The provisioning logic was extracted to the config-free pkg/provision leaf
-// package so that lean binaries (e.g. sciontool) can invoke provisioning
+// package so that lean binaries (e.g. fabrictool) can invoke provisioning
 // without pulling in pkg/config.
 
 // ProvisionSentinelFile is re-exported from pkg/provision.

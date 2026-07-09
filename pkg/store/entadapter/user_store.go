@@ -21,10 +21,10 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	entschema "github.com/GoogleCloudPlatform/scion/pkg/ent/schema"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/user"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	entschema "github.com/pdlc-os/fabric/pkg/ent/schema"
+	"github.com/pdlc-os/fabric/pkg/ent/user"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // sortOpt returns the ent ordering option for the given sort direction,

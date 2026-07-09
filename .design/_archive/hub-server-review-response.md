@@ -93,14 +93,14 @@ pkg/
 - `pkg/api/types.go`: Uses `snake_case` (e.g., `config_dir`, `command_args`)
 - `pkg/store/models.go`: Uses `camelCase` (e.g., `agentId`, `groveId`)
 
-**Why Deferred**: Changing JSON tags is a breaking change for API consumers. The current inconsistency is confined to the internal `ScionConfig` type which is used for local configuration files, not REST APIs.
+**Why Deferred**: Changing JSON tags is a breaking change for API consumers. The current inconsistency is confined to the internal `FabricConfig` type which is used for local configuration files, not REST APIs.
 
-**Recommended Approach**: When introducing the DTO layer, ensure all REST DTOs use consistent `camelCase` for JSON tags. The `ScionConfig` type can remain with `snake_case` for YAML configuration file compatibility.
+**Recommended Approach**: When introducing the DTO layer, ensure all REST DTOs use consistent `camelCase` for JSON tags. The `FabricConfig` type can remain with `snake_case` for YAML configuration file compatibility.
 
 ### 3. Unify Configuration Types (Low Priority)
 
 **Current State**: Three overlapping config types:
-- `api.ScionConfig`: CLI configuration
+- `api.FabricConfig`: CLI configuration
 - `store.TemplateConfig`: Template configuration
 - `store.AgentAppliedConfig`: Applied agent configuration
 

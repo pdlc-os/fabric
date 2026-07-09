@@ -26,9 +26,9 @@
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-531 531,-531 531,4 -4,4"/>
 <g id="clust1" class="cluster">
-<title>cluster_scion_resources</title>
+<title>cluster_fabric_resources</title>
 <polygon fill="none" stroke="black" points="32.25,-201.47 32.25,-361.96 398.25,-361.96 398.25,-201.47 32.25,-201.47"/>
-<text xml:space="preserve" text-anchor="middle" x="215.25" y="-344.66" font-family="Times,serif" font-size="14.00">/googlecloudplatform/scion/resources</text>
+<text xml:space="preserve" text-anchor="middle" x="215.25" y="-344.66" font-family="Times,serif" font-size="14.00">/pdlc-os/fabric/resources</text>
 </g>
 <!-- templates/* -->
 <g id="node1" class="node">

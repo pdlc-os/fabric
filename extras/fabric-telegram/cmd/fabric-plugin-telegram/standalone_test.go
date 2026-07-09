@@ -28,13 +28,13 @@ func TestStandaloneMode_EnvDetection(t *testing.T) {
 }
 
 func TestStandaloneMode_LegacyEnvDetection(t *testing.T) {
-	t.Setenv("SCION_TELEGRAM_STANDALONE", "1")
+	t.Setenv("FABRIC_TELEGRAM_STANDALONE", "1")
 	assert.True(t, isStandaloneRequested())
 }
 
 func TestStandaloneMode_NotSet(t *testing.T) {
 	t.Setenv("TELEGRAM_STANDALONE", "")
-	t.Setenv("SCION_TELEGRAM_STANDALONE", "")
+	t.Setenv("FABRIC_TELEGRAM_STANDALONE", "")
 	assert.False(t, isStandaloneRequested())
 }
 
@@ -73,7 +73,7 @@ func TestEmptyModeAccepted(t *testing.T) {
 // isStandaloneRequested checks env vars for standalone mode (extracted for testing).
 func isStandaloneRequested() bool {
 	return strings.EqualFold(envOrEmpty("TELEGRAM_STANDALONE"), "true") ||
-		envOrEmpty("SCION_TELEGRAM_STANDALONE") == "1"
+		envOrEmpty("FABRIC_TELEGRAM_STANDALONE") == "1"
 }
 
 // validateStandaloneConfig checks that a merged config map does not contain

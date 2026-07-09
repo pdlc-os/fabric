@@ -25,8 +25,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import type { PageData } from '../../shared/types.js';
 
-@customElement('scion-page-404')
-export class ScionPage404 extends LitElement {
+@customElement('fabric-page-404')
+export class FabricPage404 extends LitElement {
   /**
    * Page data from SSR
    */
@@ -51,7 +51,7 @@ export class ScionPage404 extends LitElement {
       font-size: 8rem;
       font-weight: 800;
       line-height: 1;
-      background: linear-gradient(135deg, var(--scion-primary, #3b82f6) 0%, #8b5cf6 100%);
+      background: linear-gradient(135deg, var(--fabric-primary, #3b82f6) 0%, #8b5cf6 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -61,21 +61,21 @@ export class ScionPage404 extends LitElement {
     h1 {
       font-size: 1.5rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin: 0 0 0.75rem 0;
     }
 
     p {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       margin: 0 0 2rem 0;
       line-height: 1.6;
     }
 
     .path {
-      font-family: var(--scion-font-mono, monospace);
-      background: var(--scion-bg-subtle, #f1f5f9);
+      font-family: var(--fabric-font-mono, monospace);
+      background: var(--fabric-bg-subtle, #f1f5f9);
       padding: 0.25rem 0.5rem;
-      border-radius: var(--scion-radius-sm, 0.25rem);
+      border-radius: var(--fabric-radius-sm, 0.25rem);
       font-size: 0.875rem;
     }
 
@@ -96,7 +96,7 @@ export class ScionPage404 extends LitElement {
 
     .illustration sl-icon {
       font-size: 6rem;
-      color: var(--scion-neutral-300, #cbd5e1);
+      color: var(--fabric-neutral-300, #cbd5e1);
     }
   `;
 
@@ -135,6 +135,6 @@ export class ScionPage404 extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-page-404': ScionPage404;
+    'fabric-page-404': FabricPage404;
   }
 }

@@ -2,7 +2,7 @@
 
 **Date**: 2026-06-08
 **Agent**: lh-port-m6
-**Branch**: scion/lifecycle-hooks-port
+**Branch**: fabric/lifecycle-hooks-port
 
 ## Summary
 

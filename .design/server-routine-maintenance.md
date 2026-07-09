@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Scion Hub operators currently perform maintenance operations through CLI commands (`scion hub secret migrate`), shell scripts (`gce-start-hub.sh`, `build-images.sh`, `pull-containers.sh`), and manual SSH sessions. There is no centralized visibility into which maintenance tasks have been run, when, or whether they succeeded.
+Fabric Hub operators currently perform maintenance operations through CLI commands (`fabric hub secret migrate`), shell scripts (`gce-start-hub.sh`, `build-images.sh`, `pull-containers.sh`), and manual SSH sessions. There is no centralized visibility into which maintenance tasks have been run, when, or whether they succeeded.
 
 This design adds a **Maintenance Operations** page to the Admin section of the web UI. It provides:
 
@@ -38,7 +38,7 @@ This design adds a **Maintenance Operations** page to the Admin section of the w
 
 | Operation | How It's Done Today | Visibility |
 |-----------|-------------------|------------|
-| Secret naming migration | `scion hub secret migrate --project=... [--hub-id=...]` | CLI output only, no persistent record |
+| Secret naming migration | `fabric hub secret migrate --project=... [--hub-id=...]` | CLI output only, no persistent record |
 | Pull container images | `pull-containers.sh` via SSH, or `docker pull` manually | No record |
 | Rebuild server from git | `gce-start-hub.sh --fast` via SSH (git pull → build → restart) | systemd journal only |
 | Build container images | `build-images.sh --registry=... --push` via SSH | No record |
@@ -248,7 +248,7 @@ Response:
   "completedAt": "...",
   "startedBy": "user-id",
   "result": "{\"pulled\": 4}",
-  "log": "Pulling scion-claude:latest...\nPulling scion-gemini:latest...\n..."
+  "log": "Pulling fabric-claude:latest...\nPulling fabric-gemini:latest...\n..."
 }
 ```
 
@@ -296,7 +296,7 @@ type PullImagesExecutor struct {
 
 Steps:
 1. Detect container runtime (same logic as `pull-containers.sh`).
-2. For each configured harness image, run `{runtime} image pull {registry}/scion-{harness}:{tag}`.
+2. For each configured harness image, run `{runtime} image pull {registry}/fabric-{harness}:{tag}`.
 3. Capture stdout/stderr to the run log.
 4. Report pulled count in result JSON.
 
@@ -306,8 +306,8 @@ Performs the equivalent of the fast-deploy flow from `gce-start-hub.sh`:
 
 ```go
 type RebuildServerExecutor struct {
-    repoPath   string // path to the scion source checkout
-    binaryDest string // install path (e.g., /usr/local/bin/scion)
+    repoPath   string // path to the fabric source checkout
+    binaryDest string // install path (e.g., /usr/local/bin/fabric)
     serviceName string // systemd service name
 }
 ```
@@ -315,16 +315,16 @@ type RebuildServerExecutor struct {
 Steps:
 1. `git pull` in the repo directory.
 2. `make web` to rebuild frontend assets.
-3. `go build -o {repoPath}/scion.rebuild ./cmd/scion` to rebuild the binary into a staging path inside the repo directory (where the service user has write access).
-4. `sudo install -m 755 {repoPath}/scion.rebuild {binaryDest}` to install the binary to the final destination.
+3. `go build -o {repoPath}/fabric.rebuild ./cmd/fabric` to rebuild the binary into a staging path inside the repo directory (where the service user has write access).
+4. `sudo install -m 755 {repoPath}/fabric.rebuild {binaryDest}` to install the binary to the final destination.
 5. `systemctl restart {serviceName}` to restart.
 6. Health check loop (poll `/healthz` endpoint).
 
 **Safety:** The rebuild executor only runs on Linux (where systemd is available). Returns an error on other platforms with a message directing the operator to restart manually.
 
-**Privileges:** A sudoers drop-in at `/etc/sudoers.d/scion-rebuild-server` grants the `scion` user two narrowly-scoped commands without a password:
-- `install -m 755 /home/scion/scion/scion.rebuild /usr/local/bin/scion` — binary installation
-- `systemctl restart scion-hub` — service restart
+**Privileges:** A sudoers drop-in at `/etc/sudoers.d/fabric-rebuild-server` grants the `fabric` user two narrowly-scoped commands without a password:
+- `install -m 755 /home/fabric/fabric/fabric.rebuild /usr/local/bin/fabric` — binary installation
+- `systemctl restart fabric-hub` — service restart
 
 Both are installed by the deployment script (`gce-start-hub.sh`).
 
@@ -372,7 +372,7 @@ Supports `dryRun` parameter to preview without changes.
 ### 3.7 Web UI Page
 
 **Route:** `/admin/maintenance`
-**Component:** `scion-page-admin-maintenance`
+**Component:** `fabric-page-admin-maintenance`
 **Nav entry:** Added to the Admin section in `nav.ts` between "Scheduler" and "Users":
 
 ```typescript

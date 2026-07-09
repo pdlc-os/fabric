@@ -28,9 +28,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // --- Mock hubclient ---
@@ -1109,7 +1109,7 @@ func TestSendFollowUp_ConcurrentFollowUps_SameTask(t *testing.T) {
 }
 
 func TestSendFollowUp_MessageContentTranslated(t *testing.T) {
-	// Verify the A2A parts are correctly translated to Scion format.
+	// Verify the A2A parts are correctly translated to Fabric format.
 	var capturedMsg *messages.StructuredMessage
 	agents := &mockAgentService{
 		sendFn: func(ctx context.Context, agentID string, msg *messages.StructuredMessage, interrupt, notify, wake bool) (*hubclient.MessageResponse, error) {

@@ -20,12 +20,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/gcpserviceaccount"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/githubinstallation"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/useraccesstoken"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/gcpserviceaccount"
+	"github.com/pdlc-os/fabric/pkg/ent/githubinstallation"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/useraccesstoken"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // ExternalStore implements the external-identity store sub-interfaces backed by

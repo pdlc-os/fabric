@@ -18,18 +18,18 @@
  * Dynamic page title management for the SPA.
  *
  * Provides a central function for setting the browser document title with
- * hierarchical context segments (e.g. "my-project — Projects — Scion").
+ * hierarchical context segments (e.g. "my-project — Projects — Fabric").
  * Page components dispatch the custom event to refine the title with entity
  * names once data has loaded.
  */
 
-const APP_NAME = 'Scion';
+const APP_NAME = 'Fabric';
 
 /**
  * Custom event name dispatched by page components to refine the document title
  * with entity-specific context (project name, agent name, etc.).
  */
-export const PAGE_TITLE_EVENT = 'scion:page-title';
+export const PAGE_TITLE_EVENT = 'fabric:page-title';
 
 export interface PageTitleDetail {
   /** Title segments from most-specific to least-specific, e.g. ['my-agent', 'my-project'] */
@@ -43,9 +43,9 @@ export interface PageTitleDetail {
  * The app name is always appended as the last segment.
  *
  * Examples:
- *   setDocumentTitle('Dashboard')              → "Dashboard — Scion"
- *   setDocumentTitle('my-project', 'Projects')     → "my-project — Projects — Scion"
- *   setDocumentTitle('agent-1', 'my-project')    → "agent-1 — my-project — Scion"
+ *   setDocumentTitle('Dashboard')              → "Dashboard — Fabric"
+ *   setDocumentTitle('my-project', 'Projects')     → "my-project — Projects — Fabric"
+ *   setDocumentTitle('agent-1', 'my-project')    → "agent-1 — my-project — Fabric"
  */
 export function setDocumentTitle(...segments: string[]): void {
   if (segments.length === 0) {

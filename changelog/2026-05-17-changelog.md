@@ -4,8 +4,8 @@ This period is marked by a major architectural transition, renaming the core "Gr
 
 ## ⚠️ BREAKING CHANGES
 * **Grove to Project Rename:** The concept of "Groves" has been renamed to "Projects" across the CLI, API, Database, and Web UI.
-    * **CLI:** Primary commands now use `projects` (e.g., `scion projects list`), though `groves` remains supported as a hidden alias for backward compatibility.
-    * **Environment Variables:** `SCION_PROJECT_ID` and `SCION_PROJECT_PATH` are now preferred over their `GROVE` counterparts.
+    * **CLI:** Primary commands now use `projects` (e.g., `fabric projects list`), though `groves` remains supported as a hidden alias for backward compatibility.
+    * **Environment Variables:** `FABRIC_PROJECT_ID` and `FABRIC_PROJECT_PATH` are now preferred over their `GROVE` counterparts.
     * **API:** New `/api/v1/projects` endpoints have been introduced. Legacy `/api/v1/groves` endpoints now include deprecation headers and will be removed in a future release.
     * **Database:** Internal schemas have been updated, but data migrations are idempotent and include filesystem fallbacks to ensure existing "groves" directories continue to function.
 

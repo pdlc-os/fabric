@@ -33,12 +33,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BrokerService_Configure_FullMethodName   = "/scion.broker.v1.BrokerService/Configure"
-	BrokerService_Publish_FullMethodName     = "/scion.broker.v1.BrokerService/Publish"
-	BrokerService_Subscribe_FullMethodName   = "/scion.broker.v1.BrokerService/Subscribe"
-	BrokerService_Unsubscribe_FullMethodName = "/scion.broker.v1.BrokerService/Unsubscribe"
-	BrokerService_HealthCheck_FullMethodName = "/scion.broker.v1.BrokerService/HealthCheck"
-	BrokerService_GetInfo_FullMethodName     = "/scion.broker.v1.BrokerService/GetInfo"
+	BrokerService_Configure_FullMethodName   = "/fabric.broker.v1.BrokerService/Configure"
+	BrokerService_Publish_FullMethodName     = "/fabric.broker.v1.BrokerService/Publish"
+	BrokerService_Subscribe_FullMethodName   = "/fabric.broker.v1.BrokerService/Subscribe"
+	BrokerService_Unsubscribe_FullMethodName = "/fabric.broker.v1.BrokerService/Unsubscribe"
+	BrokerService_HealthCheck_FullMethodName = "/fabric.broker.v1.BrokerService/HealthCheck"
+	BrokerService_GetInfo_FullMethodName     = "/fabric.broker.v1.BrokerService/GetInfo"
 )
 
 // BrokerServiceClient is the client API for BrokerService service.
@@ -298,7 +298,7 @@ func _BrokerService_GetInfo_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BrokerService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "scion.broker.v1.BrokerService",
+	ServiceName: "fabric.broker.v1.BrokerService",
 	HandlerType: (*BrokerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

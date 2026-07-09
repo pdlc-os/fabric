@@ -20,7 +20,7 @@ Every log or metric should be decorated with these attributes to allow for slici
 
 | Attribute | Category | Description |
 | :--- | :--- | :--- |
-| `service.name` | Universal | The identity of the agent (e.g., `scion`, `codex`, `gcli`). |
+| `service.name` | Universal | The identity of the agent (e.g., `fabric`, `codex`, `gcli`). |
 | `session.id` | Universal | Unique UUID for the conversation/thread. |
 | `user.id` | Universal | Anonymized or internal identifier of the user. |
 | `model.name` | Universal | The specific model used (e.g., `gemini-1.5-pro`, `gpt-4o`). |

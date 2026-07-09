@@ -22,20 +22,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubsync"
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/agent"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/hubsync"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create <agent-name> [task...]",
-	Short: "Provision a new scion agent without starting it",
+	Short: "Provision a new fabric agent without starting it",
 	Long: `Provision a new isolated LLM agent directory to perform a specific task.
 The agent will be created from a template.
 
@@ -70,7 +70,7 @@ arguments are provided, an empty prompt.md is created for later editing.`,
 		}
 
 		// Load inline config if --config was specified
-		var inlineCfg *api.ScionConfig
+		var inlineCfg *api.FabricConfig
 		if inlineConfigPath != "" {
 			var inlineConfigDir string
 			var loadErr error
@@ -128,7 +128,7 @@ arguments are provided, an empty prompt.md is created for later editing.`,
 		}
 		agentDir := filepath.Join(projectDir, "agents", agentName)
 		if _, err := os.Stat(agentDir); err == nil {
-			return fmt.Errorf("agent '%s' already exists. Use 'scion delete %s' first to recreate it", agentName, agentName)
+			return fmt.Errorf("agent '%s' already exists. Use 'fabric delete %s' first to recreate it", agentName, agentName)
 		}
 
 		ctx := context.Background()
@@ -236,7 +236,7 @@ func createAgentViaHub(hubCtx *HubContext, agentName string, task string) error 
 	}
 
 	if agentImage != "" {
-		req.Config = &api.ScionConfig{
+		req.Config = &api.FabricConfig{
 			Image: agentImage,
 		}
 	}
@@ -255,7 +255,7 @@ func createAgentViaHub(hubCtx *HubContext, agentName string, task string) error 
 	}
 
 	// Advance watermark to the hub-assigned creation time so this agent
-	// won't trigger a sync warning on the next 'scion ls'.
+	// won't trigger a sync warning on the next 'fabric ls'.
 	if resp.Agent != nil && !resp.Agent.Created.IsZero() {
 		hubsync.UpdateLastSyncedAt(hubCtx.ProjectPath, resp.Agent.Created, hubCtx.IsGlobal)
 		hubsync.AddSyncedAgent(hubCtx.ProjectPath, agentName)

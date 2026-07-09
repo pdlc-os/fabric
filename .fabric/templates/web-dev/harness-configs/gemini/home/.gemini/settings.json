@@ -9,7 +9,7 @@
   "context": {
     "fileName": ["CLAUDE.md","AGENTS.md", "GEMINI.md"],
     "fileFiltering": {
-      "customIgnoreFilePaths": ["/home/scion/.gemini/.geminiignore"]
+      "customIgnoreFilePaths": ["/home/fabric/.gemini/.geminiignore"]
     }
   },
   "model": {
@@ -40,9 +40,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -52,9 +52,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -64,9 +64,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -76,9 +76,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -88,9 +88,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -100,9 +100,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -112,9 +112,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -124,9 +124,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }
@@ -136,9 +136,9 @@
         "matcher": "ToolPermission",
         "hooks": [
           {
-            "name": "scion-status",
+            "name": "fabric-status",
             "type": "command",
-            "command": "sciontool hook --dialect=gemini"
+            "command": "fabrictool hook --dialect=gemini"
           }
         ]
       }

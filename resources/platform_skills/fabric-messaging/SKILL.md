@@ -1,13 +1,13 @@
 ---
-name: scion-messaging
-description: Teaches agents how to use the scion message command effectively. Use this for ANY agent type that needs to communicate with other agents or users. Covers recipient types, message timing, content best practices, and special message flags.
+name: fabric-messaging
+description: Teaches agents how to use the fabric message command effectively. Use this for ANY agent type that needs to communicate with other agents or users. Covers recipient types, message timing, content best practices, and special message flags.
 ---
 
-# Scion Messaging
+# Fabric Messaging
 
 ## Overview
 
-In a multi-agent orchestration environment, communication is the primary failure mode. Agent terminal output is invisible to everyone outside the container. The **only** way to communicate is via the `scion message` command. This skill codifies the patterns required for reliable, high-signal communication within the Scion ecosystem.
+In a multi-agent orchestration environment, communication is the primary failure mode. Agent terminal output is invisible to everyone outside the container. The **only** way to communicate is via the `fabric message` command. This skill codifies the patterns required for reliable, high-signal communication within the Fabric ecosystem.
 
 ## When to Use
 
@@ -38,7 +38,7 @@ Effective communication requires balancing responsiveness with focus.
 2.  **Milestone Reporting**: Report at significant milestones, not continuously. Don't spam "Still working..." messages.
 3.  **No Silence**: If a task takes longer than expected, send a brief update before diving back in.
 4.  **Simple Questions**: Gather all necessary info first, then ask clearly. Don't send a stream of consciousness.
-5.  **Status Blocked**: When waiting for a reply or a scheduled event, use `sciontool status blocked "<reason>"` to signal you are intentionally waiting.
+5.  **Status Blocked**: When waiting for a reply or a scheduled event, use `fabrictool status blocked "<reason>"` to signal you are intentionally waiting.
 
 ## Message Content Best Practices
 
@@ -56,9 +56,9 @@ Every message should move work forward. High-signal messages are functional and 
 
 ## Special Message Flags
 
-The `scion message` command provides powerful flags for advanced orchestration:
+The `fabric message` command provides powerful flags for advanced orchestration:
 
-- **`--raw`**: Sends literal keystrokes to an agent's tmux terminal (e.g., `scion message agent:editor --raw "ENTER"`). Useful for unblocking interactive prompts.
+- **`--raw`**: Sends literal keystrokes to an agent's tmux terminal (e.g., `fabric message agent:editor --raw "ENTER"`). Useful for unblocking interactive prompts.
 - **`--wake`**: Resumes a suspended agent and delivers the message.
 - **`--interrupt`**: Interrupts the target agent's current process before delivering the message (use with caution).
 - **`--notify`**: Subscribes you to state-change notifications (e.g., completion, stall) for the target agent.
@@ -70,7 +70,7 @@ The `scion message` command provides powerful flags for advanced orchestration:
 
 - **Coordinator Relay**: Workers generally communicate through the coordinator rather than directly with each other.
 - **Context Sharding**: For long-running tasks, split the work into batches of ≤10 items. Have the agent message the coordinator after each batch to avoid context exhaustion.
-- **Self-Callback Heartbeat**: For very long tasks, use `scion message --in` to send yourself a reminder to check in or provide a status update.
+- **Self-Callback Heartbeat**: For very long tasks, use `fabric message --in` to send yourself a reminder to check in or provide a status update.
 
 ## Multi-User Communication
 
@@ -84,7 +84,7 @@ In projects with multiple users:
 - **Red Flag**: Using `--broadcast`.
 - **Red Flag**: An agent goes silent for >30 minutes without a milestone update or "blocked" status.
 - **Anti-Pattern**: Sending "I'm still here" or other low-signal filler messages.
-- **Anti-Pattern**: Using `sleep` to wait for something; use `sciontool status blocked` instead.
+- **Anti-Pattern**: Using `sleep` to wait for something; use `fabrictool status blocked` instead.
 - **Anti-Pattern**: Repeating the entire original brief in a follow-up message (exhausts context).
 
 ## Verification Checklist

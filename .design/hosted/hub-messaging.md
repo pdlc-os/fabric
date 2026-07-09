@@ -5,7 +5,7 @@
 
 ## Problem
 
-The `scion message` CLI command (`cmd/message.go`) always sends messages directly via the local runtime, bypassing the Hub entirely. Every other lifecycle command (`start`, `stop`, `delete`, `list`) already routes through the Hub when Hub integration is enabled. Messaging should follow the same pattern.
+The `fabric message` CLI command (`cmd/message.go`) always sends messages directly via the local runtime, bypassing the Hub entirely. Every other lifecycle command (`start`, `stop`, `delete`, `list`) already routes through the Hub when Hub integration is enabled. Messaging should follow the same pattern.
 
 The Hub API (`POST /api/v1/agents/{id}/message`) and the hubclient `SendMessage` method already exist and are functional. The runtime broker handler (`POST /api/v1/agents/{id}/message`) is also wired up. The only missing piece is the CLI dispatch logic.
 

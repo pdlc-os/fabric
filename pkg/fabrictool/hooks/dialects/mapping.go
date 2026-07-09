@@ -1,5 +1,5 @@
 /*
-Copyright 2026 The Scion Authors.
+Copyright 2026 The Fabric Authors.
 */
 
 package dialects
@@ -11,12 +11,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/hooks"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/hooks"
 	"gopkg.in/yaml.v3"
 )
 
 // MappingDialectSpec defines a data-driven dialect loaded from a YAML file.
-// It maps harness-specific event names to normalized Scion event names and
+// It maps harness-specific event names to normalized Fabric event names and
 // optionally extracts fields from the event payload using dotted paths.
 type MappingDialectSpec struct {
 	Dialect         string                      `yaml:"dialect"`
@@ -309,7 +309,7 @@ func LoadMappingDialect(path string) (*MappingDialect, error) {
 }
 
 // DiscoverMappingDialect looks for a dialect.yaml in the well-known harness
-// bundle path ($HOME/.scion/harness/dialect.yaml) and loads it if the declared
+// bundle path ($HOME/.fabric/harness/dialect.yaml) and loads it if the declared
 // dialect name matches the requested name.
 func DiscoverMappingDialect(dialectName string) (*MappingDialect, error) {
 	home, err := os.UserHomeDir()
@@ -317,7 +317,7 @@ func DiscoverMappingDialect(dialectName string) (*MappingDialect, error) {
 		return nil, fmt.Errorf("cannot determine home directory: %w", err)
 	}
 
-	path := filepath.Join(home, ".scion", "harness", "dialect.yaml")
+	path := filepath.Join(home, ".fabric", "harness", "dialect.yaml")
 	md, err := LoadMappingDialect(path)
 	if err != nil {
 		return nil, err

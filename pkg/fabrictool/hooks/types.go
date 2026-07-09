@@ -1,9 +1,9 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 
-// Package hooks provides the hook system for sciontool.
-// It handles both Scion lifecycle hooks (pre-start, post-start, session-end)
+// Package hooks provides the hook system for fabrictool.
+// It handles both Fabric lifecycle hooks (pre-start, post-start, session-end)
 // and harness hooks (events from Claude Code, Gemini CLI, etc.).
 package hooks
 
@@ -91,7 +91,7 @@ const (
 	// Notification events
 	EventNotification = "notification"
 
-	// Scion lifecycle events (internal)
+	// Fabric lifecycle events (internal)
 	EventPreStart  = "pre-start"
 	EventPostStart = "post-start"
 	EventPreStop   = "pre-stop"

@@ -3,7 +3,7 @@
 ## Description
 The Apple native `container` CLI (Virtualization.framework backend) does not support a persistent `attach` command that allows re-connecting to the standard input/output of a running container's initial process. It currently only supports `exec` to run new processes in a running container.
 
-This prevents `scion` from implementing `scion attach` to let users interact with a running agent session.
+This prevents `fabric` from implementing `fabric attach` to let users interact with a running agent session.
 
 ## Proposed Solution: Tmux-based Persistence
 Since we cannot re-attach to the container's PID 1 directly, we can run the primary application (Gemini CLI) inside a `tmux` session within the container.
@@ -16,7 +16,7 @@ Since we cannot re-attach to the container's PID 1 directly, we can run the prim
       tmux new-session -d -s gemini-session 'gemini'
       ```
 3.  **Attach Logic:**
-    - When a user runs `scion attach <agent>`, the runtime should use `exec` to attach to the existing `tmux` session:
+    - When a user runs `fabric attach <agent>`, the runtime should use `exec` to attach to the existing `tmux` session:
       ```bash
       container exec -it <container-id> tmux attach-session -t gemini-session
       ```
@@ -38,4 +38,4 @@ Since we cannot re-attach to the container's PID 1 directly, we can run the prim
 - `pkg/runtime/runtime.go`
 - `pkg/runtime/apple_container.go`
 - `cmd/attach.go` (to be implemented)
-- `.scion/templates/default/.bashrc` (could be used for auto-attach or setup)
+- `.fabric/templates/default/.bashrc` (could be used for auto-attach or setup)

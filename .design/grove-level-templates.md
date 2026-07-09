@@ -5,11 +5,11 @@
 
 ## 1. Problem Statement
 
-Groves can contain their own templates in `.scion/templates/`, but these templates are not automatically known to the Hub. This creates several gaps:
+Groves can contain their own templates in `.fabric/templates/`, but these templates are not automatically known to the Hub. This creates several gaps:
 
 1. **Linked groves**: Templates live on the broker's local filesystem and may vary across brokers serving the same grove. The Hub has no visibility into what templates a grove defines.
-2. **Git groves**: Templates exist in the repository's `.scion/templates/` directory, but are only accessible inside an agent container after cloning. The Hub and web UI cannot see or offer these templates.
-3. **CLI UX**: `scion templates push/sync` already supports grove-scoped uploads, but users must manually invoke it. There is no automatic discovery or suggestion flow.
+2. **Git groves**: Templates exist in the repository's `.fabric/templates/` directory, but are only accessible inside an agent container after cloning. The Hub and web UI cannot see or offer these templates.
+3. **CLI UX**: `fabric templates push/sync` already supports grove-scoped uploads, but users must manually invoke it. There is no automatic discovery or suggestion flow.
 
 ### What We Want
 - Grove-defined templates should be discoverable and usable from the Hub and web UI
@@ -24,13 +24,13 @@ Groves can contain their own templates in `.scion/templates/`, but these templat
 
 Templates are stored as directories:
 ```
-~/.scion/templates/<name>/          # Global scope
-<project>/.scion/templates/<name>/  # Grove scope (in-repo or external config dir)
+~/.fabric/templates/<name>/          # Global scope
+<project>/.fabric/templates/<name>/  # Grove scope (in-repo or external config dir)
 ```
 
-Each template directory contains `scion-agent.yaml`, `system-prompt.md`, and optional files (skills/, agents.md, etc.).
+Each template directory contains `fabric-agent.yaml`, `system-prompt.md`, and optional files (skills/, agents.md, etc.).
 
-For git groves, templates live in the repository's `.scion/templates/` directory and are available after cloning. (Note: a recent change (d0507b1) moved templates to an external grove-config directory, but this will be reverted — see Section 4.2.)
+For git groves, templates live in the repository's `.fabric/templates/` directory and are available after cloning. (Note: a recent change (d0507b1) moved templates to an external grove-config directory, but this will be reverted — see Section 4.2.)
 
 ### 2.2 Hub Template Storage
 
@@ -43,7 +43,7 @@ gs://bucket/templates/users/<userId>/<slug>/
 
 ### 2.3 Template Sync (Current)
 
-`scion templates sync <name>` uploads a local template to the Hub:
+`fabric templates sync <name>` uploads a local template to the Hub:
 - Default scope: **grove** (uses current grove ID)
 - `--global` flag: **global** scope
 - Performs incremental upload via signed URLs
@@ -71,19 +71,19 @@ After evaluating several approaches (see [Appendix: Rejected Approaches](#append
 
 ### 3.1 CLI: Explicit Sync with Auto-Prompt on Grove Link
 
-**Concept**: Template sync is always **explicit** — never automatic. When a grove is linked to the Hub (`scion hub link`), the CLI detects grove-local templates and prompts the user to sync them. Sync is **bidirectional**: templates can be pushed from local to Hub and pulled from Hub to local.
+**Concept**: Template sync is always **explicit** — never automatic. When a grove is linked to the Hub (`fabric hub link`), the CLI detects grove-local templates and prompts the user to sync them. Sync is **bidirectional**: templates can be pushed from local to Hub and pulled from Hub to local.
 
 **Flow**:
-1. `scion hub link` detects templates in `.scion/templates/`
+1. `fabric hub link` detects templates in `.fabric/templates/`
 2. **Interactive mode**: User is prompted to confirm syncing discovered templates
 3. **Non-interactive mode** (`--non-interactive`): Template sync is skipped entirely
-4. Each confirmed template is uploaded to Hub at grove scope (same as `scion templates sync`)
+4. Each confirmed template is uploaded to Hub at grove scope (same as `fabric templates sync`)
 5. For linked groves: first broker to link seeds the Hub; subsequent brokers can pull from Hub
 6. For git groves: templates are synced when the grove is created from a git URL (requires cloning to discover templates)
 
 **Conflict handling**: If a grove-scoped template with the same name already exists on the Hub, the CLI warns the user and requires a `--force` flag to overwrite.
 
-**Bulk sync**: `scion templates sync --all` is available for explicit bulk upload at any time.
+**Bulk sync**: `fabric templates sync --all` is available for explicit bulk upload at any time.
 
 ### 3.2 Web: In-Container Template Sync
 
@@ -91,17 +91,17 @@ After evaluating several approaches (see [Appendix: Rejected Approaches](#append
 
 **Flow**:
 1. From the grove settings page, a "Load Templates" button launches a short-lived dummy agent in the grove
-2. The Hub execs into the agent container and runs `scion templates sync --all` via bash
+2. The Hub execs into the agent container and runs `fabric templates sync --all` via bash
 3. The synced templates become available on the Hub at grove scope
 4. The grove settings page displays a **read-only list** of loaded templates
 5. The agent creation form is **populated by available grove templates**
 
 **Why this works universally**:
 - The agent container has the grove's filesystem mounted (whether linked, git-cloned, or hub-managed)
-- The `scion` CLI inside the container has access to all local templates
+- The `fabric` CLI inside the container has access to all local templates
 - No special git access or broker APIs needed from the Hub
 
-**Container choice**: The dummy agent uses the `scion-base` container image (which includes the `scion` CLI) with the generic harness setting. It only needs Hub auth and endpoint environment variables — not a full LLM harness. The agent should be immediately deleted after the sync completes.
+**Container choice**: The dummy agent uses the `fabric-base` container image (which includes the `fabric` CLI) with the generic harness setting. It only needs Hub auth and endpoint environment variables — not a full LLM harness. The agent should be immediately deleted after the sync completes.
 
 **Hub-managed groves**: These are the simplest case — templates are managed entirely on the Hub. No container-based sync is needed. Future improvements may add direct template creation/editing in the web UI, but for now hub-managed grove templates are also managed via CLI and synced.
 
@@ -125,13 +125,13 @@ After evaluating several approaches (see [Appendix: Rejected Approaches](#append
 **Core challenge**: Templates live in git but are only materialized after a clone.
 
 **Scenarios**:
-- Templates are committed to `.scion/templates/` in the repo
+- Templates are committed to `.fabric/templates/` in the repo
 - Templates are in the externalized grove-config dir (not in git, broker-local)
 - Mix of both: some templates in repo, some external
 
-**Key insight**: The recent externalization change (d0507b1) that moved git grove templates to `~/.scion/grove-configs/<slug>__<uuid>/.scion/templates/` was a mistake and will be reverted in a separate workstream. Templates for git groves should remain in the repository's `.scion/templates/` directory, ensuring they are version-controlled and available to all brokers after cloning.
+**Key insight**: The recent externalization change (d0507b1) that moved git grove templates to `~/.fabric/grove-configs/<slug>__<uuid>/.fabric/templates/` was a mistake and will be reverted in a separate workstream. Templates for git groves should remain in the repository's `.fabric/templates/` directory, ensuring they are version-controlled and available to all brokers after cloning.
 
-**Resolution**: The in-container sync approach (Section 3.2) works here — after cloning the repo, the dummy agent has access to the in-repo templates, and `scion templates sync --all` uploads everything it finds.
+**Resolution**: The in-container sync approach (Section 3.2) works here — after cloning the repo, the dummy agent has access to the in-repo templates, and `fabric templates sync --all` uploads everything it finds.
 
 ### 4.3 Hub-Managed Groves
 
@@ -144,7 +144,7 @@ After evaluating several approaches (see [Appendix: Rejected Approaches](#append
 ### 5.1 Auto-Sync on `hub link` (Interactive)
 
 ```
-$ scion hub link
+$ fabric hub link
 Grove linked to Hub: my-project (id: abc123)
 
 Found 3 grove templates not yet synced to Hub:
@@ -163,16 +163,16 @@ Syncing grove templates to Hub...
 
 In non-interactive mode, sync is skipped:
 ```
-$ scion hub link --non-interactive
+$ fabric hub link --non-interactive
 Grove linked to Hub: my-project (id: abc123)
 Skipping template sync (non-interactive mode).
-Run 'scion templates sync --all' to upload grove templates.
+Run 'fabric templates sync --all' to upload grove templates.
 ```
 
 ### 5.2 Bulk Sync
 
 ```
-$ scion templates sync --all
+$ fabric templates sync --all
 Syncing grove templates to Hub...
   code-reviewer:    uploaded (3 files, 2.1KB)
   security-auditor: uploaded (4 files, 3.4KB)
@@ -183,7 +183,7 @@ Syncing grove templates to Hub...
 ### 5.3 Conflict Detection
 
 ```
-$ scion templates sync code-reviewer
+$ fabric templates sync code-reviewer
 Warning: template 'code-reviewer' already exists at grove scope on the Hub
   (content hash mismatch: local=abc123, hub=def456)
 Use --force to overwrite the existing template.
@@ -192,7 +192,7 @@ Use --force to overwrite the existing template.
 ### 5.4 Status Command
 
 ```
-$ scion templates status
+$ fabric templates status
 Grove: my-project (abc123)
 
 Template            Local    Hub      Status
@@ -215,14 +215,14 @@ The web UI needs to:
 ## 6. Implementation Plan
 
 ### Phase 1: CLI Improvements (low effort, high value) — DONE
-- Add `scion templates sync --all` for bulk grove template sync
-- Add `scion templates status` to show sync state between local and Hub
-- Add auto-sync prompt during `scion hub link` (opt-out in interactive, skipped in non-interactive)
+- Add `fabric templates sync --all` for bulk grove template sync
+- Add `fabric templates status` to show sync state between local and Hub
+- Add auto-sync prompt during `fabric hub link` (opt-out in interactive, skipped in non-interactive)
 - Add conflict detection with `--force` flag for overwrites
 
 ### Phase 2: Web Template Loading (medium effort) — DONE
 - Implement "Load Templates" button in grove settings page
-- Launch dummy agent using `scion-base` container with generic harness, exec `scion templates sync --all`, then delete the agent
+- Launch dummy agent using `fabric-base` container with generic harness, exec `fabric templates sync --all`, then delete the agent
 - Display read-only template list in grove settings
 - Populate agent creation form with Hub-synced grove-scoped templates only
 
@@ -237,15 +237,15 @@ The web UI needs to:
 
 ### Resolved
 
-1. **Sync direction**: Sync is **bidirectional** — templates can be pushed from local to Hub and pulled from Hub to local. However, sync is always **explicit** (never automatic). The `scion templates status` command (see Section 5.4) shows the current state, and can be integrated into `scion templates list` output as well.
+1. **Sync direction**: Sync is **bidirectional** — templates can be pushed from local to Hub and pulled from Hub to local. However, sync is always **explicit** (never automatic). The `fabric templates status` command (see Section 5.4) shows the current state, and can be integrated into `fabric templates list` output as well.
 
 2. **Web-first template creation**: For now, the Hub and web UI are **read-only** for grove templates — templates are authored locally and synced to the Hub. Future improvements may add direct template creation/editing in the web UI.
 
 3. **Template visibility in agent creation**: The web UI only shows templates that are currently synced to the Hub. It does not indicate whether unsynced local templates may exist on brokers.
 
-4. **Dummy agent lifecycle**: The dummy agent used for web-based template sync should only live long enough to perform the sync operation, then be immediately deleted. The container can use the `scion-base` image (which includes the `scion` CLI) with the generic harness setting, since it only needs Hub auth and endpoint configuration — not a full LLM harness.
+4. **Dummy agent lifecycle**: The dummy agent used for web-based template sync should only live long enough to perform the sync operation, then be immediately deleted. The container can use the `fabric-base` image (which includes the `fabric` CLI) with the generic harness setting, since it only needs Hub auth and endpoint configuration — not a full LLM harness.
 
-5. **Externalized git grove templates**: The recent change (d0507b1) that moved git grove templates to the external grove-config directory was a mistake and will be reverted in a separate workstream. Templates for git groves should remain in the repository's `.scion/templates/` directory.
+5. **Externalized git grove templates**: The recent change (d0507b1) that moved git grove templates to the external grove-config directory was a mistake and will be reverted in a separate workstream. Templates for git groves should remain in the repository's `.fabric/templates/` directory.
 
 ### Open
 

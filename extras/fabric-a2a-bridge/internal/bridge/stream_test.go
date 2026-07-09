@@ -23,8 +23,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 func TestStreamManagerSubscribeAndBroadcast(t *testing.T) {
@@ -330,7 +330,7 @@ func TestBlockingTaskIgnoresActiveDispatch(t *testing.T) {
 		Metadata:  map[string]string{"a2aTaskId": taskID},
 	}
 
-	err = b.HandleBrokerMessage(context.Background(), "scion.grove.grove1.agent.agent-a.messages", stateChangeMsg)
+	err = b.HandleBrokerMessage(context.Background(), "fabric.grove.grove1.agent.agent-a.messages", stateChangeMsg)
 	if err != nil {
 		t.Fatalf("HandleBrokerMessage: %v", err)
 	}

@@ -36,15 +36,15 @@ import (
 	"google.golang.org/api/iterator"
 	"gopkg.in/yaml.v3"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/chatapp"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/googlechat"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/identity"
-	"github.com/GoogleCloudPlatform/scion/extras/scion-chat-app/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/chatapp"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/googlechat"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/identity"
+	"github.com/pdlc-os/fabric/extras/fabric-chat-app/internal/state"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 )
 
 func main() {
-	configPath := flag.String("config", "scion-chat-app.yaml", "Path to configuration file")
+	configPath := flag.String("config", "fabric-chat-app.yaml", "Path to configuration file")
 	flag.Parse()
 
 	// Load configuration.
@@ -56,12 +56,12 @@ func main() {
 
 	// Initialize structured logging.
 	log := initLogger(cfg.Logging)
-	log.Info("scion-chat-app starting")
+	log.Info("fabric-chat-app starting")
 
 	// Initialize SQLite state database.
 	dbPath := cfg.State.Database
 	if dbPath == "" {
-		dbPath = "scion-chat-app.db"
+		dbPath = "fabric-chat-app.db"
 	}
 	store, err := state.New(dbPath)
 	if err != nil {
@@ -246,7 +246,7 @@ func main() {
 		for _, link := range links {
 			// Subscribe only to user-targeted messages so that agent-to-agent
 			// traffic and broadcasts do not leak into chat.
-			pattern := fmt.Sprintf("scion.grove.%s.user.>", link.ProjectID)
+			pattern := fmt.Sprintf("fabric.grove.%s.user.>", link.ProjectID)
 			if err := broker.RequestSubscription(pattern); err != nil {
 				log.Warn("failed to request subscription for project",
 					"project_id", link.ProjectID,
@@ -274,7 +274,7 @@ func main() {
 		log.Info("google chat webhook server starting", "address", listenAddr)
 	}
 
-	log.Info("scion-chat-app ready")
+	log.Info("fabric-chat-app ready")
 
 	// Wait for shutdown signal.
 	sigCh := make(chan os.Signal, 1)
@@ -298,7 +298,7 @@ func main() {
 		}
 	}
 
-	log.Info("scion-chat-app stopped")
+	log.Info("fabric-chat-app stopped")
 }
 
 // verifyHubConnectivity performs a startup connectivity check against the hub.
@@ -435,14 +435,14 @@ func loadConfig(path string) (*chatapp.Config, error) {
 }
 
 // discoverSigningKey searches GCP Secret Manager for a secret matching the
-// local hub instance. It filters by scion-name=user_signing_key and
-// scion-hub-hostname matching the local hostname, which uniquely identifies
+// local hub instance. It filters by fabric-name=user_signing_key and
+// fabric-hub-hostname matching the local hostname, which uniquely identifies
 // the hub in a multi-hub project.
 //
 // When multiple secrets match (e.g. after a hub migration that left a stale
-// secret behind), the function prefers a secret with scion-type=internal
+// secret behind), the function prefers a secret with fabric-type=internal
 // (the type the hub currently uses for signing keys) over one with
-// scion-type=environment (a legacy default).
+// fabric-type=environment (a legacy default).
 func discoverSigningKey(ctx context.Context, projectID string) (value, resourceName string, err error) {
 	client, err := secretmanager.NewClient(ctx)
 	if err != nil {
@@ -458,7 +458,7 @@ func discoverSigningKey(ctx context.Context, projectID string) (value, resourceN
 	hostnameLabel := strings.ToLower(hostname)
 
 	filter := fmt.Sprintf(
-		"labels.scion-name=user_signing_key AND labels.scion-hub-hostname=%s",
+		"labels.fabric-name=user_signing_key AND labels.fabric-hub-hostname=%s",
 		hostnameLabel,
 	)
 
@@ -487,11 +487,11 @@ func discoverSigningKey(ctx context.Context, projectID string) (value, resourceN
 	}
 
 	if len(candidates) == 0 {
-		return "", "", fmt.Errorf("no secret with labels scion-name=user_signing_key, scion-hub-hostname=%s found in project %s", hostnameLabel, projectID)
+		return "", "", fmt.Errorf("no secret with labels fabric-name=user_signing_key, fabric-hub-hostname=%s found in project %s", hostnameLabel, projectID)
 	}
 
 	// Pick the best candidate using a scoring heuristic. The hub's current
-	// convention uses scion-type=internal and scion-scope-id=<hub-instance-id>
+	// convention uses fabric-type=internal and fabric-scope-id=<hub-instance-id>
 	// (not the legacy literal "hub"). When stale secrets survive from prior
 	// migrations, this ranking avoids picking the wrong one.
 	chosen := candidates[0]
@@ -507,26 +507,26 @@ func discoverSigningKey(ctx context.Context, projectID string) (value, resourceN
 				"labels", c.Labels,
 			)
 			score := 0
-			// Prefer scion-type=internal (current hub convention) over
+			// Prefer fabric-type=internal (current hub convention) over
 			// environment (legacy) or empty.
-			if c.Labels["scion-type"] == "internal" {
+			if c.Labels["fabric-type"] == "internal" {
 				score += 10
 			}
 			// Prefer a real hub-instance scope-id over the legacy literal "hub".
 			// The hub now scopes keys to its actual instance ID.
-			scopeID := c.Labels["scion-scope-id"]
+			scopeID := c.Labels["fabric-scope-id"]
 			if scopeID != "" && scopeID != "hub" {
 				score += 5
 			}
-			// Deprioritise scion-type=environment (known legacy default).
-			if c.Labels["scion-type"] == "environment" {
+			// Deprioritise fabric-type=environment (known legacy default).
+			if c.Labels["fabric-type"] == "environment" {
 				score -= 2
 			}
 			slog.Debug("signing key candidate score",
 				"name", c.Name,
 				"score", score,
 				"scope_id", scopeID,
-				"type", c.Labels["scion-type"],
+				"type", c.Labels["fabric-type"],
 			)
 			if score > bestScore {
 				bestScore = score

@@ -24,9 +24,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // testLocker is a mock AdvisoryLocker for testing.
@@ -89,7 +89,7 @@ func nfsTestBackend(t *testing.T) (*nfsBackend, *config.V1NFSConfig, string) {
 		MountRoot:   mountRoot,
 		SubPathRoot: "projects",
 		Shares: []config.V1NFSShare{
-			{ID: "share1", Server: "10.0.0.2", Export: "/scion-workspaces"},
+			{ID: "share1", Server: "10.0.0.2", Export: "/fabric-workspaces"},
 		},
 	}
 	b := &nfsBackend{cfg: cfg}
@@ -1036,7 +1036,7 @@ func TestNFSWorktreePerAgent_E2E_RealizeProducesMountForWorktree(t *testing.T) {
 // TestNFSWorktreePerAgent_E2E_SentinelLayoutMatchesNFS validates the NFS
 // sentinel placement follows the design: sentinel lives in the per-project
 // dir (parent of workspace/), consistent with the NFS layout
-// <MountRoot>/<shareID>/<SubPathRoot>/<projectID>/.scion-provisioned.
+// <MountRoot>/<shareID>/<SubPathRoot>/<projectID>/.fabric-provisioned.
 func TestNFSWorktreePerAgent_E2E_SentinelLayoutMatchesNFS(t *testing.T) {
 	b, cfg, _ := nfsTestBackend(t)
 	locker := newTestLocker()
@@ -1065,7 +1065,7 @@ func TestNFSWorktreePerAgent_E2E_SentinelLayoutMatchesNFS(t *testing.T) {
 		t.Fatalf("Provision: %v", err)
 	}
 
-	// Expected sentinel path: <MountRoot>/<shareID>/<SubPathRoot>/<projectID>/.scion-provisioned
+	// Expected sentinel path: <MountRoot>/<shareID>/<SubPathRoot>/<projectID>/.fabric-provisioned
 	share := cfg.Shares[0]
 	expectedSentinelDir := filepath.Join(cfg.MountRoot, share.ID, "projects", projectID)
 	sentinelPath := filepath.Join(expectedSentinelDir, ProvisionSentinelFile)

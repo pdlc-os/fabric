@@ -1,13 +1,13 @@
-# Release Notes — Scion
+# Release Notes — Fabric
 
 ## Unreleased
 
 ### Fixed
-- **K8s attach pod name resolution** — `scion attach` now uses the actual grove-prefixed pod name (e.g., `sciontest--hello`) instead of the bare agent name, fixing GKE Warden `autogke-no-pod-connect-limitation` errors
-- **K8s attach su password prompt** — `scion attach` no longer prompts for a password on GKE Autopilot pods that run as non-root with `allowPrivilegeEscalation: false`
+- **K8s attach pod name resolution** — `fabric attach` now uses the actual grove-prefixed pod name (e.g., `fabrictest--hello`) instead of the bare agent name, fixing GKE Warden `autogke-no-pod-connect-limitation` errors
+- **K8s attach su password prompt** — `fabric attach` no longer prompts for a password on GKE Autopilot pods that run as non-root with `allowPrivilegeEscalation: false`
 
 ### Added
-- All container images built and published to Artifact Registry (core-base, scion-base, scion-claude, scion-gemini, scion-opencode, scion-codex)
+- All container images built and published to Artifact Registry (core-base, fabric-base, fabric-claude, fabric-gemini, fabric-opencode, fabric-codex)
 
 ---
 

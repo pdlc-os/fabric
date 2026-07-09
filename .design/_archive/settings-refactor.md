@@ -115,25 +115,25 @@ When starting an agent:
 
 ### 1. Configuration File Renaming
 
-- `scion-agent.json` as a file has been renamed to `scion-agent.json`. Its purpose is the primary location for agent-specific information that is not sufficiently defined in a template or provided by the indicated runtime and harness.
+- `fabric-agent.json` as a file has been renamed to `fabric-agent.json`. Its purpose is the primary location for agent-specific information that is not sufficiently defined in a template or provided by the indicated runtime and harness.
 
 ### 2. Data Structure Unification: `AgentInfo`
 
-- **Primary State Store**: `AgentInfo` becomes the primary data structure that is written to by the agent (to persist state) and is read-only by the Scion CLI tool.
+- **Primary State Store**: `AgentInfo` becomes the primary data structure that is written to by the agent (to persist state) and is read-only by the Fabric CLI tool.
 
 - **Consolidation**: The `AgentConfig` should be fully merged into `AgentInfo`.
 
 - **Field Relocation**: Fields that describe the agent's identity and environment should reside here, including:
 
-    - `Template` (moved from `ScionConfig`)
+    - `Template` (moved from `FabricConfig`)
 
     - `Runtime` (explicitly added to track which runtime launched the agent)
 
 
 
-### 3. `ScionConfig` (Agent Override) Cleanup
+### 3. `FabricConfig` (Agent Override) Cleanup
 
-To achieve the "Relational" model, `scion-agent.json` should be stripped of fields that can be resolved from registries or profiles:
+To achieve the "Relational" model, `fabric-agent.json` should be stripped of fields that can be resolved from registries or profiles:
 
 - **Registry Resolution**: `UnixUsername` and `Image` should be pulled from the resolved Harness settings at runtime rather than being hardcoded in the agent config.
 
@@ -152,9 +152,9 @@ The refactor was completed on December 30, 2025, with the following key changes:
 - Added `ResolveRuntime` and `ResolveHarness` methods to the `Settings` struct to handle profile-based resolution and overrides.
 
 ### 2. Configuration Unification
-- Renamed all instances of agent-specific `scion.json` to `scion-agent.json`.
+- Renamed all instances of agent-specific `fabric.json` to `fabric-agent.json`.
 - Merged `api.AgentConfig` into `api.AgentInfo` in `pkg/api/types.go`.
-- Relocated metadata fields like `Template`, `Image`, and `Runtime` into the `api.AgentInfo` struct within `api.ScionConfig`.
+- Relocated metadata fields like `Template`, `Image`, and `Runtime` into the `api.AgentInfo` struct within `api.FabricConfig`.
 
 ### 3. CLI and Runtime Refactoring
 - Introduced a global `--profile` (`-p`) flag in `cmd/root.go`.
@@ -167,7 +167,7 @@ The refactor was completed on December 30, 2025, with the following key changes:
 ## Post-Implementation Code Review Findings
 
 ### 1. Template Initialization Bug (`pkg/config/init.go`)
-- **Issue**: `SeedTemplateDir` fails to correctly update the `template` field in `scion-agent.json` when creating from harness-specific defaults (`gemini`, `claude`) because it only looks for the literal string `"template": "default"`.
+- **Issue**: `SeedTemplateDir` fails to correctly update the `template` field in `fabric-agent.json` when creating from harness-specific defaults (`gemini`, `claude`) because it only looks for the literal string `"template": "default"`.
 - **Severity**: MEDIUM
 - **Recommendation**: Update replacement logic to support harness-specific placeholder names.
 

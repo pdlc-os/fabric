@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/k8s"
+	"github.com/pdlc-os/fabric/pkg/k8s"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -39,7 +39,7 @@ func TestKubernetesRuntime_Run_Annotations(t *testing.T) {
 		HomeDir:      "/home/localuser",
 		Workspace:    "/path/to/workspace",
 		Labels: map[string]string{
-			"scion.name": "test-agent",
+			"fabric.name": "test-agent",
 		},
 	}
 
@@ -48,27 +48,27 @@ func TestKubernetesRuntime_Run_Annotations(t *testing.T) {
 		if config.Annotations == nil {
 			config.Annotations = make(map[string]string)
 		}
-		config.Annotations["scion.workspace"] = config.Workspace
+		config.Annotations["fabric.workspace"] = config.Workspace
 	}
 
 	if config.HomeDir != "" {
 		if config.Annotations == nil {
 			config.Annotations = make(map[string]string)
 		}
-		config.Annotations["scion.homedir"] = config.HomeDir
-		config.Annotations["scion.username"] = config.UnixUsername
+		config.Annotations["fabric.homedir"] = config.HomeDir
+		config.Annotations["fabric.username"] = config.UnixUsername
 	}
 
 	pod, _ := r.buildPod("default", config)
 
-	if pod.Annotations["scion.workspace"] != "/path/to/workspace" {
-		t.Errorf("expected workspace annotation /path/to/workspace, got %s", pod.Annotations["scion.workspace"])
+	if pod.Annotations["fabric.workspace"] != "/path/to/workspace" {
+		t.Errorf("expected workspace annotation /path/to/workspace, got %s", pod.Annotations["fabric.workspace"])
 	}
-	if pod.Annotations["scion.homedir"] != "/home/localuser" {
-		t.Errorf("expected homedir annotation /home/localuser, got %s", pod.Annotations["scion.homedir"])
+	if pod.Annotations["fabric.homedir"] != "/home/localuser" {
+		t.Errorf("expected homedir annotation /home/localuser, got %s", pod.Annotations["fabric.homedir"])
 	}
-	if pod.Annotations["scion.username"] != "testuser" {
-		t.Errorf("expected username annotation testuser, got %s", pod.Annotations["scion.username"])
+	if pod.Annotations["fabric.username"] != "testuser" {
+		t.Errorf("expected username annotation testuser, got %s", pod.Annotations["fabric.username"])
 	}
 }
 
@@ -84,12 +84,12 @@ func TestKubernetesRuntime_List_Annotations(t *testing.T) {
 			Name:      "test-agent",
 			Namespace: "default",
 			Labels: map[string]string{
-				"scion.name": "test-agent",
+				"fabric.name": "test-agent",
 			},
 			Annotations: map[string]string{
-				"scion.workspace": "/path/to/workspace",
-				"scion.homedir":   "/home/localuser",
-				"scion.username":  "testuser",
+				"fabric.workspace": "/path/to/workspace",
+				"fabric.homedir":   "/home/localuser",
+				"fabric.username":  "testuser",
 			},
 		},
 		Status: corev1.PodStatus{
@@ -116,13 +116,13 @@ func TestKubernetesRuntime_List_Annotations(t *testing.T) {
 		return
 	}
 
-	if agents[0].Annotations["scion.workspace"] != "/path/to/workspace" {
-		t.Errorf("expected workspace annotation /path/to/workspace, got %s", agents[0].Annotations["scion.workspace"])
+	if agents[0].Annotations["fabric.workspace"] != "/path/to/workspace" {
+		t.Errorf("expected workspace annotation /path/to/workspace, got %s", agents[0].Annotations["fabric.workspace"])
 	}
-	if agents[0].Annotations["scion.homedir"] != "/home/localuser" {
-		t.Errorf("expected homedir annotation /home/localuser, got %s", agents[0].Annotations["scion.homedir"])
+	if agents[0].Annotations["fabric.homedir"] != "/home/localuser" {
+		t.Errorf("expected homedir annotation /home/localuser, got %s", agents[0].Annotations["fabric.homedir"])
 	}
-	if agents[0].Annotations["scion.username"] != "testuser" {
-		t.Errorf("expected username annotation testuser, got %s", agents[0].Annotations["scion.username"])
+	if agents[0].Annotations["fabric.username"] != "testuser" {
+		t.Errorf("expected username annotation testuser, got %s", agents[0].Annotations["fabric.username"])
 	}
 }

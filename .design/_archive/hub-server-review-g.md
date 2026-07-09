@@ -39,7 +39,7 @@ type ListAgentsResponse struct {
 
 ### 3. Type Factoring & Location
 
-*   **`pkg/api`**: Currently acts as a "CLI internals" package rather than a shared contract. It contains CLI-specific logic (e.g., `ScionConfig`, `StartOptions`) mixed with domain definitions.
+*   **`pkg/api`**: Currently acts as a "CLI internals" package rather than a shared contract. It contains CLI-specific logic (e.g., `FabricConfig`, `StartOptions`) mixed with domain definitions.
 *   **`pkg/store`**: Pure persistence models.
 *   **`pkg/hub`**: Defines inline Request/Response structs, but relies on `store` models for nested objects.
 
@@ -91,7 +91,7 @@ type Agent struct {
 
 The existing `pkg/api` is overloaded. Split it:
 
-*   **`pkg/api/client`** (or keep in `pkg/agent`): CLI-specific configuration and logic (`StartOptions`, `ScionConfig`).
+*   **`pkg/api/client`** (or keep in `pkg/agent`): CLI-specific configuration and logic (`StartOptions`, `FabricConfig`).
 *   **`pkg/api/model`** (or `pkg/domain`): Core domain types shared by CLI and Server (if any logic needs to be shared).
 *   **`pkg/api/wire`**: The HTTP JSON contract.
 

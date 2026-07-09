@@ -18,8 +18,8 @@ deployments and HA configurations where:
 
 Replace host-filesystem staging with a single environment variable pipeline.
 The broker serializes all file and variable secrets into one base64-encoded
-JSON blob (`SCION_STAGED_SECRETS`) and injects it via `-e` at container
-launch. Inside the container, `sciontool init` decodes the blob and writes
+JSON blob (`FABRIC_STAGED_SECRETS`) and injects it via `-e` at container
+launch. Inside the container, `fabrictool init` decodes the blob and writes
 secrets to their target paths before any other process reads them.
 
 This eliminates all broker-side filesystem writes for secrets and removes the
@@ -30,10 +30,10 @@ bind-mount assumptions from Docker, Podman, and Apple container runtimes.
 | Component | Before | After |
 |-----------|--------|-------|
 | **Broker (common.go)** | `writeFileSecrets()` writes to host, returns bind-mount specs; `writeVariableSecrets()` writes `secrets.json` to host; `writeSecretMap()` writes Apple manifest | `serializeSecrets()` produces base64 JSON blob; `DecodeStagedSecrets()` / `WriteStagedSecrets()` for container-side use |
-| **Docker runtime** | Calls `writeFileSecrets` + `writeVariableSecrets`, inserts `-v` mount flags | Calls `serializeSecrets`, injects `SCION_STAGED_SECRETS` env var |
+| **Docker runtime** | Calls `writeFileSecrets` + `writeVariableSecrets`, inserts `-v` mount flags | Calls `serializeSecrets`, injects `FABRIC_STAGED_SECRETS` env var |
 | **Podman runtime** | Same as Docker | Same as Docker |
 | **Apple runtime** | Calls `writeFileSecrets` + `writeVariableSecrets` + `writeSecretMap`, mounts secrets dir | Calls `serializeSecrets`, injects env var; no secrets dir mount |
-| **sciontool init** | No secret-staging responsibility | Decodes `SCION_STAGED_SECRETS`, writes files with 0600 perms, writes `secrets.json`, unsets env var |
+| **fabrictool init** | No secret-staging responsibility | Decodes `FABRIC_STAGED_SECRETS`, writes files with 0600 perms, writes `secrets.json`, unsets env var |
 | **K8s runtime** | Already stateless (K8s Secrets API) | No change |
 
 ### Serialized format
@@ -53,7 +53,7 @@ The outer JSON is base64-encoded for safe transport as an env var value.
 
 ### Init sequence ordering
 
-Secret staging runs in `sciontool init` immediately after `setupHostUser()`
+Secret staging runs in `fabrictool init` immediately after `setupHostUser()`
 resolves the agent home directory and before lifecycle hooks or any child
 process. This guarantees secrets are on disk before pre-start hooks, harness
 provisioners, or the agent process attempt to read them.
@@ -61,7 +61,7 @@ provisioners, or the agent process attempt to read them.
 ### Security considerations
 
 - The env var is visible in `docker inspect` and `/proc/1/environ` until
-  `sciontool init` calls `os.Unsetenv`. This is a brief exposure window,
+  `fabrictool init` calls `os.Unsetenv`. This is a brief exposure window,
   mitigated by unsetting immediately after decode.
 - File secrets are written with 0600 permissions, matching the previous
   behavior.

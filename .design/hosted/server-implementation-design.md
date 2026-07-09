@@ -1,11 +1,11 @@
-# Scion Server Implementation Design
+# Fabric Server Implementation Design
 
 ## Status
 **Proposed**
 
 ## 1. Overview
 
-The Scion Server is the network-exposed component that enables distributed agent management. Three server components are implemented within the same `scion` binary, activated via the `scion server` command subgroup:
+The Fabric Server is the network-exposed component that enables distributed agent management. Three server components are implemented within the same `fabric` binary, activated via the `fabric server` command subgroup:
 
 1. **Runtime Broker API** - Agent lifecycle management on compute nodes
 2. **Hub API** - Centralized state management, routing, and coordination
@@ -15,7 +15,7 @@ This unified approach simplifies deployment while allowing flexible configuratio
 
 ### Design Goals
 
-1. **Single Binary:** All server functionality ships in the `scion` CLI binary
+1. **Single Binary:** All server functionality ships in the `fabric` CLI binary
 2. **Modular Activation:** Enable/disable each server independently via flags
 3. **Unified Configuration:** Settings flow through the same koanf-based system
 4. **Consistent Ports:** Each server uses a fixed port whether run alone or together
@@ -28,7 +28,7 @@ This unified approach simplifies deployment while allowing flexible configuratio
 ### 2.1 Server Command Group
 
 ```
-scion server <subcommand>
+fabric server <subcommand>
 ```
 
 | Subcommand | Description |
@@ -41,7 +41,7 @@ scion server <subcommand>
 ### 2.2 Start Command
 
 ```
-scion server start [flags]
+fabric server start [flags]
 ```
 
 **Server Selection Flags:**
@@ -58,7 +58,7 @@ scion server start [flags]
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--background` | `false` | Run as daemon (detach from terminal) |
-| `--pid-file` | `~/.scion/server.pid` | PID file location (background mode) |
+| `--pid-file` | `~/.fabric/server.pid` | PID file location (background mode) |
 
 **Configuration:**
 
@@ -71,42 +71,42 @@ scion server start [flags]
 
 ```bash
 # Start Runtime Broker API in foreground
-scion server start --enable-runtime-broker
+fabric server start --enable-runtime-broker
 
 # Start Hub API as background daemon
-scion server start --enable-hub --background
+fabric server start --enable-hub --background
 
 # Start Hub + Web Frontend (typical hosted deployment)
-scion server start --enable-hub --enable-web --background
+fabric server start --enable-hub --enable-web --background
 
 # Start all servers
-scion server start --enable-all
+fabric server start --enable-all
 
 # Start with custom config
-scion server start --enable-hub --config /etc/scion/server.yaml
+fabric server start --enable-hub --config /etc/fabric/server.yaml
 ```
 
 ### 2.3 Stop Command
 
 ```
-scion server stop [flags]
+fabric server stop [flags]
 ```
 
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--force` | `false` | Force immediate shutdown (skip drain) |
 | `--timeout` | `30s` | Graceful shutdown timeout |
-| `--pid-file` | `~/.scion/server.pid` | PID file to read |
+| `--pid-file` | `~/.fabric/server.pid` | PID file to read |
 
 ### 2.4 Status Command
 
 ```
-scion server status [flags]
+fabric server status [flags]
 ```
 
 **Output:**
 ```
-Scion Server Status
+Fabric Server Status
 -------------------
 Runtime Broker API: running (port 9800)
   Health: healthy
@@ -167,27 +167,27 @@ server:
 Configuration is resolved using koanf with the following precedence (highest to lowest):
 
 1. **Command-line flags** (`--port`, `--enable-hub`, etc.)
-2. **Environment variables** (`SCION_SERVER_HUB_PORT`, etc.)
+2. **Environment variables** (`FABRIC_SERVER_HUB_PORT`, etc.)
 3. **Dedicated config file** (`--config /path/to/server.yaml`)
-4. **Global settings file** (`~/.scion/settings.yaml` or `.scion/settings.yaml`)
+4. **Global settings file** (`~/.fabric/settings.yaml` or `.fabric/settings.yaml`)
 5. **Built-in defaults**
 
 ### 4.2 Environment Variable Mapping
 
-Environment variables follow the pattern: `SCION_<SECTION>_<KEY>`
+Environment variables follow the pattern: `FABRIC_<SECTION>_<KEY>`
 
 | Variable | Maps To |
 |----------|---------|
-| `SCION_SERVER_RUNTIME_BROKER_PORT` | `server.runtimeBroker.port` |
-| `SCION_SERVER_RUNTIME_BROKER_ENABLED` | `server.runtimeBroker.enabled` |
-| `SCION_SERVER_HUB_PORT` | `server.hub.port` |
-| `SCION_SERVER_HUB_ENABLED` | `server.hub.enabled` |
-| `SCION_SERVER_HUB_DATABASE_URL` | `server.hub.database.url` |
-| `SCION_SERVER_WEB_PORT` | `server.web.port` |
-| `SCION_SERVER_WEB_ENABLED` | `server.web.enabled` |
-| `SCION_SERVER_WEB_HUB_ENDPOINT` | `server.web.hubEndpoint` |
-| `SCION_SERVER_TLS_CERT_FILE` | `server.tls.certFile` |
-| `SCION_SERVER_TLS_KEY_FILE` | `server.tls.keyFile` |
+| `FABRIC_SERVER_RUNTIME_BROKER_PORT` | `server.runtimeBroker.port` |
+| `FABRIC_SERVER_RUNTIME_BROKER_ENABLED` | `server.runtimeBroker.enabled` |
+| `FABRIC_SERVER_HUB_PORT` | `server.hub.port` |
+| `FABRIC_SERVER_HUB_ENABLED` | `server.hub.enabled` |
+| `FABRIC_SERVER_HUB_DATABASE_URL` | `server.hub.database.url` |
+| `FABRIC_SERVER_WEB_PORT` | `server.web.port` |
+| `FABRIC_SERVER_WEB_ENABLED` | `server.web.enabled` |
+| `FABRIC_SERVER_WEB_HUB_ENDPOINT` | `server.web.hubEndpoint` |
+| `FABRIC_SERVER_TLS_CERT_FILE` | `server.tls.certFile` |
+| `FABRIC_SERVER_TLS_KEY_FILE` | `server.tls.keyFile` |
 
 ### 4.3 Settings File Schema
 
@@ -211,8 +211,8 @@ server:
     # Database configuration
     database:
       driver: "sqlite"  # sqlite, postgres, firestore
-      url: "~/.scion/hub.db"
-      # postgres example: "postgres://user:pass@host:5432/scion"
+      url: "~/.fabric/hub.db"
+      # postgres example: "postgres://user:pass@host:5432/fabric"
       # firestore example: "firestore://project-id"
 
       # Connection pool (postgres only)
@@ -225,7 +225,7 @@ server:
       enabled: true
       allowedOrigins: ["*"]
       allowedMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-      allowedHeaders: ["Authorization", "Content-Type", "X-Scion-*"]
+      allowedHeaders: ["Authorization", "Content-Type", "X-Fabric-*"]
       maxAge: 3600
 
   # Web Frontend settings
@@ -248,11 +248,11 @@ server:
       # OAuth provider configuration (details TBD)
       provider: ""  # google, github, oidc
       clientId: ""
-      # clientSecret should be via env var: SCION_SERVER_WEB_AUTH_CLIENT_SECRET
+      # clientSecret should be via env var: FABRIC_SERVER_WEB_AUTH_CLIENT_SECRET
 
     # Session management
     session:
-      secret: ""  # Required; use env var: SCION_SERVER_WEB_SESSION_SECRET
+      secret: ""  # Required; use env var: FABRIC_SERVER_WEB_SESSION_SECRET
       maxAge: "24h"
       secure: true  # Require HTTPS for cookies
 
@@ -301,7 +301,7 @@ When the Runtime Broker API needs to communicate with a Hub:
 
 ```
             ┌───────────────────────────────────────────────────┐
-            │                   scion server                    │
+            │                   fabric server                    │
             │                                                   │
             │  ┌───────────┐  ┌───────────┐  ┌───────────┐      │
             │  │  Runtime  │  │    Hub    │  │    Web    │      │
@@ -483,11 +483,11 @@ GET /healthz
 server:
   tls:
     enabled: true
-    certFile: "/etc/scion/tls/server.crt"
-    keyFile: "/etc/scion/tls/server.key"
+    certFile: "/etc/fabric/tls/server.crt"
+    keyFile: "/etc/fabric/tls/server.key"
 
     # For mTLS (Broker verification)
-    clientCA: "/etc/scion/tls/ca.crt"
+    clientCA: "/etc/fabric/tls/ca.crt"
     clientAuth: "verify"  # require client certs
 ```
 
@@ -499,7 +499,7 @@ Consider Let's Encrypt integration for Hub deployments:
 server:
   tls:
     auto: true
-    domains: ["hub.scion.example.com"]
+    domains: ["hub.fabric.example.com"]
     email: "admin@example.com"
 ```
 
@@ -551,17 +551,17 @@ Exposed on separate port (default 9801) at `/metrics`:
 
 **Runtime Broker API:**
 ```
-scion_runtime_agents_total{grove="...",status="running"} 5
-scion_runtime_container_start_duration_seconds_bucket{le="10"} 42
-scion_runtime_api_requests_total{method="POST",path="/agents",status="201"} 100
+fabric_runtime_agents_total{grove="...",status="running"} 5
+fabric_runtime_container_start_duration_seconds_bucket{le="10"} 42
+fabric_runtime_api_requests_total{method="POST",path="/agents",status="201"} 100
 ```
 
 **Hub API:**
 ```
-scion_hub_connected_brokers_total 3
-scion_hub_active_groves_total 8
-scion_hub_websocket_connections_current 15
-scion_hub_api_requests_total{method="GET",path="/agents",status="200"} 500
+fabric_hub_connected_brokers_total 3
+fabric_hub_active_groves_total 8
+fabric_hub_websocket_connections_current 15
+fabric_hub_api_requests_total{method="GET",path="/agents",status="200"} 500
 ```
 
 ### 9.2 Tracing (Future)
@@ -585,7 +585,7 @@ server:
 
 | Backend | Use Case | Connection String |
 |---------|----------|-------------------|
-| **SQLite** | Solo/development, single-node | `file:~/.scion/hub.db` |
+| **SQLite** | Solo/development, single-node | `file:~/.fabric/hub.db` |
 | **PostgreSQL** | Production, multi-node | `postgres://user:pass@host:5432/db` |
 | **Firestore** | GCP-native, serverless | `firestore://project-id` |
 
@@ -692,7 +692,7 @@ When `--background` is specified:
 
 ### 11.2 PID File
 
-- Location: `~/.scion/server.pid` (default)
+- Location: `~/.fabric/server.pid` (default)
 - Contains: Process ID only
 - Created: After successful startup
 - Removed: On clean shutdown
@@ -700,14 +700,14 @@ When `--background` is specified:
 ### 11.3 Log File (Background Mode)
 
 When running in background, logs default to:
-- `~/.scion/server.log`
+- `~/.fabric/server.log`
 
 Override via:
 ```yaml
 server:
   logging:
     output: "file"
-    file: "/var/log/scion/server.log"
+    file: "/var/log/fabric/server.log"
 ```
 
 ---
@@ -814,7 +814,7 @@ The Web Frontend implementation will be specified in a dedicated document. Consi
 
 ```bash
 # Start Runtime Broker reporting to team Hub
-scion server start --enable-runtime-broker --background
+fabric server start --enable-runtime-broker --background
 ```
 
 ```yaml
@@ -828,7 +828,7 @@ server:
 
 ```bash
 # Start all servers (Hub + Web + Runtime Broker)
-scion server start --enable-all --background
+fabric server start --enable-all --background
 ```
 
 ```yaml
@@ -837,39 +837,39 @@ server:
     enabled: true
     database:
       driver: "postgres"
-      url: "postgres://scion:pass@localhost:5432/scion"
+      url: "postgres://fabric:pass@localhost:5432/fabric"
   web:
     enabled: true
     # hubEndpoint auto-detected as localhost:9810
     auth:
       provider: "oidc"
-      clientId: "scion-dashboard"
+      clientId: "fabric-dashboard"
   runtimeBroker:
     enabled: true
     # hubEndpoint auto-detected as localhost:9810
   tls:
     enabled: true
-    certFile: "/etc/scion/tls/cert.pem"
-    keyFile: "/etc/scion/tls/key.pem"
+    certFile: "/etc/fabric/tls/cert.pem"
+    keyFile: "/etc/fabric/tls/key.pem"
 ```
 
 ### 13.3 Kubernetes Runtime Broker
 
 ```bash
 # Runtime Broker only, Hub is external
-scion server start --enable-runtime-broker
+fabric server start --enable-runtime-broker
 ```
 
 ```yaml
 server:
   runtimeBroker:
     enabled: true
-    hubEndpoint: "https://hub.scion.cloud"
+    hubEndpoint: "https://hub.fabric.cloud"
   tls:
     enabled: true
-    certFile: "/etc/scion/tls/tls.crt"
-    keyFile: "/etc/scion/tls/tls.key"
-    clientCA: "/etc/scion/tls/ca.crt"
+    certFile: "/etc/fabric/tls/tls.crt"
+    keyFile: "/etc/fabric/tls/tls.key"
+    clientCA: "/etc/fabric/tls/ca.crt"
     clientAuth: "verify"
 ```
 
@@ -877,7 +877,7 @@ server:
 
 ```bash
 # Hub API + Web Frontend for cloud deployment
-scion server start --enable-hub --enable-web --background
+fabric server start --enable-hub --enable-web --background
 ```
 
 ```yaml
@@ -887,19 +887,19 @@ server:
     port: 9810
     database:
       driver: "firestore"
-      url: "firestore://scion-prod"
+      url: "firestore://fabric-prod"
   web:
     enabled: true
     port: 443  # User-facing HTTPS
     hubEndpoint: "http://localhost:9810"  # Internal
     auth:
       provider: "google"
-      clientId: "scion-prod.apps.googleusercontent.com"
+      clientId: "fabric-prod.apps.googleusercontent.com"
     session:
       secure: true
   tls:
     auto: true
-    domains: ["app.scion.cloud"]
+    domains: ["app.fabric.cloud"]
   metrics:
     enabled: true
 ```

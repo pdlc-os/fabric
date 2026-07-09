@@ -167,38 +167,38 @@ Prompt.
 	assert.Equal(t, "claude", agents[0].Harness)
 }
 
-func TestDiscoverAgents_ScionTemplates(t *testing.T) {
+func TestDiscoverAgents_FabricTemplates(t *testing.T) {
 	dir := t.TempDir()
 
-	// Create a scion templates directory with two templates
-	templatesDir := filepath.Join(dir, ".scion", "templates")
+	// Create a fabric templates directory with two templates
+	templatesDir := filepath.Join(dir, ".fabric", "templates")
 	for _, name := range []string{"frontend", "backend"} {
 		templateDir := filepath.Join(templatesDir, name)
 		require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "home"), 0755))
-		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte(`
+		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "`+name+` agent"
 default_harness_config: claude
 `), 0644))
 	}
 
-	// Discover from project root (should find .scion/templates/)
+	// Discover from project root (should find .fabric/templates/)
 	agents, err := discoverAgents(dir, "", true)
 	require.NoError(t, err)
 	assert.Len(t, agents, 2)
 	for _, agent := range agents {
-		assert.True(t, agent.ScionFormat)
+		assert.True(t, agent.FabricFormat)
 	}
 }
 
-func TestDiscoverAgents_ScionTemplatesDirectDir(t *testing.T) {
+func TestDiscoverAgents_FabricTemplatesDirectDir(t *testing.T) {
 	dir := t.TempDir()
 
-	// Create scion templates directly in the target directory
+	// Create fabric templates directly in the target directory
 	for _, name := range []string{"api-agent", "ui-agent"} {
 		templateDir := filepath.Join(dir, name)
 		require.NoError(t, os.MkdirAll(templateDir, 0755))
-		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "scion-agent.yaml"), []byte(`
+		require.NoError(t, os.WriteFile(filepath.Join(templateDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "`+name+`"
 default_harness_config: claude
@@ -226,10 +226,10 @@ tools: Read
 Review code.
 `), 0644))
 
-	// Also create .scion/templates/ with a template
-	scionDir := filepath.Join(dir, ".scion", "templates", "my-template")
-	require.NoError(t, os.MkdirAll(scionDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(scionDir, "scion-agent.yaml"), []byte(`
+	// Also create .fabric/templates/ with a template
+	fabricDir := filepath.Join(dir, ".fabric", "templates", "my-template")
+	require.NoError(t, os.MkdirAll(fabricDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(fabricDir, "fabric-agent.yaml"), []byte(`
 schema_version: "1"
 description: "My template"
 default_harness_config: claude
@@ -237,7 +237,7 @@ default_harness_config: claude
 
 	agents, err := discoverAgents(dir, "", true)
 	require.NoError(t, err)
-	assert.Len(t, agents, 2, "should find both claude agent and scion template")
+	assert.Len(t, agents, 2, "should find both claude agent and fabric template")
 }
 
 func TestResultStatus(t *testing.T) {

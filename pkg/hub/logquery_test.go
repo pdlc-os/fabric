@@ -118,16 +118,16 @@ func TestBuildLogFilter_LogID(t *testing.T) {
 			name: "logID with project ID",
 			opts: LogQueryOptions{
 				AgentID: "agent-123",
-				LogID:   "scion-messages",
+				LogID:   "fabric-messages",
 			},
 			projectID: "my-project",
-			expected:  `logName = "projects/my-project/logs/scion-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123")`,
+			expected:  `logName = "projects/my-project/logs/fabric-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123")`,
 		},
 		{
 			name: "logID without project ID",
 			opts: LogQueryOptions{
 				AgentID: "agent-123",
-				LogID:   "scion-messages",
+				LogID:   "fabric-messages",
 			},
 			projectID: "",
 			expected:  `(labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123")`,
@@ -138,26 +138,26 @@ func TestBuildLogFilter_LogID(t *testing.T) {
 				AgentID: "agent-123",
 			},
 			projectID: "my-project",
-			expected:  `logName != "projects/my-project/logs/scion_request_log" AND labels.agent_id = "agent-123"`,
+			expected:  `logName != "projects/my-project/logs/fabric_request_log" AND labels.agent_id = "agent-123"`,
 		},
 		{
 			name: "message log uses ID-based sender and recipient filter",
 			opts: LogQueryOptions{
 				AgentID: "agent-123",
-				LogID:   "scion-messages",
+				LogID:   "fabric-messages",
 			},
 			projectID: "my-project",
-			expected:  `logName = "projects/my-project/logs/scion-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123")`,
+			expected:  `logName = "projects/my-project/logs/fabric-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123")`,
 		},
 		{
 			name: "message log with project_id filter",
 			opts: LogQueryOptions{
 				AgentID:   "agent-123",
 				ProjectID: "project-abc",
-				LogID:     "scion-messages",
+				LogID:     "fabric-messages",
 			},
 			projectID: "my-project",
-			expected:  `logName = "projects/my-project/logs/scion-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123") AND labels.project_id = "project-abc"`,
+			expected:  `logName = "projects/my-project/logs/fabric-messages" AND (labels.recipient_id = "agent-123" OR labels.sender_id = "agent-123") AND labels.project_id = "project-abc"`,
 		},
 	}
 
@@ -235,7 +235,7 @@ func TestConvertLogEntry(t *testing.T) {
 			SourceLocation: &logpb.LogEntrySourceLocation{
 				File:     "pkg/hub/dispatch.go",
 				Line:     342,
-				Function: "github.com/GoogleCloudPlatform/scion/pkg/hub.(*Server).dispatch",
+				Function: "github.com/pdlc-os/fabric/pkg/hub.(*Server).dispatch",
 			},
 		}
 

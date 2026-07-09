@@ -54,12 +54,12 @@ func TestIsDevToken(t *testing.T) {
 		token string
 		want  bool
 	}{
-		{"valid dev token", "scion_dev_abc123", true},
-		{"valid dev token long", "scion_dev_" + strings.Repeat("a", 64), true},
+		{"valid dev token", "fabric_dev_abc123", true},
+		{"valid dev token long", "fabric_dev_" + strings.Repeat("a", 64), true},
 		{"empty", "", false},
 		{"bearer token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", false},
-		{"partial prefix", "scion_de_abc", false},
-		{"wrong prefix", "scion_prod_abc123", false},
+		{"partial prefix", "fabric_de_abc", false},
+		{"wrong prefix", "fabric_prod_abc123", false},
 	}
 
 	for _, tt := range tests {
@@ -72,7 +72,7 @@ func TestIsDevToken(t *testing.T) {
 }
 
 func TestValidateDevToken(t *testing.T) {
-	token := "scion_dev_abc123def456"
+	token := "fabric_dev_abc123def456"
 
 	tests := []struct {
 		name     string
@@ -81,11 +81,11 @@ func TestValidateDevToken(t *testing.T) {
 		want     bool
 	}{
 		{"exact match", token, token, true},
-		{"wrong token", "scion_dev_wrong", token, false},
+		{"wrong token", "fabric_dev_wrong", token, false},
 		{"empty provided", "", token, false},
 		{"empty expected", token, "", false},
 		{"both empty", "", "", true},
-		{"case sensitive", "SCION_DEV_abc123def456", token, false},
+		{"case sensitive", "FABRIC_DEV_abc123def456", token, false},
 	}
 
 	for _, tt := range tests {
@@ -100,7 +100,7 @@ func TestValidateDevToken(t *testing.T) {
 
 func TestInitDevAuth(t *testing.T) {
 	// Create temp directory for testing
-	tmpDir, err := os.MkdirTemp("", "scion-devauth-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-devauth-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestInitDevAuth(t *testing.T) {
 	})
 
 	t.Run("explicit token", func(t *testing.T) {
-		expectedToken := "scion_dev_explicit_token"
+		expectedToken := "fabric_dev_explicit_token"
 		cfg := DevAuthConfig{
 			Enabled: true,
 			Token:   expectedToken,
@@ -179,7 +179,7 @@ func TestInitDevAuth(t *testing.T) {
 
 	t.Run("custom token file", func(t *testing.T) {
 		customFile := filepath.Join(tmpDir, "custom-token")
-		expectedToken := "scion_dev_custom_file_token"
+		expectedToken := "fabric_dev_custom_file_token"
 
 		// Write token to custom file
 		if err := os.WriteFile(customFile, []byte(expectedToken+"\n"), 0600); err != nil {
@@ -203,43 +203,43 @@ func TestInitDevAuth(t *testing.T) {
 
 func TestResolveDevToken(t *testing.T) {
 	// Create temp directory for testing
-	tmpDir, err := os.MkdirTemp("", "scion-resolve-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-resolve-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	t.Run("from env var", func(t *testing.T) {
-		t.Setenv("SCION_DEV_TOKEN", "scion_dev_from_env")
-		t.Setenv("SCION_DEV_TOKEN_FILE", "")
+		t.Setenv("FABRIC_DEV_TOKEN", "fabric_dev_from_env")
+		t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 
 		token := ResolveDevToken()
-		if token != "scion_dev_from_env" {
-			t.Errorf("ResolveDevToken() = %v, want scion_dev_from_env", token)
+		if token != "fabric_dev_from_env" {
+			t.Errorf("ResolveDevToken() = %v, want fabric_dev_from_env", token)
 		}
 	})
 
 	t.Run("from custom file via env", func(t *testing.T) {
-		t.Setenv("SCION_DEV_TOKEN", "")
+		t.Setenv("FABRIC_DEV_TOKEN", "")
 
 		customFile := filepath.Join(tmpDir, "custom-resolve")
-		if err := os.WriteFile(customFile, []byte("scion_dev_from_file\n"), 0600); err != nil {
+		if err := os.WriteFile(customFile, []byte("fabric_dev_from_file\n"), 0600); err != nil {
 			t.Fatal(err)
 		}
 
-		t.Setenv("SCION_DEV_TOKEN_FILE", customFile)
+		t.Setenv("FABRIC_DEV_TOKEN_FILE", customFile)
 
 		token := ResolveDevToken()
-		if token != "scion_dev_from_file" {
-			t.Errorf("ResolveDevToken() = %v, want scion_dev_from_file", token)
+		if token != "fabric_dev_from_file" {
+			t.Errorf("ResolveDevToken() = %v, want fabric_dev_from_file", token)
 		}
 	})
 
 	t.Run("no token found", func(t *testing.T) {
-		t.Setenv("SCION_DEV_TOKEN", "")
-		t.Setenv("SCION_DEV_TOKEN_FILE", "")
+		t.Setenv("FABRIC_DEV_TOKEN", "")
+		t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 
-		// Note: This test might find a token if ~/.scion/dev-token exists
+		// Note: This test might find a token if ~/.fabric/dev-token exists
 		// For a pure test, we'd need to mock the home directory
 		token := ResolveDevToken()
 		// Just verify it doesn't panic and returns something (or empty)
@@ -249,40 +249,40 @@ func TestResolveDevToken(t *testing.T) {
 
 func TestResolveDevTokenWithSource(t *testing.T) {
 	// Create temp directory for testing
-	tmpDir, err := os.MkdirTemp("", "scion-resolve-source-test")
+	tmpDir, err := os.MkdirTemp("", "fabric-resolve-source-test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	t.Run("from env var with source", func(t *testing.T) {
-		t.Setenv("SCION_DEV_TOKEN", "scion_dev_from_env")
-		t.Setenv("SCION_DEV_TOKEN_FILE", "")
+		t.Setenv("FABRIC_DEV_TOKEN", "fabric_dev_from_env")
+		t.Setenv("FABRIC_DEV_TOKEN_FILE", "")
 
 		token, source := ResolveDevTokenWithSource()
-		if token != "scion_dev_from_env" {
-			t.Errorf("ResolveDevTokenWithSource() token = %v, want scion_dev_from_env", token)
+		if token != "fabric_dev_from_env" {
+			t.Errorf("ResolveDevTokenWithSource() token = %v, want fabric_dev_from_env", token)
 		}
-		if source != "SCION_DEV_TOKEN env var" {
-			t.Errorf("ResolveDevTokenWithSource() source = %v, want 'SCION_DEV_TOKEN env var'", source)
+		if source != "FABRIC_DEV_TOKEN env var" {
+			t.Errorf("ResolveDevTokenWithSource() source = %v, want 'FABRIC_DEV_TOKEN env var'", source)
 		}
 	})
 
 	t.Run("from custom file via env with source", func(t *testing.T) {
-		t.Setenv("SCION_DEV_TOKEN", "")
+		t.Setenv("FABRIC_DEV_TOKEN", "")
 
 		customFile := filepath.Join(tmpDir, "custom-resolve-source")
-		if err := os.WriteFile(customFile, []byte("scion_dev_from_file\n"), 0600); err != nil {
+		if err := os.WriteFile(customFile, []byte("fabric_dev_from_file\n"), 0600); err != nil {
 			t.Fatal(err)
 		}
 
-		t.Setenv("SCION_DEV_TOKEN_FILE", customFile)
+		t.Setenv("FABRIC_DEV_TOKEN_FILE", customFile)
 
 		token, source := ResolveDevTokenWithSource()
-		if token != "scion_dev_from_file" {
-			t.Errorf("ResolveDevTokenWithSource() token = %v, want scion_dev_from_file", token)
+		if token != "fabric_dev_from_file" {
+			t.Errorf("ResolveDevTokenWithSource() token = %v, want fabric_dev_from_file", token)
 		}
-		expectedSource := "SCION_DEV_TOKEN_FILE: " + customFile
+		expectedSource := "FABRIC_DEV_TOKEN_FILE: " + customFile
 		if source != expectedSource {
 			t.Errorf("ResolveDevTokenWithSource() source = %v, want %v", source, expectedSource)
 		}

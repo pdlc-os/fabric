@@ -2,18 +2,18 @@
 
 ## 1. Overview
 
-The current Scion architecture is primarily designed for a human user interacting via a CLI on their local machine. To scale Scion to team workflows, we need to support **automation triggers** (CI/CD pipelines) and **interactive bots** (Slack/Discord).
+The current Fabric architecture is primarily designed for a human user interacting via a CLI on their local machine. To scale Fabric to team workflows, we need to support **automation triggers** (CI/CD pipelines) and **interactive bots** (Slack/Discord).
 
-This design document outlines the architecture for decoupling the core agent lifecycle logic from the CLI implementation. It specifically targets enabling external Go modules (like `scion-slack` or `scion-ci`) to consume Scion's core logic without inheriting heavy CLI dependencies or side effects.
+This design document outlines the architecture for decoupling the core agent lifecycle logic from the CLI implementation. It specifically targets enabling external Go modules (like `fabric-slack` or `fabric-ci`) to consume Fabric's core logic without inheriting heavy CLI dependencies or side effects.
 
 ## 2. Problem Statement
 
-Currently, Scion's logic is embedded in `cmd/` packages (e.g., `cmd/start.go`, `cmd/common.go`), making it difficult to import and reuse in other Go applications.
+Currently, Fabric's logic is embedded in `cmd/` packages (e.g., `cmd/start.go`, `cmd/common.go`), making it difficult to import and reuse in other Go applications.
 
 **Key Limitations:**
 *   **CLI Coupling**: Logic relies on global flags (`startCmd.Flags()`) and direct `fmt.Printf` to stdout.
 *   **Mixed Concerns**: `pkg/api` currently mixes configuration, runtime interfaces, and internal helpers.
-*   **Filesystem Assumptions**: Hardcoded reliance on local `.scion` directories and `os.Getwd()` for context.
+*   **Filesystem Assumptions**: Hardcoded reliance on local `.fabric` directories and `os.Getwd()` for context.
 *   **Lack of Feedback Loop**: External programs cannot easily subscribe to agent events (errors, "waiting for input", completion) without parsing logs or polling files.
 
 ## 3. Core Architecture
@@ -24,7 +24,7 @@ We will refactor the codebase to separate **Data Types**, **Business Logic (Core
 
 To support lightweight external consumers, we will enforce a strict separation of concerns:
 
-*   **`pkg/api` (Pure Types)**: This package will contain **pure data structures** with zero dependencies on runtimes or heavy logic. This allows a Slack bot or CI tool to import Scion types without pulling in Docker or Kubernetes libraries.
+*   **`pkg/api` (Pure Types)**: This package will contain **pure data structures** with zero dependencies on runtimes or heavy logic. This allows a Slack bot or CI tool to import Fabric types without pulling in Docker or Kubernetes libraries.
     *   Contains: `AgentInfo`, `StatusEvent`, `StartOptions`.
 *   **`pkg/agent` (Logic Core)**: This package houses the business logic and implements the `Manager` interface. It depends on `pkg/runtime` and `pkg/config`.
 
@@ -83,29 +83,29 @@ To support remote bots, the `Manager` provides a `Watch` method emitting typed e
 External consumers may have different runtime requirements (e.g., a pure K8s operator vs. a local Docker developer tool).
 
 *   **Injection**: The `Manager` should be initialized with a specific `Runtime` implementation (or factory).
-*   **Benefit**: This prevents `scion-slack` from needing to compile Docker libraries if it only uses Kubernetes.
+*   **Benefit**: This prevents `fabric-slack` from needing to compile Docker libraries if it only uses Kubernetes.
 
 ## 4. Supporting Projects (External)
 
-These projects will reside in separate repositories (or separate modules) but depend on `scion/pkg/...`.
+These projects will reside in separate repositories (or separate modules) but depend on `fabric/pkg/...`.
 
-### 4.1. Scion Slack Bot (`scion-slack`)
+### 4.1. Fabric Slack Bot (`fabric-slack`)
 
 A long-running service that listens to chat events and manages agents.
 
 **Architecture:**
 1.  **Listener**: Receives slash commands or mentions.
-2.  **Context Resolution**: Maps a Slack Channel ID to a Scion Grove.
+2.  **Context Resolution**: Maps a Slack Channel ID to a Fabric Grove.
 3.  **Execution**: Calls `manager.Start(opts)` and starts a goroutine to `Watch()` the agent.
 4.  **Feedback**: Posts buttons (Approve/Reject) on `WaitingForInput` events.
 
-### 4.2. CI/CD Automation (`scion-action`)
+### 4.2. CI/CD Automation (`fabric-action`)
 
 A GitHub Action / GitLab Step to autonomously fix or review code.
 
 **Workflow:**
 1.  **Trigger**: Pull Request opened.
-2.  **Execution**: Invokes `scion` programmatically to "Review this PR".
+2.  **Execution**: Invokes `fabric` programmatically to "Review this PR".
 3.  **Output**: Parses `pkg/api` structures to create structured PR comments.
 
 ## 5. Implementation Roadmap

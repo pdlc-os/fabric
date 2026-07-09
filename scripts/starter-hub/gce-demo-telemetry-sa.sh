@@ -26,14 +26,14 @@
 #
 # The key file is written to .scratch/telemetry-gcp-credentials.json
 # (git-ignored). It should be uploaded to the Hub as a file-type secret named
-# "scion-telemetry-gcp-credentials" with target "~/.scion/telemetry-gcp-credentials.json".
+# "fabric-telemetry-gcp-credentials" with target "~/.fabric/telemetry-gcp-credentials.json".
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/hub-config.sh"
 
-SA_NAME="scion-telemetry-writer"
+SA_NAME="fabric-telemetry-writer"
 KEY_DIR=".scratch"
 KEY_FILE="${KEY_DIR}/telemetry-gcp-credentials.json"
 
@@ -108,7 +108,7 @@ if ! gcloud iam service-accounts describe "${SA_EMAIL}" &>/dev/null; then
     echo "Creating service account ${SA_NAME}..."
     gcloud iam service-accounts create "${SA_NAME}" \
         --project="${PROJECT_ID}" \
-        --display-name "Scion Telemetry Writer" \
+        --display-name "Fabric Telemetry Writer" \
         --description "Least-privilege SA for agent telemetry export (traces, logs, metrics)"
 
     echo "Waiting for service account to propagate..."
@@ -148,12 +148,12 @@ echo ""
 echo "Next steps:"
 echo "  1. Upload the key to the Hub as a file-type secret:"
 echo ""
-echo "     scion hub secret set scion-telemetry-gcp-credentials \\"
+echo "     fabric hub secret set fabric-telemetry-gcp-credentials \\"
 echo "       @${KEY_FILE} \\"
 echo "       --hub '<HUB_ENDPOINT_URL>' \\"
 echo "       --scope hub \\"
 echo "       --type file \\"
-echo "       --target '~/.scion/telemetry-gcp-credentials.json'"
+echo "       --target '~/.fabric/telemetry-gcp-credentials.json'"
 echo ""
 echo "  2. Ensure grove settings include 'provider: gcp' under telemetry.cloud"
 echo ""

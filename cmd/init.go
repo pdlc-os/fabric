@@ -25,10 +25,10 @@ var machineInitForce bool
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new project",
-	Long: `Initialize a new project by creating the .scion directory structure
+	Long: `Initialize a new project by creating the .fabric directory structure
 and seeding the default template.
 
-This is an alias for 'scion project init'.
+This is an alias for 'fabric project init'.
 
 By default, it initializes in:
 - The root of the current git repo if run inside a repo

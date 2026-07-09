@@ -57,13 +57,13 @@ CREATE INDEX IF NOT EXISTS idx_discord_channel_links_guild ON discord_channel_li
 CREATE TABLE IF NOT EXISTS discord_user_mappings (
 	discord_user_id TEXT PRIMARY KEY,
 	discord_username TEXT NOT NULL DEFAULT '',
-	scion_user_id TEXT NOT NULL DEFAULT '',
-	scion_email TEXT NOT NULL DEFAULT '',
+	fabric_user_id TEXT NOT NULL DEFAULT '',
+	fabric_email TEXT NOT NULL DEFAULT '',
 	linked_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_discord_user_mappings_email ON discord_user_mappings(scion_email);
-CREATE INDEX IF NOT EXISTS idx_discord_user_mappings_scion_id ON discord_user_mappings(scion_user_id);
+CREATE INDEX IF NOT EXISTS idx_discord_user_mappings_email ON discord_user_mappings(fabric_email);
+CREATE INDEX IF NOT EXISTS idx_discord_user_mappings_fabric_id ON discord_user_mappings(fabric_user_id);
 
 CREATE TABLE IF NOT EXISTS discord_conversation_context (
 	discord_user_id TEXT NOT NULL,
@@ -192,32 +192,32 @@ func (s *postgresStore) DeleteChannelLink(ctx context.Context, channelID string)
 
 func (s *postgresStore) CreateUserMapping(ctx context.Context, mapping *DiscordUserMapping) error {
 	const q = `
-INSERT INTO discord_user_mappings (discord_user_id, discord_username, scion_user_id, scion_email, linked_at)
+INSERT INTO discord_user_mappings (discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT(discord_user_id) DO UPDATE SET
-	discord_username=EXCLUDED.discord_username, scion_user_id=EXCLUDED.scion_user_id,
-	scion_email=EXCLUDED.scion_email, linked_at=EXCLUDED.linked_at`
+	discord_username=EXCLUDED.discord_username, fabric_user_id=EXCLUDED.fabric_user_id,
+	fabric_email=EXCLUDED.fabric_email, linked_at=EXCLUDED.linked_at`
 	_, err := s.db.ExecContext(ctx, q,
 		mapping.DiscordUserID, mapping.DiscordUsername,
-		mapping.ScionUserID, mapping.ScionEmail,
+		mapping.FabricUserID, mapping.FabricEmail,
 		mapping.LinkedAt.UTC())
 	return err
 }
 
 func (s *postgresStore) GetUserMapping(ctx context.Context, discordUserID string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM discord_user_mappings WHERE discord_user_id = $1`
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM discord_user_mappings WHERE discord_user_id = $1`
 	row := s.db.QueryRowContext(ctx, q, discordUserID)
 	return pgScanUserMapping(row)
 }
 
 func (s *postgresStore) GetUserMappingByEmail(ctx context.Context, email string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM discord_user_mappings WHERE scion_email = $1`
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM discord_user_mappings WHERE fabric_email = $1`
 	row := s.db.QueryRowContext(ctx, q, email)
 	return pgScanUserMapping(row)
 }
 
-func (s *postgresStore) GetUserMappingByScionUserID(ctx context.Context, userID string) (*DiscordUserMapping, error) {
-	const q = `SELECT discord_user_id, discord_username, scion_user_id, scion_email, linked_at FROM discord_user_mappings WHERE scion_user_id = $1`
+func (s *postgresStore) GetUserMappingByFabricUserID(ctx context.Context, userID string) (*DiscordUserMapping, error) {
+	const q = `SELECT discord_user_id, discord_username, fabric_user_id, fabric_email, linked_at FROM discord_user_mappings WHERE fabric_user_id = $1`
 	row := s.db.QueryRowContext(ctx, q, userID)
 	return pgScanUserMapping(row)
 }
@@ -507,7 +507,7 @@ func (s *postgresStore) TryAdvisoryLock(ctx context.Context, key int64) (bool, *
 
 func pgScanUserMapping(row *sql.Row) (*DiscordUserMapping, error) {
 	var m DiscordUserMapping
-	err := row.Scan(&m.DiscordUserID, &m.DiscordUsername, &m.ScionUserID, &m.ScionEmail, &m.LinkedAt)
+	err := row.Scan(&m.DiscordUserID, &m.DiscordUsername, &m.FabricUserID, &m.FabricEmail, &m.LinkedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

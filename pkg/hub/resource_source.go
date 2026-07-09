@@ -24,11 +24,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/transfer"
-	"github.com/GoogleCloudPlatform/scion/resources"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/transfer"
+	"github.com/pdlc-os/fabric/resources"
 )
 
 // ResourceSource provides the metadata and files for a resource to bootstrap
@@ -82,8 +82,8 @@ type BootstrapResult struct {
 // IsBuiltinManaged returns true if sourceURL identifies a resource managed by
 // the built-in bundled catalog.
 func IsBuiltinManaged(sourceURL string) bool {
-	return strings.HasPrefix(sourceURL, "builtin://scion/") ||
-		strings.HasPrefix(sourceURL, "git+https://github.com/GoogleCloudPlatform/scion/harnesses/")
+	return strings.HasPrefix(sourceURL, "builtin://fabric/") ||
+		strings.HasPrefix(sourceURL, "git+https://github.com/pdlc-os/fabric/harnesses/")
 }
 
 // FSResourceSource implements ResourceSource for a bundled BundledResource.
@@ -169,7 +169,7 @@ func stageResourceSource(src ResourceSource) (dir string, cleanup func(), err er
 		return "", nil, fmt.Errorf("unsupported resource source type %T", src)
 	}
 
-	dir, err = os.MkdirTemp("", "scion-bootstrap-*")
+	dir, err = os.MkdirTemp("", "fabric-bootstrap-*")
 	if err != nil {
 		return "", nil, err
 	}

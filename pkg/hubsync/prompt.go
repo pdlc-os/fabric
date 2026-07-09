@@ -306,7 +306,7 @@ func ShowProjectUnlinkPrompt(projectName string, autoConfirm bool) bool {
 	fmt.Printf("This will unlink project '%s' from the Hub locally.\n", projectName)
 	fmt.Println()
 	fmt.Println("The project and its agents will remain on the Hub for other brokers.")
-	fmt.Println("You can re-link this project later with 'scion hub link'.")
+	fmt.Println("You can re-link this project later with 'fabric hub link'.")
 	fmt.Println()
 	// Default NO - user should be sure they want to unlink
 	return ConfirmAction("Continue with unlinking?", false, autoConfirm)
@@ -415,7 +415,7 @@ func ShowCleanUnlinkPrompt(projectName string, autoConfirm bool) bool {
 // Returns true if the user confirms, false otherwise.
 func ShowCleanConfirmPrompt(projectName, projectPath string, isGlobal bool, autoConfirm bool) bool {
 	fmt.Println()
-	fmt.Println("This will permanently remove the scion configuration:")
+	fmt.Println("This will permanently remove the fabric configuration:")
 	fmt.Printf("  Project: %s\n", projectName)
 	fmt.Printf("  Path:    %s\n", projectPath)
 	if isGlobal {
@@ -427,7 +427,7 @@ func ShowCleanConfirmPrompt(projectName, projectPath string, isGlobal bool, auto
 	fmt.Println("This action cannot be undone. Agent configurations will be lost.")
 	fmt.Println()
 	// Default NO for safety - destructive operation
-	return ConfirmAction("Remove scion project?", false, autoConfirm)
+	return ConfirmAction("Remove fabric project?", false, autoConfirm)
 }
 
 // ShowProvidePrompt asks if user wants to add the broker as a provider for a project.

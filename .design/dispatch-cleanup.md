@@ -150,13 +150,13 @@ These four changes will materially improve robustness, reliability, and future d
 4. `pkg/agent/run.go` applies final agent-level config/env overrides before launching runtime containers.
 
 ### Field Ownership
-- `SCION_HUB_ENDPOINT` / `SCION_HUB_URL`:
+- `FABRIC_HUB_ENDPOINT` / `FABRIC_HUB_URL`:
   - authoritative from dispatch/broker input when present
   - falls back to broker config, then grove settings
   - localhost endpoints may be rewritten to `ContainerHubEndpoint` for containerized runtimes (non-kubernetes)
-- `SCION_GROVE_ID`, `SCION_AGENT_ID`, `SCION_AGENT_SLUG`:
+- `FABRIC_GROVE_ID`, `FABRIC_AGENT_ID`, `FABRIC_AGENT_SLUG`:
   - authoritative from Hub dispatch and broker route context
-- `SCION_AUTH_TOKEN` and other secret values:
+- `FABRIC_AUTH_TOKEN` and other secret values:
   - authoritative from Hub-resolved secrets/tokens (or explicit broker fallback token)
   - values must be redacted in broker debug logs
 
@@ -166,8 +166,8 @@ In Hub-connected container flows, local grove settings may not represent the act
 ## Troubleshooting Matrix
 
 ### "Hub is enabled but no endpoint configured"
-- Typical cause: Hub mode enabled with no `--hub`, `SCION_HUB_ENDPOINT`, or `hub.endpoint`.
-- Check: `scion config get hub.endpoint`, `echo $SCION_HUB_ENDPOINT`.
+- Typical cause: Hub mode enabled with no `--hub`, `FABRIC_HUB_ENDPOINT`, or `hub.endpoint`.
+- Check: `fabric config get hub.endpoint`, `echo $FABRIC_HUB_ENDPOINT`.
 - Fix: set endpoint explicitly or disable Hub mode for local-only workflows.
 
 ### Agent in container cannot reach localhost Hub endpoint
@@ -188,7 +188,7 @@ In Hub-connected container flows, local grove settings may not represent the act
 ## Regression Test Matrix
 - Broker has `HubEndpoint` configured vs empty.
 - Dispatcher sends endpoint in request vs relies on resolved env vs neither.
-- `resolvedEnv` includes `SCION_HUB_ENDPOINT` vs legacy `SCION_HUB_URL`.
+- `resolvedEnv` includes `FABRIC_HUB_ENDPOINT` vs legacy `FABRIC_HUB_URL`.
 - Grove settings endpoint present vs absent vs `hub.enabled=false`.
 - Runtime type `docker`/`podman` vs `kubernetes` for bridge rewrite behavior.
 - Localhost endpoints vs non-localhost endpoints for container override checks.

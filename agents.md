@@ -1,11 +1,11 @@
-# Scion Project Context
+# Fabric Project Context
 
 ## Overview
 > **Note**: This project is currently in a pre-release/alpha stage.
 
 > **Important Terminology Change**: The concept previously called "grove" has been renamed to "project" throughout the product. You will encounter "grove" in existing code, database schemas, API endpoints, issues, and documentation — treat "grove" and "project" as synonymous. New code should prefer "project" where feasible, but the rename is ongoing and many internal references still use "grove".
 
-`scion` is a container-based orchestration platform designed to manage concurrent LLM-based code agents. It supports both a standalone local CLI mode and a distributed "Hosted" architecture where state is centralized in a Hub and agents execute on disparate Runtime Brokers (local Docker, remote servers, or Kubernetes clusters).
+`fabric` is a container-based orchestration platform designed to manage concurrent LLM-based code agents. It supports both a standalone local CLI mode and a distributed "Hosted" architecture where state is centralized in a Hub and agents execute on disparate Runtime Brokers (local Docker, remote servers, or Kubernetes clusters).
 
 ## System Goals
 - **Parallelism**: Run multiple agents concurrently as independent processes.
@@ -31,34 +31,34 @@
 ## Key Concepts
 
 ### Solo/Local Architecture
-- **Project (Group)**: A grouping construct for a set of agents, represented by a `.scion` directory.
-  - **Resolution**: Active project is resolved by: 1. `--project` flag, 2. Project-level `.scion`, 3. Global `.scion` in home directory.
-  - **Naming**: Slugified version of the parent directory containing the `.scion` directory.
+- **Project (Group)**: A grouping construct for a set of agents, represented by a `.fabric` directory.
+  - **Resolution**: Active project is resolved by: 1. `--project` flag, 2. Project-level `.fabric`, 3. Global `.fabric` in home directory.
+  - **Naming**: Slugified version of the parent directory containing the `.fabric` directory.
 - **Agent**: An isolated container running an LLM harness (Gemini, Claude, etc.).
   - **Filesystem**: Dedicated home directory (`/home/gemini`) containing unique config and history.
   - **Workspace**: Mounted git worktree at `/workspace`.
 - **Workspace Strategy (Git Worktrees)**:
-  - On start, a new worktree is created at `../.scion_worktrees/<project>/<agent>` to avoid recursion.
+  - On start, a new worktree is created at `../.fabric_worktrees/<project>/<agent>` to avoid recursion.
   - A new feature branch is created for each agent.
 - **Observability & Interactivity**:
   - **Status**: Agents write state to `/home/gemini/.gemini-status.json` (STARTING, THINKING, EXECUTING, WAITING_FOR_INPUT, COMPLETED, ERROR).
-  - **Intervention**: When `WAITING_FOR_INPUT`, users can `scion attach <agent>` to provide input or confirmations.
+  - **Intervention**: When `WAITING_FOR_INPUT`, users can `fabric attach <agent>` to provide input or confirmations.
 
 ### Hosted Architecture
-- **Scion Hub (State Server):** Centralized API and database for agent state, projects, templates, and users.
+- **Fabric Hub (State Server):** Centralized API and database for agent state, projects, templates, and users.
 - **Project (Project):** The primary unit of registration. Represents a project/repository (identified by Git remote).
 - **Runtime Broker:** A compute node that executes agents. Brokers register the Projects they serve.
 - **Templates:** Configuration blueprints for agents. Managed via the Hub, supporting versioning and storage (GCS/Local).
 
 ## Project Structure
-- `cmd/`: CLI command definitions (using Cobra). Each file corresponds to a `scion` subcommand.
+- `cmd/`: CLI command definitions (using Cobra). Each file corresponds to a `fabric` subcommand.
 - `pkg/`: Core logic implementation.
   - `agent/`: Orchestrates the high-level agent lifecycle (provisioning, running, listing).
   - `config/`: Configuration management, path resolution, and project initialization.
-    - `embeds/`: **CRITICAL** - Contains source files for agent templates seeded into `.scion/`.
+    - `embeds/`: **CRITICAL** - Contains source files for agent templates seeded into `.fabric/`.
   - `harness/`: Interaction logic for specific LLM agents (Gemini, Claude).
-  - `hub/`: Implementation of the Scion Hub (State Server) API and logic.
-  - `hubclient/`: Client library for interacting with the Scion Hub API.
+  - `hub/`: Implementation of the Fabric Hub (State Server) API and logic.
+  - `hubclient/`: Client library for interacting with the Fabric Hub API.
   - `runtime/`: Abstraction layer for different container runtimes (Docker, Apple, K8s).
   - `runtimebroker/`: Logic for the compute node that executes agents.
   - `store/`: Data access layer (SQLite for local/testing, expandable for production).
@@ -75,7 +75,7 @@ All icons in the web frontend use the Shoelace `<sl-icon>` component (Bootstrap 
 - **Idiomatic Go**: Follow standard Go patterns and naming conventions.
 - **Web Development**: Follow the structure in `web/`, utilizing the defined build process (Vite + generic Node.js server).
 - **Adding Commands**: New CLI commands must be added to `cmd/` using Cobra. When adding a new command, you must also update the CLI mode allow-lists in `cmd/cli_mode.go`. Determine whether the command should be available in `assistant` mode and/or `agent` mode (see `.design/cli-modes.md` for the mode definitions and criteria), and ask the developer to confirm the appropriate mode availability before finalizing.
-- **Updating Templates**: **DO NOT** manually update the `.scion/` folder in this repo to change default behavior. Instead:
+- **Updating Templates**: **DO NOT** manually update the `.fabric/` folder in this repo to change default behavior. Instead:
   1. Modify the source files in `pkg/config/embeds/`.
   2. The seeding logic in `pkg/config/init.go` uses `//go:embed` to package these files.
 - **Hub/Runtime Separation**: Ensure distinct separation between state management (Hub) and execution logic (Runtime Broker).
@@ -90,12 +90,12 @@ All icons in the web frontend use the Shoelace `<sl-icon>` component (Bootstrap 
 These terms may be used in shorthand with prompts
 
 - **hub-broker, combo server** References running the server command with both the hub function and the broker function running in the same invocation.
-- **hub-native, hub-project** A special variant of a project/project space, that is created on a hub server for use by agents dispatched from clients. These live in ~/.scion/projects/<hub-project-name> on any broker that is a provider to the hub project. This is in contrast to the arbitrary local path on a broker for a linked project.
+- **hub-native, hub-project** A special variant of a project/project space, that is created on a hub server for use by agents dispatched from clients. These live in ~/.fabric/projects/<hub-project-name> on any broker that is a provider to the hub project. This is in contrast to the arbitrary local path on a broker for a linked project.
 - **agent-home** The directory that gets mounted as the home folder of the container user in the agent container
 - **linked-project** A project and project folder that pre-existed on a broker machine, and is linked as a hub resource project for visibility, metadata, and agent management across other brokers that may have such a linked project. May be based on name or git-URI
 
-## Project use of the scion cli itself
-Do not commit changes in the project's own `.scion` folder to git as part of committing progress on code and docs. These are managed and committed manually when template defaults are intentionally updated.
+## Project use of the fabric cli itself
+Do not commit changes in the project's own `.fabric` folder to git as part of committing progress on code and docs. These are managed and committed manually when template defaults are intentionally updated.
 
 Likewise, do not mess with any active agents while testing the tool, such as creating or deleting test agents, or other running agents inside this project.
 
@@ -139,7 +139,7 @@ Learned the hard way; these are specific to running inside this container.
 * **`go build ./...` fails with `error obtaining VCS status: exit status 128`** inside a worktree. Use `go build -buildvcs=false ./...`.
 * **Inspecting `main` without disturbing it:** you cannot `git worktree add` the `main` *branch* — it is already checked out in the primary repo dir (e.g. `/repo-root`), which may not even be a usable module root. To run or read code at main's tip, add a **detached** worktree at the commit SHA: `git worktree add --detach /tmp/check <main-sha>`, then `git worktree remove --force /tmp/check` when done. Prefer `git show main:path/to/file` for quick single-file reads.
 * **`golangci-lint` can OOM (exit 137)** over `./...` in the sandbox. Scope it to the packages you touched and lower GC pressure, e.g. `GOGC=40 golangci-lint run --new-from-rev=main --concurrency=1 ./pkg/foo/... ./cmd/...`. The `--new-from-rev=main` filter (what `make golangci-lint` uses) hides pre-existing issues so you only see what your change introduced.
-* **Leaked `SCION_*` env vars:** the container exports `SCION_PROJECT`, `SCION_GROVE`, `SCION_CREATOR`, etc. Tests that don't clear the environment can pick these up. They are rarely the real cause of a failure, but when a config/hub/sync test behaves oddly, rule them in or out with `env -u SCION_GROVE -u SCION_PROJECT … go test …`.
+* **Leaked `FABRIC_*` env vars:** the container exports `FABRIC_PROJECT`, `FABRIC_GROVE`, `FABRIC_CREATOR`, etc. Tests that don't clear the environment can pick these up. They are rarely the real cause of a failure, but when a config/hub/sync test behaves oddly, rule them in or out with `env -u FABRIC_GROVE -u FABRIC_PROJECT … go test …`.
 * **Getting the latest `main`:** you cannot `git fetch`/`git pull` from a worktree. The human pulls `origin/main` into the primary repo dir; once they have, `git rebase main` from your branch sees the updated tip with no network access. A green local result can still hide a CI-only gap if `main` itself was committed red — when fixing a test, re-check whether the same test already fails on `main` (via a detached worktree) so you fix main's current version, not a stale local one.
 
 ## General workflow
@@ -158,7 +158,7 @@ Follow these rules to keep the repository clean and the git history lean.
 
 - **No binary files** (images, photos, compiled artifacts) unless they are part of the shipped product UI. Development screenshots, Telegram downloads, and similar media must never be committed.
 - **No development screenshots.** Use PR comments or issue attachments to share before/after visuals — not files in the repo.
-- **No agent orchestration state files.** Files like `.coordinator-state.md`, `.eng-manager-state.md`, or other runtime state produced by the Scion agent system are ephemeral and must not be tracked.
+- **No agent orchestration state files.** Files like `.coordinator-state.md`, `.eng-manager-state.md`, or other runtime state produced by the Fabric agent system are ephemeral and must not be tracked.
 - **No test artifacts or generated data files.** One-off debugging scripts (`test_json.go`), format-conversion utilities (`format_callouts.py`), and generated fixtures belong in scratch space or should be gitignored.
 - **No scratch or task-tracking files.** The `.scratch/` and `.tasks/` directories are gitignored. Do not force-add files into them (`git add -f`).
 - **No PR review artifacts.** Code-review notes (`pr-*-review*.md`) belong in the PR discussion thread, not as committed files.
@@ -173,7 +173,7 @@ When in doubt, check `.gitignore` before staging. If a new category of generated
 **Persist durable guidance, learnings, and project notes only in committed project files** — this `agents.md`, the `.design/` docs, or other tracked files. If you discover something worth remembering for future sessions, write it here (or in the relevant design doc) and commit it.
 
 ### Working learnings (migrated here from ephemeral agent memory)
-- **Lean forward on "project" over legacy "grove".** The grove→project rename is the product direction and is still ongoing — actively prefer `project` naming in new/edited code, tests, and fixtures (e.g. the settings key `project_id`, not legacy `grove_id`). When a test or fixture still uses a legacy `grove_id` key, updating it to `project_id` is the preferred fix over propping up legacy-key compat. Known gap: the legacy *top-level* `grove_id` *file* key no longer resolves to `project_id` in config loading (only `SCION_GROVE_ID` env and v1 `hub.grove_id` are remapped) — surfaced via two tests that were red on `main` and fixed by moving their fixtures to `project_id`.
+- **Lean forward on "project" over legacy "grove".** The grove→project rename is the product direction and is still ongoing — actively prefer `project` naming in new/edited code, tests, and fixtures (e.g. the settings key `project_id`, not legacy `grove_id`). When a test or fixture still uses a legacy `grove_id` key, updating it to `project_id` is the preferred fix over propping up legacy-key compat. Known gap: the legacy *top-level* `grove_id` *file* key no longer resolves to `project_id` in config loading (only `FABRIC_GROVE_ID` env and v1 `hub.grove_id` are remapped) — surfaced via two tests that were red on `main` and fixed by moving their fixtures to `project_id`.
 - **Proactively raise adjacent cleanup.** When doing a scoped task, surface other architecture/design improvements, drift risks, and simplifications you notice — with specifics (file/function, payoff, blast radius) so the human can decide. Raise them; don't implement them unprompted. The human treats you as a design collaborator, not just an executor.
 
 ## Final important request

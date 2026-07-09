@@ -25,8 +25,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/GoogleCloudPlatform/scion/extras/scion-a2a-bridge/internal/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/extras/fabric-a2a-bridge/internal/state"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // ErrTooManySubscribers is returned when the SSE connection limit is reached.
@@ -215,10 +215,10 @@ func (b *Bridge) SendStreamingMessage(ctx context.Context, projectSlug, agentSlu
 		},
 	})
 
-	scionMsg := TranslateA2AToScion(parts)
-	scionMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
-	scionMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
-	scionMsg.Metadata = map[string]string{"a2aTaskId": taskID}
+	fabricMsg := TranslateA2AToFabric(parts)
+	fabricMsg.Sender = fmt.Sprintf("user:%s", b.config.Hub.User)
+	fabricMsg.Recipient = fmt.Sprintf("agent:%s", agentCtx.AgentSlug)
+	fabricMsg.Metadata = map[string]string{"a2aTaskId": taskID}
 
 	if b.broker != nil {
 		pattern := projectcompat.UserTopic(agentCtx.ProjectID, b.config.Hub.User)
@@ -233,7 +233,7 @@ func (b *Bridge) SendStreamingMessage(ctx context.Context, projectSlug, agentSlu
 		sendCtx, cancel := context.WithTimeout(b.shutdownCtx, 30*time.Second)
 		defer cancel()
 
-		if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentCtx.AgentID, scionMsg, false, false, false); err != nil {
+		if _, err := b.hubClient.Agents().SendStructuredMessage(sendCtx, agentCtx.AgentID, fabricMsg, false, false, false); err != nil {
 			b.log.Error("streaming send failed", "error", err, "task_id", taskID)
 			if err := b.store.UpdateTaskState(taskID, TaskStateFailed); err != nil {
 				b.log.Error("failed to update task state", "error", err, "task_id", taskID)

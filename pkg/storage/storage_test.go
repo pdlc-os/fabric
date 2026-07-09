@@ -177,17 +177,17 @@ func TestWorkspaceStorageURI(t *testing.T) {
 	}{
 		{
 			name:      "basic URI",
-			bucket:    "scion-hub-dev",
+			bucket:    "fabric-hub-dev",
 			projectID: "grove-abc",
 			agentID:   "agent-123",
-			want:      "gs://scion-hub-dev/workspaces/grove-abc/agent-123/",
+			want:      "gs://fabric-hub-dev/workspaces/grove-abc/agent-123/",
 		},
 		{
 			name:      "production bucket",
-			bucket:    "scion-hub-prod",
+			bucket:    "fabric-hub-prod",
 			projectID: "grove-xyz",
 			agentID:   "agent-456",
-			want:      "gs://scion-hub-prod/workspaces/grove-xyz/agent-456/",
+			want:      "gs://fabric-hub-prod/workspaces/grove-xyz/agent-456/",
 		},
 	}
 

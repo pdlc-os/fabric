@@ -2,7 +2,7 @@
 
 **Agent:** lh-port-m2  
 **Date:** 2026-06-08  
-**Branch:** scion/lifecycle-hooks-port  
+**Branch:** fabric/lifecycle-hooks-port  
 **Commit:** 76c0c3bc  
 
 ## What was ported
@@ -25,4 +25,4 @@
 
 ## Deviations from reference
 
-None. Code is identical to the reference branch. Import path `github.com/GoogleCloudPlatform/scion/pkg/store` works unchanged — all required types and constants were present after M1.
+None. Code is identical to the reference branch. Import path `github.com/pdlc-os/fabric/pkg/store` works unchanged — all required types and constants were present after M1.

@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/harness"
 )
 
 func TestResolveContainerID(t *testing.T) {
@@ -96,12 +96,12 @@ func TestResolveContainerID(t *testing.T) {
 
 func TestResolveContainerID_SlugMatchesAgentName(t *testing.T) {
 	// Simulates the actual bug: container is named "project--foo" but the
-	// scion.name label (populated into AgentInfo.Name) is "foo".  The broker
+	// fabric.name label (populated into AgentInfo.Name) is "foo".  The broker
 	// passes the slug "foo" to Exec; the runtime must resolve it.
 	agents := []api.AgentInfo{
 		{
 			ContainerID: "a1b2c3d4e5f60000",
-			Name:        "foo", // scion.name label (slugified)
+			Name:        "foo", // fabric.name label (slugified)
 		},
 	}
 
@@ -116,7 +116,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 	tmpWorkspace := t.TempDir()
 
 	// Set up test environment variable for volume expansion test
-	t.Setenv("TEST_SCION_VOL_PATH", "/test/go")
+	t.Setenv("TEST_FABRIC_VOL_PATH", "/test/go")
 
 	// Setup some dummy auth files
 	tmpDir := t.TempDir()
@@ -136,25 +136,25 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Task:         "hello",
 			},
-			wantIn: []string{"run", "-d", "-i", "--name", "test-agent", "scion-agent:latest", "sh", "-c", "tmux new-session -d -s scion -n agent"},
+			wantIn: []string{"run", "-d", "-i", "--name", "test-agent", "fabric-agent:latest", "sh", "-c", "tmux new-session -d -s fabric -n agent"},
 		},
 		{
 			name: "workspace and home",
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				HomeDir:      tmpHome,
 				Workspace:    tmpWorkspace,
 				Task:         "hello",
 			},
 			wantIn: []string{
-				"-v", fmt.Sprintf("%s:/home/scion", tmpHome),
+				"-v", fmt.Sprintf("%s:/home/fabric", tmpHome),
 				"-v", fmt.Sprintf("%s:/workspace", tmpWorkspace),
 				"--workdir", "/workspace",
 			},
@@ -171,7 +171,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 						"GEMINI_DEFAULT_AUTH_TYPE": "gemini-api-key",
 					},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn:  []string{"-e", "GEMINI_API_KEY=sk-123", "-e", "GEMINI_DEFAULT_AUTH_TYPE=gemini-api-key"},
 			wantOut: []string{"--prompt-interactive"},
@@ -184,12 +184,12 @@ func TestBuildCommonRunArgs(t *testing.T) {
 				Labels: map[string]string{
 					"foo": "bar",
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 				Task:  "hello",
 			},
 			wantIn: []string{
 				"--label", "foo=bar",
-				"tmux new-session -d -s scion -n agent",
+				"tmux new-session -d -s fabric -n agent",
 			},
 		},
 		{
@@ -197,7 +197,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				HomeDir:      tmpHome,
 				ResolvedAuth: &api.ResolvedAuth{
 					Method: "oauth-personal",
@@ -208,7 +208,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 						{SourcePath: oauthFile, ContainerPath: "~/.gemini/oauth_creds.json"},
 					},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{"-e", "GEMINI_DEFAULT_AUTH_TYPE=oauth-personal"},
 		},
@@ -217,7 +217,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				ResolvedAuth: &api.ResolvedAuth{
 					Method: "compute-default-credentials",
 					EnvVars: map[string]string{
@@ -227,10 +227,10 @@ func TestBuildCommonRunArgs(t *testing.T) {
 						{SourcePath: adcFile, ContainerPath: "~/.config/gcp/application_default_credentials.json"},
 					},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
-				"-v", fmt.Sprintf("%s:/home/scion/.config/gcp/application_default_credentials.json:ro", adcFile),
+				"-v", fmt.Sprintf("%s:/home/fabric/.config/gcp/application_default_credentials.json:ro", adcFile),
 				"-e", "GEMINI_DEFAULT_AUTH_TYPE=compute-default-credentials",
 			},
 		},
@@ -248,7 +248,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 					},
 				},
 				Env:   []string{"GEMINI_MODEL=gemini-1.5-pro"},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
 				"-e GOOGLE_API_KEY=google-123",
@@ -261,16 +261,16 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness: &harness.Generic{},
 				Name:    "test-agent",
-				Image:   "scion-agent:latest",
+				Image:   "fabric-agent:latest",
 				Env:     []string{"FOO=BAR"},
 				Task:    "hello",
 				Resume:  true,
 			},
 			wantIn: []string{
 				"-e FOO=BAR",
-				"tmux new-session -d -s scion -n agent sh -c ",
+				"tmux new-session -d -s fabric -n agent sh -c ",
 				`'\''hello'\''`,
-				"; echo $? > /tmp/scion-harness-exit-code",
+				"; echo $? > /tmp/fabric-harness-exit-code",
 			},
 		},
 		{
@@ -278,14 +278,14 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness: &harness.Generic{},
 				Name:    "test-agent",
-				Image:   "scion-agent:latest",
+				Image:   "fabric-agent:latest",
 				Task:    "hello",
 				Resume:  true,
 			},
 			wantIn: []string{
-				"tmux new-session -d -s scion -n agent sh -c ",
+				"tmux new-session -d -s fabric -n agent sh -c ",
 				`'\''hello'\''`,
-				"; echo $? > /tmp/scion-harness-exit-code",
+				"; echo $? > /tmp/fabric-harness-exit-code",
 			},
 		},
 		{
@@ -293,11 +293,11 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:  &harness.Generic{},
 				Name:     "test-agent",
-				Image:    "scion-agent:latest",
+				Image:    "fabric-agent:latest",
 				Template: "my-template",
 			},
 			wantIn: []string{
-				"--label scion.template=my-template",
+				"--label fabric.template=my-template",
 			},
 		},
 		{
@@ -305,7 +305,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				ResolvedAuth: &api.ResolvedAuth{
 					Method: "oauth-personal",
 					EnvVars: map[string]string{
@@ -315,10 +315,10 @@ func TestBuildCommonRunArgs(t *testing.T) {
 						{SourcePath: oauthFile, ContainerPath: "~/.gemini/oauth_creds.json"},
 					},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
-				"-v " + oauthFile + ":/home/scion/.gemini/oauth_creds.json:ro",
+				"-v " + oauthFile + ":/home/fabric/.gemini/oauth_creds.json:ro",
 				"-e GEMINI_DEFAULT_AUTH_TYPE=oauth-personal",
 			},
 		},
@@ -327,15 +327,15 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				RepoRoot:     "/home/user/repo",
-				Workspace:    "/home/user/repo/.scion/agents/test-agent/workspace",
-				Image:        "scion-agent:latest",
+				Workspace:    "/home/user/repo/.fabric/agents/test-agent/workspace",
+				Image:        "fabric-agent:latest",
 			},
 			wantIn: []string{
 				"-v /home/user/repo/.git:/repo-root/.git",
-				"-v /home/user/repo/.scion/agents/test-agent/workspace:/repo-root/.scion/agents/test-agent/workspace",
-				"--workdir /repo-root/.scion/agents/test-agent/workspace",
+				"-v /home/user/repo/.fabric/agents/test-agent/workspace:/repo-root/.fabric/agents/test-agent/workspace",
+				"--workdir /repo-root/.fabric/agents/test-agent/workspace",
 			},
 		},
 		{
@@ -343,10 +343,10 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				RepoRoot:     "/home/user/repo",
 				Workspace:    "/home/user/repo",
-				Image:        "scion-agent:latest",
+				Image:        "fabric-agent:latest",
 			},
 			wantIn: []string{
 				"-v /home/user/repo:/workspace",
@@ -364,7 +364,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 					{Source: "/host/path", Target: "/container/path", ReadOnly: true},
 					{Source: "/host/data", Target: "/container/data", ReadOnly: false},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
 				"-v /host/path:/container/path:ro",
@@ -375,14 +375,14 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			name: "volume expansion",
 			config: RunConfig{
 				Harness:      &harness.Generic{},
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				Volumes: []api.VolumeMount{
 					{Source: "~/.config/gcloud", Target: "~/.config/gcloud", ReadOnly: true},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
-				fmt.Sprintf("-v %s/.config/gcloud:/home/scion/.config/gcloud:ro", func() string {
+				fmt.Sprintf("-v %s/.config/gcloud:/home/fabric/.config/gcloud:ro", func() string {
 					h, _ := os.UserHomeDir()
 					return h
 				}()),
@@ -392,11 +392,11 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			name: "volume env var expansion",
 			config: RunConfig{
 				Harness:      &harness.Generic{},
-				UnixUsername: "scion",
+				UnixUsername: "fabric",
 				Volumes: []api.VolumeMount{
-					{Source: "${TEST_SCION_VOL_PATH}/pkg", Target: "/container/go/pkg", ReadOnly: false},
+					{Source: "${TEST_FABRIC_VOL_PATH}/pkg", Target: "/container/go/pkg", ReadOnly: false},
 				},
-				Image: "scion-agent:latest",
+				Image: "fabric-agent:latest",
 			},
 			wantIn: []string{
 				"-v /test/go/pkg:/container/go/pkg",
@@ -407,11 +407,11 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Task:         "",
 			},
-			wantIn:  []string{"tmux new-session -d -s scion -n agent"},
+			wantIn:  []string{"tmux new-session -d -s fabric -n agent"},
 			wantOut: []string{"--prompt-interactive"},
 		},
 		{
@@ -419,8 +419,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Volumes: []api.VolumeMount{
 					{Source: "/host/project", Target: "/workspace", ReadOnly: false},
 				},
@@ -435,8 +435,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Workspace:    "/dedicated/workspace",
 				Volumes: []api.VolumeMount{
 					{Source: "/host/project", Target: "/workspace", ReadOnly: false},
@@ -454,11 +454,11 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			name: "host uid and gid",
 			config: RunConfig{
 				Harness: &harness.Generic{},
-				Image:   "scion-agent:latest",
+				Image:   "fabric-agent:latest",
 			},
 			wantIn: []string{
-				"-e SCION_HOST_UID=",
-				"-e SCION_HOST_GID=",
+				"-e FABRIC_HOST_UID=",
+				"-e FABRIC_HOST_GID=",
 			},
 		},
 		{
@@ -466,8 +466,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				GitClone: &api.GitCloneConfig{
 					URL:    "https://github.com/example/repo.git",
 					Branch: "main",
@@ -486,8 +486,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:          &harness.Generic{},
 				Name:             "test-agent",
-				UnixUsername:     "scion",
-				Image:            "scion-agent:latest",
+				UnixUsername:     "fabric",
+				Image:            "fabric-agent:latest",
 				TelemetryEnabled: true,
 			},
 			wantOut: []string{
@@ -501,8 +501,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:          &harness.Generic{},
 				Name:             "test-agent",
-				UnixUsername:     "scion",
-				Image:            "scion-agent:latest",
+				UnixUsername:     "fabric",
+				Image:            "fabric-agent:latest",
 				TelemetryEnabled: false,
 			},
 			wantOut: []string{
@@ -516,8 +516,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				HomeDir:      tmpHome,
 				GitClone: &api.GitCloneConfig{
 					URL:    "https://github.com/example/repo.git",
@@ -526,7 +526,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			},
 			wantIn: []string{
 				"--workdir /workspace",
-				fmt.Sprintf("-v %s:/home/scion", tmpHome),
+				fmt.Sprintf("-v %s:/home/fabric", tmpHome),
 			},
 			wantOut: []string{
 				":/workspace:",
@@ -537,8 +537,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Task:         "hello",
 				Volumes: []api.VolumeMount{
 					{Type: "gcs", Bucket: "my-bucket", Target: "/data"},
@@ -547,8 +547,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			wantIn: []string{
 				"--cap-add SYS_ADMIN",
 				"--device /dev/fuse",
-				"-e SCION_START_CMD=",
-				`exec sh -c "$SCION_START_CMD"`,
+				"-e FABRIC_START_CMD=",
+				`exec sh -c "$FABRIC_START_CMD"`,
 				"gcsfuse",
 			},
 		},
@@ -557,8 +557,8 @@ func TestBuildCommonRunArgs(t *testing.T) {
 			config: RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Task:         "do stuff",
 				Volumes: []api.VolumeMount{
 					{Type: "gcs", Bucket: "b", Prefix: "subdir", Mode: "ro", Target: "/mnt"},
@@ -568,7 +568,7 @@ func TestBuildCommonRunArgs(t *testing.T) {
 				"--only-dir",
 				"-o",
 				"--implicit-dirs",
-				"-e SCION_START_CMD=",
+				"-e FABRIC_START_CMD=",
 			},
 		},
 	}
@@ -649,9 +649,9 @@ func TestVolumeDeduplication(t *testing.T) {
 
 		Name: "test-agent",
 
-		UnixUsername: "scion",
+		UnixUsername: "fabric",
 
-		Image: "scion-agent:latest",
+		Image: "fabric-agent:latest",
 
 		// Simulate duplicate volumes
 
@@ -702,84 +702,84 @@ func TestVolumeDeduplication(t *testing.T) {
 }
 
 func TestDevBinariesMount(t *testing.T) {
-	// When SCION_DEV_BINARIES is set to a valid directory, it should
-	// be bind-mounted to /opt/scion/bin in the container.
+	// When FABRIC_DEV_BINARIES is set to a valid directory, it should
+	// be bind-mounted to /opt/fabric/bin in the container.
 	tmpDir := t.TempDir()
-	_ = os.WriteFile(filepath.Join(tmpDir, "sciontool"), []byte("fake"), 0755)
+	_ = os.WriteFile(filepath.Join(tmpDir, "fabrictool"), []byte("fake"), 0755)
 
-	t.Setenv("SCION_DEV_BINARIES", tmpDir)
+	t.Setenv("FABRIC_DEV_BINARIES", tmpDir)
 
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 	})
 	if err != nil {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
 	}
 
 	argStr := strings.Join(args, " ")
-	expected := fmt.Sprintf("-v %s:/opt/scion/bin:ro", tmpDir)
+	expected := fmt.Sprintf("-v %s:/opt/fabric/bin:ro", tmpDir)
 	if !strings.Contains(argStr, expected) {
 		t.Errorf("expected dev binaries mount %q in args, got: %s", expected, argStr)
 	}
 }
 
 func TestDevBinariesMountNotSetOrInvalid(t *testing.T) {
-	// When SCION_DEV_BINARIES is not set, no mount should appear.
-	t.Setenv("SCION_DEV_BINARIES", "")
+	// When FABRIC_DEV_BINARIES is not set, no mount should appear.
+	t.Setenv("FABRIC_DEV_BINARIES", "")
 
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 	})
 	if err != nil {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
 	}
 
 	argStr := strings.Join(args, " ")
-	if strings.Contains(argStr, "/opt/scion/bin") {
+	if strings.Contains(argStr, "/opt/fabric/bin") {
 		t.Errorf("expected no dev binaries mount when env is empty, got: %s", argStr)
 	}
 
 	// When set to a non-existent path, no mount should appear.
-	t.Setenv("SCION_DEV_BINARIES", "/nonexistent/path")
+	t.Setenv("FABRIC_DEV_BINARIES", "/nonexistent/path")
 
 	args, err = buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 	})
 	if err != nil {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
 	}
 
 	argStr = strings.Join(args, " ")
-	if strings.Contains(argStr, "/opt/scion/bin") {
+	if strings.Contains(argStr, "/opt/fabric/bin") {
 		t.Errorf("expected no dev binaries mount for missing path, got: %s", argStr)
 	}
 
 	// When set to a file (not a directory), no mount should appear.
 	tmpFile := filepath.Join(t.TempDir(), "not-a-dir")
 	_ = os.WriteFile(tmpFile, []byte("x"), 0644)
-	t.Setenv("SCION_DEV_BINARIES", tmpFile)
+	t.Setenv("FABRIC_DEV_BINARIES", tmpFile)
 
 	args, err = buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 	})
 	if err != nil {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
 	}
 
 	argStr = strings.Join(args, " ")
-	if strings.Contains(argStr, "/opt/scion/bin") {
+	if strings.Contains(argStr, "/opt/fabric/bin") {
 		t.Errorf("expected no dev binaries mount for file path, got: %s", argStr)
 	}
 }
@@ -799,8 +799,8 @@ func TestGcloudMountPreCreatesDirectory(t *testing.T) {
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		HomeDir:      agentHome,
 	})
 	if err != nil {
@@ -839,7 +839,7 @@ func TestWriteRuntimeDebugFile(t *testing.T) {
 			"-e", "FOO=bar",
 			"-v", "/host:/container",
 			"my-image:latest",
-			"tmux", "new-session", "-s", "scion",
+			"tmux", "new-session", "-s", "fabric",
 		})
 
 		debugPath := filepath.Join(agentDir, "runtime-exec-debug")
@@ -905,15 +905,15 @@ func TestWriteRuntimeDebugFile(t *testing.T) {
 	})
 }
 
-func TestScionDirShadowedWhenFullRepoMounted(t *testing.T) {
+func TestFabricDirShadowedWhenFullRepoMounted(t *testing.T) {
 	// When the full repo root is mounted (workspace outside repo root),
-	// a tmpfs shadow mount should be added over /repo-root/.scion to
+	// a tmpfs shadow mount should be added over /repo-root/.fabric to
 	// prevent agents from accessing other agents' secrets.
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		RepoRoot:     "/home/user/repo",
 		Workspace:    "/some/external/workspace", // outside repo root
 	})
@@ -928,22 +928,22 @@ func TestScionDirShadowedWhenFullRepoMounted(t *testing.T) {
 		t.Errorf("expected full repo root mount, got: %s", argStr)
 	}
 
-	// Should have the tmpfs shadow over .scion
-	if !strings.Contains(argStr, "--mount type=tmpfs,destination=/repo-root/.scion") {
-		t.Errorf("expected tmpfs shadow mount over .scion, got: %s", argStr)
+	// Should have the tmpfs shadow over .fabric
+	if !strings.Contains(argStr, "--mount type=tmpfs,destination=/repo-root/.fabric") {
+		t.Errorf("expected tmpfs shadow mount over .fabric, got: %s", argStr)
 	}
 }
 
-func TestScionDirNotShadowedWhenWorkspaceInsideRepo(t *testing.T) {
+func TestFabricDirNotShadowedWhenWorkspaceInsideRepo(t *testing.T) {
 	// When the workspace is inside the repo root, .git and workspace are
 	// mounted separately (no full repo mount), so no tmpfs shadow is needed.
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		RepoRoot:     "/home/user/repo",
-		Workspace:    "/home/user/repo/.scion/agents/test/workspace",
+		Workspace:    "/home/user/repo/.fabric/agents/test/workspace",
 	})
 	if err != nil {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
@@ -976,8 +976,8 @@ func TestGcloudMountSkippedInBrokerMode(t *testing.T) {
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		HomeDir:      agentHome,
 		BrokerMode:   true,
 	})
@@ -1019,8 +1019,8 @@ func TestResolveContainerWorkspace(t *testing.T) {
 		{
 			name:      "workspace under repo root (git worktree)",
 			repoRoot:  "/home/user/myproject",
-			workspace: "/home/user/myproject/.scion/agents/my-agent/workspace",
-			want:      "/repo-root/.scion/agents/my-agent/workspace",
+			workspace: "/home/user/myproject/.fabric/agents/my-agent/workspace",
+			want:      "/repo-root/.fabric/agents/my-agent/workspace",
 		},
 		{
 			name:      "workspace outside repo root",
@@ -1062,13 +1062,13 @@ func TestBridgeExtraHosts(t *testing.T) {
 		{
 			name:        "docker with host.docker.internal in env",
 			runtimeName: "docker",
-			env:         []string{"SCION_HUB_ENDPOINT=http://host.docker.internal:8080"},
+			env:         []string{"FABRIC_HUB_ENDPOINT=http://host.docker.internal:8080"},
 			want:        []string{"host.docker.internal:host-gateway"},
 		},
 		{
 			name:        "docker without bridge hostname",
 			runtimeName: "docker",
-			env:         []string{"SCION_HUB_ENDPOINT=http://example.com:8080"},
+			env:         []string{"FABRIC_HUB_ENDPOINT=http://example.com:8080"},
 			want:        nil,
 		},
 		{
@@ -1080,19 +1080,19 @@ func TestBridgeExtraHosts(t *testing.T) {
 		{
 			name:        "podman with host.containers.internal",
 			runtimeName: "podman",
-			env:         []string{"SCION_HUB_ENDPOINT=http://host.containers.internal:8080"},
+			env:         []string{"FABRIC_HUB_ENDPOINT=http://host.containers.internal:8080"},
 			want:        nil,
 		},
 		{
 			name:        "kubernetes runtime",
 			runtimeName: "kubernetes",
-			env:         []string{"SCION_HUB_ENDPOINT=http://host.docker.internal:8080"},
+			env:         []string{"FABRIC_HUB_ENDPOINT=http://host.docker.internal:8080"},
 			want:        nil,
 		},
 		{
-			name:        "docker with bridge hostname in SCION_HUB_URL",
+			name:        "docker with bridge hostname in FABRIC_HUB_URL",
 			runtimeName: "docker",
-			env:         []string{"FOO=bar", "SCION_HUB_URL=http://host.docker.internal:9090"},
+			env:         []string{"FOO=bar", "FABRIC_HUB_URL=http://host.docker.internal:9090"},
 			want:        []string{"host.docker.internal:host-gateway"},
 		},
 	}
@@ -1117,16 +1117,16 @@ func TestResolveHostNetworking(t *testing.T) {
 		name        string
 		runtimeName string
 		env         map[string]string
-		forceHost   bool // set SCION_FORCE_HOST_NETWORK for this case
+		forceHost   bool // set FABRIC_FORCE_HOST_NETWORK for this case
 		wantMode    string
-		wantEP      string // expected SCION_HUB_ENDPOINT after call (empty = unchanged/absent)
+		wantEP      string // expected FABRIC_HUB_ENDPOINT after call (empty = unchanged/absent)
 	}{
 		{
 			name:        "docker with bridge hostname rewrites to localhost",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://host.docker.internal:8080",
-				"SCION_HUB_URL":      "http://host.docker.internal:8080",
+				"FABRIC_HUB_ENDPOINT": "http://host.docker.internal:8080",
+				"FABRIC_HUB_URL":      "http://host.docker.internal:8080",
 			},
 			wantMode: "host",
 			wantEP:   "http://localhost:8080",
@@ -1135,7 +1135,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "docker with localhost endpoint",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://localhost:8080",
+				"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
 			},
 			wantMode: "host",
 			wantEP:   "http://localhost:8080",
@@ -1144,7 +1144,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "docker with 127.0.0.1 endpoint",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://127.0.0.1:9090",
+				"FABRIC_HUB_ENDPOINT": "http://127.0.0.1:9090",
 			},
 			wantMode: "host",
 			wantEP:   "http://127.0.0.1:9090",
@@ -1153,7 +1153,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "docker with external endpoint",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "https://hub.example.com:443",
+				"FABRIC_HUB_ENDPOINT": "https://hub.example.com:443",
 			},
 			wantMode: "",
 			wantEP:   "https://hub.example.com:443",
@@ -1168,7 +1168,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "podman is not affected",
 			runtimeName: "podman",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://localhost:8080",
+				"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
 			},
 			wantMode: "",
 			wantEP:   "http://localhost:8080",
@@ -1177,7 +1177,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "kubernetes is not affected",
 			runtimeName: "kubernetes",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://localhost:8080",
+				"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
 			},
 			wantMode: "",
 			wantEP:   "http://localhost:8080",
@@ -1186,16 +1186,16 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "docker with bridge hostname in HUB_URL only",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_URL": "http://host.docker.internal:9090",
+				"FABRIC_HUB_URL": "http://host.docker.internal:9090",
 			},
 			wantMode: "host",
-			wantEP:   "", // SCION_HUB_ENDPOINT not set
+			wantEP:   "", // FABRIC_HUB_ENDPOINT not set
 		},
 		{
 			name:        "force-host overrides domain endpoint",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "https://hub.example.com",
+				"FABRIC_HUB_ENDPOINT": "https://hub.example.com",
 			},
 			forceHost: true,
 			wantMode:  "host",
@@ -1205,7 +1205,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "force-host with localhost endpoint",
 			runtimeName: "docker",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://localhost:8080",
+				"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
 			},
 			forceHost: true,
 			wantMode:  "host",
@@ -1215,7 +1215,7 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "force-host applies to non-docker",
 			runtimeName: "podman",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://localhost:8080",
+				"FABRIC_HUB_ENDPOINT": "http://localhost:8080",
 			},
 			forceHost: true,
 			wantMode:  "host",
@@ -1225,8 +1225,8 @@ func TestResolveHostNetworking(t *testing.T) {
 			name:        "force-host with podman bridge hostname rewrites to localhost",
 			runtimeName: "podman",
 			env: map[string]string{
-				"SCION_HUB_ENDPOINT": "http://host.containers.internal:8080",
-				"SCION_HUB_URL":      "http://host.containers.internal:8080",
+				"FABRIC_HUB_ENDPOINT": "http://host.containers.internal:8080",
+				"FABRIC_HUB_URL":      "http://host.containers.internal:8080",
 			},
 			forceHost: true,
 			wantMode:  "host",
@@ -1264,14 +1264,14 @@ func TestResolveHostNetworking(t *testing.T) {
 				t.Errorf("ResolveHostNetworking(%q) = %q, want %q", tt.runtimeName, got, tt.wantMode)
 			}
 			if tt.wantEP != "" {
-				if ep := env["SCION_HUB_ENDPOINT"]; ep != tt.wantEP {
-					t.Errorf("SCION_HUB_ENDPOINT = %q, want %q", ep, tt.wantEP)
+				if ep := env["FABRIC_HUB_ENDPOINT"]; ep != tt.wantEP {
+					t.Errorf("FABRIC_HUB_ENDPOINT = %q, want %q", ep, tt.wantEP)
 				}
 			}
 			// Verify HUB_URL is also rewritten when bridge hostname was present
 			if tt.runtimeName == "docker" && tt.wantMode == "host" {
-				if hubURL, ok := env["SCION_HUB_URL"]; ok && strings.Contains(hubURL, "host.docker.internal") {
-					t.Errorf("SCION_HUB_URL still contains bridge hostname: %q", hubURL)
+				if hubURL, ok := env["FABRIC_HUB_URL"]; ok && strings.Contains(hubURL, "host.docker.internal") {
+					t.Errorf("FABRIC_HUB_URL still contains bridge hostname: %q", hubURL)
 				}
 			}
 		})
@@ -1282,8 +1282,8 @@ func TestBuildCommonRunArgs_NetworkMode(t *testing.T) {
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		NetworkMode:  "host",
 	}
 
@@ -1308,8 +1308,8 @@ func TestBuildCommonRunArgs_ExtraHosts(t *testing.T) {
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		ExtraHosts:   []string{"host.docker.internal:host-gateway"},
 	}
 
@@ -1331,7 +1331,7 @@ func TestBuildCommonRunArgs_ExtraHosts(t *testing.T) {
 }
 
 func TestSerializeSecrets_DeduplicatesByTarget(t *testing.T) {
-	containerHome := "/home/scion"
+	containerHome := "/home/fabric"
 
 	secrets := []api.ResolvedSecret{
 		{Name: "user-cert", Type: "file", Target: "/tmp/my-secret.json", Value: "user-data", Source: "user"},
@@ -1366,17 +1366,17 @@ func TestSerializeSecrets_DeduplicatesByTarget(t *testing.T) {
 // TestSharedWorkspace_NoAgentStateInMounts asserts the structural invariant
 // from .design/hub-shared-workspace-isolation.md: when an agent is launched
 // in a shared-workspace project (workspace == repo root), the assembled run
-// args must not bind-mount any host path under <project>/.scion/agents/ into
+// args must not bind-mount any host path under <project>/.fabric/agents/ into
 // the container. Per-agent state lives at the external project-configs path
 // instead, so siblings cannot read it via /workspace.
 func TestSharedWorkspace_NoAgentStateInMounts(t *testing.T) {
 	tmpDir := t.TempDir()
 	projectDir := filepath.Join(tmpDir, "project")
-	if err := os.MkdirAll(filepath.Join(projectDir, ".scion", "agents", "agent-a"), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(projectDir, ".fabric", "agents", "agent-a"), 0755); err != nil {
 		t.Fatalf("mkdir in-project agent dir: %v", err)
 	}
 	// External per-agent state for the agent under test (where prompt.md and
-	// scion-agent.json are relocated to in shared-workspace mode).
+	// fabric-agent.json are relocated to in shared-workspace mode).
 	extAgentDir := filepath.Join(tmpDir, "external", "agents", "agent-a")
 	homeDir := filepath.Join(extAgentDir, "home")
 	if err := os.MkdirAll(homeDir, 0755); err != nil {
@@ -1386,8 +1386,8 @@ func TestSharedWorkspace_NoAgentStateInMounts(t *testing.T) {
 	args, err := buildCommonRunArgs(RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "agent-a",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		// Shared-workspace shape: workspace == repo root. buildCommonRunArgs
 		// hits the relWorkspace == "." branch and mounts project → /workspace.
 		RepoRoot:  projectDir,
@@ -1398,7 +1398,7 @@ func TestSharedWorkspace_NoAgentStateInMounts(t *testing.T) {
 		t.Fatalf("buildCommonRunArgs failed: %v", err)
 	}
 
-	forbidden := filepath.Join(projectDir, ".scion", "agents")
+	forbidden := filepath.Join(projectDir, ".fabric", "agents")
 	for i, a := range args {
 		if strings.Contains(a, forbidden) {
 			t.Errorf("arg[%d] = %q references forbidden host path %s; per-agent state must live external (.design/hub-shared-workspace-isolation.md)", i, a, forbidden)
@@ -1415,8 +1415,8 @@ func TestBuildCommonRunArgs_FuseMountArgOrdering(t *testing.T) {
 	config := RunConfig{
 		Harness:      &harness.Generic{},
 		Name:         "test-agent",
-		UnixUsername: "scion",
-		Image:        "scion-agent:latest",
+		UnixUsername: "fabric",
+		Image:        "fabric-agent:latest",
 		Task:         "hello world",
 		Volumes: []api.VolumeMount{
 			{Type: "gcs", Bucket: "my-bucket", Target: "/data"},
@@ -1433,18 +1433,18 @@ func TestBuildCommonRunArgs_FuseMountArgOrdering(t *testing.T) {
 		if a == config.Image {
 			imageIdx = i
 		}
-		if a == "-e" && i+1 < len(args) && strings.HasPrefix(args[i+1], "SCION_START_CMD=") {
+		if a == "-e" && i+1 < len(args) && strings.HasPrefix(args[i+1], "FABRIC_START_CMD=") {
 			envIdx = i
 		}
 	}
 	if envIdx == -1 {
-		t.Fatalf("SCION_START_CMD env var not found in args: %v", args)
+		t.Fatalf("FABRIC_START_CMD env var not found in args: %v", args)
 	}
 	if imageIdx == -1 {
 		t.Fatalf("image %q not found in args: %v", config.Image, args)
 	}
 	if envIdx >= imageIdx {
-		t.Errorf("-e SCION_START_CMD at index %d must come before image %q at index %d; args: %v",
+		t.Errorf("-e FABRIC_START_CMD at index %d must come before image %q at index %d; args: %v",
 			envIdx, config.Image, imageIdx, args)
 	}
 }
@@ -1496,8 +1496,8 @@ func TestBuildCommonRunArgs_ShellMetacharsInPrompt(t *testing.T) {
 			config := RunConfig{
 				Harness:      &harness.Generic{},
 				Name:         "test-agent",
-				UnixUsername: "scion",
-				Image:        "scion-agent:latest",
+				UnixUsername: "fabric",
+				Image:        "fabric-agent:latest",
 				Task:         tt.task,
 			}
 			args, err := buildCommonRunArgs(config)

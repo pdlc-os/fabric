@@ -2,11 +2,11 @@
 
 **Status:** Draft  
 **Date:** 2026-04-03  
-**Related:** [sciontool-gcp-identity.md](hosted/sciontool-gcp-identity.md), [sciontool-gcp-identity-pt2.md](hosted/sciontool-gcp-identity-pt2.md)
+**Related:** [fabrictool-gcp-identity.md](hosted/fabrictool-gcp-identity.md), [fabrictool-gcp-identity-pt2.md](hosted/fabrictool-gcp-identity-pt2.md)
 
 ## Problem
 
-Today, grove administrators must pre-create GCP service accounts in their own GCP projects and register them with the Hub via `scion grove service-accounts add`. The Hub then verifies it can impersonate the SA (requiring the user to have already granted `roles/iam.serviceAccountTokenCreator` to the Hub's identity on that SA).
+Today, grove administrators must pre-create GCP service accounts in their own GCP projects and register them with the Hub via `fabric grove service-accounts add`. The Hub then verifies it can impersonate the SA (requiring the user to have already granted `roles/iam.serviceAccountTokenCreator` to the Hub's identity on that SA).
 
 This workflow has friction:
 1. Users need GCP IAM expertise to create SAs and configure cross-project impersonation.
@@ -19,7 +19,7 @@ Allow the Hub to **mint** (create) new GCP service accounts in the Hub's own GCP
 - Are created with **no IAM permissions** — they are permissionless by default.
 - Are automatically configured so the Hub SA has `roles/iam.serviceAccountTokenCreator` on them.
 - Are stored and associated with groves using the existing `GCPServiceAccount` model.
-- Can later be granted IAM permissions on the user's own projects by the user (outside of Scion).
+- Can later be granted IAM permissions on the user's own projects by the user (outside of Fabric).
 
 This gives users a zero-setup path to GCP identity for their agents while preserving the existing BYOSA (bring-your-own-service-account) flow.
 
@@ -53,14 +53,14 @@ POST /api/v1/groves/{groveId}/gcp-service-accounts/mint
 }
 ```
 
-If `account_id` is omitted, a random ID is generated (`scion-{8-char-hex}`). If provided, it is prefixed with `scion-`, slugified, and validated against GCP's 6-30 char `[a-z][a-z0-9-]*[a-z0-9]` rules. The endpoint returns `409 Conflict` if the account ID already exists in the project.
+If `account_id` is omitted, a random ID is generated (`fabric-{8-char-hex}`). If provided, it is prefixed with `fabric-`, slugified, and validated against GCP's 6-30 char `[a-z][a-z0-9-]*[a-z0-9]` rules. The endpoint returns `409 Conflict` if the account ID already exists in the project.
 
 **Response:** Standard `GCPServiceAccount` object with additional fields:
 
 ```json
 {
   "id": "uuid",
-  "email": "scion-a1b2c3d4@hub-project.iam.gserviceaccount.com",
+  "email": "fabric-a1b2c3d4@hub-project.iam.gserviceaccount.com",
   "project_id": "hub-project",
   "display_name": "my-data-pipeline",
   "scope": "grove",
@@ -77,10 +77,10 @@ If `account_id` is omitted, a random ID is generated (`scion-{8-char-hex}`). If 
 
 GCP SA account IDs must be 6-30 chars, `[a-z][a-z0-9-]*[a-z0-9]`. Two modes:
 
-- **Custom:** User provides `account_id` (e.g., `my-pipeline`). Prefixed to `scion-my-pipeline`, slugified, and validated. Returns `409` on collision.
-- **Auto-generated:** `scion-{8-char-random-hex}` (e.g., `scion-a1b2c3d4`).
+- **Custom:** User provides `account_id` (e.g., `my-pipeline`). Prefixed to `fabric-my-pipeline`, slugified, and validated. Returns `409` on collision.
+- **Auto-generated:** `fabric-{8-char-random-hex}` (e.g., `fabric-a1b2c3d4`).
 
-The display name is set from the request (or defaults to `"Scion agent ({grove-slug})"`) and the description includes the grove ID and minting user for traceability.
+The display name is set from the request (or defaults to `"Fabric agent ({grove-slug})"`) and the description includes the grove ID and minting user for traceability.
 
 ### Data Model Changes
 
@@ -128,7 +128,7 @@ New handler method on `Server`:
 func (s *Server) mintGCPServiceAccount(w http.ResponseWriter, r *http.Request) {
     // 1. Authorize: require grove admin or hub admin
     // 2. Validate request
-    // 3. Generate or validate account ID (custom slug or scion-{random})
+    // 3. Generate or validate account ID (custom slug or fabric-{random})
     // 4. Call GCPServiceAccountAdmin.CreateServiceAccount() — 409 on collision
     // 5. Call GCPServiceAccountAdmin.SetIAMPolicy() to grant token creator
     // 6. Create GCPServiceAccount record with managed=true, verified=true
@@ -140,9 +140,9 @@ func (s *Server) mintGCPServiceAccount(w http.ResponseWriter, r *http.Request) {
 #### 3. CLI Command
 
 ```bash
-scion grove service-accounts mint                                    # Mint with auto-generated ID
-scion grove service-accounts mint --account-id my-pipeline           # Custom account ID → scion-my-pipeline
-scion grove service-accounts mint --name "My Pipeline SA"            # Custom display name
+fabric grove service-accounts mint                                    # Mint with auto-generated ID
+fabric grove service-accounts mint --account-id my-pipeline           # Custom account ID → fabric-my-pipeline
+fabric grove service-accounts mint --name "My Pipeline SA"            # Custom display name
 ```
 
 #### 4. ServerConfig Addition
@@ -167,9 +167,9 @@ GCP imposes a default limit of **100 service accounts per project**. At scale th
 ### Lifecycle & Ownership
 
 The Hub **mints** SAs but does not manage their GCP lifecycle beyond creation:
-- **Removal from grove:** `scion grove service-accounts remove` unlinks the SA from the grove in the Hub database. The underlying GCP SA is **not** deleted.
+- **Removal from grove:** `fabric grove service-accounts remove` unlinks the SA from the grove in the Hub database. The underlying GCP SA is **not** deleted.
 - **Grove deletion:** Managed SAs are retained in GCP with a warning printed in the grove delete confirmation. Since an SA may be registered in multiple groves, coupling deletion to any single grove would be incorrect.
-- **GCP resource cleanup:** Deletion of the underlying GCP service account is the responsibility of the GCP project admin, outside of Scion.
+- **GCP resource cleanup:** Deletion of the underlying GCP service account is the responsibility of the GCP project admin, outside of Fabric.
 
 The `ManagedBy` field records which Hub instance minted the SA, for traceability in multi-hub scenarios.
 
@@ -202,9 +202,9 @@ Mint the SA and download a JSON key, storing it as a secret in the Hub.
 
 **Verdict:** Rejected. The impersonation-based approach is strictly better for security.
 
-### D. Users Create SAs via Scion CLI in Their Own Projects
+### D. Users Create SAs via Fabric CLI in Their Own Projects
 
-Wrap `gcloud iam service-accounts create` behind a `scion` CLI command that also sets up the impersonation grant.
+Wrap `gcloud iam service-accounts create` behind a `fabric` CLI command that also sets up the impersonation grant.
 
 **Pros:** SAs live in user projects; no shared quota.  
 **Cons:** Requires users to have GCP projects and IAM admin permissions; still complex; doesn't solve the "zero GCP knowledge" use case.
@@ -231,7 +231,7 @@ Wrap `gcloud iam service-accounts create` behind a `scion` CLI command that also
 
 3. **IAM grant guidance:** Not provided. Users handle IAM grants out-of-band. Keep it simple.
 
-4. **Naming:** Custom account IDs are supported via `--account-id`, with `scion-` prefix, slug enforcement, and `409` on collision. Falls back to `scion-{random}` if omitted.
+4. **Naming:** Custom account IDs are supported via `--account-id`, with `fabric-` prefix, slug enforcement, and `409` on collision. Falls back to `fabric-{random}` if omitted.
 
 5. **Quota monitoring:** Reactive. Handle the quota-exceeded error from GCP rather than pre-checking.
 
@@ -244,7 +244,7 @@ Wrap `gcloud iam service-accounts create` behind a `scion` CLI command that also
 - [x] Implement `GCPServiceAccountAdmin` interface and IAM Admin API client
 - [x] Add `managed`/`managed_by` columns (new migration)
 - [x] Implement `POST .../mint` endpoint with authz, audit logging, slug validation
-- [x] Add `scion grove service-accounts mint` CLI command (`--account-id`, `--name`)
+- [x] Add `fabric grove service-accounts mint` CLI command (`--account-id`, `--name`)
 - [x] Add grove-delete warning for retained managed SAs
 - [x] Unit tests for admin client, handler, and store changes
 - [ ] Integration test with IAM API (requires test project)

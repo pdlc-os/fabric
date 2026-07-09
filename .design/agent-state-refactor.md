@@ -11,10 +11,10 @@ Agent state is currently defined in **five separate locations** with overlapping
 
 | Location | Type | Count | Casing | Example Values |
 |---|---|---|---|---|
-| `pkg/sciontool/hooks/types.go` | `AgentState` | 11 | UPPERCASE | `IDLE`, `THINKING`, `EXECUTING`, `WAITING_FOR_INPUT` |
+| `pkg/fabrictool/hooks/types.go` | `AgentState` | 11 | UPPERCASE | `IDLE`, `THINKING`, `EXECUTING`, `WAITING_FOR_INPUT` |
 | `pkg/store/models.go` | untyped `string` | 13 | lowercase | `busy`, `idle`, `waiting_for_input`, `deleted`, `restored` |
 | `pkg/runtimebroker/types.go` | untyped `string` | 9 | lowercase | `created`, `starting`, `running`, `stopping` |
-| `pkg/sciontool/hub/client.go` | `AgentStatus` | 14 | lowercase | `busy`, `idle`, `shutting_down`, `limits_exceeded` |
+| `pkg/fabrictool/hub/client.go` | `AgentStatus` | 14 | lowercase | `busy`, `idle`, `shutting_down`, `limits_exceeded` |
 | `pkg/ent/agent/agent.go` | `Status` enum | 5 | lowercase | `pending`, `provisioning`, `running`, `stopped`, `error` |
 | `web/src/shared/types.ts` | `AgentStatus` union | 9 | lowercase | `running`, `idle`, `busy`, `waiting_for_input`, `completed` |
 | `web/src/components/shared/status-badge.ts` | `StatusType` union | 17 | lowercase | generic UI types, not agent-specific |
@@ -23,7 +23,7 @@ Agent state is currently defined in **five separate locations** with overlapping
 
 1. **Conflated concerns**: Lifecycle state (created → provisioning → running → stopped), activity state (idle, busy, thinking, executing), and agent-reported state (waiting_for_input, completed, limits_exceeded) are flattened into a single `status` field with no formal taxonomy.
 
-2. **Case mismatch**: The container-side sciontool uses UPPERCASE (`THINKING`, `EXECUTING`), while everything Hub-side uses lowercase (`busy`, `idle`). The Hub handler translates between them ad-hoc.
+2. **Case mismatch**: The container-side fabrictool uses UPPERCASE (`THINKING`, `EXECUTING`), while everything Hub-side uses lowercase (`busy`, `idle`). The Hub handler translates between them ad-hoc.
 
 3. **Ent schema drift**: The ent ORM schema only validates 5 status values (`pending`, `provisioning`, `running`, `stopped`, `error`), but the SQLite store bypasses ent for status updates via raw SQL, allowing 13+ values to be stored without validation.
 
@@ -33,7 +33,7 @@ Agent state is currently defined in **five separate locations** with overlapping
 
 6. **Missing states**: Design docs reference `terminated` but it's never implemented. The `stalled` concept (agent hasn't produced events within a timeout) has no state representation. `starting` exists in the broker but not the store or ent. `shutting_down` exists in the hub client but not the store.
 
-7. **Lost granularity**: The sciontool captures rich state like `EXECUTING (Bash)` or `THINKING`, but the Hub collapses these to just `busy`. The UI cannot distinguish between an agent that's thinking vs executing a tool vs waiting for an LLM API response.
+7. **Lost granularity**: The fabrictool captures rich state like `EXECUTING (Bash)` or `THINKING`, but the Hub collapses these to just `busy`. The UI cannot distinguish between an agent that's thinking vs executing a tool vs waiting for an LLM API response.
 
 ## Proposal: Layered State Model
 
@@ -125,7 +125,7 @@ The **phase** represents where the agent is in its infrastructure lifecycle. Thi
 
 ### 2. Activity (Runtime State)
 
-The **activity** represents what the agent is doing while it's running. This is reported by the agent process itself (via sciontool hooks) and only has meaning when `phase = running`.
+The **activity** represents what the agent is doing while it's running. This is reported by the agent process itself (via fabrictool hooks) and only has meaning when `phase = running`.
 
 ```
                          ┌──────┐
@@ -178,12 +178,12 @@ The **activity** represents what the agent is doing while it's running. This is 
 - When phase transitions away from `running`, activity is cleared (set to empty)
 - When phase transitions to `running`, activity defaults to `idle`
 - **Sticky activities** (`waiting_for_input`, `blocked`, `completed`, `limits_exceeded`) resist being overwritten by `idle` or other transient states. They are only cleared by "new work" events (`prompt-submit`, `agent-start`, `session-start`)
-- **`blocked`** is set by the agent itself (via `sciontool status blocked`) when it is intentionally waiting for an expected event — typically a child agent completing its task, or a scheduled event. Unlike `stalled`, `blocked` is a proactive declaration by the agent. It prevents the platform from falsely marking the agent as `stalled`. It is **not** a notification trigger. Cleared by any new work event from the agent.
-- **`stalled`** is set by the platform when the sciontool heartbeat is still being received but no activity events have arrived within a configurable timeout. The agent process is alive but appears hung. Agents that have set `blocked` are excluded from stalled detection. Cleared by any activity event from the agent.
-- **`offline`** is set by the platform when neither activity events nor the sciontool heartbeat have been received. The agent may still be running on a disconnected broker, so it could be doing work — the platform is simply blind to its current activity. The UI should prominently display the existing `lastHeartbeat` timestamp alongside the `offline` badge so users can gauge how long connectivity has been lost. Cleared by any event or heartbeat from the agent.
+- **`blocked`** is set by the agent itself (via `fabrictool status blocked`) when it is intentionally waiting for an expected event — typically a child agent completing its task, or a scheduled event. Unlike `stalled`, `blocked` is a proactive declaration by the agent. It prevents the platform from falsely marking the agent as `stalled`. It is **not** a notification trigger. Cleared by any new work event from the agent.
+- **`stalled`** is set by the platform when the fabrictool heartbeat is still being received but no activity events have arrived within a configurable timeout. The agent process is alive but appears hung. Agents that have set `blocked` are excluded from stalled detection. Cleared by any activity event from the agent.
+- **`offline`** is set by the platform when neither activity events nor the fabrictool heartbeat have been received. The agent may still be running on a disconnected broker, so it could be doing work — the platform is simply blind to its current activity. The UI should prominently display the existing `lastHeartbeat` timestamp alongside the `offline` badge so users can gauge how long connectivity has been lost. Cleared by any event or heartbeat from the agent.
 
 **Mapping from current implementation**:
-| Current (sciontool UPPERCASE) | New Activity |
+| Current (fabrictool UPPERCASE) | New Activity |
 |---|---|
 | `IDLE` | `idle` |
 | `THINKING` | `thinking` |
@@ -396,9 +396,9 @@ SSE events currently send a flat `{ status, containerStatus }` payload. The new 
 }
 ```
 
-## Sciontool ↔ Hub Translation
+## Fabrictool ↔ Hub Translation
 
-The sciontool hooks inside the container continue to produce normalized events. The translation to the layered model happens at two points:
+The fabrictool hooks inside the container continue to produce normalized events. The translation to the layered model happens at two points:
 
 ### 1. Local Status Handler (agent-info.json)
 
@@ -497,7 +497,7 @@ Two platform-set activities are introduced for agents whose state cannot be dete
 
 ### Stalled (heartbeat present, no activity)
 
-An agent is `stalled` when the sciontool heartbeat is still being received (the process is alive) but no activity events have arrived within a configurable timeout. This typically means the agent process is hung or blocked.
+An agent is `stalled` when the fabrictool heartbeat is still being received (the process is alive) but no activity events have arrived within a configurable timeout. This typically means the agent process is hung or blocked.
 
 - **Detection**: A scheduled job checks `lastActivityEvent` for all agents with `phase = running`. If the timestamp exceeds the configured threshold (default: 5 minutes, configurable as a global Hub server setting) and a recent heartbeat has been received, and `activity` is not a terminal sticky state (`completed`, `limits_exceeded`), the scheduler sets `activity = stalled`.
 - **Recovery**: Any activity event from the agent clears `stalled` and sets the appropriate activity.
@@ -505,7 +505,7 @@ An agent is `stalled` when the sciontool heartbeat is still being received (the 
 
 ### Offline (no heartbeat, broker may be disconnected)
 
-An agent is `offline` when neither activity events nor the sciontool heartbeat have been received. The agent may still be running and doing work on a broker that has become disconnected — the platform is simply blind to its current activity.
+An agent is `offline` when neither activity events nor the fabrictool heartbeat have been received. The agent may still be running and doing work on a broker that has become disconnected — the platform is simply blind to its current activity.
 
 - **Detection**: A scheduled job checks `lastHeartbeat` for all agents with `phase = running`. If the timestamp exceeds the heartbeat timeout threshold and `activity` is not a terminal sticky state, the scheduler sets `activity = offline`.
 - **Refinement**: The system may additionally check broker connectivity status. If the broker itself is unreachable, this strengthens the `offline` classification. If the broker is connected but the agent has no heartbeat, this may indicate the agent process crashed — but the system does **not** auto-escalate to `phase = error` to avoid false positives (see Resolved Design Decisions). This is noted as a potential future improvement once heartbeat reliability is proven.
@@ -525,12 +525,12 @@ This replaces the previously discussed but unimplemented "stale/stalled detectio
 3. ~~Add validation functions (`Phase.IsValid()`, `Activity.IsValid()`, `Activity.IsSticky()`)~~
 4. ~~Add tests for the state model~~
 
-### Phase 2: Refactor Sciontool (Container-Side) ✅
+### Phase 2: Refactor Fabrictool (Container-Side) ✅
 
-1. ~~Update `pkg/sciontool/hooks/types.go` to import and use `pkg/agent/state` types~~
+1. ~~Update `pkg/fabrictool/hooks/types.go` to import and use `pkg/agent/state` types~~
 2. ~~Refactor `StatusHandler` to write `phase` + `activity` to `agent-info.json`~~
 3. ~~Refactor `HubHandler` to send structured `phase`/`activity` updates~~
-4. ~~Update `pkg/sciontool/hub/client.go` to use canonical types~~
+4. ~~Update `pkg/fabrictool/hub/client.go` to use canonical types~~
 5. ~~Remove the duplicate `AgentState` and `AgentStatus` type definitions~~
 
 ### Phase 3: Refactor Hub and Store ✅

@@ -17,13 +17,13 @@ package config
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestResolveHarnessConfigName_CLIFlag(t *testing.T) {
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
 		CLIFlag: "claude-custom",
-		TemplateCfg: &api.ScionConfig{
+		TemplateCfg: &api.FabricConfig{
 			DefaultHarnessConfig: "gemini",
 		},
 	})
@@ -40,8 +40,8 @@ func TestResolveHarnessConfigName_CLIFlag(t *testing.T) {
 
 func TestResolveHarnessConfigName_StoredConfig(t *testing.T) {
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
-		StoredConfig: &api.ScionConfig{HarnessConfig: "claude"},
-		TemplateCfg:  &api.ScionConfig{DefaultHarnessConfig: "gemini"},
+		StoredConfig: &api.FabricConfig{HarnessConfig: "claude"},
+		TemplateCfg:  &api.FabricConfig{DefaultHarnessConfig: "gemini"},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -56,7 +56,7 @@ func TestResolveHarnessConfigName_StoredConfig(t *testing.T) {
 
 func TestResolveHarnessConfigName_TemplateDefault(t *testing.T) {
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
-		TemplateCfg: &api.ScionConfig{
+		TemplateCfg: &api.FabricConfig{
 			DefaultHarnessConfig: "gemini",
 			HarnessConfig:        "claude",
 		},
@@ -74,7 +74,7 @@ func TestResolveHarnessConfigName_TemplateDefault(t *testing.T) {
 
 func TestResolveHarnessConfigName_TemplateHarnessConfig(t *testing.T) {
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
-		TemplateCfg: &api.ScionConfig{HarnessConfig: "claude"},
+		TemplateCfg: &api.FabricConfig{HarnessConfig: "claude"},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -89,7 +89,7 @@ func TestResolveHarnessConfigName_TemplateHarnessConfig(t *testing.T) {
 
 func TestResolveHarnessConfigName_StoredHarnessNameFallback(t *testing.T) {
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
-		StoredConfig: &api.ScionConfig{Harness: "gemini"},
+		StoredConfig: &api.FabricConfig{Harness: "gemini"},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -170,8 +170,8 @@ func TestResolveHarnessConfigName_PriorityChain(t *testing.T) {
 	// All sources present — CLI flag should win
 	res, err := ResolveHarnessConfigName(HarnessConfigInputs{
 		CLIFlag:      "from-cli",
-		StoredConfig: &api.ScionConfig{HarnessConfig: "from-stored"},
-		TemplateCfg:  &api.ScionConfig{DefaultHarnessConfig: "from-template"},
+		StoredConfig: &api.FabricConfig{HarnessConfig: "from-stored"},
+		TemplateCfg:  &api.FabricConfig{DefaultHarnessConfig: "from-template"},
 		Settings:     &VersionedSettings{DefaultHarnessConfig: "from-settings"},
 	})
 	if err != nil {
@@ -183,8 +183,8 @@ func TestResolveHarnessConfigName_PriorityChain(t *testing.T) {
 
 	// Without CLI flag — stored config should win
 	res, err = ResolveHarnessConfigName(HarnessConfigInputs{
-		StoredConfig: &api.ScionConfig{HarnessConfig: "from-stored"},
-		TemplateCfg:  &api.ScionConfig{DefaultHarnessConfig: "from-template"},
+		StoredConfig: &api.FabricConfig{HarnessConfig: "from-stored"},
+		TemplateCfg:  &api.FabricConfig{DefaultHarnessConfig: "from-template"},
 		Settings:     &VersionedSettings{DefaultHarnessConfig: "from-settings"},
 	})
 	if err != nil {
@@ -196,7 +196,7 @@ func TestResolveHarnessConfigName_PriorityChain(t *testing.T) {
 
 	// Without CLI or stored — template default should win
 	res, err = ResolveHarnessConfigName(HarnessConfigInputs{
-		TemplateCfg: &api.ScionConfig{DefaultHarnessConfig: "from-template"},
+		TemplateCfg: &api.FabricConfig{DefaultHarnessConfig: "from-template"},
 		Settings:    &VersionedSettings{DefaultHarnessConfig: "from-settings"},
 	})
 	if err != nil {

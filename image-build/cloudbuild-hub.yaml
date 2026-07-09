@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Cloud Build configuration for building just the scion-hub image.
-# This builds on top of the existing scion-base:<_TAG> image.
+# Cloud Build configuration for building just the fabric-hub image.
+# This builds on top of the existing fabric-base:<_TAG> image.
 # Use this when you only need to update the hub server image.
 steps:
   # Pre-flight: verify push access to catch permission errors early
@@ -35,9 +35,9 @@ steps:
     env:
       - 'DOCKER_CLI_EXPERIMENTAL=enabled'
 
-  # Build and push scion-hub image (uses existing scion-base:<_TAG>)
+  # Build and push fabric-hub image (uses existing fabric-base:<_TAG>)
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'build-scion-hub'
+    id: 'build-fabric-hub'
     dir: 'image-build/hub'
     args:
       - 'buildx'
@@ -45,11 +45,11 @@ steps:
       - '--platform'
       - 'linux/amd64,linux/arm64'
       - '--build-arg'
-      - 'BASE_IMAGE=$_REGISTRY/scion-base:$_TAG'
+      - 'BASE_IMAGE=$_REGISTRY/fabric-base:$_TAG'
       - '-t'
-      - '$_REGISTRY/scion-hub:$_SHORT_SHA'
+      - '$_REGISTRY/fabric-hub:$_SHORT_SHA'
       - '-t'
-      - '$_REGISTRY/scion-hub:$_TAG'
+      - '$_REGISTRY/fabric-hub:$_TAG'
       - '-f'
       - 'Dockerfile'
       - '--pull'

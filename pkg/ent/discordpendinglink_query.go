@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/discordpendinglink"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/predicate"
+	"github.com/pdlc-os/fabric/pkg/ent/discordpendinglink"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // DiscordPendingLinkQuery is the builder for querying DiscordPendingLink entities.

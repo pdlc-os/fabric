@@ -26,7 +26,7 @@ import (
 	"testing"
 
 	smpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -460,7 +460,7 @@ func TestGCPBackend_SecretNameSanitization(t *testing.T) {
 	// Test the hashed naming convention
 	name := backend.gcpSecretName("MY_KEY", "user", "user-123")
 	expectedHash := hashCombined("user-123")
-	expectedPrefix := "scion-user-" + expectedHash + "-"
+	expectedPrefix := "fabric-user-" + expectedHash + "-"
 	if !strings.HasPrefix(name, expectedPrefix) {
 		t.Errorf("expected prefix %q, got name %q", expectedPrefix, name)
 	}
@@ -468,7 +468,7 @@ func TestGCPBackend_SecretNameSanitization(t *testing.T) {
 		t.Errorf("expected suffix %q, got name %q", "-MY_KEY", name)
 	}
 	// Hash portion should be exactly 12 hex chars
-	parts := strings.SplitN(name, "-", 4) // scion, user, hash, name
+	parts := strings.SplitN(name, "-", 4) // fabric, user, hash, name
 	if len(parts) != 4 {
 		t.Fatalf("expected 4 parts in name, got %d: %q", len(parts), name)
 	}
@@ -485,7 +485,7 @@ func TestGCPBackend_SecretNameSanitization(t *testing.T) {
 	// Test sanitization of special characters in name (scopeID is hashed, not sanitized)
 	name = backend.gcpSecretName("my.key/with spaces", "grove", "grove@id")
 	expectedHash = hashCombined("grove@id")
-	expectedFull := fmt.Sprintf("scion-grove-%s-my-key-with-spaces", expectedHash)
+	expectedFull := fmt.Sprintf("fabric-grove-%s-my-key-with-spaces", expectedHash)
 	if name != expectedFull {
 		t.Errorf("expected sanitized name %q, got %q", expectedFull, name)
 	}
@@ -546,13 +546,13 @@ func TestGCPBackend_Labels(t *testing.T) {
 	for _, sec := range mock.secrets {
 		labels := sec.Labels
 		expectedLabels := map[string]string{
-			"scion-scope":        "user",
-			"scion-scope-id":     "user-1",
-			"scion-type":         "environment",
-			"scion-name":         "api_key",
-			"scion-target":       "anthropic_api_key",
-			"scion-userid":       "alice-example-com",
-			"scion-hub-hostname": sanitizeLabel(hostname()),
+			"fabric-scope":        "user",
+			"fabric-scope-id":     "user-1",
+			"fabric-type":         "environment",
+			"fabric-name":         "api_key",
+			"fabric-target":       "anthropic_api_key",
+			"fabric-userid":       "alice-example-com",
+			"fabric-hub-hostname": sanitizeLabel(hostname()),
 		}
 		for k, expected := range expectedLabels {
 			got, ok := labels[k]
@@ -597,8 +597,8 @@ func TestGCPBackend_Labels_NoUserIDForNonUserScope(t *testing.T) {
 			if !ok {
 				t.Fatalf("secret not found in mock: %s", fullName)
 			}
-			if _, exists := sec.Labels["scion-userid"]; exists {
-				t.Errorf("scion-userid label should not be present for scope %q", scope)
+			if _, exists := sec.Labels["fabric-userid"]; exists {
+				t.Errorf("fabric-userid label should not be present for scope %q", scope)
 			}
 			if len(sec.Labels) != 6 {
 				t.Errorf("expected 6 labels for scope %q, got %d: %v", scope, len(sec.Labels), sec.Labels)
@@ -629,10 +629,10 @@ func TestGCPBackend_Labels_DefaultTarget(t *testing.T) {
 	defer mock.mu.Unlock()
 
 	for _, sec := range mock.secrets {
-		if got := sec.Labels["scion-target"]; got != "my_secret" {
+		if got := sec.Labels["fabric-target"]; got != "my_secret" {
 			t.Errorf("expected default target label %q, got %q", "my_secret", got)
 		}
-		if got := sec.Labels["scion-name"]; got != "my_secret" {
+		if got := sec.Labels["fabric-name"]; got != "my_secret" {
 			t.Errorf("expected name label %q, got %q", "my_secret", got)
 		}
 	}

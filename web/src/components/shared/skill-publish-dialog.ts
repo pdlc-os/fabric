@@ -34,8 +34,8 @@ interface SelectedFile {
   path: string;
 }
 
-@customElement('scion-skill-publish-dialog')
-export class ScionSkillPublishDialog extends LitElement {
+@customElement('fabric-skill-publish-dialog')
+export class FabricSkillPublishDialog extends LitElement {
   @property({ type: String }) skillId = '';
   @property({ type: Boolean, reflect: true }) open = false;
   @property({ type: String }) latestVersion = '';
@@ -62,24 +62,24 @@ export class ScionSkillPublishDialog extends LitElement {
       display: block;
       font-size: 0.875rem;
       font-weight: 600;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       margin-bottom: 0.375rem;
     }
 
     .drop-zone {
-      border: 2px dashed var(--scion-border, #e2e8f0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border: 2px dashed var(--fabric-border, #e2e8f0);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 2rem;
       text-align: center;
       cursor: pointer;
       transition: all 150ms ease;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.875rem;
     }
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--scion-primary, #3b82f6);
+      border-color: var(--fabric-primary, #3b82f6);
       background: var(--sl-color-primary-50, #eff6ff);
-      color: var(--scion-primary, #3b82f6);
+      color: var(--fabric-primary, #3b82f6);
     }
     .drop-zone sl-icon {
       font-size: 2rem;
@@ -100,8 +100,8 @@ export class ScionSkillPublishDialog extends LitElement {
       align-items: center;
       justify-content: space-between;
       padding: 0.5rem 0.75rem;
-      background: var(--scion-bg-subtle, #f1f5f9);
-      border-radius: var(--scion-radius, 0.5rem);
+      background: var(--fabric-bg-subtle, #f1f5f9);
+      border-radius: var(--fabric-radius, 0.5rem);
       font-size: 0.875rem;
     }
     .file-info {
@@ -116,7 +116,7 @@ export class ScionSkillPublishDialog extends LitElement {
       text-overflow: ellipsis;
     }
     .file-size {
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       font-size: 0.75rem;
       flex-shrink: 0;
     }
@@ -126,7 +126,7 @@ export class ScionSkillPublishDialog extends LitElement {
       background: none;
       border: none;
       padding: 0.25rem;
-      color: var(--scion-text-muted, #64748b);
+      color: var(--fabric-text-muted, #64748b);
       line-height: 1;
     }
     .remove-btn:hover { color: var(--sl-color-danger-600, #dc2626); }
@@ -134,7 +134,7 @@ export class ScionSkillPublishDialog extends LitElement {
     .validation-error, .error-banner {
       background: var(--sl-color-danger-50, #fef2f2);
       border: 1px solid var(--sl-color-danger-200, #fecaca);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 0.75rem 1rem;
       display: flex;
       align-items: flex-start;
@@ -154,7 +154,7 @@ export class ScionSkillPublishDialog extends LitElement {
     }
     .progress-label {
       font-size: 0.875rem;
-      color: var(--scion-text, #1e293b);
+      color: var(--fabric-text, #1e293b);
       display: flex;
       justify-content: space-between;
     }
@@ -162,7 +162,7 @@ export class ScionSkillPublishDialog extends LitElement {
     .success-banner {
       background: var(--sl-color-success-50, #f0fdf4);
       border: 1px solid var(--sl-color-success-200, #bbf7d0);
-      border-radius: var(--scion-radius, 0.5rem);
+      border-radius: var(--fabric-radius, 0.5rem);
       padding: 1rem;
       text-align: center;
       color: var(--sl-color-success-700, #15803d);
@@ -471,6 +471,6 @@ export class ScionSkillPublishDialog extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-skill-publish-dialog': ScionSkillPublishDialog;
+    'fabric-skill-publish-dialog': FabricSkillPublishDialog;
   }
 }

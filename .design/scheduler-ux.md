@@ -7,7 +7,7 @@
 
 The Hub scheduler infrastructure (see [scheduler.md](hosted/scheduler.md)) is fully implemented with one-shot timers, recurring handler registration, and a `scheduled_events` persistence layer. However, the UX surfaces for managing these capabilities are minimal:
 
-- **CLI**: Only `scion message --in/--at` exposes one-shot scheduling. There is no dedicated command for managing scheduled events (list, inspect, cancel) or for creating non-message timers. There is no CLI surface for recurring user-defined schedules.
+- **CLI**: Only `fabric message --in/--at` exposes one-shot scheduling. There is no dedicated command for managing scheduled events (list, inspect, cancel) or for creating non-message timers. There is no CLI surface for recurring user-defined schedules.
 - **Web**: The admin scheduler page (`/admin/scheduler`) is read-only and admin-scoped. There is no grove-level view for managing a grove's scheduled events, and no UI for creating or cancelling events. There is no support for user-defined recurring schedules.
 
 Users need to:
@@ -18,7 +18,7 @@ Users need to:
 
 ### Goals
 
-1. **`scion schedule` command group** for full CRUD management of one-shot and recurring scheduled resources.
+1. **`fabric schedule` command group** for full CRUD management of one-shot and recurring scheduled resources.
 2. **Grove-scoped scheduled events UI** in the web frontend for creating, listing, and cancelling one-shot events.
 3. **Recurring schedule support** — a new `schedules` resource backed by a database table, with cron expression evaluation in the scheduler.
 4. **Consistent patterns** — follow existing CLI (Cobra + Hub/local modes), API (RESTful grove-scoped), and web (Lit + Shoelace) conventions.
@@ -44,7 +44,7 @@ Users need to:
 | **Hub API** | `POST/GET/DELETE /api/v1/groves/{id}/scheduled-events` | One-shot event CRUD |
 | **Hub API** | `GET /api/v1/admin/scheduler` | Admin-only scheduler status |
 | **Hub Client** | `ScheduledEventService` | `Create`, `Get`, `List`, `Cancel` |
-| **CLI** | `scion message --in/--at` | Schedule a future message delivery |
+| **CLI** | `fabric message --in/--at` | Schedule a future message delivery |
 | **Web** | `admin-scheduler` page | Read-only admin view of scheduler state |
 
 ### What's Missing
@@ -55,38 +55,38 @@ Users need to:
 | **Scheduler** | No cron expression evaluation; recurring handlers are code-only |
 | **Hub API** | No API for recurring schedules; no non-admin event listing per grove |
 | **Hub Client** | No `ScheduleService` for recurring schedules |
-| **CLI** | No `scion schedule` command group |
+| **CLI** | No `fabric schedule` command group |
 | **Web** | No grove-level scheduled events view; no create/cancel actions; no recurring schedule management |
 
 ---
 
 ## Design
 
-### 1. CLI: `scion schedule` Command Group
+### 1. CLI: `fabric schedule` Command Group
 
-A new top-level command group following the pattern of `scion grove`, `scion template`, etc.
+A new top-level command group following the pattern of `fabric grove`, `fabric template`, etc.
 
 #### 1.1 Command Structure
 
 ```
-scion schedule
-  scion schedule list              # List scheduled events and recurring schedules
-  scion schedule get <id>          # Get details of a specific event/schedule
-  scion schedule cancel <id>       # Cancel a pending one-shot event
-  scion schedule create            # Create a one-shot scheduled event (interactive)
-  scion schedule create-recurring  # Create a recurring schedule
-  scion schedule delete <id>       # Delete a recurring schedule
-  scion schedule pause <id>        # Pause a recurring schedule
-  scion schedule resume <id>       # Resume a paused recurring schedule
-  scion schedule history [id]      # View execution history
+fabric schedule
+  fabric schedule list              # List scheduled events and recurring schedules
+  fabric schedule get <id>          # Get details of a specific event/schedule
+  fabric schedule cancel <id>       # Cancel a pending one-shot event
+  fabric schedule create            # Create a one-shot scheduled event (interactive)
+  fabric schedule create-recurring  # Create a recurring schedule
+  fabric schedule delete <id>       # Delete a recurring schedule
+  fabric schedule pause <id>        # Pause a recurring schedule
+  fabric schedule resume <id>       # Resume a paused recurring schedule
+  fabric schedule history [id]      # View execution history
 ```
 
-#### 1.2 `scion schedule list`
+#### 1.2 `fabric schedule list`
 
 Lists both one-shot events and recurring schedules for the current grove.
 
 ```
-$ scion schedule list
+$ fabric schedule list
 SCHEDULED EVENTS (one-shot)
 ID              TYPE      STATUS    FIRE AT                    AGENT
 a1b2c3d4        message   pending   2026-03-18T15:00:00Z       worker-1
@@ -108,14 +108,14 @@ v3w4x5y6        hourly-check      0 * * * *         2026-03-18T16:00:00Z       p
 - Requires Hub mode. Returns an error with guidance if no Hub is configured.
 - Calls `ScheduledEvents(groveID).List()` for one-shot events.
 - Calls a new `Schedules(groveID).List()` for recurring schedules (Phase 2+).
-- Uses `tabwriter` for table output, consistent with `scion list`.
+- Uses `tabwriter` for table output, consistent with `fabric list`.
 
-#### 1.3 `scion schedule get <id>`
+#### 1.3 `fabric schedule get <id>`
 
 Shows detailed information about a scheduled event or recurring schedule.
 
 ```
-$ scion schedule get a1b2c3d4
+$ fabric schedule get a1b2c3d4
 Scheduled Event: a1b2c3d4
   Type:       message
   Status:     pending
@@ -127,7 +127,7 @@ Scheduled Event: a1b2c3d4
 ```
 
 ```
-$ scion schedule get r9s0t1u2
+$ fabric schedule get r9s0t1u2
 Recurring Schedule: r9s0t1u2
   Name:       daily-standup
   Status:     active
@@ -140,25 +140,25 @@ Recurring Schedule: r9s0t1u2
   Run Count:  12 total, 11 success, 1 error
 ```
 
-#### 1.4 `scion schedule cancel <id>`
+#### 1.4 `fabric schedule cancel <id>`
 
 Cancels a pending one-shot event. Does not apply to recurring schedules (use `pause` or `delete`).
 
 ```
-$ scion schedule cancel a1b2c3d4
+$ fabric schedule cancel a1b2c3d4
 Scheduled event a1b2c3d4 cancelled.
 ```
 
-#### 1.5 `scion schedule create`
+#### 1.5 `fabric schedule create`
 
-Creates a one-shot scheduled event. Extends the existing `scion message --in/--at` pattern to support additional event types.
+Creates a one-shot scheduled event. Extends the existing `fabric message --in/--at` pattern to support additional event types.
 
 ```bash
-# Schedule a message (equivalent to scion message --in)
-scion schedule create --type message --agent worker-1 --message "Wrap up" --in 30m
+# Schedule a message (equivalent to fabric message --in)
+fabric schedule create --type message --agent worker-1 --message "Wrap up" --in 30m
 
 # Schedule a message at a specific time
-scion schedule create --type message --agent worker-1 --message "Standup" --at "2026-03-19T09:00:00Z"
+fabric schedule create --type message --agent worker-1 --message "Standup" --at "2026-03-19T09:00:00Z"
 ```
 
 **Flags:**
@@ -170,13 +170,13 @@ scion schedule create --type message --agent worker-1 --message "Standup" --at "
 - `--interrupt` — Interrupt the agent (for message events).
 - `--format json` — JSON output.
 
-**Note:** `scion message --in/--at` remains as a convenience shorthand. The `schedule create` command provides the general-purpose entry point.
+**Note:** `fabric message --in/--at` remains as a convenience shorthand. The `schedule create` command provides the general-purpose entry point.
 
 #### 1.6 Recurring Schedule Commands (Phase 2)
 
 ```bash
 # Create a recurring schedule (cron input in local timezone, converted to UTC)
-scion schedule create-recurring \
+fabric schedule create-recurring \
   --name "daily-standup" \
   --cron "0 9 * * 1-5" \
   --type message \
@@ -184,7 +184,7 @@ scion schedule create-recurring \
   --message "Good morning! Status update please."
 
 # Target a specific agent (skips with a warning if agent doesn't exist at fire time)
-scion schedule create-recurring \
+fabric schedule create-recurring \
   --name "worker-check" \
   --cron "0 * * * *" \
   --type message \
@@ -192,14 +192,14 @@ scion schedule create-recurring \
   --message "Status check"
 
 # Pause/resume
-scion schedule pause r9s0t1u2
-scion schedule resume r9s0t1u2
+fabric schedule pause r9s0t1u2
+fabric schedule resume r9s0t1u2
 
 # Delete
-scion schedule delete r9s0t1u2
+fabric schedule delete r9s0t1u2
 
 # View execution history
-scion schedule history r9s0t1u2
+fabric schedule history r9s0t1u2
 ```
 
 ---
@@ -342,7 +342,7 @@ Add a "Scheduled Events" section to the grove detail page (`grove-detail.ts`), b
 A new page at `/groves/{id}/schedules` (or a tab within grove detail) for managing recurring schedules.
 
 **Route:** `/groves/:id/schedules`
-**Component:** `scion-page-grove-schedules`
+**Component:** `fabric-page-grove-schedules`
 
 **Layout:**
 ```
@@ -409,8 +409,8 @@ Extend the existing `admin-scheduler.ts` page with:
 
 The following decisions have been resolved during review:
 
-### 1. `scion schedule` is a top-level command group
-Top-level placement (e.g., `scion schedule list`) is consistent with `scion message`, which is also grove-scoped but top-level. More ergonomic for frequent use than nesting under `scion grove`.
+### 1. `fabric schedule` is a top-level command group
+Top-level placement (e.g., `fabric schedule list`) is consistent with `fabric message`, which is also grove-scoped but top-level. More ergonomic for frequent use than nesting under `fabric grove`.
 
 ### 2. Agent targeting: exact name or broadcast
 Recurring schedules support two targeting modes:
@@ -419,8 +419,8 @@ Recurring schedules support two targeting modes:
 
 Label/selector-based targeting is deferred.
 
-### 3. `scion message --in/--at` shorthand is retained
-Both `scion message --in/--at` and `scion schedule create --type message` are supported. The message flags remain as a convenience for the common case; `scion schedule create` is the general-purpose entry point that will support non-message event types in the future.
+### 3. `fabric message --in/--at` shorthand is retained
+Both `fabric message --in/--at` and `fabric schedule create --type message` are supported. The message flags remain as a convenience for the common case; `fabric schedule create` is the general-purpose entry point that will support non-message event types in the future.
 
 ### 4. UTC-only storage and API; local timezone at UX layer
 - **API and storage**: All timestamps and cron expressions are stored and evaluated in **UTC only**. The `timezone` field is removed from the `schedules` table.
@@ -447,10 +447,10 @@ The API validates cron expressions at creation time using the cron library's par
 - None required — the API already supports all needed operations.
 
 **CLI (`cmd/schedule.go`):**
-1. `scion schedule list` — list one-shot events (calls `ScheduledEvents.List`)
-2. `scion schedule get <id>` — get event detail (calls `ScheduledEvents.Get`)
-3. `scion schedule cancel <id>` — cancel pending event (calls `ScheduledEvents.Cancel`)
-4. `scion schedule create` — create one-shot event with `--type`, `--in/--at`, `--agent`, `--message`, `--interrupt` flags (calls `ScheduledEvents.Create`)
+1. `fabric schedule list` — list one-shot events (calls `ScheduledEvents.List`)
+2. `fabric schedule get <id>` — get event detail (calls `ScheduledEvents.Get`)
+3. `fabric schedule cancel <id>` — cancel pending event (calls `ScheduledEvents.Cancel`)
+4. `fabric schedule create` — create one-shot event with `--type`, `--in/--at`, `--agent`, `--message`, `--interrupt` flags (calls `ScheduledEvents.Create`)
 
 **Web (`web/src/components/`):**
 5. Create `shared/scheduled-event-list.ts` — reusable component with list, create dialog, cancel action
@@ -464,7 +464,7 @@ The API validates cron expressions at creation time using the cron library's par
 **Files affected:**
 | File | Change |
 |---|---|
-| `cmd/schedule.go` | **New** — `scion schedule` command group |
+| `cmd/schedule.go` | **New** — `fabric schedule` command group |
 | `cmd/root.go` | Add `scheduleCmd` to root |
 | `web/src/components/shared/scheduled-event-list.ts` | **New** — reusable event list |
 | `web/src/components/pages/grove-detail.ts` | Add scheduled events section |
@@ -486,11 +486,11 @@ The API validates cron expressions at creation time using the cron library's par
 9. Add `ScheduleService` to hub client (`pkg/hubclient/schedules.go`)
 
 **CLI:**
-10. `scion schedule create-recurring` command
-11. `scion schedule pause/resume <id>` commands
-12. `scion schedule delete <id>` command
-13. `scion schedule history <id>` command
-14. Update `scion schedule list` to include recurring schedules
+10. `fabric schedule create-recurring` command
+11. `fabric schedule pause/resume <id>` commands
+12. `fabric schedule delete <id>` command
+13. `fabric schedule history <id>` command
+14. Update `fabric schedule list` to include recurring schedules
 
 **Tests:**
 15. Store implementation tests (ScheduleStore CRUD)
@@ -529,7 +529,7 @@ The API validates cron expressions at creation time using the cron library's par
 8. Integrate with `AgentDispatcher` for automatic agent creation
 
 **CLI:**
-9. `scion schedule create` with `--type dispatch_agent` support
+9. `fabric schedule create` with `--type dispatch_agent` support
 
 **Files affected:**
 | File | Change |

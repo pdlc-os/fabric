@@ -30,7 +30,7 @@ func TestDebugEnabled(t *testing.T) {
 	debugMu.Unlock()
 
 	// Clean environment
-	_ = os.Unsetenv("SCION_DEBUG")
+	_ = os.Unsetenv("FABRIC_DEBUG")
 
 	// Test 1: No debug when not set
 	if DebugEnabled() {
@@ -38,11 +38,11 @@ func TestDebugEnabled(t *testing.T) {
 	}
 
 	// Test 2: Debug via environment variable
-	_ = os.Setenv("SCION_DEBUG", "1")
+	_ = os.Setenv("FABRIC_DEBUG", "1")
 	if !DebugEnabled() {
-		t.Error("DebugEnabled should return true when SCION_DEBUG is set")
+		t.Error("DebugEnabled should return true when FABRIC_DEBUG is set")
 	}
-	_ = os.Unsetenv("SCION_DEBUG")
+	_ = os.Unsetenv("FABRIC_DEBUG")
 
 	// Test 3: Debug via EnableDebug()
 	debugMu.Lock()
@@ -56,7 +56,7 @@ func TestDebugEnabled(t *testing.T) {
 	}
 
 	// Test 4: EnableDebug() overrides environment
-	_ = os.Unsetenv("SCION_DEBUG")
+	_ = os.Unsetenv("FABRIC_DEBUG")
 	if !DebugEnabled() {
 		t.Error("DebugEnabled should remain true after EnableDebug() even without env var")
 	}
@@ -81,7 +81,7 @@ func TestDebugf(t *testing.T) {
 	os.Stderr = w
 
 	// Test: No output when debug disabled
-	_ = os.Unsetenv("SCION_DEBUG")
+	_ = os.Unsetenv("FABRIC_DEBUG")
 	Debugf("test message %d", 42)
 
 	_ = w.Close()

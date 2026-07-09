@@ -255,8 +255,8 @@ func TestManifestBuilder_IncludesDotfiles(t *testing.T) {
 	}
 
 	// Create a regular file too
-	if err := os.WriteFile(filepath.Join(dir, "scion-agent.yaml"), []byte("name: test"), 0644); err != nil {
-		t.Fatalf("failed to create scion-agent.yaml: %v", err)
+	if err := os.WriteFile(filepath.Join(dir, "fabric-agent.yaml"), []byte("name: test"), 0644); err != nil {
+		t.Fatalf("failed to create fabric-agent.yaml: %v", err)
 	}
 
 	builder := NewManifestBuilder(dir)

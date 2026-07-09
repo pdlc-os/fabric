@@ -102,7 +102,7 @@ func (fs *filteredFS) OpenFile(ctx context.Context, name string, flag int, perm 
 
 **Phase 1 (MVP): Compute on-the-fly during PROPFIND.**
 
-For grove config directories (`.scion/` contents), files are small and few.
+For grove config directories (`.fabric/` contents), files are small and few.
 Computing SHA1 on each PROPFIND is acceptable. Implementation:
 
 ```go
@@ -137,7 +137,7 @@ bottleneck, add a `file_checksums` table to the hub store:
 
 Invalidate on PUT/DELETE (already tracked in `handleGroveWebDAV`).
 
-Caching may never be needed — grove sync targets `.scion/` directories which
+Caching may never be needed — grove sync targets `.fabric/` directories which
 are inherently small.
 
 ---

@@ -26,7 +26,7 @@ The agent configure page has a "Limits & Resources" tab with:
 - `resources.limits.cpu`, `resources.limits.memory`
 - `resources.disk`
 
-These are stored in `api.ScionConfig` and persisted as `AppliedConfig.InlineConfig` on the agent.
+These are stored in `api.FabricConfig` and persisted as `AppliedConfig.InlineConfig` on the agent.
 
 ### Hub-Level Settings (Admin)
 
@@ -109,14 +109,14 @@ DefaultResources     *api.ResourceSpec `json:"default_resources,omitempty" yaml:
 Add annotation keys for grove-level defaults, using individual flat keys for the structured resource spec:
 
 ```go
-groveSettingDefaultMaxTurns          = "scion.io/default-max-turns"
-groveSettingDefaultMaxModelCalls     = "scion.io/default-max-model-calls"
-groveSettingDefaultMaxDuration       = "scion.io/default-max-duration"
-groveSettingDefaultResourcesCPUReq   = "scion.io/default-resources-cpu-request"
-groveSettingDefaultResourcesMemReq   = "scion.io/default-resources-memory-request"
-groveSettingDefaultResourcesCPULim   = "scion.io/default-resources-cpu-limit"
-groveSettingDefaultResourcesMemLim   = "scion.io/default-resources-memory-limit"
-groveSettingDefaultResourcesDisk     = "scion.io/default-resources-disk"
+groveSettingDefaultMaxTurns          = "fabric.io/default-max-turns"
+groveSettingDefaultMaxModelCalls     = "fabric.io/default-max-model-calls"
+groveSettingDefaultMaxDuration       = "fabric.io/default-max-duration"
+groveSettingDefaultResourcesCPUReq   = "fabric.io/default-resources-cpu-request"
+groveSettingDefaultResourcesMemReq   = "fabric.io/default-resources-memory-request"
+groveSettingDefaultResourcesCPULim   = "fabric.io/default-resources-cpu-limit"
+groveSettingDefaultResourcesMemLim   = "fabric.io/default-resources-memory-limit"
+groveSettingDefaultResourcesDisk     = "fabric.io/default-resources-disk"
 ```
 
 Update `groveSettingsFromAnnotations()` and `applyGroveSettingsToAnnotations()` to read/write these.
@@ -153,15 +153,15 @@ Wire through `applySettingsUpdates()` and the GET response mapping.
 When an agent starts without explicit limits/resources, apply defaults in priority order:
 
 1. **Agent inline config** (explicit per-agent values) — highest priority
-2. **Template config** (from the template's `ScionConfig`)
+2. **Template config** (from the template's `FabricConfig`)
 3. **Grove defaults** (from grove annotations via `GroveSettings`)
 4. **Hub global defaults** (from `settings.yaml` top-level)
 
 This resolution should be applied during agent provisioning. The appropriate location depends on whether the agent is started locally (`pkg/agent/run.go`) or via the hub/broker dispatch path (`pkg/runtimebroker/handlers.go`).
 
-For limits, this means: if `ScionConfig.MaxTurns` is 0 after template merge, check grove defaults, then hub defaults, and populate the value before injecting `SCION_MAX_TURNS` env var.
+For limits, this means: if `FabricConfig.MaxTurns` is 0 after template merge, check grove defaults, then hub defaults, and populate the value before injecting `FABRIC_MAX_TURNS` env var.
 
-For resources, the same pattern applies: if `ScionConfig.Resources` is nil or has empty fields after template merge, fill from grove defaults, then hub defaults.
+For resources, the same pattern applies: if `FabricConfig.Resources` is nil or has empty fields after template merge, fill from grove defaults, then hub defaults.
 
 ### 6. Web Frontend — Grove Settings Page (`web/src/components/pages/grove-settings.ts`)
 
@@ -195,7 +195,7 @@ When creating a new agent and selecting a grove, pre-populate the limits and res
 
 ### Flat annotation keys for resources
 
-Grove settings are stored as `map[string]string` annotations. Rather than JSON-encoding a `ResourceSpec` into a single annotation value, we use individual keys (e.g., `scion.io/default-resources-cpu-request`). This keeps each value independently readable and editable, consistent with how the other grove settings annotations work.
+Grove settings are stored as `map[string]string` annotations. Rather than JSON-encoding a `ResourceSpec` into a single annotation value, we use individual keys (e.g., `fabric.io/default-resources-cpu-request`). This keeps each value independently readable and editable, consistent with how the other grove settings annotations work.
 
 ### No profile-level support
 

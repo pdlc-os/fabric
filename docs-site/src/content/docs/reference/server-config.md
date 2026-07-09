@@ -1,20 +1,20 @@
 ---
 title: Server Configuration (Hub & Runtime Broker)
-description: Configuration reference for Scion Hub and Runtime Broker services.
+description: Configuration reference for Fabric Hub and Runtime Broker services.
 ---
 
-This document describes the configuration for the Scion Hub (State Server) and the Scion Runtime Broker.
+This document describes the configuration for the Fabric Hub (State Server) and the Fabric Runtime Broker.
 
 ## Configuration Location
 
 Server configuration is defined in the `server` section of your `settings.yaml` file.
 
-- **Primary**: `~/.scion/settings.yaml` (Global settings)
-- **Legacy**: `~/.scion/server.yaml` (Deprecated, but supported as fallback)
+- **Primary**: `~/.fabric/settings.yaml` (Global settings)
+- **Legacy**: `~/.fabric/server.yaml` (Deprecated, but supported as fallback)
 
 :::tip[Migration]
 If you are using `server.yaml`, you can migrate it to `settings.yaml` using:
-`scion config migrate --server`
+`fabric config migrate --server`
 :::
 
 ## Structure
@@ -28,7 +28,7 @@ server:
   hub:
     port: 9810
     host: "0.0.0.0"
-    public_url: "https://hub.scion.dev"
+    public_url: "https://hub.fabric.dev"
     
   broker:
     enabled: true
@@ -142,18 +142,18 @@ The `local` backend does not store secret values. Any attempt to create or updat
 
 ## Environment Variables
 
-All server settings can be overridden via environment variables using the `SCION_SERVER_` prefix and snake_case naming.
+All server settings can be overridden via environment variables using the `FABRIC_SERVER_` prefix and snake_case naming.
 
 **Examples:**
-- `server.hub.port` -> `SCION_SERVER_HUB_PORT`
-- `server.hub.gcp_project_id` -> `SCION_SERVER_HUB_GCPPROJECTID`
-- `server.broker.enabled` -> `SCION_SERVER_BROKER_ENABLED`
-- `server.broker.container_hub_endpoint` -> `SCION_SERVER_BROKER_CONTAINERHUBENDPOINT`
-- `server.database.url` -> `SCION_SERVER_DATABASE_URL`
-- `server.auth.dev_mode` -> `SCION_SERVER_AUTH_DEVMODE`
-- `server.secrets.backend` -> `SCION_SERVER_SECRETS_BACKEND`
-- `server.secrets.gcp_project_id` -> `SCION_SERVER_SECRETS_GCPPROJECTID`
-- `server.secrets.gcp_credentials` -> `SCION_SERVER_SECRETS_GCPCREDENTIALS`
+- `server.hub.port` -> `FABRIC_SERVER_HUB_PORT`
+- `server.hub.gcp_project_id` -> `FABRIC_SERVER_HUB_GCPPROJECTID`
+- `server.broker.enabled` -> `FABRIC_SERVER_BROKER_ENABLED`
+- `server.broker.container_hub_endpoint` -> `FABRIC_SERVER_BROKER_CONTAINERHUBENDPOINT`
+- `server.database.url` -> `FABRIC_SERVER_DATABASE_URL`
+- `server.auth.dev_mode` -> `FABRIC_SERVER_AUTH_DEVMODE`
+- `server.secrets.backend` -> `FABRIC_SERVER_SECRETS_BACKEND`
+- `server.secrets.gcp_project_id` -> `FABRIC_SERVER_SECRETS_GCPPROJECTID`
+- `server.secrets.gcp_credentials` -> `FABRIC_SERVER_SECRETS_GCPCREDENTIALS`
 
 ### Logging Environment Variables
 
@@ -161,23 +161,23 @@ These environment variables control server-side logging behavior. They are not p
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `SCION_LOG_GCP` | Enable GCP Cloud Logging JSON format on stdout | `false` |
-| `SCION_LOG_LEVEL` | Log level: `debug`, `info`, `warn`, `error` | `info` |
-| `SCION_CLOUD_LOGGING` | Send logs directly to Cloud Logging via client library | `false` |
-| `SCION_CLOUD_LOGGING_LOG_ID` | Log name in Cloud Logging for application logs | `scion` |
-| `SCION_GCP_PROJECT_ID` | GCP project ID for Cloud Logging (priority 1) | auto-detect |
+| `FABRIC_LOG_GCP` | Enable GCP Cloud Logging JSON format on stdout | `false` |
+| `FABRIC_LOG_LEVEL` | Log level: `debug`, `info`, `warn`, `error` | `info` |
+| `FABRIC_CLOUD_LOGGING` | Send logs directly to Cloud Logging via client library | `false` |
+| `FABRIC_CLOUD_LOGGING_LOG_ID` | Log name in Cloud Logging for application logs | `fabric` |
+| `FABRIC_GCP_PROJECT_ID` | GCP project ID for Cloud Logging (priority 1) | auto-detect |
 | `GOOGLE_CLOUD_PROJECT` | GCP project ID for Cloud Logging (priority 2) | - |
-| `SCION_SERVER_REQUEST_LOG_PATH` | Write HTTP request logs to a file at this path. Each line is a JSON object in `HttpRequest` format. When not set, request logs follow the default routing (stdout in background mode, suppressed in foreground mode, Cloud Logging when enabled). | (disabled) |
+| `FABRIC_SERVER_REQUEST_LOG_PATH` | Write HTTP request logs to a file at this path. Each line is a JSON object in `HttpRequest` format. When not set, request logs follow the default routing (stdout in background mode, suppressed in foreground mode, Cloud Logging when enabled). | (disabled) |
 
-See the [Local Development Logging guide](/scion/contributing/logging/) for details on log formats, request log fields, and Cloud Logging integration.
+See the [Local Development Logging guide](/fabric/contributing/logging/) for details on log formats, request log fields, and Cloud Logging integration.
 
 ### Hub Endpoint Resolution
 
 When `server.hub.public_url` is not explicitly set, the Hub endpoint injected into agents is resolved in this order:
 
-1. `SCION_SERVER_HUB_PUBLIC_URL` or `server.hub.public_url` — explicit Hub public URL.
+1. `FABRIC_SERVER_HUB_PUBLIC_URL` or `server.hub.public_url` — explicit Hub public URL.
 2. Project-level `hub.endpoint` setting.
-3. `SCION_SERVER_BASE_URL` — the server's public base URL (also used for OAuth redirects).
+3. `FABRIC_SERVER_BASE_URL` — the server's public base URL (also used for OAuth redirects).
 4. Auto-computed `http://localhost:{port}` (last resort).
 
 For local development where the Hub runs on `localhost` but agents are in containers, set `server.broker.container_hub_endpoint` to a container-accessible address like `http://host.containers.internal:8080`.
@@ -246,7 +246,7 @@ custom receiver.
 notification_channels:
   - type: webhook
     params:
-      webhook_url: https://example.com/scion-notifications
+      webhook_url: https://example.com/fabric-notifications
 ```
 
 ### Email channel
@@ -313,7 +313,7 @@ notification_channels:
     params:
       webhook_url: https://discord.com/api/webhooks/123456789012345678/abcDEFghiJKLmnoPQR_stu
       mention_on_urgent: "<@&987654321098765432>"
-      username: Scion Hub
+      username: Fabric Hub
     filter_urgent_only: false
     filter_types:
       - input-needed
@@ -321,7 +321,7 @@ notification_channels:
 ```
 
 :::note[Migrating from a Slack-compat Discord webhook]
-Earlier scion releases had no Discord channel type — operators could route
+Earlier fabric releases had no Discord channel type — operators could route
 notifications to a Discord webhook by using `type: slack` with a webhook URL
 ending in `/slack` (Discord's Slack-compatibility endpoint). That approach
 produces plain-text messages with no embeds, colours, or mentions.
@@ -345,7 +345,7 @@ In HA deployments where multiple Hub replicas share a Postgres database, setting
 
 ### Layer 0 — Bootstrap (file + env only)
 
-Settings required before the database connection exists, or that are restart-bound. Managed exclusively via `settings.yaml` and `SCION_SERVER_*` environment variables. **Cannot be written via the admin API** — `PUT /api/v1/admin/server-config` returns `422` if any Layer-0 key is present.
+Settings required before the database connection exists, or that are restart-bound. Managed exclusively via `settings.yaml` and `FABRIC_SERVER_*` environment variables. **Cannot be written via the admin API** — `PUT /api/v1/admin/server-config` returns `422` if any Layer-0 key is present.
 
 | Group | Keys (`server.` prefix unless noted) |
 | :--- | :--- |
@@ -378,7 +378,7 @@ Settings that can be changed at runtime and are shared across all replicas. Stor
 
 In Postgres mode, the effective value for any Layer-1 key is resolved in this order (highest priority first):
 
-1. **`SCION_SERVER_*` environment variable** — node-local escape hatch
+1. **`FABRIC_SERVER_*` environment variable** — node-local escape hatch
 2. **`hub_settings` DB row** — cluster-shared, set via admin API
 3. **`settings.yaml` Layer-1 fields** — fallback when key absent in DB
 4. **Compiled defaults**
@@ -406,7 +406,7 @@ Because env overrides on Layer-1 keys reintroduce per-node drift, the system war
 
 **Presence-aware clearing**: The PUT handler distinguishes **omitted** fields (preserve current DB value) from **explicitly-sent empty values** (`""`, `[]`, `null`) which **clear** the field. This enables clearing admin_emails, user_access_mode, authorized_domains, notification_channels, and public_url without sending every field.
 
-**Maintenance durability**: `PUT /api/v1/admin/maintenance` writes to the `maintenance` section in DB, making admin/maintenance mode durable across restarts and propagated to all replicas. `SCION_SERVER_ADMINMODE` env var still force-enables per node for break-glass access.
+**Maintenance durability**: `PUT /api/v1/admin/maintenance` writes to the `maintenance` section in DB, making admin/maintenance mode durable across restarts and propagated to all replicas. `FABRIC_SERVER_ADMINMODE` env var still force-enables per node for break-glass access.
 
 **Schema endpoint**: `GET /api/v1/admin/server-config/schema` returns JSON-schema fragments and koanf key paths per section for UI form generation and CLI validation.
 

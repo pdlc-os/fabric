@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/stretchr/testify/assert"
@@ -348,8 +348,8 @@ func TestHandleTestLogin_WrongSigningKey(t *testing.T) {
 func TestHandleTestLogin_WrongAudience(t *testing.T) {
 	ws, tokenSvc := newTestLoginWebServer(t, true)
 
-	// Mint a regular user access token (audience "scion-hub-api") instead of
-	// a test-login token (audience "scion-test-login").
+	// Mint a regular user access token (audience "fabric-hub-api") instead of
+	// a test-login token (audience "fabric-test-login").
 	userToken, _, _, err := tokenSvc.GenerateTokenPair(
 		"uid", "test@example.com", "Test", "admin", ClientTypeWeb,
 	)

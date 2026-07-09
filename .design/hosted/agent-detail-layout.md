@@ -11,7 +11,7 @@ Information comes from two backend structures, but is **not** mapped 1:1 to tabs
 | Backend Source | Examples on Status Tab | Examples on Config Tab |
 |---|---|---|
 | `store.Agent` (AgentInfo) | phase, activity, toolName, lastSeen, taskSummary, connectionState | created, name, id, slug, template |
-| `ScionConfig` (via `AppliedConfig.InlineConfig`) | (derived: time remaining, turns progress) | maxTurns, maxModelCalls, maxDuration, model, image, branch, task |
+| `FabricConfig` (via `AppliedConfig.InlineConfig`) | (derived: time remaining, turns progress) | maxTurns, maxModelCalls, maxDuration, model, image, branch, task |
 
 ### New Fields Required
 
@@ -26,13 +26,13 @@ These fields do **not** currently exist on the API response and must be added:
 
 ### Time Remaining Calculation
 
-Must mirror the enforcement in `cmd/sciontool/commands/init.go`:
+Must mirror the enforcement in `cmd/fabrictool/commands/init.go`:
 
 ```
 timeRemaining = maxDuration - (now - startedAt)
 ```
 
-Where `maxDuration` is parsed from the `ScionConfig.MaxDuration` string (e.g. `"2h30m"`) via Go's `time.ParseDuration`. The frontend should parse the same format and compute the countdown client-side, refreshing on the existing 15-second re-render interval.
+Where `maxDuration` is parsed from the `FabricConfig.MaxDuration` string (e.g. `"2h30m"`) via Go's `time.ParseDuration`. The frontend should parse the same format and compute the countdown client-side, refreshing on the existing 15-second re-render interval.
 
 ---
 
@@ -153,7 +153,7 @@ This section shows progress toward configured limits. Each item shows a fraction
 Display rules:
 - Each limit item is only shown if its max value is configured (> 0 or non-empty).
 - If no limits are configured at all, the entire card is hidden.
-- Progress bars use `--scion-success` color normally, `--scion-warning` at >75%, `--scion-danger` at >90%.
+- Progress bars use `--fabric-success` color normally, `--fabric-warning` at >75%, `--fabric-danger` at >90%.
 
 **Connectivity** (card, info-grid)
 | Field | Source | Realtime | Notes |
@@ -323,11 +323,11 @@ interface AgentInlineConfig {
 
 ### 1. Add `currentTurns` and `currentModelCalls` to Hub status updates
 
-The broker already receives these via `agent-limits.json` (updated on every `agent-end` and `model-end` hook). The sciontool status handler needs to include these in `StatusUpdate` messages sent to the Hub.
+The broker already receives these via `agent-limits.json` (updated on every `agent-end` and `model-end` hook). The fabrictool status handler needs to include these in `StatusUpdate` messages sent to the Hub.
 
 **Files to modify:**
-- `pkg/sciontool/hub/client.go` — Add `CurrentTurns` and `CurrentModelCalls` to `StatusUpdate`
-- `pkg/sciontool/hooks/handlers/limits.go` — After incrementing, report to hub client
+- `pkg/fabrictool/hub/client.go` — Add `CurrentTurns` and `CurrentModelCalls` to `StatusUpdate`
+- `pkg/fabrictool/hooks/handlers/limits.go` — After incrementing, report to hub client
 - `pkg/store/models.go` — Add `CurrentTurns`, `CurrentModelCalls` fields to `store.Agent`
 - `pkg/hub/handlers.go` — Handle the new fields in status update endpoint
 - Hub database migration — Add columns for current_turns, current_model_calls
@@ -377,5 +377,5 @@ These just need corresponding fields added to the frontend `Agent` interface.
 
 1. **Frontend layout** — Restructure `agent-detail.ts` with tabs, using existing data only. Status tab gets current state + task + connectivity + notifications. Configuration tab gets identity + harness + runtime info from existing fields.
 2. **Expose existing backend fields** — Add `appliedConfig`, `slug`, `image`, `runtime`, `visibility`, `connectionState`, `createdBy` to frontend type and populate Config tab sections.
-3. **Add limits tracking** — Backend: pipe `currentTurns`/`currentModelCalls` from sciontool through broker to Hub. Frontend: add Limits & Usage section with progress bars.
+3. **Add limits tracking** — Backend: pipe `currentTurns`/`currentModelCalls` from fabrictool through broker to Hub. Frontend: add Limits & Usage section with progress bars.
 4. **Add time remaining** — Backend: add `startedAt`. Frontend: compute countdown and render progress bar.

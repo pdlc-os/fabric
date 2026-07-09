@@ -20,8 +20,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // pathEqual compares two cleaned absolute paths for equality,
@@ -47,7 +47,7 @@ type PathClass struct {
 }
 
 // ClassifyPath resolves and classifies a candidate path.
-// managedRoot is the hub-managed project directory (e.g. ~/.scion/projects/).
+// managedRoot is the hub-managed project directory (e.g. ~/.fabric/projects/).
 // It queries existing providers to detect already-linked paths.
 func ClassifyPath(ctx context.Context, s store.Store, path, managedRoot string) (PathClass, error) {
 	var pc PathClass
@@ -137,7 +137,7 @@ func ClassifyPath(ctx context.Context, s store.Store, path, managedRoot string) 
 	return pc, nil
 }
 
-// managedProjectRoot returns the hub-managed project directory (e.g. ~/.scion/projects/).
+// managedProjectRoot returns the hub-managed project directory (e.g. ~/.fabric/projects/).
 func managedProjectRoot() (string, error) {
 	globalDir, err := config.GetGlobalDir()
 	if err != nil {

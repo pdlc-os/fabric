@@ -19,11 +19,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"gopkg.in/yaml.v3"
 
-	harnessesEmbed "github.com/GoogleCloudPlatform/scion/harnesses"
+	harnessesEmbed "github.com/pdlc-os/fabric/harnesses"
 )
 
 func loadAuthMetaFromHarness(t *testing.T, harnessName string) *config.HarnessAuthMetadata {

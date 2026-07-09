@@ -19,7 +19,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/entc"
+	"github.com/pdlc-os/fabric/pkg/ent/entc"
 	"github.com/spf13/cobra"
 )
 
@@ -57,14 +57,14 @@ successful, verified migration.
 
 Examples:
   # Dry-safe copy; leaves SQLite in place.
-  scion server migrate \
-    --from sqlite:///var/lib/scion/hub.db \
-    --to "postgres://scion:secret@db.example.com:5432/scion?sslmode=require"
+  fabric server migrate \
+    --from sqlite:///var/lib/fabric/hub.db \
+    --to "postgres://fabric:secret@db.example.com:5432/fabric?sslmode=require"
 
   # Explicit cutover: delete the SQLite file once migration succeeds.
-  scion server migrate \
-    --from sqlite:///var/lib/scion/hub.db \
-    --to "postgres://scion:secret@db:5432/scion?sslmode=require" \
+  fabric server migrate \
+    --from sqlite:///var/lib/fabric/hub.db \
+    --to "postgres://fabric:secret@db:5432/fabric?sslmode=require" \
     --drop-source`,
 	RunE: runServerMigrate,
 }

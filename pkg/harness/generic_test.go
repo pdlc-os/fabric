@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/api"
 )
 
 func TestGeneric_Name(t *testing.T) {
@@ -36,8 +36,8 @@ func TestGeneric_GetEnv(t *testing.T) {
 	env := g.GetEnv("test-agent", "", "test-user")
 
 	// GetEnv should only return non-auth env vars
-	if env["SCION_AGENT_NAME"] != "test-agent" {
-		t.Errorf("Expected SCION_AGENT_NAME = 'test-agent', got '%s'", env["SCION_AGENT_NAME"])
+	if env["FABRIC_AGENT_NAME"] != "test-agent" {
+		t.Errorf("Expected FABRIC_AGENT_NAME = 'test-agent', got '%s'", env["FABRIC_AGENT_NAME"])
 	}
 }
 
@@ -62,8 +62,8 @@ func TestGeneric_GetCommand(t *testing.T) {
 
 func TestGeneric_DefaultConfigDir(t *testing.T) {
 	g := &Generic{}
-	if g.DefaultConfigDir() != ".scion" {
-		t.Errorf("Expected DefaultConfigDir '.scion', got '%s'", g.DefaultConfigDir())
+	if g.DefaultConfigDir() != ".fabric" {
+		t.Errorf("Expected DefaultConfigDir '.fabric', got '%s'", g.DefaultConfigDir())
 	}
 }
 
@@ -171,7 +171,7 @@ func TestGenericInjectSystemPrompt(t *testing.T) {
 		t.Fatalf("InjectSystemPrompt failed: %v", err)
 	}
 
-	target := filepath.Join(agentHome, ".scion", "system_prompt.md")
+	target := filepath.Join(agentHome, ".fabric", "system_prompt.md")
 	data, err := os.ReadFile(target)
 	if err != nil {
 		t.Fatalf("expected file at %s: %v", target, err)

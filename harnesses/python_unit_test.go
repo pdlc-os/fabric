@@ -19,17 +19,17 @@ import (
 	"testing"
 )
 
-func TestScionHarnessPythonUnit(t *testing.T) {
+func TestFabricHarnessPythonUnit(t *testing.T) {
 	python, err := exec.LookPath("python3")
 	if err != nil {
 		t.Skip("python3 not found in PATH; skipping Python unit tests")
 	}
 
-	cmd := exec.Command(python, "-m", "unittest", "scion_harness_test", "-v")
+	cmd := exec.Command(python, "-m", "unittest", "fabric_harness_test", "-v")
 	cmd.Dir = "."
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatalf("python3 -m unittest scion_harness_test failed:\n%s", out)
+		t.Fatalf("python3 -m unittest fabric_harness_test failed:\n%s", out)
 	}
 	t.Logf("Python unit tests output:\n%s", out)
 }

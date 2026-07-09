@@ -1,9 +1,9 @@
 ---
 title: Runtime Development
-description: Implementing new execution backends for Scion agents.
+description: Implementing new execution backends for Fabric agents.
 ---
 
-Scion abstracts the execution environment through the `Runtime` interface. This allows the orchestrator to run agents in diverse environments, from local Docker containers to remote Kubernetes Pods, while maintaining a consistent management API.
+Fabric abstracts the execution environment through the `Runtime` interface. This allows the orchestrator to run agents in diverse environments, from local Docker containers to remote Kubernetes Pods, while maintaining a consistent management API.
 
 ## The Runtime Interface
 
@@ -89,7 +89,7 @@ Secrets and credentials provided in `RunConfig.ResolvedSecrets` must be injected
 Respect the `api.ResourceSpec` provided in the `RunConfig`. This includes CPU and memory requests/limits, and optionally disk quotas.
 
 ### Labels and Annotations
-Always apply the labels provided in `RunConfig.Labels` to the underlying container/pod. Scion uses these labels for internal tracking, cleanup, and status reporting.
+Always apply the labels provided in `RunConfig.Labels` to the underlying container/pod. Fabric uses these labels for internal tracking, cleanup, and status reporting.
 
 ## Testing Your Runtime
 Each runtime should include a comprehensive test suite (e.g., `my_runtime_test.go`). You can use the `mock.go` in `pkg/runtime/` or existing tests like `docker_test.go` as a reference for integration testing.

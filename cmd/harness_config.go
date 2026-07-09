@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/harness"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/harness"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/spf13/cobra"
 )
 
@@ -109,7 +109,7 @@ var harnessConfigListCmd = &cobra.Command{
 
 		if len(entries) == 0 {
 			fmt.Println("No harness configurations found.")
-			fmt.Println("Run 'scion init --machine' to seed default harness configurations.")
+			fmt.Println("Run 'fabric init --machine' to seed default harness configurations.")
 			return nil
 		}
 
@@ -302,7 +302,7 @@ var harnessConfigSyncCmd = &cobra.Command{
 			return err
 		}
 		if hubCtx == nil {
-			return fmt.Errorf("hub integration is not enabled, configure via 'scion config set hub.enabled true' and 'scion config set hub.endpoint <url>'")
+			return fmt.Errorf("hub integration is not enabled, configure via 'fabric config set hub.enabled true' and 'fabric config set hub.endpoint <url>'")
 		}
 
 		PrintUsingHub(hubCtx.Endpoint)
@@ -347,7 +347,7 @@ var harnessConfigPullCmd = &cobra.Command{
 			return err
 		}
 		if hubCtx == nil {
-			return fmt.Errorf("hub integration is not enabled, configure via 'scion config set hub.enabled true' and 'scion config set hub.endpoint <url>'")
+			return fmt.Errorf("hub integration is not enabled, configure via 'fabric config set hub.enabled true' and 'fabric config set hub.endpoint <url>'")
 		}
 
 		PrintUsingHub(hubCtx.Endpoint)
@@ -481,7 +481,7 @@ var harnessConfigDeleteCmd = &cobra.Command{
 			return err
 		}
 		if hubCtx == nil {
-			return fmt.Errorf("hub integration is not enabled, configure via 'scion config set hub.enabled true' and 'scion config set hub.endpoint <url>'")
+			return fmt.Errorf("hub integration is not enabled, configure via 'fabric config set hub.enabled true' and 'fabric config set hub.endpoint <url>'")
 		}
 
 		PrintUsingHub(hubCtx.Endpoint)

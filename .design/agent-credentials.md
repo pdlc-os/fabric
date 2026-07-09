@@ -2,7 +2,7 @@
 
 ## Overview
 
-Scion uses a unified four-stage pipeline to resolve LLM credentials for every agent, regardless of harness type or deployment mode (local or hub-dispatched). The pipeline separates credential discovery from harness-specific resolution, ensuring consistent behavior and clear error reporting.
+Fabric uses a unified four-stage pipeline to resolve LLM credentials for every agent, regardless of harness type or deployment mode (local or hub-dispatched). The pipeline separates credential discovery from harness-specific resolution, ensuring consistent behavior and clear error reporting.
 
 ## Auth Resolution Pipeline
 
@@ -53,7 +53,7 @@ Populates an `AuthConfig` struct from the process environment and well-known cre
 Applies settings-based overrides to the `AuthConfig`. Currently only active for the Gemini harness — returns immediately for all others.
 
 **For Gemini, the priority chain for `SelectedType`**:
-1. `scion-agent.json` → `cfg.Gemini.AuthSelectedType`
+1. `fabric-agent.json` → `cfg.Gemini.AuthSelectedType`
 2. Agent settings → `~/.gemini/settings.json` → `security.auth.selectedType`
 3. Host settings → global agent settings → `security.auth.selectedType`
 
@@ -171,7 +171,7 @@ Gemini supports both explicit mode selection (via `SelectedType`) and auto-detec
 
 **Env vars** (if present): `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `CODEX_API_KEY`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_REGION`, `GOOGLE_APPLICATION_CREDENTIALS`
 
-**Files** (if present): OAuth creds → `~/.scion/oauth_creds.json`, Codex auth → `~/.codex/auth.json`, OpenCode auth → `~/.local/share/opencode/auth.json`, ADC → `~/.config/gcp/application_default_credentials.json`
+**Files** (if present): OAuth creds → `~/.fabric/oauth_creds.json`, Codex auth → `~/.codex/auth.json`, OpenCode auth → `~/.local/share/opencode/auth.json`, ADC → `~/.config/gcp/application_default_credentials.json`
 
 ### OpenCode
 
@@ -225,7 +225,7 @@ Credential files are mapped from host paths to standardized container paths:
 |------------|---------------|---------|
 | `~/.config/gcloud/application_default_credentials.json` | `~/.config/gcp/application_default_credentials.json` | Claude, Gemini, Generic |
 | `~/.gemini/oauth_creds.json` | `~/.gemini/oauth_creds.json` | Gemini |
-| `~/.gemini/oauth_creds.json` | `~/.scion/oauth_creds.json` | Generic |
+| `~/.gemini/oauth_creds.json` | `~/.fabric/oauth_creds.json` | Generic |
 | `~/.codex/auth.json` | `~/.codex/auth.json` | Codex, Generic |
 | `~/.local/share/opencode/auth.json` | `~/.local/share/opencode/auth.json` | OpenCode, Generic |
 

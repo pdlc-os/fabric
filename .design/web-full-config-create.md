@@ -10,11 +10,11 @@
 
 ### Goal
 
-Expose the full `ScionConfig` inline configuration capability (from the JIT agent config design) as a rich web form in the Hub UI. This gives users a way to customize all agent configuration options without needing to create templates or config files.
+Expose the full `FabricConfig` inline configuration capability (from the JIT agent config design) as a rich web form in the Hub UI. This gives users a way to customize all agent configuration options without needing to create templates or config files.
 
 ### Approach: Two-Phase Creation
 
-The existing simple form remains the common starting point. A new **"Create & Edit"** button creates the agent in a provisioned-but-not-started state (`provisionOnly: true`), then navigates to an advanced configuration form where the user can review and modify the full `ScionConfig` before starting.
+The existing simple form remains the common starting point. A new **"Create & Edit"** button creates the agent in a provisioned-but-not-started state (`provisionOnly: true`), then navigates to an advanced configuration form where the user can review and modify the full `FabricConfig` before starting.
 
 The provisioning step includes rendering all settings and performing environment variable gathering so that the advanced form is pre-populated with resolved values when presented to the user.
 
@@ -52,7 +52,7 @@ The form actions area gets a second button to the left of the existing "Create &
 
 ### Field Migration
 
-- **Telemetry checkbox** — Moved to the advanced form. It will be set via the `ScionConfig.telemetry.enabled` field in the advanced form, with the default populated from the global settings (same as today).
+- **Telemetry checkbox** — Moved to the advanced form. It will be set via the `FabricConfig.telemetry.enabled` field in the advanced form, with the default populated from the global settings (same as today).
 - **Notify checkbox** — Remains on the simple form.
 
 ---
@@ -61,7 +61,7 @@ The form actions area gets a second button to the left of the existing "Create &
 
 ### 3.1 Page Structure
 
-The advanced form is a **new page** at route `/agents/:agentId/configure`. It loads the agent's current state (including `appliedConfig`) and presents an editable form for the full `ScionConfig`.
+The advanced form is a **new page** at route `/agents/:agentId/configure`. It loads the agent's current state (including `appliedConfig`) and presents an editable form for the full `FabricConfig`.
 
 **Page layout:**
 
@@ -151,7 +151,7 @@ A dynamic key-value editor for `env`:
 
 ### 3.3 Fields NOT Exposed
 
-Some `ScionConfig` fields are intentionally omitted from the form:
+Some `FabricConfig` fields are intentionally omitted from the form:
 
 | Field | Reason |
 |-------|--------|
@@ -184,7 +184,7 @@ There is no Cancel button because the agent already exists at this point.
 
 ### 4.1 Update Agent Config (Extend Existing PUT)
 
-The existing `PUT /api/v1/agents/:id` only supports updating `name`, `labels`, `annotations`, and `taskSummary`. Extend it to support updating the agent's `ScionConfig` / `AppliedConfig` **before the agent has been started**.
+The existing `PUT /api/v1/agents/:id` only supports updating `name`, `labels`, `annotations`, and `taskSummary`. Extend it to support updating the agent's `FabricConfig` / `AppliedConfig` **before the agent has been started**.
 
 Add a `config` field to the update request body:
 
@@ -192,7 +192,7 @@ Add a `config` field to the update request body:
 var updates struct {
     Name         string            `json:"name,omitempty"`
     Labels       map[string]string `json:"labels,omitempty"`
-    Config       *api.ScionConfig  `json:"config,omitempty"`    // NEW
+    Config       *api.FabricConfig  `json:"config,omitempty"`    // NEW
     // ...existing fields...
 }
 ```
@@ -203,7 +203,7 @@ Guard: Only allow `config` updates when agent phase is `created` (provisioned bu
 
 ### 4.2 Read Agent Config
 
-The existing `GET /api/v1/agents/:id` returns the agent with `appliedConfig` which includes `inlineConfig` (the full `ScionConfig`). This is sufficient for the form to load initial values.
+The existing `GET /api/v1/agents/:id` returns the agent with `appliedConfig` which includes `inlineConfig` (the full `FabricConfig`). This is sufficient for the form to load initial values.
 
 The form populates fields from resolved values. When an agent is created from a template, the template's resolved values are shown as populated, editable defaults. Empty fields mean "use harness/system default."
 
@@ -228,15 +228,15 @@ Field population priority:
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| `scion-page-agent-configure` | `web/src/components/pages/agent-configure.ts` | Advanced config form page |
-| `scion-env-editor` | `web/src/components/shared/env-editor.ts` | Reusable key-value pair editor for environment variables |
+| `fabric-page-agent-configure` | `web/src/components/pages/agent-configure.ts` | Advanced config form page |
+| `fabric-env-editor` | `web/src/components/shared/env-editor.ts` | Reusable key-value pair editor for environment variables |
 
 ### Routing
 
 Add route in `web/src/client/main.ts`:
 
 ```
-/agents/:agentId/configure -> scion-page-agent-configure
+/agents/:agentId/configure -> fabric-page-agent-configure
 ```
 
 ### Navigation Flow
@@ -256,7 +256,7 @@ If a user navigates away and comes back to a `created`-phase agent, the agent de
 
 ### Phase 1: Backend — Extend Agent Update API
 
-- Extend `PUT /api/v1/agents/:id` in `pkg/hub/handlers.go` to accept a `config` field (`*api.ScionConfig`)
+- Extend `PUT /api/v1/agents/:id` in `pkg/hub/handlers.go` to accept a `config` field (`*api.FabricConfig`)
 - Guard: only allow config updates when `agent.Phase == "created"`
 - Merge the provided config into `agent.AppliedConfig.InlineConfig`
 - Update relevant `AppliedConfig` top-level fields (image, model, task, etc.) from the config

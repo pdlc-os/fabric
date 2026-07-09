@@ -36,5 +36,5 @@ Implemented Phase 5 changes for project configuration and discovery logic in `pk
 ## Verification Results
 
 - All tests in `pkg/config` passed, confirming both new functionality and backward compatibility.
-- `go test ./pkg/config/...` output: `ok github.com/GoogleCloudPlatform/scion/pkg/config 1.393s`
-- `go test ./pkg/config/...` output: `ok github.com/GoogleCloudPlatform/scion/pkg/config 1.414s`
+- `go test ./pkg/config/...` output: `ok github.com/pdlc-os/fabric/pkg/config 1.393s`
+- `go test ./pkg/config/...` output: `ok github.com/pdlc-os/fabric/pkg/config 1.414s`

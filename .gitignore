@@ -1,15 +1,15 @@
-# scion ignore
-.scion/agents
-.scion/harness-configs
-.scion/settings.yaml
-.scion/grove-id
-.scion/state.yaml
+# fabric ignore
+.fabric/agents
+.fabric/harness-configs
+.fabric/settings.yaml
+.fabric/grove-id
+.fabric/state.yaml
 # binaries
 /build/
 /.build/
-/scion
-scion-agent
-extras/scion-chat-app/scion-chat-app
+/fabric
+fabric-agent
+extras/fabric-chat-app/fabric-chat-app
 
 # secrets
 TEST_GEMINI_KEY

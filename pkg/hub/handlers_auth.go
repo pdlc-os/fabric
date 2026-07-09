@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
 )
 
@@ -783,7 +783,7 @@ func (s *Server) handleCLIAuthAuthorize(w http.ResponseWriter, r *http.Request) 
 	if s.oauthService == nil {
 		if s.config.Debug {
 			slog.Debug("CLI auth authorize request failed: OAuth service is nil", "provider", provider)
-			slog.Debug("Check environment variables SCION_SERVER_OAUTH_CLI_*_CLIENTID/CLIENTSECRET")
+			slog.Debug("Check environment variables FABRIC_SERVER_OAUTH_CLI_*_CLIENTID/CLIENTSECRET")
 		}
 		writeError(w, http.StatusNotImplemented, "not_implemented",
 			"OAuth is not configured on this server", nil)

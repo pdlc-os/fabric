@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -28,11 +28,11 @@ var projectReconnectCmd = &cobra.Command{
 	Short: "Reconnect a project to a moved workspace",
 	Long: `Update the workspace_path in a project's settings when the workspace
 directory has been moved to a new location. This fixes projects that show
-as 'orphaned' in 'scion project list' because their workspace was relocated.
+as 'orphaned' in 'fabric project list' because their workspace was relocated.
 
 The command must be run from within the moved workspace directory, or the
 new workspace path can be provided as an argument. The project is identified
-by the .scion marker file in the workspace.`,
+by the .fabric marker file in the workspace.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var workspacePath string
@@ -55,16 +55,16 @@ by the .scion marker file in the workspace.`,
 			return fmt.Errorf("workspace path does not exist: %s", workspacePath)
 		}
 
-		// Find the .scion marker file
-		markerPath := filepath.Join(workspacePath, config.DotScion)
+		// Find the .fabric marker file
+		markerPath := filepath.Join(workspacePath, config.DotFabric)
 		if !config.IsProjectMarkerFile(markerPath) {
-			return fmt.Errorf("no .scion marker file found at %s\nReconnect only works for non-git projects with externalized storage", workspacePath)
+			return fmt.Errorf("no .fabric marker file found at %s\nReconnect only works for non-git projects with externalized storage", workspacePath)
 		}
 
 		// Read the marker to find the external config
 		marker, err := config.ReadProjectMarker(markerPath)
 		if err != nil {
-			return fmt.Errorf("invalid .scion marker file: %w", err)
+			return fmt.Errorf("invalid .fabric marker file: %w", err)
 		}
 
 		configPath, err := marker.ExternalProjectPath()
@@ -74,7 +74,7 @@ by the .scion marker file in the workspace.`,
 
 		// Verify config exists
 		if _, err := os.Stat(configPath); err != nil {
-			return fmt.Errorf("external project config not found at %s\nThe project may need to be re-initialized with 'scion init'", configPath)
+			return fmt.Errorf("external project config not found at %s\nThe project may need to be re-initialized with 'fabric init'", configPath)
 		}
 
 		// Update workspace_path

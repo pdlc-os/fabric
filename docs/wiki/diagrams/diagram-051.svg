@@ -31,42 +31,42 @@
 <polygon fill="lightblue" stroke="black" points="377.41,-673 286.41,-673 286.41,-637 377.41,-637 377.41,-673"/>
 <text xml:space="preserve" text-anchor="middle" x="331.91" y="-646.95" font-family="Times,serif" font-size="14.00">A2A Client</text>
 </g>
-<!-- scion&#45;a2a&#45;bridge -->
+<!-- fabric&#45;a2a&#45;bridge -->
 <g id="node2" class="node">
-<title>scion&#45;a2a&#45;bridge</title>
+<title>fabric&#45;a2a&#45;bridge</title>
 <polygon fill="lightblue" stroke="black" points="471.16,-378 192.66,-378 192.66,-342 471.16,-342 471.16,-378"/>
-<text xml:space="preserve" text-anchor="middle" x="331.91" y="-357.2" font-family="Times,serif" font-size="14.00">scion&#45;a2a&#45;bridge</text>
+<text xml:space="preserve" text-anchor="middle" x="331.91" y="-357.2" font-family="Times,serif" font-size="14.00">fabric&#45;a2a&#45;bridge</text>
 <text xml:space="preserve" text-anchor="middle" x="331.91" y="-346.7" font-family="Times,serif" font-size="14.00">(Auth, Rate Limit, TLS Termination)</text>
 </g>
-<!-- A2A Client&#45;&gt;scion&#45;a2a&#45;bridge -->
+<!-- A2A Client&#45;&gt;fabric&#45;a2a&#45;bridge -->
 <g id="edge1" class="edge">
-<title>A2A Client&#45;&gt;scion&#45;a2a&#45;bridge</title>
+<title>A2A Client&#45;&gt;fabric&#45;a2a&#45;bridge</title>
 <path fill="none" stroke="black" d="M331.91,-636.55C331.91,-587.79 331.91,-449.79 331.91,-389.63"/>
 <polygon fill="black" stroke="black" points="335.41,-389.87 331.91,-379.87 328.41,-389.87 335.41,-389.87"/>
 <text xml:space="preserve" text-anchor="middle" x="421.91" y="-498.95" font-family="Times,serif" font-size="14.00">JSON&#45;RPC (Blocking, SSE)</text>
 </g>
-<!-- Scion Hub -->
+<!-- Fabric Hub -->
 <g id="node3" class="node">
-<title>Scion Hub</title>
+<title>Fabric Hub</title>
 <polygon fill="lightblue" stroke="black" points="136.66,-82 53.16,-82 53.16,-46 136.66,-46 136.66,-82"/>
-<text xml:space="preserve" text-anchor="middle" x="94.91" y="-55.95" font-family="Times,serif" font-size="14.00">Scion Hub</text>
+<text xml:space="preserve" text-anchor="middle" x="94.91" y="-55.95" font-family="Times,serif" font-size="14.00">Fabric Hub</text>
 </g>
-<!-- scion&#45;a2a&#45;bridge&#45;&gt;Scion Hub -->
+<!-- fabric&#45;a2a&#45;bridge&#45;&gt;Fabric Hub -->
 <g id="edge2" class="edge">
-<title>scion&#45;a2a&#45;bridge&#45;&gt;Scion Hub</title>
+<title>fabric&#45;a2a&#45;bridge&#45;&gt;Fabric Hub</title>
 <path fill="none" stroke="black" d="M218.75,-341.51C145.37,-323.67 55.12,-288 8.91,-217.25 -19.56,-173.67 28.69,-120.17 63.66,-89.58"/>
 <polygon fill="black" stroke="black" points="65.7,-92.44 71.05,-83.3 61.16,-87.11 65.7,-92.44"/>
 <text xml:space="preserve" text-anchor="middle" x="83.91" y="-203.95" font-family="Times,serif" font-size="14.00">Hub API (Admin JWTs)</text>
 </g>
-<!-- Scion Agents -->
+<!-- Fabric Agents -->
 <g id="node4" class="node">
-<title>Scion Agents</title>
+<title>Fabric Agents</title>
 <polygon fill="lightblue" stroke="black" points="384.91,-82 278.91,-82 278.91,-46 384.91,-46 384.91,-82"/>
-<text xml:space="preserve" text-anchor="middle" x="331.91" y="-55.95" font-family="Times,serif" font-size="14.00">Scion Agents</text>
+<text xml:space="preserve" text-anchor="middle" x="331.91" y="-55.95" font-family="Times,serif" font-size="14.00">Fabric Agents</text>
 </g>
-<!-- scion&#45;a2a&#45;bridge&#45;&gt;Scion Agents -->
+<!-- fabric&#45;a2a&#45;bridge&#45;&gt;Fabric Agents -->
 <g id="edge3" class="edge">
-<title>scion&#45;a2a&#45;bridge&#45;&gt;Scion Agents</title>
+<title>fabric&#45;a2a&#45;bridge&#45;&gt;Fabric Agents</title>
 <path fill="none" stroke="black" d="M331.91,-341.92C331.91,-293.42 331.91,-154.46 331.91,-93.85"/>
 <polygon fill="black" stroke="black" points="335.41,-94.01 331.91,-84.01 328.41,-94.01 335.41,-94.01"/>
 <text xml:space="preserve" text-anchor="middle" x="388.16" y="-203.95" font-family="Times,serif" font-size="14.00">Agent Messaging</text>
@@ -78,9 +78,9 @@
 <text xml:space="preserve" text-anchor="middle" x="467.91" y="-61.2" font-family="Times,serif" font-size="14.00">State DB</text>
 <text xml:space="preserve" text-anchor="middle" x="467.91" y="-50.7" font-family="Times,serif" font-size="14.00">(SQLite)</text>
 </g>
-<!-- scion&#45;a2a&#45;bridge&#45;&gt;State DB -->
+<!-- fabric&#45;a2a&#45;bridge&#45;&gt;State DB -->
 <g id="edge4" class="edge">
-<title>scion&#45;a2a&#45;bridge&#45;&gt;State DB</title>
+<title>fabric&#45;a2a&#45;bridge&#45;&gt;State DB</title>
 <path fill="none" stroke="black" d="M350.96,-341.9C377.12,-317.19 423.48,-268.8 445.91,-217.25 463.5,-176.82 467.55,-125.22 468.21,-93.67"/>
 <polygon fill="black" stroke="black" points="471.71,-93.78 468.3,-83.75 464.71,-93.72 471.71,-93.78"/>
 <text xml:space="preserve" text-anchor="middle" x="554.02" y="-203.95" font-family="Times,serif" font-size="14.00">Task Lifecycle, Push Configs</text>
@@ -91,16 +91,16 @@
 <polygon fill="lightblue" stroke="black" points="772.66,-82 629.16,-82 629.16,-46 772.66,-46 772.66,-82"/>
 <text xml:space="preserve" text-anchor="middle" x="700.91" y="-55.95" font-family="Times,serif" font-size="14.00">External Webhooks</text>
 </g>
-<!-- scion&#45;a2a&#45;bridge&#45;&gt;External Webhooks -->
+<!-- fabric&#45;a2a&#45;bridge&#45;&gt;External Webhooks -->
 <g id="edge5" class="edge">
-<title>scion&#45;a2a&#45;bridge&#45;&gt;External Webhooks</title>
+<title>fabric&#45;a2a&#45;bridge&#45;&gt;External Webhooks</title>
 <path fill="none" stroke="black" d="M429.57,-341.56C504.05,-323.2 603.63,-286.86 662.91,-217.25 692.79,-182.15 699.77,-126.93 701.07,-93.53"/>
 <polygon fill="black" stroke="black" points="704.56,-93.87 701.29,-83.8 697.56,-93.71 704.56,-93.87"/>
 <text xml:space="preserve" text-anchor="middle" x="737.99" y="-203.95" font-family="Times,serif" font-size="14.00">Push Notifications</text>
 </g>
-<!-- Scion Hub&#45;&gt;scion&#45;a2a&#45;bridge -->
+<!-- Fabric Hub&#45;&gt;fabric&#45;a2a&#45;bridge -->
 <g id="edge6" class="edge">
-<title>Scion Hub&#45;&gt;scion&#45;a2a&#45;bridge</title>
+<title>Fabric Hub&#45;&gt;fabric&#45;a2a&#45;bridge</title>
 <path fill="none" stroke="black" d="M105.85,-82.47C124.22,-111.38 162.94,-170.63 200.41,-217.25 234.9,-260.17 279.18,-306.29 306.54,-333.88"/>
 <polygon fill="black" stroke="black" points="303.85,-336.14 313.39,-340.75 308.81,-331.2 303.85,-336.14"/>
 <text xml:space="preserve" text-anchor="middle" x="264.16" y="-203.95" font-family="Times,serif" font-size="14.00">Broker Plugin RPC</text>

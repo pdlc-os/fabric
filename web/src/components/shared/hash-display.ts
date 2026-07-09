@@ -26,8 +26,8 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-@customElement('scion-hash-display')
-export class ScionHashDisplay extends LitElement {
+@customElement('fabric-hash-display')
+export class FabricHashDisplay extends LitElement {
   /** Full hash string (e.g. "sha256:ba81f11e..."). */
   @property({ type: String })
   hash = '';
@@ -51,14 +51,14 @@ export class ScionHashDisplay extends LitElement {
       max-width: 100%;
       min-width: 0;
       vertical-align: middle;
-      font-family: var(--scion-font-mono, var(--sl-font-mono, monospace));
+      font-family: var(--fabric-font-mono, var(--sl-font-mono, monospace));
       font-size: inherit;
       color: inherit;
     }
 
     .hash-text {
       display: inline-block;
-      max-width: var(--scion-hash-max-width, 14ch);
+      max-width: var(--fabric-hash-max-width, 14ch);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -72,16 +72,16 @@ export class ScionHashDisplay extends LitElement {
       border: 0;
       padding: 0;
       margin: 0;
-      color: var(--scion-text-muted, var(--sl-color-neutral-500, #64748b));
+      color: var(--fabric-text-muted, var(--sl-color-neutral-500, #64748b));
       flex-shrink: 0;
       line-height: 1;
       display: inline-flex;
       align-items: center;
-      transition: color var(--scion-transition-fast, 150ms ease);
+      transition: color var(--fabric-transition-fast, 150ms ease);
     }
 
     .copy-btn:hover {
-      color: var(--scion-primary, var(--sl-color-primary-600, #3b82f6));
+      color: var(--fabric-primary, var(--sl-color-primary-600, #3b82f6));
     }
 
     .copy-btn sl-icon {
@@ -110,7 +110,7 @@ export class ScionHashDisplay extends LitElement {
 
   override render(): unknown {
     if (!this.hash) return nothing;
-    const styleAttr = `--scion-hash-max-width: ${this.maxWidth}`;
+    const styleAttr = `--fabric-hash-max-width: ${this.maxWidth}`;
     return html`
       <span class="hash-text" style=${styleAttr} title=${this.hash}>${this.hash}</span>
       <sl-tooltip content=${this.copied ? 'Copied!' : 'Copy to clipboard'}>
@@ -129,6 +129,6 @@ export class ScionHashDisplay extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'scion-hash-display': ScionHashDisplay;
+    'fabric-hash-display': FabricHashDisplay;
   }
 }

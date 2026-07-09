@@ -21,11 +21,11 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/notification"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/notificationsubscription"
-	"github.com/GoogleCloudPlatform/scion/pkg/ent/subscriptiontemplate"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/ent"
+	"github.com/pdlc-os/fabric/pkg/ent/notification"
+	"github.com/pdlc-os/fabric/pkg/ent/notificationsubscription"
+	"github.com/pdlc-os/fabric/pkg/ent/subscriptiontemplate"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // entDesc returns the Ent ordering option for descending order.

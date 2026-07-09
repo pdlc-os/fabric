@@ -191,7 +191,7 @@ func TestRemoveSymlinkSafe(t *testing.T) {
 
 	t.Run("removes dangling symlink", func(t *testing.T) {
 		link := filepath.Join(tmpDir, "dangling-link")
-		if err := os.Symlink("/home/scion/.claude/debug/test.txt", link); err != nil {
+		if err := os.Symlink("/home/fabric/.claude/debug/test.txt", link); err != nil {
 			t.Fatal(err)
 		}
 		removeSymlinkSafe(link)
@@ -252,7 +252,7 @@ func TestRemoveAllSafe_WithDanglingSymlinks(t *testing.T) {
 	}
 	// Multiple dangling symlinks mimicking container-internal paths.
 	for _, name := range []string{"latest", "session-1", "session-2"} {
-		if err := os.Symlink("/home/scion/.claude/debug/"+name+".txt", filepath.Join(debugDir, name)); err != nil {
+		if err := os.Symlink("/home/fabric/.claude/debug/"+name+".txt", filepath.Join(debugDir, name)); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -27,15 +27,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/config"
-	"github.com/GoogleCloudPlatform/scion/pkg/gcp"
-	"github.com/GoogleCloudPlatform/scion/pkg/hubclient"
-	"github.com/GoogleCloudPlatform/scion/pkg/labels"
-	"github.com/GoogleCloudPlatform/scion/pkg/secret"
-	"github.com/GoogleCloudPlatform/scion/pkg/storage"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/gcp"
+	"github.com/pdlc-os/fabric/pkg/hubclient"
+	"github.com/pdlc-os/fabric/pkg/labels"
+	"github.com/pdlc-os/fabric/pkg/secret"
+	"github.com/pdlc-os/fabric/pkg/storage"
+	"github.com/pdlc-os/fabric/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 type ListProjectsResponse struct {
@@ -667,7 +667,7 @@ func hasWorkspaceContent(dir string) bool {
 	}
 	for _, e := range entries {
 		switch e.Name() {
-		case "shared-dirs", ".scion":
+		case "shared-dirs", ".fabric":
 			continue
 		default:
 			return true
@@ -677,9 +677,9 @@ func hasWorkspaceContent(dir string) bool {
 }
 
 // initHubManagedProject initializes the filesystem workspace for a hub-managed project.
-// It creates the workspace directory and seeds the .scion project structure with
+// It creates the workspace directory and seeds the .fabric project structure with
 // hub connection settings. Unlike regular projects, hub-managed projects store
-// settings directly in the .scion directory (no split storage or marker files).
+// settings directly in the .fabric directory (no split storage or marker files).
 func (s *Server) initHubManagedProject(project *store.Project) error {
 	workspacePath, err := hubManagedProjectPath(project.Slug)
 	if err != nil {
@@ -690,15 +690,15 @@ func (s *Server) initHubManagedProject(project *store.Project) error {
 		return fmt.Errorf("failed to create project workspace directory: %w", err)
 	}
 
-	scionDir := filepath.Join(workspacePath, ".scion")
-	if err := os.MkdirAll(scionDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .scion directory: %w", err)
+	fabricDir := filepath.Join(workspacePath, ".fabric")
+	if err := os.MkdirAll(fabricDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .fabric directory: %w", err)
 	}
 
-	// Seed default settings.yaml directly in scionDir. Hub-native projects
+	// Seed default settings.yaml directly in fabricDir. Hub-native projects
 	// bypass InitProject (which uses split storage for git repos) and keep
 	// all configuration in-place.
-	settingsPath := filepath.Join(scionDir, "settings.yaml")
+	settingsPath := filepath.Join(fabricDir, "settings.yaml")
 	if _, err := os.Stat(settingsPath); os.IsNotExist(err) {
 		defaultSettings, err := config.GetProjectDefaultSettingsYAML()
 		if err != nil {
@@ -717,7 +717,7 @@ func (s *Server) initHubManagedProject(project *store.Project) error {
 		"project_id":    project.ID,
 	}
 	for key, value := range settingsUpdates {
-		if err := config.UpdateSetting(scionDir, key, value, false); err != nil {
+		if err := config.UpdateSetting(fabricDir, key, value, false); err != nil {
 			slog.Warn("failed to update hub-managed project setting",
 				"project_id", project.ID, "key", key, "error", err.Error())
 		}
@@ -728,7 +728,7 @@ func (s *Server) initHubManagedProject(project *store.Project) error {
 
 // cloneSharedWorkspaceProject performs the host-side git clone for a shared-workspace
 // git project. It clones the repository into the hub-native workspace path and
-// seeds the .scion project structure on top. If the clone fails, the workspace
+// seeds the .fabric project structure on top. If the clone fails, the workspace
 // directory is cleaned up and an error is returned.
 func (s *Server) cloneSharedWorkspaceProject(ctx context.Context, project *store.Project) error {
 	workspacePath, err := hubManagedProjectPath(project.Slug)
@@ -739,9 +739,9 @@ func (s *Server) cloneSharedWorkspaceProject(ctx context.Context, project *store
 	// Build clone URL from the project's git remote.
 	// The clone-url label may be an explicit override (e.g. local path for testing).
 	// Only convert to HTTPS if the URL looks like a remote git URL.
-	cloneURL := resolveCloneURL(project.Labels["scion.dev/clone-url"], project.GitRemote)
+	cloneURL := resolveCloneURL(project.Labels["fabric.dev/clone-url"], project.GitRemote)
 
-	defaultBranch := project.Labels["scion.dev/default-branch"]
+	defaultBranch := project.Labels["fabric.dev/default-branch"]
 	if defaultBranch == "" {
 		defaultBranch = "main"
 	}
@@ -756,10 +756,10 @@ func (s *Server) cloneSharedWorkspaceProject(ctx context.Context, project *store
 		return fmt.Errorf("shared workspace clone failed: %w", err)
 	}
 
-	// Seed the .scion project on top of the cloned workspace
-	scionDir := filepath.Join(workspacePath, ".scion")
-	if err := config.InitProject(scionDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
-		slog.Warn("failed to initialize .scion in cloned workspace",
+	// Seed the .fabric project on top of the cloned workspace
+	fabricDir := filepath.Join(workspacePath, ".fabric")
+	if err := config.InitProject(fabricDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
+		slog.Warn("failed to initialize .fabric in cloned workspace",
 			"project_id", project.ID, "error", err.Error())
 	}
 
@@ -771,7 +771,7 @@ func (s *Server) cloneSharedWorkspaceProject(ctx context.Context, project *store
 		"project_id":    project.ID,
 	}
 	for key, value := range settingsUpdates {
-		if err := config.UpdateSetting(scionDir, key, value, false); err != nil {
+		if err := config.UpdateSetting(fabricDir, key, value, false); err != nil {
 			slog.Warn("failed to update shared-workspace project setting",
 				"project_id", project.ID, "key", key, "error", err.Error())
 		}
@@ -1100,12 +1100,12 @@ func (s *Server) handleProjectRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// For linked projects (local directory), initialize the .scion
+		// For linked projects (local directory), initialize the .fabric
 		// directory structure so agents and templates directories exist.
 		if localPath != "" {
-			scionDir := filepath.Join(localPath, ".scion")
-			if err := config.InitProject(scionDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
-				slog.Warn("failed to initialize .scion in linked project",
+			fabricDir := filepath.Join(localPath, ".fabric")
+			if err := config.InitProject(fabricDir, nil, config.InitProjectOpts{SkipRuntimeCheck: true}); err != nil {
+				slog.Warn("failed to initialize .fabric in linked project",
 					"project_id", project.ID, "localPath", localPath, "error", err.Error())
 			}
 		}
@@ -2194,7 +2194,7 @@ func (s *Server) migrateProjectSlug(ctx context.Context, project *store.Project,
 		}
 	}
 
-	// Migrate the project config directory (~/.scion/project-configs/<slug>__<short-uuid>/).
+	// Migrate the project config directory (~/.fabric/project-configs/<slug>__<short-uuid>/).
 	oldMarker := &config.ProjectMarker{
 		ProjectID:   project.ID,
 		ProjectSlug: oldSlug,
@@ -2323,7 +2323,7 @@ func (s *Server) deleteProject(w http.ResponseWriter, r *http.Request, id string
 		}
 	}
 
-	// Clean up the project-configs directory (~/.scion/project-configs/<slug>__<short-uuid>/).
+	// Clean up the project-configs directory (~/.fabric/project-configs/<slug>__<short-uuid>/).
 	// This stores external settings, templates, and agent homes for both
 	// git-backed linked projects and non-git external projects.
 	if project.Slug != "" && project.ID != "" {
@@ -2332,7 +2332,7 @@ func (s *Server) deleteProject(w http.ResponseWriter, r *http.Request, id string
 			ProjectSlug: project.Slug,
 		}
 		if configPath, err := marker.ExternalProjectPath(); err == nil {
-			// ExternalProjectPath returns <project-configs>/<slug__uuid>/.scion —
+			// ExternalProjectPath returns <project-configs>/<slug__uuid>/.fabric —
 			// remove the parent (<slug__uuid>) directory.
 			projectConfigDir := filepath.Dir(configPath)
 			if err := config.RemoveProjectConfig(projectConfigDir); err != nil && !os.IsNotExist(err) {

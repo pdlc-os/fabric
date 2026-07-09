@@ -29,7 +29,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -147,7 +147,7 @@ func TestRegistrationHTTP_GetForm(t *testing.T) {
 	bodyStr := string(body)
 	assert.Contains(t, bodyStr, "alice")
 	assert.Contains(t, bodyStr, token)
-	assert.Contains(t, bodyStr, "Link Telegram to Scion")
+	assert.Contains(t, bodyStr, "Link Telegram to Fabric")
 }
 
 func TestRegistrationHTTP_GetMissingToken(t *testing.T) {
@@ -441,7 +441,7 @@ func TestRegisterCommand_InPollingLoop(t *testing.T) {
 		atomic.AddInt32(&received, 1)
 	}
 
-	require.NoError(t, b.Subscribe("scion.>"))
+	require.NoError(t, b.Subscribe("fabric.>"))
 
 	// Should send a registration link but NOT forward to hub
 	require.Eventually(t, func() bool {
@@ -561,7 +561,7 @@ func TestEndToEnd_RegisterThenMessage(t *testing.T) {
 	b := newTestBrokerWithRegistration(t, tgSrv)
 
 	b.mu.Lock()
-	b.chatRoutes[789] = "scion.project.p1.agent.coder.messages"
+	b.chatRoutes[789] = "fabric.project.p1.agent.coder.messages"
 	b.mu.Unlock()
 
 	// Step 1: User sends /register → get link
@@ -586,7 +586,7 @@ func TestEndToEnd_RegisterThenMessage(t *testing.T) {
 		inboundMu.Unlock()
 	}
 
-	require.NoError(t, b.Subscribe("scion.>"))
+	require.NoError(t, b.Subscribe("fabric.>"))
 
 	// Wait for the registration link to be sent
 	var regLink string
@@ -611,13 +611,13 @@ func TestEndToEnd_RegisterThenMessage(t *testing.T) {
 	}
 
 	resp, err := http.PostForm(b.registerURL+tokenURL, url.Values{
-		"email": {"alice@scion.dev"},
+		"email": {"alice@fabric.dev"},
 	})
 	require.NoError(t, err)
 	resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	// Step 3: Send a normal message — should be attributed to scion user
+	// Step 3: Send a normal message — should be attributed to fabric user
 	tgSrv.setUpdates([]Update{
 		{
 			UpdateID: 2,
@@ -641,8 +641,8 @@ func TestEndToEnd_RegisterThenMessage(t *testing.T) {
 	lastMsg := inboundMsgs[len(inboundMsgs)-1]
 	inboundMu.Unlock()
 
-	assert.Equal(t, "user:alice@scion.dev", lastMsg.Sender,
-		"after registration, sender should be the mapped scion user")
+	assert.Equal(t, "user:alice@fabric.dev", lastMsg.Sender,
+		"after registration, sender should be the mapped fabric user")
 	assert.Equal(t, "hello after registration", lastMsg.Msg)
 }
 

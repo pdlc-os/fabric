@@ -1,17 +1,17 @@
 ---
 title: User Access Tokens
-description: Managing and using user access tokens (UATs) in Scion.
+description: Managing and using user access tokens (UATs) in Fabric.
 ---
 
-Scion supports **user access tokens (UATs)** for programmatic access to the Hub API and for
+Fabric supports **user access tokens (UATs)** for programmatic access to the Hub API and for
 authenticating CLI operations when browser-based OAuth is not feasible — for example in CI/CD
 pipelines or automation scripts.
 
 :::note[Naming]
 The canonical term is **user access token (UAT)**, per the root
-[`GLOSSARY.md`](https://github.com/GoogleCloudPlatform/scion/blob/main/GLOSSARY.md). You may
+[`GLOSSARY.md`](https://github.com/pdlc-os/fabric/blob/main/GLOSSARY.md). You may
 still see the older name *personal access token (PAT)* in some places, and the on-the-wire token
-prefix is `scion_pat_` — a legacy artifact of that earlier name. The two terms refer to the same
+prefix is `fabric_pat_` — a legacy artifact of that earlier name. The two terms refer to the same
 credential.
 :::
 
@@ -23,7 +23,7 @@ project** and carries a specific set of action permissions, so a token minted fo
 what CI needs.
 
 **Note on legacy keys:** the legacy `sk_live_*` API keys have been completely removed. All users
-must migrate to `scion_pat_*` tokens.
+must migrate to `fabric_pat_*` tokens.
 
 ## Scoping and permissions
 
@@ -46,10 +46,10 @@ permissions). Available scopes:
 
 ## Creating a token
 
-Generate a new token with the Scion CLI:
+Generate a new token with the Fabric CLI:
 
 ```bash
-scion hub token create \
+fabric hub token create \
   --project my-project \
   --name "github-actions" \
   --scopes agent:dispatch,agent:read,agent:stop \
@@ -66,11 +66,11 @@ The command prints the token value **once**. Store it securely — it cannot be 
 
 ## Using a token
 
-Authenticate by setting the token in the `SCION_HUB_TOKEN` environment variable:
+Authenticate by setting the token in the `FABRIC_HUB_TOKEN` environment variable:
 
 ```bash
-export SCION_HUB_TOKEN="scion_pat_..."
-scion list --project my-project
+export FABRIC_HUB_TOKEN="fabric_pat_..."
+fabric list --project my-project
 ```
 
 When this variable is set, the CLI bypasses the browser-based OAuth flow and uses the token for
@@ -79,29 +79,29 @@ all communication with the Hub.
 ## Trust level separation
 
 It is crucial to distinguish how **users** authenticate with the Hub from how **agents**
-authenticate with the Hub. Scion uses two separate environment variables to enforce strict
+authenticate with the Hub. Fabric uses two separate environment variables to enforce strict
 privilege boundaries:
 
-### `SCION_HUB_TOKEN` (user level)
+### `FABRIC_HUB_TOKEN` (user level)
 - **Purpose**: Authenticates a human user or a CI/CD pipeline.
 - **Scope**: Grants access based on the user's permissions and the specific scopes assigned to
   the token.
-- **Usage**: Used by the Scion CLI or external scripts calling the Hub API.
+- **Usage**: Used by the Fabric CLI or external scripts calling the Hub API.
 
-### `SCION_AUTH_TOKEN` (agent level)
+### `FABRIC_AUTH_TOKEN` (agent level)
 - **Purpose**: Authenticates an agent running within a container.
 - **Scope**: Carries a Hub-issued JWT scoped specifically to that agent. It is short-lived,
   auto-injected by the Runtime Broker, and grants only the specific permissions that agent needs
   to function (e.g., reporting status, reading its own secrets).
-- **Usage**: Automatically used by the `sciontool` binary running inside the agent.
+- **Usage**: Automatically used by the `fabrictool` binary running inside the agent.
 
 :::danger[Privilege escalation risk]
-**Never inject a `SCION_HUB_TOKEN` (or a user-level UAT) into an agent container as the
-`SCION_AUTH_TOKEN`.**
+**Never inject a `FABRIC_HUB_TOKEN` (or a user-level UAT) into an agent container as the
+`FABRIC_AUTH_TOKEN`.**
 
 Injecting a user token into an agent means the agent will operate with your full user
 permissions, rather than its intended, restricted scope. This allows the agent to create other
-agents, access other projects, or read secrets it shouldn't have access to. The Scion runtime
+agents, access other projects, or read secrets it shouldn't have access to. The Fabric runtime
 automatically handles agent authentication; you do not need to manually configure agent tokens.
 :::
 
@@ -119,18 +119,18 @@ configure action permissions and project-level scopes.
 List your tokens (name, ID, visible prefix, status, expiry, and scopes):
 
 ```bash
-scion hub token list
+fabric hub token list
 ```
 
 Revoke a token — it stops working for authentication but remains visible in listings as
 revoked:
 
 ```bash
-scion hub token revoke <token-id>
+fabric hub token revoke <token-id>
 ```
 
 Delete a token entirely (rather than leaving it in listings as revoked):
 
 ```bash
-scion hub token delete <token-id>
+fabric hub token delete <token-id>
 ```

@@ -150,7 +150,7 @@ func (r *KubernetesRuntime) checkPodPermissions(namespace string) CheckResult {
 				Name:        "pod-permissions",
 				Status:      "fail",
 				Message:     fmt.Sprintf("Missing pod %q permission in namespace %q", c.verb, namespace),
-				Remediation: fmt.Sprintf("Grant pod %s permission. Example: kubectl create rolebinding scion-pods --clusterrole=edit --serviceaccount=%s:default -n %s", c.verb, namespace, namespace),
+				Remediation: fmt.Sprintf("Grant pod %s permission. Example: kubectl create rolebinding fabric-pods --clusterrole=edit --serviceaccount=%s:default -n %s", c.verb, namespace, namespace),
 			}
 		}
 	}

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Cloud Build configuration for building the ADK scion agent image
-# This builds on top of the existing scion-base:latest image
+# Cloud Build configuration for building the ADK fabric agent image
+# This builds on top of the existing fabric-base:latest image
 #
 # Trigger manually:
-#   gcloud builds submit --config examples/adk_scion_agent/cloudbuild.yaml examples/adk_scion_agent/
+#   gcloud builds submit --config examples/adk_fabric_agent/cloudbuild.yaml examples/adk_fabric_agent/
 steps:
   # Enable multi-arch builds
   - name: 'gcr.io/cloud-builders/docker'
@@ -31,20 +31,20 @@ steps:
     env:
       - 'DOCKER_CLI_EXPERIMENTAL=enabled'
 
-  # Build and push scion-adk-agent image
+  # Build and push fabric-adk-agent image
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'build-scion-adk-agent'
+    id: 'build-fabric-adk-agent'
     args:
       - 'buildx'
       - 'build'
       - '--platform'
       - 'linux/amd64,linux/arm64'
       - '--build-arg'
-      - 'BASE_IMAGE=$_REGISTRY/scion-base:latest'
+      - 'BASE_IMAGE=$_REGISTRY/fabric-base:latest'
       - '-t'
-      - '$_REGISTRY/scion-adk-agent:$_SHORT_SHA'
+      - '$_REGISTRY/fabric-adk-agent:$_SHORT_SHA'
       - '-t'
-      - '$_REGISTRY/scion-adk-agent:latest'
+      - '$_REGISTRY/fabric-adk-agent:latest'
       - '-f'
       - 'Dockerfile'
       - '--pull'

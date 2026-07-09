@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/projectcompat"
-	"github.com/GoogleCloudPlatform/scion/pkg/util"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
+	"github.com/pdlc-os/fabric/pkg/util"
 )
 
 type AppleContainerRuntime struct {
@@ -43,12 +43,12 @@ func (r *AppleContainerRuntime) Name() string {
 }
 
 func (r *AppleContainerRuntime) ExecUser() string {
-	return "scion"
+	return "fabric"
 }
 
 func (r *AppleContainerRuntime) Run(ctx context.Context, config RunConfig) (string, error) {
 	// Serialize file and variable secrets into an env-var blob for
-	// container-side staging by sciontool init (stateless broker support).
+	// container-side staging by fabrictool init (stateless broker support).
 	if len(config.ResolvedSecrets) > 0 {
 		encoded, err := serializeSecrets(util.GetHomeDir(config.UnixUsername), config.ResolvedSecrets)
 		if err != nil {
@@ -227,10 +227,10 @@ func (r *AppleContainerRuntime) List(ctx context.Context, labelFilter map[string
 
 		agents = append(agents, api.AgentInfo{
 			ContainerID:     c.Configuration.ID,
-			Name:            c.Configuration.Labels["scion.name"],
-			Template:        c.Configuration.Labels["scion.template"],
-			HarnessConfig:   c.Configuration.Labels["scion.harness_config"],
-			HarnessAuth:     c.Configuration.Labels["scion.harness_auth"],
+			Name:            c.Configuration.Labels["fabric.name"],
+			Template:        c.Configuration.Labels["fabric.template"],
+			HarnessConfig:   c.Configuration.Labels["fabric.harness_config"],
+			HarnessAuth:     c.Configuration.Labels["fabric.harness_auth"],
 			Project:         projectcompat.ProjectNameFromLabels(c.Configuration.Labels),
 			ProjectID:       projectcompat.ProjectIDFromLabels(c.Configuration.Labels),
 			ProjectPath:     projectcompat.ProjectPathFromLabels(c.Configuration.Labels),
@@ -273,16 +273,16 @@ func (r *AppleContainerRuntime) Attach(ctx context.Context, id string) error {
 	// Check if running
 	status := strings.ToLower(a.ContainerStatus)
 	if !strings.HasPrefix(status, "up") && status != "running" {
-		return fmt.Errorf("agent '%s' is not running (status: %s), use 'scion start %s' to resume it", id, a.ContainerStatus, id)
+		return fmt.Errorf("agent '%s' is not running (status: %s), use 'fabric start %s' to resume it", id, a.ContainerStatus, id)
 	}
 
 	// Ensure tmux uses the latest client's terminal size so the session
 	// redraws correctly on attach (handles containers started before the
 	// window-size option was added to session creation).
-	_, _ = runSimpleCommand(ctx, r.Command, "exec", "--user", "scion",
+	_, _ = runSimpleCommand(ctx, r.Command, "exec", "--user", "fabric",
 		a.ContainerID, "tmux", "set-option", "-g", "window-size", "latest")
 
-	return runInteractiveCommand(r.Command, "exec", "-it", "--user", "scion", a.ContainerID, "tmux", "attach", "-t", "scion")
+	return runInteractiveCommand(r.Command, "exec", "-it", "--user", "fabric", a.ContainerID, "tmux", "attach", "-t", "fabric")
 }
 
 func (r *AppleContainerRuntime) ImageExists(ctx context.Context, image string) (bool, error) {
@@ -318,7 +318,7 @@ func (r *AppleContainerRuntime) Exec(ctx context.Context, id string, cmd []strin
 	if agents, err := r.List(ctx, nil); err == nil {
 		id = resolveContainerID(agents, id)
 	}
-	args := append([]string{"exec", "--user", "scion", id}, cmd...)
+	args := append([]string{"exec", "--user", "fabric", id}, cmd...)
 	return runSimpleCommand(ctx, r.Command, args...)
 }
 
@@ -358,17 +358,17 @@ func (r *AppleContainerRuntime) GetWorkspacePath(ctx context.Context, id string)
 	for _, agent := range agents {
 		if agent.ContainerID == id || agent.Name == id {
 			// Check for workspace path in labels
-			if workspacePath, ok := agent.Labels["scion.workspace_path"]; ok && workspacePath != "" {
+			if workspacePath, ok := agent.Labels["fabric.workspace_path"]; ok && workspacePath != "" {
 				return workspacePath, nil
 			}
 			// Fall back to project path worktree pattern
 			if agent.ProjectPath != "" && agent.Name != "" {
-				// Worktrees are typically at: {parent}/.scion_worktrees/{project}/{agent}
+				// Worktrees are typically at: {parent}/.fabric_worktrees/{project}/{agent}
 				projectName := agent.Project
 				if projectName == "" {
 					projectName = "default"
 				}
-				return fmt.Sprintf("%s/../.scion_worktrees/%s/%s", agent.ProjectPath, projectName, agent.Name), nil
+				return fmt.Sprintf("%s/../.fabric_worktrees/%s/%s", agent.ProjectPath, projectName, agent.Name), nil
 			}
 			break
 		}

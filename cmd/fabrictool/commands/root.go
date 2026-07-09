@@ -1,5 +1,5 @@
 /*
-Copyright 2025 The Scion Authors.
+Copyright 2025 The Fabric Authors.
 */
 package commands
 
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/sciontool/log"
+	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
 	"github.com/spf13/cobra"
 )
 
@@ -17,9 +17,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "sciontool",
-	Short: "Scion container initialization and lifecycle tool",
-	Long: `sciontool is a unified binary designed to run inside Scion agent containers.
+	Use:   "fabrictool",
+	Short: "Fabric container initialization and lifecycle tool",
+	Long: `fabrictool is a unified binary designed to run inside Fabric agent containers.
 It serves as the container's specialized init process (PID 1), lifecycle manager,
 and telemetry forwarder.
 

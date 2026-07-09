@@ -27,14 +27,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/agent/state"
-	"github.com/GoogleCloudPlatform/scion/pkg/api"
-	"github.com/GoogleCloudPlatform/scion/pkg/store"
+	"github.com/pdlc-os/fabric/pkg/agent/state"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 // testDevToken is the development token used for testing.
-const testDevToken = "scion_dev_test_token_for_unit_tests_1234567890"
+const testDevToken = "fabric_dev_test_token_for_unit_tests_1234567890"
 
 // testServer creates a test server with an in-memory SQLite store.
 // The server is configured with dev auth enabled using testDevToken.
@@ -153,9 +153,9 @@ func TestHealthz(t *testing.T) {
 		t.Errorf("expected status 'healthy', got %q", resp.Status)
 	}
 
-	// ScionVersion should be populated (may be "unknown" in test builds)
-	if resp.ScionVersion == "" {
-		t.Error("expected scionVersion to be non-empty")
+	// FabricVersion should be populated (may be "unknown" in test builds)
+	if resp.FabricVersion == "" {
+		t.Error("expected fabricVersion to be non-empty")
 	}
 }
 
@@ -314,7 +314,7 @@ func TestAgentCreate(t *testing.T) {
 }
 
 // TestAgentCreate_NoTask tests that creating an agent without a task succeeds
-// and leaves the agent in pending status (provision-only, for "scion create").
+// and leaves the agent in pending status (provision-only, for "fabric create").
 func TestAgentCreate_NoTask(t *testing.T) {
 	srv, s := testServer(t)
 	ctx := context.Background()
@@ -1155,7 +1155,7 @@ func TestProjectRegisterWithBrokerID(t *testing.T) {
 		"name":      "Two Phase Project",
 		"gitRemote": "https://github.com/test/twophase-project",
 		"brokerId":  broker.ID,
-		"path":      "/path/to/project/.scion",
+		"path":      "/path/to/project/.fabric",
 	}
 
 	rec := doRequest(t, srv, http.MethodPost, "/api/v1/projects/register", body)
@@ -1199,8 +1199,8 @@ func TestProjectRegisterWithBrokerID(t *testing.T) {
 	if providers[0].BrokerID != broker.ID {
 		t.Errorf("expected provider broker ID %q, got %q", broker.ID, providers[0].BrokerID)
 	}
-	if providers[0].LocalPath != "/path/to/project/.scion" {
-		t.Errorf("expected localPath '/path/to/project/.scion', got %q", providers[0].LocalPath)
+	if providers[0].LocalPath != "/path/to/project/.fabric" {
+		t.Errorf("expected localPath '/path/to/project/.fabric', got %q", providers[0].LocalPath)
 	}
 }
 
@@ -1260,7 +1260,7 @@ func TestAddProvider(t *testing.T) {
 	// Add provider via API
 	body := map[string]interface{}{
 		"brokerId":  broker.ID,
-		"localPath": "/home/user/project/.scion",
+		"localPath": "/home/user/project/.fabric",
 		"mode":      "connected",
 	}
 
@@ -1280,7 +1280,7 @@ func TestAddProvider(t *testing.T) {
 	if resp.Provider.BrokerID != broker.ID {
 		t.Errorf("expected broker ID %q, got %q", broker.ID, resp.Provider.BrokerID)
 	}
-	if resp.Provider.LocalPath != "/home/user/project/.scion" {
+	if resp.Provider.LocalPath != "/home/user/project/.fabric" {
 		t.Errorf("expected localPath, got %q", resp.Provider.LocalPath)
 	}
 
@@ -1854,7 +1854,7 @@ func TestRuntimeBrokerListWithProjectLocalPath(t *testing.T) {
 		ProjectID:  project.ID,
 		BrokerID:   broker.ID,
 		BrokerName: broker.Name,
-		LocalPath:  "/path/to/project/.scion",
+		LocalPath:  "/path/to/project/.fabric",
 		Status:     store.BrokerStatusOnline,
 	}
 	if err := s.AddProjectProvider(ctx, contrib); err != nil {
@@ -1881,8 +1881,8 @@ func TestRuntimeBrokerListWithProjectLocalPath(t *testing.T) {
 		t.Errorf("expected broker ID 'host_localpath_test', got %q", resp.Brokers[0].ID)
 	}
 
-	if resp.Brokers[0].LocalPath != "/path/to/project/.scion" {
-		t.Errorf("expected localPath '/path/to/project/.scion', got %q", resp.Brokers[0].LocalPath)
+	if resp.Brokers[0].LocalPath != "/path/to/project/.fabric" {
+		t.Errorf("expected localPath '/path/to/project/.fabric', got %q", resp.Brokers[0].LocalPath)
 	}
 
 	// List all runtime brokers (no project filter) - should NOT include localPath field structure

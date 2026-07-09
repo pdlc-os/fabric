@@ -12,10 +12,10 @@ Rename 'grove' to 'project' across all user-facing documentation as part of Phas
 
 ## Findings and Observations
 - Most occurrences were in `docs-site/src/content/docs/contributing/architecture.md` and `docs-site/src/content/docs/hub-user/git-projects.md` (formerly `git-groves.md`).
-- The `scion` CLI help output now shows `--project` instead of `--grove` (verified by building from source), confirming that the binary itself has already been updated in previous phases.
+- The `fabric` CLI help output now shows `--project` instead of `--grove` (verified by building from source), confirming that the binary itself has already been updated in previous phases.
 - Documentation links were mostly relative or handled by the bulk replacement.
 
 ## Verification
 - `grep -ri "grove"` in target directories returned no results (excluding release notes).
-- `make build` and `./build/scion --help` shows `--project` flag.
+- `make build` and `./build/fabric --help` shows `--project` flag.
 - Sidebar in `astro.config.mjs` was manually verified.

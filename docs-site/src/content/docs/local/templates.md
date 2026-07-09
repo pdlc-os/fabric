@@ -2,7 +2,7 @@
 title: Working with Templates & Harnesses
 ---
 
-Scion separates the **role** of an agent (what it does) from its **execution mechanics** (how it runs). This is achieved through two complementary concepts: **Templates** and **Harness-Configs**.
+Fabric separates the **role** of an agent (what it does) from its **execution mechanics** (how it runs). This is achieved through two complementary concepts: **Templates** and **Harness-Configs**.
 
 ## Core Concepts
 
@@ -10,7 +10,7 @@ Scion separates the **role** of an agent (what it does) from its **execution mec
 A template defines the agent's purpose, personality, and instructions. It is **harness-agnostic**, meaning a "Code Reviewer" template can theoretically run on Claude, Gemini, or any other LLM.
 
 A template typically contains:
-- `scion-agent.yaml`: The agent definition (resources, env vars).
+- `fabric-agent.yaml`: The agent definition (resources, env vars).
 - `agents.md`: Operational instructions for the agent.
 - `system-prompt.md`: The core persona and role definition.
 - `home/`: Optional portable configuration files (e.g., linter configs).
@@ -18,14 +18,14 @@ A template typically contains:
 ### 2. Harness-Configs (The "Mechanics")
 A harness-config defines the runtime environment and tool-specific settings. It includes the base files required by the underlying tool (e.g., `.claude.json` for Claude, `.gemini/settings.json` for Gemini).
 
-Harness-configs live in `~/.scion/harness-configs/` and contain:
+Harness-configs live in `~/.fabric/harness-configs/` and contain:
 - `config.yaml`: Runtime parameters (container image, model, model aliases, auth).
 - `home/`: Base files that are copied to the agent's home directory.
 
 > **Important**: Harness-specific settings — container image, concrete model names, and authentication type — belong in the harness-config, not in the template. Templates should remain harness-agnostic so they can work across different LLM backends.
 
 ### 3. Composition
-When you create an agent, Scion composes the final environment by layering:
+When you create an agent, Fabric composes the final environment by layering:
 1.  **Harness-Config Base Layer**: The foundation (e.g., Gemini CLI settings).
 2.  **Template Overlay**: The role definition (prompts, instructions).
 3.  **Profile/Runtime Overrides**: User-specific tweaks.
@@ -36,19 +36,19 @@ To create an agent, you specify both a template and a harness-config.
 
 ```bash
 # Explicitly specify both
-scion create my-agent --template code-reviewer --harness-config gemini
+fabric create my-agent --template code-reviewer --harness-config gemini
 
 # Use the template's default harness-config (if defined)
-scion create my-agent --template code-reviewer
+fabric create my-agent --template code-reviewer
 
 # Use the system default harness-config (from settings.yaml)
-scion create my-agent --template code-reviewer
+fabric create my-agent --template code-reviewer
 ```
 
 ### Resolution Order
-Scion determines which harness-config to use in this order:
+Fabric determines which harness-config to use in this order:
 1.  CLI flag: `--harness-config`
-2.  Template default: `default_harness_config` in `scion-agent.yaml`
+2.  Template default: `default_harness_config` in `fabric-agent.yaml`
 3.  System default: `default_harness_config` in global `settings.yaml`
 
 ## Managing Templates
@@ -59,14 +59,14 @@ Local agent templates are automatically bootstrapped into the Hub database durin
 
 ### Template Traceability
 
-To provide clear visibility into the exact configuration version associated with each agent, Scion captures and displays template IDs and hashes. When you view an agent's details in the CLI (`scion list`, `scion info`) or the Web UI, you can see the precise template version that was used to provision it.
+To provide clear visibility into the exact configuration version associated with each agent, Fabric captures and displays template IDs and hashes. When you view an agent's details in the CLI (`fabric list`, `fabric info`) or the Web UI, you can see the precise template version that was used to provision it.
 
 ### Structure of a Template
 A typical template directory looks like this:
 
 ```text
 my-template/
-├── scion-agent.yaml      # Configuration
+├── fabric-agent.yaml      # Configuration
 ├── agents.md             # Instructions
 ├── system-prompt.md      # Persona
 └── home/                 # Portable files (optional)
@@ -74,7 +74,7 @@ my-template/
         └── my-tool.conf
 ```
 
-**`scion-agent.yaml` Example:**
+**`fabric-agent.yaml` Example:**
 
 ```yaml
 schema_version: "1"
@@ -98,33 +98,33 @@ resources:
 
 ```bash
 # List available templates
-scion templates list
+fabric templates list
 
 # Create a new template
-scion templates create my-new-role
+fabric templates create my-new-role
 
 # Clone an existing template
-scion templates clone code-reviewer my-custom-reviewer
+fabric templates clone code-reviewer my-custom-reviewer
 
 # Import definitions from Claude or Gemini sub-agents
-scion templates import .claude/agents/code-reviewer.md
+fabric templates import .claude/agents/code-reviewer.md
 
 # Delete a template
-scion templates delete my-old-template
+fabric templates delete my-old-template
 ```
 
 ## Managing Harness-Configs
 
-Harness-configs are directories stored in `~/.scion/harness-configs/` (global) or `.scion/harness-configs/` (project-level).
+Harness-configs are directories stored in `~/.fabric/harness-configs/` (global) or `.fabric/harness-configs/` (project-level).
 
 ### Model Size Aliases
 
 Templates can use abstract **model size aliases** (`small`, `medium`, `large`) in their `model` field instead of concrete, provider-specific model names. Each harness-config defines how these aliases map to real models via the `model_aliases` field:
 
 ```yaml
-# ~/.scion/harness-configs/claude/config.yaml
+# ~/.fabric/harness-configs/claude/config.yaml
 harness: claude
-image: scion-claude:latest
+image: fabric-claude:latest
 model_aliases:
   small: haiku
   medium: sonnet
@@ -132,9 +132,9 @@ model_aliases:
 ```
 
 ```yaml
-# ~/.scion/harness-configs/gemini/config.yaml
+# ~/.fabric/harness-configs/gemini/config.yaml
 harness: gemini
-image: scion-gemini:latest
+image: fabric-gemini:latest
 model_aliases:
   small: gemini-flash-lite
   medium: gemini-flash
@@ -144,7 +144,7 @@ model_aliases:
 A template can then use the alias:
 
 ```yaml
-# .scion/templates/docs-writer/scion-agent.yaml
+# .fabric/templates/docs-writer/fabric-agent.yaml
 schema_version: "1"
 description: "Documentation writer"
 model: large    # resolved to "opus" with Claude, "gemini-pro" with Gemini
@@ -156,7 +156,7 @@ This keeps templates portable across harnesses. Concrete model names still work 
 To change the default model or customize model aliases for a specific harness, edit the files directly in the harness-config directory.
 
 **Example: Changing the Gemini model alias mapping**
-Edit `~/.scion/harness-configs/gemini/config.yaml`:
+Edit `~/.fabric/harness-configs/gemini/config.yaml`:
 
 ```yaml
 harness: gemini
@@ -168,32 +168,32 @@ model_aliases:
 ```
 
 **Example: Adding a persistent CLI flag**
-Edit `~/.scion/harness-configs/gemini/home/.gemini/settings.json`.
+Edit `~/.fabric/harness-configs/gemini/home/.gemini/settings.json`.
 
 ### Creating Variants
 You can create custom variants of harness-configs by copying the directory.
 
 ```bash
-cp -r ~/.scion/harness-configs/gemini ~/.scion/harness-configs/gemini-experimental
+cp -r ~/.fabric/harness-configs/gemini ~/.fabric/harness-configs/gemini-experimental
 ```
 
 Now you can use this variant:
 ```bash
-scion create test-agent --harness-config gemini-experimental
+fabric create test-agent --harness-config gemini-experimental
 ```
 
 ### Resetting Defaults
 If you mess up a harness-config, you can restore the factory defaults:
 
 ```bash
-scion harness-config reset gemini
+fabric harness-config reset gemini
 ```
 
 ## Skills
 
 Templates can define **skills** — reusable, harness-agnostic instruction snippets that are automatically mounted into the appropriate harness-specific directory during agent provisioning.
 
-When an agent is created, Scion collects skills from each template in the chain and mounts them into the correct location for the harness:
+When an agent is created, Fabric collects skills from each template in the chain and mounts them into the correct location for the harness:
 
 | Harness | Skills Directory |
 | :--- | :--- |
@@ -208,7 +208,7 @@ Place skill files in the template's `skills/` directory:
 
 ```text
 my-template/
-├── scion-agent.yaml
+├── fabric-agent.yaml
 ├── agents.md
 └── skills/
     └── my-skill/
@@ -219,7 +219,7 @@ When multiple templates are chained, skills from later templates overlay earlier
 
 ### The `team-creation` Skill
 
-Scion includes a specialized built-in skill called `team-creation`. This skill is designed for generating coordinated multi-agent template sets. It simplifies the creation of orchestrator-worker patterns by providing best-practice guidance for agent-to-agent communication and template structure, allowing an agent to quickly scaffold a team of specialized sub-agents.
+Fabric includes a specialized built-in skill called `team-creation`. This skill is designed for generating coordinated multi-agent template sets. It simplifies the creation of orchestrator-worker patterns by providing best-practice guidance for agent-to-agent communication and template structure, allowing an agent to quickly scaffold a team of specialized sub-agents.
 
 ## Template Importing (Hub Integration)
 
@@ -244,9 +244,9 @@ The import system supports a wide variety of sources, allowing you to pull templ
 - **Archives:** Direct import from `.zip` or `.tar.gz` archive URLs.
 - **Rclone URIs:** Support for importing from cloud storage via rclone URIs (e.g., `:gcs:my-bucket/templates`).
 
-### Native Scion Templates
+### Native Fabric Templates
 
-The import process automatically detects and performs direct "copy" imports of native Scion templates (those containing a `scion-agent.yaml`), bypassing any conversion steps needed for generic templates.
+The import process automatically detects and performs direct "copy" imports of native Fabric templates (those containing a `fabric-agent.yaml`), bypassing any conversion steps needed for generic templates.
 
 ### Automatic Sync on Hub Startup
 
@@ -254,4 +254,4 @@ Local templates are automatically bootstrapped into the Hub during server startu
 
 ### Web UI Management
 
-Once imported, templates can be directly managed via the Scion Web UI. The dashboard provides comprehensive **template file browsing, inline editing (with Markdown preview), and upload capabilities**, allowing you to refine agent roles and instructions without leaving the browser.
+Once imported, templates can be directly managed via the Fabric Web UI. The dashboard provides comprehensive **template file browsing, inline editing (with Markdown preview), and upload capabilities**, allowing you to refine agent roles and instructions without leaving the browser.

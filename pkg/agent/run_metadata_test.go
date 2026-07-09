@@ -17,7 +17,7 @@ package agent
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/scion/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/runtime"
 )
 
 // TestColocatedDockerNetworkComposition mirrors how run.go assembles a
@@ -68,14 +68,14 @@ func TestColocatedDockerNetworkComposition(t *testing.T) {
 			if tt.forceHost {
 				t.Setenv(runtime.ForceHostNetworkEnvVar, "1")
 			}
-			env := map[string]string{"SCION_HUB_ENDPOINT": tt.hubEndpoint}
+			env := map[string]string{"FABRIC_HUB_ENDPOINT": tt.hubEndpoint}
 			gotMode := runtime.ResolveHostNetworking("docker", env)
 			if gotMode != tt.wantNetMode {
 				t.Errorf("NetworkMode = %q, want %q", gotMode, tt.wantNetMode)
 			}
 
 			// Mirror run.go: agentEnv is built from opts.Env after the rewrite.
-			agentEnv := []string{"SCION_HUB_ENDPOINT=" + env["SCION_HUB_ENDPOINT"]}
+			agentEnv := []string{"FABRIC_HUB_ENDPOINT=" + env["FABRIC_HUB_ENDPOINT"]}
 			gotExtra := mergeExtraHosts(tt.brokerExtra, runtime.BridgeExtraHosts("docker", agentEnv))
 			if len(gotExtra) != len(tt.wantExtraHosts) {
 				t.Fatalf("ExtraHosts = %v, want %v", gotExtra, tt.wantExtraHosts)
@@ -134,17 +134,17 @@ func TestHasMetadataInterception(t *testing.T) {
 	}{
 		{
 			name: "assign mode",
-			env:  []string{"FOO=bar", "SCION_METADATA_MODE=assign", "BAZ=qux"},
+			env:  []string{"FOO=bar", "FABRIC_METADATA_MODE=assign", "BAZ=qux"},
 			want: true,
 		},
 		{
 			name: "block mode",
-			env:  []string{"SCION_METADATA_MODE=block"},
+			env:  []string{"FABRIC_METADATA_MODE=block"},
 			want: true,
 		},
 		{
 			name: "passthrough mode",
-			env:  []string{"SCION_METADATA_MODE=passthrough"},
+			env:  []string{"FABRIC_METADATA_MODE=passthrough"},
 			want: false,
 		},
 		{

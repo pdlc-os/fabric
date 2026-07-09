@@ -2,7 +2,7 @@
 
 ## Problem
 
-When an agent calls `scion logs <other-agent>` via the hub, the broker's `getLogs` handler fails to read `agent.log` from the filesystem and falls back to `docker logs`, which can also fail.
+When an agent calls `fabric logs <other-agent>` via the hub, the broker's `getLogs` handler fails to read `agent.log` from the filesystem and falls back to `docker logs`, which can also fail.
 
 ### Error observed
 
@@ -16,28 +16,28 @@ The `getLogs` handler in `pkg/runtimebroker/handlers.go` (line ~1340) uses `foun
 
 ```go
 agentLogPath := filepath.Join(config.GetAgentHomePath(
-    filepath.Join(found.GrovePath, ".scion"), found.Slug,
+    filepath.Join(found.GrovePath, ".fabric"), found.Slug,
 ), "agent.log")
 ```
 
-**No runtime implementation (Docker, Podman, K8s, Apple) ever populates the `Slug` field in `api.AgentInfo`.** The slugified agent name is stored in `found.Name`, populated from the `scion.name` Docker label. With `Slug` empty, the path resolves to:
+**No runtime implementation (Docker, Podman, K8s, Apple) ever populates the `Slug` field in `api.AgentInfo`.** The slugified agent name is stored in `found.Name`, populated from the `fabric.name` Docker label. With `Slug` empty, the path resolves to:
 
 ```
-<GrovePath>/.scion/agents//home/agent.log
-→ <GrovePath>/.scion/agents/home/agent.log   (wrong)
+<GrovePath>/.fabric/agents//home/agent.log
+→ <GrovePath>/.fabric/agents/home/agent.log   (wrong)
 ```
 
 Instead of the correct:
 
 ```
-<GrovePath>/.scion/agents/foo/home/agent.log
+<GrovePath>/.fabric/agents/foo/home/agent.log
 ```
 
 The `ReadFile` always fails, falling through to the `docker logs` fallback. The fallback has a secondary issue: it passes the raw request slug (`id`) instead of `found.ContainerID` to `rt.GetLogs()`. When the Docker container name is grove-prefixed (e.g. `mygrove--foo`), `docker logs foo` fails because Docker can't find a container named `foo`.
 
-### Why `scion look` worked but `scion logs` didn't
+### Why `fabric look` worked but `fabric logs` didn't
 
-`scion look` uses `rt.Exec()` which runs `docker exec --user scion foo <cmd>`. In setups where the container name matches the slug (no grove prefix), Docker finds the container. The `look` command had a *different* bug (tmux socket discovery) that was fixed separately. `scion logs` hits the path resolution bug before it even reaches Docker.
+`fabric look` uses `rt.Exec()` which runs `docker exec --user fabric foo <cmd>`. In setups where the container name matches the slug (no grove prefix), Docker finds the container. The `look` command had a *different* bug (tmux socket discovery) that was fixed separately. `fabric logs` hits the path resolution bug before it even reaches Docker.
 
 ## Fix
 
@@ -54,11 +54,11 @@ if agentSlug == "" {
 
 // Then use agentSlug instead of found.Slug:
 agentLogPath := filepath.Join(config.GetAgentHomePath(
-    filepath.Join(found.GrovePath, ".scion"), agentSlug,
+    filepath.Join(found.GrovePath, ".fabric"), agentSlug,
 ), "agent.log")
 ```
 
-`found.Name` is populated by every runtime from the `scion.name` label, which is already the slugified agent name (set as `api.Slugify(opts.Name)` during container creation at `pkg/agent/run.go:797`).
+`found.Name` is populated by every runtime from the `fabric.name` label, which is already the slugified agent name (set as `api.Slugify(opts.Name)` during container creation at `pkg/agent/run.go:797`).
 
 ### 2. Use `ContainerID` in the `docker logs` fallback (secondary fix)
 

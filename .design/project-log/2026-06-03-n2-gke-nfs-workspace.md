@@ -29,7 +29,7 @@ working pod spec transformations.
    is empty.
 
 2. **Init-container provisioning (N2-2):** Uses a `workspace-provision` init
-   container that checks `.scion-provisioned` sentinel before cloning. The
+   container that checks `.fabric-provisioned` sentinel before cloning. The
    advisory lock is NOT used in-pod — init containers serialize per-pod
    naturally, and the sentinel provides cross-pod idempotency. Full advisory
    lock integration deferred to NM2 live cluster gate.
