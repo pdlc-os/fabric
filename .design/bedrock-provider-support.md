@@ -101,7 +101,7 @@ Vertex), `codex` (OpenAI), `gemini-cli` (Google AI, Vertex), `opencode`
   detection (`fabric_harness.py`, `pkg/harness/auth.go`,
   `pkg/api/harness_auth_metadata.go`), at parity with `vertex-ai`.
 - **G3.** Define a secure path for AWS credentials into the agent container
-  (Bedrock API key / static keys in v1; profile file in v1.5; IAM role as
+  (Bedrock API key / static keys, and profile-file mounting, in v1; IAM role as
   stretch — see §6.4).
 - **G4.** Keep the pattern generalizable to other harnesses whose CLI supports
   Bedrock. *(Scoped down from the earlier draft: Gemini CLI and Copilot CLI
@@ -122,10 +122,41 @@ Vertex), `codex` (OpenAI), `gemini-cli` (Google AI, Vertex), `opencode`
 - **U1 — All-AWS shop:** runs Fabric Hub/Brokers on EC2/EKS; models must come
   through Bedrock for residency/procurement/billing; cannot use the Anthropic
   public API or GCP Vertex.
-- **U2 — IAM-governed access:** wants model access mediated by IAM roles
-  rather than long-lived vendor API keys.
+- **U2 — IAM/SSO-governed access:** wants model access mediated by AWS IAM
+  roles rather than long-lived vendor API keys — typically an identity-provider
+  flow (e.g. Okta) that issues short-lived STS credentials under a named
+  `AWS_PROFILE`.
 - **U3 — Multi-provider portability:** selects provider per agent/template
   (Anthropic vs. Vertex vs. Bedrock) with no harness-code changes.
+
+### 4.1 Reference deployment pattern (verified against a real enterprise wrapper)
+
+A representative enterprise setup wraps the `claude` binary in a shell script
+that exports, before launch:
+
+- `AWS_PROFILE=<company-profile>` + `AWS_REGION` + `CLAUDE_CODE_USE_BEDROCK=1`
+  — **no keys in env**. Before launch the user authenticates once:
+  `aws-okta login && aws-okta creds --profile <name> -r <role-arn>`, which
+  **materializes** short-lived STS credentials for the assumed role directly
+  into `~/.aws/credentials` under the named profile (no `credential_process`
+  indirection). This is what makes file mounting viable (§6.3): the mounted
+  file contains real keys, and re-running the login on the host refreshes
+  them in place.
+- Model pins via `ANTHROPIC_DEFAULT_OPUS/SONNET/HAIKU_MODEL` using **`global.`
+  inference profiles** (lower cost / higher throughput than `us.`, and pinned
+  so users aren't stranded when Anthropic ships an alias Bedrock hasn't
+  enabled for the account yet).
+- Compliance/QoL env (`DISABLE_TELEMETRY`, `DISABLE_ERROR_REPORTING`,
+  `DISABLE_BUG_COMMAND`, …).
+- A non-blocking preflight that runs `aws sts get-caller-identity` and warns
+  when the session doesn't match the expected account + assumed role.
+
+Fabric equivalents this PRD must satisfy: the profile flow is the **primary
+credential style** (§6.4 v1 scope), model pins and compliance env belong in
+the template's `env:` map (`FabricConfig.Env`, `pkg/api/types.go:441` — works
+today, no auth-type changes), and the identity preflight becomes an optional,
+user-configured check (OQ7). Account IDs, role names, and profile names are
+**user/template data — never Fabric defaults or source literals**.
 
 ---
 
@@ -178,13 +209,21 @@ Add under `auth.types` (modeled on the `vertex-ai` block at config.yaml:85-120):
             - "AWS_BEARER_TOKEN_BEDROCK"   # Bedrock API key (simplest)
             - "AWS_ACCESS_KEY_ID"          # + AWS_SECRET_ACCESS_KEY (+ AWS_SESSION_TOKEN)
             - "AWS_PROFILE"                # requires the file secret below
-      # v1.5: optional AWS credentials file mounted as a file secret
+      # Profile-based auth (the primary enterprise style, §4.1): both files,
+      # since profiles typically span ~/.aws/config (profile/region/role) and
+      # ~/.aws/credentials (materialized short-lived keys)
       required_files:
         - name: aws-credentials
           type: file
           description: "AWS shared credentials file (profile-based auth)"
           field: AwsCredentialsFile        # new AuthConfig field — see §6.3
           alternative_env_keys: ["AWS_SHARED_CREDENTIALS_FILE"]
+          required: false
+        - name: aws-config
+          type: file
+          description: "AWS config file (profile definitions, region)"
+          field: AwsConfigFile             # new AuthConfig field — see §6.3
+          alternative_env_keys: ["AWS_CONFIG_FILE"]
           required: false
   autodetect:
     env:
@@ -231,18 +270,30 @@ flow through `gatherConfigEnvVars` (auth.go:136-159), Hub secret injection
 (handlers.go:2069-2168 / handlers_agent_create_helpers.go:799-843) — all
 config-driven.
 
-**The credentials-file path (v1.5) is real Go work** — every switch that knows
-file secrets needs a new case:
-- `AwsCredentialsFile` field on `api.AuthConfig` (`pkg/api/types.go:500-532`).
-- Well-known file-secret name `AWS_CREDENTIALS` → container path
-  `~/.aws/credentials`: cases in `OverlayFileSecrets` (auth.go:174-190),
-  `setAuthConfigFieldByTargetSuffix` (auth.go:253-265), the target→field map in
-  `pkg/agent/run.go:1302-1310`, and the mount mapping in
+**The profile/file path is real Go work** — every switch that knows
+file secrets needs new cases:
+- `AwsCredentialsFile` + `AwsConfigFile` fields on `api.AuthConfig`
+  (`pkg/api/types.go:500-532`).
+- Well-known file-secret names `AWS_CREDENTIALS` → `~/.aws/credentials` and
+  `AWS_CONFIG` → `~/.aws/config`: cases in `OverlayFileSecrets`
+  (auth.go:174-190), `setAuthConfigFieldByTargetSuffix` (auth.go:253-265), the
+  target→field map in `pkg/agent/run.go:1302-1310`, and the mount mapping in
   `ContainerScriptHarness.ResolveAuth`
-  (container_script_harness.go:250-279). Set `AWS_SHARED_CREDENTIALS_FILE` in
-  the container to the mounted path.
-- Host-side discovery of `~/.aws/credentials` in the well-known-files block
-  (auth.go:84-119), local mode only.
+  (container_script_harness.go:250-279). Set `AWS_SHARED_CREDENTIALS_FILE` /
+  `AWS_CONFIG_FILE` in the container to the mounted paths.
+- Host-side discovery of `~/.aws/credentials` and `~/.aws/config` in the
+  well-known-files block (auth.go:84-119), local mode only.
+- **Mount live, don't copy** (local mode): SSO-issued STS credentials rotate
+  (§4.1), so the container must see host-side refreshes. Precedent:
+  `~/.claude/.credentials.json` is already mounted opaquely for exactly this
+  reason (auth.go:115). A copied snapshot goes stale mid-session.
+- **`credential_process` caveat:** if the host profile resolves credentials by
+  shelling out to an SSO helper (`credential_process` in `~/.aws/config`),
+  that helper does not exist inside the container. Only profiles whose
+  credentials are *materialized* in `~/.aws/credentials` work when mounted —
+  the reference flow's `aws-okta creds --profile <name> -r <role-arn>` step
+  (§4.1) does exactly this, so it is compatible. Document the distinction;
+  detecting `credential_process` in a mounted config is a nice-to-have.
 
 **Compiled fallback tables** (parity with vertex-ai; used when a harness
 config lacks the declarative `auth:` block): `case "bedrock"` arms in
@@ -253,10 +304,15 @@ change. `ValidateAuth` (auth.go:295-327) is generic — no new entry needed.
 
 ### 6.4 AWS credential models, phased
 
-- **v1 (env: bearer token / static keys):** credentials as Fabric env secrets;
-  provisioner injects them. No Go changes beyond §6.3's fallback-table arms.
-- **v1.5 (profile/file):** `AWS_CREDENTIALS` file secret mounted to
-  `~/.aws/credentials` for `AWS_PROFILE` use (§6.3 plumbing).
+- **v1a (env: bearer token / static keys):** credentials as Fabric env
+  secrets; provisioner injects them. No Go changes beyond §6.3's
+  fallback-table arms. Simplest, but *not* how IAM/SSO-governed enterprises
+  work (§4.1).
+- **v1b (profile/file):** `AWS_CREDENTIALS` + `AWS_CONFIG` file secrets
+  mounted to `~/.aws/` for `AWS_PROFILE` use (§6.3 plumbing). Given the
+  reference deployment (§4.1) authenticates exclusively this way, v1 should
+  ship **both** v1a and v1b — env-only would exclude the primary enterprise
+  audience (U2).
 - **Stretch (role/identity):** AWS analog of `DetectAuthTypeFromGCPIdentity` —
   detect ambient IAM role / instance profile / IRSA and use the default AWS
   credential chain with no static secret. Needs a
@@ -264,10 +320,14 @@ change. `ValidateAuth` (auth.go:295-327) is generic — no new entry needed.
   metadata flag mirroring `skipped_when_gcp_service_account_assigned`
   (harness_auth_metadata.go:52, config.yaml:110). Confirmed viable: Claude
   Code honors the default credential chain (§7). Highest value for U2.
-- **STS expiry caveat:** session tokens can expire while an agent container is
-  still running. Claude Code's doc-sanctioned answer is the `awsAuthRefresh` /
-  `awsCredentialExport` settings (settings.json, not env). Out of scope for
-  v1; revisit with the stretch goal (OQ2).
+- **STS expiry:** SSO-issued session tokens are short-lived and agents
+  outlive them. Mitigations, cheapest first: (1) live-mount `~/.aws/` in
+  local mode so a host-side re-login propagates into running containers
+  (§6.3); (2) document re-login as the fix for mid-session auth failures;
+  (3) Claude Code's `awsAuthRefresh` / `awsCredentialExport` settings
+  (settings.json) — only viable if the refresh command can run *inside* the
+  container, which SSO helpers generally cannot. (1)+(2) in v1; (3) with the
+  stretch goal (OQ2).
 
 ### 6.5 Preflight & metadata
 
@@ -298,6 +358,10 @@ Verified against official docs
 - **Model selection:** `ANTHROPIC_MODEL` (default is a `us.anthropic.…`
   inference-profile ID), plus `ANTHROPIC_DEFAULT_OPUS_MODEL` /
   `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`.
+  `global.` inference profiles are also valid and preferred by some orgs
+  (cost/throughput; pinned so a new Anthropic alias that isn't yet enabled on
+  the account doesn't strand users — §4.1). Pins belong in the template `env:`
+  map, not the auth type.
 - **Also relevant:** `ANTHROPIC_BEDROCK_BASE_URL` (custom endpoints/gateways),
   `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION`, `ANTHROPIC_BEDROCK_SERVICE_TIER`
   (`default`/`flex`/`priority`), `AWS_SHARED_CREDENTIALS_FILE` /
@@ -312,9 +376,10 @@ Verified against official docs
 
 ## 8. Open Questions / Risks
 
-- **OQ1. v1 credential scope** — bearer token + static keys only, or include
-  the file secret (v1.5) in the first PR? (Recommendation: env-only v1; the
-  file plumbing in §6.3 is the bulk of the Go diff.)
+- **OQ1. v1 credential scope** — resolved by §4.1: ship env styles (v1a) and
+  profile/file mounting (v1b) together; env-only would exclude SSO-governed
+  enterprises, the primary Bedrock audience. The file plumbing in §6.3 is the
+  bulk of the Go diff.
 - **OQ2. STS/session expiry** — document as a limitation in v1, or wire
   `awsAuthRefresh`/`awsCredentialExport` into templates? (Recommendation:
   document; revisit with the IAM stretch.)
@@ -325,6 +390,12 @@ Verified against official docs
 - **OQ5. IAM role detection** — in this effort or a follow-up?
 - **OQ6. OpenCode** — confirm whether its CLI supports Bedrock before scoping
   it into G4.
+- **OQ7. Identity preflight** — the reference wrapper (§4.1) warns when
+  `aws sts get-caller-identity` doesn't match an expected account/role.
+  Worth a Fabric equivalent as **optional template/settings config** (e.g.
+  `auth.bedrock.expected_account` / `expected_role_arn`), checked at gather
+  or provision time. Expected values are user data — never Fabric defaults;
+  nice-to-have, not v1.
 - **Risk:** treating this as "just set a flag" — credential handling (§6.3,
   §6.4) is where the effort and the security review belong.
 
@@ -349,11 +420,12 @@ Verified against official docs
 
 ## 10. Estimated Effort
 
-- **v1** (config + provision overlay + detection/table arms + tests + docs):
+- **v1a** (config + provision overlay + detection/table arms + tests + docs):
   **small** (~½–1 day) — the contract is confirmed, so no research remains.
-- **v1.5** (credentials-file secret plumbing across the five Go switches):
-  **small–medium**.
+- **v1b** (profile/file secret plumbing across the five Go switches, live
+  mount, both `~/.aws/` files): **small–medium** (~1–2 days). Ships with v1a.
 - **Stretch** (IAM identity detection + skip flag): **medium**.
 - **OpenCode** (if OQ6 confirms): **small**.
 
-The gating decisions are OQ1/OQ2 (credential scope), not the plumbing.
+The remaining gating decision is OQ2 (STS refresh depth); the credential
+scope (OQ1) is settled by the reference deployment.
