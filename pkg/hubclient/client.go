@@ -376,11 +376,11 @@ func (c *client) Health(ctx context.Context) (*HealthResponse, error) {
 
 // HealthResponse is the response from health check.
 type HealthResponse struct {
-	Status       string            `json:"status"`
-	Version      string            `json:"version"`
+	Status        string            `json:"status"`
+	Version       string            `json:"version"`
 	FabricVersion string            `json:"fabricVersion"`
-	Uptime       string            `json:"uptime"`
-	Checks       map[string]string `json:"checks,omitempty"`
+	Uptime        string            `json:"uptime"`
+	Checks        map[string]string `json:"checks,omitempty"`
 
 	// Composite sub-component health (present in combo mode).
 	Web    json.RawMessage `json:"web,omitempty"`

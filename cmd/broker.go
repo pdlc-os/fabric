@@ -24,6 +24,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/apiclient"
 	"github.com/pdlc-os/fabric/pkg/brokercredentials"
 	"github.com/pdlc-os/fabric/pkg/config"
@@ -32,7 +33,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/hubsync"
 	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/pdlc-os/fabric/pkg/version"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 

@@ -25,12 +25,12 @@ import (
 )
 
 type HealthResponse struct {
-	Status       string            `json:"status"`
-	Version      string            `json:"version"`
+	Status        string            `json:"status"`
+	Version       string            `json:"version"`
 	FabricVersion string            `json:"fabricVersion"`
-	Uptime       string            `json:"uptime"`
-	Checks       map[string]string `json:"checks,omitempty"`
-	Stats        *HealthStats      `json:"stats,omitempty"`
+	Uptime        string            `json:"uptime"`
+	Checks        map[string]string `json:"checks,omitempty"`
+	Stats         *HealthStats      `json:"stats,omitempty"`
 }
 
 type HealthStats struct {
@@ -73,12 +73,12 @@ func (s *Server) GetHealthInfo(ctx context.Context) *HealthResponse {
 	}
 
 	return &HealthResponse{
-		Status:       status,
-		Version:      "0.1.0", // TODO: Get from build info
+		Status:        status,
+		Version:       "0.1.0", // TODO: Get from build info
 		FabricVersion: version.Short(),
-		Uptime:       time.Since(s.startTime).Round(time.Second).String(),
-		Checks:       checks,
-		Stats:        stats,
+		Uptime:        time.Since(s.startTime).Round(time.Second).String(),
+		Checks:        checks,
+		Stats:         stats,
 	}
 }
 

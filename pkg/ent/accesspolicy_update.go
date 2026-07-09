@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
 	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/schema"
-	"github.com/google/uuid"
 )
 
 // AccessPolicyUpdate is the builder for updating AccessPolicy entities.

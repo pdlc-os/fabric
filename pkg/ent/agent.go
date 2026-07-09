@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
 	"github.com/pdlc-os/fabric/pkg/ent/project"
-	"github.com/google/uuid"
 )
 
 // Agent is the model entity for the Agent schema.

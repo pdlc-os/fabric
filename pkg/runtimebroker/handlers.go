@@ -1202,7 +1202,7 @@ func (s *Server) startAgent(w http.ResponseWriter, r *http.Request, id, projectI
 		HarnessConfig   string               `json:"harnessConfig"`
 		ResolvedEnv     map[string]string    `json:"resolvedEnv"`
 		ResolvedSecrets []api.ResolvedSecret `json:"resolvedSecrets,omitempty"`
-		InlineConfig    *api.FabricConfig     `json:"inlineConfig,omitempty"`
+		InlineConfig    *api.FabricConfig    `json:"inlineConfig,omitempty"`
 		SharedDirs      []api.SharedDir      `json:"sharedDirs,omitempty"`
 		// SharedWorkspace must be re-sent on every start: hub-project agents
 		// share a single git checkout instead of being given a worktree, and

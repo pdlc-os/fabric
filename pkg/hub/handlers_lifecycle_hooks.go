@@ -21,9 +21,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/lifecyclehooks"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 )
 
 // ---------------------------------------------------------------------------

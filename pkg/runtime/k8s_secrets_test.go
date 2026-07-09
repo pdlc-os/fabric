@@ -356,7 +356,7 @@ func TestCreateAgentSecret(t *testing.T) {
 	labels := map[string]string{
 		"fabric.name":  "test-agent",
 		"fabric.grove": "test-project",
-		"app":         "other", // Non-fabric label should not be copied
+		"app":          "other", // Non-fabric label should not be copied
 	}
 
 	name, err := rt.createAgentSecret(ctx, "default", "test-agent", secrets, labels)

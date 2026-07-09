@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	DotFabric  = ".fabric"
+	DotFabric = ".fabric"
 	GlobalDir = ".fabric"
 
 	ProjectConfigsDir = projectcompat.ProjectConfigsDir

@@ -50,10 +50,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/messages"
-	"github.com/pdlc-os/fabric/pkg/plugin"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/go-plugin/runner"
+	"github.com/pdlc-os/fabric/pkg/messages"
+	"github.com/pdlc-os/fabric/pkg/plugin"
 )
 
 // CLI flags

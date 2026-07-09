@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/integrationconfig"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
-	"github.com/google/uuid"
 )
 
 // IntegrationConfigQuery is the builder for querying IntegrationConfig entities.

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/skillregistry"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/skillregistry"
 )
 
 // SkillRegistry is the model entity for the SkillRegistry schema.

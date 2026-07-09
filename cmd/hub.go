@@ -706,15 +706,15 @@ func runHubStatus(cmd *cobra.Command, args []string) error {
 
 	if isJSONOutput() {
 		status := map[string]interface{}{
-			"enabled":           hubEnabled,
-			"enabledScope":      enabledScope.Scope,
-			"enabledInherited":  enabledScope.Inherited,
-			"cliOverride":       noHub,
-			"endpoint":          endpoint,
-			"endpointSource":    endpointScope.Source,
-			"endpointInherited": endpointScope.Inherited,
-			"configured":        settings.IsHubConfigured(),
-			"projectId":         settings.ProjectID,
+			"enabled":            hubEnabled,
+			"enabledScope":       enabledScope.Scope,
+			"enabledInherited":   enabledScope.Inherited,
+			"cliOverride":        noHub,
+			"endpoint":           endpoint,
+			"endpointSource":     endpointScope.Source,
+			"endpointInherited":  endpointScope.Inherited,
+			"configured":         settings.IsHubConfigured(),
+			"projectId":          settings.ProjectID,
 			"fabricVersionLocal": version.Short(),
 		}
 		if settings.Hub != nil {

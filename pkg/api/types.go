@@ -832,7 +832,7 @@ type StartOptions struct {
 	GitClone          *GitCloneConfig // When set, skip workspace creation; fabrictool clones inside container
 	SharedWorkspace   bool            // When true, workspace is a shared git clone (git-workspace hybrid); skip worktree, configure credential helper
 	TelemetryOverride *bool           // Explicit telemetry override from CLI flags (--enable-telemetry / --disable-telemetry)
-	InlineConfig      *FabricConfig    // Inline config from --config flag, merged over template config
+	InlineConfig      *FabricConfig   // Inline config from --config flag, merged over template config
 	SharedDirs        []SharedDir     // Project-level shared directories (from Hub, merged with settings)
 	ExtraHosts        []string        // Extra --add-host entries for container networking (e.g. "example.com:host-gateway")
 }

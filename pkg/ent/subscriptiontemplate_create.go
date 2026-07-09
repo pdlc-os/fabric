@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/subscriptiontemplate"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/subscriptiontemplate"
 )
 
 // SubscriptionTemplateCreate is the builder for creating a SubscriptionTemplate entity.

@@ -307,7 +307,7 @@ func (h *RegistrationHandler) ImportV1Mappings(ctx context.Context, mappings map
 
 		mapping := &TelegramUserMapping{
 			TelegramUserID: telegramUserID,
-			FabricEmail:     email,
+			FabricEmail:    email,
 			LinkedAt:       time.Now(),
 		}
 		if err := h.store.SaveUserMapping(ctx, mapping); err != nil {
@@ -385,8 +385,8 @@ func (h *RegistrationHandler) completeRegistration(msg *TGMessage, reg *pendingL
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   reg.TelegramUserID,
 		TelegramUsername: username,
-		FabricUserID:      statusResp.User.ID,
-		FabricEmail:       statusResp.User.Email,
+		FabricUserID:     statusResp.User.ID,
+		FabricEmail:      statusResp.User.Email,
 		LinkedAt:         time.Now(),
 	}
 
@@ -424,8 +424,8 @@ func (h *RegistrationHandler) completeRegistrationFromPoll(reg *pendingLinkReg, 
 	mapping := &TelegramUserMapping{
 		TelegramUserID:   reg.TelegramUserID,
 		TelegramUsername: reg.TelegramUsername, // captured when user sent /register
-		FabricUserID:      statusResp.User.ID,
-		FabricEmail:       statusResp.User.Email,
+		FabricUserID:     statusResp.User.ID,
+		FabricEmail:      statusResp.User.Email,
 		LinkedAt:         time.Now(),
 	}
 

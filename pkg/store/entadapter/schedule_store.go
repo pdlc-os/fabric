@@ -20,11 +20,11 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/pdlc-os/fabric/pkg/ent/schedule"
 	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 )
 
 // ScheduleStore implements store.ScheduleStore and store.ScheduledEventStore

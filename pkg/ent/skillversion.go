@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/skillversion"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/skillversion"
 )
 
 // SkillVersion is the model entity for the SkillVersion schema.

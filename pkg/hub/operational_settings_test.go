@@ -20,10 +20,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/pdlc-os/fabric/pkg/config"
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
+	"github.com/pdlc-os/fabric/pkg/config"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // setEnvForTest sets an env var and returns a cleanup function.

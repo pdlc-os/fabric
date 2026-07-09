@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/apiclient"
 	"github.com/bwmarrin/discordgo"
+	"github.com/pdlc-os/fabric/pkg/apiclient"
 )
 
 // RegistrationHandler manages the hub-verified code-based registration flow
@@ -266,8 +266,8 @@ func (h *RegistrationHandler) completeRegistration(s *discordgo.Session, interac
 	mapping := &DiscordUserMapping{
 		DiscordUserID:   reg.DiscordUserID,
 		DiscordUsername: reg.DiscordUsername,
-		FabricUserID:     statusResp.User.ID,
-		FabricEmail:      statusResp.User.Email,
+		FabricUserID:    statusResp.User.ID,
+		FabricEmail:     statusResp.User.Email,
 		LinkedAt:        time.Now(),
 	}
 

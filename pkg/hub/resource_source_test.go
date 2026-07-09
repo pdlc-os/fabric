@@ -54,7 +54,7 @@ func testBundledResource(kind storage.ResourceKind, name string, files map[strin
 func TestFSResourceSource_Files(t *testing.T) {
 	br := testBundledResource(storage.ResourceKindTemplate, "default", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# bashrc",
+		"home/.bashrc":      "# bashrc",
 	})
 	src := NewFSResourceSource(br)
 
@@ -132,7 +132,7 @@ func TestBootstrapSource_CreateTemplate(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "my-template", map[string]string{
 		"fabric-agent.yaml": "harness: claude\nimage: test:latest\n",
-		"home/.bashrc":     "# bashrc content",
+		"home/.bashrc":      "# bashrc content",
 	})
 	src := NewFSResourceSource(br)
 

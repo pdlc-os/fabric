@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/maintenanceoperation"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
-	"github.com/google/uuid"
 )
 
 // MaintenanceOperationQuery is the builder for querying MaintenanceOperation entities.

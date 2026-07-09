@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/project"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/project"
 )
 
 // Project is the model entity for the Project schema.

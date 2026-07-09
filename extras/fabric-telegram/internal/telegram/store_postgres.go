@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pdlc-os/fabric/pkg/integration/lockloop"
 )
 
 type postgresStore struct {

@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
-	"github.com/google/uuid"
 )
 
 // ScheduledEventUpdate is the builder for updating ScheduledEvent entities.

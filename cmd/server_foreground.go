@@ -32,6 +32,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/knadh/koanf/v2"
 	"github.com/pdlc-os/fabric/pkg/agent"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/apiclient"
@@ -57,7 +58,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/util"
 	"github.com/pdlc-os/fabric/pkg/util/logging"
 	"github.com/pdlc-os/fabric/web"
-	"github.com/knadh/koanf/v2"
 	"github.com/spf13/cobra"
 )
 

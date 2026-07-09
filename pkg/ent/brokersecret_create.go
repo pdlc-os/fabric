@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/brokersecret"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/brokersecret"
 )
 
 // BrokerSecretCreate is the builder for creating a BrokerSecret entity.

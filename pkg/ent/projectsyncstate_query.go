@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/projectsyncstate"
-	"github.com/google/uuid"
 )
 
 // ProjectSyncStateQuery is the builder for querying ProjectSyncState entities.

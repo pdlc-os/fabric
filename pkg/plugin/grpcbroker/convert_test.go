@@ -125,11 +125,11 @@ func TestHealthStatusNilHandling(t *testing.T) {
 
 func TestPluginInfoRoundTrip(t *testing.T) {
 	original := &plugin.PluginInfo{
-		Name:            "discord",
-		Version:         "1.2.3",
+		Name:             "discord",
+		Version:          "1.2.3",
 		MinFabricVersion: "0.5.0",
-		ChannelID:       "discord",
-		Capabilities:    []string{"send", "receive", "webhooks"},
+		ChannelID:        "discord",
+		Capabilities:     []string{"send", "receive", "webhooks"},
 	}
 
 	pb := PluginInfoToProto(original)

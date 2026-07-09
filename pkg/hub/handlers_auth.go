@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // AuthLoginRequest is the request body for /api/v1/auth/login.

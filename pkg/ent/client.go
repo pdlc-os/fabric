@@ -9,8 +9,8 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/pdlc-os/fabric/pkg/ent/migrate"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"

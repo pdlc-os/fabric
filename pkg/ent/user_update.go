@@ -11,13 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/group"
 	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
 	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/schema"
 	"github.com/pdlc-os/fabric/pkg/ent/user"
-	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.

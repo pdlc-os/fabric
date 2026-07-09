@@ -10,12 +10,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
 	"github.com/pdlc-os/fabric/pkg/ent/group"
 	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/user"
-	"github.com/google/uuid"
 )
 
 // GroupMembershipUpdate is the builder for updating GroupMembership entities.

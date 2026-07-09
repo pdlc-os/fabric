@@ -21,13 +21,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/gcp"
 	"github.com/pdlc-os/fabric/pkg/storage"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/transfer"
 	"github.com/pdlc-os/fabric/pkg/wsprotocol"
-	"github.com/google/uuid"
 )
 
 // Workspace sync request/response types following the design in sync-design.md Section 7.

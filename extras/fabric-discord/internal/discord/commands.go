@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/projectcompat"
-	"github.com/bwmarrin/discordgo"
 )
 
 // AgentInfo holds an agent's slug and current activity state.

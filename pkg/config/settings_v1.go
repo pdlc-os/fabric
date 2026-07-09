@@ -22,14 +22,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/api"
-	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
+	"github.com/pdlc-os/fabric/pkg/api"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 

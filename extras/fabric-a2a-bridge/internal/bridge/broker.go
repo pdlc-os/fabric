@@ -23,9 +23,9 @@ import (
 	"sync"
 	"time"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/plugin"
-	goplugin "github.com/hashicorp/go-plugin"
 )
 
 // MessageHandler is called when a message is received from the Hub via the broker plugin.

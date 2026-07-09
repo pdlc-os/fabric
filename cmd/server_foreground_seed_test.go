@@ -21,9 +21,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/v2"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // fakeHubSettingStore is a test double for store.HubSettingStore.

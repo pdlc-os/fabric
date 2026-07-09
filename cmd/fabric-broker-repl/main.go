@@ -35,10 +35,10 @@ import (
 	"os"
 	"strings"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/plugin"
 	"github.com/pdlc-os/fabric/pkg/plugin/refbroker"
-	goplugin "github.com/hashicorp/go-plugin"
 )
 
 func main() {

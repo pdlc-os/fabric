@@ -24,10 +24,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/wsprotocol"
-	"github.com/google/uuid"
 )
 
 // ControlChannelBrokerClient implements RuntimeBrokerClient by tunneling requests

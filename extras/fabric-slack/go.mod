@@ -3,8 +3,8 @@ module github.com/pdlc-os/fabric/extras/fabric-slack
 go 1.26.1
 
 require (
-	github.com/pdlc-os/fabric v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/go-plugin v1.7.0
+	github.com/pdlc-os/fabric v0.0.0-00010101000000-000000000000
 	github.com/slack-go/slack v0.27.0
 	github.com/stretchr/testify v1.11.1
 	modernc.org/sqlite v1.44.3

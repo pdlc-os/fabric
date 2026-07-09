@@ -11,9 +11,9 @@ import (
 	"log/slog"
 	"os"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/extras/fabric-slack/internal/slack"
 	"github.com/pdlc-os/fabric/pkg/plugin"
-	goplugin "github.com/hashicorp/go-plugin"
 )
 
 func main() {

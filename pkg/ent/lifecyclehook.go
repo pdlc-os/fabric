@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehook"
 	"github.com/pdlc-os/fabric/pkg/ent/schema"
-	"github.com/google/uuid"
 )
 
 // LifecycleHook is the model entity for the LifecycleHook schema.

@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
 )
 
 // ScheduledEventCreate is the builder for creating a ScheduledEvent entity.

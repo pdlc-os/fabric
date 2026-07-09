@@ -27,10 +27,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 // testDevToken is the development token used for testing.

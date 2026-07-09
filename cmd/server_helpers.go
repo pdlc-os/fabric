@@ -28,7 +28,7 @@ import (
 
 // portStatus represents the result of checking a port.
 type portStatus struct {
-	inUse         bool
+	inUse          bool
 	isFabricServer bool
 }
 

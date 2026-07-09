@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/scheduledevent"
 )
 
 // ScheduledEvent is the model entity for the ScheduledEvent schema.

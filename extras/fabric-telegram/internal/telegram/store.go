@@ -115,8 +115,8 @@ type ProjectAgents struct {
 type TelegramUserMapping struct {
 	TelegramUserID   string
 	TelegramUsername string
-	FabricUserID      string
-	FabricEmail       string
+	FabricUserID     string
+	FabricEmail      string
 	LinkedAt         time.Time
 }
 

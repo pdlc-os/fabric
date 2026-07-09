@@ -28,9 +28,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

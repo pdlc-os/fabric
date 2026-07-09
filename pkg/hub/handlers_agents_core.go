@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	gouuid "github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/gcp"
@@ -33,7 +34,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/storage"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/transfer"
-	gouuid "github.com/google/uuid"
 )
 
 // parseLabelFilters parses label=key=value query parameters into a map and
@@ -76,7 +76,7 @@ type CreateAgentRequest struct {
 	Branch          string            `json:"branch,omitempty"`
 	Workspace       string            `json:"workspace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty"`
-	Config          *api.FabricConfig  `json:"config,omitempty"`
+	Config          *api.FabricConfig `json:"config,omitempty"`
 	Attach          bool              `json:"attach,omitempty"`        // If true, signals interactive attach mode to the broker/harness
 	ProvisionOnly   bool              `json:"provisionOnly,omitempty"` // If true, provision only (write task to prompt.md) without starting
 	// WorkspaceFiles is populated for non-git workspace bootstrap.
@@ -1458,7 +1458,7 @@ func (s *Server) updateAgent(w http.ResponseWriter, r *http.Request, id string) 
 		Labels       map[string]string      `json:"labels,omitempty"`
 		Annotations  map[string]string      `json:"annotations,omitempty"`
 		TaskSummary  string                 `json:"taskSummary,omitempty"`
-		Config       *api.FabricConfig       `json:"config,omitempty"`
+		Config       *api.FabricConfig      `json:"config,omitempty"`
 		GCPIdentity  *GCPIdentityAssignment `json:"gcp_identity,omitempty"`
 		StateVersion int64                  `json:"stateVersion"`
 	}

@@ -45,7 +45,7 @@ func mockTemplateTarball(t *testing.T) func() {
 			tw := tar.NewWriter(gzw)
 			files := map[string]string{
 				"repo-main/templates/my-template/fabric-agent.yaml": "schema_version: \"1\"\nharness: claude\n",
-				"repo-main/templates/my-template/README.md":        "hello",
+				"repo-main/templates/my-template/README.md":         "hello",
 			}
 			for name, body := range files {
 				if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0600, Size: int64(len(body))}); err != nil {

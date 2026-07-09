@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/hubsetting"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/hubsetting"
 )
 
 // HubSettingCreate is the builder for creating a HubSetting entity.

@@ -500,7 +500,7 @@ func TestV2_HandleGroupMessage_BotMentionDefaultAgent(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -563,7 +563,7 @@ func TestV2_HandleGroupMessage_DirectAgentMention(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -613,7 +613,7 @@ func TestV2_HandleGroupMessage_AllMention(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -706,7 +706,7 @@ func TestV2_HandleGroupMessage_UserMappingResolution(t *testing.T) {
 	}))
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -750,7 +750,7 @@ func TestV2_HandleGroupMessage_ConversationContextSaved(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -808,7 +808,7 @@ func TestV2_HandleGroupMessage_ReplyToBotMessage(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -873,7 +873,7 @@ func TestV2_HandleGroupMessage_ReplyToBotMessage_MentionTakesPriority(t *testing
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -933,7 +933,7 @@ func TestV2_HandleGroupMessage_ReplyConversationContextFallback(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -1020,7 +1020,7 @@ func TestV2_Publish_ConversationContextRouting(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveConversationContext(ctx, &ConversationContext{
@@ -1257,7 +1257,7 @@ func TestV2_HandleCallback_AskUserWithMapping(t *testing.T) {
 	}))
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -1337,7 +1337,7 @@ func TestV2_Publish_StateChange_RoutedToDM(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	// Also create a group link — state-change should NOT go here.
@@ -1404,7 +1404,7 @@ func TestV2_Publish_StateChange_RespectNotificationPref(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	// User explicitly disabled notifications for this agent.
@@ -1851,7 +1851,7 @@ func TestV2_WebhookMode_InboundMessageDelivery(t *testing.T) {
 	}))
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveProjectAgents(ctx, &ProjectAgents{
@@ -1945,12 +1945,12 @@ func TestResolveOutboundMentions(t *testing.T) {
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID:   "100",
 		TelegramUsername: "ptone805",
-		FabricEmail:       "ptone@google.com",
+		FabricEmail:      "ptone@google.com",
 		LinkedAt:         time.Now().UTC(),
 	}))
 	require.NoError(t, store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "200",
-		FabricEmail:     "nousername@example.com",
+		FabricEmail:    "nousername@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -2045,7 +2045,7 @@ func TestV2_HandleIncoming_PhotoMessageNotDropped(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -2112,7 +2112,7 @@ func TestV2_HandleIncoming_DocumentWithCaption(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 
@@ -2326,7 +2326,7 @@ func TestV2_HandleGroupMessage_CodeSpanPreserved(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -2385,7 +2385,7 @@ func TestV2_HandleGroupMessage_MultipleCodeSpans(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -2444,7 +2444,7 @@ func TestV2_HandleGroupMessage_PreBlockPreserved(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -2502,7 +2502,7 @@ func TestV2_HandleGroupMessage_PreBlockWithLanguage(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{
@@ -2559,7 +2559,7 @@ func TestV2_HandleGroupMessage_CodeSpanWithDefaultAgent(t *testing.T) {
 	ctx := context.Background()
 	require.NoError(t, b.store.SaveUserMapping(ctx, &TelegramUserMapping{
 		TelegramUserID: "456",
-		FabricEmail:     "alice@example.com",
+		FabricEmail:    "alice@example.com",
 		LinkedAt:       time.Now().UTC(),
 	}))
 	require.NoError(t, b.store.SaveGroupLink(ctx, &GroupLink{

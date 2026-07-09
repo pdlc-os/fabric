@@ -22,13 +22,13 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/extras/fabric-discord/internal/discord"
 	"github.com/pdlc-os/fabric/pkg/integration/runtime"
 	"github.com/pdlc-os/fabric/pkg/plugin"
 	"github.com/pdlc-os/fabric/pkg/plugin/grpcbroker"
 	"github.com/pdlc-os/fabric/pkg/store"
 	brokerv1 "github.com/pdlc-os/fabric/proto/broker/v1"
-	goplugin "github.com/hashicorp/go-plugin"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )

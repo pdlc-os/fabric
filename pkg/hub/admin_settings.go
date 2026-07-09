@@ -126,7 +126,7 @@ func (s *Server) handleGetServerConfig(w http.ResponseWriter) {
 				FabricVersion:   version.Short(),
 				FabricCommit:    version.GetCommit(),
 				FabricBuildTime: version.GetBuildTime(),
-				SchemaVersion:  "1",
+				SchemaVersion:   "1",
 			})
 			return
 		}
@@ -142,9 +142,9 @@ func (s *Server) handleGetServerConfig(w http.ResponseWriter) {
 
 	// Mask sensitive fields before sending to the client
 	resp := ServerConfigResponse{
-		FabricVersion:         version.Short(),
-		FabricCommit:          version.GetCommit(),
-		FabricBuildTime:       version.GetBuildTime(),
+		FabricVersion:        version.Short(),
+		FabricCommit:         version.GetCommit(),
+		FabricBuildTime:      version.GetBuildTime(),
 		SchemaVersion:        vs.SchemaVersion,
 		ActiveProfile:        vs.ActiveProfile,
 		DefaultTemplate:      vs.DefaultTemplate,

@@ -64,8 +64,8 @@ type ChannelLink struct {
 type SlackUserMapping struct {
 	SlackUserID   string
 	SlackUsername string
-	FabricUserID   string
-	FabricEmail    string
+	FabricUserID  string
+	FabricEmail   string
 	LinkedAt      time.Time
 }
 

@@ -10,9 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/notificationsubscription"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
-	"github.com/google/uuid"
 )
 
 // NotificationSubscriptionUpdate is the builder for updating NotificationSubscription entities.

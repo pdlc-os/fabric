@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/allowlistentry"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/allowlistentry"
 )
 
 // AllowListEntry is the model entity for the AllowListEntry schema.

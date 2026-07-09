@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/notification"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/notification"
 )
 
 // NotificationCreate is the builder for creating a Notification entity.

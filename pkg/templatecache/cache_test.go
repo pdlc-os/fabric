@@ -60,7 +60,7 @@ func TestPutAndGet(t *testing.T) {
 
 	contentHash := "abc123hash"
 	files := map[string][]byte{
-		"fabric-agent.yaml":       []byte("harness: claude\n"),
+		"fabric-agent.yaml":      []byte("harness: claude\n"),
 		"home/.claude/CLAUDE.md": []byte("# Test Template\n"),
 	}
 

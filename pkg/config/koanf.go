@@ -22,7 +22,6 @@ import (
 	goruntime "runtime"
 	"strings"
 
-	"github.com/pdlc-os/fabric/pkg/projectcompat"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
@@ -30,6 +29,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
+	"github.com/pdlc-os/fabric/pkg/projectcompat"
 )
 
 // LoadSettingsKoanf loads settings using Koanf with provider priority:

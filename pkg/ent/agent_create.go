@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
 	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
 	"github.com/pdlc-os/fabric/pkg/ent/policybinding"
 	"github.com/pdlc-os/fabric/pkg/ent/project"
-	"github.com/google/uuid"
 )
 
 // AgentCreate is the builder for creating a Agent entity.

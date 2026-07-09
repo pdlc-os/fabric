@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 func setupTestBrokerAuthService(t *testing.T) (*BrokerAuthService, store.Store) {

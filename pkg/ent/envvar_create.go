@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/envvar"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/envvar"
 )
 
 // EnvVarCreate is the builder for creating a EnvVar entity.

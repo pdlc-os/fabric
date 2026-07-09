@@ -24,9 +24,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/pdlc-os/fabric/pkg/ent"
 )
 
 const (

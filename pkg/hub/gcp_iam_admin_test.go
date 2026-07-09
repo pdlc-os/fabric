@@ -49,7 +49,7 @@ func TestGCPSAAccountIDRegexp(t *testing.T) {
 		{"fabric-abc123", true},
 		{"fabric-a1b2c3d4", true},
 		{"fabric-my-pipeline", true},
-		{"abc", true},        // matches pattern (length checked separately)
+		{"abc", true},         // matches pattern (length checked separately)
 		{"1fabric", false},    // starts with digit
 		{"fabric-", false},    // ends with hyphen
 		{"-fabric", false},    // starts with hyphen

@@ -20,9 +20,9 @@ import (
 	"net"
 	"testing"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/plugin"
-	goplugin "github.com/hashicorp/go-plugin"
 )
 
 // TestBrokerServer_Serve_SelfManaged verifies that the broker plugin RPC

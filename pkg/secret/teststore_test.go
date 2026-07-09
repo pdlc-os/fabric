@@ -21,10 +21,10 @@ import (
 	"fmt"
 	"sync/atomic"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/entc"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/store/entadapter"
-	"github.com/google/uuid"
 )
 
 // tid deterministically maps a human-readable test identifier (e.g. "user-1")

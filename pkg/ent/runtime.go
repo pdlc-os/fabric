@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/accesspolicy"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
 	"github.com/pdlc-os/fabric/pkg/ent/allowlistentry"
@@ -46,7 +47,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/ent/template"
 	"github.com/pdlc-os/fabric/pkg/ent/user"
 	"github.com/pdlc-os/fabric/pkg/ent/useraccesstoken"
-	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code

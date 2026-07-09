@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
 	"github.com/pdlc-os/fabric/pkg/ent/group"
 	"github.com/pdlc-os/fabric/pkg/ent/groupmembership"
 	"github.com/pdlc-os/fabric/pkg/ent/user"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 )
 
 // GroupStore implements store.GroupStore using Ent ORM.

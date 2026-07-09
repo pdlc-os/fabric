@@ -142,10 +142,10 @@ func PluginInfoToProto(info *plugin.PluginInfo) *brokerv1.GetInfoResponse {
 		return &brokerv1.GetInfoResponse{}
 	}
 	resp := &brokerv1.GetInfoResponse{
-		Name:            info.Name,
-		Version:         info.Version,
+		Name:             info.Name,
+		Version:          info.Version,
 		MinFabricVersion: info.MinFabricVersion,
-		ChannelId:       info.ChannelID,
+		ChannelId:        info.ChannelID,
 	}
 	if len(info.Capabilities) > 0 {
 		resp.Capabilities = make([]string, len(info.Capabilities))
@@ -160,10 +160,10 @@ func ProtoToPluginInfo(pb *brokerv1.GetInfoResponse) *plugin.PluginInfo {
 		return nil
 	}
 	info := &plugin.PluginInfo{
-		Name:            pb.Name,
-		Version:         pb.Version,
+		Name:             pb.Name,
+		Version:          pb.Version,
 		MinFabricVersion: pb.MinFabricVersion,
-		ChannelID:       pb.ChannelId,
+		ChannelID:        pb.ChannelId,
 	}
 	if len(pb.Capabilities) > 0 {
 		info.Capabilities = make([]string, len(pb.Capabilities))

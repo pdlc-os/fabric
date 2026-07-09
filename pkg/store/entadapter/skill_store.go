@@ -22,11 +22,11 @@ import (
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/Masterminds/semver/v3"
 	"github.com/pdlc-os/fabric/pkg/ent"
 	entskill "github.com/pdlc-os/fabric/pkg/ent/skill"
 	entskillversion "github.com/pdlc-os/fabric/pkg/ent/skillversion"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/Masterminds/semver/v3"
 )
 
 // SkillStore implements store.SkillStore using Ent ORM.

@@ -1607,7 +1607,7 @@ func TestPopulateAgentConfig_SharedWorkspace_DefaultsBranch(t *testing.T) {
 		Slug:      "shared-branch",
 		GitRemote: "github.com/test/shared-branch",
 		Labels: map[string]string{
-			store.LabelWorkspaceMode:   store.WorkspaceModeShared,
+			store.LabelWorkspaceMode:    store.WorkspaceModeShared,
 			"fabric.dev/default-branch": "develop",
 		},
 	}
@@ -1664,7 +1664,7 @@ func TestPopulateAgentConfig_WorktreePerAgent_SetsCloneNotWorkspace(t *testing.T
 		Slug:      "worktree-proj",
 		GitRemote: "github.com/test/worktree",
 		Labels: map[string]string{
-			store.LabelWorkspaceMode:   store.WorkspaceModeWorktreePerAgent,
+			store.LabelWorkspaceMode:    store.WorkspaceModeWorktreePerAgent,
 			"fabric.dev/default-branch": "main",
 		},
 	}
@@ -1706,7 +1706,7 @@ func TestCloneSharedWorkspaceProject_Success(t *testing.T) {
 		Slug:      "clone-test-" + api.NewUUID()[:8],
 		GitRemote: "local/test/repo",
 		Labels: map[string]string{
-			store.LabelWorkspaceMode:   store.WorkspaceModeShared,
+			store.LabelWorkspaceMode:    store.WorkspaceModeShared,
 			"fabric.dev/clone-url":      sourceDir,
 			"fabric.dev/default-branch": "master",
 		},

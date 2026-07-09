@@ -31,8 +31,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 // BrokerAuthConfig holds broker authentication configuration.

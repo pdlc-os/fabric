@@ -22,13 +22,13 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/pdlc-os/fabric/pkg/ent/allowlistentry"
 	"github.com/pdlc-os/fabric/pkg/ent/invitecode"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/pdlc-os/fabric/pkg/ent/user"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 )
 
 // AllowListStore implements store.AllowListStore and store.InviteCodeStore using

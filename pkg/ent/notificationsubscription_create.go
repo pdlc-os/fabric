@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/pdlc-os/fabric/pkg/ent/notificationsubscription"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/notificationsubscription"
 )
 
 // NotificationSubscriptionCreate is the builder for creating a NotificationSubscription entity.

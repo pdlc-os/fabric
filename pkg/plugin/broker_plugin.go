@@ -21,9 +21,9 @@ import (
 	"net/rpc"
 	"sync"
 
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/pdlc-os/fabric/pkg/eventbus"
 	"github.com/pdlc-os/fabric/pkg/messages"
-	goplugin "github.com/hashicorp/go-plugin"
 )
 
 // BrokerPluginName is the name used to dispense broker plugins via go-plugin.

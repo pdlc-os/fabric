@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/store"
 )
 
 type AllowListAddRequest struct {

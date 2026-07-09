@@ -31,7 +31,7 @@ func TestValidateStorage_HealthyTemplate(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "healthy", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# bashrc",
+		"home/.bashrc":      "# bashrc",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()
@@ -73,7 +73,7 @@ func TestValidateStorage_MissingObject(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "broken", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# bashrc",
+		"home/.bashrc":      "# bashrc",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()
@@ -206,7 +206,7 @@ func TestValidateStorage_ContentHashMismatch(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "hash-mismatch", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# original content",
+		"home/.bashrc":      "# original content",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()
@@ -259,7 +259,7 @@ func TestRepairStorage_FixesHashMismatch(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "repair-hash", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# correct content",
+		"home/.bashrc":      "# correct content",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()
@@ -356,7 +356,7 @@ func TestRepairStorage_FixesMissingObjects(t *testing.T) {
 
 	br := testBundledResource(storage.ResourceKindTemplate, "repairable", map[string]string{
 		"fabric-agent.yaml": "harness: claude\n",
-		"home/.bashrc":     "# bashrc content",
+		"home/.bashrc":      "# bashrc content",
 	})
 	src := NewFSResourceSource(br)
 	rs := srv.templateStore()

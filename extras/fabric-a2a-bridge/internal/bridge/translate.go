@@ -21,8 +21,8 @@ import (
 
 	"github.com/a2aproject/a2a-go/v2/a2a"
 
-	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/messages"
 )
 
 // A2A task states (matching the A2A protocol spec).

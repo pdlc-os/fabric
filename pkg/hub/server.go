@@ -34,6 +34,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/ent"
@@ -48,7 +49,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/storage"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/util/logging"
-	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	"golang.org/x/sync/singleflight"
 )

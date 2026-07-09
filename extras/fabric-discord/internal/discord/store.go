@@ -92,8 +92,8 @@ type ChannelLink struct {
 type DiscordUserMapping struct {
 	DiscordUserID   string
 	DiscordUsername string
-	FabricUserID     string
-	FabricEmail      string
+	FabricUserID    string
+	FabricEmail     string
 	LinkedAt        time.Time
 }
 

@@ -23,8 +23,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/pdlc-os/fabric/extras/agent-viz/internal/playback"
 	"github.com/gorilla/websocket"
+	"github.com/pdlc-os/fabric/extras/agent-viz/internal/playback"
 )
 
 //go:embed dist/*

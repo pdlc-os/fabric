@@ -192,8 +192,8 @@ func (h *RegistrationHandler) completeRegistration(reg *pendingSlackReg, statusR
 	mapping := &SlackUserMapping{
 		SlackUserID:   reg.SlackUserID,
 		SlackUsername: reg.SlackUsername,
-		FabricUserID:   statusResp.User.ID,
-		FabricEmail:    statusResp.User.Email,
+		FabricUserID:  statusResp.User.ID,
+		FabricEmail:   statusResp.User.Email,
 		LinkedAt:      time.Now(),
 	}
 

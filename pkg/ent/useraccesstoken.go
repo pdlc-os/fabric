@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/useraccesstoken"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/useraccesstoken"
 )
 
 // UserAccessToken is the model entity for the UserAccessToken schema.

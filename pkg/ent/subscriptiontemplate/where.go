@@ -4,8 +4,8 @@ package subscriptiontemplate
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

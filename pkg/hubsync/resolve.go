@@ -21,11 +21,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/apiclient"
 	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/pdlc-os/fabric/pkg/hubclient"
 	"github.com/pdlc-os/fabric/pkg/util"
-	"github.com/google/uuid"
 )
 
 // IsHubProjectRef returns true if the given project path value looks like a hub

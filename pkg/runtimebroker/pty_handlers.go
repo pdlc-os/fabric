@@ -28,10 +28,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/runtime"
-	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
+	"github.com/pdlc-os/fabric/pkg/runtime"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"

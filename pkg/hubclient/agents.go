@@ -170,7 +170,7 @@ type CreateAgentRequest struct {
 	Workspace       string            `json:"workspace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty"`
 	Annotations     map[string]string `json:"annotations,omitempty"`
-	Config          *api.FabricConfig  `json:"config,omitempty"`
+	Config          *api.FabricConfig `json:"config,omitempty"`
 	Resume          bool              `json:"resume,omitempty"`
 	Attach          bool              `json:"attach,omitempty"`        // If true, signals interactive attach mode to the broker/harness
 	ProvisionOnly   bool              `json:"provisionOnly,omitempty"` // If true, provision only (write task to prompt.md) without starting

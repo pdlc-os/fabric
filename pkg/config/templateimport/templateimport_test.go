@@ -704,9 +704,9 @@ default_harness_config: claude
 	templatesDir := t.TempDir()
 
 	agent := &ImportedAgent{
-		Name:        "fabric-copy",
-		Harness:     "claude",
-		SourcePath:  srcDir,
+		Name:         "fabric-copy",
+		Harness:      "claude",
+		SourcePath:   srcDir,
 		FabricFormat: true,
 	}
 

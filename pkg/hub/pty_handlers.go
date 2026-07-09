@@ -25,9 +25,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/pdlc-os/fabric/pkg/wsprotocol"
 )
 
 // PTY endpoint configuration

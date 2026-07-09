@@ -1059,7 +1059,7 @@ func TestBootstrapTemplatesFromDir_ImportsDefaultHarnessConfig(t *testing.T) {
 	ctx := context.Background()
 
 	templatesDir := makeTemplateDir(t, "web-dev", map[string]string{
-		"fabric-agent.yaml":                       "default_harness_config: claude-web\n",
+		"fabric-agent.yaml":                      "default_harness_config: claude-web\n",
 		"harness-configs/claude-web/config.yaml": "harness: claude\n",
 		"harness-configs/gemini-web/config.yaml": "harness: gemini\n",
 	})
@@ -1110,7 +1110,7 @@ func TestBootstrapTemplatesFromDir_BackfillsDefaultHarnessConfig(t *testing.T) {
 	ctx := context.Background()
 
 	templatesDir := makeTemplateDir(t, "backfill-tmpl", map[string]string{
-		"fabric-agent.yaml":                       "default_harness_config: claude-web\n",
+		"fabric-agent.yaml":                      "default_harness_config: claude-web\n",
 		"harness-configs/claude-web/config.yaml": "harness: claude\n",
 	})
 

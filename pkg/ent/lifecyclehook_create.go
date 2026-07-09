@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehook"
 	"github.com/pdlc-os/fabric/pkg/ent/schema"
-	"github.com/google/uuid"
 )
 
 // LifecycleHookCreate is the builder for creating a LifecycleHook entity.

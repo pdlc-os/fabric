@@ -26,8 +26,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pdlc-os/fabric/extras/fs-watcher-tool/pkg/fswatcher"
 	"github.com/docker/docker/client"
+	"github.com/pdlc-os/fabric/extras/fs-watcher-tool/pkg/fswatcher"
 )
 
 type stringSlice []string

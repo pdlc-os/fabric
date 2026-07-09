@@ -24,13 +24,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-jose/go-jose/v4/jwt"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/messages"
 	"github.com/pdlc-os/fabric/pkg/observability/dispatchmetrics"
 	"github.com/pdlc-os/fabric/pkg/secret"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/go-jose/go-jose/v4/jwt"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
 )
 

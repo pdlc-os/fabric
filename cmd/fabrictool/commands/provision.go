@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/pdlc-os/fabric/pkg/api"
-	"github.com/pdlc-os/fabric/pkg/provision"
 	"github.com/pdlc-os/fabric/pkg/fabrictool/log"
+	"github.com/pdlc-os/fabric/pkg/provision"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/spf13/cobra"
 )

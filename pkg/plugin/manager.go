@@ -24,9 +24,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/pdlc-os/fabric/pkg/eventbus"
 	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/go-plugin/runner"
+	"github.com/pdlc-os/fabric/pkg/eventbus"
 )
 
 // Manager owns the lifecycle of all loaded plugins.

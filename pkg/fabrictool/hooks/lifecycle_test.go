@@ -37,7 +37,7 @@ func TestAddHooksDir_AppendsAndDedupes(t *testing.T) {
 	m := &LifecycleManager{HooksDirs: []string{"/etc/fabric/hooks"}}
 	m.AddHooksDir("/agent/.fabric/hooks")
 	m.AddHooksDir("/agent/.fabric/hooks") // duplicate
-	m.AddHooksDir("")                    // ignored
+	m.AddHooksDir("")                     // ignored
 	if len(m.HooksDirs) != 2 {
 		t.Fatalf("expected 2 dirs, got %v", m.HooksDirs)
 	}

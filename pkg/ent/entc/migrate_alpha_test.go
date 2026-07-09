@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -254,8 +254,8 @@ func TestUserMappingCRUD(t *testing.T) {
 		mapping := &DiscordUserMapping{
 			DiscordUserID:   "456789012345678901",
 			DiscordUsername: "alice",
-			FabricUserID:     "user-123",
-			FabricEmail:      "alice@example.com",
+			FabricUserID:    "user-123",
+			FabricEmail:     "alice@example.com",
 			LinkedAt:        time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
 		}
 		require.NoError(t, store.CreateUserMapping(ctx, mapping))
@@ -284,7 +284,7 @@ func TestUserMappingCRUD(t *testing.T) {
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			FabricEmail:    "alice@example.com",
+			FabricEmail:   "alice@example.com",
 			LinkedAt:      time.Now().UTC(),
 		}))
 
@@ -304,7 +304,7 @@ func TestUserMappingCRUD(t *testing.T) {
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			FabricUserID:   "user-123",
+			FabricUserID:  "user-123",
 			LinkedAt:      time.Now().UTC(),
 		}))
 
@@ -325,14 +325,14 @@ func TestUserMappingCRUD(t *testing.T) {
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID:   "456",
 			DiscordUsername: "alice",
-			FabricEmail:      "alice@old.com",
+			FabricEmail:     "alice@old.com",
 			LinkedAt:        time.Now().UTC(),
 		}))
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID:   "456",
 			DiscordUsername: "alice_new",
-			FabricEmail:      "alice@new.com",
+			FabricEmail:     "alice@new.com",
 			LinkedAt:        time.Now().UTC(),
 		}))
 
@@ -349,7 +349,7 @@ func TestUserMappingCRUD(t *testing.T) {
 
 		require.NoError(t, store.CreateUserMapping(ctx, &DiscordUserMapping{
 			DiscordUserID: "456",
-			FabricEmail:    "alice@example.com",
+			FabricEmail:   "alice@example.com",
 			LinkedAt:      time.Now().UTC(),
 		}))
 

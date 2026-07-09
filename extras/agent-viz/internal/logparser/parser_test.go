@@ -30,7 +30,7 @@ func TestParseLogFile(t *testing.T) {
 			Severity:  "INFO",
 			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
-				"agent_id":      "agent-1",
+				"agent_id":       "agent-1",
 				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
@@ -43,7 +43,7 @@ func TestParseLogFile(t *testing.T) {
 			Severity:  "INFO",
 			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
-				"agent_id":      "agent-1",
+				"agent_id":       "agent-1",
 				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
@@ -56,7 +56,7 @@ func TestParseLogFile(t *testing.T) {
 			Severity:  "INFO",
 			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
-				"agent_id":      "agent-1",
+				"agent_id":       "agent-1",
 				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{
@@ -92,7 +92,7 @@ func TestParseLogFile(t *testing.T) {
 			Severity:  "INFO",
 			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
-				"agent_id":      "agent-2",
+				"agent_id":       "agent-2",
 				"fabric.harness": "claude",
 			},
 			JSONPayload: map[string]any{
@@ -105,7 +105,7 @@ func TestParseLogFile(t *testing.T) {
 			Severity:  "INFO",
 			LogName:   "projects/test/logs/fabric-agents",
 			Labels: map[string]string{
-				"agent_id":      "agent-1",
+				"agent_id":       "agent-1",
 				"fabric.harness": "gemini",
 			},
 			JSONPayload: map[string]any{

@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/pdlc-os/fabric/pkg/agent/state"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/config"
@@ -28,7 +29,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/projectsync"
 	"github.com/pdlc-os/fabric/pkg/runtime"
 	"github.com/pdlc-os/fabric/pkg/transfer"
-	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
 

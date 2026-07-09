@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/ent"
 	"github.com/pdlc-os/fabric/pkg/ent/agent"
@@ -30,7 +31,6 @@ import (
 	"github.com/pdlc-os/fabric/pkg/ent/projectsyncstate"
 	"github.com/pdlc-os/fabric/pkg/ent/runtimebroker"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/google/uuid"
 )
 
 // maxCASRetries bounds the optimistic-concurrency retry loop on runtime broker

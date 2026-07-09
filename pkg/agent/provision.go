@@ -299,7 +299,7 @@ func migrateLegacyAgentState(legacyDir, externalDir string) {
 // clean up containers before removing the project config directory.
 func StopProjectContainers(ctx context.Context, mgr Manager, projectName string, agentNames []string) []string {
 	containers, err := mgr.List(ctx, map[string]string{
-		"fabric.agent":              "true",
+		"fabric.agent":             "true",
 		projectcompat.LabelProject: projectName,
 	})
 	if err != nil {

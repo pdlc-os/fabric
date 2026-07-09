@@ -23,9 +23,9 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/util"
-	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 )
 

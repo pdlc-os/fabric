@@ -715,7 +715,7 @@ func TestHandleTemplateFileDelete_ResetsHarness(t *testing.T) {
 
 	tmpl := createTestTemplate(t, s, stor, map[string]string{
 		"fabric-agent.yaml": "default_harness_config: gemini-web\n",
-		"CLAUDE.md":        "# Agent",
+		"CLAUDE.md":         "# Agent",
 	})
 
 	// Update harness to match config file

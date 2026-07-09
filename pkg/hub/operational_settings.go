@@ -24,11 +24,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/knadh/koanf/v2"
 	"github.com/pdlc-os/fabric/pkg/api"
 	"github.com/pdlc-os/fabric/pkg/config"
 	"github.com/pdlc-os/fabric/pkg/config/opsettings"
 	"github.com/pdlc-os/fabric/pkg/store"
-	"github.com/knadh/koanf/v2"
 )
 
 // sectionState holds the cached value, revision, and provenance metadata for a

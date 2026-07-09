@@ -25,10 +25,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/integrationupdate"
 	"github.com/pdlc-os/fabric/pkg/plugin"
 	"github.com/pdlc-os/fabric/pkg/store/enttest"
-	"github.com/google/uuid"
 )
 
 // --- mock IntegrationManager ---

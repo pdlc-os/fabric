@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/pdlc-os/fabric/pkg/ent/lifecyclehook"
 	"github.com/pdlc-os/fabric/pkg/ent/predicate"
-	"github.com/google/uuid"
 )
 
 // LifecycleHookQuery is the builder for querying LifecycleHook entities.

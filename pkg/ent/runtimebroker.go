@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/runtimebroker"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/runtimebroker"
 )
 
 // RuntimeBroker is the model entity for the RuntimeBroker schema.

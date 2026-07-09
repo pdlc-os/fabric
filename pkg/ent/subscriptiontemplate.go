@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/pdlc-os/fabric/pkg/ent/subscriptiontemplate"
 	"github.com/google/uuid"
+	"github.com/pdlc-os/fabric/pkg/ent/subscriptiontemplate"
 )
 
 // SubscriptionTemplate is the model entity for the SubscriptionTemplate schema.

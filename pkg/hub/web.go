@@ -32,12 +32,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/pdlc-os/fabric/pkg/apiclient"
 	"github.com/pdlc-os/fabric/pkg/store"
 	"github.com/pdlc-os/fabric/pkg/util/logging"
 	"github.com/pdlc-os/fabric/pkg/version"
 	"github.com/pdlc-os/fabric/web"
-	"github.com/gorilla/sessions"
 	"golang.org/x/net/http2"
 	//nolint:staticcheck // h2c is kept for local cleartext HTTP/2 support.
 	"golang.org/x/net/http2/h2c"
@@ -60,13 +60,13 @@ type WebHealthInfo struct {
 // web server's /healthz endpoint. It includes backward-compatible top-level
 // fields (status, version, fabricVersion, uptime) plus per-component sub-objects.
 type CompositeHealthResponse struct {
-	Status       string      `json:"status"`
-	Version      string      `json:"version"`
+	Status        string      `json:"status"`
+	Version       string      `json:"version"`
 	FabricVersion string      `json:"fabricVersion"`
-	Uptime       string      `json:"uptime,omitempty"`
-	Web          interface{} `json:"web"`
-	Hub          interface{} `json:"hub,omitempty"`
-	Broker       interface{} `json:"broker,omitempty"`
+	Uptime        string      `json:"uptime,omitempty"`
+	Web           interface{} `json:"web"`
+	Hub           interface{} `json:"hub,omitempty"`
+	Broker        interface{} `json:"broker,omitempty"`
 }
 
 // shoelaceVersion is the Shoelace CDN version used by the SPA shell.
@@ -722,10 +722,10 @@ func (ws *WebServer) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := CompositeHealthResponse{
-		Status:       "healthy",
-		Version:      "0.1.0",
+		Status:        "healthy",
+		Version:       "0.1.0",
 		FabricVersion: version.Short(),
-		Web:          webHealth,
+		Web:           webHealth,
 	}
 
 	// Include Hub health if a provider is registered.

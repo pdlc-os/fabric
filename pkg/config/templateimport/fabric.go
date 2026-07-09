@@ -86,7 +86,7 @@ func ParseFabricTemplate(dir string) (*ImportedAgent, error) {
 // present in fabric-agent.yaml but not mapped in the API struct.
 type fabricTemplateConfig struct {
 	api.FabricConfig `yaml:",inline"`
-	Description     string `yaml:"description"`
+	Description      string `yaml:"description"`
 }
 
 func parseFabricTemplate(dir, name string) (*ImportedAgent, error) {
@@ -115,11 +115,11 @@ func parseFabricTemplate(dir, name string) (*ImportedAgent, error) {
 	}
 
 	return &ImportedAgent{
-		Name:        name,
-		Description: description,
-		Harness:     harness,
-		Model:       cfg.Model,
-		SourcePath:  dir,
+		Name:         name,
+		Description:  description,
+		Harness:      harness,
+		Model:        cfg.Model,
+		SourcePath:   dir,
 		FabricFormat: true,
 	}, nil
 }

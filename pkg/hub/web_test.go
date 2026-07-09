@@ -152,10 +152,10 @@ func TestSPAShellHandler(t *testing.T) {
 	checks := map[string]string{
 		"__FABRIC_DATA__":  "hydration data script",
 		"fabric-app":       "root custom element",
-		"main.js":         "client entry point script",
+		"main.js":          "client entry point script",
 		"--fabric-primary": "critical CSS variables",
 		"fabric-theme":     "theme detection script",
-		shoelaceVersion:   "Shoelace CDN version",
+		shoelaceVersion:    "Shoelace CDN version",
 	}
 	for needle, desc := range checks {
 		if !strings.Contains(html, needle) {
@@ -528,12 +528,12 @@ func TestWebHealthz_CompositeMode(t *testing.T) {
 	// Register mock hub health provider
 	ws.SetHubHealthProvider(func(ctx context.Context) interface{} {
 		return &HealthResponse{
-			Status:       "healthy",
-			Version:      "0.1.0",
+			Status:        "healthy",
+			Version:       "0.1.0",
 			FabricVersion: "abc1234",
-			Uptime:       "5m0s",
-			Checks:       map[string]string{"database": "healthy"},
-			Stats:        &HealthStats{ConnectedBrokers: 1, ActiveAgents: 2, Projects: 3},
+			Uptime:        "5m0s",
+			Checks:        map[string]string{"database": "healthy"},
+			Stats:         &HealthStats{ConnectedBrokers: 1, ActiveAgents: 2, Projects: 3},
 		}
 	})
 
@@ -598,11 +598,11 @@ func TestWebHealthz_DegradedHub(t *testing.T) {
 	// Register a degraded hub health provider
 	ws.SetHubHealthProvider(func(ctx context.Context) interface{} {
 		return &HealthResponse{
-			Status:       "degraded",
-			Version:      "0.1.0",
+			Status:        "degraded",
+			Version:       "0.1.0",
 			FabricVersion: "abc1234",
-			Uptime:       "1m0s",
-			Checks:       map[string]string{"database": "unhealthy"},
+			Uptime:        "1m0s",
+			Checks:        map[string]string{"database": "unhealthy"},
 		}
 	})
 

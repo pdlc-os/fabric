@@ -644,7 +644,7 @@ runtimes:
 			{
 				ID:          "container-abc",
 				Name:        "my-agent",
-				Slug:        "",       // empty slug — handler must fall back to Name
+				Slug:        "",        // empty slug — handler must fall back to Name
 				ProjectPath: dotFabric, // matches production: ProjectPath is the resolved .fabric directory
 				Phase:       "running",
 			},
