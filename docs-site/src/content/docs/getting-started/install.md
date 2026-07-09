@@ -61,6 +61,20 @@ For Debian you may need to build from source, see the [git site](https://git-scm
 
 ## Fabric Installation
 
+### Homebrew (macOS / Linux)
+
+The quickest install is the Homebrew tap. It ships a prebuilt binary with the
+web UI assets embedded, so it is ready for `fabric server start` immediately
+(no Go or Node toolchain needed):
+
+```bash
+brew install pdlc-os/fabric/fabric
+```
+
+To track the development tip instead of a tagged release, run
+`brew install --HEAD pdlc-os/fabric/fabric` (builds from source and requires
+Go and Node).
+
 ### From Source
 You can install Fabric directly using `go install`:
 
@@ -69,7 +83,7 @@ go install github.com/pdlc-os/fabric/cmd/fabric@latest
 ```
 
 :::caution[Web UI assets are not included]
-`go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Build from a clone with `make all` for a ready-to-run install. (Homebrew installation is temporarily unavailable while the formula catches up with the rename to Fabric.)
+`go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Use Homebrew for a ready-to-run install, or build from a clone with `make all`.
 :::
 
 Ensure your `$GOPATH/bin` (typically `~/go/bin`) is in your system `$PATH`.

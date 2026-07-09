@@ -22,14 +22,10 @@ The visualization above replays the actual telemetry collected from messages and
 
 ## Quick Start
 
-### Workstation Quick Start
-
-> **Note:** Homebrew installation is temporarily unavailable while the Homebrew formula catches up with the project's rename to Fabric. Until it returns, build from a clone for a ready-to-run install (this includes the web UI assets):
+### Workstation Quick Start (Homebrew)
 
 ```bash
-git clone https://github.com/pdlc-os/fabric.git
-cd fabric
-make all && sudo make install
+brew install pdlc-os/fabric/fabric
 fabric server start
 ```
 

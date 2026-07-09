@@ -130,3 +130,50 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+
+  homebrew:
+    name: Update Homebrew Tap
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: binaries
+
+      - name: Render and push formula
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "HOMEBREW_TAP_TOKEN not set; skipping tap update."
+            exit 0
+          fi
+          case "$TAG" in
+            *-*)
+              echo "Pre-release tag ${TAG}; skipping tap update."
+              exit 0
+              ;;
+          esac
+
+          mkdir -p tarballs
+          find binaries -type f -name '*.tar.gz' -exec mv {} tarballs/ \;
+          ./packaging/homebrew/render.sh "$TAG" tarballs > rendered-fabric.rb
+
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/pdlc-os/homebrew-fabric.git" tap
+          mkdir -p tap/Formula
+          mv rendered-fabric.rb tap/Formula/fabric.rb
+          cd tap
+          git config user.name "fabric-release-bot"
+          git config user.email "noreply@github.com"
+          git add Formula/fabric.rb
+          if git diff --cached --quiet; then
+            echo "Formula unchanged; nothing to push."
+            exit 0
+          fi
+          git commit -m "fabric ${TAG}"
+          git push origin HEAD:main

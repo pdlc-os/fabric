@@ -99,6 +99,11 @@ return an error instead of blocking.`,
 		if commandInSubtree(cmd, "server") {
 			requiresProject = false
 		}
+		// Completion subcommands (bash, zsh, fish, powershell) have the shell
+		// as their Name(), so the switch above doesn't catch them.
+		if parentName == "completion" {
+			requiresProject = false
+		}
 		// Project subcommands operate on all projects, not just the current one
 		if parentName == "project" || parentName == "grove" {
 			requiresProject = false
@@ -371,8 +376,11 @@ func checkAgentContainerContext(cmd *cobra.Command) error {
 	case "help", "version", "completion", "doctor", "config", "whoami", "fabric":
 		return nil
 	}
-	if cmd.Parent() != nil && cmd.Parent().Name() == "config" {
-		return nil
+	if cmd.Parent() != nil {
+		switch cmd.Parent().Name() {
+		case "config", "completion":
+			return nil
+		}
 	}
 
 	// Resolve the hub endpoint from flags and env vars (settings may not

@@ -688,3 +688,65 @@ func TestIsLocalEndpoint(t *testing.T) {
 		})
 	}
 }
+
+func TestCompletionSubcommandsDoNotRequireProject(t *testing.T) {
+	origGlobalMode := globalMode
+	origProjectPath := projectPath
+	origProfile := profile
+	origOutputFormat := outputFormat
+	origNonInteractive := nonInteractive
+	origAutoConfirm := autoConfirm
+	defer func() {
+		globalMode = origGlobalMode
+		projectPath = origProjectPath
+		profile = origProfile
+		outputFormat = origOutputFormat
+		nonInteractive = origNonInteractive
+		autoConfirm = origAutoConfirm
+	}()
+
+	t.Setenv("FABRIC_HOST_UID", "")
+	t.Setenv("FABRIC_PROJECT", "")
+	t.Setenv("FABRIC_GROVE", "")
+
+	// Empty HOME and CWD with no .fabric anywhere: if the completion
+	// subcommands required a project (or image_registry), the pre-run
+	// would fail here.
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	t.Chdir(t.TempDir())
+
+	globalMode = false
+	projectPath = ""
+	profile = ""
+	outputFormat = ""
+	nonInteractive = true
+	autoConfirm = true
+
+	rootCmd.InitDefaultCompletionCmd()
+	var completionCmd *cobra.Command
+	for _, c := range rootCmd.Commands() {
+		if c.Name() == "completion" {
+			completionCmd = c
+			break
+		}
+	}
+	if completionCmd == nil {
+		t.Fatal("completion command not registered on rootCmd")
+	}
+
+	// The parent `completion` command itself is exempt by name.
+	assert.NoError(t, rootCmd.PersistentPreRunE(completionCmd, []string{}))
+
+	// Each shell subcommand has the shell as Name() and must be exempt
+	// via its parent.
+	shells := completionCmd.Commands()
+	if len(shells) == 0 {
+		t.Fatal("completion command has no shell subcommands")
+	}
+	for _, shell := range shells {
+		t.Run(shell.Name(), func(t *testing.T) {
+			assert.NoError(t, rootCmd.PersistentPreRunE(shell, []string{}))
+		})
+	}
+}

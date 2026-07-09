@@ -15,7 +15,7 @@ The wizard sets up **Workstation mode** — a single-tenant Fabric server (Hub +
 
 Before you start, you need a working Fabric install and a container runtime. See the [Installation guide](/fabric/getting-started/install/) for details. In short:
 
-- Fabric installed with its web assets. Build from a clone with `make all` for a ready-to-run install; a bare `go install` does **not** embed the web UI, so the wizard would load blank. (Homebrew installation is temporarily unavailable while the formula catches up with the rename to Fabric.)
+- Fabric installed with its web assets. `brew install pdlc-os/fabric/fabric` gives a ready-to-run install; building from a clone with `make all` also works. A bare `go install` does **not** embed the web UI, so the wizard would load blank.
 - A container runtime — Docker, Podman, or Apple Container.
 - Git 2.47 or later (the wizard flags older versions).
 
