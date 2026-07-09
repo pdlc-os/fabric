@@ -277,6 +277,18 @@ func (c *ContainerScriptHarness) ResolveAuth(auth api.AuthConfig) (*api.Resolved
 			ContainerPath: "~/.fabric/oauth_creds.json",
 		})
 	}
+	if auth.AwsCredentialsFile != "" {
+		resolved.Files = append(resolved.Files, api.FileMapping{
+			SourcePath:    auth.AwsCredentialsFile,
+			ContainerPath: "~/.aws/credentials",
+		})
+	}
+	if auth.AwsConfigFile != "" {
+		resolved.Files = append(resolved.Files, api.FileMapping{
+			SourcePath:    auth.AwsConfigFile,
+			ContainerPath: "~/.aws/config",
+		})
+	}
 
 	// The auth_candidates manifest written during Provision() captures the full
 	// candidate set for the script. ResolveAuth provides the env/file material

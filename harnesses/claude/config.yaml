@@ -70,6 +70,7 @@ capabilities:
     auth_file: { support: "yes" }
     oauth_token: { support: "yes" }
     vertex_ai: { support: "yes" }
+    bedrock: { support: "yes" }
   mcp:
     stdio: { support: "yes" }
     sse: { support: "yes" }
@@ -109,12 +110,45 @@ auth:
           alternative_env_keys: ["GOOGLE_APPLICATION_CREDENTIALS"]
           skipped_when_gcp_service_account_assigned: true
           required: true
+    bedrock:
+      required_env:
+        - any_of: ["AWS_REGION", "AWS_DEFAULT_REGION"]
+        # One credential style: Bedrock API key, static access keys, or a
+        # named profile resolved from a mounted ~/.aws.
+        - any_of: ["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"]
+        # Secret material for the chosen style. Every legitimate combination
+        # satisfies this group; it exists so AWS_SECRET_ACCESS_KEY and
+        # AWS_SESSION_TOKEN are declared and therefore gathered/staged by
+        # the config-driven env pipeline.
+        - any_of: ["AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_PROFILE"]
+      required_files:
+        # Profile-based auth (enterprise SSO flows materialize short-lived
+        # STS credentials into ~/.aws/credentials). Optional: env-only
+        # credential styles need neither file.
+        - name: AWS_CREDENTIALS
+          type: file
+          target_suffix: "/.aws/credentials"
+          description: "AWS shared credentials file (profile-based Bedrock authentication)"
+          field: AwsCredentialsFile
+          alternative_env_keys: ["AWS_SHARED_CREDENTIALS_FILE"]
+          required: false
+        - name: AWS_CONFIG
+          type: file
+          target_suffix: "/.aws/config"
+          description: "AWS config file (profile definitions and region)"
+          field: AwsConfigFile
+          alternative_env_keys: ["AWS_CONFIG_FILE"]
+          required: false
   autodetect:
     env:
       CLAUDE_CODE_OAUTH_TOKEN: oauth-token
       GOOGLE_APPLICATION_CREDENTIALS: vertex-ai
       GOOGLE_CLOUD_PROJECT: vertex-ai
       ANTHROPIC_API_KEY: api-key
+      # Strong Bedrock signals only — bare AWS_REGION/AWS_PROFILE are common
+      # in environments that never touch Bedrock.
+      AWS_BEARER_TOKEN_BEDROCK: bedrock
+      CLAUDE_CODE_USE_BEDROCK: bedrock
     files:
       CLAUDE_AUTH: auth-file
       gcloud-adc: vertex-ai

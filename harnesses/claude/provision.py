@@ -30,7 +30,8 @@ This script's job:
   1. Determine which auth method Claude Code will use, honoring an explicit
      selection if present and otherwise applying the same precedence as the
      compiled harness:
-         ANTHROPIC_API_KEY > CLAUDE_CODE_OAUTH_TOKEN > auth-file > vertex-ai.
+         ANTHROPIC_API_KEY > CLAUDE_CODE_OAUTH_TOKEN > auth-file > bedrock
+         > vertex-ai.
   2. For api-key auth, pre-approve the key by writing the last 20 chars of the
      API key as a fingerprint in .claude.json's customApiKeyResponses so
      Claude Code does not prompt for confirmation.
@@ -72,6 +73,11 @@ AUTH = fabric_harness.AuthSpec(
         fabric_harness.env_method("oauth-token", any_of=["CLAUDE_CODE_OAUTH_TOKEN"],
                                  hint="set CLAUDE_CODE_OAUTH_TOKEN (generate with `claude setup-token`)"),
         fabric_harness.file_method("auth-file", path=CLAUDE_AUTH_FILE, secret_key="CLAUDE_AUTH"),
+        fabric_harness.env_method("bedrock",
+                                 any_of=["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"],
+                                 hint="provide AWS credentials for Amazon Bedrock: AWS_BEARER_TOKEN_BEDROCK "
+                                      "(Bedrock API key), AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY, or "
+                                      "AWS_PROFILE with a mounted ~/.aws — plus AWS_REGION"),
         fabric_harness.env_method("vertex-ai",
                                  all_of=["GOOGLE_CLOUD_PROJECT"],
                                  any_of=["GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_REGION"],
@@ -188,6 +194,20 @@ def _build_env_overlay(ctx: fabric_harness.ProvisionContext, auth: fabric_harnes
             "ANTHROPIC_VERTEX_PROJECT_ID": _resolve(ctx, "GOOGLE_CLOUD_PROJECT"),
             "CLOUD_ML_REGION": _resolve(ctx, region_key),
         }
+    if auth.method == "bedrock":
+        # Pass through whichever staged AWS material is present; absent keys
+        # are skipped (no placeholder) since each credential style uses a
+        # different subset. Model pins (ANTHROPIC_MODEL and friends) are not
+        # auth material — they flow via the template env, not this overlay.
+        overlay = {"CLAUDE_CODE_USE_BEDROCK": "1"}
+        for key in ("AWS_REGION", "AWS_DEFAULT_REGION",
+                    "AWS_BEARER_TOKEN_BEDROCK",
+                    "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
+                    "AWS_SESSION_TOKEN", "AWS_PROFILE"):
+            val = ctx.read_secret(key)
+            if val:
+                overlay[key] = val
+        return overlay
     return {}
 
 
@@ -211,6 +231,8 @@ def provision(ctx: fabric_harness.ProvisionContext) -> None:
     extra: dict[str, Any] | None = None
     if auth.method == "vertex-ai":
         extra = {"vertex_ai": True}
+    elif auth.method == "bedrock":
+        extra = {"bedrock": True}
     ctx.write_outputs(auth, env=env, extra=extra)
 
     mcp_mapping = dict(CLAUDE_MCP_MAPPING)

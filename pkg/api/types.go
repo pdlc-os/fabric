@@ -517,6 +517,14 @@ type AuthConfig struct {
 	CodexAuthFile    string
 	OpenCodeAuthFile string
 
+	// AWS Bedrock auth (profile-based). Env-style credentials
+	// (AWS_BEARER_TOKEN_BEDROCK, AWS_ACCESS_KEY_ID, ...) flow through
+	// EnvVars via the config-driven pipeline; only the ~/.aws files need
+	// dedicated fields. Mounted live (not copied) so SSO re-logins on the
+	// host refresh running agents.
+	AwsCredentialsFile string // ~/.aws/credentials path
+	AwsConfigFile      string // ~/.aws/config path
+
 	// GCP metadata server mode ("block", "passthrough", "assign").
 	// When "assign", a GCP service account is available via the metadata
 	// server and ADC file secrets are not required for vertex-ai auth.

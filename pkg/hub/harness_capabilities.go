@@ -169,6 +169,10 @@ func validateConfigAgainstHarnessCapabilities(cfg *api.FabricConfig, caps api.Ha
 			if caps.Auth.VertexAI.Support == api.SupportNo {
 				issues["auth_selectedType"] = supportReason(caps.Auth.VertexAI)
 			}
+		case "bedrock":
+			if caps.Auth.Bedrock.Support == api.SupportNo {
+				issues["auth_selectedType"] = supportReason(caps.Auth.Bedrock)
+			}
 		default:
 			issues["auth_selectedType"] = "Unknown auth type"
 		}

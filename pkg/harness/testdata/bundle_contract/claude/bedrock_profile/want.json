@@ -1,0 +1,13 @@
+{
+  "exit_code": 0,
+  "resolved_auth": {
+    "method": "bedrock",
+    "harness": "claude",
+    "bedrock": true
+  },
+  "env": {
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_REGION": "us-west-2",
+    "AWS_PROFILE": "bedrock-profile"
+  }
+}

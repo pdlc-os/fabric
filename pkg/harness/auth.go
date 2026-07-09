@@ -116,6 +116,27 @@ func GatherAuthWithEnv(env map[string]string, localSources bool, authMeta *confi
 			if _, err := os.Stat(claudeCredsPath); err == nil {
 				auth.ClaudeAuthFile = claudeCredsPath
 			}
+
+			// AWS shared credentials/config for Bedrock profile auth.
+			// Gated on an explicit Bedrock or profile signal: many
+			// developers have ~/.aws for unrelated infrastructure work,
+			// and discovering it unconditionally would mount those
+			// credentials into every agent container. Like ClaudeAuthFile,
+			// the files are mounted opaquely (never parsed) so host-side
+			// SSO re-logins refresh the short-lived STS credentials in
+			// running containers.
+			if lookup("CLAUDE_CODE_USE_BEDROCK") != "" ||
+				lookup("AWS_BEARER_TOKEN_BEDROCK") != "" ||
+				lookup("AWS_PROFILE") != "" {
+				awsCredsPath := filepath.Join(home, ".aws", "credentials")
+				if _, err := os.Stat(awsCredsPath); err == nil {
+					auth.AwsCredentialsFile = awsCredsPath
+				}
+				awsConfigPath := filepath.Join(home, ".aws", "config")
+				if _, err := os.Stat(awsConfigPath); err == nil {
+					auth.AwsConfigFile = awsConfigPath
+				}
+			}
 		}
 	}
 
@@ -187,6 +208,12 @@ func OverlayFileSecrets(auth *api.AuthConfig, secrets []api.ResolvedSecret) {
 		case name == "CLAUDE_AUTH" ||
 			strings.HasSuffix(target, "/.claude/.credentials.json"):
 			auth.ClaudeAuthFile = target
+		case name == "AWS_CREDENTIALS" ||
+			strings.HasSuffix(target, "/.aws/credentials"):
+			auth.AwsCredentialsFile = target
+		case name == "AWS_CONFIG" ||
+			strings.HasSuffix(target, "/.aws/config"):
+			auth.AwsConfigFile = target
 		}
 	}
 }
@@ -245,6 +272,10 @@ func setAuthConfigField(auth *api.AuthConfig, field, value string) {
 		auth.OpenCodeAuthFile = value
 	case "ClaudeAuthFile":
 		auth.ClaudeAuthFile = value
+	case "AwsCredentialsFile":
+		auth.AwsCredentialsFile = value
+	case "AwsConfigFile":
+		auth.AwsConfigFile = value
 	}
 }
 
@@ -262,6 +293,10 @@ func setAuthConfigFieldByTargetSuffix(auth *api.AuthConfig, target string) {
 		auth.OpenCodeAuthFile = target
 	case strings.HasSuffix(target, "/.claude/.credentials.json"):
 		auth.ClaudeAuthFile = target
+	case strings.HasSuffix(target, "/.aws/credentials"):
+		auth.AwsCredentialsFile = target
+	case strings.HasSuffix(target, "/.aws/config"):
+		auth.AwsConfigFile = target
 	}
 }
 
@@ -412,6 +447,13 @@ func DetectAuthTypeFromEnvVars(harnessName string, envKeys map[string]struct{}) 
 		if _, ok := envKeys["CLAUDE_CODE_OAUTH_TOKEN"]; ok {
 			return "oauth-token"
 		}
+		// Strong Bedrock signals only — bare AWS_REGION/AWS_PROFILE are
+		// common in environments that never touch Bedrock.
+		_, hasBedrockToken := envKeys["AWS_BEARER_TOKEN_BEDROCK"]
+		_, hasBedrockFlag := envKeys["CLAUDE_CODE_USE_BEDROCK"]
+		if hasBedrockToken || hasBedrockFlag {
+			return "bedrock"
+		}
 		if hasGAC || hasGCP {
 			return "vertex-ai"
 		}
@@ -469,6 +511,12 @@ func RequiredAuthEnvKeys(harnessName, authSelectedType string) [][]string {
 			return nil
 		case "vertex-ai":
 			return [][]string{{"GOOGLE_CLOUD_PROJECT"}, {"GOOGLE_CLOUD_REGION", "CLOUD_ML_REGION", "GOOGLE_CLOUD_LOCATION"}}
+		case "bedrock":
+			return [][]string{
+				{"AWS_REGION", "AWS_DEFAULT_REGION"},
+				{"AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"},
+				{"AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_PROFILE"},
+			}
 		}
 	case "gemini", "gemini-cli":
 		switch effectiveType {

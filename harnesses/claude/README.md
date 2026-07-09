@@ -25,6 +25,7 @@ fabric harness-config install github.com/pdlc-os/fabric/tree/main/harnesses/clau
 | `oauth-token` | `CLAUDE_CODE_OAUTH_TOKEN` | Generate with `claude setup-token` |
 | `auth-file` | `~/.claude/.credentials.json` | Claude native credentials file |
 | `vertex-ai` | `GOOGLE_CLOUD_PROJECT` + `GOOGLE_CLOUD_REGION` | Vertex AI with ADC or service account |
+| `bedrock` | `AWS_REGION` + one of `AWS_BEARER_TOKEN_BEDROCK` / `AWS_ACCESS_KEY_ID`+`AWS_SECRET_ACCESS_KEY` / `AWS_PROFILE` (with `~/.aws` mounted) | Amazon Bedrock; sets `CLAUDE_CODE_USE_BEDROCK=1` |
 
 ## Bundle Layout
 
