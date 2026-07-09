@@ -62,7 +62,7 @@ OpenCode supports two authentication methods (auto-detected in this order):
 
 ### Known Limitations
 - **Auth File Copy**: The `auth.json` file is copied only when the agent is **created**. If you update your host credentials, you may need to manually update the file in the agent or recreate the agent.
-- **No Hook support**: OpenCode does not have analogous hook support, and so will require use of plugin system to notify the fabric orchestrator.
+- **No Hook support**: OpenCode does not have analogous hook support, and so will require use of the plugin system to notify the Fabric orchestrator.
 
 ---
 

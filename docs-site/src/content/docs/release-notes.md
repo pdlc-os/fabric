@@ -623,10 +623,10 @@ This release focuses on streamlining system administration and enhancing visibil
 
 ## Mar 9, 2026
 
-This release marks a significant milestone with the official transition of the project to the Google Cloud Platform organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Fabric CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
+This release marks a significant milestone with the official transition of the project to a new GitHub organization, including a full module rename. It also introduces critical enhancements for agent autonomy with the enablement of the Fabric CLI inside agent containers, alongside major improvements to administrative observability and real-time event reliability.
 
 :::danger[BREAKING CHANGES]
-* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/fabric-agent` to `github.com/pdlc-os/fabric`. All internal package imports and external references have been updated to reflect the transition to the Google Cloud Platform organization.
+* **Project Rebranding & Module Rename:** The Go module has been renamed from `github.com/ptone/fabric-agent` to `github.com/pdlc-os/fabric`. All internal package imports and external references have been updated to reflect the new organization.
 
 :::
 

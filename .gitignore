@@ -75,3 +75,7 @@ downloads/
 
 # PR review artifacts
 pr-*-review*.md
+
+# Compiled extras binaries (never commit build artifacts)
+extras/docs-agent/docs-agent
+extras/fabric-broker-log/fabric-broker-log

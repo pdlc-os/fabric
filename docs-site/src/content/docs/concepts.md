@@ -104,7 +104,7 @@ The `offline` activity status occurs when an agent heartbeat has not been heard 
 
 ### A full approach to sub-agents
 
- Because an agent through its template can contain home folder content, env var definitions, and custom mounts that collectively exposes all configuration available to the harness (e.g., gemini-cli) fabric-agents are not limited by the constraints of a harness' built-in sub-agent feature. While they are acting as sub-agents from the point-of-view of the Fabric tool user-as-orchestrator, they are full agents in their capabilities.
+ Because an agent through its template can contain home folder content, env var definitions, and custom mounts that collectively exposes all configuration available to the harness (e.g., gemini-cli), Fabric agents are not limited by the constraints of a harness' built-in sub-agent feature. While they are acting as sub-agents from the point-of-view of the Fabric tool user-as-orchestrator, they are full agents in their capabilities.
 
 ### Agent Ancestry & Identity Scoping
 

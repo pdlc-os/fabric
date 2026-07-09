@@ -69,7 +69,7 @@ go install github.com/pdlc-os/fabric/cmd/fabric@latest
 ```
 
 :::caution[Web UI assets are not included]
-`go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Use Homebrew for a ready-to-run install, or build from a clone with `make all`.
+`go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Build from a clone with `make all` for a ready-to-run install. (Homebrew installation is temporarily unavailable while the formula catches up with the rename to Fabric.)
 :::
 
 Ensure your `$GOPATH/bin` (typically `~/go/bin`) is in your system `$PATH`.

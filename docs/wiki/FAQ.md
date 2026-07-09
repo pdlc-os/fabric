@@ -78,7 +78,7 @@ Load-bearing design choices, all serving *code agents at team scale*:
 - Git worktree per agent (`../.fabric_worktrees/...` + feature branch) → N agents edit one repo without conflict.
 - Harness-agnostic (Gemini/Claude/Codex/Copilot/… behind one `Harness` interface).
 - Hub + Runtime Broker split → centralized state, distributed execution across machines/clusters.
-- Inter-agent messaging + orchestrator patterns (fan-out, sequential, coordinator-relay); a "lead agent" spawns sub-agents within its grove.
+- Inter-agent messaging + orchestrator patterns (fan-out, sequential, coordinator-relay); a "lead agent" spawns sub-agents within its project.
 - Container-runtime-agnostic.
 
 **One line:** Fabric is a manager for a fleet of collaborating coding agents working on real git repos.
@@ -466,7 +466,7 @@ duplicate the inner layer's job. From outermost to innermost:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  FABRIC  — fleet orchestration & isolation (the "meta-harness")             │
+│  FABRIC  — fleet orchestration & isolation (the "meta-harness")            │
 │  • container + git-worktree per agent    • lifecycle (start/stop/resume)   │
 │  • Hub state + Runtime Brokers           • attach / web terminal / SSE UI  │
 │  • inter-agent messaging, multi-user     • auth/secret injection, limits,  │
@@ -598,7 +598,7 @@ container** (`harnesses/claude`, `command.base` launches `claude`). It adds ever
   agent's live tmux session; **multiple users can share one live Claude Code/PDLC
   session** (Q7/Q8).
 - **Inter-agent coordination** — `fabric message` + orchestrator patterns (fan-out /
-  sequential / coordinator-relay); a lead agent can spawn/manage sub-agents in its grove.
+  sequential / coordinator-relay); a lead agent can spawn/manage sub-agents in its project.
 - **Cross-cutting platform services** — auth/secret injection (`GatherAuth`, GCE
   metadata emulation), MCP server config translation, OTel telemetry normalization,
   GitHub App token management (`gh` wrapper / credential helper), image build pipeline.
@@ -700,7 +700,7 @@ two layers share an address space — so these seams need explicit ownership:
   or isolated across concurrent Fabric agents so two agents don't fork the task graph.
   Separately, in a **shared multi-user Fabric session (Q7/Q8)** many humans drive one
   Claude Code REPL — but PDLC's approval gates assume *one* interactive human; decide who
-  "the human" is for Party Party approvals / `/override` in a shared session.
+  "the human" is for Party Mode approvals / `/override` in a shared session.
 - **Orchestration altitude (Fabric fleet ↔ PDLC autonomous flows).** PDLC `/night-shift`
   (Sentinel Stop-hook loop) orchestrates a *feature* Build→Ship *inside one agent*;
   Fabric orchestrates *many agents*. Both are legitimate but different altitudes — be

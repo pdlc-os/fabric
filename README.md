@@ -2,7 +2,7 @@
 
 Run multiple agents in parallel — each in its own container, with its own workspace, collaborating on your code or project files simultaneously.
 
-_sci·on /ˈsīən/ — a young shoot or twig, cut for grafting or rooting._
+_fab·ric /ˈfabrik/ — a structure of interwoven threads; an underlying framework._
 
 Fabric is an experimental multi-agent orchestration testbed designed to manage "deep agents" running in containers.
 
@@ -14,18 +14,22 @@ Rather than prescribing rigid orchestration patterns, Fabric takes a "less is mo
 
 ## See It in Action
 
-[Relics of Athenaeum](https://github.com/ptone/fabric-athenaeum) is an "agent game" that demonstrates multi-agent orchestration defined entirely in markdown. A group of agents collaborate to solve computational puzzles, coordinating through group and direct messaging — all running in containers on off-the-shelf harnesses.
+Relics of Athenaeum is an "agent game" that demonstrates multi-agent orchestration defined entirely in markdown. A group of agents collaborate to solve computational puzzles, coordinating through group and direct messaging — all running in containers on off-the-shelf harnesses.
 
-<a href="https://github.com/ptone/fabric-athenaeum"><img width="425" height="238" alt="Relics of Athenaeum" src="https://github.com/user-attachments/assets/cbee74a3-f3aa-4739-b423-0a83d5dd4c13" /></a>&nbsp;<a href="https://www.youtube.com/watch?v=w16bsh6lFL8"><img width="300" height="200" alt="Visualization of agent coordination" src="https://github.com/user-attachments/assets/a615da24-33d8-4882-abe1-95adea4ed79a" /></a>
+<img width="425" height="238" alt="Relics of Athenaeum" src="https://github.com/user-attachments/assets/cbee74a3-f3aa-4739-b423-0a83d5dd4c13" />&nbsp;<a href="https://www.youtube.com/watch?v=w16bsh6lFL8"><img width="300" height="200" alt="Visualization of agent coordination" src="https://github.com/user-attachments/assets/a615da24-33d8-4882-abe1-95adea4ed79a" /></a>
 
 The visualization above replays the actual telemetry collected from messages and file access in the shared workspace while the agents solved the challenges of the game. While this is a "game", the same process of team definition works for software engineering, data research, and platform engineering workflows.
 
 ## Quick Start
 
-### Workstation Quick Start (Homebrew)
+### Workstation Quick Start
+
+> **Note:** Homebrew installation is temporarily unavailable while the Homebrew formula catches up with the project's rename to Fabric. Until it returns, build from a clone for a ready-to-run install (this includes the web UI assets):
 
 ```bash
-brew install fabric
+git clone https://github.com/pdlc-os/fabric.git
+cd fabric
+make all && sudo make install
 fabric server start
 ```
 
@@ -33,15 +37,15 @@ Your browser will open to the onboarding wizard at `http://127.0.0.1:8080/onboar
 
 ### Install from Source
 
-See the full [Installation Guide](https://pdlc-os.github.io/fabric/getting-started/install/), or install from source (requires Go 1.22+):
+See the full [Installation Guide](https://pdlc-os.github.io/fabric/getting-started/install/), or install from source (requires Go 1.26+):
 
 ```bash
 go install github.com/pdlc-os/fabric/cmd/fabric@latest
 ```
 
-> **Warning:** `go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Use Homebrew for a ready-to-run install, or build from a clone with `make all` before installing the binary.
+> **Warning:** `go install` builds only the Go binary. It does not build or embed the web frontend, so `fabric server start` will serve a blank web UI with missing frontend assets. Build from a clone with `make all` (as in the Quick Start above) for a ready-to-run install.
 
-### Initialize your machine and a Project (project)
+### Initialize your machine and a Project
 
 > **Tip:** If you used `fabric server start` above, the onboarding wizard handles machine initialization automatically — you can skip this section.
 
