@@ -214,7 +214,7 @@ func AutoMigrate(ctx context.Context, client *ent.Client) error {
 	if err != nil {
 		return fmt.Errorf("listing tables for migration reset: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	var tables []string
 	for rows.Next() {
 		var name string
