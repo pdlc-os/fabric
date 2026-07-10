@@ -429,3 +429,106 @@ Verified against official docs
 
 The remaining gating decision is OQ2 (STS refresh depth); the credential
 scope (OQ1) is settled by the reference deployment.
+
+---
+
+## 11. v2 — Deployment modes: BEDROCK_PRIMARY and BEDROCK_SECONDARY
+
+> **Status:** agreed direction (2026-07-10); v1 (§1–§10) shipped in fabric
+> v0.2.0. This section formalizes the follow-on.
+
+v1 shipped the human-credential flows. Production framing inverts the
+priority: role-based ambient identity should be the **primary** way Bedrock
+is consumed, and the SSO/profile flow the **secondary** one for dev machines.
+
+- **BEDROCK_PRIMARY — ambient IAM execution role.** The compute the broker
+  runs on (EC2 instance profile, ECS task role, EKS IRSA) carries a role
+  with Bedrock access. Agents use the AWS default credential chain: no
+  credential material in Fabric, no expiring session to babysit — the SDK
+  auto-refreshes role credentials from the metadata service. Fabric's job
+  reduces to setting `CLAUDE_CODE_USE_BEDROCK=1` + region, verifying the
+  identity resolves, and not demanding env/file secrets. This is the AWS
+  twin of the existing GCP trio (`DetectAuthTypeFromGCPIdentity`,
+  `GCPMetadataMode`, `skipped_when_gcp_service_account_assigned`).
+  Ambient-identity signals, in detection order:
+  `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` (ECS),
+  `AWS_WEB_IDENTITY_TOKEN_FILE` + `AWS_ROLE_ARN` (IRSA), IMDS reachability
+  (EC2; mind the IMDSv2 hop limit for containers).
+- **BEDROCK_SECONDARY — human credentials** (what v1 shipped): SSO-
+  materialized profiles, bearer tokens, static keys. Expires; right for
+  laptops where no execution role exists.
+
+These are **doc-level concepts, not auth-type strings**: the auth type stays
+`bedrock`; ambient role becomes its highest-precedence credential style
+(mirroring how vertex-ai treats an assigned GCP identity). Effective
+precedence: ambient role → `AWS_BEARER_TOKEN_BEDROCK` → static keys →
+`AWS_PROFILE`.
+
+The same execution role naturally extends beyond model auth for all-AWS
+deployments (U1): ECR for agent images (`image_registry` → an ECR repo —
+closes the no-public-registry gap for AWS shops) and S3 for hub storage.
+Design those as one keyless fabric-on-AWS story, implemented separately.
+
+### 11.1 First-time setup: how a user picks a mode
+
+Three layers; lower layers only matter when the higher one isn't enough.
+
+1. **Detection (default — no choice needed).** The modes are
+   environmentally distinguishable: an execution role announces itself via
+   the signals above; a laptop has none. Auto-detection tries ambient
+   identity first, then falls back through the v1 credential styles. Setup
+   on AWS compute lands on PRIMARY automatically; a dev machine lands on
+   SECONDARY.
+2. **One settings key (explicit/deterministic).** Written at machine init,
+   scoped anywhere in the settings chain (global default, per-project or
+   per-template override):
+
+   ```yaml
+   harness_configs:
+     claude:
+       auth_selected_type: bedrock
+       aws_credential_mode: role      # PRIMARY: ambient role; fail rather than fall back
+       # aws_credential_mode: profile # SECONDARY: expect ~/.aws profile
+       env:
+         AWS_REGION: us-west-2
+   ```
+
+   Unset means "auto" (layer 1). `role` also suppresses the credential
+   env/file requirement groups (the `skipped_when_aws_role_assigned`
+   mechanics), so preflight does not demand secrets that ambient identity
+   makes unnecessary.
+3. **Onboarding wizard (where first-time users meet the choice).** A model
+   provider step after runtime detection: pick Anthropic API / Bedrock /
+   Vertex; for Bedrock the wizard runs live detection and shows the result
+   ("Execution role detected: arn:… — using role-based access (recommended)"
+   with one-click confirm, or "No execution role found" with profile/bearer
+   fields and an SSO-login hint). Either path writes the layer-2 settings
+   and runs a preflight (`sts get-caller-identity` + a cheap Bedrock
+   invoke-permission probe) so failures surface at setup, not first agent
+   launch. This is also the natural home for OQ7's expected-account/role
+   values. Headless twin: `fabric init --machine --bedrock-mode role|profile`
+   and a `fabric doctor` line reporting the active mode + whether identity
+   resolves.
+
+### 11.2 v2 work items
+
+1. `DetectAuthTypeFromAWSIdentity` + ambient-signal detection (env checks
+   cheap; IMDS probe with short timeout), wired into the detection
+   precedence ahead of env-var styles.
+2. `skipped_when_aws_role_assigned` on the bedrock credential requirement
+   groups (schema + preflight), mirroring the GCP flag.
+3. `aws_credential_mode` settings key (schema + merge + gather gating: mode
+   `role` disables ~/.aws discovery; mode `profile` is an explicit
+   discovery signal, closing the settings-only gap from the v1 review).
+4. Provision-side: bedrock ambient style in `provision.py` (no staged
+   credential material required when ambient identity is detected in the
+   container; still emits `CLAUDE_CODE_USE_BEDROCK=1` + region).
+5. Onboarding wizard provider step + `fabric init --machine --bedrock-mode`
+   + `fabric doctor` reporting (separate increment; touches web UI).
+6. Docs: promote the mode choice into the credentials guide once (1)–(4)
+   land; wizard docs with (5).
+
+Open question carried forward: whether ambient-identity gating should be
+bedrock-specific or generic ("any settings-selected auth type counts as a
+discovery signal for its declared files") — the generic form is more
+consistent with the declarative direction; decide at implementation time.
