@@ -153,6 +153,27 @@ Model pinning (e.g. `ANTHROPIC_DEFAULT_SONNET_MODEL` with `us.` or `global.` inf
 
 Autodetection treats only `AWS_BEARER_TOKEN_BEDROCK` and `CLAUDE_CODE_USE_BEDROCK` as Bedrock signals; a bare `AWS_REGION` or `AWS_PROFILE` never selects Bedrock on its own. Use `--harness-auth bedrock` (or `auth_selectedType`) for the profile flow.
 
+**Selecting Bedrock persistently (instead of per-create flags):**
+
+If your machine or project always uses Bedrock, set the selection once in the settings chain rather than passing `--harness-auth bedrock` on every `fabric create`. In `~/.fabric/settings.yaml` (machine-wide) or your project's `.fabric/settings.yaml`:
+
+```yaml
+harness_configs:
+  claude:
+    auth_selected_type: bedrock
+```
+
+With that in place, `fabric create my-agent "task"` uses Bedrock with no flags. Credentials themselves are still discovered from the environment where you run `fabric create` — so keep `AWS_PROFILE`/`AWS_REGION` (or the bearer token) exported in your shell, e.g. via your shell profile or your organization's SSO login step.
+
+:::note[Roadmap: role-based access and guided setup]
+Two more ways to configure Bedrock are designed and planned (see [`.design/bedrock-provider-support.md` §11](https://github.com/pdlc-os/fabric/blob/main/.design/bedrock-provider-support.md)):
+
+- **IAM execution role (keyless)** — brokers running on AWS compute (EC2 instance profile, ECS task role, EKS IRSA) will use the ambient role via the AWS default credential chain: no credentials in Fabric, nothing that expires. An `aws_credential_mode: role | profile` settings key will make the mode explicit; unset means auto-detect.
+- **Onboarding wizard provider step** — first-time setup will detect an execution role (or its absence), recommend the right mode, and write the settings for you.
+
+Until those land, the flows documented above (bearer token, static keys, SSO-materialized profile) are the supported paths.
+:::
+
 ### Harness specific credential file (`auth-file`)
 
 Some harnesses support their own specific credential files, such as OAuth tokens.
