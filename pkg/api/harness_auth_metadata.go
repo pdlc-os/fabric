@@ -28,6 +28,11 @@ type HarnessAuthTypeMetadata struct {
 
 type HarnessAuthEnvRequirement struct {
 	AnyOf []string `json:"any_of,omitempty" yaml:"any_of,omitempty" koanf:"any_of"`
+	// SkippedWhenAWSRoleAssigned drops this requirement when an ambient AWS
+	// IAM role (instance profile, ECS task role, EKS IRSA) provides
+	// credentials via the default credential chain, mirroring
+	// SkippedWhenGCPServiceAccountAssigned on file requirements.
+	SkippedWhenAWSRoleAssigned bool `json:"skipped_when_aws_role_assigned,omitempty" yaml:"skipped_when_aws_role_assigned,omitempty" koanf:"skipped_when_aws_role_assigned"`
 }
 
 type HarnessAuthFileRequirement struct {

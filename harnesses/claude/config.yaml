@@ -114,13 +114,18 @@ auth:
       required_env:
         - any_of: ["AWS_REGION", "AWS_DEFAULT_REGION"]
         # One credential style: Bedrock API key, static access keys, or a
-        # named profile resolved from a mounted ~/.aws.
+        # named profile resolved from a mounted ~/.aws. Skipped entirely
+        # when an ambient IAM execution role provides credentials via the
+        # default credential chain (aws_credential_mode: role, or ECS/IRSA
+        # markers on the broker).
         - any_of: ["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"]
+          skipped_when_aws_role_assigned: true
         # Secret material for the chosen style. Every legitimate combination
         # satisfies this group; it exists so AWS_SECRET_ACCESS_KEY and
         # AWS_SESSION_TOKEN are declared and therefore gathered/staged by
         # the config-driven env pipeline.
         - any_of: ["AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_PROFILE"]
+          skipped_when_aws_role_assigned: true
       required_files:
         # Profile-based auth (enterprise SSO flows materialize short-lived
         # STS credentials into ~/.aws/credentials). Optional: env-only

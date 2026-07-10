@@ -88,7 +88,7 @@ func TestRequiredAuthEnvKeysFromConfig_ParityWithCompiled(t *testing.T) {
 		for _, at := range tc.types {
 			t.Run(tc.harness+"/"+at, func(t *testing.T) {
 				wantGroups := RequiredAuthEnvKeys(tc.compiledKey, at)
-				gotGroups := RequiredAuthEnvKeysFromConfig(authMeta, at)
+				gotGroups := RequiredAuthEnvKeysFromConfig(authMeta, at, false)
 				if !equalGroups(gotGroups, wantGroups) {
 					t.Errorf("config-driven=%v compiled=%v", gotGroups, wantGroups)
 				}
@@ -242,7 +242,7 @@ func TestDetectAuthType_NilOrEmptyMeta(t *testing.T) {
 	if got := DetectAuthTypeFromGCPIdentityFromConfig(nil, true); got != "" {
 		t.Errorf("gcp detection on nil meta: got %q", got)
 	}
-	if got := RequiredAuthEnvKeysFromConfig(nil, "api-key"); got != nil {
+	if got := RequiredAuthEnvKeysFromConfig(nil, "api-key", false); got != nil {
 		t.Errorf("required env on nil meta: got %v", got)
 	}
 	if got := RequiredAuthSecretsFromConfig(nil, "vertex-ai", false); got != nil {

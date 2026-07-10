@@ -2113,11 +2113,28 @@ func (s *Server) extractRequiredEnvKeys(req CreateAgentRequest, hydratedHarnessC
 				authType = detected
 			}
 		}
+		// Ambient AWS identity (ECS task role / EKS IRSA markers on the
+		// broker process, or an explicit FABRIC_AWS_CREDENTIAL_MODE=role on
+		// EC2 where no marker exists). Agents launched by this broker share
+		// its ambient credentials via the default credential chain.
+		awsRoleAssigned := os.Getenv("FABRIC_AWS_CREDENTIAL_MODE") == "role" ||
+			harness.HasAmbientAWSIdentity(os.Getenv)
+		if authType == "" {
+			var detected string
+			if useConfigDriven {
+				detected = harness.DetectAuthTypeFromAWSIdentityFromConfig(authMeta, awsRoleAssigned)
+			} else {
+				detected = harness.DetectAuthTypeFromAWSIdentity(harnessType, awsRoleAssigned)
+			}
+			if detected != "" {
+				authType = detected
+			}
+		}
 
 		// Resolve auth key groups and check satisfaction
 		var keyGroups [][]string
 		if useConfigDriven {
-			keyGroups = harness.RequiredAuthEnvKeysFromConfig(authMeta, authType)
+			keyGroups = harness.RequiredAuthEnvKeysFromConfig(authMeta, authType, awsRoleAssigned)
 		} else {
 			keyGroups = harness.RequiredAuthEnvKeys(harnessType, authType)
 		}

@@ -512,6 +512,12 @@ Three layers; lower layers only matter when the higher one isn't enough.
 
 ### 11.2 v2 work items
 
+> Items 1–4 implemented 2026-07-10 (fabric main, post-v0.2.0). Item 5 (wizard)
+> remains. Hub-side preflight passes `awsRoleAssigned=false` (the hub cannot
+> verify broker-side ambient identity) — hub-dispatched role-mode agents rely
+> on the broker preflight; a broker-verified identity report (analog of
+> `projectHasVerifiedGCPSA`) is a follow-up.
+
 1. `DetectAuthTypeFromAWSIdentity` + ambient-signal detection (env checks
    cheap; IMDS probe with short timeout), wired into the detection
    precedence ahead of env-var styles.

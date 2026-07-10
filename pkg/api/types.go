@@ -530,6 +530,12 @@ type AuthConfig struct {
 	// server and ADC file secrets are not required for vertex-ai auth.
 	GCPMetadataMode string
 
+	// AwsCredentialMode selects how Bedrock credentials are sourced:
+	// "role" (ambient IAM execution role via the default credential chain —
+	// no credential material gathered or mounted), "profile" (explicit
+	// ~/.aws profile discovery signal), or "" / "auto" (detect from env).
+	AwsCredentialMode string
+
 	// Auth mode selection
 	SelectedType string
 

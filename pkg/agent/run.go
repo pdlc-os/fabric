@@ -419,11 +419,13 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	// auth overlay so that GatherAuthWithEnv can see credentials like
 	// GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_REGION declared in the active
 	// settings profile.
+	awsCredentialMode := ""
 	if settings != nil && !opts.BrokerMode {
 		var settingsEnv map[string]string
 		if harnessConfigName != "" {
 			if hcEntry, err := settings.ResolveHarnessConfig(profileName, harnessConfigName); err == nil {
 				settingsEnv = hcEntry.Env
+				awsCredentialMode = hcEntry.AwsCredentialMode
 			}
 		} else if profileName != "" {
 			if p, ok := settings.Profiles[profileName]; ok {
@@ -446,6 +448,14 @@ func (m *AgentManager) Start(ctx context.Context, opts api.StartOptions) (*api.A
 	// resolution can detect credentials without mutating opts.Env (which is
 	// later projected into the container environment).
 	authEnvOverlay := buildAuthEnvOverlay(opts.Env, opts.ResolvedSecrets)
+	// Surface aws_credential_mode from settings to the gather stage via the
+	// overlay only (mirrors FABRIC_METADATA_MODE; not projected into the
+	// container env). An explicit env var still wins over settings.
+	if awsCredentialMode != "" {
+		if _, exists := authEnvOverlay["FABRIC_AWS_CREDENTIAL_MODE"]; !exists {
+			authEnvOverlay["FABRIC_AWS_CREDENTIAL_MODE"] = awsCredentialMode
+		}
+	}
 
 	canFallbackToNoAuth := func() bool {
 		return opts.HarnessAuth == "" && noAuthConfig != nil &&

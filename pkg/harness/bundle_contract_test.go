@@ -94,6 +94,10 @@ type fixtureInput struct {
 	AuthCandidates map[string]interface{} `json:"auth_candidates"`
 	HarnessConfig  map[string]interface{} `json:"harness_config"`
 	MCPServers     map[string]interface{} `json:"mcp_servers"`
+	// Env vars set on the provision.py process, simulating container env
+	// planted by the host (e.g. the ambient-role CLAUDE_CODE_USE_BEDROCK
+	// marker) for methods that match via env_fallback.
+	Env map[string]string `json:"env"`
 }
 
 type fixtureWant struct {
@@ -234,6 +238,9 @@ func runBundleContractCase(t *testing.T, python, hname, caseDir string) {
 	// Run provision.py.
 	cmd := exec.Command(python, filepath.Join(bundleDir, "provision.py"), "--manifest", manifestPath)
 	cmd.Env = append(os.Environ(), "HOME="+tmpHome)
+	for k, v := range input.Env {
+		cmd.Env = append(cmd.Env, k+"="+v)
+	}
 	output, err := cmd.CombinedOutput()
 
 	gotExitCode := 0

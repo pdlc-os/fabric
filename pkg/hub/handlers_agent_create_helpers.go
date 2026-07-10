@@ -796,7 +796,7 @@ func (s *Server) hasRequiredAuthCredentials(ctx context.Context, agent *store.Ag
 	// Explicit auth type selected or no authMeta — use config-driven check when available.
 	var keyGroups [][]string
 	if authMeta != nil {
-		keyGroups = harness.RequiredAuthEnvKeysFromConfig(authMeta, agent.AppliedConfig.HarnessAuth)
+		keyGroups = harness.RequiredAuthEnvKeysFromConfig(authMeta, agent.AppliedConfig.HarnessAuth, false)
 	} else {
 		keyGroups = harness.RequiredAuthEnvKeys(harnessType, agent.AppliedConfig.HarnessAuth)
 	}
@@ -840,7 +840,7 @@ func (s *Server) hasRequiredAuthCredentials(ctx context.Context, agent *store.Ag
 // preflight (which only enforces required: true files), this checks ALL listed
 // files so the hub can determine whether the auth type is viable.
 func (s *Server) isAuthTypeSatisfied(ctx context.Context, agent *store.Agent, authMeta *config.HarnessAuthMetadata, authType string, gcpSAAssigned bool) (bool, error) {
-	keyGroups := harness.RequiredAuthEnvKeysFromConfig(authMeta, authType)
+	keyGroups := harness.RequiredAuthEnvKeysFromConfig(authMeta, authType, false)
 	for _, group := range keyGroups {
 		found, err := s.hasAnyKey(ctx, agent, group)
 		if err != nil {
