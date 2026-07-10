@@ -1,0 +1,14 @@
+{
+  "auth_candidates": {
+    "schema_version": 1,
+    "explicit_type": "bedrock",
+    "env_vars": [],
+    "env_secret_files": {},
+    "files": []
+  },
+  "harness_config": {},
+  "env": {
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_REGION": "us-west-2"
+  }
+}

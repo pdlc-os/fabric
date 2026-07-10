@@ -118,7 +118,8 @@ Points the Claude harness at AWS Bedrock as its model backend (sets `CLAUDE_CODE
 **Required Sources:**
 - `AWS_REGION` (or `AWS_DEFAULT_REGION`): the Bedrock region.
 - One credential style:
-  - `AWS_BEARER_TOKEN_BEDROCK`: an Amazon Bedrock API key — the simplest option.
+  - **IAM execution role (keyless)**: when the broker runs on AWS compute with an ambient role (EC2 instance profile, ECS task role, EKS IRSA), agents use the AWS default credential chain — no credential material in Fabric, nothing that expires. ECS/IRSA are detected automatically from their environment markers; on bare EC2 (which exposes no marker), declare it with `aws_credential_mode: role` (see below) or `FABRIC_AWS_CREDENTIAL_MODE=role` on the broker process.
+  - `AWS_BEARER_TOKEN_BEDROCK`: an Amazon Bedrock API key — the simplest key-based option.
   - `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (+ `AWS_SESSION_TOKEN` for temporary STS credentials).
   - `AWS_PROFILE`: a named profile resolved from `~/.aws/credentials` and `~/.aws/config`. Locally, Fabric mounts both files into the container when a Bedrock or profile signal is present; via the Hub, upload them as the `AWS_CREDENTIALS` and `AWS_CONFIG` file secrets.
 
@@ -161,17 +162,21 @@ If your machine or project always uses Bedrock, set the selection once in the se
 harness_configs:
   claude:
     auth_selected_type: bedrock
+    aws_credential_mode: role      # keyless: ambient IAM execution role
+    env:
+      AWS_REGION: us-west-2
 ```
 
-With that in place, `fabric create my-agent "task"` uses Bedrock with no flags. Credentials themselves are still discovered from the environment where you run `fabric create` — so keep `AWS_PROFILE`/`AWS_REGION` (or the bearer token) exported in your shell, e.g. via your shell profile or your organization's SSO login step.
+`aws_credential_mode` controls where credentials come from:
 
-:::note[Roadmap: role-based access and guided setup]
-Two more ways to configure Bedrock are designed and planned (see [`.design/bedrock-provider-support.md` §11](https://github.com/pdlc-os/fabric/blob/main/.design/bedrock-provider-support.md)):
+- `role` — ambient IAM execution role via the default credential chain. Fabric gathers **no** credential material, never mounts `~/.aws`, and preflight stops demanding AWS secrets. Use on AWS compute.
+- `profile` — explicit `~/.aws` profile discovery, even when `AWS_PROFILE` is set only in the settings `env:` map rather than your shell. Use for the SSO/dev flow.
+- unset / `auto` — detect from the environment (ECS/IRSA markers → role; `AWS_PROFILE`/bearer-token signals → the corresponding key-based style).
 
-- **IAM execution role (keyless)** — brokers running on AWS compute (EC2 instance profile, ECS task role, EKS IRSA) will use the ambient role via the AWS default credential chain: no credentials in Fabric, nothing that expires. An `aws_credential_mode: role | profile` settings key will make the mode explicit; unset means auto-detect.
-- **Onboarding wizard provider step** — first-time setup will detect an execution role (or its absence), recommend the right mode, and write the settings for you.
+With that in place, `fabric create my-agent "task"` uses Bedrock with no flags and no shell exports (for the `profile` mode, your SSO login step still has to have materialized `~/.aws/credentials`).
 
-Until those land, the flows documented above (bearer token, static keys, SSO-materialized profile) are the supported paths.
+:::note[Roadmap: guided setup]
+An onboarding-wizard provider step is planned (see [`.design/bedrock-provider-support.md` §11](https://github.com/pdlc-os/fabric/blob/main/.design/bedrock-provider-support.md)): first-time setup will detect an execution role (or its absence), recommend the right mode, and write the settings above for you.
 :::
 
 ### Harness specific credential file (`auth-file`)

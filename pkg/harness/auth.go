@@ -78,6 +78,7 @@ func GatherAuthWithEnv(env map[string]string, localSources bool, authMeta *confi
 		),
 		GoogleAppCredentials: lookup("GOOGLE_APPLICATION_CREDENTIALS"),
 		GCPMetadataMode:      lookup("FABRIC_METADATA_MODE"),
+		AwsCredentialMode:    lookup("FABRIC_AWS_CREDENTIAL_MODE"),
 	}
 
 	// File-sourced fields: check well-known paths (skip in broker mode)
@@ -125,9 +126,21 @@ func GatherAuthWithEnv(env map[string]string, localSources bool, authMeta *confi
 			// the files are mounted opaquely (never parsed) so host-side
 			// SSO re-logins refresh the short-lived STS credentials in
 			// running containers.
-			if lookup("CLAUDE_CODE_USE_BEDROCK") != "" ||
+			//
+			// aws_credential_mode overrides the env signals: "role" means
+			// ambient identity (never mount host files), "profile" is an
+			// explicit discovery signal (e.g. AWS_PROFILE set only in
+			// settings, not the shell).
+			awsSignal := lookup("CLAUDE_CODE_USE_BEDROCK") != "" ||
 				lookup("AWS_BEARER_TOKEN_BEDROCK") != "" ||
-				lookup("AWS_PROFILE") != "" {
+				lookup("AWS_PROFILE") != ""
+			switch auth.AwsCredentialMode {
+			case "role":
+				awsSignal = false
+			case "profile":
+				awsSignal = true
+			}
+			if awsSignal {
 				awsCredsPath := filepath.Join(home, ".aws", "credentials")
 				if _, err := os.Stat(awsCredsPath); err == nil {
 					auth.AwsCredentialsFile = awsCredsPath
@@ -484,6 +497,36 @@ func DetectAuthTypeFromGCPIdentity(harnessName string, gcpSAAssigned bool) strin
 	return ""
 }
 
+// HasAmbientAWSIdentity reports whether the environment visible through
+// lookup carries ambient AWS credentials that the default credential chain
+// can use without any material from Fabric: an ECS task role
+// (AWS_CONTAINER_CREDENTIALS_*_URI) or EKS IRSA (web identity token + role
+// ARN). EC2 instance profiles expose no env marker — deployments on bare
+// EC2 declare themselves with aws_credential_mode: "role" (or
+// FABRIC_AWS_CREDENTIAL_MODE=role on the broker process) instead.
+func HasAmbientAWSIdentity(lookup func(string) string) bool {
+	if lookup("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") != "" ||
+		lookup("AWS_CONTAINER_CREDENTIALS_FULL_URI") != "" {
+		return true
+	}
+	return lookup("AWS_WEB_IDENTITY_TOKEN_FILE") != "" && lookup("AWS_ROLE_ARN") != ""
+}
+
+// DetectAuthTypeFromAWSIdentity returns "bedrock" when an ambient AWS IAM
+// role is available (awsRoleAssigned). The AWS analog of
+// DetectAuthTypeFromGCPIdentity: role credentials come from the default
+// credential chain, so no env/file secrets are needed.
+func DetectAuthTypeFromAWSIdentity(harnessName string, awsRoleAssigned bool) string {
+	if !awsRoleAssigned {
+		return ""
+	}
+	switch harnessName {
+	case "claude":
+		return "bedrock"
+	}
+	return ""
+}
+
 // RequiredAuthEnvKeys maps a (harnessName, authSelectedType) pair to the
 // env var key groups required by that combination. Each inner slice is a
 // set of alternatives — any one key satisfying the group is sufficient
@@ -582,8 +625,10 @@ func AuthMetadataAvailable(entry *config.HarnessConfigEntry) bool {
 
 // RequiredAuthEnvKeysFromConfig is the config-driven counterpart of
 // RequiredAuthEnvKeys. It returns the env-var alternative groups for the
-// (auth-type) pair declared in authMeta.Types.
-func RequiredAuthEnvKeysFromConfig(authMeta *config.HarnessAuthMetadata, authSelectedType string) [][]string {
+// (auth-type) pair declared in authMeta.Types. Groups marked
+// skipped_when_aws_role_assigned are dropped when awsRoleAssigned is true
+// (ambient IAM role provides credentials via the default credential chain).
+func RequiredAuthEnvKeysFromConfig(authMeta *config.HarnessAuthMetadata, authSelectedType string, awsRoleAssigned bool) [][]string {
 	if authMeta == nil {
 		return nil
 	}
@@ -604,6 +649,9 @@ func RequiredAuthEnvKeysFromConfig(authMeta *config.HarnessAuthMetadata, authSel
 	groups := make([][]string, 0, len(t.RequiredEnv))
 	for _, req := range t.RequiredEnv {
 		if len(req.AnyOf) == 0 {
+			continue
+		}
+		if req.SkippedWhenAWSRoleAssigned && awsRoleAssigned {
 			continue
 		}
 		group := append([]string(nil), req.AnyOf...)
@@ -694,6 +742,19 @@ func DetectAuthTypeFromGCPIdentityFromConfig(authMeta *config.HarnessAuthMetadat
 	}
 	if _, ok := authMeta.Types["vertex-ai"]; ok {
 		return "vertex-ai"
+	}
+	return ""
+}
+
+// DetectAuthTypeFromAWSIdentityFromConfig is the config-driven counterpart
+// of DetectAuthTypeFromAWSIdentity. It returns "bedrock" only when the
+// harness declares a bedrock auth type and an ambient AWS role is available.
+func DetectAuthTypeFromAWSIdentityFromConfig(authMeta *config.HarnessAuthMetadata, awsRoleAssigned bool) string {
+	if !awsRoleAssigned || authMeta == nil {
+		return ""
+	}
+	if _, ok := authMeta.Types["bedrock"]; ok {
+		return "bedrock"
 	}
 	return ""
 }

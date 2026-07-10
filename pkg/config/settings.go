@@ -48,12 +48,13 @@ type HarnessConfig struct {
 }
 
 type HarnessOverride struct {
-	Image            string            `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
-	User             string            `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
-	Env              map[string]string `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
-	Volumes          []api.VolumeMount `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
-	AuthSelectedType string            `json:"auth_selectedType,omitempty" yaml:"auth_selectedType,omitempty" koanf:"auth_selectedType"`
-	Resources        *api.ResourceSpec `json:"resources,omitempty" yaml:"resources,omitempty" koanf:"resources"`
+	Image             string            `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
+	User              string            `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
+	Env               map[string]string `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
+	Volumes           []api.VolumeMount `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
+	AuthSelectedType  string            `json:"auth_selectedType,omitempty" yaml:"auth_selectedType,omitempty" koanf:"auth_selectedType"`
+	AwsCredentialMode string            `json:"aws_credential_mode,omitempty" yaml:"aws_credential_mode,omitempty" koanf:"aws_credential_mode"`
+	Resources         *api.ResourceSpec `json:"resources,omitempty" yaml:"resources,omitempty" koanf:"resources"`
 }
 
 type ProfileConfig struct {

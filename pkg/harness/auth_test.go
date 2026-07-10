@@ -1440,3 +1440,137 @@ func TestResolveAuth_BedrockFilesMounted(t *testing.T) {
 		t.Errorf("AWS_REGION = %q, want us-west-2 (config-driven EnvVars must flow through)", resolved.EnvVars["AWS_REGION"])
 	}
 }
+
+func TestHasAmbientAWSIdentity(t *testing.T) {
+	mk := func(m map[string]string) func(string) string {
+		return func(k string) string { return m[k] }
+	}
+	if HasAmbientAWSIdentity(mk(nil)) {
+		t.Error("empty env: want false")
+	}
+	if !HasAmbientAWSIdentity(mk(map[string]string{"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI": "/v2/creds"})) {
+		t.Error("ECS relative URI: want true")
+	}
+	if !HasAmbientAWSIdentity(mk(map[string]string{"AWS_CONTAINER_CREDENTIALS_FULL_URI": "http://169.254.170.23/creds"})) {
+		t.Error("ECS full URI: want true")
+	}
+	if !HasAmbientAWSIdentity(mk(map[string]string{
+		"AWS_WEB_IDENTITY_TOKEN_FILE": "/var/run/secrets/token",
+		"AWS_ROLE_ARN":                "arn:aws:iam::123:role/x",
+	})) {
+		t.Error("IRSA pair: want true")
+	}
+	if HasAmbientAWSIdentity(mk(map[string]string{"AWS_WEB_IDENTITY_TOKEN_FILE": "/var/run/secrets/token"})) {
+		t.Error("token file without role ARN: want false")
+	}
+}
+
+func TestDetectAuthTypeFromAWSIdentity(t *testing.T) {
+	if got := DetectAuthTypeFromAWSIdentity("claude", true); got != "bedrock" {
+		t.Errorf("claude assigned: got %q, want bedrock", got)
+	}
+	if got := DetectAuthTypeFromAWSIdentity("claude", false); got != "" {
+		t.Errorf("claude unassigned: got %q, want empty", got)
+	}
+	if got := DetectAuthTypeFromAWSIdentity("gemini-cli", true); got != "" {
+		t.Errorf("gemini-cli: got %q, want empty (no bedrock support)", got)
+	}
+}
+
+func TestDetectAuthTypeFromAWSIdentityFromConfig(t *testing.T) {
+	withBedrock := &config.HarnessAuthMetadata{
+		Types: map[string]config.HarnessAuthTypeMetadata{"bedrock": {}},
+	}
+	withoutBedrock := &config.HarnessAuthMetadata{
+		Types: map[string]config.HarnessAuthTypeMetadata{"api-key": {}},
+	}
+	if got := DetectAuthTypeFromAWSIdentityFromConfig(withBedrock, true); got != "bedrock" {
+		t.Errorf("declared + assigned: got %q, want bedrock", got)
+	}
+	if got := DetectAuthTypeFromAWSIdentityFromConfig(withBedrock, false); got != "" {
+		t.Errorf("declared, unassigned: got %q, want empty", got)
+	}
+	if got := DetectAuthTypeFromAWSIdentityFromConfig(withoutBedrock, true); got != "" {
+		t.Errorf("undeclared: got %q, want empty", got)
+	}
+}
+
+func TestRequiredAuthEnvKeysFromConfig_AWSRoleSkip(t *testing.T) {
+	authMeta := &config.HarnessAuthMetadata{
+		Types: map[string]config.HarnessAuthTypeMetadata{
+			"bedrock": {
+				RequiredEnv: []config.HarnessAuthEnvRequirement{
+					{AnyOf: []string{"AWS_REGION", "AWS_DEFAULT_REGION"}},
+					{AnyOf: []string{"AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"}, SkippedWhenAWSRoleAssigned: true},
+					{AnyOf: []string{"AWS_SECRET_ACCESS_KEY", "AWS_BEARER_TOKEN_BEDROCK", "AWS_PROFILE"}, SkippedWhenAWSRoleAssigned: true},
+				},
+			},
+		},
+	}
+
+	got := RequiredAuthEnvKeysFromConfig(authMeta, "bedrock", false)
+	if len(got) != 3 {
+		t.Errorf("no role: got %d groups, want 3", len(got))
+	}
+
+	got = RequiredAuthEnvKeysFromConfig(authMeta, "bedrock", true)
+	if len(got) != 1 {
+		t.Fatalf("role assigned: got %d groups, want 1 (region only): %v", len(got), got)
+	}
+	if got[0][0] != "AWS_REGION" {
+		t.Errorf("role assigned: surviving group = %v, want region group", got[0])
+	}
+}
+
+func TestGatherAuth_AwsCredentialMode(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+	awsDir := filepath.Join(tmpHome, ".aws")
+	_ = os.MkdirAll(awsDir, 0755)
+	_ = os.WriteFile(filepath.Join(awsDir, "credentials"), []byte("[default]\n"), 0600)
+	_ = os.WriteFile(filepath.Join(awsDir, "config"), []byte("[default]\n"), 0600)
+	t.Setenv("FABRIC_AWS_CREDENTIAL_MODE", "")
+	t.Setenv("AWS_PROFILE", "")
+	t.Setenv("AWS_BEARER_TOKEN_BEDROCK", "")
+	t.Setenv("CLAUDE_CODE_USE_BEDROCK", "")
+
+	// mode=profile forces ~/.aws discovery even with no env signal —
+	// this is the settings-only configuration path.
+	auth := GatherAuthWithEnv(map[string]string{"FABRIC_AWS_CREDENTIAL_MODE": "profile"}, true, nil)
+	if auth.AwsCredentialMode != "profile" {
+		t.Errorf("AwsCredentialMode = %q, want profile", auth.AwsCredentialMode)
+	}
+	if auth.AwsCredentialsFile == "" || auth.AwsConfigFile == "" {
+		t.Error("mode=profile: expected ~/.aws files discovered")
+	}
+
+	// mode=role suppresses discovery even when an env signal is present —
+	// ambient identity means host credentials must never be mounted.
+	auth = GatherAuthWithEnv(map[string]string{
+		"FABRIC_AWS_CREDENTIAL_MODE": "role",
+		"AWS_PROFILE":                "some-profile",
+	}, true, nil)
+	if auth.AwsCredentialsFile != "" || auth.AwsConfigFile != "" {
+		t.Errorf("mode=role: AwsCredentialsFile=%q AwsConfigFile=%q, want both empty",
+			auth.AwsCredentialsFile, auth.AwsConfigFile)
+	}
+}
+
+func TestResolveAuth_BedrockSelectedPlantsToggle(t *testing.T) {
+	h := &ContainerScriptHarness{}
+	resolved, err := h.ResolveAuth(api.AuthConfig{SelectedType: "bedrock"})
+	if err != nil {
+		t.Fatalf("ResolveAuth: %v", err)
+	}
+	if resolved.EnvVars["CLAUDE_CODE_USE_BEDROCK"] != "1" {
+		t.Errorf("CLAUDE_CODE_USE_BEDROCK = %q, want 1 (ambient-role marker)", resolved.EnvVars["CLAUDE_CODE_USE_BEDROCK"])
+	}
+
+	resolved, err = h.ResolveAuth(api.AuthConfig{SelectedType: "api-key", AnthropicAPIKey: "k"})
+	if err != nil {
+		t.Fatalf("ResolveAuth: %v", err)
+	}
+	if _, ok := resolved.EnvVars["CLAUDE_CODE_USE_BEDROCK"]; ok {
+		t.Error("api-key selection must not plant the bedrock toggle")
+	}
+}

@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "resolved_auth": {
+    "method": "bedrock",
+    "harness": "claude",
+    "bedrock": true
+  },
+  "env": {
+    "CLAUDE_CODE_USE_BEDROCK": "1"
+  }
+}

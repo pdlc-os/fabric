@@ -73,11 +73,20 @@ AUTH = fabric_harness.AuthSpec(
         fabric_harness.env_method("oauth-token", any_of=["CLAUDE_CODE_OAUTH_TOKEN"],
                                  hint="set CLAUDE_CODE_OAUTH_TOKEN (generate with `claude setup-token`)"),
         fabric_harness.file_method("auth-file", path=CLAUDE_AUTH_FILE, secret_key="CLAUDE_AUTH"),
+        # env_fallback so credentials that arrive as plain container env
+        # (settings env maps, ambient-role marker planted by the host) can
+        # satisfy the match; staged secrets still win via two-pass matching.
+        # CLAUDE_CODE_USE_BEDROCK is the ambient-role marker: with an IAM
+        # execution role the default credential chain needs no material at
+        # all, so the toggle itself is the only signal present.
         fabric_harness.env_method("bedrock",
-                                 any_of=["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"],
+                                 any_of=["AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE",
+                                         "CLAUDE_CODE_USE_BEDROCK"],
+                                 env_fallback=True,
                                  hint="provide AWS credentials for Amazon Bedrock: AWS_BEARER_TOKEN_BEDROCK "
-                                      "(Bedrock API key), AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY, or "
-                                      "AWS_PROFILE with a mounted ~/.aws — plus AWS_REGION"),
+                                      "(Bedrock API key), AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY, "
+                                      "AWS_PROFILE with a mounted ~/.aws, or an ambient IAM role "
+                                      "(CLAUDE_CODE_USE_BEDROCK=1) — plus AWS_REGION"),
         fabric_harness.env_method("vertex-ai",
                                  all_of=["GOOGLE_CLOUD_PROJECT"],
                                  any_of=["GOOGLE_CLOUD_LOCATION", "GOOGLE_CLOUD_REGION"],

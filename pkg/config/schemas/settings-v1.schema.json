@@ -277,6 +277,11 @@
           "enum": ["api-key", "oauth-token", "auth-file", "vertex-ai", "bedrock", "none"],
           "description": "Authentication mechanism to use (e.g., api-key, oauth-token, vertex-ai, auth-file, none)."
         },
+        "aws_credential_mode": {
+          "type": "string",
+          "enum": ["auto", "role", "profile"],
+          "description": "How Bedrock credentials are sourced: 'role' (ambient IAM execution role, no credential material), 'profile' (explicit ~/.aws profile discovery), or 'auto' (detect from environment)."
+        },
         "secrets": {
           "type": "array",
           "items": { "$ref": "#/$defs/requiredSecret" },
@@ -560,6 +565,10 @@
           "type": "array",
           "items": { "type": "string" },
           "minItems": 1
+        },
+        "skipped_when_aws_role_assigned": {
+          "type": "boolean",
+          "description": "Drop this requirement when an ambient AWS IAM role provides credentials via the default credential chain."
         }
       },
       "additionalProperties": false
@@ -660,6 +669,10 @@
         "auth_selected_type": {
           "type": "string",
           "enum": ["api-key", "oauth-token", "auth-file", "vertex-ai", "bedrock"]
+        },
+        "aws_credential_mode": {
+          "type": "string",
+          "enum": ["auto", "role", "profile"]
         }
       },
       "additionalProperties": false

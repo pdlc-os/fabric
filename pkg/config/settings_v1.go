@@ -72,6 +72,9 @@ func (vs *VersionedSettings) ResolveHarnessConfig(profileName, harnessConfigName
 			if override.AuthSelectedType != "" {
 				result.AuthSelectedType = override.AuthSelectedType
 			}
+			if override.AwsCredentialMode != "" {
+				result.AwsCredentialMode = override.AwsCredentialMode
+			}
 			if override.Env != nil {
 				result.Env = mergeMaps(result.Env, override.Env)
 			}
@@ -716,17 +719,21 @@ type V1RuntimeConfig struct {
 // HarnessConfigEntry defines a harness configuration entry in versioned settings.
 // The Harness field is required and specifies the harness type this config applies to.
 type HarnessConfigEntry struct {
-	Name             string               `json:"name,omitempty" yaml:"name,omitempty" koanf:"name"`
-	Harness          string               `json:"harness" yaml:"harness" koanf:"harness"`
-	Image            string               `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
-	User             string               `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
-	Model            string               `json:"model,omitempty" yaml:"model,omitempty" koanf:"model"`
-	TaskFlag         string               `json:"task_flag,omitempty" yaml:"task_flag,omitempty" koanf:"task_flag"`
-	Args             []string             `json:"args,omitempty" yaml:"args,omitempty" koanf:"args"`
-	Env              map[string]string    `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
-	Volumes          []api.VolumeMount    `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
-	AuthSelectedType string               `json:"auth_selected_type,omitempty" yaml:"auth_selected_type,omitempty" koanf:"auth_selected_type"`
-	Secrets          []api.RequiredSecret `json:"secrets,omitempty" yaml:"secrets,omitempty" koanf:"secrets"`
+	Name             string            `json:"name,omitempty" yaml:"name,omitempty" koanf:"name"`
+	Harness          string            `json:"harness" yaml:"harness" koanf:"harness"`
+	Image            string            `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
+	User             string            `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
+	Model            string            `json:"model,omitempty" yaml:"model,omitempty" koanf:"model"`
+	TaskFlag         string            `json:"task_flag,omitempty" yaml:"task_flag,omitempty" koanf:"task_flag"`
+	Args             []string          `json:"args,omitempty" yaml:"args,omitempty" koanf:"args"`
+	Env              map[string]string `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
+	Volumes          []api.VolumeMount `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
+	AuthSelectedType string            `json:"auth_selected_type,omitempty" yaml:"auth_selected_type,omitempty" koanf:"auth_selected_type"`
+	// AwsCredentialMode selects how Bedrock credentials are sourced:
+	// "role" (ambient IAM execution role, no credential material),
+	// "profile" (explicit ~/.aws profile discovery), or ""/"auto" (detect).
+	AwsCredentialMode string               `json:"aws_credential_mode,omitempty" yaml:"aws_credential_mode,omitempty" koanf:"aws_credential_mode"`
+	Secrets           []api.RequiredSecret `json:"secrets,omitempty" yaml:"secrets,omitempty" koanf:"secrets"`
 
 	// ModelAliases maps abstract size aliases (e.g. "small", "medium", "large")
 	// to concrete, harness-specific model names. Templates use the alias in their
@@ -820,12 +827,13 @@ type HarnessMCPConfig struct {
 // V1HarnessOverride defines a harness override entry in versioned settings.
 // Uses snake_case tags, unlike the legacy HarnessOverride (which uses camelCase auth_selectedType).
 type V1HarnessOverride struct {
-	Image            string            `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
-	User             string            `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
-	Env              map[string]string `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
-	Volumes          []api.VolumeMount `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
-	AuthSelectedType string            `json:"auth_selected_type,omitempty" yaml:"auth_selected_type,omitempty" koanf:"auth_selected_type"`
-	Resources        *api.ResourceSpec `json:"resources,omitempty" yaml:"resources,omitempty" koanf:"resources"`
+	Image             string            `json:"image,omitempty" yaml:"image,omitempty" koanf:"image"`
+	User              string            `json:"user,omitempty" yaml:"user,omitempty" koanf:"user"`
+	Env               map[string]string `json:"env,omitempty" yaml:"env,omitempty" koanf:"env"`
+	Volumes           []api.VolumeMount `json:"volumes,omitempty" yaml:"volumes,omitempty" koanf:"volumes"`
+	AuthSelectedType  string            `json:"auth_selected_type,omitempty" yaml:"auth_selected_type,omitempty" koanf:"auth_selected_type"`
+	AwsCredentialMode string            `json:"aws_credential_mode,omitempty" yaml:"aws_credential_mode,omitempty" koanf:"aws_credential_mode"`
+	Resources         *api.ResourceSpec `json:"resources,omitempty" yaml:"resources,omitempty" koanf:"resources"`
 }
 
 // V1ProfileConfig extends ProfileConfig with new fields for versioned settings.

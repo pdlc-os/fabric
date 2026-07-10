@@ -219,6 +219,16 @@ func (c *ContainerScriptHarness) ResolveAuth(auth api.AuthConfig) (*api.Resolved
 		resolved.EnvVars["FABRIC_HARNESS_SELECTED_AUTH"] = auth.SelectedType
 	}
 
+	// When Bedrock is the selected auth type, plant the toggle directly in
+	// the container env. This is what lets the ambient-role mode work with
+	// zero credential material (the provision script matches on it via env
+	// fallback, and Claude Code's default credential chain does the rest),
+	// and it is harmless for the credential styles, which the provisioner
+	// would emit it for anyway.
+	if auth.SelectedType == "bedrock" {
+		resolved.EnvVars["CLAUDE_CODE_USE_BEDROCK"] = "1"
+	}
+
 	// Forward any explicit auth env vars to the container. The script may
 	// move them into final harness-native files. Harness-config metadata
 	// could also drive this declaratively, but keeping it permissive at the
