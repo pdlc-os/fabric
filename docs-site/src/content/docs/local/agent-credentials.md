@@ -38,10 +38,11 @@ The available explicit authentication types are:
 
 - **Provider API Key** (`api-key`): Direct API key authentication.
 - **Vertex Model Garden** (`vertex-ai`): Google Cloud Vertex AI using Application Default Credentials (ADC).
+- **Amazon Bedrock** (`bedrock`): AWS Bedrock as the model backend (Claude harness).
 - **Harness specific credential file** (`auth-file`): A credential file native to the harness, such as an OAuth token file.
 
 :::note
-Fabric translates these universal explicit auth types to harness-native values internally. You should always use the universal values (`api-key`, `vertex-ai`, `auth-file`) in your Fabric configuration.
+Fabric translates these universal explicit auth types to harness-native values internally. You should always use the universal values (`api-key`, `vertex-ai`, `bedrock`, `auth-file`) in your Fabric configuration.
 :::
 
 ---
@@ -109,6 +110,48 @@ fabric hub secret set GOOGLE_CLOUD_REGION "us-east5"
 **Direct Hub secret access from agents is explicitly blocked for security.** The Hub injects secrets into the agent at startup.
 The `gcloud-adc` secret automatically writes the ADC file to the well-known GCP path inside the container. Fabric does **not** set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable by default when using `gcloud-adc`. If you need to use `GOOGLE_APPLICATION_CREDENTIALS` as an alternative for Vertex AI or to point to a non-standard path, set it up as a standard environment variable secret alongside your file secret.
 :::
+
+### Amazon Bedrock (`bedrock`)
+
+Points the Claude harness at AWS Bedrock as its model backend (sets `CLAUDE_CODE_USE_BEDROCK=1` in the container). Supported by the `claude` harness.
+
+**Required Sources:**
+- `AWS_REGION` (or `AWS_DEFAULT_REGION`): the Bedrock region.
+- One credential style:
+  - `AWS_BEARER_TOKEN_BEDROCK`: an Amazon Bedrock API key — the simplest option.
+  - `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (+ `AWS_SESSION_TOKEN` for temporary STS credentials).
+  - `AWS_PROFILE`: a named profile resolved from `~/.aws/credentials` and `~/.aws/config`. Locally, Fabric mounts both files into the container when a Bedrock or profile signal is present; via the Hub, upload them as the `AWS_CREDENTIALS` and `AWS_CONFIG` file secrets.
+
+**Local Setup (enterprise SSO / profile flow):**
+```bash
+# Authenticate with your SSO tooling so short-lived STS credentials are
+# materialized into ~/.aws/credentials for the named profile, e.g.:
+#   aws-okta login && aws-okta creds --profile <name> -r <role-arn>
+export AWS_PROFILE="<name>"
+export AWS_REGION="us-west-2"
+fabric start --harness-auth bedrock my-agent
+```
+
+The `~/.aws` files are mounted live where the runtime supports bind mounts, so re-running your SSO login on the host refreshes credentials in running agents. Profiles that rely on `credential_process` (shelling out to an SSO helper) do **not** work inside the container — only materialized credentials do.
+
+**Local Setup (Bedrock API key):**
+```bash
+export AWS_BEARER_TOKEN_BEDROCK="..."
+export AWS_REGION="us-west-2"
+fabric start --harness-auth bedrock my-agent
+```
+
+**Hub Setup:**
+```bash
+fabric hub secret set AWS_BEARER_TOKEN_BEDROCK "..."
+fabric hub secret set AWS_REGION "us-west-2"
+```
+
+:::note
+Model pinning (e.g. `ANTHROPIC_DEFAULT_SONNET_MODEL` with `us.` or `global.` inference-profile IDs) is not part of the auth type — set those in your template's `env:` map.
+:::
+
+Autodetection treats only `AWS_BEARER_TOKEN_BEDROCK` and `CLAUDE_CODE_USE_BEDROCK` as Bedrock signals; a bare `AWS_REGION` or `AWS_PROFILE` never selects Bedrock on its own. Use `--harness-auth bedrock` (or `auth_selectedType`) for the profile flow.
 
 ### Harness specific credential file (`auth-file`)
 

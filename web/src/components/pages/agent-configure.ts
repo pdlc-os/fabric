@@ -158,6 +158,8 @@ export class FabricPageAgentConfigure extends LitElement {
         return authCaps.auth_file;
       case 'vertex-ai':
         return authCaps.vertex_ai;
+      case 'bedrock':
+        return authCaps.bedrock ?? null;
       default:
         return null;
     }
@@ -802,6 +804,7 @@ export class FabricPageAgentConfigure extends LitElement {
     const authFileCap = this.harnessCapabilities?.auth.auth_file;
     const oauthTokenCap = this.harnessCapabilities?.auth.oauth_token;
     const vertexCap = this.harnessCapabilities?.auth.vertex_ai;
+    const bedrockCap = this.harnessCapabilities?.auth.bedrock;
     const telemetryCap = this.harnessCapabilities?.telemetry.enabled;
     const selectedAuthCap = this.authFieldForMethod(this.authMethod);
 
@@ -863,6 +866,7 @@ export class FabricPageAgentConfigure extends LitElement {
           <sl-option value="api-key">Provider API Key</sl-option>
           <sl-option value="oauth-token" ?disabled=${this.isUnsupported(oauthTokenCap)}>OAuth Token (env var)</sl-option>
           <sl-option value="vertex-ai" ?disabled=${this.isUnsupported(vertexCap)}>Vertex Model Garden</sl-option>
+          <sl-option value="bedrock" ?disabled=${this.isUnsupported(bedrockCap)}>Amazon Bedrock</sl-option>
           <sl-option value="auth-file" ?disabled=${this.isUnsupported(authFileCap)}>Harness credential file</sl-option>
           <sl-option value="none">No Authentication</sl-option>
         </sl-select>

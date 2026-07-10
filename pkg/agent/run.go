@@ -1309,6 +1309,10 @@ func authFileKind(name, target string) string {
 		return "opencode-auth"
 	case name == "CLAUDE_AUTH" || strings.HasSuffix(target, "/.claude/.credentials.json"):
 		return "claude-auth"
+	case name == "AWS_CREDENTIALS" || strings.HasSuffix(target, "/.aws/credentials"):
+		return "aws-credentials"
+	case name == "AWS_CONFIG" || strings.HasSuffix(target, "/.aws/config"):
+		return "aws-config"
 	default:
 		return ""
 	}

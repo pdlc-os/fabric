@@ -1,0 +1,15 @@
+{
+  "auth_candidates": {
+    "schema_version": 1,
+    "env_vars": [
+      "AWS_BEARER_TOKEN_BEDROCK",
+      "AWS_REGION"
+    ],
+    "env_secret_files": {
+      "AWS_BEARER_TOKEN_BEDROCK": "$HOME/.fabric/harness/secrets/AWS_BEARER_TOKEN_BEDROCK",
+      "AWS_REGION": "$HOME/.fabric/harness/secrets/AWS_REGION"
+    },
+    "files": []
+  },
+  "harness_config": {}
+}

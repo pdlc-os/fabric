@@ -394,6 +394,11 @@ func TestRequiredAuthEnvKeys(t *testing.T) {
 		{"claude oauth-token", "claude", "oauth-token", [][]string{{"CLAUDE_CODE_OAUTH_TOKEN"}}},
 		{"claude auth-file", "claude", "auth-file", nil},
 		{"claude vertex-ai", "claude", "vertex-ai", [][]string{{"GOOGLE_CLOUD_PROJECT"}, {"GOOGLE_CLOUD_REGION", "CLOUD_ML_REGION", "GOOGLE_CLOUD_LOCATION"}}},
+		{"claude bedrock", "claude", "bedrock", [][]string{
+			{"AWS_REGION", "AWS_DEFAULT_REGION"},
+			{"AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_PROFILE"},
+			{"AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_PROFILE"},
+		}},
 
 		// Gemini
 		{"gemini api-key", "gemini", "api-key", [][]string{{"GEMINI_API_KEY", "GOOGLE_API_KEY"}}},
@@ -577,6 +582,13 @@ func TestDetectAuthTypeFromEnvVars(t *testing.T) {
 		{"generic with GAC", "generic", map[string]struct{}{"GOOGLE_APPLICATION_CREDENTIALS": {}}, ""},
 		{"claude with unrelated env", "claude", map[string]struct{}{"SOME_OTHER_VAR": {}}, ""},
 		{"claude API key wins over GAC", "claude", map[string]struct{}{"ANTHROPIC_API_KEY": {}, "GOOGLE_APPLICATION_CREDENTIALS": {}}, ""},
+		{"claude with bedrock bearer token", "claude", map[string]struct{}{"AWS_BEARER_TOKEN_BEDROCK": {}}, "bedrock"},
+		{"claude with bedrock flag", "claude", map[string]struct{}{"CLAUDE_CODE_USE_BEDROCK": {}}, "bedrock"},
+		{"claude bedrock wins over vertex", "claude", map[string]struct{}{"AWS_BEARER_TOKEN_BEDROCK": {}, "GOOGLE_CLOUD_PROJECT": {}}, "bedrock"},
+		{"claude API key wins over bedrock", "claude", map[string]struct{}{"ANTHROPIC_API_KEY": {}, "AWS_BEARER_TOKEN_BEDROCK": {}}, ""},
+		{"claude OAuth wins over bedrock", "claude", map[string]struct{}{"CLAUDE_CODE_OAUTH_TOKEN": {}, "AWS_BEARER_TOKEN_BEDROCK": {}}, "oauth-token"},
+		{"claude bare AWS_REGION is not a bedrock signal", "claude", map[string]struct{}{"AWS_REGION": {}}, ""},
+		{"claude bare AWS_PROFILE is not a bedrock signal", "claude", map[string]struct{}{"AWS_PROFILE": {}}, ""},
 		{"claude API key wins over GCP project", "claude", map[string]struct{}{"ANTHROPIC_API_KEY": {}, "GOOGLE_CLOUD_PROJECT": {}}, ""},
 		{"claude API key alone", "claude", map[string]struct{}{"ANTHROPIC_API_KEY": {}}, ""},
 		{"gemini API key wins over GAC", "gemini", map[string]struct{}{"GEMINI_API_KEY": {}, "GOOGLE_APPLICATION_CREDENTIALS": {}}, ""},
@@ -941,6 +953,28 @@ func TestOverlayFileSecrets(t *testing.T) {
 			check: func(t *testing.T, auth api.AuthConfig) {
 				if auth.OAuthCreds != "/home/gemini/.gemini/oauth_creds.json" {
 					t.Errorf("OAuthCreds = %q, want oauth path", auth.OAuthCreds)
+				}
+			},
+		},
+		{
+			name: "AWS credentials by name",
+			secrets: []api.ResolvedSecret{
+				{Name: "AWS_CREDENTIALS", Type: "file", Target: "/home/claude/.aws/credentials"},
+			},
+			check: func(t *testing.T, auth api.AuthConfig) {
+				if auth.AwsCredentialsFile != "/home/claude/.aws/credentials" {
+					t.Errorf("AwsCredentialsFile = %q, want aws credentials path", auth.AwsCredentialsFile)
+				}
+			},
+		},
+		{
+			name: "AWS config by target suffix",
+			secrets: []api.ResolvedSecret{
+				{Name: "my-aws-config", Type: "file", Target: "/home/claude/.aws/config"},
+			},
+			check: func(t *testing.T, auth api.AuthConfig) {
+				if auth.AwsConfigFile != "/home/claude/.aws/config" {
+					t.Errorf("AwsConfigFile = %q, want aws config path", auth.AwsConfigFile)
 				}
 			},
 		},
@@ -1333,5 +1367,76 @@ func TestGatherAuthWithEnv_BrokerModeConfigDriven(t *testing.T) {
 
 	if auth.EnvVars["COPILOT_GITHUB_TOKEN"] != "broker-token" {
 		t.Errorf("COPILOT_GITHUB_TOKEN = %q, want overlay value %q", auth.EnvVars["COPILOT_GITHUB_TOKEN"], "broker-token")
+	}
+}
+
+func TestGatherAuth_AwsFileDiscoveryGated(t *testing.T) {
+	tmpHome := t.TempDir()
+	t.Setenv("HOME", tmpHome)
+
+	awsDir := filepath.Join(tmpHome, ".aws")
+	_ = os.MkdirAll(awsDir, 0755)
+	_ = os.WriteFile(filepath.Join(awsDir, "credentials"), []byte("[default]\n"), 0600)
+	_ = os.WriteFile(filepath.Join(awsDir, "config"), []byte("[default]\n"), 0600)
+
+	// Without a Bedrock/profile signal, ~/.aws must NOT be discovered:
+	// many developers have AWS credentials for unrelated infrastructure,
+	// and unconditional discovery would mount them into every container.
+	t.Setenv("CLAUDE_CODE_USE_BEDROCK", "")
+	t.Setenv("AWS_BEARER_TOKEN_BEDROCK", "")
+	t.Setenv("AWS_PROFILE", "")
+	auth := GatherAuthWithEnv(nil, true, nil)
+	if auth.AwsCredentialsFile != "" || auth.AwsConfigFile != "" {
+		t.Errorf("without bedrock signal: AwsCredentialsFile=%q AwsConfigFile=%q, want both empty",
+			auth.AwsCredentialsFile, auth.AwsConfigFile)
+	}
+
+	// With a profile signal, both files are discovered.
+	auth = GatherAuthWithEnv(map[string]string{"AWS_PROFILE": "bedrock-profile"}, true, nil)
+	if auth.AwsCredentialsFile != filepath.Join(awsDir, "credentials") {
+		t.Errorf("AwsCredentialsFile = %q, want %q", auth.AwsCredentialsFile, filepath.Join(awsDir, "credentials"))
+	}
+	if auth.AwsConfigFile != filepath.Join(awsDir, "config") {
+		t.Errorf("AwsConfigFile = %q, want %q", auth.AwsConfigFile, filepath.Join(awsDir, "config"))
+	}
+
+	// Broker mode (localSources=false) never scans the filesystem, even
+	// with a signal present.
+	auth = GatherAuthWithEnv(map[string]string{"AWS_BEARER_TOKEN_BEDROCK": "tok"}, false, nil)
+	if auth.AwsCredentialsFile != "" || auth.AwsConfigFile != "" {
+		t.Errorf("broker mode: AwsCredentialsFile=%q AwsConfigFile=%q, want both empty",
+			auth.AwsCredentialsFile, auth.AwsConfigFile)
+	}
+}
+
+func TestResolveAuth_BedrockFilesMounted(t *testing.T) {
+	h := &ContainerScriptHarness{}
+	resolved, err := h.ResolveAuth(api.AuthConfig{
+		AwsCredentialsFile: "/host/home/.aws/credentials",
+		AwsConfigFile:      "/host/home/.aws/config",
+		EnvVars:            map[string]string{"AWS_REGION": "us-west-2"},
+	})
+	if err != nil {
+		t.Fatalf("ResolveAuth: %v", err)
+	}
+
+	wantMounts := map[string]string{
+		"/host/home/.aws/credentials": "~/.aws/credentials",
+		"/host/home/.aws/config":      "~/.aws/config",
+	}
+	found := 0
+	for _, f := range resolved.Files {
+		if want, ok := wantMounts[f.SourcePath]; ok {
+			found++
+			if f.ContainerPath != want {
+				t.Errorf("mount %s: ContainerPath = %q, want %q", f.SourcePath, f.ContainerPath, want)
+			}
+		}
+	}
+	if found != len(wantMounts) {
+		t.Errorf("found %d of %d expected AWS file mounts in %v", found, len(wantMounts), resolved.Files)
+	}
+	if resolved.EnvVars["AWS_REGION"] != "us-west-2" {
+		t.Errorf("AWS_REGION = %q, want us-west-2 (config-driven EnvVars must flow through)", resolved.EnvVars["AWS_REGION"])
 	}
 }

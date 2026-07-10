@@ -1,0 +1,15 @@
+{
+  "auth_candidates": {
+    "schema_version": 1,
+    "env_vars": [
+      "AWS_PROFILE",
+      "AWS_REGION"
+    ],
+    "env_secret_files": {
+      "AWS_PROFILE": "$HOME/.fabric/harness/secrets/AWS_PROFILE",
+      "AWS_REGION": "$HOME/.fabric/harness/secrets/AWS_REGION"
+    },
+    "files": []
+  },
+  "harness_config": {}
+}
