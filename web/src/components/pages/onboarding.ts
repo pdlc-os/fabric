@@ -496,7 +496,7 @@ export class FabricPageOnboarding extends LitElement {
         this.imageRegistry = status.imageRegistry;
         this.registryInput = status.imageRegistry;
       } else {
-        this.registryInput = 'ghcr.io/homebrew-fabric';
+        this.registryInput = 'ghcr.io/pdlc-os';
       }
       if (status?.gitVersion !== undefined) this.gitVersion = status.gitVersion;
       if (status?.gitVersionOK !== undefined) this.gitVersionOK = status.gitVersionOK;

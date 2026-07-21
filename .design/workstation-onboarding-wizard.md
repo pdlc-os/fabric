@@ -12,7 +12,7 @@ depends on them.
 > **Confirmed decisions (2026-05-31):** **D1** identity is cosmetic (settable display
 > name/email, stable UUID, default OS user) — the identity step writes it via
 > `PUT /system/identity`. **D3** images: prebuilt pull from the pre-seeded
-> `ghcr.io/homebrew-fabric` is the default; **add a local build option** once a runtime
+> `ghcr.io/pdlc-os` is the default; **add a local build option** once a runtime
 > is confirmed. **D4** per-image pull progress (build streams log lines). **D8**
 > `fabric server start` **auto-opens** the browser to `/onboarding` when un-onboarded and
 > **always prints the URL, before backgrounding**. SSE travels on the shared `/events`
@@ -512,7 +512,7 @@ Re-running a pull is idempotent: `ImageExists` short-circuits already-present im
 
 ### 7.6 Local image build (D3) — `POST /api/v1/system/images/build`
 
-Default onboarding pulls prebuilt images from the pre-seeded `ghcr.io/homebrew-fabric`
+Default onboarding pulls prebuilt images from the pre-seeded `ghcr.io/pdlc-os`
 registry (D3), so most users never build. But for users on their own registry, an
 air-gapped setup, or who simply want local images, the wizard offers a **"Build images
 locally"** action — **enabled only after a runtime is confirmed present** (the runtime
