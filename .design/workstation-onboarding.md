@@ -49,7 +49,7 @@ match.
 |---|---|---|
 | D1 | **Identity is cosmetic** for local single-user. Keep the stable `DevUser` UUID for DB integrity; allow a settable display name + email, defaulting to the **OS username** instead of `dev@localhost`. | W2 stays small. No real user-record creation. |
 | D2 | **Do not rename the dev token.** Keep "dev token", the `fabric_dev_` format, `~/.fabric/dev-token`, and `FABRIC_DEV_TOKEN` exactly as-is internally. **Only relabel docs/UI** to "developer token" for consistency. | W3 shrinks to a copy/label pass; no new env var, no `local auth mode`. |
-| D3 | **Images: prefer prebuilt, add local build.** The Homebrew install pre-seeds `ghcr.io/homebrew-fabric` as the registry, so the pull path is the default and "just works". **Add a local image-build option** in the wizard, available **after a runtime is confirmed present**. | W4 = pull (default) + build (fallback). |
+| D3 | **Images: prefer prebuilt, add local build.** The Homebrew install pre-seeds `ghcr.io/pdlc-os` as the registry, so the pull path is the default and "just works". **Add a local image-build option** in the wizard, available **after a runtime is confirmed present**. | W4 = pull (default) + build (fallback). |
 | D4 | **Per-image pull progress** (queued → pulling → done/exists/error). Layer-level streaming is a later enhancement. Local build streams raw build log lines into a collapsible panel. | W4 progress fidelity. |
 | D5 | **Linked-grove picker = server-side directory browser** (a custom web folder tree with a **"New folder"** button), **strictly disabled (404) when serving in production.** Not a native OS dialog (not reachable from a served web page). | W5 elevates the browser to v1. |
 | D6 | **Hard-fail** when a user tries to link a directory that is inside the hub-managed path space (`~/.fabric/projects/`, legacy `groves/`). | W5 validation rule. |
@@ -118,11 +118,11 @@ are not stitched into a guided first-run flow. (Designed in
   `config.InitMachine()` at `pkg/config/init.go:548-620`. Creates `~/.fabric`, detects
   the runtime, writes `settings.yaml`, seeds harness-configs for all four built-ins,
   seeds the default template, pre-generates a stable broker ID, and (Homebrew install)
-  pre-seeds `image_registry: ghcr.io/homebrew-fabric`.
+  pre-seeds `image_registry: ghcr.io/pdlc-os`.
 - **Runtime detection** — `pkg/config/runtime_detect.go:52-75` (`DetectLocalRuntime`,
   preference podman → container[macOS] → docker). Factory: `pkg/runtime/factory.go:31-137`.
 - **Image pulling** — today a *shell script*, `image-build/scripts/pull-containers.sh`.
-  Prebuilt public images are published at `ghcr.io/homebrew-fabric/` (see the Homebrew
+  Prebuilt public images are published at `ghcr.io/pdlc-os/` (see the Homebrew
   distribution design). W4 adds a Go-native, harness-aware pull plus a local build path.
 - **Doctor** — `cmd/doctor.go:30-261` already runs git/tmux/runtime checks with
   structured pass/warn/fail results (`pkg/runtime/doctor.go:15-41`) — the data source
@@ -234,7 +234,7 @@ Coordinate with `cli-modes.md`.
 ### W4 — Harness-aware images: pull + local build (D3, D4)
 Detailed in the wizard doc §7. Go-native pull via the runtime interface
 (`pkg/runtime/interface.go` `ImageExists`/`PullImage`), defaulting to the pre-seeded
-`ghcr.io/homebrew-fabric` registry, with **per-image** progress on the `/events` SSE
+`ghcr.io/pdlc-os` registry, with **per-image** progress on the `/events` SSE
 stream (D4). Add a **local build** option (shells out to the build scripts) enabled only
 after a runtime is confirmed, streaming build logs into a collapsible panel.
 
@@ -256,7 +256,7 @@ The original open questions are now resolved by §1a:
 | Q2 First-run detection signal | Server-computed status struct, `sessionStorage`-cached (wizard §3). |
 | Q3 Bootstrap-auth window | Dev-auth auto-login session on loopback (wizard §4). |
 | Q4 Rename naming | Build against "project" per the in-flight rename. |
-| Q5 Image / no-registry UX | Pre-seeded `ghcr.io/homebrew-fabric` is the default; local build added; step skippable (D3). |
+| Q5 Image / no-registry UX | Pre-seeded `ghcr.io/pdlc-os` is the default; local build added; step skippable (D3). |
 | Q6 Resumability/idempotency | Idempotent endpoints + resume from status struct (wizard §5.4). |
 | Q7 Username scope | Cosmetic only, stable UUID (D1). |
 

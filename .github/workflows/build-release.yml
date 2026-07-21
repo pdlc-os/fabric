@@ -23,6 +23,19 @@ permissions:
   contents: write
 
 jobs:
+  images:
+    name: Build and Push Agent Images
+    # Skip pre-release tags (matching the Homebrew tap job below).
+    if: ${{ !contains(github.ref_name, '-') }}
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-images.yml
+    with:
+      registry: ghcr.io/pdlc-os
+      target: all
+      tag: latest
+
   build:
     name: Build Multi-Arch Binaries
     runs-on: ubuntu-latest

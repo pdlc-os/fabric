@@ -107,8 +107,24 @@ resolve_targets() {
 }
 
 # step_image_name <step_id>
+#
+# For harness steps the published image name comes from the `image:` field
+# in the harness's config.yaml (the name fabric actually pulls at runtime),
+# which can differ from the catalog directory name — e.g. harnesses/gemini-cli
+# publishes fabric-gemini. Everything else publishes under its step ID.
 step_image_name() {
-  echo "$1"
+  local step="$1"
+  if is_harness_step "${step}"; then
+    local cfg="${REPO_ROOT}/harnesses/${step#fabric-}/config.yaml"
+    local img
+    img="$(sed -n 's/^image:[[:space:]]*//p' "${cfg}" 2>/dev/null | head -n1)"
+    img="${img%%:*}"
+    if [[ -n "${img}" ]]; then
+      echo "${img}"
+      return
+    fi
+  fi
+  echo "${step}"
 }
 
 # step_dockerfile <step_id>
